@@ -1,0 +1,12 @@
+﻿{
+  "version": "1.0.0-*",
+  "authors": ["Cyrille NDOUMBE"],
+  "dependencies": {
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50"
+    }
+  }
+}

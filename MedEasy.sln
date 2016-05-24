@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EAAC395F-DA00-4403-B398-420633AC7122}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AD8EF2B8-5BB9-42CC-AD4B-7255E4C77EFB}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy", "src\MedEasy\MedEasy.xproj", "{AE73343F-0381-4F92-B045-8A9D016093FB}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.Objects", "src\MedEasy.Objects\MedEasy.Objects.xproj", "{8C26C500-1C26-49BF-B224-2F022CEC6839}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.DAL", "src\MedEasy.DAL\MedEasy.DAL.xproj", "{0FF41E3F-BC7F-4570-B82C-1BE748789C4D}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.Tools", "src\MedEasy.Tools\MedEasy.Tools.xproj", "{AEE36B81-186E-41CF-89F0-AD8864FB72B6}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.Validators", "src\MedEasy.Validators\MedEasy.Validators.xproj", "{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.DTO", "src\MedEasy.DTO\MedEasy.DTO.xproj", "{7AC52EAC-92BC-434F-8825-23A82D745FB7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE73343F-0381-4F92-B045-8A9D016093FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE73343F-0381-4F92-B045-8A9D016093FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE73343F-0381-4F92-B045-8A9D016093FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE73343F-0381-4F92-B045-8A9D016093FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C26C500-1C26-49BF-B224-2F022CEC6839}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C26C500-1C26-49BF-B224-2F022CEC6839}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C26C500-1C26-49BF-B224-2F022CEC6839}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C26C500-1C26-49BF-B224-2F022CEC6839}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FF41E3F-BC7F-4570-B82C-1BE748789C4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FF41E3F-BC7F-4570-B82C-1BE748789C4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FF41E3F-BC7F-4570-B82C-1BE748789C4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FF41E3F-BC7F-4570-B82C-1BE748789C4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE36B81-186E-41CF-89F0-AD8864FB72B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE36B81-186E-41CF-89F0-AD8864FB72B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE36B81-186E-41CF-89F0-AD8864FB72B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE36B81-186E-41CF-89F0-AD8864FB72B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AC52EAC-92BC-434F-8825-23A82D745FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AC52EAC-92BC-434F-8825-23A82D745FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AC52EAC-92BC-434F-8825-23A82D745FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AC52EAC-92BC-434F-8825-23A82D745FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AE73343F-0381-4F92-B045-8A9D016093FB} = {EAAC395F-DA00-4403-B398-420633AC7122}
+		{8C26C500-1C26-49BF-B224-2F022CEC6839} = {EAAC395F-DA00-4403-B398-420633AC7122}
+		{0FF41E3F-BC7F-4570-B82C-1BE748789C4D} = {EAAC395F-DA00-4403-B398-420633AC7122}
+		{AEE36B81-186E-41CF-89F0-AD8864FB72B6} = {EAAC395F-DA00-4403-B398-420633AC7122}
+		{B75079F4-34E4-4ED1-9D3C-3F026FA3B63D} = {EAAC395F-DA00-4403-B398-420633AC7122}
+		{7AC52EAC-92BC-434F-8825-23A82D745FB7} = {EAAC395F-DA00-4403-B398-420633AC7122}
+	EndGlobalSection
+EndGlobal
