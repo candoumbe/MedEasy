@@ -80,11 +80,6 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(GenericGetResponse<BrowsableSpecialtyInfo>))]
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
-            if (query == null)
-            {
-                query = new GenericGetQuery();
-            }
-            query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
            
             int count = result.Entries.Count();

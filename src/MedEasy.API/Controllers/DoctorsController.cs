@@ -82,7 +82,7 @@ namespace MedEasy.API.Controllers
                 query = new GenericGetQuery();
             }
 
-            query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
+            
                 
             IPagedResult<DoctorInfo> result = await GetAll(query);
            

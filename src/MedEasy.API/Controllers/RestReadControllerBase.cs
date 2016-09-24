@@ -148,7 +148,9 @@ namespace MedEasy.API.Controllers
                 };
             }
 
-           return await _genericGetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
+            query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
+
+            return await _genericGetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
         }
     }
 }

@@ -399,6 +399,8 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 20, MaxPageSize = 200 });
+
             _handlerGetManyDoctorInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, DoctorInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
