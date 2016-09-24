@@ -12,6 +12,7 @@ using MedEasy.Handlers.Commands;
 using MedEasy.Commands;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Options;
 
 namespace MedEasy.API.Controllers
 {
@@ -52,6 +53,7 @@ namespace MedEasy.API.Controllers
         /// Builds a new <see cref="RestCRUDControllerBase{TKey, TEntity, TResource, TGetByIdQuery, TGetManyQuery, TCommandId, TPost, TCreateCommand, TRunCreateCommand}"/> instance
         /// </summary>
         /// <param name="logger">logger to use</param>
+        /// <param name="apiOptions">Options of the api</param>
         /// <param name="urlHelperFactory">factory to create <see cref="IUrlHelper"/> instance</param>
         /// <param name="actionContextAccessor">Gives access to the current <see cref="ActionContext"/> instance</param>
         /// <param name="getOneResourceByIdHandler"><see cref="IHandleQueryAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
@@ -60,9 +62,10 @@ namespace MedEasy.API.Controllers
         /// <exception cref="ArgumentNullException">if any arguments is <c>null</c></exception>
         protected RestCRUDControllerBase(
             ILogger logger,
+            IOptions<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
             IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
-            TRunCreateCommand iRunCreateCommand, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor) : base(logger, getOneResourceByIdHandler, getManyResourcesHandler, urlHelperFactory, actionContextAccessor )
+            TRunCreateCommand iRunCreateCommand, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelperFactory, actionContextAccessor )
         {
             _iRunCreateCommand = iRunCreateCommand;
 

@@ -9,6 +9,7 @@ using MedEasy.Queries;
 using MedEasy.DTO;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Options;
 
 namespace MedEasy.API.Controllers
 {
@@ -35,15 +36,26 @@ namespace MedEasy.API.Controllers
         /// </summary>
         private readonly IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> _genericGetManyQueryHandler;
 
-                
+        /// <summary>
+        /// Options associated with the API
+        /// </summary>
+        protected IOptions<MedEasyApiOptions> ApiOptions { get; }
+
+        /// <summary>
+        /// Factory to create <see cref="IUrlHelper"/> instances
+        /// </summary>
         protected IUrlHelperFactory UrlHelperFactory { get; }
 
+        /// <summary>
+        /// Accessor for <see cref="ActionContext"/>
+        /// </summary>
         protected IActionContextAccessor ActionContextAccessor { get; }
 
         /// <summary>
         /// Builds a new <see cref="RestReadControllerBase{TKey, TResource}"/> instance
         /// </summary>
         /// <param name="logger">logger to use</param>
+        /// <param name="apiOptions">Options of the API</param>
         /// <param name="actionContextAccessor">Accessor to the <see cref="ActionContext"/></param>
         /// <param name="urlHelperFactory">actory for creating <see cref="IUrlHelper"/> instances</param>
         /// <param name="getByIdHandler">handler to use to lookup for a single resource</param>
@@ -51,6 +63,7 @@ namespace MedEasy.API.Controllers
         /// <exception cref="ArgumentNullException">if either <paramref name="logger"/> or <paramref name="getByIdHandler"/> is <code>null</code></exception>
         protected RestReadControllerBase(
             ILogger logger, 
+            IOptions<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource> > getByIdHandler,
             IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler, 
             IUrlHelperFactory urlHelperFactory, 
@@ -79,6 +92,7 @@ namespace MedEasy.API.Controllers
             _genericGetManyQueryHandler = getManyQueryHandler;
             UrlHelperFactory = urlHelperFactory;
             ActionContextAccessor = actionContextAccessor;
+            ApiOptions = apiOptions;
         }
 
         /// <summary>
@@ -123,7 +137,18 @@ namespace MedEasy.API.Controllers
         /// <param name="query">GET many resources query</param>
         /// <returns><see cref="Task{GenericPagedGetResponse}"/></returns>
         [NonAction]
-        public async Task<IPagedResult<TResource>> GetAll(GenericGetQuery query) 
-            =>  await _genericGetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
+        public async Task<IPagedResult<TResource>> GetAll(GenericGetQuery query)
+        {
+            if (query == null)
+            {
+                query = new GenericGetQuery
+                {
+                    Page = 1,
+                    PageSize = ApiOptions.Value.DefaultPageSize
+                };
+            }
+
+           return await _genericGetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
+        }
     }
 }

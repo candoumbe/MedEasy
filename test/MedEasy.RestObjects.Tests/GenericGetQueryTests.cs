@@ -26,7 +26,7 @@ namespace MedEasy.Tests.RestObjects
                     yield return new object[]
                     {
                         pageSize,
-                        pageSize < 1 ? 1 : Math.Min(pageSize, GenericGetQuery.MaxPageSize)
+                        pageSize < 1 ? 1 : pageSize
                     };
                 }
                 

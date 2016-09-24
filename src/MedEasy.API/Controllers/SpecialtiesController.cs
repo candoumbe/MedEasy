@@ -15,6 +15,7 @@ using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.Commands.Specialty;
 using Swashbuckle.SwaggerGen.Annotations;
 using System.Diagnostics;
+using Microsoft.Extensions.Options;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -57,12 +58,12 @@ namespace MedEasy.API.Controllers
         /// <param name="iFindDoctorsBySpecialtyIdQueryHandler">handlers for queries to get doctors by specialty id</param>
         /// <param name="actionContextAccessor"></param>
         public SpecialtiesController(ILogger<SpecialtiesController> logger, IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor, 
+            IActionContextAccessor actionContextAccessor, IOptions<MedEasyApiOptions> apiOptions,
             IHandleGetSpecialtyInfoByIdQuery getByIdQueryHandler,
             IHandleGetManySpecialtyInfosQuery getManySpecialtyQueryHandler,
             IRunCreateSpecialtyCommand iRunCreateSpecialtyCommand,
             IRunDeleteSpecialtyByIdCommand iRunDeleteSpecialtyByIdCommand,
-            IHandleFindDoctorsBySpecialtyIdQuery iFindDoctorsBySpecialtyIdQueryHandler) : base(logger, getByIdQueryHandler, getManySpecialtyQueryHandler, iRunCreateSpecialtyCommand, urlHelperFactory, actionContextAccessor)
+            IHandleFindDoctorsBySpecialtyIdQuery iFindDoctorsBySpecialtyIdQueryHandler) : base(logger, apiOptions, getByIdQueryHandler, getManySpecialtyQueryHandler, iRunCreateSpecialtyCommand, urlHelperFactory, actionContextAccessor)
         { 
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
@@ -83,12 +84,9 @@ namespace MedEasy.API.Controllers
             {
                 query = new GenericGetQuery();
             }
-
-            int nbItemsPerPage = query.PageSize;
-
+            query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
            
-            
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && query.Page > 1;
 

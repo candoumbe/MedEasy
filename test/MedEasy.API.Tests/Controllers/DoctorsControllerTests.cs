@@ -32,6 +32,8 @@ using MedEasy.Queries;
 using MedEasy.Handlers.Doctor.Queries;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Validators;
+using MedEasy.API;
+using Microsoft.Extensions.Options;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -48,6 +50,7 @@ namespace MedEasy.WebApi.Tests
         private IMapper _mapper;
         private Mock<IRunCreateDoctorCommand> _iRunCreateDoctorInfoCommandMock;
         private Mock<IRunDeleteDoctorInfoByIdCommand> _iRunDeleteDoctorInfoByIdCommandMock;
+        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
 
         public DoctorsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -74,7 +77,8 @@ namespace MedEasy.WebApi.Tests
             _handlerGetManyDoctorInfoQueryMock = new Mock<IHandleGetManyDoctorInfosQuery>(Strict);
             _iRunCreateDoctorInfoCommandMock = new Mock<IRunCreateDoctorCommand>(Strict);
             _iRunDeleteDoctorInfoByIdCommandMock = new Mock<IRunDeleteDoctorInfoByIdCommand>(Strict);
-            _controller = new DoctorsController(_loggerMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor,
+            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _controller = new DoctorsController(_loggerMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor, _apiOptionsMock.Object,
                 _handleGetOneDoctorInfoByIdQueryMock.Object,
                 _handlerGetManyDoctorInfoQueryMock.Object,
                 _iRunCreateDoctorInfoCommandMock.Object,
@@ -164,7 +168,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
-            #region Arrange
+            // Arrange
             using (var uow = _factory.New())
             {
                 uow.Repository<Doctor>().Create(items);
@@ -187,11 +191,13 @@ namespace MedEasy.WebApi.Tests
                     }
                 }));
 
-            #endregion
-
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            // Act
             IActionResult actionResult = await _controller.Get(new GenericGetQuery { PageSize = pageSize, Page = page });
 
-            #region Assert
+            // Assert
+            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(DoctorsController)}.{nameof(DoctorsController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
+
 
             actionResult.Should()
                     .NotBeNull()
@@ -213,7 +219,8 @@ namespace MedEasy.WebApi.Tests
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
             response.Links.Next.Should().Match(nextPageUrlExpectation);
             response.Links.Last.Should().Match(lastPageUrlExpectation);
-            #endregion
+           
+
         }
 
 
@@ -458,8 +465,11 @@ namespace MedEasy.WebApi.Tests
             _actionContextAccessor = null;
             _handleGetOneDoctorInfoByIdQueryMock = null;
             _handlerGetManyDoctorInfoQueryMock = null;
+            _iRunCreateDoctorInfoCommandMock = null;
+            _iRunDeleteDoctorInfoByIdCommandMock = null;
             _factory = null;
             _mapper = null;
+            _apiOptionsMock = null;
         }
     }
 }

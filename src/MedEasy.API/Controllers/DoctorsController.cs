@@ -13,6 +13,7 @@ using MedEasy.Handlers.Doctor.Queries;
 using MedEasy.Queries.Doctor;
 using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.Commands.Doctor;
+using Microsoft.Extensions.Options;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -54,15 +55,17 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         public DoctorsController(ILogger<DoctorsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, 
+            IOptions<MedEasyApiOptions> apiOptions,
             IHandleGetDoctorInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyDoctorInfosQuery getManyDoctorQueryHandler,
             IRunCreateDoctorCommand iRunCreateDoctorCommand,
-            IRunDeleteDoctorInfoByIdCommand iRunDeleteDoctorByIdCommand) : base(logger, getByIdQueryHandler, getManyDoctorQueryHandler, iRunCreateDoctorCommand, urlHelperFactory, actionContextAccessor)
+            IRunDeleteDoctorInfoByIdCommand iRunDeleteDoctorByIdCommand) : base(logger, apiOptions, getByIdQueryHandler, getManyDoctorQueryHandler, iRunCreateDoctorCommand, urlHelperFactory, actionContextAccessor)
         { 
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
             _iRunCreateDoctorCommand = iRunCreateDoctorCommand;
             _iRunDeleteDoctorByIdCommand = iRunDeleteDoctorByIdCommand;
+
         }
 
 
@@ -79,7 +82,8 @@ namespace MedEasy.API.Controllers
                 query = new GenericGetQuery();
             }
 
-            
+            query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
+                
             IPagedResult<DoctorInfo> result = await GetAll(query);
            
             

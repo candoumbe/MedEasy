@@ -68,6 +68,12 @@ namespace MedEasy.API
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
+            services.AddOptions();
+            services.Configure<MedEasyApiOptions>((options) =>
+            {
+                options.DefaultPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 30);
+                options.MaxPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 100);
+            });
             // Add framework services.
             services.AddMvc();
 
@@ -135,6 +141,7 @@ namespace MedEasy.API
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
+
 
             app.UseMvc();
 

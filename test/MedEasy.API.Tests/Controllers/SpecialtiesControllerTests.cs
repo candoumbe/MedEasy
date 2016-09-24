@@ -32,6 +32,8 @@ using MedEasy.Queries;
 using MedEasy.Handlers.Specialty.Queries;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Validators;
+using Microsoft.Extensions.Options;
+using MedEasy.API;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -49,6 +51,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunCreateSpecialtyCommand> _iRunCreateSpecialtyInfoCommandMock;
         private Mock<IRunDeleteSpecialtyByIdCommand> _iRunDeleteSpecialtyInfoByIdCommandMock;
         private Mock<IHandleFindDoctorsBySpecialtyIdQuery> _iHandleFindDoctorsBySpecialtyIdQueryMock;
+        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
 
         public SpecialtiesControllerTests(ITestOutputHelper outputHelper)
         {
@@ -76,11 +79,13 @@ namespace MedEasy.WebApi.Tests
             _iHandleFindDoctorsBySpecialtyIdQueryMock = new Mock<IHandleFindDoctorsBySpecialtyIdQuery>(Strict);
             _iRunCreateSpecialtyInfoCommandMock = new Mock<IRunCreateSpecialtyCommand>(Strict);
             _iRunDeleteSpecialtyInfoByIdCommandMock = new Mock<IRunDeleteSpecialtyByIdCommand>(Strict);
+            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
             _controller = new SpecialtiesController(
                 _loggerMock.Object, 
                 _urlHelperFactoryMock.Object, 
                 _actionContextAccessor,
+                _apiOptionsMock.Object,
                 _iHandleGetOneSpecialtyInfoByIdQueryMock.Object,
                 _iHandlerGetManySpecialtyInfoQueryMock.Object,
                 _iRunCreateSpecialtyInfoCommandMock.Object,
@@ -107,7 +112,7 @@ namespace MedEasy.WebApi.Tests
                             Enumerable.Empty<Specialty>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, GenericGetQuery.MaxPageSize))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                             ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
@@ -172,7 +177,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
-            #region Arrange
+            // Arrange
             using (var uow = _factory.New())
             {
                 uow.Repository<Specialty>().Create(items);
@@ -194,12 +199,12 @@ namespace MedEasy.WebApi.Tests
                         return results;
                     }
                 }));
-
-            #endregion
-
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            // Act
             IActionResult actionResult = await _controller.Get(new GenericGetQuery { PageSize = pageSize, Page = page });
 
-            #region Assert
+            // Assert
+            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(SpecialtiesController)}.{nameof(SpecialtiesController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
 
             actionResult.Should()
                     .NotBeNull()
@@ -221,7 +226,7 @@ namespace MedEasy.WebApi.Tests
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
             response.Links.Next.Should().Match(nextPageUrlExpectation);
             response.Links.Last.Should().Match(lastPageUrlExpectation);
-            #endregion
+            
         }
 
 
@@ -484,6 +489,7 @@ namespace MedEasy.WebApi.Tests
             _controller = null;
             _outputHelper = null;
             _actionContextAccessor = null;
+            _apiOptionsMock = null;
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock = null;
             _iHandlerGetManySpecialtyInfoQueryMock = null;

@@ -51,7 +51,7 @@ namespace MedEasy.RestObjects
             }
             set
             {
-                _pageSize = value < 1 ? 1 : Math.Min(value, MaxPageSize);
+                _pageSize = value < 1 ? 1 : value;
             }
         }
 
