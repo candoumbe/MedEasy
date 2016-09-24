@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "MedEasy.Objects": "1.0.0-*",
+    "MedEasy.DTO": "1.0.0-*",
+    "AutoMapper": "5.0.2"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50"
+    }
+  }
+}

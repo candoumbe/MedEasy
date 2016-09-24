@@ -1,30 +1,32 @@
 using System.Collections.Generic;
 using MedEasy.DTO;
+using System.Threading.Tasks;
+using static MedEasy.Validators.ErrorLevel;
 
 namespace MedEasy.Validators
 {
     public class PatientInfoValidator : IValidate<PatientInfo>
     {
-        public IEnumerable<ErrorInfo> Validate(PatientInfo element)
+        public IEnumerable<Task<ErrorInfo>> Validate(PatientInfo element)
         {
             if (element == null)
             {
-                yield return new ErrorInfo(string.Empty, "Patient info cannot be null", ErrorLevel.Error);
+                yield return Task.FromResult(new ErrorInfo(string.Empty, $"{nameof(element)} cannot be null", Error));
             }
 
             else
             {
                 if (string.IsNullOrWhiteSpace(element.Firstname) && string.IsNullOrWhiteSpace(element.Lastname))
                 {
-                    yield return new ErrorInfo(string.Empty, $"{nameof(element.Firstname)} or {nameof(element.Lastname)} must be set", ErrorLevel.Error);
+                    yield return Task.FromResult(new ErrorInfo(string.Empty, $"{nameof(element.Firstname)} or {nameof(element.Lastname)} must be set", Error));
                 }
                 else if (string.IsNullOrWhiteSpace(element.Lastname))
                 {
-                    yield return new ErrorInfo(nameof(PatientInfo.Lastname), $"{nameof(element.Lastname)} must be set", ErrorLevel.Error);
+                    yield return Task.FromResult(new ErrorInfo(nameof(element.Lastname), $"{nameof(element.Lastname)} must be set", Error));
                 }
                 else
                 {
-                    yield return new ErrorInfo(nameof(element.Firstname), $"{nameof(element.Firstname)} is not set", ErrorLevel.Warning);
+                    yield return Task.FromResult(new ErrorInfo(nameof(element.Firstname), $"{nameof(element.Firstname)} is not set", Warning));
                 }
             }
         }

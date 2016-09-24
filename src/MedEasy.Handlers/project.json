@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "MedEasy.Validators": "1.0.0-*",
+    "MedEasy.DAL": "1.0.0-*",
+    "MedEasy.Objects": "1.0.0-*",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
+    "System.Linq": "4.1.0",
+    "System.Runtime": "4.1.0",
+    "AutoMapper": "5.0.2",
+    "System.Threading.Tasks": "4.0.11",
+    "MedEasy.Commands": "1.0.0-*",
+    "MedEasy.Queries": "1.0.0-*"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "portable-net451+win8"
+      ]
+    }
+  }
+}

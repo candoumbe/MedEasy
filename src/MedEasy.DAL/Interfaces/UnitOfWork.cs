@@ -6,13 +6,27 @@ using MedEasy.DAL.Repositories;
 
 namespace MedEasy.DAL.Interfaces
 {
+    /// <summary>
+    /// <para>
+    /// An instance of this class allow to work with several <see cref="IRepository{TEntry}"/>s.
+    /// </para>
+    /// Changes made to entities of any <see cref="IRepository{TEntry}"/> by calling the <see cref="Repository{TEntry}"/> method can either
+    /// <list type="bullet">
+    /// <item> be saved</item>
+    /// <item>disposed</item>
+    /// </list>
+    /// </summary>
+    /// <typeparam name="TContext"></typeparam>
     public class UnitOfWork<TContext> : IUnitOfWork where TContext : IDbContext
     {
         private readonly TContext _context;
         private readonly IDictionary<Type, object> _repositories;
         private bool _disposed;
 
-
+        /// <summary>
+        /// Builds a new instance of <see cref="UnitOfWork{TContext}"/>
+        /// </summary>
+        /// <param name="context">instance of <see cref="TContext"/> that the current <see cref="UnitOfWork{TContext}"/> will wrap</param>
         public UnitOfWork(TContext context)
         {
             _context = context;
@@ -23,15 +37,15 @@ namespace MedEasy.DAL.Interfaces
         public IRepository<TEntry> Repository<TEntry>() where TEntry : class
         {
             IRepository<TEntry> repository;
-            // Checks if the Dictionary Key contains the Model class
+            // Checks if the Dictionary Key contains the Type class
             if (_repositories.Keys.Contains(typeof(TEntry)))
             {
-                // Return the repository for that Model class
+                // Return the repository for that Type class
                 repository = _repositories[typeof(TEntry)] as IRepository<TEntry>;
             }
             else
             {
-                // If the repository for that Model class doesn't exist, create it
+                // If the repository for that Type class doesn't exist, create it
                 repository = new Repository<TEntry>(_context);
                 // Add it to the dictionary
                 _repositories.Add(typeof(TEntry), repository);
@@ -39,33 +53,20 @@ namespace MedEasy.DAL.Interfaces
 
             return repository;
         }
-        
-        /// <summary>
-        /// Saves all pending changes
-        /// </summary>
-        /// <returns>The number of objects in an Added, Modified, or Deleted state</returns>
-        public int SaveChanges()
-        {
-            return _context.SaveChanges();
-        }
+
 
         /// <summary>
         /// Saves all pending changes
         /// </summary>
         /// <returns>The number of objects in an Added, Modified, or Deleted state</returns>
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
+        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync().ConfigureAwait(false);
 
         /// <summary>
         /// Saves all pending changes
         /// </summary>
         /// <returns>The number of objects in an Added, Modified, or Deleted state</returns>
-        public async Task<int> SaveChangesAsync(CancellationToken token)
-        {
-            return await _context.SaveChangesAsync(token);
-        }
+        public async Task<int> SaveChangesAsync(CancellationToken token) 
+            => await _context.SaveChangesAsync(token).ConfigureAwait(false);
 
         public void Dispose()
         {

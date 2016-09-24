@@ -3,6 +3,10 @@ using MedEasy.DAL.Interfaces;
 
 namespace MedEasy.DAL.Repositories
 {
+    /// <summary>
+    /// Repository base class
+    /// </summary>
+    /// <typeparam name="TEntry"></typeparam>
     public abstract class RepositoryBase<TEntry> where TEntry : class
     {
         

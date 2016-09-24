@@ -1,0 +1,12 @@
+﻿{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "System.Runtime": "4.1.0",
+    "MedEasy.DTO": "1.0.0-*"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {}
+  }
+}

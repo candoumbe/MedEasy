@@ -1,0 +1,122 @@
+@model MedEasy.ViewModels.Doctor.DoctorCreateModel
+@using MedEasy.Controllers;
+@using MedEasy.DTO
+
+
+@{
+    ViewData["Title"] = "Nouvelle fiche médecin";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="@nameof(DoctorController.Create)">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <fieldset>
+            <legend>Identité</legend>
+            <div class="form-group">
+                <label asp-for="Firstname" class="col-md-2 control-label"></label>
+                <div class="col-md-4">
+                    <input asp-for="Firstname" class="form-control focus" />
+                    
+                </div>
+               <span asp-validation-for="Firstname" class="text-danger" />
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Lastname" class="col-md-2 control-label"></label>
+                <div class="col-md-4">
+                    <input asp-for="Lastname" class="form-control" />
+                    <span asp-validation-for="Lastname" class="text-danger" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Specialties" class="col-md-2 control-label"></label>
+                <div class="col-md-4">
+                    <select asp-for="Specialties" class="form-control">
+                        <option></option>
+                        @foreach (SpecialtyInfo item in ViewBag.Specialties)
+                        {
+                            <option value="@item.Id">@item.Name (@item.Code)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SpecialtyId" class="text-danger" />
+                </div>
+            </div>
+
+            <div class="form-group form-inline">
+                <label asp-for="Email" class="col-md-2 control-label sr-only"></label>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            @@
+                        </span>
+                        <input asp-for="Email" class="form-control" aria-labelledby="Email" />
+                        <span asp-validation-for="Email" class="text-danger" />
+                    </div>
+
+                </div>
+                <label asp-for="PhoneNumber" class="col-md-2 control-label sr-only"></label>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-phone-alt"></span>
+                        </span>
+                        <input asp-for="PhoneNumber" class="form-control" aria-labelledby="PhoneNumber" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger" />
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Adresse</legend>
+            @(await Html.PartialAsync("~/Views/Address/Create.cshtml"))
+        </fieldset>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-ok"></span> Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="@nameof(PatientController.Index)">Back to List</a>
+</div>
+
+@section Scripts {
+<environment names="Development">
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/js/ts/extensions/string.js"></script>
+
+</environment>
+<environment names="Staging, Production">
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</environment>
+
+    <script>
+        $(document).ready(function () {
+            $("#Firstname, #BirthPlace, #Street, #City").change(function () {
+                var currentVal = $(this).val();
+                $(this).val(currentVal.toProperCase());
+            });
+
+            $("#Lastname, #Country, #ZipCode").change(function () {
+                var currentVal = $(this).val();
+                $(this).val(currentVal.toUpperCase());
+            });
+
+
+        })
+    </script>
+}

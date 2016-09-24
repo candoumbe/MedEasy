@@ -1,21 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MedEasy.Validators
 {
-    // This project can output the Class library as a NuGet Package.
-    // To enable this option, right-click on the project and select the Properties menu item. In the Build tab select "Produce outputs on build".
-    public interface IValidate<T>
+    /// <summary>
+    /// Interface of validators
+    /// </summary>
+    /// <typeparam name="T">Type to validate</typeparam>
+    public interface IValidate<in T>
     {
-        IEnumerable<ErrorInfo> Validate(T element);
+        /// <summary>
+        /// Validates the specified <see cref="element"/>.
+        /// This method returns a collection of <see cref="Task"/>
+        /// </summary>
+        /// <param name="element">The element to validate</param>
+        /// <returns><see cref="IEnumerable{T}"/>which holds all informations on the validation result</returns>
+        IEnumerable<Task<ErrorInfo>> Validate(T element);
     }
 
-    public class Validator<T> : IValidate<T>
-    {
-        public IEnumerable<ErrorInfo> Validate(T element)
-        {
-            return Enumerable.Empty<ErrorInfo>();
-        }
-    }
+    
 }

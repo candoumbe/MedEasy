@@ -1,19 +1,29 @@
-﻿using MedEasy.DTO.Autocomplete;
-using System;
+﻿using Newtonsoft.Json;
 using System.Runtime.Serialization;
 
 namespace MedEasy.DTO.Autocomplete
 {
-    [DataContract]
+    /// <summary>
+    /// An instance of this class models autocomplete response for doctor informations
+    /// </summary>
+    [JsonObject]
     public class DoctorAutocompleteInfo : AutocompleteInfo<int>
     {
-        [DataMember]
+        /// <summary>
+        /// Doctor's firstname
+        /// </summary>
+        [JsonProperty]
         public string Firstname { get; set; }
-
-        [DataMember]
+        /// <summary>
+        /// Doctor's lastname
+        /// </summary>
+        [JsonProperty]
         public string Lastname { get; set; }
 
-        [DataMember]
+        /// <summary>
+        /// Doctor' specialty
+        /// </summary>
+        [JsonProperty]
         public string Specialty { get; set; }
         
     }

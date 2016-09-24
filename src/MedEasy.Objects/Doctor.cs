@@ -37,6 +37,7 @@ namespace MedEasy.Objects
         public int? SpecialtyId { get; set; }
 
         public Specialty Specialty { get; set; }
+
         public ICollection<Patient> Patients { get; set; }
     }
 }

@@ -18,28 +18,16 @@ namespace MedEasy.DAL.Repositories
             Entries = Context.Set<TEntry>();
         }
 
-        public virtual PagedResult<TEntry> ReadAll(IEnumerable<OrderClause<TEntry>> orderBy, int limit, int offset)
+
+        
+        
+        public virtual async Task<IPagedResult<TEntry>> ReadPageAsync(IEnumerable<OrderClause<TEntry>> orderBy, int pageSize, int page)
         {
-            return ReadAll(item => item, orderBy, limit, offset);
+            return await ReadPageAsync(item => item, pageSize, page, orderBy)
+                .ConfigureAwait(false);
         }
 
-        public virtual PagedResult<TResult> ReadAll<TResult>(Expression<Func<TEntry, TResult>> selector, IEnumerable<OrderClause<TResult>> orderBy, int limit, int offset)
-        {
-
-            IQueryable<TResult> query = Entries.Select(selector)
-                    .Skip((offset - 1) * offset)
-                    .Take(limit);
-            
-            
-            return new PagedResult<TResult>(query.ToArray(), Entries.Count());
-        }
-
-        public virtual async Task<PagedResult<TEntry>> ReadPageAsync(IEnumerable<OrderClause<TEntry>> orderBy, int limit, int offset)
-        {
-            return await ReadPageAsync(item => item, limit, offset, orderBy);
-        }
-
-        public virtual async Task<PagedResult<TResult>> ReadPageAsync<TResult>(Expression<Func<TEntry, TResult>> selector, int limit, int offset, IEnumerable<OrderClause<TResult>> orderBy)
+        public virtual async Task<IPagedResult<TResult>> ReadPageAsync<TResult>(Expression<Func<TEntry, TResult>> selector, int pageSize, int page, IEnumerable<OrderClause<TResult>> orderBy)
         {
 
             
@@ -50,78 +38,33 @@ namespace MedEasy.DAL.Repositories
                 resultQuery = resultQuery.OrderBy(orderBy);
             }
 
-            IEnumerable<TResult> result = await resultQuery
-                .Skip(offset < 1 ? 0 : (offset - 1) * limit)
-                .Take(limit)
-                .ToArrayAsync();
+            
 
-            return new PagedResult<TResult>(result.ToArray(), await Entries.CountAsync());
+            IEnumerable<TResult> results = await resultQuery
+                .Skip(page < 1 ? 0 : (page - 1) * pageSize)
+                .Take(pageSize)
+                .ToArrayAsync()
+                .ConfigureAwait(false);
+            
+            IPagedResult<TResult> pageResult = new PagedResult<TResult>(results, await Entries.CountAsync().ConfigureAwait(false), pageSize);
+
+            return pageResult;
         }
-
-        public IEnumerable<TResult> ReadAll<TResult>(Expression<Func<TEntry, TResult>> selector)
-        {
-
-            return Entries.Select(selector).ToArray();
-        }
-
-        public virtual IEnumerable<TEntry> ReadAll()
-        {
-            return ReadAll(item => item);
-        }
-
+        
 
         public virtual async Task<IEnumerable<TResult>> ReadAllAsync<TResult>(Expression<Func<TEntry, TResult>> selector)
         {
-            return await Entries.Select(selector).ToArrayAsync();
+            return await Entries.Select(selector).ToArrayAsync().ConfigureAwait(false);
         }
 
         public virtual async Task<IEnumerable<TEntry>> ReadAllAsync()
         {
-            return await ReadAllAsync(item => item);
+            return await ReadAllAsync(item => item).ConfigureAwait(false);
         }
-
-        public virtual IEnumerable<TEntry> Where(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Where(item => item, predicate);
-        }
-
-        public virtual IEnumerable<TResult> Where<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
-        {
-            IEnumerable<TResult> entries = Entries.Where(predicate).Select(selector).ToArray();
-
-
-            return entries;
-        }
-
-        public IEnumerable<TResult> Where<TKey, TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, Expression<Func<TResult, TKey>> keySelector, Expression<Func<IGrouping<TKey, TResult>, TResult>> groupBySelector )
-        {
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
-            if (keySelector == null)
-            {
-                throw new ArgumentNullException(nameof(keySelector));
-            }
-            if (groupBySelector == null)
-            {
-                throw new ArgumentNullException(nameof(groupBySelector));
-            }
-            
-            IEnumerable<TResult> results = Entries
-                    .Select(selector)
-                    .GroupBy(keySelector)
-                    .Select(groupBySelector)
-                    .ToArray();
-            
-            return results;
-
-        }
-
+        
         public virtual async Task<IEnumerable<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).ToArrayAsync();
+            return await Entries.Where(predicate).Select(selector).ToArrayAsync().ConfigureAwait(false);
         }
 
 
@@ -147,7 +90,8 @@ namespace MedEasy.DAL.Repositories
                     .Where(predicate)
                     .GroupBy(keySelector)
                     .Select(groupBySelector)
-                    .ToArrayAsync();
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
             
             return results;
         }
@@ -162,28 +106,28 @@ namespace MedEasy.DAL.Repositories
 
         public virtual async Task<IEnumerable<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TEntry>> orderBy = null, IEnumerable<IncludeClause<TEntry>> includedProperties = null)
         {
-            return await WhereAsync(item => item, predicate, orderBy, includedProperties);
+            return await WhereAsync(item => item, predicate, orderBy, includedProperties).ConfigureAwait(false);
         }
 
         public virtual async Task<IEnumerable<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy = null, IEnumerable<IncludeClause<TEntry>> includedProperties = null)
         {
-
-
             return await Entries
                 .Where(predicate)
-                //.Include(includedProperties)
+                .Include(includedProperties)
                 .Select(selector)
-                //.OrderBy(orderBy)
-                .ToArrayAsync();
+                .OrderBy(orderBy)
+                .ToArrayAsync()
+                .ConfigureAwait(false);
         }
 
-        public async Task<PagedResult<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TEntry>> orderBy, int limit, int offset)
+        public async Task<IPagedResult<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TEntry>> orderBy, int pageSize, int page)
         {
 
-            return await WhereAsync(item => item, predicate, orderBy, limit, offset);
+            return await WhereAsync(item => item, predicate, orderBy, pageSize, page)
+                .ConfigureAwait(false);
         }
 
-        public async Task<PagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int limit, int offset)
+        public async Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page)
         {
 
             if (orderBy == null)
@@ -193,183 +137,109 @@ namespace MedEasy.DAL.Repositories
             IQueryable<TResult> query = Entries
                 .Where(predicate)
                 .Select(selector)
-                //.OrderBy(orderBy)
-                .Skip(limit * (offset - 1))
-                .Take(limit);
+                .OrderBy(orderBy)
+                .Skip(pageSize * (page < 1 ? 1 : page - 1))
+                .Take(pageSize);
+
+            //we compute both task
+            Task<List<TResult>> queryResultTask = query.ToListAsync();
+            Task<int> countTask = CountAsync(predicate);
             
 
-
-            PagedResult<TResult> pagedResult = new PagedResult<TResult>(await query.ToArrayAsync(), await CountAsync(predicate));
+            await Task.WhenAll(queryResultTask, CountAsync(predicate)).ConfigureAwait(false);
+            int total = await countTask;
+            IPagedResult<TResult> pagedResult = new PagedResult<TResult>(await queryResultTask , total, pageSize);
 
             return pagedResult;
         }
-
-        public virtual IEnumerable<TResult> Where<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy = null, IEnumerable<IncludeClause<TEntry>> includedProperties = null)
-        {
-
-            IQueryable<TResult> query = Entries
-                    .Where(predicate)
-                    //.Include(includedProperties)
-                    .Select(selector);
-                    //.OrderBy(orderBy);
-
-            return query.ToArray();
-
-        }
-
-        public virtual IEnumerable<TEntry> Where(Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TEntry>> orderBy = null, IEnumerable<IncludeClause<TEntry>> includedProperties = null)
-        {
-            return Where(item => item, predicate, orderBy, includedProperties);
-        }
-
-        public bool Any()
-        {
-            return Entries.Any();
-        }
-
         public async Task<bool> AnyAsync()
         {
-            return await Entries.AnyAsync();
+            return await Entries.AnyAsync().ConfigureAwait(false);
         }
 
-        public TResult Max<TResult>(Expression<Func<TEntry, TResult>> selector)
-        {
-            return Entries.Max(selector);
-        }
 
         public async Task<TResult> MaxAsync<TResult>(Expression<Func<TEntry, TResult>> selector)
         {
             return await Entries.MaxAsync(selector);
         }
 
-        public TResult Min<TResult>(Expression<Func<TEntry, TResult>> selector)
-        {
-            return Entries.Min(selector);
-        }
 
         public async Task<TResult> MinAsync<TResult>(Expression<Func<TEntry, TResult>> selector)
         {
-            return await Entries.MinAsync(selector);
-        }
-
-        public bool Any(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Any(predicate);
+            return await Entries.MinAsync(selector).ConfigureAwait(false);
         }
 
         public async Task<bool> AnyAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.AnyAsync(predicate);
-        }
-
-        public int Count()
-        {
-            return Entries.Count();
+            return await Entries.AnyAsync(predicate).ConfigureAwait(false);
         }
 
         public async Task<int> CountAsync()
         {
-            return await Entries.CountAsync();
-        }
-
-        public int Count(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Count(predicate);
+            return await Entries.CountAsync().ConfigureAwait(false);
         }
 
         public async Task<int> CountAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.CountAsync(predicate);
-        }
-
-        public TEntry Single()
-        {
-            return Entries.Single();
-        }
-
-        public TEntry Single(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Single(predicate);
+            return await Entries.CountAsync(predicate).ConfigureAwait(false);
         }
 
         public async Task<TEntry> SingleAsync()
         {
-            return await Entries.SingleAsync();
+            return await Entries.SingleAsync().ConfigureAwait(false);
         }
 
         public async Task<TEntry> SingleAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.SingleAsync(predicate);
+            return await Entries.SingleAsync(predicate).ConfigureAwait(false);
         }
 
-        public TResult Single<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Where(predicate).Select(selector).Single();
-        }
 
         public async Task<TResult> SingleAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).SingleAsync();
+            return await Entries.Where(predicate).Select(selector)
+                .SingleAsync()
+                .ConfigureAwait(false);
         }
-
-        public TEntry SingleOrDefault()
-        {
-            return Entries.SingleOrDefault();
-        }
-
+        
         public async Task<TEntry> SingleOrDefaultAsync()
         {
-            return await Entries.SingleOrDefaultAsync();
+            return await Entries.SingleOrDefaultAsync()
+                .ConfigureAwait(false);
         }
-
-        public TEntry SingleOrDefault(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.SingleOrDefault(predicate);
-        }
+        
 
         public async Task<TEntry> SingleOrDefaultAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.SingleOrDefaultAsync(predicate);
+            return await Entries.SingleOrDefaultAsync(predicate)
+                .ConfigureAwait(false);
         }
 
-        public TResult SingleOrDefault<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Where(predicate).Select(selector).SingleOrDefault();
-        }
 
         public async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).SingleOrDefaultAsync();
-        }
-
-        public TEntry First()
-        {
-            return Entries.First();
+            return await Entries.Where(predicate).Select(selector)
+                .SingleOrDefaultAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task<TEntry> FirstAsync()
         {
-            return await Entries.FirstAsync();
-        }
-
-        public TEntry FirstOrDefault()
-        {
-            return Entries.FirstOrDefault();
+            return await Entries.FirstAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task<TEntry> FirstOrDefaultAsync()
         {
-            return await Entries.FirstOrDefaultAsync();
+            return await Entries.FirstOrDefaultAsync()
+                .ConfigureAwait(false);
         }
 
-        public TEntry First(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.First(predicate);
-        }
 
         public async Task<TEntry> FirstAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.FirstAsync(predicate);
+            return await Entries.FirstAsync(predicate)
+                .ConfigureAwait(false);
         }
 
         public void Delete(Expression<Func<TEntry, bool>> predicate)
@@ -378,34 +248,60 @@ namespace MedEasy.DAL.Repositories
             Entries.RemoveRange(entries);
         }
 
-        public TResult First<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Where(predicate).Select(selector).First();
-        }
 
         public async Task<TResult> FirstAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).FirstAsync();
-        }
-
-        public TResult FirstOrDefault<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.Where(predicate).Select(selector).FirstOrDefault();
+            return await Entries
+                .Where(predicate)
+                .Select(selector)
+                .FirstAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task<TResult> FirstOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).FirstOrDefaultAsync();
-        }
-
-        public TEntry FirstOrDefault(Expression<Func<TEntry, bool>> predicate)
-        {
-            return Entries.FirstOrDefault(predicate);
+            return await Entries.Where(predicate).Select(selector)
+                .FirstOrDefaultAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task<TEntry> FirstOrDefaultAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.FirstOrDefaultAsync(predicate);
+            return await Entries.FirstOrDefaultAsync(predicate)
+                .ConfigureAwait(false);
+        }
+
+        
+        public TEntry Create(TEntry entry)
+        {
+            if (entry == null)
+            {
+                throw new ArgumentNullException(nameof(entry));
+            }
+
+            return Entries.Add(entry).Entity;
+        }
+
+        public IEnumerable<TEntry> Create(IEnumerable<TEntry> entries)
+        {
+            Entries.AddRange(entries);
+
+            return entries;
+        }
+
+        public async Task<bool> AllAsync(Expression<Func<TEntry, bool>> predicate)
+        {
+            return await Entries
+                .AllAsync(predicate)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<bool> AllAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate)
+        {
+            return await Entries
+                .Select(selector)
+                .AllAsync(predicate)
+                .ConfigureAwait(false);
         }
     }
 }

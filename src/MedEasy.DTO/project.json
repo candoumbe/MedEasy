@@ -1,7 +1,12 @@
-﻿{
+{
   "version": "1.0.0-*",
   "authors": ["Cyrille NDOUMBE"],
   "dependencies": {
+    "MedEasy.RestObjects": "1.0.0-*",
+    "System.Runtime.InteropServices": "4.1.0",
+    "MedEasy.Tools": "1.0.0-*",
+    "System.Runtime.Serialization.Primitives": "4.1.1",
+    "Newtonsoft.Json": "9.0.1"
   },
 
   "frameworks": {

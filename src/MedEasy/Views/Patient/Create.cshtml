@@ -1,0 +1,155 @@
+@model MedEasy.ViewModels.Patient.PatientCreateModel
+@using MedEasy.Controllers;
+
+@{
+    ViewData["Title"] = "Nouvelle fiche patient";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="@nameof(PatientController.Create)">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <fieldset>
+            <legend>Identité</legend>
+            <div class="form-group">
+                <label asp-for="Firstname" class="col-md-2 control-label"></label>
+                <div class="col-md-4">
+                    <input asp-for="Firstname" class="form-control focus" />
+                    <span asp-validation-for="Firstname" class="text-danger" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lastname" class="col-md-2 control-label"></label>
+                <div class="col-md-4">
+                    <input asp-for="Lastname" class="form-control" />
+                    <span asp-validation-for="Lastname" class="text-danger" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BirthDate" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <kendo-datepicker id="BirthDate" max="DateTime.Now" format="dd/MM/yyyy" class="form-control" />
+                    <span asp-validation-for="BirthDate" class="text-danger" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="BirthPlace" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    @{ 
+                        IKendoDataSource ds = new KendoRemoteDataSource
+                        {
+                            Transport = new KendoTransport
+                            {
+                                Read = new KendoTransportOperation
+                                {
+                                    Url = Url.Action("GetCities", "Cities")
+                                }
+                            }
+                        };
+                    }
+                    <kendo-autocomplete class="form-control"
+                                        asp-for="BirthPlace"
+                                        min-length="3"
+                                        ignore-case="true"
+                                        asp-data-source="ds" />
+                    <span asp-validation-for="BirthPlace" class="text-danger" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MainDoctorId" class="col-md-2 control-label"></label>
+                <div class="col-md-7">
+                    @{
+                        IKendoDataSource autocompleteDataSource = new KendoRemoteDataSource
+                        {
+                            Transport = new KendoTransport
+                            {
+                                Read = new KendoTransportOperation
+                                {
+                                    Url = Url.Action(nameof(DoctorController.AutocompleteDoctorName), DoctorController.ControllerName)
+                                }
+                            },
+                            ServerFiltering = true
+
+                        };
+                    }
+                    <kendo-autocomplete id="MainDoctorId" asp-data-source="autocompleteDataSource"
+                                         min-length="3"
+                                         placeholder="Médecin traitant"
+                                         data-textfield="Text" data-valuefield="Value" />
+                    @*<select asp-for="MainDoctorId" asp-items="doctors" class="form-control">
+                            <option>Sélectionner le médecin traitant</option>
+                        </select>*@
+                    <span asp-validation-for="MainDoctorId" class="text-danger" />
+                </div>
+            </div>
+            <div class="form-group form-inline">
+                <label asp-for="Email" class="col-md-2 control-label sr-only"></label>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            @@
+                        </span>
+                        <input asp-for="Email" class="form-control" aria-labelledby="Email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                </div>
+                <label asp-for="PhoneNumber" class="col-md-2 control-label sr-only"></label>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-phone-alt"></span>
+                        </span>
+                        <input asp-for="PhoneNumber" class="form-control" aria-labelledby="PhoneNumber" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        @*<fieldset>
+                <legend>Adresse</legend>
+                @(await Html.PartialAsync("~/Views/Address/Create.cshtml"))
+            </fieldset>*@
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-ok"></span> Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="@nameof(PatientController.Index)">Retour</a>
+</div>
+
+@section Scripts {
+    <environment names="Development">
+
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+        <script src="~/js/System/string.js"></script>
+        <script src="~/js/Pages/BasePage.js"></script>
+        <script src="~/js/Pages/Patient/Create.js"></script>
+    </environment>
+    <environment names="Staging, Production">
+
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    </environment>
+
+
+    <script>
+        function getDoctorName() {
+            return { term: $("#MainDoctorId").val() };
+        }
+    </script>
+
+}

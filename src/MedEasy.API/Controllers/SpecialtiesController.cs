@@ -1,0 +1,221 @@
+﻿using System;
+using System.Threading.Tasks;
+using MedEasy.Objects;
+using MedEasy.DTO;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
+using MedEasy.RestObjects;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using MedEasy.DAL.Repositories;
+using System.Linq;
+using MedEasy.Handlers.Specialty.Queries;
+using MedEasy.Queries.Specialty;
+using MedEasy.Handlers.Specialty.Commands;
+using MedEasy.Commands.Specialty;
+using Swashbuckle.SwaggerGen.Annotations;
+using System.Diagnostics;
+
+// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace MedEasy.API.Controllers
+{
+    /// <summary>
+    /// Endpoint to handle CRUD operations on <see cref="SpecialtyInfo"/> resources
+    /// </summary>
+    [Route("api/[controller]")]
+    public class SpecialtiesController : RestCRUDControllerBase<int, Specialty, SpecialtyInfo, IWantOneSpecialtyInfoByIdQuery, IWantManySpecialtyInfoQuery, Guid, CreateSpecialtyInfo, ICreateSpecialtyCommand, IRunCreateSpecialtyCommand>
+    {
+        /// <summary>
+        /// Name of the endpoint
+        /// </summary>
+        public static string EndpointName => nameof(SpecialtiesController).Replace("Controller", string.Empty);
+
+
+        /// <summary>
+        /// Name of the controller without the "Controller" suffix 
+        /// </summary>
+        protected override string ControllerName => EndpointName;
+
+       
+
+        private readonly IUrlHelperFactory _urlHelperFactory;
+        private readonly IActionContextAccessor _actionContextAccessor;
+        private readonly IRunCreateSpecialtyCommand _iRunCreateSpecialtyCommand;
+        private readonly IRunDeleteSpecialtyByIdCommand _iRunDeleteSpecialtyByIdCommand;
+        private readonly IHandleFindDoctorsBySpecialtyIdQuery _iFindDoctorsBySpecialtyIdQueryHandler;
+
+        /// <summary>
+        /// Builds a new <see cref="SpecialtiesController"/> instance
+        /// </summary>
+        /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
+        /// <param name="getManySpecialtyQueryHandler">Handler of GET many resources</param>
+        /// <param name="iRunCreateSpecialtyCommand">Runner of CREATE resource command</param>
+        /// <param name="iRunDeleteSpecialtyByIdCommand">Runner of DELETE resource command</param>
+        /// <param name="logger">logger</param>
+        /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
+        /// <param name="iFindDoctorsBySpecialtyIdQueryHandler">handlers for queries to get doctors by specialty id</param>
+        /// <param name="actionContextAccessor"></param>
+        public SpecialtiesController(ILogger<SpecialtiesController> logger, IUrlHelperFactory urlHelperFactory,
+            IActionContextAccessor actionContextAccessor, 
+            IHandleGetSpecialtyInfoByIdQuery getByIdQueryHandler,
+            IHandleGetManySpecialtyInfosQuery getManySpecialtyQueryHandler,
+            IRunCreateSpecialtyCommand iRunCreateSpecialtyCommand,
+            IRunDeleteSpecialtyByIdCommand iRunDeleteSpecialtyByIdCommand,
+            IHandleFindDoctorsBySpecialtyIdQuery iFindDoctorsBySpecialtyIdQueryHandler) : base(logger, getByIdQueryHandler, getManySpecialtyQueryHandler, iRunCreateSpecialtyCommand, urlHelperFactory, actionContextAccessor)
+        { 
+            _urlHelperFactory = urlHelperFactory;
+            _actionContextAccessor = actionContextAccessor;
+            _iRunCreateSpecialtyCommand = iRunCreateSpecialtyCommand;
+            _iRunDeleteSpecialtyByIdCommand = iRunDeleteSpecialtyByIdCommand;
+            _iFindDoctorsBySpecialtyIdQueryHandler = iFindDoctorsBySpecialtyIdQueryHandler;
+        }
+
+
+        /// <summary>
+        /// Gets all the entries in the repository
+        /// </summary>
+        [HttpGet]
+        [Produces(typeof(GenericGetResponse<BrowsableSpecialtyInfo>))]
+        public async Task<IActionResult> Get(GenericGetQuery query)
+        {
+            if (query == null)
+            {
+                query = new GenericGetQuery();
+            }
+
+            int nbItemsPerPage = query.PageSize;
+
+            IPagedResult<SpecialtyInfo> result = await GetAll(query);
+           
+            
+            int count = result.Entries.Count();
+            bool hasPreviousPage = count > 0 && query.Page > 1;
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+
+            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = 1 });
+            string previousPageUrl = hasPreviousPage
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
+                    : null;
+
+            string nextPageUrl = query.Page < result.PageCount
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
+                    : null;
+
+            string lastPageUrl = result.PageCount > 0
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
+                    : null;
+
+
+            IGetResponse<BrowsableSpecialtyInfo> response = new GenericPagedGetResponse<BrowsableSpecialtyInfo>(
+                result.Entries.Select(x => 
+                    new BrowsableSpecialtyInfo {
+                        Location = new Link { Href = urlHelper.Action(nameof(SpecialtiesController.Get), ControllerName, new { Id = x.Id }) },
+                        Resource = x
+                    }),
+                firstPageUrl,
+                previousPageUrl,
+                nextPageUrl,
+                lastPageUrl,
+                result.Total);
+            
+
+            return new OkObjectResult(response);
+        }
+
+
+        /// <summary>
+        /// Gets the <see cref="SpecialtyInfo"/> resource by its <paramref name="id"/>
+        /// </summary>
+        /// <param name="id">identifier of the resource to look for</param>
+        /// <returns></returns>
+        [HttpHead("{id:int}")]
+        [HttpGet("{id:int}")]
+        [Produces(typeof(BrowsableSpecialtyInfo))]
+        public async override Task<IActionResult> Get(int id) => await base.Get(id);
+            
+
+        
+        /// <summary>
+        /// Creates the resource
+        /// </summary>
+        /// <param name="info">data used to create the resource</param>
+        /// <returns>the created resource</returns>
+        [HttpPost]
+        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
+        public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info)
+        {
+            SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            BrowsableSpecialtyInfo browsableResource = new BrowsableSpecialtyInfo
+            {
+                Resource = output,
+                Location = new Link
+                {
+                    Href = urlHelper.Action(nameof(Get), ControllerName, new { id = output.Id }),
+                    Rel = "self"
+                }
+            };
+
+
+            return new OkObjectResult(browsableResource);
+        }
+
+        
+        /// <summary>
+        /// Updates the specified resource
+        /// </summary>
+        /// <param name="id">identifier of the resource to update</param>
+        /// <param name="info">new values to set</param>
+        /// <returns></returns>
+        [HttpPut("{id:int}")]
+        [Produces(typeof(BrowsableSpecialtyInfo))]
+        public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
+        {
+            throw new NotImplementedException();
+        }
+
+        // DELETE api/specialties/5
+
+        /// <summary>
+        /// Delete the <see cref="SpecialtyInfo"/> by its 
+        /// </summary>
+        /// <param name="id">identifier of the resource to delete</param>
+        /// <returns></returns>
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id));
+            return await Task.FromResult(new OkResult());
+        }
+
+
+        /// <summary>
+        /// Finds doctors by the specialty they practice
+        /// </summary>
+        /// <param name="specialtyId">Specialty the doctors practices</param>
+        /// <param name="query">Page of result configuration (page index, page size, ..)</param>
+        /// <returns></returns>
+        [HttpGet("{specialtyId:int}/Doctors")]
+        [Produces(typeof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>))]
+        public async Task<IActionResult> FindDoctorsBySpecialtyId(int specialtyId, GenericGetQuery query)
+        {
+            IPagedResult<DoctorInfo> pageResult = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, query));
+            Debug.Assert(pageResult != null);
+
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            IGetResponse<BrowsableDoctorInfo> pagedResponse = new GenericPagedGetResponse<BrowsableDoctorInfo>(
+                pageResult.Entries.Select(x => new BrowsableDoctorInfo
+                {
+                    Location = new Link { Rel = "self", Href = urlHelper.Action(nameof(Get), DoctorsController.EndpointName, new { id = x.Id }) },
+                    Resource = x
+                }));
+
+
+            return new OkObjectResult(pagedResponse);
+
+        }
+    }
+}

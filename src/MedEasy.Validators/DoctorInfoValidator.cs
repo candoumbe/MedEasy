@@ -1,30 +1,32 @@
 using System.Collections.Generic;
 using MedEasy.DTO;
+using System.Threading.Tasks;
+using static MedEasy.Validators.ErrorLevel;
 
 namespace MedEasy.Validators
 {
-    public class DoctorInfoValidator : IValidate<BrowsableDoctorInfo>
+    public class DoctorInfoValidator : IValidate<DoctorInfo>
     {
-        public IEnumerable<ErrorInfo> Validate(BrowsableDoctorInfo element)
+        public IEnumerable<Task<ErrorInfo>> Validate(DoctorInfo element)
         {
+            
             if (element == null)
             {
-                yield return new ErrorInfo(string.Empty, "Doctor info cannot be null", ErrorLevel.Error);
+                yield return Task.FromResult(new ErrorInfo(string.Empty, "Doctor info cannot be null", Error));
             }
-
             else
             {
                 if (string.IsNullOrWhiteSpace(element.Firstname) && string.IsNullOrWhiteSpace(element.Lastname))
                 {
-                    yield return new ErrorInfo(string.Empty, $"{nameof(element.Firstname)} or {nameof(element.Lastname)} must be set", ErrorLevel.Error);
+                    yield return Task.FromResult(new ErrorInfo(string.Empty, $"{nameof(element.Firstname)} or {nameof(element.Lastname)} must be set", Error));
                 }
                 else if (string.IsNullOrWhiteSpace(element.Lastname))
                 {
-                    yield return new ErrorInfo(nameof(BrowsableDoctorInfo.Lastname), $"{nameof(element.Lastname)} must be set", ErrorLevel.Error);
+                    yield return Task.FromResult(new ErrorInfo(nameof(element.Lastname), $"{nameof(element.Lastname)} must be set", Error));
                 }
                 else
                 {
-                    yield return new ErrorInfo(nameof(element.Firstname), $"{nameof(element.Firstname)} is not set", ErrorLevel.Warning);
+                    yield return Task.FromResult(new ErrorInfo(nameof(element.Firstname), $"{nameof(element.Firstname)} is not set", Warning));
                 }
             }
         }

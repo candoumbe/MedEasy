@@ -2,11 +2,14 @@ namespace MedEasy.Objects
 {
 
     /// <summary>
-    /// Interface that defines the identity
+    /// Classes implementing this interface agree that <see cref="Id"/> should uniquely identifies them
     /// </summary>
-    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TKey">Type of the identifier</typeparam>
     public interface IEntity<TKey>
     {
+        /// <summary>
+        /// Identifier of the entity.
+        /// </summary>
         TKey Id { get; set; }
     }
 }

@@ -1,35 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace MedEasy.Controllers
 {
     public class HomeController : Controller
     {
+        //[ViewDataDictionary]
+        //public ViewDataDictionary ViewData { get; set; }
+
+        public HomeController(ILoggerFactory logger)
+            //:base(logger)
+        {
+        }
+
+        [HttpGet]
         public IActionResult Index()
         {
-            return View();
+            return new ViewResult();
         }
 
+        [HttpGet]
         public IActionResult About()
         {
-            ViewData["Message"] = "Your application description page.";
+            //ViewData["Message"] = "Your application description page.";
 
-            return View();
+            return new ViewResult
+            {
+                //ViewData = ViewData
+            };
         }
 
+        [HttpGet]
         public IActionResult Contact()
         {
-            ViewData["Message"] = "Your contact page.";
+            //ViewDataDictionary viewData = new ViewDataDictionary(_metadataProvider, new ModelStateDictionary());
+            //ViewData["Message"] = "Your page.";
 
-            return View();
+            return new ViewResult
+            {
+                //ViewData = ViewData
+            };
         }
 
-        public IActionResult Error()
-        {
-            return View();
-        }
+
+        public IActionResult Error() => new ViewResult();
+        
     }
 }

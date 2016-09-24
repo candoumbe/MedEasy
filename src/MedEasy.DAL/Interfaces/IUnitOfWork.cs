@@ -7,13 +7,7 @@ namespace MedEasy.DAL.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        /// <summary>
-        /// Save all changes made during the lifecycle of the unit of work
-        /// </summary>
-        /// <returns></returns>
-        int SaveChanges();
-
-
+        
         /// <summary>
         /// Asynchronously saves changes made to the context
         /// </summary>
