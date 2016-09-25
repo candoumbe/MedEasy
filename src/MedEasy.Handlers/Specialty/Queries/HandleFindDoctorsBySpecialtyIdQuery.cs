@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using MedEasy.RestObjects;
+using AutoMapper.QueryableExtensions;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {
@@ -18,6 +19,7 @@ namespace MedEasy.Handlers.Specialty.Queries
         private IUnitOfWorkFactory UowFactory { get; }
         private ILogger<HandleFindDoctorsBySpecialtyIdQuery> Logger { get; }
 
+        private IExpressionBuilder ExpressionBuilder { get; }
 
         /// <summary>
         /// Builds a new <see cref="HandleFindDoctorsBySpecialtyIdQuery"/> instance
@@ -28,7 +30,7 @@ namespace MedEasy.Handlers.Specialty.Queries
         /// This handler is thread safe
         /// </remarks>
         /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/> or <paramref name="logger"/> is <c>null</c></exception>
-        public HandleFindDoctorsBySpecialtyIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger)
+        public HandleFindDoctorsBySpecialtyIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger, IExpressionBuilder expressionBuilder)
         {
             if (uowFactory == null)
             {
@@ -40,12 +42,18 @@ namespace MedEasy.Handlers.Specialty.Queries
                 throw new ArgumentNullException(nameof(logger));
             }
 
+            if (expressionBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(expressionBuilder));
+            }
+
             UowFactory = uowFactory;
             Logger = logger;
+            ExpressionBuilder = expressionBuilder;
 
         }
 
-        public Task<IPagedResult<DoctorInfo>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query)
+        public async Task<IPagedResult<DoctorInfo>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query)
         {
             Logger.LogInformation($"Starting {nameof(IFindDoctorsBySpecialtyIdQuery)}  query handling");
             if (query == null)
@@ -54,9 +62,21 @@ namespace MedEasy.Handlers.Specialty.Queries
                 throw new ArgumentNullException(nameof(query));
             }
             GenericGetQuery getQuery = query.Data?.GetQuery ?? new GenericGetQuery();
-            //getQuery.PageSize = Math.Min()
+            
+            using (var uow = UowFactory.New())
+            { 
+                IPagedResult<DoctorInfo> pageOfResult = await uow.Repository<Objects.Doctor>()
+                    .WhereAsync(
+                        ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>(),      //selector  
+                        x => x.SpecialtyId == query.Data.SpecialtyId,   //filter
+                        new[] {
+                            OrderClause<DoctorInfo>.Create( x => x.Lastname),
+                            OrderClause<DoctorInfo>.Create( x => x.Firstname)
+                        }, getQuery.PageSize, getQuery.Page);
 
-            return Task.FromResult((IPagedResult<DoctorInfo>)new PagedResult<DoctorInfo>(Enumerable.Empty<DoctorInfo>(), 0, query.Data.GetQuery.PageSize));
+
+                return pageOfResult;
+            }
         }
     }
 }

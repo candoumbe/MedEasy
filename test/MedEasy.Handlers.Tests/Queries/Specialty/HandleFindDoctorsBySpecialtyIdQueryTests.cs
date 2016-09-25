@@ -15,6 +15,9 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using System.Linq;
+using AutoMapper.QueryableExtensions;
+using MedEasy.Mapping;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
@@ -25,7 +28,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         private HandleFindDoctorsBySpecialtyIdQuery _handler;
 
         private Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>> _loggerMock;
-
+        private Mock<IExpressionBuilder> _expressionBuilderMock;
 
         public HandleFindDoctorsBySpecialtyIdQueryTests(ITestOutputHelper outputHelper)
         {
@@ -37,9 +40,9 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
             _loggerMock = new Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
-
-            _handler = new HandleFindDoctorsBySpecialtyIdQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object);
+            _handler = new HandleFindDoctorsBySpecialtyIdQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _expressionBuilderMock.Object);
         }
 
 
@@ -47,9 +50,10 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         {
             get
             {
-                yield return new object[] { null, null };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null };
-                yield return new object[] { null, new Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>().Object };
+                yield return new object[] { null, null, null };
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, null };
+                yield return new object[] { null, new Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>().Object, null };
+                yield return new object[] { null, null, new Mock<IExpressionBuilder>().Object };
             }
         }
 
@@ -61,7 +65,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                     {
                         new [] {
-                            new Objects.Specialty { Id = 1, Code = "Spec 1", Name = "Specialty 1", Doctors = Enumerable.Empty<Objects.Doctor>().ToList() }
+                            new Objects.Doctor { Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 2 }
                         },
                         1,
                         new GenericGetQuery(),
@@ -69,6 +73,20 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                         1,
                         0,
                         ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 0))
+
+                };
+
+                yield return new object[]
+                    {
+                        new [] {
+                            new Objects.Doctor {Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 1 }
+                        },
+                        1,
+                        new GenericGetQuery {Page = 1, PageSize = 1 },
+                        1,
+                        1,
+                        1,
+                        ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 1 && items.Once(x => x.Id == 1)))
 
                 };
             }
@@ -79,11 +97,12 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
         [Theory]
         [MemberData(nameof(CtorCases))]
-        public void ShouldThrowArgumentNullException(IUnitOfWorkFactory factory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger)
+        public void ShouldThrowArgumentNullException(IUnitOfWorkFactory factory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
-            Action action = () => new HandleFindDoctorsBySpecialtyIdQuery(factory, logger);
+            _outputHelper.WriteLine($"ExpressionBuilder : {expressionBuilder}");
+            Action action = () => new HandleFindDoctorsBySpecialtyIdQuery(factory, logger, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -98,7 +117,8 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             {
                 IHandleFindDoctorsBySpecialtyIdQuery handler = new HandleFindDoctorsBySpecialtyIdQuery(
                     Mock.Of<IUnitOfWorkFactory>(),
-                    Mock.Of<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>());
+                    Mock.Of<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>(),
+                    Mock.Of<IExpressionBuilder>());
 
                 await handler.HandleAsync(null);
             };
@@ -112,10 +132,17 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         public async Task QueryAnEmptyDatabase()
         {
             //Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>()
-                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Specialty, SpecialtyInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<SpecialtyInfo>>>()))
-                .Returns((Expression<Func<Objects.Specialty, SpecialtyInfo>> selector, int pageSize, int page, IEnumerable<OrderClause<SpecialtyInfo>> order)
-                => Task.FromResult<IPagedResult<SpecialtyInfo>>(new PagedResult<SpecialtyInfo>(Enumerable.Empty<SpecialtyInfo>(), 0, pageSize)));
+
+            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Doctor, DoctorInfo>(It.IsAny<IDictionary<string, object>>()))
+               .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>())
+               .Verifiable();
+
+
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
+                .WhereAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>(), It.IsAny<IEnumerable<OrderClause<DoctorInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((Expression<Func<Objects.Doctor, DoctorInfo>> selector, Expression<Func<Objects.Doctor, bool>> filter, IEnumerable<OrderClause<DoctorInfo>> order, int pageSize, int page)
+                    => Task.FromResult<IPagedResult<DoctorInfo>>(new PagedResult<DoctorInfo>(Enumerable.Empty<DoctorInfo>(), 0, pageSize)))
+                .Verifiable();
 
             // Act
 
@@ -131,18 +158,42 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             output.PageCount.Should().Be(0);
             output.PageSize.Should().Be(GenericGetQuery.DefaultPageSize);
 
-
-            _unitOfWorkFactoryMock.Verify();
+            _expressionBuilderMock.VerifyAll();
+            _unitOfWorkFactoryMock.VerifyAll();
         }
 
 
         [Theory]
         [MemberData(nameof(FindDoctorsBySpecialtyIdCases))]
-        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Specialty> specialties, int specialtyId, GenericGetQuery getQuery, int expectedPageSize,
+        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, int specialtyId, GenericGetQuery getQuery, int expectedPageSize,
             int expectedPage, int expectedTotal, Expression<Func<IEnumerable<DoctorInfo>, bool>> itemsExpectation)
         {
-            // Arrange
 
+            _outputHelper.WriteLine($"{nameof(doctors)} : {SerializeObject(doctors)}");
+            _outputHelper.WriteLine($"{nameof(specialtyId)} : {specialtyId}");
+
+
+            // Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
+                .WhereAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>(), It.IsAny<IEnumerable<OrderClause<DoctorInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((Expression<Func<Objects.Doctor, DoctorInfo>> selector, Expression<Func<Objects.Doctor, bool>> filter, IEnumerable<OrderClause<DoctorInfo>> order, int pageSize, int page)
+                    => Task.Factory.StartNew(() => {
+                        IEnumerable<DoctorInfo> result = doctors.AsQueryable()
+                            .Where(filter)
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .Select(selector);
+
+                        int count = doctors.Count(filter.Compile());
+
+                        IPagedResult<DoctorInfo> pagedResult = new PagedResult<DoctorInfo>(result, count, pageSize);
+
+                        return pagedResult;
+                    }))
+                    .Verifiable();
+            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Doctor, DoctorInfo>(It.IsAny<IDictionary<string, object>>()))
+                .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>())
+                .Verifiable();
             
             // Act
             IPagedResult<DoctorInfo> pageOfResult = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, getQuery));
@@ -155,8 +206,8 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
             pageOfResult.Total.Should().Be(expectedTotal);
 
-
-            _unitOfWorkFactoryMock.Verify();
+            _expressionBuilderMock.VerifyAll();
+            _unitOfWorkFactoryMock.VerifyAll();
 
 
         }
@@ -167,6 +218,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             _outputHelper = null;
             _unitOfWorkFactoryMock = null;
             _handler = null;
+            _expressionBuilderMock = null;
         }
     }
 }
