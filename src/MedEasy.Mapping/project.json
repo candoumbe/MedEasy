@@ -4,7 +4,7 @@
   "dependencies": {
     "MedEasy.Objects": "1.0.0-*",
     "MedEasy.DTO": "1.0.0-*",
-    "AutoMapper": "5.0.2"
+    "AutoMapper": "5.1.1"
   },
 
   "frameworks": {

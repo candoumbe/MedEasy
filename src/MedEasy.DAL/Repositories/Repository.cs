@@ -142,13 +142,9 @@ namespace MedEasy.DAL.Repositories
                 .Take(pageSize);
 
             //we compute both task
-            Task<List<TResult>> queryResultTask = query.ToListAsync();
-            Task<int> countTask = CountAsync(predicate);
-            
-
-            await Task.WhenAll(queryResultTask, CountAsync(predicate)).ConfigureAwait(false);
-            int total = await countTask;
-            IPagedResult<TResult> pagedResult = new PagedResult<TResult>(await queryResultTask , total, pageSize);
+            IEnumerable<TResult> result = await query.ToListAsync();
+            int total = await CountAsync(predicate);
+            IPagedResult<TResult> pagedResult = new PagedResult<TResult>(result, total, pageSize);
 
             return pagedResult;
         }

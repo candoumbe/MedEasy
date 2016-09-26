@@ -187,24 +187,28 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Finds doctors by the specialty they practice
         /// </summary>
-        /// <param name="specialtyId">Specialty the doctors practices</param>
+        /// <param name="id">Specialty the doctors practices</param>
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
         /// <returns></returns>
-        [HttpGet("{specialtyId:int}/Doctors")]
+        [HttpGet("{id:int}/Doctors")]
         [Produces(typeof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>))]
-        public async Task<IActionResult> FindDoctorsBySpecialtyId(int specialtyId, GenericGetQuery query)
+        public async Task<IActionResult> Doctors(int id, GenericGetQuery query)
         {
-            IPagedResult<DoctorInfo> pageResult = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, query));
+            IPagedResult<DoctorInfo> pageResult = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(id, query));
             Debug.Assert(pageResult != null);
-
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             IGetResponse<BrowsableDoctorInfo> pagedResponse = new GenericPagedGetResponse<BrowsableDoctorInfo>(
                 pageResult.Entries.Select(x => new BrowsableDoctorInfo
                 {
-                    Location = new Link { Rel = "self", Href = urlHelper.Action(nameof(Get), DoctorsController.EndpointName, new { id = x.Id }) },
+                    Location = new Link
+                    {
+                        Rel = "self",
+                        Href = urlHelper.Action(nameof(Get), DoctorsController.EndpointName, new { id = x.Id })
+                    },
                     Resource = x
-                }));
+                })
+                );
 
 
             return new OkObjectResult(pagedResponse);

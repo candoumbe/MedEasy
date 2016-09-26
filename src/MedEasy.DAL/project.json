@@ -2,9 +2,9 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "Microsoft.EntityFrameworkCore": "1.0.0",
     "Microsoft.CSharp": "4.0.1",
-    "MedEasy.Tools": "1.0.0-*"
+    "MedEasy.Tools": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore": "1.0.1"
   },
 
   "frameworks": {

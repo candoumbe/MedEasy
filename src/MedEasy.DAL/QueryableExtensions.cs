@@ -15,14 +15,7 @@ namespace System.Linq
                     case SortDirection.Ascending:
                         if (previousClause != null)
                         {
-                            if (orderClause.Direction != previousClause.Direction)
-                            {
-                                entries = Queryable.OrderBy(entries, (dynamic)orderClause.Expression);
-                            }
-                            else
-                            {
-                                entries = Queryable.ThenBy(entries, (dynamic)orderClause.Expression);
-                            }
+                            entries = Queryable.ThenBy(entries, (dynamic)orderClause.Expression);
                         }
                         else
                         {
@@ -32,14 +25,7 @@ namespace System.Linq
                     case SortDirection.Descending:
                         if (previousClause != null)
                         {
-                            if (orderClause.Direction != previousClause.Direction)
-                            {
-                                entries = Queryable.OrderByDescending(entries, (dynamic)orderClause.Expression);
-                            }
-                            else
-                            {
-                                entries = Queryable.ThenByDescending(entries, (dynamic)orderClause.Expression);
-                            }
+                            entries = Queryable.ThenByDescending(entries, (dynamic)orderClause.Expression);
                         }
                         else
                         {

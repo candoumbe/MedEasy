@@ -2,7 +2,7 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "Microsoft.NETCore.App": "1.0.0",
+    "Microsoft.NETCore.App": "1.0.1",
     "Newtonsoft.Json": "9.0.1"
   },
 

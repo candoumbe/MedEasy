@@ -348,10 +348,9 @@ namespace MedEasy.WebApi.Tests
             _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>()))
                 .ReturnsAsync(PagedResult<DoctorInfo>.Default)
                 .Verifiable();
-
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
             // Act
-            IActionResult actionResult = await _controller
-                .FindDoctorsBySpecialtyId(1, new GenericGetQuery())
+            IActionResult actionResult = await _controller.Doctors(1, new GenericGetQuery())
                 .ConfigureAwait(false);
 
             // Assert 
@@ -363,7 +362,17 @@ namespace MedEasy.WebApi.Tests
             objectResult.Value.Should()
                 .BeOfType<GenericPagedGetResponse<BrowsableDoctorInfo>>();
 
+            GenericPagedGetResponse<BrowsableDoctorInfo> pagedResponse = (GenericPagedGetResponse<BrowsableDoctorInfo>)objectResult.Value;
+            pagedResponse.Links.Should().NotBeNull();
+
+            Link firstPageLink = pagedResponse.Links.First;
+
+            firstPageLink.Should().NotBeNull();
+            firstPageLink.Href.Should().BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/1/{nameof(SpecialtiesController.Doctors)}?pageSize=30&page=1");
+
             _iHandleFindDoctorsBySpecialtyIdQueryMock.Verify();
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _urlHelperFactoryMock.VerifyAll();
 
         }
 
@@ -433,7 +442,6 @@ namespace MedEasy.WebApi.Tests
             _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
-
 
             //Act
             Func<Task> action = async () => await _controller.GetAll(new GenericGetQuery());
