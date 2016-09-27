@@ -18,10 +18,10 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
 {
     public class HandleDeletePatientByIdCommandTests : IDisposable
     {
-        private Mock<ILogger<HandleDeletePatientByIdCommand>> _loggerMock;
+        private Mock<ILogger<RunDeletePatientByIdCommand>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
         private Mock<IMapper> _mapperMock;
-        private HandleDeletePatientByIdCommand _handler;
+        private RunDeletePatientByIdCommand _handler;
         private Mock<IValidate<IDeletePatientByIdCommand>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         private ITestOutputHelper _outputHelper;
@@ -34,7 +34,7 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
                 yield return new object[]
                 {
                     null,
-                    Mock.Of<ILogger<HandleDeletePatientByIdCommand>>(),
+                    Mock.Of<ILogger<RunDeletePatientByIdCommand>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     Mock.Of<IExpressionBuilder>()
                 };
@@ -49,14 +49,14 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
                 yield return new object[]
                 {
                     Mock.Of<IValidate<IDeletePatientByIdCommand>>(),
-                    Mock.Of<ILogger<HandleDeletePatientByIdCommand>>(),
+                    Mock.Of<ILogger<RunDeletePatientByIdCommand>>(),
                     null,
                     Mock.Of<IExpressionBuilder>()
                 };
                 yield return new object[]
                 {
                     Mock.Of<IValidate<IDeletePatientByIdCommand>>(),
-                    Mock.Of<ILogger<HandleDeletePatientByIdCommand>>(),
+                    Mock.Of<ILogger<RunDeletePatientByIdCommand>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     null
                 };
@@ -68,28 +68,28 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
         {
             IMapper mapper = AutoMapperConfig.Build().CreateMapper();
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _loggerMock = new Mock<ILogger<HandleDeletePatientByIdCommand>>(Strict);
+            _loggerMock = new Mock<ILogger<RunDeletePatientByIdCommand>>(Strict);
             _mapperMock = new Mock<IMapper>(Strict);
             _validatorMock = new Mock<IValidate<IDeletePatientByIdCommand>>(Strict);
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
             _outputHelper = outputHelper;
 
-            _handler = new HandleDeletePatientByIdCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactoryMock.Object,
+            _handler = new RunDeletePatientByIdCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactoryMock.Object,
                _expressionBuilderMock.Object);
         }
 
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IDeletePatientByIdCommand> validator, ILogger<HandleDeletePatientByIdCommand> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IDeletePatientByIdCommand> validator, ILogger<RunDeletePatientByIdCommand> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Validator : {validator}");
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
-            Action action = () => new HandleDeletePatientByIdCommand(validator, logger, factory, expressionBuilder);
+            Action action = () => new RunDeletePatientByIdCommand(validator, logger, factory, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()

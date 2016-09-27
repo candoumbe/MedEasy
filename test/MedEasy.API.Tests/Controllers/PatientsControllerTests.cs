@@ -1,4 +1,4 @@
-﻿using MedEasy.Objects;
+﻿﻿using MedEasy.Objects;
 using System.Collections.Generic;
 using FluentAssertions;
 using MedEasy.RestObjects;
@@ -25,11 +25,11 @@ using GenFu;
 using static System.StringComparison;
 using MedEasy.Mapping;
 using MedEasy.DAL.Repositories;
-using MedEasy.Commands.Specialty;
-using MedEasy.Handlers.Specialty.Commands;
-using MedEasy.Queries.Specialty;
+using MedEasy.Commands.Patient;
+using MedEasy.Handlers.Patient.Commands;
+using MedEasy.Queries.Patient;
 using MedEasy.Queries;
-using MedEasy.Handlers.Specialty.Queries;
+using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Validators;
 using Microsoft.Extensions.Options;
@@ -37,26 +37,25 @@ using MedEasy.API;
 
 namespace MedEasy.WebApi.Tests
 {
-    public class SpecialtiesControllerTests : IDisposable
+    public class PatientsControllerTests : IDisposable
     {
         private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
-        private Mock<ILogger<SpecialtiesController>> _loggerMock;
-        private SpecialtiesController _controller;
+        private Mock<ILogger<PatientsController>> _loggerMock;
+        private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
         private IActionContextAccessor _actionContextAccessor;
-        private Mock<IHandleGetSpecialtyInfoByIdQuery> _iHandleGetOneSpecialtyInfoByIdQueryMock;
-        private Mock<IHandleGetManySpecialtyInfosQuery> _iHandlerGetManySpecialtyInfoQueryMock;
+        private Mock<IHandleGetOnePatientInfoByIdQuery> _iHandleGetOnePatientInfoByIdQueryMock;
+        private Mock<IHandleGetManyPatientInfosQuery> _iHandlerGetManyPatientInfoQueryMock;
         private EFUnitOfWorkFactory _factory;
         private IMapper _mapper;
-        private Mock<IRunCreateSpecialtyCommand> _iRunCreateSpecialtyInfoCommandMock;
-        private Mock<IRunDeleteSpecialtyByIdCommand> _iRunDeleteSpecialtyInfoByIdCommandMock;
-        private Mock<IHandleFindDoctorsBySpecialtyIdQuery> _iHandleFindDoctorsBySpecialtyIdQueryMock;
+        private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;
+        private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
 
-        public SpecialtiesControllerTests(ITestOutputHelper outputHelper)
+        public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _loggerMock = new Mock<ILogger<SpecialtiesController>>(Strict);
+            _loggerMock = new Mock<ILogger<PatientsController>>(Strict);
             _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
@@ -74,23 +73,21 @@ namespace MedEasy.WebApi.Tests
             _factory = new EFUnitOfWorkFactory(dbOptions.Options);
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
-            _iHandleGetOneSpecialtyInfoByIdQueryMock = new Mock<IHandleGetSpecialtyInfoByIdQuery>(Strict);
-            _iHandlerGetManySpecialtyInfoQueryMock = new Mock<IHandleGetManySpecialtyInfosQuery>(Strict);
-            _iHandleFindDoctorsBySpecialtyIdQueryMock = new Mock<IHandleFindDoctorsBySpecialtyIdQuery>(Strict);
-            _iRunCreateSpecialtyInfoCommandMock = new Mock<IRunCreateSpecialtyCommand>(Strict);
-            _iRunDeleteSpecialtyInfoByIdCommandMock = new Mock<IRunDeleteSpecialtyByIdCommand>(Strict);
+            _iHandleGetOnePatientInfoByIdQueryMock = new Mock<IHandleGetOnePatientInfoByIdQuery>(Strict);
+            _iHandlerGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
+           _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
+            _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
-            _controller = new SpecialtiesController(
+            _controller = new PatientsController(
                 _loggerMock.Object, 
                 _urlHelperFactoryMock.Object, 
                 _actionContextAccessor,
                 _apiOptionsMock.Object,
-                _iHandleGetOneSpecialtyInfoByIdQueryMock.Object,
-                _iHandlerGetManySpecialtyInfoQueryMock.Object,
-                _iRunCreateSpecialtyInfoCommandMock.Object,
-                _iRunDeleteSpecialtyInfoByIdCommandMock.Object,
-                _iHandleFindDoctorsBySpecialtyIdQueryMock.Object);
+                _iHandleGetOnePatientInfoByIdQueryMock.Object,
+                _iHandlerGetManyPatientInfoQueryMock.Object,
+                _iRunCreatePatientInfoCommandMock.Object,
+                _iRunDeletePatientInfoByIdCommandMock.Object);
 
         }
 
@@ -109,10 +106,10 @@ namespace MedEasy.WebApi.Tests
                     {
                         yield return new object[]
                         {
-                            Enumerable.Empty<Specialty>(), // Current store state
+                            Enumerable.Empty<Patient>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                             ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
@@ -121,21 +118,21 @@ namespace MedEasy.WebApi.Tests
                 }
 
                 {
-                    IEnumerable<Specialty> items = A.ListOf<Specialty>(400);
+                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
                     items.ForEach(item => item.Id = default(int));
                     yield return new object[]
                     {
                         items,
                         GenericGetQuery.DefaultPageSize, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
                 {
-                    IEnumerable<Specialty> items = A.ListOf<Specialty>(400);
+                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
                     items.ForEach(item => item.Id = default(int));
 
                     yield return new object[]
@@ -143,24 +140,24 @@ namespace MedEasy.WebApi.Tests
                         items,
                         10, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
 
                 yield return new object[]
                     {
                         new [] {
-                            new Specialty { Id = 1, Code = "MG",  Name = "Médecine générale" }
+                            new Patient { Id = 1, Firstname = "Bruce",  Lastname = "Wayne" }
                         },
                         GenericGetQuery.DefaultPageSize, 1, // request
                         1,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
                     };
             }
         }
@@ -168,11 +165,11 @@ namespace MedEasy.WebApi.Tests
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Specialty> items, int pageSize, int page,
+        public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,
             int expectedCount,
             Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
-            _outputHelper.WriteLine($"Testing {nameof(SpecialtiesController.Get)}({nameof(GenericGetQuery)})");
+            _outputHelper.WriteLine($"Testing {nameof(PatientsController.Get)}({nameof(GenericGetQuery)})");
             _outputHelper.WriteLine($"Page size : {pageSize}");
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
@@ -180,12 +177,12 @@ namespace MedEasy.WebApi.Tests
             // Arrange
             using (var uow = _factory.New())
             {
-                uow.Repository<Specialty>().Create(items);
+                uow.Repository<Patient>().Create(items);
                 await uow.SaveChangesAsync();
             }
 
-            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>()))
-                .Returns((IWantManyResources<Guid, SpecialtyInfo> getQuery) => Task.Run(async () =>
+            _iHandlerGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
+                .Returns((IWantManyResources<Guid, PatientInfo> getQuery) => Task.Run(async () =>
                 {
 
 
@@ -193,8 +190,8 @@ namespace MedEasy.WebApi.Tests
                     {
                         GenericGetQuery queryConfig = getQuery.Data ?? new GenericGetQuery();
 
-                        IPagedResult<SpecialtyInfo> results = await uow.Repository<Specialty>()
-                            .ReadPageAsync(x => _mapper.Map<SpecialtyInfo>(x), getQuery.Data.PageSize, getQuery.Data.Page);
+                        IPagedResult<PatientInfo> results = await uow.Repository<Patient>()
+                            .ReadPageAsync(x => _mapper.Map<PatientInfo>(x), getQuery.Data.PageSize, getQuery.Data.Page);
 
                         return results;
                     }
@@ -204,7 +201,7 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Get(new GenericGetQuery { PageSize = pageSize, Page = page });
 
             // Assert
-            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(SpecialtiesController)}.{nameof(SpecialtiesController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
+            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
 
             actionResult.Should()
                     .NotBeNull()
@@ -215,12 +212,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsableSpecialtyInfo>>();
+                    .And.BeOfType<GenericPagedGetResponse<BrowsablePatientInfo>>();
 
-            GenericPagedGetResponse<BrowsableSpecialtyInfo> response = (GenericPagedGetResponse<BrowsableSpecialtyInfo>)value;
+            GenericPagedGetResponse<BrowsablePatientInfo> response = (GenericPagedGetResponse<BrowsablePatientInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableSpecialtyInfo>)}.{nameof(GenericPagedGetResponse<BrowsableSpecialtyInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsablePatientInfo>)}.{nameof(GenericPagedGetResponse<BrowsablePatientInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -234,7 +231,7 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
                 .ReturnsAsync(null);
 
             //Act
@@ -255,8 +252,8 @@ namespace MedEasy.WebApi.Tests
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
-                .ReturnsAsync(new SpecialtyInfo { Id = 1, Code = "SPEC", Name = "Specialty" })
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
+                .ReturnsAsync(new PatientInfo { Id = 1, Firstname = "Bruce", Lastname = "Wayne" })
                 .Verifiable();
 
             //Act
@@ -267,26 +264,26 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                    .BeOfType<BrowsableResource<SpecialtyInfo>>().Which
+                    .BeOfType<BrowsableResource<PatientInfo>>().Which
                     .Location.Should()
                         .NotBeNull();
 
-            BrowsableResource<SpecialtyInfo> result = (BrowsableResource<SpecialtyInfo>)((OkObjectResult)actionResult).Value;
+            BrowsableResource<PatientInfo> result = (BrowsableResource<PatientInfo>)((OkObjectResult)actionResult).Value;
             Link location = result.Location;
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}=1");
+                .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}=1");
             location.Rel.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo("self");
 
-            SpecialtyInfo resource = result.Resource;
+            PatientInfo resource = result.Resource;
             resource.Should().NotBeNull();
             resource.Id.Should().Be(1);
-            resource.Code.Should().Be("SPEC");
-            resource.Name.Should().Be("Specialty");
+            resource.Firstname.Should().Be("Bruce");
+            resource.Lastname.Should().Be("Wayne");
 
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Verify();
+            _iHandleGetOnePatientInfoByIdQueryMock.Verify();
             _urlHelperFactoryMock.Verify();
 
         }
@@ -295,15 +292,18 @@ namespace MedEasy.WebApi.Tests
         public async Task Post()
         {
             //Arrange
-            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
-                .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
-                => new SpecialtyInfo { Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTime(2012, 2, 1) }));
+            _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
+                .Returns((ICreatePatientCommand cmd) => Task.Run(()
+                => new PatientInfo {
+                    Firstname = cmd.Data.Firstname,
+                    Lastname = cmd.Data.Lastname,
+                    UpdatedDate = new DateTime(2012, 2, 1) }));
 
             //Act
-            CreateSpecialtyInfo info = new CreateSpecialtyInfo
+            CreatePatientInfo info = new CreatePatientInfo
             {
-                Code = "mg",
-                Name = "médecine générale"
+                Firstname = "Bruce",
+                Lastname = "Lastname"
             };
 
             IActionResult actionResult = await _controller.Post(info);
@@ -315,10 +315,10 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<BrowsableResource<SpecialtyInfo>>();
+                    .BeAssignableTo<BrowsableResource<PatientInfo>>();
 
 
-            BrowsableResource<SpecialtyInfo> createdResource = (BrowsableResource<SpecialtyInfo>)((OkObjectResult)actionResult).Value;
+            BrowsableResource<PatientInfo> createdResource = (BrowsableResource<PatientInfo>)((OkObjectResult)actionResult).Value;
 
 
             createdResource.Should()
@@ -329,56 +329,17 @@ namespace MedEasy.WebApi.Tests
 
             createdResource.Location.Href.Should()
                 .NotBeNull().And
-                .MatchEquivalentOf($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}=*");
+                .MatchEquivalentOf($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}=*");
 
-            createdResource.Resource.Code.Should()
-                .Be(info.Code);
-            createdResource.Resource.Name.Should()
-                .Be(info.Name);
+            createdResource.Resource.Firstname.Should()
+                .Be(info.Firstname);
+            createdResource.Resource.Lastname.Should()
+                .Be(info.Lastname);
             createdResource.Resource.UpdatedDate.Should().Be(1.February(2012));
 
-            _iRunCreateSpecialtyInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()), Times.Once);
+            _iRunCreatePatientInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()), Times.Once);
 
         }
-
-        [Fact]
-        public async Task FindDoctorsBySpecialtyIdShouldReturnEmptyResultWhenNoDoctorFound()
-        {
-            // Arrange
-            _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>()))
-                .ReturnsAsync(PagedResult<DoctorInfo>.Default)
-                .Verifiable();
-            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
-            // Act
-            IActionResult actionResult = await _controller.Doctors(1, new GenericGetQuery())
-                .ConfigureAwait(false);
-
-            // Assert 
-            actionResult.Should()
-                .NotBeNull().And
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult objectResult = (OkObjectResult)actionResult;
-            objectResult.Value.Should()
-                .BeOfType<GenericPagedGetResponse<BrowsableDoctorInfo>>();
-
-            GenericPagedGetResponse<BrowsableDoctorInfo> pagedResponse = (GenericPagedGetResponse<BrowsableDoctorInfo>)objectResult.Value;
-            pagedResponse.Links.Should().NotBeNull();
-
-            Link firstPageLink = pagedResponse.Links.First;
-
-            firstPageLink.Should().NotBeNull();
-            firstPageLink.Rel.Should()
-                .BeEquivalentTo("first");
-            firstPageLink.Href.Should()
-                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/1/{nameof(SpecialtiesController.Doctors)}?pageSize=30&page=1");
-
-            _iHandleFindDoctorsBySpecialtyIdQueryMock.Verify();
-            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
-            _urlHelperFactoryMock.VerifyAll();
-
-        }
-
 
         [Fact]
         public void PostShouldNotSwallowCommandNotValidExceptions()
@@ -390,21 +351,21 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
 
-            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
+            _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
                 .Throws(exceptionFromTheHandler);
 
             //Act
-            CreateSpecialtyInfo info = new CreateSpecialtyInfo
+            CreatePatientInfo info = new CreatePatientInfo
             {
-                Code = "mg",
-                Name = "médecine générale"
+                Firstname = "Bruce",
+                Lastname = "Wayne"
             };
 
             Func<Task> action = async () => await _controller.Post(info);
 
             //Assert
             action.ShouldThrow<CommandNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iRunCreateSpecialtyInfoCommandMock.Verify();
+            _iRunCreatePatientInfoCommandMock.Verify();
 
         }
 
@@ -417,7 +378,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -427,7 +388,7 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Verify();
+            _iHandleGetOnePatientInfoByIdQueryMock.Verify();
 
         }
 
@@ -442,7 +403,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 20, MaxPageSize = 200 });
 
-            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>()))
+            _iHandlerGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -451,7 +412,7 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iHandlerGetManySpecialtyInfoQueryMock.Verify();
+            _iHandlerGetManyPatientInfoQueryMock.Verify();
 
         }
 
@@ -464,7 +425,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
+            _iRunDeletePatientInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeletePatientByIdCommand>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -474,7 +435,7 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iHandlerGetManySpecialtyInfoQueryMock.Verify();
+            _iHandlerGetManyPatientInfoQueryMock.Verify();
         }
 
         [Fact]
@@ -482,7 +443,7 @@ namespace MedEasy.WebApi.Tests
         {
 
             //Arrange
-            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
+            _iRunDeletePatientInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeletePatientByIdCommand>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -491,7 +452,7 @@ namespace MedEasy.WebApi.Tests
             await _controller.Delete(1);
 
             //Assert
-            _iRunDeleteSpecialtyInfoByIdCommandMock.Verify();
+            _iRunDeletePatientInfoByIdCommandMock.Verify();
         }
 
 
@@ -504,16 +465,21 @@ namespace MedEasy.WebApi.Tests
             _actionContextAccessor = null;
             _apiOptionsMock = null;
 
-            _iHandleGetOneSpecialtyInfoByIdQueryMock = null;
-            _iHandlerGetManySpecialtyInfoQueryMock = null;
-            _iHandleFindDoctorsBySpecialtyIdQueryMock = null;
+            _iHandleGetOnePatientInfoByIdQueryMock = null;
+            _iHandlerGetManyPatientInfoQueryMock = null;
+            
 
-            _iRunCreateSpecialtyInfoCommandMock = null;
-            _iRunDeleteSpecialtyInfoByIdCommandMock = null;
+            _iRunCreatePatientInfoCommandMock = null;
+            _iRunDeletePatientInfoByIdCommandMock = null;
 
             _factory = null;
             _mapper = null;
         }
     }
 }
+
+
+
+
+
 

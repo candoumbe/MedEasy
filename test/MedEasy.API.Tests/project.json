@@ -6,7 +6,10 @@
       "version": "1.0.0-*",
       "target": "project"
     },
-    "MedEasy.Objects": { "version": "1.0.0-*", "target": "project" },
+    "MedEasy.Objects": {
+      "version": "1.0.0-*",
+      "target": "project"
+    },
     "MedEasy.DTO": {
       "version": "1.0.0-*",
       "target": "project"
@@ -18,7 +21,7 @@
       "version": "1.0.0-*",
       "target": "project"
     },
-    "GenFu" :  "1.1.1",
+    "GenFu": "1.1.1",
     "moq.netcore": "4.4.0-beta8",
     "System.Diagnostics.TraceSource": "4.0.0",
     "Microsoft.AspNetCore.Http": "1.0.0",
@@ -41,5 +44,8 @@
       ]
     }
 
+  },
+  "runtimes": {
+    "win10-x64": {}
   }
 }

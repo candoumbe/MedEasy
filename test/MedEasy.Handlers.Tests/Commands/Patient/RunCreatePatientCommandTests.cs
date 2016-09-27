@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿﻿using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using MedEasy.Mapping;
 
 namespace MedEasy.BLL.Tests.Commands.Patient
 {
-    public class HandleCreatePatientCommandTests : IDisposable
+    public class RunCreatePatientCommandTests : IDisposable
     {
         private Mock<ILogger<RunCreatePatientCommand>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
@@ -39,7 +39,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 
             }
         }
-        public HandleCreatePatientCommandTests(ITestOutputHelper output)
+        public RunCreatePatientCommandTests(ITestOutputHelper output)
         {
             IMapper mapper = AutoMapperConfig.Build().CreateMapper();
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);

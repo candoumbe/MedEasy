@@ -140,11 +140,12 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 });
 
             //Act
-            Func<Task> action = async () => await _runner.RunAsync(new CreateSpecialtyCommand(new CreateSpecialtyInfo { Code = "CodeThatAlreadyExists" }));
+            ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Code = "CodeThatAlreadyExists" });
+            Func<Task> action = async () => await _runner.RunAsync(command);
 
             var exception = action.ShouldThrow<CommandNotValidException<Guid>>();
             
-            exception.Which.CommandId.Should().NotBeEmpty();
+            exception.Which.CommandId.Should().Be(command.Id);
             exception.Which.Errors.Should().ContainSingle();
             exception.Which.Errors.Single().Key.Should().Be("ErrDuplicate");
             exception.Which.Errors.Single().Description.Should().Match("*already exists");

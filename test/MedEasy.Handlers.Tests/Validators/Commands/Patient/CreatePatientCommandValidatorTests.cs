@@ -143,16 +143,16 @@ namespace MedEasy.Validators.Tests
 
         [Theory]
         [MemberData(nameof(ValidCreatePatientCommandCases))]
-        public void ValidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate)
-            => Validate(command, maxBirthDate, errors => !errors.Any(errorItem => errorItem.Severity == Error));
+        public async Task ValidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate)
+            => await Validate(command, maxBirthDate, errors => !errors.Any(errorItem => errorItem.Severity == Error));
 
 
         [Theory]
         [MemberData(nameof(InvalidCases))]
-        public void InvalidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate,
+        public async Task InvalidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate,
             Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation,
             string because = "")
-            => Validate(command, maxBirthDate, errorsExpectation, because);
+            => await Validate(command, maxBirthDate, errorsExpectation, because);
         
 
         /// <summary>

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0-*",
-  "authors": ["Cyrille NDOUMBE"],
+  "authors": [ "Cyrille NDOUMBE" ],
   "dependencies": {
     "MedEasy.RestObjects": "1.0.0-*",
     "System.Runtime.InteropServices": "4.1.0",
@@ -13,5 +13,8 @@
     "netcoreapp1.0": {
       "imports": "dnxcore50"
     }
+  },
+  "runtimes": {
+    "win10-x64": {}
   }
 }

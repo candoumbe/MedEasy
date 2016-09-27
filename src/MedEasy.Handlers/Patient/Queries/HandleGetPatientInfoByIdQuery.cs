@@ -12,25 +12,25 @@ namespace MedEasy.Handlers.Patient.Queries
 {
 
     /// <summary>
-    /// An instance of this class execute <see cref="IGetPatientInfosByIdQuery"/> queries
+    /// An instance of this class execute <see cref="IWantOnePatientInfoByIdQuery"/> queries
     /// </summary>
-    public class HandleGetPatientDetailsByIdQuery : IHandleGetPatientDetailsByIdQuery
+    public class HandleGetPatientInfoByIdQuery : IHandleGetOnePatientInfoByIdQuery
     {
         /// <summary>
-        /// Builds a new <see cref="HandleGetPatientDetailsByIdQuery"/> instance
+        /// Builds a new <see cref="HandleGetPatientInfoByIdQuery"/> instance
         /// </summary>
         /// <param name="factory"> Factory that can build<see cref="IUnitOfWorkFactory"/></param>
         /// <param name="expressionBuilder">Builder that can provide expressions to convert from one type to an other</param>
         /// <param name="validator">Validator to use to validate commands before processing them</param>
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
-        public HandleGetPatientDetailsByIdQuery(IValidate<ICreatePatientCommand> validator, ILogger<HandleGetPatientDetailsByIdQuery> logger, IUnitOfWorkFactory factory,
+        public HandleGetPatientInfoByIdQuery(IValidate<ICreatePatientCommand> validator, ILogger<HandleGetPatientInfoByIdQuery> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder)
         {
 
         }
 
-        public Task<PatientInfo> HandleAsync(IQuery<Guid, int, PatientInfo> query)
+        public Task<PatientInfo> HandleAsync(IWantOneResource<Guid, int, PatientInfo> query)
         {
             throw new NotImplementedException();
         }

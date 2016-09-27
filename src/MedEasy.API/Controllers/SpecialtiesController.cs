@@ -38,7 +38,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         protected override string ControllerName => EndpointName;
 
-       
+
 
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
@@ -64,7 +64,7 @@ namespace MedEasy.API.Controllers
             IRunCreateSpecialtyCommand iRunCreateSpecialtyCommand,
             IRunDeleteSpecialtyByIdCommand iRunDeleteSpecialtyByIdCommand,
             IHandleFindDoctorsBySpecialtyIdQuery iFindDoctorsBySpecialtyIdQueryHandler) : base(logger, apiOptions, getByIdQueryHandler, getManySpecialtyQueryHandler, iRunCreateSpecialtyCommand, urlHelperFactory, actionContextAccessor)
-        { 
+        {
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
             _iRunCreateSpecialtyCommand = iRunCreateSpecialtyCommand;
@@ -81,7 +81,7 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
-           
+
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
@@ -102,8 +102,9 @@ namespace MedEasy.API.Controllers
 
 
             IGetResponse<BrowsableSpecialtyInfo> response = new GenericPagedGetResponse<BrowsableSpecialtyInfo>(
-                result.Entries.Select(x => 
-                    new BrowsableSpecialtyInfo {
+                result.Entries.Select(x =>
+                    new BrowsableSpecialtyInfo
+                    {
                         Location = new Link { Href = urlHelper.Action(nameof(SpecialtiesController.Get), ControllerName, new { Id = x.Id }) },
                         Resource = x
                     }),
@@ -112,7 +113,7 @@ namespace MedEasy.API.Controllers
                 nextPageUrl,
                 lastPageUrl,
                 result.Total);
-            
+
 
             return new OkObjectResult(response);
         }
@@ -127,9 +128,9 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id:int}")]
         [Produces(typeof(BrowsableSpecialtyInfo))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
-            
 
-        
+
+
         /// <summary>
         /// Creates the resource
         /// </summary>
@@ -155,7 +156,7 @@ namespace MedEasy.API.Controllers
             return new OkObjectResult(browsableResource);
         }
 
-        
+
         /// <summary>
         /// Updates the specified resource
         /// </summary>
@@ -194,6 +195,17 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>))]
         public async Task<IActionResult> Doctors(int id, GenericGetQuery query)
         {
+            if (query == null)
+            {
+                query = new GenericGetQuery
+                {
+                    Page = 1,
+                    PageSize = ApiOptions.Value.DefaultPageSize
+                };
+            }
+
+            query.PageSize = Math.Min(ApiOptions.Value.MaxPageSize, query.PageSize);
+
             IPagedResult<DoctorInfo> pageResult = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(id, query));
             Debug.Assert(pageResult != null);
 
@@ -207,7 +219,15 @@ namespace MedEasy.API.Controllers
                         Href = urlHelper.Action(nameof(Get), DoctorsController.EndpointName, new { id = x.Id })
                     },
                     Resource = x
-                })
+                }),
+                first: urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
+                previous: pageResult.PageCount > 1 && query.Page > 1
+                    ? urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })
+                    : null,
+                next: query.Page < pageResult.PageCount
+                    ? urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page + 1 })
+                    : null,
+                last: urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = pageResult.PageCount })
                 );
 
 
