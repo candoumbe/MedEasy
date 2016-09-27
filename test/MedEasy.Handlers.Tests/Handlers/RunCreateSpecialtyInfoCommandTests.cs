@@ -57,21 +57,21 @@ namespace MedEasy.Handlers.Tests.Handlers
 
             // Act
             ICreateSpecialtyCommand cmd = new CreateSpecialtyCommand(new CreateSpecialtyInfo { });
-            Func<Task> action = async () => await _runner.RunAsync(Mock.Of<ICreateSpecialtyCommand>());
+            Func<Task> action = async () => await _runner.RunAsync(cmd);
 
 
             CommandNotValidException<Guid> exception = action.ShouldThrow<CommandNotValidException<Guid>>().Which;
-               
+
             exception.CommandId.Should().Be(cmd.Id);
             exception.Message.Should().NotBeNullOrWhiteSpace();
             exception.Errors.Should()
                 .NotBeNullOrEmpty().And
                 .HaveCount(1).And
-                .ContainSingle(x => x.Severity == Error && x.Key == "ErrCode");
+                .ContainSingle(x => x.Severity == Error && x.Key == "ErrorCode");
 
-            _loggerMock.Verify(mock => mock.LogError(It.IsNotNull<string>(), It.IsAny<object>()), Times.Once);
-            _loggerMock.Verify(mock => mock.LogInformation(It.IsNotNull<string>(), It.IsAny<object>()), Times.Once);
-
+            _loggerMock.Verify(mock => mock.Log(It.Is<LogLevel>(level => level == LogLevel.Debug), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(exception.Errors.Count()));
+            _loggerMock.Verify(mock => mock.Log(It.Is<LogLevel>(level => level == LogLevel.Information), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.Once);
+            
 
         }
 
