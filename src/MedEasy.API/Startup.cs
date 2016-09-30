@@ -59,6 +59,7 @@ namespace MedEasy.API
 
             services.AddScoped(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
 
+            services.AddPatientsControllerDependencies();
             services.AddSpecialtiesControllerDependencies();
             services.AddDoctorsControllerDependencies();
 
@@ -121,9 +122,6 @@ namespace MedEasy.API
                         }
                     });
                 });
-
-
-
             }
 
 

@@ -102,7 +102,7 @@ namespace MedEasy.Handlers.Commands
             {
                 TData data = command.Data;
                 await OnCreatingAsync(command.Id, data);
-                TEntity entity = ExpressionBuilder.CreateMapExpression<TData, TEntity>()?.Compile()?.Invoke(data);
+                TEntity entity = ExpressionBuilder.CreateMapExpression<TData, TEntity>().Compile().Invoke(data);
 
                 uow.Repository<TEntity>().Create(entity);
                 await uow.SaveChangesAsync();

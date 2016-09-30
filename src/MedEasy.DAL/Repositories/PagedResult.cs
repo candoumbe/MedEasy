@@ -58,7 +58,9 @@ namespace MedEasy.DAL.Repositories
             Entries = entries;
             Total = total;
             PageSize = pageSize;
-            PageCount = PageSize >= 1 ? (int) Math.Ceiling(Total / (decimal)pageSize) : 0;
+            PageCount = PageSize >= 1 
+                ? (int) Math.Ceiling(Total / (decimal)pageSize) 
+                : 0;
         }
 
         private static object Lock => new object();

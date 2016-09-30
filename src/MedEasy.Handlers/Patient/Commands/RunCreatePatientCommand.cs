@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Patient;
 using MedEasy.Handlers.Commands;
+using System.Threading.Tasks;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -29,6 +30,15 @@ namespace MedEasy.Handlers.Patient.Commands
             : base (validator, logger, factory, expressionBuilder)
         {
 
+        }
+
+
+        public override Task OnCreatingAsync(Guid id, CreatePatientInfo input)
+        {
+            input.Firstname = input.Firstname?.ToTitleCase();
+            input.Lastname = input.Lastname?.ToUpper();
+
+            return base.OnCreatingAsync(id, input);
         }
     }
 }

@@ -7,6 +7,8 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Patient;
 using System.Threading.Tasks;
 using MedEasy.Queries;
+using MedEasy.Handlers.Queries;
+using MedEasy.Queries.Patient;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -14,7 +16,7 @@ namespace MedEasy.Handlers.Patient.Queries
     /// <summary>
     /// An instance of this class execute <see cref="IWantOnePatientInfoByIdQuery"/> queries
     /// </summary>
-    public class HandleGetPatientInfoByIdQuery : IHandleGetOnePatientInfoByIdQuery
+    public class HandleGetPatientInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Patient, int, PatientInfo, IWantOneResource<Guid, int, PatientInfo>>,  IHandleGetOnePatientInfoByIdQuery
     {
         /// <summary>
         /// Builds a new <see cref="HandleGetPatientInfoByIdQuery"/> instance
@@ -24,15 +26,10 @@ namespace MedEasy.Handlers.Patient.Queries
         /// <param name="validator">Validator to use to validate commands before processing them</param>
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
-        public HandleGetPatientInfoByIdQuery(IValidate<ICreatePatientCommand> validator, ILogger<HandleGetPatientInfoByIdQuery> logger, IUnitOfWorkFactory factory,
-            IExpressionBuilder expressionBuilder)
+        public HandleGetPatientInfoByIdQuery(IValidate<IWantOneResource<Guid, int, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger, IUnitOfWorkFactory factory,
+            IExpressionBuilder expressionBuilder) : base(validator, logger, factory, expressionBuilder)
         {
 
-        }
-
-        public Task<PatientInfo> HandleAsync(IWantOneResource<Guid, int, PatientInfo> query)
-        {
-            throw new NotImplementedException();
         }
     }
 }

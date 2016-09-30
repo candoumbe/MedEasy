@@ -14,6 +14,7 @@ using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Commands.Patient;
 using Microsoft.Extensions.Options;
+using Swashbuckle.SwaggerGen.Annotations;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -47,6 +48,7 @@ namespace MedEasy.API.Controllers
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
         /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
+        /// <param name="apiOptions">Options of the API</param>
         /// <param name="getManyPatientQueryHandler">Handler of GET many resources</param>
         /// <param name="iRunCreatePatientCommand">Runner of CREATE resource command</param>
         /// <param name="iRunDeletePatientByIdCommand">Runner of DELETE resource command</param>
@@ -141,8 +143,10 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="info">data used to create the resource</param>
         /// <returns>the created resource</returns>
+        /// <response code="200">the resource was created successfuyl</response>
         [HttpPost]
         [Produces(typeof(BrowsableResource<PatientInfo>))]
+        
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo info)
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(info));

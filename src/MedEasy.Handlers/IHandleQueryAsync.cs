@@ -11,7 +11,7 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TData">Type of the data queries will carry</typeparam>
     /// <typeparam name="TResult">Type of the result of the execution of the query. Will be wrapped in a <see cref="Task{TResult}"/></typeparam>
     /// <typeparam name="TQuery">Type of queries this instance can handle</typeparam>
-    public interface IHandleQueryAsync<TKey, TData, TResult, TQuery> 
+    public interface IHandleQueryAsync<TKey, TData, TResult, in TQuery> 
         where TKey : IEquatable<TKey>
         where TQuery : IQuery<TKey, TData, TResult>
     {

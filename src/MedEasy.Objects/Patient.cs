@@ -62,10 +62,4 @@ namespace MedEasy.Objects
         }
 
     }
-
-
-
-
-
-    
 }

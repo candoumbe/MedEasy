@@ -1,12 +1,13 @@
 ﻿using MedEasy.DTO;
 using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
+using MedEasy.Queries.Patient;
 using System;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
     /// <summary>
-    /// Defines the contract 
+    /// Defines the contract for classes that can handle
     /// </summary>
     public interface IHandleGetOnePatientInfoByIdQuery : IHandleQueryAsync<Guid, int, PatientInfo, IWantOneResource<Guid, int, PatientInfo>>
     {

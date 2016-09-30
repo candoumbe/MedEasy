@@ -350,6 +350,7 @@ namespace MedEasy.WebApi.Tests
                 .ReturnsAsync(PagedResult<DoctorInfo>.Default)
                 .Verifiable();
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            
             // Act
             IActionResult actionResult = await _controller.Doctors(1, new GenericGetQuery())
                 .ConfigureAwait(false);
@@ -367,12 +368,15 @@ namespace MedEasy.WebApi.Tests
             pagedResponse.Links.Should().NotBeNull();
 
             Link firstPageLink = pagedResponse.Links.First;
-
             firstPageLink.Should().NotBeNull();
             firstPageLink.Rel.Should()
                 .BeEquivalentTo("first");
             firstPageLink.Href.Should()
                 .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Doctors)}?id=1&pageSize=30&page=1");
+
+            pagedResponse.Links.Previous.Should().BeNull();
+            pagedResponse.Links.Next.Should().BeNull();
+            pagedResponse.Links.Last.Should().BeNull();
 
             _iHandleFindDoctorsBySpecialtyIdQueryMock.Verify();
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);

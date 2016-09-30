@@ -227,7 +227,9 @@ namespace MedEasy.API.Controllers
                 next: query.Page < pageResult.PageCount
                     ? urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page + 1 })
                     : null,
-                last: urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = pageResult.PageCount })
+                last: pageResult.PageCount > 1 
+                    ? urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = pageResult.PageCount })
+                    : null
                 );
 
 
