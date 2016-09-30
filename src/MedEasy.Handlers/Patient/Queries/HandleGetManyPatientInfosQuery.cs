@@ -21,7 +21,7 @@ namespace MedEasy.Handlers.Patient.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Patient"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Patient"/> instances to <see cref="PatientInfo"/> instances</param>
-        public HandleGetManyPatientInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyPatientInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantManyResources<Guid, PatientInfo>>.Default, logger, factory, expressionBuilder)
+        public HandleGetManyPatientInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyPatientInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
         {
         }
     }

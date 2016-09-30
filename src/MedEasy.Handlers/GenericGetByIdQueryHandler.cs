@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 
 namespace MedEasy.Handlers.Queries
 {
+
     /// <summary>
     /// Generic handler for queries that request one single resource.
     /// </summary>
@@ -22,7 +23,7 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TEntityId">Type of the data of queries this handles will carry. This is also the type of the resource identifier</typeparam>
     /// <typeparam name="TResult">Type of the query execution résult</typeparam>
     /// <typeparam name="TQuery">Type of the query</typeparam>
-    public abstract class GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery> : QueryHandlerBase<TQueryId, TEntity, TEntityId, TResult, TQuery>
+    public abstract class GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery> : GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, IValidate<TQuery>>
         where TQuery : IQuery<TQueryId, TEntityId, TResult>
         where TEntity : class, IEntity<TEntityId>
         where TQueryId : IEquatable<TQueryId>
@@ -36,8 +37,39 @@ namespace MedEasy.Handlers.Queries
         /// <param name="uowFactory">Factory to build instances of <see cref="IUnitOfWork"/></param>
         /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
         /// <param name="expressionBuilder">Container of expressions that will be used to convert <see cref="TEntity"/> to <see cref="TResult"/></param>
-        protected GenericGetOneByIdQueryHandler(IValidate<TQuery> validator, 
-            ILogger<GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> logger, 
+        protected GenericGetOneByIdQueryHandler(
+            ILogger<GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> logger,
+            IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder) : base(Validator<TQuery>.Default, logger, uowFactory, expressionBuilder)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Generic handler for queries that request one single resource.
+    /// </summary>
+    /// <typeparam name="TQueryId">Type of the identifier of queries</typeparam>
+    /// <typeparam name="TEntity">Type of the entity to create</typeparam>
+    /// <typeparam name="TEntityId">Type of the data of queries this handles will carry. This is also the type of the resource identifier</typeparam>
+    /// <typeparam name="TResult">Type of the query execution résult</typeparam>
+    /// <typeparam name="TQuery">Type of the query</typeparam>
+    /// <typeparam name="TQueryValidator">Type of the validator of the <typeparamref name="TQuery"/> query</typeparam>
+        public abstract class GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> : QueryHandlerBase<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> 
+        where TQuery : IQuery<TQueryId, TEntityId, TResult>
+        where TEntity : class, IEntity<TEntityId>
+        where TQueryId : IEquatable<TQueryId>
+        where TQueryValidator : IValidate<TQuery>
+    {
+
+        /// <summary>
+        /// Builds a new <see cref="GenericGetOneByIdQueryHandler{TKey, TEntity, TData, TResult, TCommand}"/> instance
+        /// </summary>
+        /// <param name="validator">Validator to use to validate commands in <see cref="HandleAsync(TQuery)"/></param>
+        /// <param name="logger">Logger</param>
+        /// <param name="uowFactory">Factory to build instances of <see cref="IUnitOfWork"/></param>
+        /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
+        /// <param name="expressionBuilder">Container of expressions that will be used to convert <see cref="TEntity"/> to <see cref="TResult"/></param>
+        protected GenericGetOneByIdQueryHandler(TQueryValidator validator, 
+            ILogger<GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator>> logger, 
             IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder
             ) : base (validator, uowFactory)
         {
@@ -54,7 +86,7 @@ namespace MedEasy.Handlers.Queries
         }
 
         
-        protected ILogger<GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> Logger { get; }
+        protected ILogger<GenericGetOneByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator>> Logger { get; }
 
         protected IExpressionBuilder ExpressionBuilder { get; }
         
@@ -64,7 +96,7 @@ namespace MedEasy.Handlers.Queries
         /// </summary>
         /// <param name="query">command to run</param>
         /// <returns>The result of the command execution</returns>
-        /// <exception cref="QueryNotValidException">if  <paramref name="query"/> validation fails</exception>
+        /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
         public override async Task<TResult> HandleAsync(TQuery query)
         {
@@ -86,7 +118,7 @@ namespace MedEasy.Handlers.Queries
                     Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
 #endif
-                throw new CommandNotValidException<TQueryId>(query.Id, errors);
+                throw new QueryNotValidException<TQueryId>(query.Id, errors);
 
             }
             Logger.LogTrace("Query validation succeeded");

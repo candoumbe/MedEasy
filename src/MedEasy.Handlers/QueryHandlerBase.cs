@@ -17,14 +17,15 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TQuery">Type of the query</typeparam>
     /// <typeparam name="TData">Type of data the query carries</typeparam>
     /// <typeparam name="TEntity">Type of the entity store will be handled against</typeparam>
-    public abstract class QueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery> : IHandleQueryAsync<TKey, TData, TOutput, TQuery>
+    public abstract class QueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery, TQueryValidator> : IHandleQueryAsync<TKey, TData, TOutput, TQuery>
         where TQuery : IQuery<TKey, TData, TOutput>
         where TKey : IEquatable<TKey>
+        where TQueryValidator : IValidate<TQuery>
     {
         /// <summary>
         /// Query validator
         /// </summary>
-        public IValidate<TQuery> Validator { get; }
+        protected TQueryValidator Validator { get; }
 
 
         protected IUnitOfWorkFactory UowFactory { get; }
@@ -34,7 +35,7 @@ namespace MedEasy.Handlers.Queries
         /// </summary>
         /// <param name="validator">validator that will be used to validate <see cref="HandleAsync(TQuery)"/> parameter</param>
         /// <param name="uowFactory">Factory used for accessing <see cref="TEntity"/> instances</param>
-        protected QueryHandlerBase(IValidate<TQuery> validator, IUnitOfWorkFactory uowFactory)
+        protected QueryHandlerBase(TQueryValidator validator, IUnitOfWorkFactory uowFactory)
         {
             if (validator == null)
             {

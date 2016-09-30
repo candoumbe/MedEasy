@@ -13,7 +13,7 @@ namespace MedEasy.Handlers.Doctor.Queries
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneDoctorInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, int, DoctorInfo, IWantOneResource<Guid, int, DoctorInfo>>, IHandleGetDoctorInfoByIdQuery
+    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, int, DoctorInfo, IWantOneResource<Guid, int, DoctorInfo>, IValidate<IWantOneResource<Guid, int, DoctorInfo>>>, IHandleGetDoctorInfoByIdQuery
     {
 
         /// <summary>

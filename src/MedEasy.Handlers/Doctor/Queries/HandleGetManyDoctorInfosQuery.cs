@@ -22,7 +22,7 @@ namespace MedEasy.Handlers.Doctor.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Doctor"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Doctor"/> instances to <see cref="DoctorInfo"/> instances</param>
-        public HandleGetManyDoctorInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyDoctorInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantManyResources<Guid, DoctorInfo>>.Default, logger, factory, expressionBuilder)
+        public HandleGetManyDoctorInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyDoctorInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
         {
         }
     }

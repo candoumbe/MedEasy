@@ -25,10 +25,13 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TEntityId">Type of the data of queries this handles will carry. This is also the type of the resource identifier</typeparam>
     /// <typeparam name="TResult">Type of the query execution résult</typeparam>
     /// <typeparam name="TQuery">Type of the query</typeparam>
-    public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery> : QueryHandlerBase<TQueryId, TEntity, GenericGetQuery, IPagedResult<TResult>, TQuery>
+    /// <typeparam name="TQueryValidator">Type of the query validator</typeparam>
+    public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> : QueryHandlerBase<TQueryId, TEntity, GenericGetQuery, IPagedResult<TResult>, TQuery, TQueryValidator>
         where TQuery : IQuery<TQueryId, GenericGetQuery, IPagedResult<TResult>>
         where TEntity : class, IEntity<TEntityId>
         where TQueryId : IEquatable<TQueryId>
+        where TQueryValidator : IValidate<TQuery>
+
     {
 
 
@@ -50,8 +53,8 @@ namespace MedEasy.Handlers.Queries
         /// <param name="uowFactory">Factory to build instances of <see cref="IUnitOfWork"/></param>
         /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
         /// <param name="expressionBuilder">Container of expressions that will be used to convert <see cref="TEntity"/> to <see cref="TResult"/></param>
-        protected GenericGetManyQueryHandler(IValidate<TQuery> validator, 
-            ILogger<GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> logger, 
+        protected GenericGetManyQueryHandler(TQueryValidator validator, 
+            ILogger<GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator>> logger, 
             IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder
             ) : base (validator, uowFactory)
         {
@@ -60,7 +63,7 @@ namespace MedEasy.Handlers.Queries
         }
         
 
-        protected ILogger<GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> Logger { get; }
+        protected ILogger<GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator>> Logger { get; }
 
         protected IExpressionBuilder ExpressionBuilder { get; }
         
@@ -111,6 +114,41 @@ namespace MedEasy.Handlers.Queries
 
                 return entities;
             }
+        }
+    }
+
+    /// <summary>
+    /// Generic handler for queries that request many resources.
+    /// </summary>
+    /// <typeparam name="TQueryId">Type of the identifier of queries</typeparam>
+    /// <typeparam name="TEntity">Type of the entity to create</typeparam>
+    /// <typeparam name="TEntityId">Type of the data of queries this handles will carry. This is also the type of the resource identifier</typeparam>
+    /// <typeparam name="TResult">Type of the query execution résult</typeparam>
+    /// <typeparam name="TQuery">Type of the query</typeparam>
+    /// <typeparam name="TQueryValidator">Type of the query validator</typeparam>
+    public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery> : GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, IValidate<TQuery>>
+        where TQuery : IQuery<TQueryId, GenericGetQuery, IPagedResult<TResult>>
+        where TEntity : class, IEntity<TEntityId>
+        where TQueryId : IEquatable<TQueryId>
+        
+
+    {
+
+
+        
+        /// <summary>
+        /// Builds a new <see cref="GenericGetManyQueryHandler{TQueryId, TEntity, TEntityId, TResult, TQuery}"/> instance
+        /// </summary>
+        /// <param name="validator">Validator to use to validate commands in <see cref="HandleAsync(TCommand)"/></param>
+        /// <param name="logger">Logger</param>
+        /// <param name="uowFactory">Factory to build instances of <see cref="IUnitOfWork"/></param>
+        /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
+        /// <param name="expressionBuilder">Container of expressions that will be used to convert <see cref="TEntity"/> to <see cref="TResult"/></param>
+        protected GenericGetManyQueryHandler(ILogger<GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery>> logger,
+            IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder
+            ) : base(Validator<TQuery>.Default, logger,  uowFactory, expressionBuilder)
+        {
+            
         }
     }
 }

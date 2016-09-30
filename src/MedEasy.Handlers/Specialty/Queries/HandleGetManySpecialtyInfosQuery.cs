@@ -22,7 +22,7 @@ namespace MedEasy.Handlers.Specialty.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Specialty"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Specialty"/> instances to <see cref="SpecialtyInfo"/> instances</param>
-        public HandleGetManySpecialtyInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManySpecialtyInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantManyResources<Guid, SpecialtyInfo>>.Default, logger, factory, expressionBuilder)
+        public HandleGetManySpecialtyInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManySpecialtyInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
         {
         }
     }

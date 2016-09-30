@@ -16,7 +16,7 @@ namespace MedEasy.Handlers.Patient.Queries
     /// <summary>
     /// An instance of this class execute <see cref="IWantOnePatientInfoByIdQuery"/> queries
     /// </summary>
-    public class HandleGetPatientInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Patient, int, PatientInfo, IWantOneResource<Guid, int, PatientInfo>>,  IHandleGetOnePatientInfoByIdQuery
+    public class HandleGetPatientInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Patient, int, PatientInfo, IWantOneResource<Guid, int, PatientInfo>, IValidate<IWantOneResource<Guid, int, PatientInfo>>>,  IHandleGetOnePatientInfoByIdQuery
     {
         /// <summary>
         /// Builds a new <see cref="HandleGetPatientInfoByIdQuery"/> instance

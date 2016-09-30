@@ -4,6 +4,9 @@ using MedEasy.Handlers.Patient.Commands;
 using MedEasy.API.Controllers;
 using MedEasy.Commands.Patient;
 using MedEasy.Validators;
+using MedEasy.Queries;
+using System;
+using MedEasy.DTO;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -20,7 +23,8 @@ namespace MedEasy.API.StartupRegistration
 
             services.AddScoped<IValidate<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
             services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
-
+            services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
+            
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
             

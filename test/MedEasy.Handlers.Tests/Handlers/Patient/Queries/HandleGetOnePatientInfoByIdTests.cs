@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using Xunit.Abstractions;
-using Moq;
-using static Moq.MockBehavior;
-using MedEasy.Validators;
-using AutoMapper;
-using Xunit;
-using FluentAssertions;
-using MedEasy.Commands.Patient;
+﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using MedEasy.Handlers.Patient.Commands;
+using FluentAssertions;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Mapping;
-using MedEasy.Handlers.Patient.Queries;
-using MedEasy.Queries.Patient;
 using MedEasy.DTO;
-using System.Linq.Expressions;
-using MedEasy.Queries;
-using System.Linq;
 using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Patient.Queries;
+using MedEasy.Mapping;
+using MedEasy.Queries;
+using MedEasy.Queries.Patient;
+using MedEasy.Validators;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+using static MedEasy.Validators.ErrorLevel;
+using static Moq.MockBehavior;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -128,11 +127,11 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
 
         [Fact]
-        public void ShouldNotSwallowQueryNotValidException()
+        public void ShouldThrowQueryNotValidExceptionIfValidationFails()
         {
             //Arrange
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
-                .Returns((IWantOneResource<Guid, int, PatientInfo> q) => { throw new QueryNotValidException<Guid>(q.Id, Enumerable.Empty<ErrorInfo>()); });
+                .Returns((IWantOneResource<Guid, int, PatientInfo> q) => new[] { Task.FromResult(new ErrorInfo("ErrCode", "A description", Error)) });
 
             // Act
             IWantOneResource<Guid, int, PatientInfo> query = new WantOnePatientInfoByIdQuery(1);
