@@ -45,12 +45,14 @@ namespace MedEasy.WebApi.Tests
         private ITestOutputHelper _outputHelper;
         private IActionContextAccessor _actionContextAccessor;
         private Mock<IHandleGetOnePatientInfoByIdQuery> _iHandleGetOnePatientInfoByIdQueryMock;
-        private Mock<IHandleGetManyPatientInfosQuery> _iHandlerGetManyPatientInfoQueryMock;
+        private Mock<IHandleGetManyPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
         private EFUnitOfWorkFactory _factory;
         private IMapper _mapper;
         private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;
         private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IRunAddNewTemperatureMeasureCommand> _iRunAddNewTemperatureCommandMock;
+        private Mock<IHandleGetOneTemperatureQuery> _iHandleGetOnePatientTemperatureMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -74,9 +76,11 @@ namespace MedEasy.WebApi.Tests
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _iHandleGetOnePatientInfoByIdQueryMock = new Mock<IHandleGetOnePatientInfoByIdQuery>(Strict);
-            _iHandlerGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
+            _iHandleGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
            _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
             _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
+            _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewTemperatureMeasureCommand>(Strict);
+            _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOneTemperatureQuery>(Strict);
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
             _controller = new PatientsController(
@@ -85,9 +89,11 @@ namespace MedEasy.WebApi.Tests
                 _actionContextAccessor,
                 _apiOptionsMock.Object,
                 _iHandleGetOnePatientInfoByIdQueryMock.Object,
-                _iHandlerGetManyPatientInfoQueryMock.Object,
+                _iHandleGetManyPatientInfoQueryMock.Object,
                 _iRunCreatePatientInfoCommandMock.Object,
-                _iRunDeletePatientInfoByIdCommandMock.Object);
+                _iRunDeletePatientInfoByIdCommandMock.Object,
+                _iRunAddNewTemperatureCommandMock.Object,
+                _iHandleGetOnePatientTemperatureMock.Object);
 
         }
 
@@ -181,7 +187,7 @@ namespace MedEasy.WebApi.Tests
                 await uow.SaveChangesAsync();
             }
 
-            _iHandlerGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
+            _iHandleGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
                 .Returns((IWantManyResources<Guid, PatientInfo> getQuery) => Task.Run(async () =>
                 {
 
@@ -403,7 +409,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 20, MaxPageSize = 200 });
 
-            _iHandlerGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
+            _iHandleGetManyPatientInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, PatientInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -412,7 +418,7 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iHandlerGetManyPatientInfoQueryMock.Verify();
+            _iHandleGetManyPatientInfoQueryMock.Verify();
 
         }
 
@@ -435,7 +441,7 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
-            _iHandlerGetManyPatientInfoQueryMock.Verify();
+            _iHandleGetManyPatientInfoQueryMock.Verify();
         }
 
         [Fact]
@@ -456,6 +462,67 @@ namespace MedEasy.WebApi.Tests
         }
 
 
+        [Fact]
+        public async Task AddTemperatureMeasure()
+        {
+            // Arrange
+            _iRunAddNewTemperatureCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IAddNewTemperatureMeasureCommand>()))
+                .Returns((IAddNewTemperatureMeasureCommand localCmd) => Task.FromResult(new TemperatureInfo {
+                    Id = 1,
+                    DateOfMeasure = localCmd.Data.Timestamp,
+                    PatientId = localCmd.Data.PatientId,
+                    Value = localCmd.Data.Value
+                }));
+
+            // Act
+            CreateTemperatureInfo input = new CreateTemperatureInfo
+            {
+                PatientId = 1,
+                Value = 50,
+                Timestamp = DateTime.UtcNow
+            };
+
+            IActionResult actionResult = await _controller.Temperatures(input);
+
+            // Assert
+            BrowsableResource<TemperatureInfo> browsableResource = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                .Value.Should()
+                    .NotBeNull().And
+                    .BeOfType<BrowsableResource<TemperatureInfo>>().Which;
+
+            TemperatureInfo resource = browsableResource.Resource;
+            
+            resource.Should().NotBeNull();
+            resource.PatientId.Should().Be(input.PatientId);
+            resource.Value.Should().Be(input.Value);
+
+            Link resourceLink = browsableResource.Location;
+            resourceLink.Should().NotBeNull();
+            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/Temperatures?id={input.PatientId}&temperatureId={resource.Id}");
+
+            _iRunAddNewTemperatureCommandMock.VerifyAll();
+            
+        }
+
+        [Fact]
+        public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
+        {
+            // Arrange
+            _iHandleGetOnePatientTemperatureMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>()))
+                .ReturnsAsync(null)
+                .Verifiable();
+
+            //Act
+            GetOnePhysiologicalMeasureInfo input = new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 12 };
+            IActionResult actionResult = await _controller.Temperatures(input);
+
+            //Assert
+            actionResult.Should().BeOfType<NotFoundResult>();
+            _iHandleGetOnePatientTemperatureMock.VerifyAll();
+        }
+
         public void Dispose()
         {
             _loggerMock = null;
@@ -466,11 +533,12 @@ namespace MedEasy.WebApi.Tests
             _apiOptionsMock = null;
 
             _iHandleGetOnePatientInfoByIdQueryMock = null;
-            _iHandlerGetManyPatientInfoQueryMock = null;
-            
+            _iHandleGetManyPatientInfoQueryMock = null;
+            _iHandleGetOnePatientTemperatureMock = null;
 
             _iRunCreatePatientInfoCommandMock = null;
             _iRunDeletePatientInfoByIdCommandMock = null;
+            _iRunAddNewTemperatureCommandMock = null;
 
             _factory = null;
             _mapper = null;

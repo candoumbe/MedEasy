@@ -43,6 +43,8 @@ namespace MedEasy.API.Controllers
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IRunCreatePatientCommand _iRunCreatePatientCommand;
         private readonly IRunDeletePatientByIdCommand _iRunDeletePatientByIdCommand;
+        private readonly IRunAddNewTemperatureMeasureCommand _iRunAddNewTemperatureCommand;
+        private readonly IHandleGetOneTemperatureQuery _iHandleGetOneTemperatureQuery;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -61,12 +63,16 @@ namespace MedEasy.API.Controllers
             IHandleGetOnePatientInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
             IRunCreatePatientCommand iRunCreatePatientCommand,
-            IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
+            IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
+            IRunAddNewTemperatureMeasureCommand iRunAddNewTemperatureCommand,
+            IHandleGetOneTemperatureQuery iHandleGetOneTemperatureQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         { 
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
             _iRunCreatePatientCommand = iRunCreatePatientCommand;
             _iRunDeletePatientByIdCommand = iRunDeletePatientByIdCommand;
+            _iRunAddNewTemperatureCommand = iRunAddNewTemperatureCommand;
+            _iHandleGetOneTemperatureQuery = iHandleGetOneTemperatureQuery;
 
         }
 
@@ -194,7 +200,64 @@ namespace MedEasy.API.Controllers
         }
 
 
+        /// <summary>
+        /// Create a new <see cref="TemperatureInfo"/> resource
+        /// </summary>
+        /// <param name="input">input to create the new resource</param>
+        /// <returns>The created resource</returns>
+        /// <see cref="IRunAddNewTemperatureMeasureCommand"/>
+        [HttpPost("{id:int}/[action]")]
+        [Produces(typeof(BrowsableResource<TemperatureInfo>))]
+        public async Task<IActionResult> Temperatures(CreateTemperatureInfo input)
+        {
+            TemperatureInfo output = await _iRunAddNewTemperatureCommand.RunAsync(new AddNewTemperatureCommand(input));
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            BrowsableResource<TemperatureInfo> resource = new BrowsableResource<TemperatureInfo>
+            {
+                Resource = output,
+                Location = new Link
+                {
+                    Href = urlHelper.Action(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }),
+                    Rel = "self",
+                }
+            };
+            OkObjectResult result = new OkObjectResult(resource);
 
 
+            return result;
+        }
+
+        /// <summary>
+        /// Gets one mesure of temperature for the specified patient
+        /// </summary>
+        /// <param name="input">Id of the <see cref="PatientInfo"/> and the <see cref="TemperatureInfo"/> to get</param>
+        /// <returns></returns>
+        [HttpGet("{int:id}/[action]/{temperatureId:int}")]
+        public async Task<IActionResult> Temperatures(GetOnePhysiologicalMeasureInfo input)
+        {
+            TemperatureInfo output = await _iHandleGetOneTemperatureQuery.HandleAsync(new WantOneTemperatureMeasureQuery(input.PatientId, input.MeasureId));
+            IActionResult actionResult = null;
+
+            if (output != null)
+            {
+                IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+                actionResult = new OkObjectResult(new BrowsableResource<TemperatureInfo>
+                {
+                    Resource = output,
+                    Location = new Link
+                    {
+                        Href = urlHelper.Action(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }),
+                        Rel = "self"
+                    }
+                });
+                
+            }
+            else
+            {
+                actionResult = new NotFoundResult();
+            }
+
+            return actionResult;
+        }
     }
 }
