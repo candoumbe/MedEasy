@@ -12,10 +12,7 @@ namespace MedEasy.Objects
         /// </summary>
         public float Value { get; set; }
 
-        public bool Equals(Temperature other)
-        {
-            return ReferenceEquals(this, other) || (other != null  && Value.Equals(other.Value));
-        }
+        public bool Equals(Temperature other) => ReferenceEquals(this, other) || (other != null && Value.Equals(other.Value));
 
 
     }

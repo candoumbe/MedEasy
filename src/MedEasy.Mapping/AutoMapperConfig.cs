@@ -15,6 +15,9 @@ namespace MedEasy.Mapping
             cfg.CreateMap<Patient, BrowsablePatientInfo>()
                  .ForMember(dest => dest.Location, opt => opt.Ignore());
             cfg.CreateMap<CreatePatientInfo, Patient>();
+            cfg.CreateMap<CreateTemperatureInfo, Temperature>()
+                .ForMember(dest => dest.DateOfMeasure, opt => opt.MapFrom(source => source.Timestamp));
+            cfg.CreateMap<Temperature, TemperatureInfo>();
 
 
             cfg.CreateMap<Doctor, DoctorInfo>();

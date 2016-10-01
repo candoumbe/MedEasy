@@ -2,6 +2,7 @@
   "version": "1.0.0-*",
 
   "dependencies": {
+    "MedEasy.Commands": "1.0.0",
     "MedEasy.DTO": "1.0.0-*",
     "System.Linq": "4.1.0",
     "System.Runtime": "4.1.0",

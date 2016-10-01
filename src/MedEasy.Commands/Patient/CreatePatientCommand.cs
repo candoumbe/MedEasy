@@ -13,9 +13,10 @@ namespace MedEasy.Commands.Patient
         /// <summary>
         /// Builds a new <see cref="CreatePatientCommand"/> instance.
         /// </summary>
-        /// <param name="data">data that will be used to create</param>
+        /// <param name="data">data that will be used to create the patient resource</param>
         /// <see cref="CommandBase{TKey, TData}"/>
         /// <see cref="ICreatePatientCommand"/>
+        /// <see cref="CreatePatientInfo"/>
         public CreatePatientCommand(CreatePatientInfo data) : base(Guid.NewGuid(), data)
         {
             

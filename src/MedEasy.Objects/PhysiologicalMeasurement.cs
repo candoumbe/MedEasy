@@ -6,8 +6,14 @@ namespace MedEasy.Objects
     {
         public Patient Patient { get; set; }
 
+        /// <summary>
+        /// Patient for which the measure was made
+        /// </summary>
         public int PatientId { get; set; }
 
-        public DateTime DateOfMeasurement { get; set; }
+        /// <summary>
+        /// When the measure was made
+        /// </summary>
+        public DateTime DateOfMeasure { get; set; }
     }
 }

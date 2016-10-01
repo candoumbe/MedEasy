@@ -4,6 +4,9 @@
     {
         public PrescriptionItemCategory Category { get; set; }
 
+        /// <summary>
+        /// Code of the prescription
+        /// </summary>
         public string Code { get; set; }
     }
 }
