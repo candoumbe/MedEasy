@@ -515,8 +515,7 @@ namespace MedEasy.WebApi.Tests
                 .Verifiable();
 
             //Act
-            GetOnePhysiologicalMeasureInfo input = new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 12 };
-            IActionResult actionResult = await _controller.Temperatures(input);
+            IActionResult actionResult = await _controller.Temperatures(1, 12);
 
             //Assert
             actionResult.Should().BeOfType<NotFoundResult>();

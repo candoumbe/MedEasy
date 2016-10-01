@@ -37,6 +37,11 @@ namespace MedEasy.API.Stores
         public DbSet<BloodPressure> BloodPressures { get; set; }
 
         /// <summary>
+        /// Gives access to <see cref="Temperature"/> entities
+        /// </summary>
+        public DbSet<Temperature> Temperatures { get; set; }
+
+        /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options
         /// </summary>
         public MedEasyContext()

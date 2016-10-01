@@ -1,0 +1,151 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using FluentAssertions;
+using MedEasy.DAL.Interfaces;
+using MedEasy.DTO;
+using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Patient.Queries;
+using MedEasy.Mapping;
+using MedEasy.Queries;
+using MedEasy.Queries.Patient;
+using MedEasy.Validators;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+using static MedEasy.Validators.ErrorLevel;
+using static Moq.MockBehavior;
+
+namespace MedEasy.Handlers.Tests.Patient.Queries
+{
+    public class HandleGetOneTemperatureInfoQueryTests : IDisposable
+    {
+        private ITestOutputHelper _outputHelper;
+        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private HandleGetOneTemperatureInfoQuery _handler;
+        
+        private Mock<ILogger<HandleGetOneTemperatureInfoQuery>> _loggerMock;
+        private IMapper _mapper;
+        private Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>> _validatorMock;
+
+        public HandleGetOneTemperatureInfoQueryTests(ITestOutputHelper outputHelper)
+        {
+            _outputHelper = outputHelper;
+
+            _mapper = AutoMapperConfig.Build().CreateMapper();
+            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+
+            _loggerMock = new Mock<ILogger<HandleGetOneTemperatureInfoQuery>>(Strict);
+            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+
+            _validatorMock = new Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>>(Strict);
+
+            _handler = new HandleGetOneTemperatureInfoQuery( _unitOfWorkFactoryMock.Object, _loggerMock.Object,  _mapper.ConfigurationProvider.ExpressionBuilder);
+        }
+
+
+        public static IEnumerable<object[]> ConstructorCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    null,
+                    null,
+                    null
+                };
+
+            }
+        }
+
+
+        
+
+        [Theory]
+        [MemberData(nameof(ConstructorCases))]
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(ILogger<HandleGetOneTemperatureInfoQuery> logger,
+           IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
+        {
+            _outputHelper.WriteLine($"Logger : {logger}");
+            _outputHelper.WriteLine($"Unit of work factory : {factory}");
+            _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
+            Action action = () => new HandleGetOneTemperatureInfoQuery( factory, logger, expressionBuilder);
+
+            action.ShouldThrow<ArgumentNullException>().And
+                .ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
+        }
+
+
+        [Fact]
+        public void ShouldThrowArgumentNullException()
+        {
+            Func<Task> action = async () =>
+            {
+                IHandleGetOneTemperatureQuery handler = new HandleGetOneTemperatureInfoQuery(
+                    Mock.Of<IUnitOfWorkFactory>(),
+                    Mock.Of<ILogger<HandleGetOneTemperatureInfoQuery>>(),
+                    Mock.Of<IExpressionBuilder>());
+
+                await handler.HandleAsync(null);
+            };
+
+            action.ShouldThrow<ArgumentNullException>("because the query to handle is null")
+                .And.ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
+        }
+
+        [Fact]
+        public async Task UnknownIdShouldReturnNull()
+        {
+            //Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Temperature>()
+                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Temperature, TemperatureInfo>>>(), It.IsAny<Expression<Func<Objects.Temperature, bool>>>()))
+                .ReturnsAsync(null)
+                .Verifiable();
+
+            // Act
+            TemperatureInfo output = await _handler.HandleAsync(new WantOneTemperatureMeasureQuery(1, 23));
+
+            //Assert
+            output.Should().BeNull();
+
+            _validatorMock.VerifyAll();
+            _unitOfWorkFactoryMock.VerifyAll();
+        }
+
+
+        [Fact]
+        public void ShouldThrowQueryNotValidExceptionIfValidationFails()
+        {
+            //Arrange
+            
+            // Act
+            IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo> query = new WantOneTemperatureMeasureQuery(1, 12);
+            Func<Task> action = async () =>  await _handler.HandleAsync(query);
+
+            //Assert
+            action.ShouldNotThrow<QueryNotValidException<Guid>>();
+
+
+        }
+
+
+
+
+        public void Dispose()
+        {
+            _outputHelper = null;
+           _unitOfWorkFactoryMock = null;
+            _handler = null;
+            _mapper = null;
+            _validatorMock = null;
+        }
+    }
+}

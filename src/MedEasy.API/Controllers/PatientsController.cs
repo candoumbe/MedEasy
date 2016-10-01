@@ -230,12 +230,14 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Gets one mesure of temperature for the specified patient
         /// </summary>
-        /// <param name="input">Id of the <see cref="PatientInfo"/> and the <see cref="TemperatureInfo"/> to get</param>
+        /// <param name="id">Id of the <see cref="PatientInfo"/>.</param>
+        /// <param name="temperatureId">id of the <see cref="TemperatureInfo"/> to get</param>
         /// <returns></returns>
-        [HttpGet("{int:id}/[action]/{temperatureId:int}")]
-        public async Task<IActionResult> Temperatures(GetOnePhysiologicalMeasureInfo input)
+        [HttpGet("{id:int}/[action]/{temperatureId:int}")]
+        [Produces(typeof(BrowsableResource<TemperatureInfo>))]
+        public async Task<IActionResult> Temperatures(int id, int temperatureId)
         {
-            TemperatureInfo output = await _iHandleGetOneTemperatureQuery.HandleAsync(new WantOneTemperatureMeasureQuery(input.PatientId, input.MeasureId));
+            TemperatureInfo output = await _iHandleGetOneTemperatureQuery.HandleAsync(new WantOneTemperatureMeasureQuery(id, temperatureId));
             IActionResult actionResult = null;
 
             if (output != null)
