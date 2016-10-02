@@ -7,13 +7,18 @@ using System.Threading.Tasks;
 namespace MedEasy.DTO
 {
     [JsonObject]
-    public class TemperatureInfo : PhysiologicalMeasurementInfo
+    public class BloodPressureInfo : PhysiologicalMeasurementInfo
     {
         
         /// <summary>
         /// Value of the measure
         /// </summary>
-        public float Value { get; set; }
+        public float SystolicPressure { get; set; }
+
+        /// <summary>
+        /// Bloo
+        /// </summary>
+        public float DiastolicPressure { get; set; }
 
     }
 }

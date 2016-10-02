@@ -44,18 +44,19 @@ namespace MedEasy.API.Controllers
         private readonly IRunCreatePatientCommand _iRunCreatePatientCommand;
         private readonly IRunDeletePatientByIdCommand _iRunDeletePatientByIdCommand;
         private readonly IRunAddNewTemperatureMeasureCommand _iRunAddNewTemperatureCommand;
-        private readonly IHandleGetOneTemperatureQuery _iHandleGetOneTemperatureQuery;
+        private readonly IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> _iHandleGetOneTemperatureQuery;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
         /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
         /// <param name="apiOptions">Options of the API</param>
-        /// <param name="getManyPatientQueryHandler">Handler of GET many resources</param>
+        /// <param name="getManyPatientQueryHandler">Handler of GET many <see cref="PatientInfo"/> resources</param>
         /// <param name="iRunCreatePatientCommand">Runner of CREATE resource command</param>
         /// <param name="iRunDeletePatientByIdCommand">Runner of DELETE resource command</param>
         /// <param name="logger">logger</param>
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
+        /// <param name="iHandleGetOneTemperatureQuery">Handler for GET <see cref="TemperatureInfo"/>  </param>
         /// <param name="actionContextAccessor"></param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, 
@@ -65,7 +66,7 @@ namespace MedEasy.API.Controllers
             IRunCreatePatientCommand iRunCreatePatientCommand,
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
             IRunAddNewTemperatureMeasureCommand iRunAddNewTemperatureCommand,
-            IHandleGetOneTemperatureQuery iHandleGetOneTemperatureQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
+            IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> iHandleGetOneTemperatureQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         { 
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
@@ -78,20 +79,24 @@ namespace MedEasy.API.Controllers
 
 
         /// <summary>
-        /// Gets all the entries in the repository
+        /// Gets all the resources of the endpoint
         /// </summary>
+        /// <param name="page">index of the page of resources to get</param>
+        /// <param name="pageSize">number of resources to return </param>
+        /// <remarks>
+        /// Resources are returned as pages. The <paramref name="pageSize"/> value is used has a hint by the server
+        /// and there's no garanty that the size of page of result will be equal to the <paramref name="pageSize"/> set in the query.
+        /// In particular, the number of resources on a page may be caped by the server.
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsablePatientInfo>))]
-        public async Task<IActionResult> Get(GenericGetQuery query)
+        [Produces(typeof(GenericGetResponse<BrowsableResource<PatientInfo>>))]
+        public async Task<IActionResult> Get(int page, int pageSize)
         {
-            if (query == null)
-            {
-                query = new GenericGetQuery();
-            }
-
-            
-                
+            GenericGetQuery query = new GenericGetQuery {
+                Page = page,
+                PageSize = pageSize
+            };
             IPagedResult<PatientInfo> result = await GetAll(query);
            
             
@@ -115,9 +120,10 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsablePatientInfo> response = new GenericPagedGetResponse<BrowsablePatientInfo>(
+            IGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                 result.Entries.Select(x => 
-                    new BrowsablePatientInfo {
+                    new BrowsableResource<PatientInfo>
+                    {
                         Location = new Link { Href = urlHelper.Action(nameof(PatientsController.Get), ControllerName, new { Id = x.Id }) },
                         Resource = x
                     }),
@@ -139,7 +145,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(BrowsablePatientInfo))]
+        [Produces(typeof(BrowsableResource<PatientInfo>))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
             
 
@@ -157,7 +163,7 @@ namespace MedEasy.API.Controllers
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(info));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsablePatientInfo browsableResource = new BrowsablePatientInfo
+            BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
             {
                 Resource = output,
                 Location = new Link
@@ -179,7 +185,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsablePatientInfo))]
+        [Produces(typeof(BrowsableResource<PatientInfo>))]
         public async Task<IActionResult> Put(int id, [FromBody] PatientInfo info)
         {
             throw new NotImplementedException();
@@ -196,7 +202,7 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _iRunDeletePatientByIdCommand.RunAsync(new DeletePatientByIdCommand(id));
-            return await Task.FromResult(new OkResult());
+            return new OkResult();
         }
 
 

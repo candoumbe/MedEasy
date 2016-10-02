@@ -1,10 +1,5 @@
 ﻿using System;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Validators;
-using Microsoft.Extensions.Logging;
-using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Patient;
-using System.Threading.Tasks;
 using MedEasy.Handlers.Commands;
 using MedEasy.DTO;
 

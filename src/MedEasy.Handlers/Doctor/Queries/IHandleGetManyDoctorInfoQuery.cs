@@ -2,7 +2,6 @@
 using MedEasy.DTO;
 using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
-using MedEasy.Queries.Doctor;
 using MedEasy.RestObjects;
 using System;
 

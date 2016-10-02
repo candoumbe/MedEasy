@@ -74,7 +74,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsableDoctorInfo>))]
+        [Produces(typeof(GenericGetResponse<BrowsableResource<DoctorInfo>>))]
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
             if (query == null)
@@ -107,9 +107,9 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsableDoctorInfo> response = new GenericPagedGetResponse<BrowsableDoctorInfo>(
+            IGetResponse<BrowsableResource<DoctorInfo>> response = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
                 result.Entries.Select(x => 
-                    new BrowsableDoctorInfo {
+                    new BrowsableResource<DoctorInfo> {
                         Location = new Link { Href = urlHelper.Action(nameof(DoctorsController.Get), ControllerName, new { Id = x.Id }) },
                         Resource = x
                     }),
@@ -131,7 +131,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(BrowsableDoctorInfo))]
+        [Produces(typeof(BrowsableResource<DoctorInfo>))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
             
 
@@ -147,7 +147,7 @@ namespace MedEasy.API.Controllers
         {
             DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableDoctorInfo browsableResource = new BrowsableDoctorInfo
+            BrowsableResource<DoctorInfo> browsableResource = new BrowsableResource<DoctorInfo>
             {
                 Resource = output,
                 Location = new Link
@@ -169,7 +169,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsableDoctorInfo))]
+        [Produces(typeof(BrowsableResource<DoctorInfo>))]
         public async Task<IActionResult> Put(int id, [FromBody] DoctorInfo info)
         {
             throw new NotImplementedException();

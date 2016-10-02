@@ -1,9 +1,11 @@
 ﻿namespace MedEasy.Objects
 {
     /// <summary>
-    /// An instance of this class represents a blood pressure measure.
-    /// All mesures are expressed in milimeters of mercury (mm Hg) 
+    /// Defines a blood pressure measure.
     /// </summary>
+    /// <remarks>
+    /// All mesures are expressed in milimeters of mercury (mm Hg) 
+    /// </remarks>
     public class BloodPressure : PhysiologicalMeasurement
     {
         /// <summary>
@@ -11,6 +13,9 @@
         /// </summary>
         public float DiastolicPressure { get; set; }
 
+        /// <summary>
+        /// Get/set the blood pressure
+        /// </summary>
         public float SystolicPressure { get; set; }
     }
 }

@@ -4,7 +4,6 @@ using System;
 using MedEasy.DTO;
 using MedEasy.Validators;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Queries.Doctor;
 using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
 

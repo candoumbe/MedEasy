@@ -7,7 +7,6 @@ using MedEasy.Commands.Patient;
 using System.Threading.Tasks;
 using MedEasy.DTO;
 using MedEasy.Handlers.Commands;
-using System.Collections.Generic;
 using MedEasy.Objects;
 using MedEasy.Handlers.Exceptions;
 

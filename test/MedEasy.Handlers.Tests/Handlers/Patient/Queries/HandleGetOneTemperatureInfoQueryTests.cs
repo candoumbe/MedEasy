@@ -6,6 +6,7 @@ using MedEasy.DTO;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Mapping;
+using MedEasy.Objects;
 using MedEasy.Queries;
 using MedEasy.Queries.Patient;
 using MedEasy.Validators;
@@ -27,9 +28,9 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private HandleGetOneTemperatureInfoQuery _handler;
+        private HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo> _handler;
         
-        private Mock<ILogger<HandleGetOneTemperatureInfoQuery>> _loggerMock;
+        private Mock<ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>> _loggerMock;
         private IMapper _mapper;
         private Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>> _validatorMock;
 
@@ -41,12 +42,12 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
 
-            _loggerMock = new Mock<ILogger<HandleGetOneTemperatureInfoQuery>>(Strict);
+            _loggerMock = new Mock<ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
             _validatorMock = new Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>>(Strict);
 
-            _handler = new HandleGetOneTemperatureInfoQuery( _unitOfWorkFactoryMock.Object, _loggerMock.Object,  _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>( _unitOfWorkFactoryMock.Object, _loggerMock.Object,  _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -69,13 +70,13 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(ILogger<HandleGetOneTemperatureInfoQuery> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
-            Action action = () => new HandleGetOneTemperatureInfoQuery( factory, logger, expressionBuilder);
+            Action action = () => new HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>( factory, logger, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -88,9 +89,9 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         {
             Func<Task> action = async () =>
             {
-                IHandleGetOneTemperatureQuery handler = new HandleGetOneTemperatureInfoQuery(
+                IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> handler = new HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>(
                     Mock.Of<IUnitOfWorkFactory>(),
-                    Mock.Of<ILogger<HandleGetOneTemperatureInfoQuery>>(),
+                    Mock.Of<ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>>(),
                     Mock.Of<IExpressionBuilder>());
 
                 await handler.HandleAsync(null);

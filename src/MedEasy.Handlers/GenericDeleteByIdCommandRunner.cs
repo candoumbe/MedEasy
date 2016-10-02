@@ -7,7 +7,6 @@ using System.Linq;
 using static MedEasy.Validators.ErrorLevel;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Commands;
-using AutoMapper.QueryableExtensions;
 using System;
 using MedEasy.Objects;
 

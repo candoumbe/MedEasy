@@ -2,9 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using MedEasy.DTO;
-using MedEasy.Validators;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Queries.Specialty;
 using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
 

@@ -1,5 +1,4 @@
 ﻿using MedEasy.Commands.Specialty;
-using MedEasy.DTO;
 using MedEasy.Handlers.Commands;
 using System;
 

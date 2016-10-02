@@ -16,9 +16,7 @@ namespace MedEasy.DTO
         [JsonProperty]
         public string Lastname { get; set; }
 
-        [JsonProperty]
-        public BrowsableSpecialtyInfo Specialty { get; set; }
-
+        
         [JsonProperty]
         public DateTime? UpdatedDate { get; set; }
 

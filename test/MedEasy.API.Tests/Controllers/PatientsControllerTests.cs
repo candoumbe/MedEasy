@@ -1,4 +1,4 @@
-﻿﻿using MedEasy.Objects;
+﻿using MedEasy.Objects;
 using System.Collections.Generic;
 using FluentAssertions;
 using MedEasy.RestObjects;
@@ -13,7 +13,6 @@ using static Moq.MockBehavior;
 using System;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Xunit.Abstractions;
-using static Newtonsoft.Json.JsonConvert;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.API.Controllers;
@@ -27,7 +26,6 @@ using MedEasy.Mapping;
 using MedEasy.DAL.Repositories;
 using MedEasy.Commands.Patient;
 using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Queries.Patient;
 using MedEasy.Queries;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Handlers.Exceptions;
@@ -52,7 +50,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IRunAddNewTemperatureMeasureCommand> _iRunAddNewTemperatureCommandMock;
-        private Mock<IHandleGetOneTemperatureQuery> _iHandleGetOnePatientTemperatureMock;
+        private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -80,7 +78,7 @@ namespace MedEasy.WebApi.Tests
            _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
             _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
             _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewTemperatureMeasureCommand>(Strict);
-            _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOneTemperatureQuery>(Strict);
+            _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
             _controller = new PatientsController(
@@ -175,7 +173,7 @@ namespace MedEasy.WebApi.Tests
             int expectedCount,
             Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
-            _outputHelper.WriteLine($"Testing {nameof(PatientsController.Get)}({nameof(GenericGetQuery)})");
+            _outputHelper.WriteLine($"Testing {nameof(PatientsController.GetAll)}({nameof(GenericGetQuery)})");
             _outputHelper.WriteLine($"Page size : {pageSize}");
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
@@ -203,8 +201,9 @@ namespace MedEasy.WebApi.Tests
                     }
                 }));
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            
             // Act
-            IActionResult actionResult = await _controller.Get(new GenericGetQuery { PageSize = pageSize, Page = page });
+            IActionResult actionResult = await _controller.Get(page, pageSize);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
@@ -218,12 +217,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsablePatientInfo>>();
+                    .And.BeOfType<GenericPagedGetResponse<BrowsableResource<PatientInfo>>>();
 
-            GenericPagedGetResponse<BrowsablePatientInfo> response = (GenericPagedGetResponse<BrowsablePatientInfo>)value;
+            GenericPagedGetResponse<BrowsableResource<PatientInfo>> response = (GenericPagedGetResponse<BrowsableResource<PatientInfo>>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsablePatientInfo>)}.{nameof(GenericPagedGetResponse<BrowsablePatientInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);

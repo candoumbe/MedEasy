@@ -208,12 +208,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsableDoctorInfo>>();
+                    .And.BeAssignableTo<GenericPagedGetResponse<BrowsableResource<DoctorInfo>>>();
 
-            GenericPagedGetResponse<BrowsableDoctorInfo> response = (GenericPagedGetResponse<BrowsableDoctorInfo>)value;
+            GenericPagedGetResponse<BrowsableResource<DoctorInfo>> response = (GenericPagedGetResponse<BrowsableResource<DoctorInfo>>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableDoctorInfo>)}.{nameof(GenericPagedGetResponse<BrowsableDoctorInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);

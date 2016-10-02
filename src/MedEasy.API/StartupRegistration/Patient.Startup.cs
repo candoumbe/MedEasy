@@ -7,6 +7,7 @@ using MedEasy.Validators;
 using MedEasy.Queries;
 using System;
 using MedEasy.DTO;
+using MedEasy.Objects;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -16,7 +17,7 @@ namespace MedEasy.API.StartupRegistration
     public static class PatientStartupRegistration
     {
         /// <summary>
-        /// Registers all dependencies needed by <see cref="SpecialtiesController"/>
+        /// Registers all dependencies needed by <see cref="PatientsController"/>
         /// </summary>
         public static void AddPatientsControllerDependencies(this IServiceCollection services)
         {
@@ -28,7 +29,8 @@ namespace MedEasy.API.StartupRegistration
             
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
-            services.AddScoped<IHandleGetOneTemperatureQuery, HandleGetOneTemperatureInfoQuery>();
+            services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>();
+            services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<BloodPressure,BloodPressureInfo>>();
             
             services.AddScoped<IRunCreatePatientCommand, RunCreatePatientCommand>();
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();

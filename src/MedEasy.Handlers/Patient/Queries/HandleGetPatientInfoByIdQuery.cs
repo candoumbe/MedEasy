@@ -4,11 +4,8 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Patient;
-using System.Threading.Tasks;
 using MedEasy.Queries;
 using MedEasy.Handlers.Queries;
-using MedEasy.Queries.Patient;
 
 namespace MedEasy.Handlers.Patient.Queries
 {

@@ -13,7 +13,6 @@ using MedEasy.Handlers.Specialty.Queries;
 using MedEasy.Queries.Specialty;
 using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.Commands.Specialty;
-using Swashbuckle.SwaggerGen.Annotations;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
 
@@ -77,7 +76,7 @@ namespace MedEasy.API.Controllers
         /// Gets all the entries in the repository
         /// </summary>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsableSpecialtyInfo>))]
+        [Produces(typeof(GenericGetResponse<BrowsableResource<SpecialtyInfo>>))]
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
@@ -101,9 +100,9 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsableSpecialtyInfo> response = new GenericPagedGetResponse<BrowsableSpecialtyInfo>(
+            IGetResponse<BrowsableResource<SpecialtyInfo>> response = new GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>(
                 result.Entries.Select(x =>
-                    new BrowsableSpecialtyInfo
+                    new BrowsableResource<SpecialtyInfo>
                     {
                         Location = new Link { Href = urlHelper.Action(nameof(SpecialtiesController.Get), ControllerName, new { Id = x.Id }) },
                         Resource = x
@@ -126,7 +125,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(BrowsableSpecialtyInfo))]
+        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
 
 
@@ -142,7 +141,7 @@ namespace MedEasy.API.Controllers
         {
             SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableSpecialtyInfo browsableResource = new BrowsableSpecialtyInfo
+            BrowsableResource<SpecialtyInfo> browsableResource = new BrowsableResource<SpecialtyInfo>
             {
                 Resource = output,
                 Location = new Link
@@ -164,7 +163,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsableSpecialtyInfo))]
+        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
         public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
         {
             throw new NotImplementedException();
@@ -188,7 +187,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Finds doctors by the specialty they practice
         /// </summary>
-        /// <param name="id">Specialty the doctors practices</param>
+        /// <param name="id">Specialty to lookup doctors for</param>
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
         /// <returns></returns>
         [HttpGet("{id:int}/Doctors")]
@@ -210,8 +209,8 @@ namespace MedEasy.API.Controllers
             Debug.Assert(pageResult != null);
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            IGetResponse<BrowsableDoctorInfo> pagedResponse = new GenericPagedGetResponse<BrowsableDoctorInfo>(
-                pageResult.Entries.Select(x => new BrowsableDoctorInfo
+            IGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
+                pageResult.Entries.Select(x => new BrowsableResource<DoctorInfo>
                 {
                     Location = new Link
                     {

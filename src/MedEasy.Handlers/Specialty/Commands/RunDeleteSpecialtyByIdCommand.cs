@@ -1,14 +1,9 @@
 ﻿using System;
-using MedEasy.DTO;
 using MedEasy.DAL.Interfaces;
-using System.Threading.Tasks;
 using MedEasy.Commands.Specialty;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
-using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Commands;
-using MedEasy.Handlers.Exceptions;
-using MedEasy.Handlers.Specialty.Commands;
 
 namespace MedEasy.Handlers.Specialty.Commands
 {

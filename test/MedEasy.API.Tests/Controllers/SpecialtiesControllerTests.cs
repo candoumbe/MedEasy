@@ -1,39 +1,38 @@
-﻿using MedEasy.Objects;
-using System.Collections.Generic;
+﻿using AutoMapper;
 using FluentAssertions;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Xunit;
-using System.Linq;
-using MedEasy.DTO;
-using Microsoft.Extensions.Logging;
-using Moq;
-using static Moq.MockBehavior;
-using System;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Xunit.Abstractions;
-using static Newtonsoft.Json.JsonConvert;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using GenFu;
+using MedEasy.API;
 using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using System.Linq.Expressions;
-using GenFu;
-using static System.StringComparison;
-using MedEasy.Mapping;
-using MedEasy.DAL.Repositories;
 using MedEasy.Commands.Specialty;
-using MedEasy.Handlers.Specialty.Commands;
-using MedEasy.Queries.Specialty;
-using MedEasy.Queries;
-using MedEasy.Handlers.Specialty.Queries;
+using MedEasy.DAL.Repositories;
+using MedEasy.DTO;
 using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Specialty.Commands;
+using MedEasy.Handlers.Specialty.Queries;
+using MedEasy.Mapping;
+using MedEasy.Objects;
+using MedEasy.Queries;
+using MedEasy.Queries.Specialty;
+using MedEasy.RestObjects;
 using MedEasy.Validators;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MedEasy.API;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+using static Moq.MockBehavior;
+using static System.StringComparison;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -216,12 +215,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsableSpecialtyInfo>>();
+                    .And.BeOfType<GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>>();
 
-            GenericPagedGetResponse<BrowsableSpecialtyInfo> response = (GenericPagedGetResponse<BrowsableSpecialtyInfo>)value;
+            GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>> response = (GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableSpecialtyInfo>)}.{nameof(GenericPagedGetResponse<BrowsableSpecialtyInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -362,9 +361,9 @@ namespace MedEasy.WebApi.Tests
 
             OkObjectResult objectResult = (OkObjectResult)actionResult;
             objectResult.Value.Should()
-                .BeOfType<GenericPagedGetResponse<BrowsableDoctorInfo>>();
+                .BeOfType<GenericPagedGetResponse<BrowsableResource<DoctorInfo>>>();
 
-            GenericPagedGetResponse<BrowsableDoctorInfo> pagedResponse = (GenericPagedGetResponse<BrowsableDoctorInfo>)objectResult.Value;
+            GenericPagedGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = (GenericPagedGetResponse<BrowsableResource<DoctorInfo>>)objectResult.Value;
             pagedResponse.Links.Should().NotBeNull();
 
             Link firstPageLink = pagedResponse.Links.First;

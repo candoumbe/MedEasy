@@ -1,0 +1,53 @@
+﻿using MedEasy.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
+using System;
+using MedEasy.DTO;
+using AutoMapper.QueryableExtensions;
+using MedEasy.Handlers.Queries;
+using MedEasy.Queries;
+using System.Threading.Tasks;
+using MedEasy.Objects;
+using System.Linq.Expressions;
+
+namespace MedEasy.Handlers.Patient.Queries
+{
+    /// <summary>
+    /// An instance of this class can be used to handle <see cref="IWantOneResource{TQueryId, TData, TResult}"/> interface implementations
+    /// </summary
+    public class HandleGetOnePhysiologicalMeasurementInfoQuery<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo> : QueryHandlerBase<Guid, TPhysiologicalMeasurementEntity, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo, IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo>>, IHandleGetOnePhysiologicalMeasureQuery<TPhysiologicalMeasurementInfo>
+        where TPhysiologicalMeasurementEntity : PhysiologicalMeasurement
+        where TPhysiologicalMeasurementInfo : PhysiologicalMeasurementInfo
+    {
+        private readonly IExpressionBuilder _expressionBuilder;
+
+        /// <summary>
+        /// Builds a new <see cref="HandleGetOnePhysiologicalMeasurementInfoQuery{TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo}"/> instance
+        /// </summary>
+        /// <param name="factory">factory to use to retrieve <see cref="Objects.Patient"/> instances</param>
+        /// <param name="logger">a logger</param>
+        /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Temperature"/> instances to <see cref="TemperatureInfo"/> instances</param>
+        public HandleGetOnePhysiologicalMeasurementInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> logger, IExpressionBuilder expressionBuilder) : base(factory)
+        {
+            _expressionBuilder = expressionBuilder;
+        }
+
+        public override async Task<TPhysiologicalMeasurementInfo> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            using (var uow = UowFactory.New())
+            {
+                Expression<Func<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>();
+
+                TPhysiologicalMeasurementInfo result = await uow.Repository<TPhysiologicalMeasurementEntity>()
+                    .SingleOrDefaultAsync(selector, x => x.PatientId == query.Data.PatientId && x.Id == query.Data.MeasureId);
+
+
+                return result;
+            }
+        }
+    }
+}
