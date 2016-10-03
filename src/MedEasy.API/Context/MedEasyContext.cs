@@ -105,6 +105,10 @@ namespace MedEasy.API.Stores
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();
 
+                entity.Property(x => x.Notes)
+                    .HasDefaultValue(string.Empty)
+                    .IsRequired();
+
                 
                 entity.HasIndex(item => item.Lastname);
                 entity.HasIndex(item => item.BirthDate);

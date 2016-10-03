@@ -40,19 +40,25 @@ namespace MedEasy.Objects
         /// </summary>
         public string Fullname => $"{Firstname}{(!string.IsNullOrWhiteSpace(Firstname) && !string.IsNullOrWhiteSpace(Lastname)? " ": string.Empty)}{Lastname}";
 
-        //[Index]
+        
         public DateTime? BirthDate { get; set; } = null;
 
         public string BirthPlace { get; set; } = string.Empty;
 
         public Doctor MainDoctor { get; set; } = null;
 
-        
+        /// <summary>
+        /// Additional notes on the patient
+        /// </summary>
+        public string Notes { get; set; }
         /// <summary>
         /// Id of the current patient's main doctor
         /// </summary>
         public int? MainDoctorId { get; set; }
 
+        /// <summary>
+        /// <see cref="BloodPressure"/>s measure taken for this patient
+        /// </summary>
         public ICollection<BloodPressure> BloodPressures { get; set; }
 
         public Patient()

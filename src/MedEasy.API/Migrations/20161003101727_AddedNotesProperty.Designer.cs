@@ -8,9 +8,10 @@ using MedEasy.API.Stores;
 namespace MedEasy.API.Migrations
 {
     [DbContext(typeof(MedEasyContext))]
-    partial class MedEasyContextModelSnapshot : ModelSnapshot
+    [Migration("20161003101727_AddedNotesProperty")]
+    partial class AddedNotesProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.1")
