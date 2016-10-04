@@ -16,7 +16,7 @@ namespace MedEasy.Handlers.Patient.Commands
     /// <summary>
     /// An instance of this class process <see cref="IAddNewTemperatureMeasureCommand"/> commands
     /// </summary>
-    public class RunAddNewTemperatureMeasureCommand : GenericCreateCommandRunner<Guid, Temperature, CreateTemperatureInfo, TemperatureInfo, IAddNewTemperatureMeasureCommand>, IRunAddNewTemperatureMeasureCommand
+    public class RunAddNewTemperatureMeasureCommand : GenericCreateCommandRunner<Guid, Temperature, CreateTemperatureInfo, TemperatureInfo, IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>, IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>
     {
         
         /// <summary>
@@ -27,7 +27,7 @@ namespace MedEasy.Handlers.Patient.Commands
         /// <param name="validator">Validator that will be used to validate commands before processing them</param>
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
-        public RunAddNewTemperatureMeasureCommand(IValidate<IAddNewTemperatureMeasureCommand> validator, ILogger<RunAddNewTemperatureMeasureCommand> logger, IUnitOfWorkFactory factory,
+        public RunAddNewTemperatureMeasureCommand(IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>> validator, ILogger<RunAddNewTemperatureMeasureCommand> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder) : base(validator, logger, factory, expressionBuilder)
         {
             
@@ -38,15 +38,11 @@ namespace MedEasy.Handlers.Patient.Commands
         {
             using (var uow = UowFactory.New())
             {
-                if (!await uow.Repository<Objects.Patient>().AnyAsync(x => x.Id == input.PatientId))
+                if (! await uow.Repository<Objects.Patient>().AnyAsync(x => x.Id == input.Id))
                 {
-                    throw new NotFoundException($"{nameof(Objects.Patient)} with {nameof(Objects.Patient.Id)} not found");
+                    throw new NotFoundException($"No patient found");
                 }
-
-                await base.OnCreatingAsync(id, input);
             }
-
-            
         }
 
 

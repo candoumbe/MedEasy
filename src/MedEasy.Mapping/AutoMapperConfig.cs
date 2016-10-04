@@ -16,7 +16,7 @@ namespace MedEasy.Mapping
                  .ForMember(dest => dest.Location, opt => opt.Ignore());
             cfg.CreateMap<CreatePatientInfo, Patient>();
             cfg.CreateMap<CreateTemperatureInfo, Temperature>()
-                .ForMember(dest => dest.DateOfMeasure, opt => opt.MapFrom(source => source.Timestamp));
+                .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Id));
             cfg.CreateMap<Temperature, TemperatureInfo>();
 
 

@@ -7,9 +7,12 @@ namespace MedEasy.Handlers.Patient.Commands
 {
 
     /// <summary>
-    /// An instance of this class process <see cref="IAddNewTemperatureMeasureCommand"/> commands
+    /// An instance of this class process <see cref="IRunAddNewPhysiologicalMeasureCommand{TData, TOutput}"/> commands
     /// </summary>
-    public interface IRunAddNewTemperatureMeasureCommand : IRunCommandAsync<Guid, CreateTemperatureInfo, TemperatureInfo, IAddNewTemperatureMeasureCommand>
+    public interface IRunAddNewPhysiologicalMeasureCommand<TKey, TData, TOutput> : IRunCommandAsync<TKey, TData, TOutput, IAddNewPhysiologicalMeasureCommand<TKey, TData>>
+        where TKey : IEquatable<TKey>
+        where TData : CreatePhysiologicalMeasureInfo
+       
     {
         
     }

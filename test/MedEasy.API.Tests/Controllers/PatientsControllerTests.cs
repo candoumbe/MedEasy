@@ -49,7 +49,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;
         private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
-        private Mock<IRunAddNewTemperatureMeasureCommand> _iRunAddNewTemperatureCommandMock;
+        private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>> _iRunAddNewTemperatureCommandMock;
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
@@ -77,7 +77,7 @@ namespace MedEasy.WebApi.Tests
             _iHandleGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
            _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
             _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
-            _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewTemperatureMeasureCommand>(Strict);
+            _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>>(Strict);
             _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
@@ -465,20 +465,20 @@ namespace MedEasy.WebApi.Tests
         public async Task AddTemperatureMeasure()
         {
             // Arrange
-            _iRunAddNewTemperatureCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IAddNewTemperatureMeasureCommand>()))
-                .Returns((IAddNewTemperatureMeasureCommand localCmd) => Task.FromResult(new TemperatureInfo {
+            _iRunAddNewTemperatureCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
+                .Returns((IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo> localCmd) => Task.FromResult(new TemperatureInfo {
                     Id = 1,
-                    DateOfMeasure = localCmd.Data.Timestamp,
-                    PatientId = localCmd.Data.PatientId,
+                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    PatientId = localCmd.Data.Id,
                     Value = localCmd.Data.Value
                 }));
 
             // Act
             CreateTemperatureInfo input = new CreateTemperatureInfo
             {
-                PatientId = 1,
+                Id = 1,
                 Value = 50,
-                Timestamp = DateTime.UtcNow
+                DateOfMeasure = DateTime.UtcNow
             };
 
             IActionResult actionResult = await _controller.Temperatures(input);
@@ -494,12 +494,12 @@ namespace MedEasy.WebApi.Tests
             TemperatureInfo resource = browsableResource.Resource;
             
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(input.PatientId);
+            resource.PatientId.Should().Be(input.Id);
             resource.Value.Should().Be(input.Value);
 
             Link resourceLink = browsableResource.Location;
             resourceLink.Should().NotBeNull();
-            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/Temperatures?id={input.PatientId}&temperatureId={resource.Id}");
+            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/Temperatures?id={input.Id}&temperatureId={resource.Id}");
 
             _iRunAddNewTemperatureCommandMock.VerifyAll();
             

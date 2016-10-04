@@ -31,19 +31,19 @@ namespace MedEasy.Validators.Tests
             {
                 yield return new object[]
                 {
-                    new AddNewTemperatureCommand(new CreateTemperatureInfo {PatientId = int.MinValue,Value = int.MinValue, Timestamp = DateTime.Now }),
-                    $"because int.MinValue is not valid for {nameof(CreateTemperatureInfo.PatientId)}"
+                    new CreateTemperatureInfo {Id = int.MinValue,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    $"because int.MinValue is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
 
                 yield return new object[]
                 {
-                    new AddNewTemperatureCommand(new CreateTemperatureInfo {PatientId = 0,Value = int.MinValue, Timestamp = DateTime.Now }),
-                    $"because 0 is not valid for {nameof(CreateTemperatureInfo.PatientId)}"
+                    new CreateTemperatureInfo {Id = 0,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    $"because 0 is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
                 yield return new object[]
                 {
-                    new AddNewTemperatureCommand(new CreateTemperatureInfo {PatientId = -1,Value = int.MinValue, Timestamp = DateTime.Now }),
-                    $"because -1 is not valid for {nameof(CreateTemperatureInfo.PatientId)}"
+                    new CreateTemperatureInfo {Id = -1,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    $"because -1 is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
             }
         }
@@ -51,10 +51,10 @@ namespace MedEasy.Validators.Tests
 
         [Theory]
         [MemberData(nameof(CommandsNotValidCases))]
-        public async Task ValidateShouldReturnsErrors(IAddNewTemperatureMeasureCommand cmd, string reason)
+        public async Task ValidateShouldReturnsErrors(CreateTemperatureInfo input, string reason)
         {
-            _outputHelper.WriteLine($"Validation of {cmd}");
-            IEnumerable<Task<ErrorInfo>> validationsResults = _validator.Validate(cmd);
+            _outputHelper.WriteLine($"Validation of {input}");
+            IEnumerable<Task<ErrorInfo>> validationsResults = _validator.Validate(input);
 
             IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationsResults).ConfigureAwait(false);
             errors.Should()

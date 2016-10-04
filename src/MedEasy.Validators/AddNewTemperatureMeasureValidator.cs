@@ -3,23 +3,24 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using static MedEasy.Validators.ErrorLevel;
 using MedEasy.DTO;
+using System;
 #if DEBUG
 using System.Diagnostics;
 #endif
 
 namespace MedEasy.Validators
 {
-    public class AddNewTemperatureMeasureCommandValidator : IValidate<IAddNewTemperatureMeasureCommand>
+
+    public class AddNewTemperatureMeasureCommandValidator : AddNewPhysiologicalMeasureCommandValidator<CreateTemperatureInfo>
     {
-        public IEnumerable<Task<ErrorInfo>> Validate(IAddNewTemperatureMeasureCommand cmd)
-        {
+        public override IEnumerable<Task<ErrorInfo>> Validate(CreateTemperatureInfo input)
+        { 
 #if DEBUG
-            Debug.Assert(cmd != null); 
+            Debug.Assert(input != null); 
 #endif
-            CreateTemperatureInfo data = cmd.Data;
-            if (data.PatientId < 1)
+            if (input.Id < 1)
             {
-                yield return Task.FromResult(new ErrorInfo(nameof(data.PatientId), "", Error));
+                yield return Task.FromResult(new ErrorInfo(nameof(input.Id), "", Error));
             }
         }
     }

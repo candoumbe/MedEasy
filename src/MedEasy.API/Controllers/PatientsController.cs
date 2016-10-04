@@ -15,6 +15,7 @@ using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Commands.Patient;
 using Microsoft.Extensions.Options;
 using Swashbuckle.SwaggerGen.Annotations;
+using MedEasy.Commands;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -43,7 +44,7 @@ namespace MedEasy.API.Controllers
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IRunCreatePatientCommand _iRunCreatePatientCommand;
         private readonly IRunDeletePatientByIdCommand _iRunDeletePatientByIdCommand;
-        private readonly IRunAddNewTemperatureMeasureCommand _iRunAddNewTemperatureCommand;
+        private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> _iRunAddNewTemperatureCommand;
         private readonly IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> _iHandleGetOneTemperatureQuery;
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace MedEasy.API.Controllers
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
             IRunCreatePatientCommand iRunCreatePatientCommand,
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
-            IRunAddNewTemperatureMeasureCommand iRunAddNewTemperatureCommand,
+            IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> iRunAddNewTemperatureCommand,
             IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> iHandleGetOneTemperatureQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         { 
             _urlHelperFactory = urlHelperFactory;
@@ -211,12 +212,12 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="input">input to create the new resource</param>
         /// <returns>The created resource</returns>
-        /// <see cref="IRunAddNewTemperatureMeasureCommand"/>
+        /// <see cref="IRunAddNewPhysiologicalMeasureCommand{TKey, TData, TOutput}"/>
         [HttpPost("{id:int}/[action]")]
         [Produces(typeof(BrowsableResource<TemperatureInfo>))]
         public async Task<IActionResult> Temperatures(CreateTemperatureInfo input)
         {
-            TemperatureInfo output = await _iRunAddNewTemperatureCommand.RunAsync(new AddNewTemperatureCommand(input));
+            TemperatureInfo output = await _iRunAddNewTemperatureCommand.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             BrowsableResource<TemperatureInfo> resource = new BrowsableResource<TemperatureInfo>
             {

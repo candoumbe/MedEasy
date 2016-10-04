@@ -20,6 +20,7 @@ using MedEasy.DTO;
 using MedEasy.Mapping;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Exceptions;
+using MedEasy.Commands;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
@@ -28,7 +29,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         private Mock<ILogger<RunAddNewTemperatureMeasureCommand>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
         private RunAddNewTemperatureMeasureCommand _runner;
-        private Mock<IValidate<IAddNewTemperatureMeasureCommand>> _validatorMock;
+        private Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         private ITestOutputHelper _outputHelper;
 
@@ -57,7 +58,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()))
                 .Verifiable();
 
-            _validatorMock = new Mock<IValidate<IAddNewTemperatureMeasureCommand>>(Strict);
+            _validatorMock = new Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>>(Strict);
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
             _runner = new RunAddNewTemperatureMeasureCommand(_validatorMock.Object, _loggerMock.Object,
@@ -68,7 +69,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IAddNewTemperatureMeasureCommand> validator, ILogger<RunAddNewTemperatureMeasureCommand> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>> validator, ILogger<RunAddNewTemperatureMeasureCommand> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             Action action = () => new RunAddNewTemperatureMeasureCommand(validator, logger, factory, expressionBuilder);
@@ -106,7 +107,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                .ReturnsAsync(true)
                .Verifiable("because the runner should check that the patient exists before trying to create a measure on it");
 
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewTemperatureMeasureCommand>()))
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
 
@@ -125,26 +126,26 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             // Act
             CreateTemperatureInfo input = new CreateTemperatureInfo
             {
-                PatientId = 1,
+                Id = 1,
                 Value = 10,
-                Timestamp = DateTime.Now
+                DateOfMeasure = DateTime.Now
                 
             };
-            TemperatureInfo output = await _runner.RunAsync(new AddNewTemperatureCommand(input));
+            TemperatureInfo output = await _runner.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
 
             // Assert
             output.Should().NotBeNull();
-            output.PatientId.Should().Be(input.PatientId);
+            output.PatientId.Should().Be(input.Id);
             output.Value.Should().Be(input.Value);
-            output.DateOfMeasure.Should().Be(input.Timestamp);
+            output.DateOfMeasure.Should().Be(input.DateOfMeasure);
             
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewTemperatureMeasureCommand>()), Times.Once);
+            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()), Times.Once);
             _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }
 
         [Fact]
-        public async Task ShouldThrowNotFoundExceptionIfUnknownPatient()
+        public void ShouldThrowNotFoundExceptionIfUnknownPatient()
         {
             // Arrange
             
@@ -152,7 +153,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                .ReturnsAsync(false)
                .Verifiable("because the runner should check that the patient exists before trying to create a measure on it");
 
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewTemperatureMeasureCommand>()))
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
 
@@ -161,18 +162,18 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             // Act
             CreateTemperatureInfo input = new CreateTemperatureInfo
             {
-                PatientId = 1,
+                Id = 1,
                 Value = 10,
-                Timestamp = DateTime.Now
+                DateOfMeasure = DateTime.Now
 
             };
-            var cmd = new AddNewTemperatureCommand(input);
+            var cmd = new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input);
             Func<Task> action = async() => await _runner.RunAsync(cmd);
 
             // Assert
             action.ShouldThrow<NotFoundException>();
 
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewTemperatureMeasureCommand>()), Times.Once);
+            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()), Times.Once);
             _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }

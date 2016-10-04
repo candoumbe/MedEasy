@@ -25,7 +25,7 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IValidate<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
             services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
             services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
-            services.AddScoped<IValidate<IAddNewTemperatureMeasureCommand>>(x => Validator<IAddNewTemperatureMeasureCommand>.Default);
+            services.AddScoped<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>>(x => Validator<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>.Default);
             
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
@@ -34,7 +34,7 @@ namespace MedEasy.API.StartupRegistration
             
             services.AddScoped<IRunCreatePatientCommand, RunCreatePatientCommand>();
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();
-            services.AddScoped<IRunAddNewTemperatureMeasureCommand, RunAddNewTemperatureMeasureCommand>();
+            services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>, RunAddNewTemperatureMeasureCommand>();
 
 
         }

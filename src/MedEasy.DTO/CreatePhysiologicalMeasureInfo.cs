@@ -6,25 +6,22 @@ using System.Threading.Tasks;
 
 namespace MedEasy.DTO
 {
+
     /// <summary>
-    /// Base class for physiological measure resources
+    /// Base class for data to provide when creating any physiological measure informations
     /// </summary>
     [JsonObject]
-    public abstract class PhysiologicalMeasurementInfo 
+    public abstract class CreatePhysiologicalMeasureInfo
     {
         /// <summary>
-        /// ID of the resource
+        /// Id of the patient to get one measure from
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// Id of the <see cref="PatientInfo"/> resource the measure was taken on
-        /// </summary>
-        public int PatientId { get; set; }
-
-        /// <summary>
-        /// When the measure was made
+        /// When the measure was taken
         /// </summary>
         public DateTime DateOfMeasure { get; set; }
+
     }
 }
