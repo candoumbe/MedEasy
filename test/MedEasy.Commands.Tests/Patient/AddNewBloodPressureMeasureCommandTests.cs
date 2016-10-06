@@ -1,26 +1,30 @@
 ﻿using FluentAssertions;
 using MedEasy.DTO;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace MedEasy.Commands.Tests.Patient
 {
-    public class AddNewTemperatureMeasureCommandTests : IDisposable
+    public class AddNewBloodPressureMeasureCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
 
-        public AddNewTemperatureMeasureCommandTests(ITestOutputHelper outputHelper)
+        public AddNewBloodPressureMeasureCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
         }
+
 
 
         [Fact]
         public void ShouldThrowArgumentNullExceptionIfCommandToRunIsNull()
         {
             // Act 
-            Action action = () => new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(null);
+            Action action = () => new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(null);
 
             // Assert
 
@@ -28,7 +32,6 @@ namespace MedEasy.Commands.Tests.Patient
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }
-
 
 
         public void Dispose()

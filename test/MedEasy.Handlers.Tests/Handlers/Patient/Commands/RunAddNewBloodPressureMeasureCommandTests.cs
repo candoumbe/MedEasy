@@ -24,12 +24,12 @@ using MedEasy.Commands;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
-    public class RunAddNewTemperatureMeasureCommandTests : IDisposable
+    public class RunAddNewBloodPressureMeasureCommandTests : IDisposable
     {
-        private Mock<ILogger<RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>>> _loggerMock;
+        private Mock<ILogger<RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo> _runner;
-        private Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>> _validatorMock;
+        private RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo> _runner;
+        private Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         private ITestOutputHelper _outputHelper;
 
@@ -47,21 +47,21 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 
             }
         }
-        public RunAddNewTemperatureMeasureCommandTests(ITestOutputHelper outputHelper)
+        public RunAddNewBloodPressureMeasureCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
 
-            _loggerMock = new Mock<ILogger<RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>>>(Strict);
+            _loggerMock = new Mock<ILogger<RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()))
                 .Verifiable();
 
-            _validatorMock = new Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>>(Strict);
+            _validatorMock = new Mock<IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>>(Strict);
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
-            _runner = new RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>(_validatorMock.Object, _loggerMock.Object,
+            _runner = new RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>(_validatorMock.Object, _loggerMock.Object,
                 _unitOfWorkFactoryMock.Object,
                _expressionBuilderMock.Object);
         }
@@ -69,10 +69,10 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>> validator, ILogger<RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>> validator, ILogger<RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
-            Action action = () => new RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>(validator, logger, factory, expressionBuilder);
+            Action action = () => new RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>(validator, logger, factory, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -97,8 +97,8 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         public async Task ShouldCreateResource()
         {
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Temperature>().Create(It.IsAny<Temperature>()))
-                .Returns((Temperature temperature) => temperature);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Create(It.IsAny<BloodPressure>()))
+                .Returns((BloodPressure temperature) => temperature);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
                 .ReturnsAsync(1)
                 .Verifiable();
@@ -107,39 +107,40 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                .ReturnsAsync(true)
                .Verifiable("because the runner should check that the patient exists before trying to create a measure on it");
 
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<CreateTemperatureInfo, Temperature>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<CreateBloodPressureInfo, BloodPressure>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
                .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
                     AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<CreateTemperatureInfo, Temperature>(parameters, membersToExpand))
+                        .ExpressionBuilder.CreateMapExpression<CreateBloodPressureInfo, BloodPressure>(parameters, membersToExpand))
                 .Verifiable();
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Temperature, TemperatureInfo>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<BloodPressure, BloodPressureInfo>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
                .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
                     AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<Temperature, TemperatureInfo>(parameters, membersToExpand))
+                        .ExpressionBuilder.CreateMapExpression<BloodPressure, BloodPressureInfo>(parameters, membersToExpand))
                 .Verifiable();
 
             // Act
-            CreateTemperatureInfo input = new CreateTemperatureInfo
+            CreateBloodPressureInfo input = new CreateBloodPressureInfo
             {
                 Id = 1,
-                Value = 10,
-                DateOfMeasure = DateTime.Now
-                
+                SystolicPressure = 160,
+                DiastolicPressure = 100,
+                DateOfMeasure = DateTime.UtcNow
             };
-            TemperatureInfo output = await _runner.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
+            BloodPressureInfo output = await _runner.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(input));
 
             // Assert
             output.Should().NotBeNull();
             output.PatientId.Should().Be(input.Id);
-            output.Value.Should().Be(input.Value);
+            output.SystolicPressure.Should().Be(input.SystolicPressure);
+            output.DiastolicPressure.Should().Be(input.DiastolicPressure);
             output.DateOfMeasure.Should().Be(input.DateOfMeasure);
             
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()), Times.Once);
+            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()), Times.Once);
             _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }
@@ -153,27 +154,28 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                .ReturnsAsync(false)
                .Verifiable("because the runner should check that the patient exists before trying to create a measure on it");
 
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
 
             
 
             // Act
-            CreateTemperatureInfo input = new CreateTemperatureInfo
+            CreateBloodPressureInfo input = new CreateBloodPressureInfo
             {
                 Id = 1,
-                Value = 10,
-                DateOfMeasure = DateTime.Now
+                SystolicPressure = 160,
+                DiastolicPressure = 100,
+                DateOfMeasure = DateTime.UtcNow
 
             };
-            var cmd = new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input);
+            var cmd = new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(input);
             Func<Task> action = async() => await _runner.RunAsync(cmd);
 
             // Assert
             action.ShouldThrow<NotFoundException>();
 
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()), Times.Once);
+            _validatorMock.Verify(mock => mock.Validate(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()), Times.Once);
             _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }

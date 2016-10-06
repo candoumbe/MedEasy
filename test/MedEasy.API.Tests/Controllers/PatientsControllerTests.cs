@@ -51,6 +51,8 @@ namespace MedEasy.WebApi.Tests
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>> _iRunAddNewTemperatureCommandMock;
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
+        private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>> _iRunAddNewBloodPressureCommandMock;
+        private Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>> _iHandleGetOnePatientBloodPressureMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -78,7 +80,10 @@ namespace MedEasy.WebApi.Tests
            _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
             _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
             _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>>(Strict);
+            _iRunAddNewBloodPressureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>>(Strict);
             _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
+            _iHandleGetOnePatientBloodPressureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>>(Strict);
+
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
             _controller = new PatientsController(
@@ -91,7 +96,9 @@ namespace MedEasy.WebApi.Tests
                 _iRunCreatePatientInfoCommandMock.Object,
                 _iRunDeletePatientInfoByIdCommandMock.Object,
                 _iRunAddNewTemperatureCommandMock.Object,
-                _iHandleGetOnePatientTemperatureMock.Object);
+                _iHandleGetOnePatientTemperatureMock.Object,
+                _iRunAddNewBloodPressureCommandMock.Object,
+                _iHandleGetOnePatientBloodPressureMock.Object);
 
         }
 
@@ -506,6 +513,55 @@ namespace MedEasy.WebApi.Tests
         }
 
         [Fact]
+        public async Task AddBloodPressureMeasure()
+        {
+            // Arrange
+            _iRunAddNewBloodPressureCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()))
+                .Returns((IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo> localCmd) => Task.FromResult(new BloodPressureInfo
+                {
+                    Id = 1,
+                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    PatientId = localCmd.Data.Id,
+                    SystolicPressure = localCmd.Data.SystolicPressure,
+                    DiastolicPressure = localCmd.Data.DiastolicPressure,
+
+                }));
+
+            // Act
+            CreateBloodPressureInfo input = new CreateBloodPressureInfo
+            {
+                Id = 1,
+                SystolicPressure = 150,
+                DiastolicPressure = 100,
+                DateOfMeasure = DateTime.UtcNow
+            };
+
+            IActionResult actionResult = await _controller.BloodPressures(input);
+
+            // Assert
+            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                .Value.Should()
+                    .NotBeNull().And
+                    .BeOfType<BrowsableResource<BloodPressureInfo>>().Which;
+
+            BloodPressureInfo resource = browsableResource.Resource;
+
+            resource.Should().NotBeNull();
+            resource.PatientId.Should().Be(input.Id);
+            resource.SystolicPressure.Should().Be(input.SystolicPressure);
+            resource.DiastolicPressure.Should().Be(input.DiastolicPressure);
+
+            Link resourceLink = browsableResource.Location;
+            resourceLink.Should().NotBeNull();
+            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/BloodPressures?id={input.Id}&temperatureId={resource.Id}");
+
+            _iRunAddNewBloodPressureCommandMock.VerifyAll();
+
+        }
+
+        [Fact]
         public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
             // Arrange
@@ -521,6 +577,23 @@ namespace MedEasy.WebApi.Tests
             _iHandleGetOnePatientTemperatureMock.VerifyAll();
         }
 
+        [Fact]
+        public async Task GetBloodPressureShouldReturnNotFoundResultWhenServiceReturnsNull()
+        {
+            // Arrange
+            _iHandleGetOnePatientBloodPressureMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BloodPressureInfo>>()))
+                .ReturnsAsync(null)
+                .Verifiable();
+
+            //Act
+            IActionResult actionResult = await _controller.BloodPressures(1, 12);
+
+            //Assert
+            actionResult.Should().BeOfType<NotFoundResult>();
+            _iHandleGetOnePatientBloodPressureMock.VerifyAll();
+        }
+
+
         public void Dispose()
         {
             _loggerMock = null;
@@ -533,10 +606,12 @@ namespace MedEasy.WebApi.Tests
             _iHandleGetOnePatientInfoByIdQueryMock = null;
             _iHandleGetManyPatientInfoQueryMock = null;
             _iHandleGetOnePatientTemperatureMock = null;
+            _iHandleGetOnePatientBloodPressureMock = null;
 
             _iRunCreatePatientInfoCommandMock = null;
             _iRunDeletePatientInfoByIdCommandMock = null;
             _iRunAddNewTemperatureCommandMock = null;
+            _iRunAddNewBloodPressureCommandMock = null;
 
             _factory = null;
             _mapper = null;

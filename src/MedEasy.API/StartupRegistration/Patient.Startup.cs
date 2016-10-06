@@ -34,7 +34,8 @@ namespace MedEasy.API.StartupRegistration
             
             services.AddScoped<IRunCreatePatientCommand, RunCreatePatientCommand>();
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();
-            services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>, RunAddNewTemperatureMeasureCommand>();
+            services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>, RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>>();
+            services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>, RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>>();
 
 
         }
