@@ -52,15 +52,7 @@ namespace MedEasy.Validators.Tests
                     $"because {nameof(ICreatePatientCommand)} is null"
                 };
 
-                yield return new object[]
-                {
-                    new CreatePatientCommand(null),
-                    new DateTime(2012, 1, 1),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors => errors.Count() == 1 && errors.Once(item => nameof(ICreatePatientCommand.Data).Equals(item.Key) && item.Severity == Error))),
-                    $"new {nameof(CreatePatientCommand)}(null) is not valid"
-                };
-
+                
                 yield return new object[]
                 {
                     new CreatePatientCommand(new CreatePatientInfo()),

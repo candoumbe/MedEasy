@@ -131,7 +131,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(BrowsableResource<DoctorInfo>))]
+        [Produces(typeof(DoctorInfo))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
             
 

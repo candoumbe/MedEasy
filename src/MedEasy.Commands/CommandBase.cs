@@ -34,9 +34,19 @@ namespace MedEasy.Commands
         /// </summary>
         /// <param name="id">id of the command</param>
         /// <param name="data">data the command carries</param>
-        /// 
+        /// <exception cref="ArgumentException">if <see cref="id"/> <c>Equals(id, default <typeparamref name="TKey"/>)</c> returns <c>true</c></exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/> is <c>null</c></exception>
         protected CommandBase(TKey id, TData data)
         {
+            if (Equals(id, default(TKey)))
+            {
+                throw new ArgumentException(nameof(id), $"{nameof(id)} cannot be set to the default value of {typeof(TKey).FullName}");
+            }
+
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data), $"{nameof(data)} cannot be null");
+            }
             
             Id = id;
             Data = data;

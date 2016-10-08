@@ -18,6 +18,9 @@ namespace MedEasy.Mapping
             cfg.CreateMap<CreateTemperatureInfo, Temperature>()
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Id));
             cfg.CreateMap<Temperature, TemperatureInfo>();
+            cfg.CreateMap<CreateBloodPressureInfo, BloodPressure>()
+                .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Id));
+            cfg.CreateMap<BloodPressure, BloodPressureInfo>();
 
 
             cfg.CreateMap<Doctor, DoctorInfo>();
