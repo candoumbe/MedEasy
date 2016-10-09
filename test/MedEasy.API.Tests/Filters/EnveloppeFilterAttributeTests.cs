@@ -48,7 +48,7 @@ namespace MedEasy.API.Tests.Filters
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
         private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>> _iRunAddNewBloodPressureCommandMock;
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>> _iHandleGetOnePatientBloodPressureMock;
-        private readonly Mock<IHttpContextAccessor> _iHttpContextAccessor;
+        
 
         public EnveloppeFilterAttributeTests(ITestOutputHelper outputHelper)
         {
@@ -82,30 +82,16 @@ namespace MedEasy.API.Tests.Filters
             _iHandleGetOnePatientBloodPressureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>>(Strict);
 
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
-            _iHttpContextAccessor = new Mock<IHttpContextAccessor>(Strict);
+            
 
            
 
         }
 
         [Fact]
-        public void OnActionExecuted_With_Envelope()
+        public void OnResultExecuting_ForActionThatReturnsOneResource()
         {
             // Arrange
-            
-            ActionExecutedContext actionExecutedContext = new ActionExecutedContext(
-                new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext(),
-                    RouteData = new RouteData() ,
-                    ActionDescriptor = new ActionDescriptor()
-                    {
-                        DisplayName = "Get"
-                    }
-                },
-                new List<IFilterMetadata>(), _controller);
-
-            
             PatientInfo resource = new PatientInfo
             {
                 Id = 1,
@@ -117,29 +103,92 @@ namespace MedEasy.API.Tests.Filters
                 Resource = resource,
                 Location = new Link { Href = "url/to/resource", Rel = "self" }
             };
-            actionExecutedContext.Result = new OkObjectResult(browsableResource);
+            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+                new ActionContext()
+                {
+                    HttpContext = new DefaultHttpContext(),
+                    RouteData = new RouteData() ,
+                    ActionDescriptor = new ActionDescriptor()
+                    {
+                        DisplayName = "Get"
+                    }
+                },
+                new List<IFilterMetadata>(), new OkObjectResult(browsableResource), _controller);
 
             // Act
             EnvelopeFilterAttribute filter = new EnvelopeFilterAttribute();
-            filter.OnActionExecuted(actionExecutedContext);
+            filter.OnResultExecuting(resultExecutingContext);
 
             //Assert
             
             _apiOptionsMock.Verify();
 
 
-            actionExecutedContext.Result.Should()
+            resultExecutingContext.Result.Should()
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                        .BeAssignableTo<IBrowsableResource<PatientInfo>>();
+                        .BeAssignableTo<PatientInfo>();
 
-            IHeaderDictionary headers = actionExecutedContext.HttpContext.Response.Headers;
+            IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
 
             headers.Should().ContainKey("Link");
             headers["Link"].Should().ContainSingle();
-            headers["Link"][0].Should().Be($@"""{browsableResource.Location.Href}""; rel=""{browsableResource.Location.Rel}""");
+            headers["Link"][0].Should().Be($@"{browsableResource.Location.Href}; rel={browsableResource.Location.Rel}");
             
             
+
+        }
+
+        [Fact]
+        public void OnResultExecuting_ForActionThatReturnsPageOfResource()
+        {
+            // Arrange
+            GenericPagedGetResponse<PatientInfo> page = new GenericPagedGetResponse<PatientInfo>(Enumerable.Empty<PatientInfo>(),
+                first: "url/patients?page=2",
+                previous: "url/patients?page=1",
+                next: "url/patients?page=3",
+                last: "url/patients?page=20"
+                );
+            
+            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+                new ActionContext()
+                {
+                    HttpContext = new DefaultHttpContext(),
+                    RouteData = new RouteData(),
+                    ActionDescriptor = new ActionDescriptor()
+                    {
+                        DisplayName = "Get"
+                    }
+                },
+                new List<IFilterMetadata>(), new OkObjectResult(page), _controller);
+
+            // Act
+            EnvelopeFilterAttribute filter = new EnvelopeFilterAttribute();
+            filter.OnResultExecuting(resultExecutingContext);
+
+            //Assert
+
+            _apiOptionsMock.Verify();
+
+
+            resultExecutingContext.Result.Should()
+                .BeOfType<OkObjectResult>().Which
+                    .Value.Should()
+                        .BeAssignableTo<IEnumerable<PatientInfo>>();
+
+            IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
+
+            headers.Should().ContainKey("Link");
+            headers["Link"].Count.Should().Be(1);
+            headers["Link"][0].Should()
+                .Match($@"*{page.Links.First.Href}; rel={page.Links.First.Rel}*").And
+                .Match($@"*{page.Links.Previous.Href}; rel={page.Links.Previous.Rel}*").And
+                .Match($@"*{page.Links.Last.Href}; rel={page.Links.Last.Rel}*").And
+                .Match($@"*{page.Links.Next.Href}; rel={page.Links.Next.Rel}*");
+
+            headers.Should().ContainKey("X-Total-Count");
+            headers["X-Total-Count"].Count.Should().Be(1);
+            headers["X-Total-Count"][0].Should().Be($"{page.Count}");
 
         }
     }

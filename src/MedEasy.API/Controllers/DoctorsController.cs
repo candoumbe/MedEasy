@@ -46,6 +46,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Builds a new <see cref="DoctorsController"/> instance
         /// </summary>
+        /// <param name="apiOptions">Options of the API</param>
         /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
         /// <param name="getManyDoctorQueryHandler">Handler of GET many resources</param>
         /// <param name="iRunCreateDoctorCommand">Runner of CREATE resource command</param>
@@ -142,7 +143,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">data used to create the resource</param>
         /// <returns>the created resource</returns>
         [HttpPost]
-        [Produces(typeof(BrowsableResource<DoctorInfo>))]
+        [Produces(typeof(DoctorInfo))]
         public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info)
         {
             DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info));
@@ -169,7 +170,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsableResource<DoctorInfo>))]
+        [Produces(typeof(DoctorInfo))]
         public async Task<IActionResult> Put(int id, [FromBody] DoctorInfo info)
         {
             throw new NotImplementedException();

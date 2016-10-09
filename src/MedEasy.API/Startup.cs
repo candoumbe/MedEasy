@@ -10,18 +10,10 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.Mapping;
 using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Doctor.Commands;
-using MedEasy.Handlers.Specialty.Queries;
-using MedEasy.Handlers.Doctor.Queries;
-using MedEasy.Handlers.Autocomplete;
-using MedEasy.Handlers.Specialty.Commands;
-using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Specialty;
-using MedEasy.Validators;
 using MedEasy.API.StartupRegistration;
 using MedEasy.RestObjects;
 using Swashbuckle.Swagger.Model;
+using MedEasy.API.Filters;
 
 namespace MedEasy.API
 {
@@ -76,7 +68,10 @@ namespace MedEasy.API
                 options.MaxPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 100);
             });
             // Add framework services.
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(typeof(EnvelopeFilterAttribute));
+            });
 
             if (HostingEnvironment.IsDevelopment())
             {
@@ -118,7 +113,6 @@ namespace MedEasy.API
                                 Default = 1,
                                 Description = "Number of items a page of result can contain at most"
                             }
-
                         }
                     });
                 });
