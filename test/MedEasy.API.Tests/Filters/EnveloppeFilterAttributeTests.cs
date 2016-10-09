@@ -120,10 +120,6 @@ namespace MedEasy.API.Tests.Filters
             filter.OnResultExecuting(resultExecutingContext);
 
             //Assert
-            
-            _apiOptionsMock.Verify();
-
-
             resultExecutingContext.Result.Should()
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()

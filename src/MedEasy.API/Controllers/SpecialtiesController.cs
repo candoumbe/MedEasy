@@ -15,6 +15,7 @@ using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.Commands.Specialty;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -76,7 +77,7 @@ namespace MedEasy.API.Controllers
         /// Gets all the entries in the repository
         /// </summary>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsableResource<SpecialtyInfo>>))]
+        [Produces(typeof(IEnumerable<BrowsableResource<SpecialtyInfo>>))]
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
@@ -125,7 +126,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
+        [Produces(typeof(SpecialtyInfo))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
 
 
@@ -136,7 +137,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">data used to create the resource</param>
         /// <returns>the created resource</returns>
         [HttpPost]
-        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
+        [Produces(typeof(SpecialtyInfo))]
         public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info)
         {
             SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
@@ -163,7 +164,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsableResource<SpecialtyInfo>))]
+        [Produces(typeof(SpecialtyInfo))]
         public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
         {
             throw new NotImplementedException();
@@ -191,7 +192,7 @@ namespace MedEasy.API.Controllers
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
         /// <returns></returns>
         [HttpGet("{id:int}/Doctors")]
-        [Produces(typeof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>))]
+        [Produces(typeof(IEnumerable<BrowsableResource<DoctorInfo>>))]
         public async Task<IActionResult> Doctors(int id, GenericGetQuery query)
         {
             if (query == null)

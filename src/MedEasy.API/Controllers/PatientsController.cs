@@ -14,7 +14,6 @@ using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Commands.Patient;
 using Microsoft.Extensions.Options;
-using Swashbuckle.SwaggerGen.Annotations;
 using MedEasy.Commands;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -170,7 +169,7 @@ namespace MedEasy.API.Controllers
         /// <returns>the created resource</returns>
         /// <response code="200">the resource was created successfuyl</response>
         [HttpPost]
-        [Produces(typeof(BrowsableResource<PatientInfo>))]
+        [Produces(typeof(PatientInfo))]
         
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo info)
         {
@@ -198,7 +197,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(BrowsableResource<PatientInfo>))]
+        [Produces(typeof(PatientInfo))]
         public async Task<IActionResult> Put(int id, [FromBody] PatientInfo info)
         {
             throw new NotImplementedException();
@@ -226,7 +225,7 @@ namespace MedEasy.API.Controllers
         /// <returns>The created resource</returns>
         /// <see cref="IRunAddNewPhysiologicalMeasureCommand{TKey, TData, TOutput}"/>
         [HttpPost("{id:int}/[action]")]
-        [Produces(typeof(BrowsableResource<TemperatureInfo>))]
+        [Produces(typeof(TemperatureInfo))]
         public async Task<IActionResult> Temperatures(CreateTemperatureInfo input)
         {
             TemperatureInfo output = await _iRunAddNewTemperatureCommand.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
@@ -253,7 +252,7 @@ namespace MedEasy.API.Controllers
         /// <returns>The created resource</returns>
         /// <see cref="IRunAddNewPhysiologicalMeasureCommand{TKey, TData, TOutput}"/>
         [HttpPost("{id:int}/[action]")]
-        [Produces(typeof(BrowsableResource<BloodPressureInfo>))]
+        [Produces(typeof(BloodPressureInfo))]
         public async Task<IActionResult> BloodPressures(CreateBloodPressureInfo input)
         {
             BloodPressureInfo output = await _iRunAddNewBloodPressureCommand.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(input));
@@ -280,7 +279,7 @@ namespace MedEasy.API.Controllers
         /// <param name="temperatureId">id of the <see cref="TemperatureInfo"/> to get</param>
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{temperatureId:int}")]
-        [Produces(typeof(BrowsableResource<TemperatureInfo>))]
+        [Produces(typeof(TemperatureInfo))]
         public async Task<IActionResult> Temperatures(int id, int temperatureId)
         {
             TemperatureInfo output = await _iHandleGetOneTemperatureQuery.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(id, temperatureId));
@@ -315,7 +314,7 @@ namespace MedEasy.API.Controllers
         /// <param name="bloodPressureId">id of the <see cref="BloodPressureInfo"/> to get</param>
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{bloodPressureId:int}")]
-        [Produces(typeof(BrowsableResource<BloodPressureInfo>))]
+        [Produces(typeof(BloodPressureInfo))]
         public async Task<IActionResult> BloodPressures(int id, int bloodPressureId)
         {
             BloodPressureInfo output = await _iHandleGetOneBloodPressureQuery.HandleAsync(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId));
