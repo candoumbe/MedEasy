@@ -5,7 +5,9 @@ using FluentAssertions;
 
 namespace MedEasy.Tools.Tests
 {
-
+    /// <summary>
+    /// Extensions methods for <see cref="Object"/> type.
+    /// </summary>
     public class ObjectExtensionsTests
     {
         public static IEnumerable<object[]> ToQueryStringCases

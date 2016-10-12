@@ -7,7 +7,7 @@
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "FluentAssertions": "4.14.0",
     "moq.netcore": "4.4.0-beta8",
-    "MedEasy.Commands": "1.0.*"
+    "MedEasy.Queries": "1.0.*"
   },
 
   "frameworks": {

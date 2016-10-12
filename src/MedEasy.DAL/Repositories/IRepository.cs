@@ -24,8 +24,18 @@ namespace MedEasy.DAL.Repositories
         /// <returns><see cref="IPagedResult{T}"/> which holds the result</returns>
         Task<IPagedResult<TResult>> ReadPageAsync<TResult>(Expression<Func<TEntry, TResult>> selector, int pageSize, int page, IEnumerable<OrderClause<TResult>> orderBy = null);
         
+        /// <summary>
+        /// Asynchronously gets all entries of the repository
+        /// </summary>
+        /// <returns><see cref="IEnumerable{T}"/></returns>
         Task<IEnumerable<TEntry>> ReadAllAsync();
         
+        /// <summary>
+        /// Asynchronously gets all entries of the repository after applying <paramref name="selector"/>
+        /// </summary>
+        /// <typeparam name="TResult">Type of the result</typeparam>
+        /// <param name="selector">projection to apply before retrieving the resul</param>
+        /// <returns></returns>
         Task<IEnumerable<TResult>> ReadAllAsync<TResult>(Expression<Func<TEntry, TResult>> selector);
 
         //IEnumerable<GroupedResult<TKey, TEntry>>  GroupBy<TKey>(Expression<Func<TEntry, TKey>> keySelector);
@@ -36,9 +46,20 @@ namespace MedEasy.DAL.Repositories
 
         //Task<IEnumerable<GroupedResult<TKey, TResult>>> GroupByAsync<TKey, TResult>( Expression<Func<TEntry, TKey>> keySelector, Expression<Func<TEntry, TResult>> selector);
         
+        /// <summary>
+        /// Asynchronously gets entries of the repository that satisfied the specified <paramref name="predicate"/>
+        /// </summary>
+        /// <param name="predicate">Filter the entries to retrieve</param>
+        /// <returns><see cref="IEnumerable{T}"/></returns>
         Task<IEnumerable<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate);
 
-        
+        /// <summary>
+        /// Asynchronously gets entries of the repository that satisfied the specified <paramref name="predicate"/>
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="selector"></param>
+        /// <param name="predicate"></param>
+        /// <returns><see cref="IEnumerable{T}"/></returns>
         Task<IEnumerable<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate);
 
         /// <summary>
@@ -48,16 +69,34 @@ namespace MedEasy.DAL.Repositories
         /// <typeparam name="TResult">Type of the group result</typeparam>
         /// <param name="keySelector">Selector which defines how results should be grouped</param>
         /// <param name="predicate">Predicate that will be used to filter groups</param>
-        /// <returns></returns>
+        /// <returns><see cref="IEnumerable{T}"/></returns>
         Task<IEnumerable<TResult>> WhereAsync<TKey, TResult>(Expression<Func<TEntry, bool>> predicate, Expression<Func<TEntry, TKey>> keySelector, Expression<Func<IGrouping<TKey, TEntry>, TResult>> groupSelector);
-        
-        
 
+
+        /// <summary>
+        /// Asynchronously gets a <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <param name="predicate">predicate to apply</param>
+        /// <param name="orderBy">order to apply to the result</param>
+        /// <param name="includedProperties">Properties to include in each object</param>
+        /// <returns><see cref="IEnumerable{T}"/> which holds the resu;t</returns>
         Task<IEnumerable<TEntry>> WhereAsync(
             Expression<Func<TEntry, bool>> predicate, 
             IEnumerable<OrderClause<TEntry>> orderBy = null, 
             IEnumerable<IncludeClause<TEntry>> includedProperties = null);
         
+        /// <summary>
+        /// Asynchronously gets results that satisfied the <paramref name="predicate"/>
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="orderBy"/> is applied <strong>AFTER</strong> the <paramref name="selector"/> and <paramref name="selector"/>.
+        /// </remarks>
+        /// <typeparam name="TResult">Type of result's items</typeparam>
+        /// <param name="selector"></param>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="includedProperties"></param>
+        /// <returns></returns>
         Task<IEnumerable<TResult>> WhereAsync<TResult>(
             Expression<Func<TEntry, TResult>> selector, 
             Expression<Func<TEntry, bool>> predicate, 
@@ -66,13 +105,34 @@ namespace MedEasy.DAL.Repositories
         
         //Task<IEnumerable<TResult>> WhereAsync<TResult, TKey>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate, Expression<Func<TResult, TKey>> keySelector, IEnumerable<OrderClause<TResult>> orderBy = null);
 
-
+        /// <summary>
+        /// Asynchronously gets a <see cref="IPagedResult{T}"/>.
+        /// </summary>
+        /// <param name="predicate">predicate to apply</param>
+        /// <param name="orderBy">order to apply to the result</param>
+        /// <param name="pageSize">number of items one page can contain at most</param>
+        /// <param name="page">the page of result to get (1 for the page, 2 for the second, ...)</param>
+        /// <returns><see cref="IPagedResult{T}"/> which holds the </returns>
         Task<IPagedResult<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate,  
             IEnumerable<OrderClause<TEntry>> orderBy, int pageSize, int page);
 
-
+        /// <summary>
+        /// Asynchronously gets a <see cref="IPagedResult{T}"/> of entries that satisfied the <paramref name="predicate"/>
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="orderBy"/> is applied <strong>AFTER</strong> both <paramref name="selector"/> and <paramref name="predicate"/> where applied
+        /// </remarks>
+        /// <typeparam name="TResult">Type of items of the result</typeparam>
+        /// <param name="selector">selector to apply</param>
+        /// <param name="predicate">filter that entries must satisfied</param>
+        /// <param name="orderBy">order to apply</param>
+        /// <param name="pageSize">number of items a page can holds at most</param>
+        /// <param name="page">the page of result to get.</param>
+        /// <returns></returns>
         Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
+
         
+
         ///// <summary>
         ///// Gets an entry by its key(s).
         ///// </summary>
@@ -86,7 +146,7 @@ namespace MedEasy.DAL.Repositories
         ///// <param name="keys">Key(s) that uniquely identifies</param>
         ///// <returns>the corresponding entry or<code>NULL</code> if no entry found</returns>
         //Task<TEntry> ReadAsync(params object[] keys);
-        
+
         /// <summary>
         /// Asynchronously gets the max value of the selected element
         /// </summary>

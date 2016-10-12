@@ -1,37 +1,38 @@
-﻿using MedEasy.Objects;
-using System.Collections.Generic;
+﻿using AutoMapper;
 using FluentAssertions;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Xunit;
-using System.Linq;
-using MedEasy.DTO;
-using Microsoft.Extensions.Logging;
-using Moq;
-using static Moq.MockBehavior;
-using System;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Xunit.Abstractions;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using GenFu;
+using MedEasy.API;
 using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using System.Linq.Expressions;
-using GenFu;
-using static System.StringComparison;
-using MedEasy.Mapping;
-using MedEasy.DAL.Repositories;
 using MedEasy.Commands.Patient;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Queries;
-using MedEasy.Handlers.Patient.Queries;
+using MedEasy.DAL.Repositories;
+using MedEasy.DTO;
 using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Patient.Commands;
+using MedEasy.Handlers.Patient.Queries;
+using MedEasy.Mapping;
+using MedEasy.Objects;
+using MedEasy.Queries;
+using MedEasy.RestObjects;
 using MedEasy.Validators;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MedEasy.API;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+using static MedEasy.DAL.Repositories.SortDirection;
+using static Moq.MockBehavior;
+using static System.StringComparison;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -53,6 +54,8 @@ namespace MedEasy.WebApi.Tests
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
         private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>> _iRunAddNewBloodPressureCommandMock;
         private Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>> _iHandleGetOnePatientBloodPressureMock;
+        private Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>> _iHandleGetLastBloodPressuresMock;
+        private Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>> _iHandleGetLastTemperaturesMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -83,6 +86,8 @@ namespace MedEasy.WebApi.Tests
             _iRunAddNewBloodPressureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>>(Strict);
             _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
             _iHandleGetOnePatientBloodPressureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>>(Strict);
+            _iHandleGetLastBloodPressuresMock = new Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>>(Strict);
+            _iHandleGetLastTemperaturesMock = new Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>>(Strict);
 
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
@@ -98,7 +103,9 @@ namespace MedEasy.WebApi.Tests
                 _iRunAddNewTemperatureCommandMock.Object,
                 _iHandleGetOnePatientTemperatureMock.Object,
                 _iRunAddNewBloodPressureCommandMock.Object,
-                _iHandleGetOnePatientBloodPressureMock.Object);
+                _iHandleGetOnePatientBloodPressureMock.Object,
+                _iHandleGetLastBloodPressuresMock.Object,
+                _iHandleGetLastTemperaturesMock.Object);
 
         }
 
@@ -170,6 +177,72 @@ namespace MedEasy.WebApi.Tests
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                         ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={GenericGetQuery.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
                     };
+            }
+        }
+
+        public static IEnumerable<object> GetLastBloodPressuresMesuresCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<BloodPressure>(),
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new BloodPressure { PatientId = 2, CreatedDate = DateTime.UtcNow }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new BloodPressure { PatientId = 1, CreatedDate = DateTime.UtcNow }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
+                };
+            }
+        }
+
+        public static IEnumerable<object> GetLastTemperaturesMesuresCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<Temperature>(),
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new Temperature { PatientId = 2, CreatedDate = DateTime.UtcNow }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new Temperature { PatientId = 1, CreatedDate = DateTime.UtcNow }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
+                };
             }
         }
 
@@ -561,6 +634,93 @@ namespace MedEasy.WebApi.Tests
 
         }
 
+        [Theory]
+        [MemberData(nameof(GetLastBloodPressuresMesuresCases))]
+        public async Task GetLastBloodPressuresMesures(IEnumerable<BloodPressure> measuresInStore, GetMostRecentPhysiologicalMeasuresInfo query, Expression<Func<IEnumerable<BloodPressureInfo>, bool>> resultExpectation)
+        {
+            _outputHelper.WriteLine($"Current store state : {measuresInStore}");
+            _outputHelper.WriteLine($"Query : {query}");
+
+            // Arrange
+            using (var uow =_factory.New())
+            {
+                uow.Repository<BloodPressure>().Create(measuresInStore);
+                await uow.SaveChangesAsync();
+            }
+
+            _iHandleGetLastBloodPressuresMock.Setup(mock => mock.HandleAsync(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>>>()))
+                .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>> input) => Task.Run(async () =>
+                {
+                    using (var uow = _factory.New())
+                    {
+                        IPagedResult<BloodPressureInfo> mostRecentMeasures = await uow.Repository<BloodPressure>()
+                            .WhereAsync(
+                                _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<BloodPressure, BloodPressureInfo>(),
+                                x => x.PatientId == input.Data.Id,
+                                new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure, Descending) },
+                                input.Data.Count.GetValueOrDefault(15), 1
+                            );
+
+
+                        return mostRecentMeasures.Entries;
+                    }
+                }));
+
+            // Act
+            IEnumerable<BloodPressureInfo> results = await _controller.MostRecentBloodPressures(query);
+
+
+            // Assert
+            _iHandleGetLastBloodPressuresMock.VerifyAll();
+            results.Should().NotBeNull()
+                .And.Match(resultExpectation);
+            
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLastTemperaturesMesuresCases))]
+        public async Task GetLastTemperaturesMesures(IEnumerable<Temperature> measuresInStore, GetMostRecentPhysiologicalMeasuresInfo query, Expression<Func<IEnumerable<TemperatureInfo>, bool>> resultExpectation)
+        {
+            _outputHelper.WriteLine($"Current store state : {measuresInStore}");
+            _outputHelper.WriteLine($"Query : {query}");
+
+            // Arrange
+            using (var uow = _factory.New())
+            {
+                uow.Repository<Temperature>().Create(measuresInStore);
+                await uow.SaveChangesAsync();
+            }
+
+            _iHandleGetLastTemperaturesMock.Setup(mock => mock.HandleAsync(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>>>()))
+                .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>> input) => Task.Run(async () =>
+                {
+                    using (var uow = _factory.New())
+                    {
+                        IPagedResult<TemperatureInfo> mostRecentMeasures = await uow.Repository<Temperature>()
+                            .WhereAsync(
+                                _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Temperature, TemperatureInfo>(),
+                                x => x.PatientId == input.Data.Id,
+                                new[] { OrderClause<TemperatureInfo>.Create(x => x.DateOfMeasure, Descending) },
+                                input.Data.Count.GetValueOrDefault(15), 1
+                            );
+
+
+                        return mostRecentMeasures.Entries;
+                    }
+                }));
+
+            // Act
+            IEnumerable<TemperatureInfo> results = await _controller.MostRecentTemperatures(query);
+
+
+            // Assert
+            _iHandleGetLastTemperaturesMock.VerifyAll();
+            results.Should().NotBeNull()
+                .And.Match(resultExpectation);
+
+        }
+
+
         [Fact]
         public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
@@ -607,6 +767,8 @@ namespace MedEasy.WebApi.Tests
             _iHandleGetManyPatientInfoQueryMock = null;
             _iHandleGetOnePatientTemperatureMock = null;
             _iHandleGetOnePatientBloodPressureMock = null;
+            _iHandleGetLastBloodPressuresMock = null;
+            _iHandleGetLastTemperaturesMock = null;
 
             _iRunCreatePatientInfoCommandMock = null;
             _iRunDeletePatientInfoByIdCommandMock = null;

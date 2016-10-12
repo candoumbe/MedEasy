@@ -232,7 +232,6 @@ namespace MedEasy.API.Controllers
                     : null
                 );
 
-
             return new OkObjectResult(pagedResponse);
 
         }

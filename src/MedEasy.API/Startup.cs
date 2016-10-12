@@ -23,6 +23,10 @@ namespace MedEasy.API
         private IHostingEnvironment HostingEnvironment { get; }
         private IConfigurationRoot Configuration { get; }
 
+        /// <summary>
+        /// Builds a new <see cref="Startup"/> instance
+        /// </summary>
+        /// <param name="env">hosting environment configuration</param>
         public Startup(IHostingEnvironment env)
         {
             HostingEnvironment = env;

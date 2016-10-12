@@ -30,7 +30,10 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
             services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>();
+            services.AddScoped<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>, HandleGetMostRecentPhysiologicalMeasuresQuery<Temperature, TemperatureInfo>>();
+
             services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<BloodPressure,BloodPressureInfo>>();
+            services.AddScoped<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>, HandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressure,BloodPressureInfo>>();
             
             services.AddScoped<IRunCreatePatientCommand, RunCreatePatientCommand>();
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();
