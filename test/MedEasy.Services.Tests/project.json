@@ -1,5 +1,6 @@
-{
+﻿{
   "version": "1.0.0-*",
+
   "testRunner": "xunit",
   "dependencies": {
     "MedEasy.API": {
@@ -27,12 +28,7 @@
     "Microsoft.AspNetCore.Http": "1.0.0",
     "AutoMapper": "5.1.1",
     "FluentAssertions": "4.14.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.1",
-    "Microsoft.AspNetCore.Mvc.Core": "1.0.1",
-    "Microsoft.EntityFrameworkCore": "1.0.1",
-    "Microsoft.EntityFrameworkCore.InMemory": "1.0.1",
-    "Microsoft.NETCore.App": "1.0.1",
-    "MedEasy.Services": "1.0.*"
+    "Microsoft.NETCore.App": "1.0.1"
   },
 
   "frameworks": {
@@ -44,7 +40,6 @@
         "portable-net45+win8"
       ]
     }
-
   },
   "runtimes": {
     "win10-x64": {}

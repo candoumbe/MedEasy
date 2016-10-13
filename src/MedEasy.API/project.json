@@ -9,6 +9,7 @@
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "MedEasy.Handlers": "1.0.0-*",
+    "MedEasy.Services": "1.0.0-*",
     "MedEasy.DAL": "1.0.0-*",
     "MedEasy.Queries": "1.0.0-*",
     "MedEasy.Commands": "1.0.0-*",

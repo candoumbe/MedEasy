@@ -16,6 +16,7 @@ using MedEasy.Commands.Patient;
 using Microsoft.Extensions.Options;
 using MedEasy.Commands;
 using System.Collections.Generic;
+using MedEasy.Services;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -44,12 +45,8 @@ namespace MedEasy.API.Controllers
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IRunCreatePatientCommand _iRunCreatePatientCommand;
         private readonly IRunDeletePatientByIdCommand _iRunDeletePatientByIdCommand;
-        private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> _iRunAddNewTemperatureCommand;
-        private readonly IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> _iHandleGetOneTemperatureQuery;
-        private readonly IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> _iHandleGetOneBloodPressureQuery;
-        private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> _iRunAddNewBloodPressureCommand;
-        private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> _iHandleGetMostRecentBloodPressureMeasuresQuery;
-        private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> _iHandleGetMostRecentTemperatureMeasuresQuery;
+
+        private readonly IPhysiologicalMeasureService _physiologicalMeasureService;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -60,14 +57,9 @@ namespace MedEasy.API.Controllers
         /// <param name="iRunCreatePatientCommand">Runner of CREATE resource command</param>
         /// <param name="iRunDeletePatientByIdCommand">Runner of DELETE resource command</param>
         /// <param name="logger">logger</param>
-        /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
-        /// <param name="iHandleGetOneTemperatureQuery">Handler for GET <see cref="TemperatureInfo"/>  </param>
-        /// <param name="iHandleGetOneBloodPressureQuery">Handler for GET <see cref="BloodPressureInfo"/>  </param>
         /// <param name="actionContextAccessor"></param>
-        /// <param name="iRunAddNewTemperatureCommand">Runners that can process command to create new <see cref="TemperatureInfo"/></param>
-        /// <param name="iRunAddNewBloodPressureCommand">Runners that can process command to create new <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetMostRecentBloodPressureMeasuresQuery">Handle that can process queries to get most recent <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetMostRecentTemperatureMeasuresQuery">Handle that can process queries to get most recent <see cref="TemperatureInfo"/></param>
+        /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
+        /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, 
             IOptions<MedEasyApiOptions> apiOptions,
@@ -75,12 +67,7 @@ namespace MedEasy.API.Controllers
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
             IRunCreatePatientCommand iRunCreatePatientCommand,
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
-            IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> iRunAddNewTemperatureCommand,
-            IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> iHandleGetOneTemperatureQuery,
-            IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> iRunAddNewBloodPressureCommand,
-            IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> iHandleGetOneBloodPressureQuery,
-            IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> iHandleGetMostRecentBloodPressureMeasuresQuery,
-            IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> iHandleGetMostRecentTemperatureMeasuresQuery
+            IPhysiologicalMeasureService physiologicalMeasureService
 
 
             ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
@@ -89,12 +76,7 @@ namespace MedEasy.API.Controllers
             _actionContextAccessor = actionContextAccessor;
             _iRunCreatePatientCommand = iRunCreatePatientCommand;
             _iRunDeletePatientByIdCommand = iRunDeletePatientByIdCommand;
-            _iRunAddNewTemperatureCommand = iRunAddNewTemperatureCommand;
-            _iRunAddNewBloodPressureCommand = iRunAddNewBloodPressureCommand;
-            _iHandleGetOneTemperatureQuery = iHandleGetOneTemperatureQuery;
-            _iHandleGetOneBloodPressureQuery = iHandleGetOneBloodPressureQuery;
-            _iHandleGetMostRecentBloodPressureMeasuresQuery = iHandleGetMostRecentBloodPressureMeasuresQuery;
-            _iHandleGetMostRecentTemperatureMeasuresQuery = iHandleGetMostRecentTemperatureMeasuresQuery;
+            _physiologicalMeasureService = physiologicalMeasureService;
 
         }
 
@@ -237,7 +219,7 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(TemperatureInfo))]
         public async Task<IActionResult> Temperatures(CreateTemperatureInfo input)
         {
-            TemperatureInfo output = await _iRunAddNewTemperatureCommand.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
+            TemperatureInfo output = await _physiologicalMeasureService.AddNewTemperatureMeasureAsync(new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(input));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             BrowsableResource<TemperatureInfo> resource = new BrowsableResource<TemperatureInfo>
             {
@@ -268,7 +250,7 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(BloodPressureInfo))]
         public async Task<IActionResult> BloodPressures(CreateBloodPressureInfo input)
         {
-            BloodPressureInfo output = await _iRunAddNewBloodPressureCommand.RunAsync(new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(input));
+            BloodPressureInfo output = await _physiologicalMeasureService.AddNewBloodPressureMeasureAsync(new AddNewPhysiologicalMeasureCommand<CreateBloodPressureInfo, BloodPressureInfo>(input));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             BrowsableResource<BloodPressureInfo> resource = new BrowsableResource<BloodPressureInfo>
             {
@@ -295,7 +277,7 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(TemperatureInfo))]
         public async Task<IActionResult> Temperatures(int id, int temperatureId)
         {
-            TemperatureInfo output = await _iHandleGetOneTemperatureQuery.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(id, temperatureId));
+            TemperatureInfo output = await _physiologicalMeasureService.GetOneTemperatureMeasureAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(id, temperatureId));
             IActionResult actionResult = null;
 
             if (output != null)
@@ -330,7 +312,7 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(BloodPressureInfo))]
         public async Task<IActionResult> BloodPressures(int id, int bloodPressureId)
         {
-            BloodPressureInfo output = await _iHandleGetOneBloodPressureQuery.HandleAsync(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId));
+            BloodPressureInfo output = await _physiologicalMeasureService.GetOneBloodPressureInfoAsync(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId));
             IActionResult actionResult = null;
 
             if (output != null)
@@ -365,7 +347,7 @@ namespace MedEasy.API.Controllers
         /// <returns>Array of <see cref="BloodPressureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
         public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures(GetMostRecentPhysiologicalMeasuresInfo query)
-            => await _iHandleGetMostRecentBloodPressureMeasuresQuery.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
+            => await _physiologicalMeasureService.MostRecentBloodPressuresAsync(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
 
 
         /// <summary>
@@ -378,7 +360,7 @@ namespace MedEasy.API.Controllers
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
         public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures(GetMostRecentPhysiologicalMeasuresInfo query)
-            => await _iHandleGetMostRecentTemperatureMeasuresQuery.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(query));
+            => await _physiologicalMeasureService.MostRecentTemperaturesAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(query));
 
     }
 }

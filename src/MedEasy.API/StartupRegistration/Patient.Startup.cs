@@ -8,11 +8,12 @@ using MedEasy.Queries;
 using System;
 using MedEasy.DTO;
 using MedEasy.Objects;
+using MedEasy.Services;
 
 namespace MedEasy.API.StartupRegistration
 {
     /// <summary>
-    /// Wraps the dependency injection registration for <see cref="SpecialtiesController"/> dependencies.
+    /// Wraps the dependency injection registration for <see cref="PatientsController"/> dependencies.
     /// </summary>
     public static class PatientStartupRegistration
     {
@@ -21,7 +22,6 @@ namespace MedEasy.API.StartupRegistration
         /// </summary>
         public static void AddPatientsControllerDependencies(this IServiceCollection services)
         {
-
             services.AddScoped<IValidate<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
             services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
             services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
@@ -34,13 +34,12 @@ namespace MedEasy.API.StartupRegistration
 
             services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<BloodPressure,BloodPressureInfo>>();
             services.AddScoped<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>, HandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressure,BloodPressureInfo>>();
-            
+
             services.AddScoped<IRunCreatePatientCommand, RunCreatePatientCommand>();
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();
             services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>, RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>>();
             services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>, RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>>();
-
-
+            services.AddScoped<IPhysiologicalMeasureService, PhysiologicalMeasureService>();
         }
     }
 }
