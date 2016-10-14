@@ -80,6 +80,8 @@ namespace MedEasy.Handlers.Patient.Commands
                 await uow.SaveChangesAsync().ConfigureAwait(false);
             }
 
+            _logger.LogInformation("Measure deleted successfully");
+
         }
     }
 }
