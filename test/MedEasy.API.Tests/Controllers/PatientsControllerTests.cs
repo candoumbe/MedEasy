@@ -737,6 +737,22 @@ namespace MedEasy.WebApi.Tests
         }
 
 
+        [Fact]
+        public async Task GetBodyWeightShouldReturnNotFoundResultWhenServiceReturnsNull()
+        {
+            // Arrange
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneBodyWeightInfoAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo>>()))
+                .ReturnsAsync(null)
+                .Verifiable();
+
+            //Act
+            IActionResult actionResult = await _controller.BodyWeights(1, 12);
+
+            //Assert
+            actionResult.Should().BeOfType<NotFoundResult>();
+            _physiologicalMeasureFacadeMock.VerifyAll();
+        }
+
         public void Dispose()
         {
             _loggerMock = null;

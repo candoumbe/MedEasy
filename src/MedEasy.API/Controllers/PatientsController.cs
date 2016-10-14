@@ -39,7 +39,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         protected override string ControllerName => EndpointName;
 
-       
+
 
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
@@ -61,7 +61,7 @@ namespace MedEasy.API.Controllers
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor, 
+            IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
             IHandleGetOnePatientInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
@@ -71,7 +71,7 @@ namespace MedEasy.API.Controllers
 
 
             ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
-        { 
+        {
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
             _iRunCreatePatientCommand = iRunCreatePatientCommand;
@@ -96,21 +96,22 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(GenericGetResponse<BrowsableResource<PatientInfo>>))]
         public async Task<IActionResult> Get(int page, int pageSize)
         {
-            GenericGetQuery query = new GenericGetQuery {
+            GenericGetQuery query = new GenericGetQuery
+            {
                 Page = page,
                 PageSize = pageSize
             };
             IPagedResult<PatientInfo> result = await GetAll(query);
-           
-            
+
+
             int count = result.Entries.Count();
-             
+
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
 
-            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new {PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
                     ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
                     : null;
@@ -124,7 +125,7 @@ namespace MedEasy.API.Controllers
 
 
             IGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
-                result.Entries.Select(x => 
+                result.Entries.Select(x =>
                     new BrowsableResource<PatientInfo>
                     {
                         Location = new Link { Href = urlHelper.Action(nameof(PatientsController.Get), ControllerName, new { Id = x.Id }) },
@@ -135,7 +136,7 @@ namespace MedEasy.API.Controllers
                 nextPageUrl,
                 lastPageUrl,
                 result.Total);
-            
+
 
             return new OkObjectResult(response);
         }
@@ -150,9 +151,9 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id:int}")]
         [Produces(typeof(BrowsableResource<PatientInfo>))]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
-            
 
-        
+
+
         /// <summary>
         /// Creates the resource
         /// </summary>
@@ -161,7 +162,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">the resource was created successfuyl</response>
         [HttpPost]
         [Produces(typeof(PatientInfo))]
-        
+
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo info)
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(info));
@@ -180,7 +181,7 @@ namespace MedEasy.API.Controllers
             return new OkObjectResult(browsableResource);
         }
 
-        
+
         /// <summary>
         /// Updates the specified resource
         /// </summary>
@@ -262,8 +263,6 @@ namespace MedEasy.API.Controllers
                 }
             };
             OkObjectResult result = new OkObjectResult(resource);
-
-
             return result;
         }
 
@@ -292,7 +291,6 @@ namespace MedEasy.API.Controllers
                         Rel = "self"
                     }
                 });
-                
             }
             else
             {
@@ -362,5 +360,39 @@ namespace MedEasy.API.Controllers
         public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures(GetMostRecentPhysiologicalMeasuresInfo query)
             => await _physiologicalMeasureService.MostRecentTemperaturesAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(query));
 
+        /// <summary>
+        /// Gets one patient's <see cref="BodyWeightInfo"/>
+        /// </summary>
+        /// <param name="id">patient id</param>
+        /// <param name="bodyWeightId">id of the <see cref="BodyWeightInfo"/> resource to get</param>
+        /// <returns></returns>
+        [HttpGet("{id:int}/[action]/{bodyWeightId}")]
+        [Produces(typeof(BodyWeightInfo))]
+        public async Task<IActionResult> BodyWeights(int id, int bodyWeightId)
+        {
+            BodyWeightInfo output = await _physiologicalMeasureService.GetOneBodyWeightInfoAsync(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(id, bodyWeightId));
+            IActionResult actionResult = null;
+
+            if (output != null)
+            {
+                IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+                actionResult = new OkObjectResult(new BrowsableResource<BodyWeightInfo>
+                {
+                    Resource = output,
+                    Location = new Link
+                    {
+                        Href = urlHelper.Action(nameof(BodyWeights), EndpointName, new { id = output.PatientId, bodyWeightId = output.Id }),
+                        Rel = "self"
+                    }
+                });
+            }
+            else
+            {
+                actionResult = new NotFoundResult();
+            }
+
+            return actionResult;
+        }
     }
+            
 }

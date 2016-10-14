@@ -18,6 +18,7 @@ namespace MedEasy.Services
         private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> _iRunAddNewTemperatureCommand;
         private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> _iRunAddNewBloodPressureCommand;
         private readonly IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> _iHandleGetOneTemperatureQuery;
+        private readonly IHandleGetOnePhysiologicalMeasureQuery<BodyWeightInfo> _iHandleGetOneBodyWeightQuery;
         private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> _iHandleGetMostRecentBloodPressureMeasureQuery;
         private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> _iHandleGetMostRecentTemperatureMeasuresQuery;
         private readonly IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> _iHandleGetOneBloodPressureQuery;
@@ -96,5 +97,14 @@ namespace MedEasy.Services
         /// <returns></returns>
         public async Task<BloodPressureInfo> GetOneBloodPressureInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BloodPressureInfo> wantOneResource)
             => await _iHandleGetOneBloodPressureQuery.HandleAsync(wantOneResource).ConfigureAwait(false);
+
+
+        /// <summary>
+        /// Gets the <see cref="BodyWeightInfo"/>.
+        /// </summary>
+        /// <param name="query">the query to get the resource</param>
+        /// <returns>The resource found or <c>null</c> if no resource</returns>
+        public async Task<BodyWeightInfo> GetOneBodyWeightInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo> query)
+            => await _iHandleGetOneBodyWeightQuery.HandleAsync(query).ConfigureAwait(false);
     }
 }
