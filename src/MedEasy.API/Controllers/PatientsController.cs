@@ -393,6 +393,20 @@ namespace MedEasy.API.Controllers
 
             return actionResult;
         }
+
+
+        /// <summary>
+        /// Delete the specified blood pressure resource
+        /// </summary>
+        /// <param name="deletePhysiologicalMeasureInfo"></param>
+        /// <response code="200">if the operation succeed</response>
+        [HttpDelete("{id:int}/[action]/{measureId}")]
+        public async Task<IActionResult> BloodPressures(DeletePhysiologicalMeasureInfo deletePhysiologicalMeasureInfo)
+        {
+            await _physiologicalMeasureService.DeleteOneBloodPressureAsync(new DeleteOnePhysiologicalMeasureCommand(deletePhysiologicalMeasureInfo));
+
+            return new OkResult(); 
+        }
     }
             
 }

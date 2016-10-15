@@ -19,11 +19,12 @@ namespace MedEasy.Handlers.Patient.Commands
     /// </summary>
     /// <typeparam name="TKey">Type of the ID of commands this instance can run</typeparam>
     /// <typeparam name="TEntity">Type of the entity this instance will delete</typeparam>
-    public class RunDeletePhysiologicalMeasureCommand<TKey, TEntity> : CommandRunnerBase<TKey, DeletePhysiologicalMeasureInfo, IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>>, IRunDeletePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>
+    public class RunDeletePhysiologicalMeasureCommand<TKey, TEntity, TResource> : CommandRunnerBase<TKey, DeletePhysiologicalMeasureInfo, IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>>, IRunDeletePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo, TResource>
         where TKey : IEquatable<TKey>
+        where TResource : PhysiologicalMeasurementInfo
         where TEntity : PhysiologicalMeasurement
     {
-        private readonly ILogger<RunDeletePhysiologicalMeasureCommand<TKey, TEntity>> _logger;
+        private readonly ILogger<RunDeletePhysiologicalMeasureCommand<TKey, TEntity, TResource>> _logger;
         private readonly IUnitOfWorkFactory _uowFactory;
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace MedEasy.Handlers.Patient.Commands
         /// <param name="validator">will be used to validate commands in <see cref="RunAsync(TCommand)"/></param>
         /// <param name="logger">logger to track instance usage</param>
         /// <param name="uowFactory"></param>
-        public RunDeletePhysiologicalMeasureCommand(IValidate<IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>> validator, ILogger<RunDeletePhysiologicalMeasureCommand<TKey, TEntity>> logger, IUnitOfWorkFactory uowFactory) : base(validator)
+        public RunDeletePhysiologicalMeasureCommand(IValidate<IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>> validator, ILogger<RunDeletePhysiologicalMeasureCommand<TKey, TEntity, TResource>> logger, IUnitOfWorkFactory uowFactory) : base(validator)
         {
             if (logger == null)
             {

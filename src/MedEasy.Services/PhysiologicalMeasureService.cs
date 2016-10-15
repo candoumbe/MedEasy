@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
@@ -22,6 +21,8 @@ namespace MedEasy.Services
         private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> _iHandleGetMostRecentBloodPressureMeasureQuery;
         private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> _iHandleGetMostRecentTemperatureMeasuresQuery;
         private readonly IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> _iHandleGetOneBloodPressureQuery;
+        private readonly IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, BloodPressureInfo> _iRunDeleteBloodPressureCommand;
+        private readonly IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, TemperatureInfo> _iRunDeleteTemperatureCommand;
 
         /// <summary>
         /// Builds a new <see cref="PhysiologicalMeasureService"/> instance
@@ -30,15 +31,18 @@ namespace MedEasy.Services
         /// <param name="iRunAddNewBloodPressureCommand">instance that can create <see cref="BloodPressureInfo"/></param>
         /// <param name="iHandleGetOneTemperatureQuery">instance that can retrieve one <see cref="TemperatureInfo"/></param>
         /// <param name="iHandleGetOneBloodPressureQuery">instance that can retrieve one <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetMostRecentBloodPressureMeasureQuery">instance that can retrieve most recent <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetMostRecentTemperatureMeasuresQuery">instance of <see cref="_iHandleGetMostRecentTemperatureMeasuresQuery"/> to retrive most recent <see cref="TemperatureInfo"/></param>
+        /// <param name="iHandleGetMostRecentBloodPressureMeasureQuery">instance that can retrieve most recent <see cref="BloodPressureInfo"/> measures.</param>
+        /// <param name="iHandleGetMostRecentTemperatureMeasuresQuery">instance that can retrieve most recent <see cref="TemperatureInfo"/> measures.</param>
         public PhysiologicalMeasureService(
             IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> iRunAddNewTemperatureCommand, 
             IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> iRunAddNewBloodPressureCommand, 
             IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> iHandleGetOneTemperatureQuery,
             IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> iHandleGetOneBloodPressureQuery, 
             IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> iHandleGetMostRecentBloodPressureMeasureQuery, 
-            IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> iHandleGetMostRecentTemperatureMeasuresQuery)
+            IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> iHandleGetMostRecentTemperatureMeasuresQuery,
+            IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, BloodPressureInfo> iRunDeleteBloodPressureCommand,
+            IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, TemperatureInfo> iRunDeleteTemperatureCommand
+            )
         {
             _iRunAddNewTemperatureCommand = iRunAddNewTemperatureCommand;
             _iRunAddNewBloodPressureCommand = iRunAddNewBloodPressureCommand;
@@ -46,6 +50,9 @@ namespace MedEasy.Services
             _iHandleGetOneBloodPressureQuery = iHandleGetOneBloodPressureQuery;
             _iHandleGetMostRecentBloodPressureMeasureQuery = iHandleGetMostRecentBloodPressureMeasureQuery;
             _iHandleGetMostRecentTemperatureMeasuresQuery = iHandleGetMostRecentTemperatureMeasuresQuery;
+
+            _iRunDeleteBloodPressureCommand = iRunDeleteBloodPressureCommand;
+            _iRunDeleteTemperatureCommand = iRunDeleteTemperatureCommand;
         }
 
         /// <summary>
@@ -106,5 +113,14 @@ namespace MedEasy.Services
         /// <returns>The resource found or <c>null</c> if no resource</returns>
         public async Task<BodyWeightInfo> GetOneBodyWeightInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo> query)
             => await _iHandleGetOneBodyWeightQuery.HandleAsync(query).ConfigureAwait(false);
+
+        /// <summary>
+        /// Deletes the resource 
+        /// </summary>
+        /// <param name="command"></param>
+        public async Task DeleteOneBloodPressureAsync(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command)
+        {
+            await _iRunDeleteBloodPressureCommand.RunAsync(command);
+        }
     }
 }

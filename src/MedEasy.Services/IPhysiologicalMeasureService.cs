@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
@@ -64,5 +63,12 @@ namespace MedEasy.Services
         /// <param name="query">the query to get the resource</param>
         /// <returns>the resource or <c>null</c>if there's no patient info or the resource doesn't exist</returns>
         Task<BodyWeightInfo> GetOneBodyWeightInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo> query);
+
+        /// <summary>
+        /// Deletes one <see cref="BloodPressureInfo"/> resource
+        /// </summary>
+        /// <param name="command">specifies the resource to delete</param>
+        /// <exception cref="CommandNotValidException{TCommandId}">if <paramref name="command"/> is not valid</exception>
+        Task DeleteOneBloodPressureAsync(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command);
     }
 }

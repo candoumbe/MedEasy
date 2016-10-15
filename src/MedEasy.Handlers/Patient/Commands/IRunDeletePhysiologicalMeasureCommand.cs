@@ -12,9 +12,13 @@ namespace MedEasy.Handlers.Patient.Commands
     /// <remarks>
     /// The deletion of the <see cref="PhysiologicalMeasurementInfo"/> is done usin
     /// </remarks>
-    public interface IRunDeletePhysiologicalMeasureCommand<TKey, TData> : IRunCommandAsync<TKey, TData, IDeleteOnePhysiologicalMeasureCommand<TKey, TData>>
+    /// <typeparam name="TKey">type of commands' ids</typeparam>
+    /// <typeparam name="TData">type of data commands carry</typeparam>
+    /// <typeparam name="TResource">type of resources the commands will delete</typeparam>
+    public interface IRunDeletePhysiologicalMeasureCommand<TKey, TData, TResource> : IRunCommandAsync<TKey, TData, IDeleteOnePhysiologicalMeasureCommand<TKey, TData>>
         where TKey : IEquatable<TKey>
         where TData : DeletePhysiologicalMeasureInfo
+        where TResource : PhysiologicalMeasurementInfo
        
     {
         

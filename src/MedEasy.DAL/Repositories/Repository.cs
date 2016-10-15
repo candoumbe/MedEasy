@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,11 @@ namespace MedEasy.DAL.Repositories
     public class Repository<TEntry> : RepositoryBase<TEntry>, IRepository<TEntry> where TEntry : class
     {
          protected DbSet<TEntry> Entries { get; set; }
+
+        /// <summary>
+        /// Builds a new <see cref="Repository{TEntry}"/> instance
+        /// </summary>
+        /// <param name="context">the connection to use for the repository</param>
         public Repository(IDbContext context)
             : base(context)
         {
@@ -84,7 +88,6 @@ namespace MedEasy.DAL.Repositories
             {
                 throw new ArgumentNullException(nameof(groupBySelector));
             }
-
 
             IEnumerable<TResult> results = await Entries
                     .Where(predicate)

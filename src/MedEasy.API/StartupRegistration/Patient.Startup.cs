@@ -31,7 +31,6 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
             services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>();
             services.AddScoped<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>, HandleGetMostRecentPhysiologicalMeasuresQuery<Temperature, TemperatureInfo>>();
-
             services.AddScoped<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>, HandleGetOnePhysiologicalMeasurementInfoQuery<BloodPressure,BloodPressureInfo>>();
             services.AddScoped<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>, HandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressure,BloodPressureInfo>>();
 
@@ -39,6 +38,9 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IRunDeletePatientByIdCommand, RunDeletePatientByIdCommand>();
             services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>, RunAddNewPhysiologicalMeasureCommand<Temperature, CreateTemperatureInfo, TemperatureInfo>>();
             services.AddScoped<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>, RunAddNewPhysiologicalMeasureCommand<BloodPressure, CreateBloodPressureInfo, BloodPressureInfo>>();
+            services.AddScoped<IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, BloodPressureInfo>, RunDeletePhysiologicalMeasureCommand<Guid, BloodPressure, BloodPressureInfo>>();
+            services.AddScoped<IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, TemperatureInfo>, RunDeletePhysiologicalMeasureCommand<Guid, Temperature, TemperatureInfo>>();
+
             services.AddScoped<IPhysiologicalMeasureService, PhysiologicalMeasureService>();
         }
     }

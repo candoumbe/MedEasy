@@ -260,13 +260,15 @@ namespace MedEasy.DAL.Repositories
         void Delete(Expression<Func<TEntry, bool>> predicate);
 
         /// <summary>
-        /// Gets the first 
+        /// Gets the first entry
         /// </summary>
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="selector"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException">if the repository is empty or no entry statifies the <paramref name="predicate"/></exception>
         Task<TProperty> FirstAsync<TProperty>(Expression<Func<TEntry, TProperty>> selector, Expression<Func<TEntry, bool>> predicate);
+
 
         Task<TProperty> FirstOrDefaultAsync<TProperty>(Expression<Func<TEntry, TProperty>> selector, Expression<Func<TEntry, bool>> predicate);
 
@@ -286,14 +288,20 @@ namespace MedEasy.DAL.Repositories
 
 
         /// <summary>
-        /// Checks wheter <paramref name="predicate"/> filters one or more entries
+        /// Checks if all entries of the repository satisfy the specified <paramref name="predicate"/>
         /// </summary>
-        /// <returns></returns>
+        /// <returns><c>true</c> if all entries statifies the <param name="predicate" /> and <c>false</c> otherwise</returns>
         Task<bool> AllAsync(Expression<Func<TEntry, bool>> predicate);
 
 
+        /// <summary>
+        /// Checks if all entries of the repository satisfy the specified <paramref name="predicate"/>
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <param name="predicate">predicate to evaluate all the entries against</param>
+        /// <param name="selector">projection before testing the <paramref name="predicate"/></param>
+        /// <returns><c>true</c> if all entries statifies the <param name="predicate" /> and <c>false</c> otherwise</returns>
         Task<bool> AllAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate);
-
-
     }
 }

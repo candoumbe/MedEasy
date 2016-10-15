@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace MedEasy.API.Stores
 {
+    /// <summary>
+    /// A <see cref="MedEasyContext"/> instance represents a session with all the repositories
+    /// </summary>
     public class MedEasyContext : DbContext, IDbContext
     {
         /// <summary>
@@ -41,11 +44,15 @@ namespace MedEasy.API.Stores
         /// </summary>
         public DbSet<Temperature> Temperatures { get; set; }
 
+         
+
         /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options
         /// </summary>
         public MedEasyContext()
-        {}
+        {  
+        }
+
 
         /// <summary>
         /// Builds à new instance of <see cref="MedEasyContext"/> with the specified <see cref="DbContextOptions{TContext}"/>
@@ -69,6 +76,7 @@ namespace MedEasy.API.Stores
         ///<inheritdoc/>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            
             base.OnModelCreating(modelBuilder);
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {

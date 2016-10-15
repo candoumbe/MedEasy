@@ -4,6 +4,7 @@ using GenFu;
 using MedEasy.API;
 using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
+using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
@@ -751,6 +752,22 @@ namespace MedEasy.WebApi.Tests
             //Assert
             actionResult.Should().BeOfType<NotFoundResult>();
             _physiologicalMeasureFacadeMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteOnePhysiologicalMeasure()
+        {
+            // Arrange
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOneBloodPressureAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
+                .Returns(Task.CompletedTask);
+
+
+            // Act
+            IActionResult actionResult = await _controller.BloodPressures(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
+
+            // Assert
+            actionResult.Should().BeOfType<OkResult>();
+            _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOneBloodPressureAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
         }
 
         public void Dispose()
