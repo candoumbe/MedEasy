@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MedEasy.DTO;
+using MedEasy.Objects;
 using System;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,11 +21,11 @@ namespace MedEasy.Commands.Tests.Patient
         public void ShouldThrowArgumentNullExceptionIfCommandToRunIsNull()
         {
             // Act 
-            Action action = () => new AddNewPhysiologicalMeasureCommand<CreateTemperatureInfo, TemperatureInfo>(null);
+            Action action = () => new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(null);
 
             // Assert
 
-            action.ShouldThrow<ArgumentNullException>("the command parameter cannot be null").Which
+            action.ShouldThrow<ArgumentNullException>("the command's parameter cannot be null").Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace("it's usefull to debug quickly");
         }

@@ -12,8 +12,6 @@ namespace MedEasy.Mapping
 
 
             cfg.CreateMap<Patient, PatientInfo>();
-            cfg.CreateMap<Patient, BrowsableResource<PatientInfo>>()
-                 .ForMember(dest => dest.Location, opt => opt.Ignore());
             cfg.CreateMap<CreatePatientInfo, Patient>();
             cfg.CreateMap<CreateTemperatureInfo, Temperature>()
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Id));
@@ -22,14 +20,9 @@ namespace MedEasy.Mapping
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Id));
             cfg.CreateMap<BloodPressure, BloodPressureInfo>();
 
-
             cfg.CreateMap<Doctor, DoctorInfo>();
-            cfg.CreateMap<Doctor, BrowsableResource<DoctorInfo>>()
-                .ForMember(dest => dest.Location, opt => opt.Ignore());
 
             cfg.CreateMap<Specialty, SpecialtyInfo>();
-            cfg.CreateMap<Specialty, BrowsableResource<SpecialtyInfo>>()
-                 .ForMember(dest => dest.Location, opt => opt.Ignore());
             cfg.CreateMap<CreateSpecialtyInfo, Specialty>();
 
             #region Autocomplete

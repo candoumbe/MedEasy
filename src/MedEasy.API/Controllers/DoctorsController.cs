@@ -14,6 +14,7 @@ using MedEasy.Queries.Doctor;
 using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.Commands.Doctor;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -75,18 +76,15 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsableResource<DoctorInfo>>))]
-        public async Task<IActionResult> Get(GenericGetQuery query)
+        [Produces(typeof(IEnumerable<DoctorInfo>))]
+        public async Task<IActionResult> Get([FromQuery] GenericGetQuery query)
         {
             if (query == null)
             {
                 query = new GenericGetQuery();
             }
 
-            
-                
             IPagedResult<DoctorInfo> result = await GetAll(query);
-           
             
             int count = result.Entries.Count();
              
@@ -108,12 +106,8 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsableResource<DoctorInfo>> response = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
-                result.Entries.Select(x => 
-                    new BrowsableResource<DoctorInfo> {
-                        Location = new Link { Href = urlHelper.Action(nameof(DoctorsController.Get), ControllerName, new { Id = x.Id }) },
-                        Resource = x
-                    }),
+            IGetResponse<DoctorInfo> response = new GenericPagedGetResponse<DoctorInfo>(
+                result.Entries,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -157,8 +151,7 @@ namespace MedEasy.API.Controllers
                     Rel = "self"
                 }
             };
-
-
+            
             return new OkObjectResult(browsableResource);
         }
 
@@ -182,12 +175,13 @@ namespace MedEasy.API.Controllers
         /// Delete the <see cref="DoctorInfo"/> by its 
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
-        /// <returns></returns>
+        /// <response code="200">if the deletion succeed</response>
+        /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id));
-            return await Task.FromResult(new OkResult());
+            return new OkResult();
         }
 
 

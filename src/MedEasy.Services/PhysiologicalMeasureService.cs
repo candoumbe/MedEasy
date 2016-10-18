@@ -6,6 +6,17 @@ using MedEasy.DTO;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Queries;
+using MedEasy.Objects;
+using MedEasy.Validators;
+using MedEasy.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
+using AutoMapper.QueryableExtensions;
+using MedEasy.Commands;
+using System.Linq;
+using MedEasy.Handlers.Exceptions;
+using static MedEasy.Validators.ErrorLevel;
+using System.Linq.Expressions;
+using MedEasy.DAL.Repositories;
 
 namespace MedEasy.Services
 {
@@ -14,45 +25,47 @@ namespace MedEasy.Services
     /// </summary>
     public class PhysiologicalMeasureService : IPhysiologicalMeasureService
     {
-        private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> _iRunAddNewTemperatureCommand;
-        private readonly IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> _iRunAddNewBloodPressureCommand;
-        private readonly IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> _iHandleGetOneTemperatureQuery;
-        private readonly IHandleGetOnePhysiologicalMeasureQuery<BodyWeightInfo> _iHandleGetOneBodyWeightQuery;
-        private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> _iHandleGetMostRecentBloodPressureMeasureQuery;
-        private readonly IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> _iHandleGetMostRecentTemperatureMeasuresQuery;
-        private readonly IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> _iHandleGetOneBloodPressureQuery;
-        private readonly IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, BloodPressureInfo> _iRunDeleteBloodPressureCommand;
-        private readonly IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, TemperatureInfo> _iRunDeleteTemperatureCommand;
+        private IUnitOfWorkFactory _uowFactory;
+        private readonly ILogger<PhysiologicalMeasureService> _logger;
+        private readonly IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> _deleteOnePhysiologicalMeasureCommandValidator;
+        private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
         /// Builds a new <see cref="PhysiologicalMeasureService"/> instance
         /// </summary>
-        /// <param name="iRunAddNewTemperatureCommand">instance that can create <see cref="TemperatureInfo"/></param>
-        /// <param name="iRunAddNewBloodPressureCommand">instance that can create <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetOneTemperatureQuery">instance that can retrieve one <see cref="TemperatureInfo"/></param>
-        /// <param name="iHandleGetOneBloodPressureQuery">instance that can retrieve one <see cref="BloodPressureInfo"/></param>
-        /// <param name="iHandleGetMostRecentBloodPressureMeasureQuery">instance that can retrieve most recent <see cref="BloodPressureInfo"/> measures.</param>
-        /// <param name="iHandleGetMostRecentTemperatureMeasuresQuery">instance that can retrieve most recent <see cref="TemperatureInfo"/> measures.</param>
+        /// <param name="uowFactory">instance that can create <see cref="IUnitOfWork"/> instances to persist entities</param>
+        /// <param name="deleteOnePhysiologicalMeasureCommandValidator">Validates commands</param>
         public PhysiologicalMeasureService(
-            IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo> iRunAddNewTemperatureCommand, 
-            IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo> iRunAddNewBloodPressureCommand, 
-            IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo> iHandleGetOneTemperatureQuery,
-            IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo> iHandleGetOneBloodPressureQuery, 
-            IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo> iHandleGetMostRecentBloodPressureMeasureQuery, 
-            IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> iHandleGetMostRecentTemperatureMeasuresQuery,
-            IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, BloodPressureInfo> iRunDeleteBloodPressureCommand,
-            IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo, TemperatureInfo> iRunDeleteTemperatureCommand
+            IUnitOfWorkFactory uowFactory,
+            ILogger<PhysiologicalMeasureService> logger,
+            IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> deleteOnePhysiologicalMeasureCommandValidator,
+            IExpressionBuilder expressionBuilder
             )
         {
-            _iRunAddNewTemperatureCommand = iRunAddNewTemperatureCommand;
-            _iRunAddNewBloodPressureCommand = iRunAddNewBloodPressureCommand;
-            _iHandleGetOneTemperatureQuery = iHandleGetOneTemperatureQuery;
-            _iHandleGetOneBloodPressureQuery = iHandleGetOneBloodPressureQuery;
-            _iHandleGetMostRecentBloodPressureMeasureQuery = iHandleGetMostRecentBloodPressureMeasureQuery;
-            _iHandleGetMostRecentTemperatureMeasuresQuery = iHandleGetMostRecentTemperatureMeasuresQuery;
 
-            _iRunDeleteBloodPressureCommand = iRunDeleteBloodPressureCommand;
-            _iRunDeleteTemperatureCommand = iRunDeleteTemperatureCommand;
+            if (uowFactory == null)
+            {
+                throw new ArgumentNullException(nameof(uowFactory));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (deleteOnePhysiologicalMeasureCommandValidator == null)
+            {
+                throw new ArgumentNullException(nameof(deleteOnePhysiologicalMeasureCommandValidator));
+            }
+            if (expressionBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(expressionBuilder));
+            }
+
+            _uowFactory = uowFactory;
+            _logger = logger;
+            _deleteOnePhysiologicalMeasureCommandValidator = deleteOnePhysiologicalMeasureCommandValidator;
+            _expressionBuilder = expressionBuilder;
         }
 
         /// <summary>
@@ -60,67 +73,96 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="query">specifies which patient to get its most recent measures for</param>
         /// <returns><see cref="IEnumerable{T}"/>holding the most recent <see cref="BloodPressureInfo"/></returns>
-        public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressuresAsync(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>> query)
-            => await _iHandleGetMostRecentBloodPressureMeasureQuery.HandleAsync(query).ConfigureAwait(false);
-        /// <summary>
-        /// Gets the most recent <see cref="TemperatureInfo"/> measures.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="query">specifies which patient to get its most recent measures for</param>
-        /// <returns><see cref="IEnumerable{T}"/>holding the most recent <see cref="TemperatureInfo"/></returns>
-        /// <see cref="GetMostRecentPhysiologicalMeasuresInfo"/>
-        public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperaturesAsync(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>> query)
-            => await _iHandleGetMostRecentTemperatureMeasuresQuery.HandleAsync(query).ConfigureAwait(false);
-
-        /// <summary>
-        /// Gets the <see cref="TemperatureInfo"/> resource
-        /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        public async Task<TemperatureInfo> GetOneTemperatureMeasureAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo> query)
-            => await _iHandleGetOneTemperatureQuery.HandleAsync(query).ConfigureAwait(false);
-
-        /// <summary>
-        /// Add a new <see cref="BloodPressureInfo"/>
-        /// </summary>
-        /// <param name="command">command that holds data to create the resource</param>
-        /// <returns>The created resource</returns>
-        public async Task<BloodPressureInfo> AddNewBloodPressureMeasureAsync(IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo> command)
-            => await _iRunAddNewBloodPressureCommand.RunAsync(command).ConfigureAwait(false);
-
-        /// <summary>
-        /// Add a new <see cref="TemperatureInfo"/>
-        /// </summary>
-        /// <param name="addNewPhysiologicalMeasureCommand">command that holds data to create the resource</param>
-        /// <returns>The created resource</returns>
-        public async Task<TemperatureInfo> AddNewTemperatureMeasureAsync(IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo> addNewPhysiologicalMeasureCommand)
-            => await _iRunAddNewTemperatureCommand.RunAsync(addNewPhysiologicalMeasureCommand).ConfigureAwait(false);
-
-        /// <summary>
-        /// Gets the <see cref="BloodPressureInfo"/>.
-        /// </summary>
-        /// <param name="wantOneResource">the query to get the resource</param>
-        /// <returns></returns>
-        public async Task<BloodPressureInfo> GetOneBloodPressureInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BloodPressureInfo> wantOneResource)
-            => await _iHandleGetOneBloodPressureQuery.HandleAsync(wantOneResource).ConfigureAwait(false);
-
-
-        /// <summary>
-        /// Gets the <see cref="BodyWeightInfo"/>.
-        /// </summary>
-        /// <param name="query">the query to get the resource</param>
-        /// <returns>The resource found or <c>null</c> if no resource</returns>
-        public async Task<BodyWeightInfo> GetOneBodyWeightInfoAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo> query)
-            => await _iHandleGetOneBodyWeightQuery.HandleAsync(query).ConfigureAwait(false);
-
-        /// <summary>
-        /// Deletes the resource 
-        /// </summary>
-        /// <param name="command"></param>
-        public async Task DeleteOneBloodPressureAsync(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command)
+        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query)
+            where TPhysiologicalMeasure : PhysiologicalMeasurement
+            where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {
-            await _iRunDeleteBloodPressureCommand.RunAsync(command);
+
+            _logger.LogInformation("Querying most recent measures");
+
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            using (var uow = _uowFactory.New())
+            {
+                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
+                IPagedResult<TPhysiologicalMeasureInfo> measures = await uow.Repository<TPhysiologicalMeasure>()
+                    .WhereAsync(
+                        selector,
+                        x => x.PatientId == query.Data.Id,
+                        new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, SortDirection.Descending) },
+                        query.Data.Count.GetValueOrDefault(20),
+                        1
+                    );
+                _logger.LogInformation($"Found {measures.Entries.Count()} results");
+                return measures.Entries;
+            }
+        }
+
+        public async Task<TPhysiologicalMeasureInfo> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, TPhysiologicalMeasure> command)
+            where TPhysiologicalMeasure : PhysiologicalMeasurement
+            where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
+        {
+            _logger.LogInformation($"Start adding new measure");
+            
+
+            if (command == null)
+            {
+                _logger.LogError("Command is null");
+                throw new ArgumentNullException(nameof(command));
+            }
+
+
+            using (var uow = _uowFactory.New())
+            {
+                TPhysiologicalMeasure input = command.Data;
+                input = uow.Repository<TPhysiologicalMeasure>().Create(input);
+                await uow.SaveChangesAsync().ConfigureAwait(false);
+
+                return _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>().Compile()(input);
+            }
+        }
+
+        public Task<TPhysiologicalMesureInfo> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query)
+            where TPhysiologicalMeasure : PhysiologicalMeasurement
+            where TPhysiologicalMesureInfo : PhysiologicalMeasurementInfo
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command) where TPhysiologicalMeasure : PhysiologicalMeasurement
+        {
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+            _logger.LogInformation($"Start running delete one measure id : {command}");
+            IEnumerable<Task<ErrorInfo>> validationTasks = _deleteOnePhysiologicalMeasureCommandValidator.Validate(command);
+            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+
+            if (errors.Any(x => x.Severity == Error))
+            {
+                _logger.LogDebug("Command's validation failed");
+#if TRACE || DEBUG
+
+                foreach (ErrorInfo error in errors)
+                {
+                    _logger.LogTrace($"Validation error : {error.Key} : {error.Description}");
+                }
+#endif
+                throw new CommandNotValidException<Guid>(command.Id, errors);
+            }
+
+            using (var uow = _uowFactory.New())
+            {
+                uow.Repository<TPhysiologicalMeasure>().Delete(x => x.PatientId == command.Data.Id && x.Id == command.Data.MeasureId);
+                await uow.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            _logger.LogInformation("Measure deleted successfully");
+
         }
     }
 }

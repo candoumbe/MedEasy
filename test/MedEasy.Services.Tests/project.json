@@ -11,6 +11,7 @@
       "version": "1.0.0-*",
       "target": "project"
     },
+    "MedEasy.Tools": "1.0.*",
     "MedEasy.DTO": {
       "version": "1.0.0-*",
       "target": "project"

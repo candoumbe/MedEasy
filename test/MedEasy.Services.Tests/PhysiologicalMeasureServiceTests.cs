@@ -1,12 +1,24 @@
-﻿using MedEasy.Commands;
+﻿using AutoMapper.QueryableExtensions;
+using FluentAssertions;
+using GenFu;
+using MedEasy.Commands;
 using MedEasy.Commands.Patient;
+using MedEasy.DAL.Interfaces;
+using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
+using MedEasy.Handlers.Exceptions;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Handlers.Patient.Queries;
+using MedEasy.Mapping;
+using MedEasy.Objects;
+using MedEasy.Queries.Patient;
+using MedEasy.Validators;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,69 +29,191 @@ namespace MedEasy.Services.Tests
     public class PhysiologicalMeasureServiceTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>> _iRunAddNewBloodPressureCommandMock;
-        private Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>> _iRunAddNewTemperatureCommandMock;
-        private Mock<IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> _iRunDeletePhysiologicalMeasureCommandMock;
-        private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
-        private Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>> _iHandleGetOnePatientBloodPressureMock;
-        private Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>> _iHandleGetLastBloodPressuresMock;
-        private Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>> _iHandleGetLastTemperaturesMock;
         private PhysiologicalMeasureService _physiologicalMeasureService;
+        private Mock<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>> _iValidateDeleteOnePhysiologicalMeasureCommandMock;
+        private Mock<ILogger<PhysiologicalMeasureService>> _loggerMock;
+        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IExpressionBuilder _expressionBuilder;
 
         public PhysiologicalMeasureServiceTests(ITestOutputHelper outputHelper)
         {
 
             _outputHelper = outputHelper;
-            
-            _iRunAddNewTemperatureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo, TemperatureInfo>>(Strict);
-            _iRunAddNewBloodPressureCommandMock = new Mock<IRunAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo, BloodPressureInfo>>(Strict);
-            _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
-            _iHandleGetOnePatientBloodPressureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>>(Strict);
-            _iHandleGetLastBloodPressuresMock = new Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>>(Strict);
-            _iHandleGetLastTemperaturesMock = new Mock<IHandleGetMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>>(Strict);
-            _iRunDeletePhysiologicalMeasureCommandMock = new Mock<IRunDeletePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>(Strict);
+
+
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock = new Mock<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(Strict);
+
+            _loggerMock = new Mock<ILogger<PhysiologicalMeasureService>>(Strict);
+            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose())
+                .Verifiable("unit of work must be in a using block");
+
+            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
 
             _physiologicalMeasureService = new PhysiologicalMeasureService(
-                _iRunAddNewTemperatureCommandMock.Object,
-                _iRunAddNewBloodPressureCommandMock.Object,
-                _iHandleGetOnePatientTemperatureMock.Object,
-                _iHandleGetOnePatientBloodPressureMock.Object,
-                _iHandleGetLastBloodPressuresMock.Object,
-                _iHandleGetLastTemperaturesMock.Object,
-                _iRunDeletePhysiologicalMeasureCommandMock.Object
-                );
+                _unitOfWorkFactoryMock.Object,
+                _loggerMock.Object,
+                _iValidateDeleteOnePhysiologicalMeasureCommandMock.Object,
+                _expressionBuilder);
+        }
+
+        public static IEnumerable<object> GetMostRecentMeasuresCases
+        {
+            get
+            {
+                yield return new object[] {
+                    Enumerable.Empty<BloodPressure>(),
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => !x.Any()))
+                };
+
+                yield return new object[] {
+                    new [] {
+                        new BloodPressure { PatientId = 1, SystolicPressure = 120, DiastolicPressure = 80 },
+                        new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 1))
+                };
+
+                yield return new object[] {
+                    new [] {
+                        new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 },
+                        new BloodPressure { PatientId = 2, SystolicPressure = 128, DiastolicPressure = 95 },
+                        new BloodPressure { PatientId = 2, SystolicPressure = 130, DiastolicPressure = 95 }
+                    },
+                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 2, Count = 2 },
+                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 2))
+                };
+            }
+        }
+
+        [Fact]
+        public async Task AddNewBloodPressureResource()
+        {
+            // Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Create(It.IsAny<BloodPressure>()))
+                .Returns((BloodPressure measure) =>
+                {
+                    DateTime now = DateTime.UtcNow;
+                    measure.Id = 1;
+                    measure.CreatedDate = now;
+                    measure.UpdatedDate = now;
+
+                    return measure;
+                });
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
+                .ReturnsAsync(1)
+                .Verifiable();
+
+            // Act
+            BloodPressure input = new BloodPressure
+            {
+                PatientId = 1,
+                DateOfMeasure = DateTime.UtcNow,
+                SystolicPressure = 120,
+                DiastolicPressure = 80
+            };
+            BloodPressureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
+
+            // Assert
+            output.Should().NotBeNull();
+            output.PatientId.Should().Be(input.Id);
+            output.DateOfMeasure.Should().Be(input.DateOfMeasure);
+            output.SystolicPressure.Should().Be(input.SystolicPressure);
+            output.DiastolicPressure.Should().Be(input.DiastolicPressure);
+
+
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
+            _unitOfWorkFactoryMock.VerifyAll();
+            _loggerMock.VerifyAll();
+
         }
 
 
-        // TODO Write all tests that certifies that this service  is only a facade !!!
-        
+        [Theory]
+        [MemberData(nameof(GetMostRecentMeasuresCases))]
+        public async Task GetMostRecentMeasures(IEnumerable<BloodPressure> measuresBdd, GetMostRecentPhysiologicalMeasuresInfo query, Expression<Func<IEnumerable<BloodPressureInfo>, bool>> resultExpectation)
+        {
+            _outputHelper.WriteLine($"Current store state : {measuresBdd}");
+            _outputHelper.WriteLine($"Query : {query}");
+            // Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>()
+                .WhereAsync(
+                    It.IsAny<Expression<Func<BloodPressure, BloodPressureInfo>>>(),
+                    It.IsAny<Expression<Func<BloodPressure, bool>>>(),
+                    It.IsAny<IEnumerable<OrderClause<BloodPressureInfo>>>(),
+                    It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((Expression<Func<BloodPressure, BloodPressureInfo>> selector, Expression<Func<BloodPressure, bool>> filter,
+                    IEnumerable<OrderClause<BloodPressureInfo>> sorts, int pageSize, int page
+                ) => Task.Run(() =>
+                {
+
+                    IEnumerable<BloodPressureInfo> results = measuresBdd.Where(filter.Compile())
+                        .Select(selector.Compile())
+                        .AsQueryable()
+                        .OrderBy(sorts)
+                        .Skip(page < 1 ? pageSize : page - 1 * pageSize)
+                        .Take(pageSize)
+                        .ToArray();
+
+                    return (IPagedResult<BloodPressureInfo>)new PagedResult<BloodPressureInfo>(results, measuresBdd.Count(filter.Compile()), pageSize);
+                }));
+
+            // Act
+            IEnumerable<BloodPressureInfo> measures = await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
+
+            // Assert
+            measures.Should().NotBeNull().And.Match(resultExpectation);
+            _unitOfWorkFactoryMock.VerifyAll();
+            _loggerMock.VerifyAll();
+        }
+
+
+        [Fact]
+        public void ShouldThrowArgumentNullExceptionWhenQueryIsNull()
+        {
+            
+            // Act
+            Func<Task> action = async () => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(null);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>("query cannot be null").Which
+                .ParamName.Should().NotBeNullOrWhiteSpace("paramName must be set for easier debugging");
+        }
+
+
+
         [Fact]
         public async Task DeleteOneBloodPressureResource()
         {
             // Arrange
-            _iRunDeletePhysiologicalMeasureCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
-                .Returns(Task.CompletedTask);
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Setup(mock => mock.Validate(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
+                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Delete(It.IsAny<Expression<Func<BloodPressure, bool>>>()))
+                .Verifiable();
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
+                .ReturnsAsync(1)
+                .Verifiable();
 
             // Act
-            await _physiologicalMeasureService.DeleteOneBloodPressureAsync(new DeleteOnePhysiologicalMeasureCommand(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 3 }));
-
+            await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(new DeleteOnePhysiologicalMeasureCommand(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 3 }));
 
             // Assert
-            _iRunDeletePhysiologicalMeasureCommandMock.Verify();
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
+            _unitOfWorkFactoryMock.VerifyAll();
+            _loggerMock.VerifyAll();
+
         }
 
 
         public void Dispose()
         {
-            _iHandleGetLastBloodPressuresMock = null;
-            _iHandleGetLastTemperaturesMock = null;
-            _iHandleGetOnePatientBloodPressureMock = null;
-            _iHandleGetOnePatientTemperatureMock = null;
-
-            _iRunAddNewBloodPressureCommandMock = null;
-            _iRunAddNewTemperatureCommandMock = null;
-            _iRunDeletePhysiologicalMeasureCommandMock = null;
-
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock = null;
+            _loggerMock = null;
+            _outputHelper = null;
+            _unitOfWorkFactoryMock = null;
             _physiologicalMeasureService = null;
         }
     }

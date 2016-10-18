@@ -77,7 +77,7 @@ namespace MedEasy.API.Controllers
         /// Gets all the entries in the repository
         /// </summary>
         [HttpGet]
-        [Produces(typeof(IEnumerable<BrowsableResource<SpecialtyInfo>>))]
+        [Produces(typeof(IEnumerable<SpecialtyInfo>))]
         public async Task<IActionResult> Get(GenericGetQuery query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
@@ -101,13 +101,8 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsableResource<SpecialtyInfo>> response = new GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>(
-                result.Entries.Select(x =>
-                    new BrowsableResource<SpecialtyInfo>
-                    {
-                        Location = new Link { Href = urlHelper.Action(nameof(SpecialtiesController.Get), ControllerName, new { Id = x.Id }) },
-                        Resource = x
-                    }),
+            IGetResponse<SpecialtyInfo> response = new GenericPagedGetResponse<SpecialtyInfo>(
+                result.Entries,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -192,8 +187,8 @@ namespace MedEasy.API.Controllers
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
         /// <returns></returns>
         [HttpGet("{id:int}/Doctors")]
-        [Produces(typeof(IEnumerable<BrowsableResource<DoctorInfo>>))]
-        public async Task<IActionResult> Doctors(int id, GenericGetQuery query)
+        [Produces(typeof(IEnumerable<DoctorInfo>))]
+        public async Task<IActionResult> Doctors(int id, [FromQuery] GenericGetQuery query)
         {
             if (query == null)
             {
@@ -210,16 +205,8 @@ namespace MedEasy.API.Controllers
             Debug.Assert(pageResult != null);
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            IGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
-                pageResult.Entries.Select(x => new BrowsableResource<DoctorInfo>
-                {
-                    Location = new Link
-                    {
-                        Rel = "self",
-                        Href = urlHelper.Action(nameof(Get), DoctorsController.EndpointName, new { id = x.Id })
-                    },
-                    Resource = x
-                }),
+            IGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
+                pageResult.Entries,
                 first: urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
                 previous: pageResult.PageCount > 1 && query.Page > 1
                     ? urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })

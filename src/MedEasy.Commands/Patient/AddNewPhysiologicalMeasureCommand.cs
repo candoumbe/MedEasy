@@ -3,6 +3,7 @@ using MedEasy.DTO;
 using Newtonsoft.Json;
 using System;
 using static Newtonsoft.Json.JsonConvert;
+using MedEasy.Objects;
 
 namespace MedEasy.Commands
 {
@@ -14,7 +15,7 @@ namespace MedEasy.Commands
     [JsonObject]
     public class AddNewPhysiologicalMeasureCommand<TKey, TData, TOutput> : CommandBase<TKey, TData>, IAddNewPhysiologicalMeasureCommand<TKey, TData>
         where TKey : IEquatable<TKey>
-        where TData : CreatePhysiologicalMeasureInfo
+        where TData : PhysiologicalMeasurement
     {
         
         /// <summary>
@@ -39,7 +40,8 @@ namespace MedEasy.Commands
     /// <typeparam name="TData">Type of data the command will carry</typeparam>
     [JsonObject]
     public class AddNewPhysiologicalMeasureCommand<TData, TOutput> : AddNewPhysiologicalMeasureCommand<Guid, TData, TOutput>
-        where TData : CreatePhysiologicalMeasureInfo
+        where TData : PhysiologicalMeasurement
+        where TOutput : PhysiologicalMeasurementInfo
 
     {
         public AddNewPhysiologicalMeasureCommand(TData data) : base(Guid.NewGuid(), data)

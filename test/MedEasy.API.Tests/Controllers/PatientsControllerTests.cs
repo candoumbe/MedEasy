@@ -531,11 +531,11 @@ namespace MedEasy.WebApi.Tests
         public async Task AddTemperatureMeasure()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewTemperatureMeasureAsync(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo>>()))
-                .Returns((IAddNewPhysiologicalMeasureCommand<Guid, CreateTemperatureInfo> localCmd) => Task.FromResult(new TemperatureInfo {
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<ICommand<Guid, Temperature>>()))
+                .Returns((ICommand<Guid, Temperature> localCmd) => Task.FromResult(new TemperatureInfo {
                     Id = 1,
                     DateOfMeasure = localCmd.Data.DateOfMeasure,
-                    PatientId = localCmd.Data.Id,
+                    PatientId = localCmd.Data.PatientId,
                     Value = localCmd.Data.Value
                 }));
 
@@ -574,19 +574,6 @@ namespace MedEasy.WebApi.Tests
         [Fact]
         public async Task AddBloodPressureMeasure()
         {
-            // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewBloodPressureMeasureAsync(It.IsAny<IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo>>()))
-                .Returns((IAddNewPhysiologicalMeasureCommand<Guid, CreateBloodPressureInfo> localCmd) => Task.FromResult(new BloodPressureInfo
-                {
-                    Id = 1,
-                    DateOfMeasure = localCmd.Data.DateOfMeasure,
-                    PatientId = localCmd.Data.Id,
-                    SystolicPressure = localCmd.Data.SystolicPressure,
-                    DiastolicPressure = localCmd.Data.DiastolicPressure,
-
-                }));
-
-            // Act
             CreateBloodPressureInfo input = new CreateBloodPressureInfo
             {
                 Id = 1,
@@ -594,6 +581,21 @@ namespace MedEasy.WebApi.Tests
                 DiastolicPressure = 100,
                 DateOfMeasure = DateTime.UtcNow
             };
+
+            // Arrange
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(It.IsAny<ICommand<Guid, BloodPressure>>()))
+                .Returns((ICommand<Guid, BloodPressure> localCmd) => Task.FromResult(new BloodPressureInfo
+                {
+                    Id = 1,
+                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    PatientId = localCmd.Data.PatientId,
+                    SystolicPressure = localCmd.Data.SystolicPressure,
+                    DiastolicPressure = localCmd.Data.DiastolicPressure,
+
+                }));
+
+            // Act
+            
 
             IActionResult actionResult = await _controller.BloodPressures(input);
 
@@ -634,7 +636,7 @@ namespace MedEasy.WebApi.Tests
                 await uow.SaveChangesAsync();
             }
 
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.MostRecentBloodPressuresAsync(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>>>()))
                 .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>> input) => Task.Run(async () =>
                 {
                     using (var uow = _factory.New())
@@ -677,7 +679,7 @@ namespace MedEasy.WebApi.Tests
                 await uow.SaveChangesAsync();
             }
 
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.MostRecentTemperaturesAsync(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetMostRecentMeasuresAsync<Temperature, TemperatureInfo>(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>>>()))
                 .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>> input) => Task.Run(async () =>
                 {
                     using (var uow = _factory.New())
@@ -709,7 +711,7 @@ namespace MedEasy.WebApi.Tests
         public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneTemperatureMeasureAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>()))
                 .ReturnsAsync(null)
                 .Verifiable();
 
@@ -725,9 +727,10 @@ namespace MedEasy.WebApi.Tests
         public async Task GetBloodPressureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneBloodPressureInfoAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BloodPressureInfo>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BloodPressureInfo>>()))
                 .ReturnsAsync(null)
                 .Verifiable();
+
 
             //Act
             IActionResult actionResult = await _controller.BloodPressures(1, 12);
@@ -742,7 +745,7 @@ namespace MedEasy.WebApi.Tests
         public async Task GetBodyWeightShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneBodyWeightInfoAsync(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(It.IsAny<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, BodyWeightInfo>>()))
                 .ReturnsAsync(null)
                 .Verifiable();
 
@@ -758,7 +761,7 @@ namespace MedEasy.WebApi.Tests
         public async Task DeleteOnePhysiologicalMeasure()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOneBloodPressureAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
                 .Returns(Task.CompletedTask);
 
 
@@ -767,7 +770,7 @@ namespace MedEasy.WebApi.Tests
 
             // Assert
             actionResult.Should().BeOfType<OkResult>();
-            _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOneBloodPressureAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
+            _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
         }
 
         public void Dispose()

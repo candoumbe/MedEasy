@@ -215,12 +215,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>>();
+                    .And.BeOfType<GenericPagedGetResponse<SpecialtyInfo>>();
 
-            GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>> response = (GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>)value;
+            GenericPagedGetResponse<SpecialtyInfo> response = (GenericPagedGetResponse<SpecialtyInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<SpecialtyInfo>)}.{nameof(GenericPagedGetResponse<SpecialtyInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -361,9 +361,9 @@ namespace MedEasy.WebApi.Tests
 
             OkObjectResult objectResult = (OkObjectResult)actionResult;
             objectResult.Value.Should()
-                .BeOfType<GenericPagedGetResponse<BrowsableResource<DoctorInfo>>>();
+                .BeOfType<GenericPagedGetResponse<DoctorInfo>>();
 
-            GenericPagedGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = (GenericPagedGetResponse<BrowsableResource<DoctorInfo>>)objectResult.Value;
+            GenericPagedGetResponse<DoctorInfo> pagedResponse = (GenericPagedGetResponse<DoctorInfo>)objectResult.Value;
             pagedResponse.Links.Should().NotBeNull();
 
             Link firstPageLink = pagedResponse.Links.First;
