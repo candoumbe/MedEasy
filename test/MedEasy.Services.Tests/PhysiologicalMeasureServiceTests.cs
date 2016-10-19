@@ -117,7 +117,7 @@ namespace MedEasy.Services.Tests
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Create(It.IsAny<BloodPressure>()))
                 .Returns((BloodPressure measure) =>
                 {
-                    DateTime now = DateTime.UtcNow;
+                    DateTimeOffset now = DateTimeOffset.UtcNow;
                     measure.Id = 1;
                     measure.CreatedDate = now;
                     measure.UpdatedDate = now;
@@ -132,7 +132,7 @@ namespace MedEasy.Services.Tests
             BloodPressure input = new BloodPressure
             {
                 PatientId = 1,
-                DateOfMeasure = DateTime.UtcNow,
+                DateOfMeasure = DateTimeOffset.UtcNow,
                 SystolicPressure = 120,
                 DiastolicPressure = 80
             };

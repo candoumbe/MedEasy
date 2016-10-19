@@ -18,7 +18,7 @@ namespace MedEasy.DTO
 
         
         [JsonProperty]
-        public DateTime? UpdatedDate { get; set; }
+        public DateTimeOffset? UpdatedDate { get; set; }
 
         [JsonProperty]
         public int? SpecialtyId { get; set; }

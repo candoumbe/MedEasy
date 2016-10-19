@@ -10,7 +10,7 @@ namespace MedEasy.ViewModels.Patient
 
         public string Lastname { get; set; }
 
-        public DateTime? BirthDate { get; set; }
+        public DateTimeOffset? BirthDate { get; set; }
 
         [StringLength(50)]
         public string BirthPlace { get; set; }

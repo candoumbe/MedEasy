@@ -297,7 +297,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
-                => new SpecialtyInfo { Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTime(2012, 2, 1) }));
+                => new SpecialtyInfo { Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
             CreateSpecialtyInfo info = new CreateSpecialtyInfo
@@ -335,7 +335,10 @@ namespace MedEasy.WebApi.Tests
                 .Be(info.Code);
             createdResource.Resource.Name.Should()
                 .Be(info.Name);
-            createdResource.Resource.UpdatedDate.Should().Be(1.February(2012));
+
+            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
+            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreateSpecialtyInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()), Times.Once);
 

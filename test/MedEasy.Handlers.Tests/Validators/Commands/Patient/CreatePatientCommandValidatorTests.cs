@@ -44,7 +44,7 @@ namespace MedEasy.Validators.Tests
                 yield return new object[]
                 {
                     null,
-                    new DateTime(2012, 1, 1),
+                    new DateTimeOffset(2012, 1, 1, 0, 0, 0 , TimeSpan.Zero),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => 
                             errors.Count() == 1 && 
@@ -56,7 +56,7 @@ namespace MedEasy.Validators.Tests
                 yield return new object[]
                 {
                     new CreatePatientCommand(new CreatePatientInfo()),
-                    new DateTime(2012, 1, 1),
+                    new DateTimeOffset(2012, 1, 1, 0, 0, 0 , TimeSpan.Zero),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Count() == 2 && 
                             errors.Once(item => nameof(CreatePatientInfo.Firstname).Equals(item.Key) && item.Severity == Warning) &&
@@ -66,37 +66,38 @@ namespace MedEasy.Validators.Tests
 
                 yield return new object[]
                 {
-                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTime.MaxValue }),
-                    new DateTime(2012, 1, 1),
+                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTimeOffset.MaxValue }),
+                    new DateTimeOffset(2012, 1, 1, 0,0 , 0, TimeSpan.Zero),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Count() == 3 && errors.Once(item => nameof(CreatePatientInfo.BirthDate).Equals(item.Key) && item.Severity == Warning))),
                     $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Firstname)} is not set,"  +
                     $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Lastname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {new DateTime(2012, 1, 1)}" 
+                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero)}" 
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTime.MaxValue }),
-                    new DateTime(2012, 1, 1),
+                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTimeOffset.MaxValue }),
+                    new DateTimeOffset(2012, 1, 1, 0,0 , 0, TimeSpan.Zero),
+
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Count() == 3 && errors.Once(item => nameof(CreatePatientInfo.BirthDate).Equals(item.Key) && item.Severity == Warning))),
                     $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Firstname)} is not set,"  +
                     $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Lastname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {new DateTime(2012, 1, 1)}"
+                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero)}"
                 };
 
                 yield return new object[]
                 {
                     new CreatePatientCommand(new CreatePatientInfo {
                         Firstname = "Bruce",
-                        BirthDate = new DateTime(2012, 1, 1),
+                        BirthDate = new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero),
                     }),
-                    new DateTime(2012, 1, 1),
+                    new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>) (errors =>
                         errors.Count() == 1 &&
                         errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.Key) && errorItem.Severity == Error ))),
-                    $"because {nameof(CreatePatientInfo.BirthDate)} is equal to {new DateTime(2012, 1, 1)}"
+                    $"because {nameof(CreatePatientInfo.BirthDate)} is equal to {new DateTimeOffset(2012, 1, 1, 0, 0, 0, TimeSpan.Zero)}"
                 };
                 
             }
@@ -121,27 +122,27 @@ namespace MedEasy.Validators.Tests
 
                 yield return new object[]
                 {
-                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = new DateTime(1960, 1, 1) }),
+                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = new DateTimeOffset(1960, 1, 1, 0, 0, 0, TimeSpan.Zero) }),
                     null,
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = new DateTime(1960, 1, 1) }),
-                    DateTime.MaxValue,
+                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = new DateTimeOffset(1960, 1, 1, 0, 0, 0, TimeSpan.Zero) }),
+                    DateTimeOffset.MaxValue,
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValidCreatePatientCommandCases))]
-        public async Task ValidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate)
+        public async Task ValidCreatePatientInfoTests(ICreatePatientCommand command, DateTimeOffset? maxBirthDate)
             => await Validate(command, maxBirthDate, errors => !errors.Any(errorItem => errorItem.Severity == Error));
 
 
         [Theory]
         [MemberData(nameof(InvalidCases))]
-        public async Task InvalidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate,
+        public async Task InvalidCreatePatientInfoTests(ICreatePatientCommand command, DateTimeOffset? maxBirthDate,
             Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation,
             string because = "")
             => await Validate(command, maxBirthDate, errorsExpectation, because);
@@ -154,7 +155,7 @@ namespace MedEasy.Validators.Tests
         /// <param name="maxBirthDateAllowed">Defines the date beyond which the <see cref="CreatePatientInfo.BirthDate"/> will be considered invalid</param>
         /// <param name="errorsExpectation"></param>
         /// <param name="because"></param>
-        private async Task Validate(ICreatePatientCommand command, DateTime? maxBirthDateAllowed,
+        private async Task Validate(ICreatePatientCommand command, DateTimeOffset? maxBirthDateAllowed,
             Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation,
             string because = "")
         {

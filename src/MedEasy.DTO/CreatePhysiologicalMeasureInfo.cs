@@ -21,7 +21,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// When the measure was taken
         /// </summary>
-        public DateTime DateOfMeasure { get; set; }
+        public DateTimeOffset DateOfMeasure { get; set; }
 
     }
 }

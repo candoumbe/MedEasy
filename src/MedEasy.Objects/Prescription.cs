@@ -12,7 +12,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// Date on which the prescription was made
         /// </summary>
-        public DateTime DeliveryDate { get; set; } = new DateTime();
+        public DateTimeOffset DeliveryDate { get; set; } = new DateTimeOffset();
 
         /// <summary>
         /// <see cref="Doctor"/> who made the prescription

@@ -41,7 +41,7 @@ namespace MedEasy.Objects
         public string Fullname => $"{Firstname}{(!string.IsNullOrWhiteSpace(Firstname) && !string.IsNullOrWhiteSpace(Lastname)? " ": string.Empty)}{Lastname}";
 
         
-        public DateTime? BirthDate { get; set; } = null;
+        public DateTimeOffset? BirthDate { get; set; } = null;
 
         public string BirthPlace { get; set; } = string.Empty;
 

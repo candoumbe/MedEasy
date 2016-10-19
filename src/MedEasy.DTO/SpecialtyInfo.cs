@@ -17,7 +17,7 @@ namespace MedEasy.DTO
         public string Name { get; set; }
 
         [JsonProperty]
-        public DateTime? UpdatedDate { get; set; }
+        public DateTimeOffset? UpdatedDate { get; set; }
         
     }
 }

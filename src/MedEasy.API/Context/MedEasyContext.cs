@@ -44,7 +44,10 @@ namespace MedEasy.API.Stores
         /// </summary>
         public DbSet<Temperature> Temperatures { get; set; }
 
-         
+        /// <summary>
+        /// Gives access to <see cref="BodyWeight"/>
+        /// </summary>
+        public DbSet<BodyWeight> BodyWeights { get; set; }
 
         /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options

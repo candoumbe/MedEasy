@@ -18,7 +18,7 @@ namespace MedEasy.DTO
         public string Lastname { get; set; }
 
         [JsonProperty]
-        public DateTime? BirthDate { get; set; }
+        public DateTimeOffset? BirthDate { get; set; }
 
         [JsonProperty]
         public string BirthPlace { get; set; }

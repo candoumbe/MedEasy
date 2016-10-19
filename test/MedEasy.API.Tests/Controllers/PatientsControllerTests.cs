@@ -181,7 +181,7 @@ namespace MedEasy.WebApi.Tests
                 {
                     new []
                     {
-                        new BloodPressure { PatientId = 2, CreatedDate = DateTime.UtcNow }
+                        new BloodPressure { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
@@ -191,7 +191,7 @@ namespace MedEasy.WebApi.Tests
                 {
                     new []
                     {
-                        new BloodPressure { PatientId = 1, CreatedDate = DateTime.UtcNow }
+                        new BloodPressure { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
@@ -214,7 +214,7 @@ namespace MedEasy.WebApi.Tests
                 {
                     new []
                     {
-                        new Temperature { PatientId = 2, CreatedDate = DateTime.UtcNow }
+                        new Temperature { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
@@ -224,7 +224,7 @@ namespace MedEasy.WebApi.Tests
                 {
                     new []
                     {
-                        new Temperature { PatientId = 1, CreatedDate = DateTime.UtcNow }
+                        new Temperature { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
@@ -368,7 +368,7 @@ namespace MedEasy.WebApi.Tests
                 => new PatientInfo {
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
-                    UpdatedDate = new DateTime(2012, 2, 1) }));
+                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
             CreatePatientInfo info = new CreatePatientInfo
@@ -406,7 +406,10 @@ namespace MedEasy.WebApi.Tests
                 .Be(info.Firstname);
             createdResource.Resource.Lastname.Should()
                 .Be(info.Lastname);
-            createdResource.Resource.UpdatedDate.Should().Be(1.February(2012));
+
+            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
+            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreatePatientInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()), Times.Once);
 
@@ -544,7 +547,7 @@ namespace MedEasy.WebApi.Tests
             {
                 Id = 1,
                 Value = 50,
-                DateOfMeasure = DateTime.UtcNow
+                DateOfMeasure = DateTimeOffset.UtcNow
             };
 
             IActionResult actionResult = await _controller.Temperatures(input);
@@ -579,7 +582,7 @@ namespace MedEasy.WebApi.Tests
                 Id = 1,
                 SystolicPressure = 150,
                 DiastolicPressure = 100,
-                DateOfMeasure = DateTime.UtcNow
+                DateOfMeasure = DateTimeOffset.UtcNow
             };
 
             // Arrange

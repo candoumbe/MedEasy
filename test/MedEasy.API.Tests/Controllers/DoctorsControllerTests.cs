@@ -295,7 +295,7 @@ namespace MedEasy.WebApi.Tests
                     Id = 1,
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
-                    UpdatedDate = new DateTime(2012, 2, 1)
+                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero)
                 }));
 
             //Act
@@ -331,7 +331,9 @@ namespace MedEasy.WebApi.Tests
                 .Be(info.Firstname);
             createdResource.Resource.Lastname.Should()
                 .Be(info.Lastname);
-            createdResource.Resource.UpdatedDate.Should().Be(1.February(2012));
+            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
+            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreateDoctorInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateDoctorCommand>()), Times.Once);
 

@@ -37,7 +37,7 @@ namespace MedEasy.Handlers.Doctor.Commands
 
             using (var uow = UowFactory.New())
             {
-                var now = DateTime.UtcNow;
+                var now = DateTimeOffset.UtcNow;
                 Objects.Doctor itemToCreate = new Objects.Doctor()
                 {
                     Firstname = info.Firstname?.Trim()?.ToTitleCase(),

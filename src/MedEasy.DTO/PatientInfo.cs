@@ -31,7 +31,7 @@ namespace MedEasy.DTO
         /// Patient's birthdate
         /// </summary>
         [JsonProperty]
-        public DateTime? BirthDate { get; set; }
+        public DateTimeOffset? BirthDate { get; set; }
 
         /// <summary>
         /// Patient's birthplace
@@ -50,7 +50,7 @@ namespace MedEasy.DTO
         public string Fullname { get; set; }
 
         [JsonProperty]
-        public DateTime? UpdatedDate { get; set; }
+        public DateTimeOffset? UpdatedDate { get; set; }
         
     }
 }

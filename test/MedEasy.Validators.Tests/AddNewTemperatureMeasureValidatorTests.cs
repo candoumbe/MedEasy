@@ -31,18 +31,18 @@ namespace MedEasy.Validators.Tests
             {
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Id = int.MinValue,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    new CreateTemperatureInfo {Id = int.MinValue,Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
                     $"because int.MinValue is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
 
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Id = 0,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    new CreateTemperatureInfo {Id = 0,Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
                     $"because 0 is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Id = -1,Value = int.MinValue, DateOfMeasure = DateTime.Now },
+                    new CreateTemperatureInfo {Id = -1,Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
                     $"because -1 is not valid for {nameof(CreateTemperatureInfo.Id)}"
                 };
             }

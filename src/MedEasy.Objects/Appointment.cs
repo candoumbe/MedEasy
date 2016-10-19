@@ -7,7 +7,7 @@ namespace MedEasy.Objects
     /// </summary>
     public class Appointment : AuditableEntity<int, Appointment>
     {
-        public DateTime StartDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
 
         public int Duration { get; set; }
 
