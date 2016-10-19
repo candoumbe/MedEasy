@@ -64,7 +64,7 @@ namespace MedEasy.Handlers.Patient.Queries
                 IPagedResult<TPhysiologicalMeasureInfo> mostRecentsMeasures = await uow.Repository<TPhysiologicalMeasure>()
                     .WhereAsync(
                         selector,
-                        x => x.PatientId == input.Id,
+                        x => x.PatientId == input.PatientId,
                         new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, Descending)}, 
                         1, input.Count.GetValueOrDefault(15));
 

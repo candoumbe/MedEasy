@@ -26,6 +26,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="PatientInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
+    [Consumes("application/json")]
     public class PatientsController : RestCRUDControllerBase<int, Patient, PatientInfo, IWantOnePatientInfoByIdQuery, IWantManyPatientInfoQuery, Guid, CreatePatientInfo, ICreatePatientCommand, IRunCreatePatientCommand>
     {
         /// <summary>
@@ -354,11 +355,14 @@ namespace MedEasy.API.Controllers
         /// <remarks>
         /// Results are ordered by <see cref="PhysiologicalMeasurement.DateOfMeasure"/> descending.
         /// </remarks>
-        /// <param name="query">Query</param>
+        /// <param name="id">id of the patient to get most recent measures from</param>
+        /// <param name="count">Number of result to get at most</param>
         /// <returns>Array of <see cref="BloodPressureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
-        public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures([FromQuery] GetMostRecentPhysiologicalMeasuresInfo query)
-            => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
+        [Produces(typeof(IEnumerable<BloodPressureInfo>))]
+        public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures(int id, int? count)
+            => await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+
 
 
         /// <summary>
@@ -367,11 +371,16 @@ namespace MedEasy.API.Controllers
         /// <remarks>
         /// Results are ordered by <see cref="PhysiologicalMeasurement.DateOfMeasure"/> descending.
         /// </remarks>
-        /// <param name="query">Query</param>
+        /// <param name="id">id of the patient to get most recent measures from</param>
+        /// <param name="count">Number of result to get at most</param>
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
-        public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures([FromQuery] GetMostRecentPhysiologicalMeasuresInfo query)
-            => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<Temperature, TemperatureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(query));
+        public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures(int id, int? count)
+            => await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+
+
+
+        
 
         /// <summary>
         /// Gets one patient's <see cref="BodyWeightInfo"/>
@@ -411,15 +420,51 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Delete the specified blood pressure resource
         /// </summary>
-        /// <param name="deletePhysiologicalMeasureInfo"></param>
+        /// <param name="input"></param>
         /// <response code="200">if the operation succeed</response>
         /// <response code="400">if the operation is not allowed</response>
         [HttpDelete("{id:int}/[action]/{measureId}")]
-        public async Task<IActionResult> BloodPressures([FromBody] DeletePhysiologicalMeasureInfo deletePhysiologicalMeasureInfo)
+        public async Task<IActionResult> BloodPressures(DeletePhysiologicalMeasureInfo input)
         {
-            await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(new DeleteOnePhysiologicalMeasureCommand(deletePhysiologicalMeasureInfo));
+            await DeleteOneMeasureAsync<BloodPressure>(input);
             return new OkResult(); 
         }
+
+        /// <summary>
+        /// Delete the specified blood pressure resource
+        /// </summary>
+        /// <param name="input"></param>
+        /// <response code="200">if the operation succeed</response>
+        /// <response code="400">if the operation is not allowed</response>
+        [HttpDelete("{id:int}/[action]/{measureId}")]
+        public async Task<IActionResult> Temperatures(DeletePhysiologicalMeasureInfo input)
+        {
+            await DeleteOneMeasureAsync<Temperature>(input);
+            return new OkResult();
+        }
+
+        /// <summary>
+        /// Gets mot recents <see cref="PhysiologicalMeasurement"/>
+        /// </summary>
+        /// <typeparam name="TPhysiologicalMeasure"></typeparam>
+        /// <typeparam name="TPhysiologicalMeasureInfo"></typeparam>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        private async Task<IEnumerable<TPhysiologicalMeasureInfo>> MostRecentMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(GetMostRecentPhysiologicalMeasuresInfo query)
+            where TPhysiologicalMeasure : PhysiologicalMeasurement
+            where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
+            => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo>(query));
+
+
+        /// <summary>
+        /// Gets mot recents <see cref="PhysiologicalMeasurement"/>
+        /// </summary>
+        /// <typeparam name="TPhysiologicalMeasure">Type of measure to delete</typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private async Task DeleteOneMeasureAsync<TPhysiologicalMeasure>(DeletePhysiologicalMeasureInfo input)
+            where TPhysiologicalMeasure : PhysiologicalMeasurement
+            => await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(new DeleteOnePhysiologicalMeasureCommand(input));
     }
             
 }

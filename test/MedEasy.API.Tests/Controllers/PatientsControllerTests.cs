@@ -173,7 +173,7 @@ namespace MedEasy.WebApi.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<BloodPressure>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -183,7 +183,7 @@ namespace MedEasy.WebApi.Tests
                     {
                         new BloodPressure { PatientId = 2, CreatedDate = DateTime.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -193,7 +193,7 @@ namespace MedEasy.WebApi.Tests
                     {
                         new BloodPressure { PatientId = 1, CreatedDate = DateTime.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
                 };
             }
@@ -206,7 +206,7 @@ namespace MedEasy.WebApi.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<Temperature>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -216,7 +216,7 @@ namespace MedEasy.WebApi.Tests
                     {
                         new Temperature { PatientId = 2, CreatedDate = DateTime.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -226,7 +226,7 @@ namespace MedEasy.WebApi.Tests
                     {
                         new Temperature { PatientId = 1, CreatedDate = DateTime.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
                 };
             }
@@ -644,7 +644,7 @@ namespace MedEasy.WebApi.Tests
                         IPagedResult<BloodPressureInfo> mostRecentMeasures = await uow.Repository<BloodPressure>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<BloodPressure, BloodPressureInfo>(),
-                                x => x.PatientId == input.Data.Id,
+                                x => x.PatientId == input.Data.PatientId,
                                 new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
@@ -655,7 +655,7 @@ namespace MedEasy.WebApi.Tests
                 }));
 
             // Act
-            IEnumerable<BloodPressureInfo> results = await _controller.MostRecentBloodPressures(query);
+            IEnumerable<BloodPressureInfo> results = await _controller.MostRecentBloodPressures(query.PatientId, query.Count);
 
 
             // Assert
@@ -687,7 +687,7 @@ namespace MedEasy.WebApi.Tests
                         IPagedResult<TemperatureInfo> mostRecentMeasures = await uow.Repository<Temperature>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Temperature, TemperatureInfo>(),
-                                x => x.PatientId == input.Data.Id,
+                                x => x.PatientId == input.Data.PatientId,
                                 new[] { OrderClause<TemperatureInfo>.Create(x => x.DateOfMeasure, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
@@ -698,7 +698,7 @@ namespace MedEasy.WebApi.Tests
                 }));
 
             // Act
-            IEnumerable<TemperatureInfo> results = await _controller.MostRecentTemperatures(query);
+            IEnumerable<TemperatureInfo> results = await _controller.MostRecentTemperatures(query.PatientId, query.Count);
 
             // Assert
             _physiologicalMeasureFacadeMock.VerifyAll();
@@ -739,6 +739,8 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeOfType<NotFoundResult>();
             _physiologicalMeasureFacadeMock.VerifyAll();
         }
+
+
 
 
         [Fact]

@@ -64,7 +64,7 @@ namespace MedEasy.Services.Tests
             {
                 yield return new object[] {
                     Enumerable.Empty<BloodPressure>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => !x.Any()))
                 };
 
@@ -73,7 +73,7 @@ namespace MedEasy.Services.Tests
                         new BloodPressure { PatientId = 1, SystolicPressure = 120, DiastolicPressure = 80 },
                         new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 1))
                 };
 
@@ -83,8 +83,29 @@ namespace MedEasy.Services.Tests
                         new BloodPressure { PatientId = 2, SystolicPressure = 128, DiastolicPressure = 95 },
                         new BloodPressure { PatientId = 2, SystolicPressure = 130, DiastolicPressure = 95 }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { Id = 2, Count = 2 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 2, Count = 2 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 2))
+                };
+            }
+        }
+
+        public static IEnumerable<object> GetOneMeasureAsyncCases
+        {
+            get
+            {
+                yield return new object[] {
+                    Enumerable.Empty<BloodPressure>(),
+                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    ((Expression<Func<BloodPressureInfo, bool>>)(x => x == null))
+                };
+
+                yield return new object[] {
+                    new [] {
+                        new BloodPressure { Id = 10, PatientId = 1, SystolicPressure = 120, DiastolicPressure = 80 },
+                        new BloodPressure { Id = 20, PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
+                    },
+                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    ((Expression<Func<BloodPressureInfo, bool>>)(x => x.PatientId == 1 && x.Id == 10))
                 };
             }
         }
@@ -172,9 +193,46 @@ namespace MedEasy.Services.Tests
 
 
         [Fact]
+        public void ShouldThrowArgumentNullException()
+        {
+            // Act
+            Func<Task> action = async () => await _physiologicalMeasureService.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(null);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>("the query is null").Which
+                .ParamName.Should().NotBeNullOrWhiteSpace();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetOneMeasureAsyncCases))]
+        public async Task GetOneMeasureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BloodPressureInfo, bool>> resultExpectation)
+        {
+            // Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>()
+                .SingleOrDefaultAsync(
+                    It.IsAny<Expression<Func<BloodPressure, BloodPressureInfo>>>(),
+                    It.IsAny<Expression<Func<BloodPressure, bool>>>()))
+                .Returns((Expression<Func<BloodPressure, BloodPressureInfo>> selector, Expression<Func<BloodPressure, bool>> filter)
+
+                 => Task.Run(() =>
+                {
+                    return measuresBdd.Where(filter.Compile()).Select(selector.Compile()).SingleOrDefault();
+                }));
+
+            // Act
+            BloodPressureInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(query.PatientId, query.MeasureId));
+
+            // Assert
+            measure.Should().Match(resultExpectation);
+            _unitOfWorkFactoryMock.VerifyAll();
+            _loggerMock.VerifyAll();
+        }
+
+
+        [Fact]
         public void ShouldThrowArgumentNullExceptionWhenQueryIsNull()
         {
-            
+
             // Act
             Func<Task> action = async () => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(null);
 

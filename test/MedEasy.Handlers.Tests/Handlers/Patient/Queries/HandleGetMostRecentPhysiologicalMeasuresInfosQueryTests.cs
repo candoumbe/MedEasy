@@ -110,7 +110,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .ReturnsAsync(PagedResult<TemperatureInfo>.Default);
 
             // Act
-            IEnumerable<TemperatureInfo> output = await _handler.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo() { Id = 1, Count = 15 }));
+            IEnumerable<TemperatureInfo> output = await _handler.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo() { PatientId = 1, Count = 15 }));
 
             //Assert
             output.Should().BeEmpty();

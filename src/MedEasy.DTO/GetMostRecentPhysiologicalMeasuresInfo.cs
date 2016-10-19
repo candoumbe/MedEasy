@@ -15,7 +15,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the patient to get one measure from
         /// </summary>
-        public int Id { get; set; }
+        public int PatientId { get; set; }
 
         /// <summary>
         /// Number of measures to return

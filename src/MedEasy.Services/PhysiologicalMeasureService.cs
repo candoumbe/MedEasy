@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Queries;
 using MedEasy.Objects;
 using MedEasy.Validators;
@@ -91,7 +89,7 @@ namespace MedEasy.Services
                 IPagedResult<TPhysiologicalMeasureInfo> measures = await uow.Repository<TPhysiologicalMeasure>()
                     .WhereAsync(
                         selector,
-                        x => x.PatientId == query.Data.Id,
+                        x => x.PatientId == query.Data.PatientId,
                         new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, SortDirection.Descending) },
                         query.Data.Count.GetValueOrDefault(20),
                         1
@@ -125,11 +123,24 @@ namespace MedEasy.Services
             }
         }
 
-        public Task<TPhysiologicalMesureInfo> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query)
+        public async Task<TPhysiologicalMesureInfo> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMesureInfo : PhysiologicalMeasurementInfo
         {
-            throw new NotImplementedException();
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            _logger.LogInformation($"Start querying one measure : {query}");
+            using (var uow = _uowFactory.New())
+            {
+                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMesureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMesureInfo>();
+                TPhysiologicalMesureInfo measure = await uow.Repository<TPhysiologicalMeasure>()
+                    .SingleOrDefaultAsync(selector, x => x.PatientId == query.Data.PatientId && x.Id == query.Data.MeasureId);
+
+                _logger.LogInformation($"Measure {(measure == null ? "not" : string.Empty)}found");
+                return measure;
+            }
         }
 
         public async Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command) where TPhysiologicalMeasure : PhysiologicalMeasurement
