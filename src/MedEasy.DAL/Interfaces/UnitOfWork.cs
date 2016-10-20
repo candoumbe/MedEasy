@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MedEasy.DAL.Repositories;
+using System.Collections.Concurrent;
 
 namespace MedEasy.DAL.Interfaces
 {
     /// <summary>
     /// <para>
-    /// An instance of this class allow to work with several <see cref="IRepository{TEntry}"/>s.
+    /// Allow to work with several <see cref="IRepository{TEntry}"/>s.
     /// </para>
     /// Changes made to entities of any <see cref="IRepository{TEntry}"/> by calling the <see cref="Repository{TEntry}"/> method can either
     /// <list type="bullet">
-    /// <item> be saved</item>
+    /// <item> be saved by calling <see cref="SaveChangesAsync"/>/<see cref="SaveChangesAsync(CancellationToken)"/></item>
     /// <item>disposed</item>
     /// </list>
     /// </summary>
@@ -30,7 +31,7 @@ namespace MedEasy.DAL.Interfaces
         public UnitOfWork(TContext context)
         {
             _context = context;
-            _repositories = new Dictionary<Type, object>();
+            _repositories = new ConcurrentDictionary<Type, object>();
             _disposed = false;
         }
 
