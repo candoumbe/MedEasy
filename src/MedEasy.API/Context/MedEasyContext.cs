@@ -50,6 +50,12 @@ namespace MedEasy.API.Stores
         public DbSet<BodyWeight> BodyWeights { get; set; }
 
         /// <summary>
+        /// Gives access to <see cref="Prescription"/> entities.
+        /// </summary>
+        public DbSet<Prescription> Prescriptions { get; set; }
+        
+
+        /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options
         /// </summary>
         public MedEasyContext()

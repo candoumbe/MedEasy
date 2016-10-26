@@ -1,12 +1,35 @@
-﻿namespace MedEasy.Objects
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MedEasy.Objects
 {
-    public abstract class PrescriptionItem : AuditableEntity<int, PrescriptionItem>
+    public class PrescriptionItem : AuditableEntity<int, PrescriptionItem>
     {
-        public PrescriptionItemCategory Category { get; set; }
+
+
+        /// <summary>
+        /// Category
+        /// </summary>
+        public string Category { get; set; }
 
         /// <summary>
         /// Code of the prescription
         /// </summary>
         public string Code { get; set; }
+
+
+        /// <summary>
+        /// Name of the prescription
+        /// </summary>
+        public string Designation { get; set; }
+
+        /// <summary>
+        /// Quantity
+        /// </summary>
+        public decimal Quantity { get; set; }
+
+        /// <summary>
+        /// Additional note
+        /// </summary>
+        public string Notes { get; set; }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using MedEasy.Commands;
 using System.Collections.Generic;
 using MedEasy.Services;
+using MedEasy.Queries.Prescriptions;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -48,6 +49,7 @@ namespace MedEasy.API.Controllers
         private readonly IRunDeletePatientByIdCommand _iRunDeletePatientByIdCommand;
 
         private readonly IPhysiologicalMeasureService _physiologicalMeasureService;
+        private readonly IPrescriptionService _prescriptionService;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -68,8 +70,8 @@ namespace MedEasy.API.Controllers
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
             IRunCreatePatientCommand iRunCreatePatientCommand,
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
-            IPhysiologicalMeasureService physiologicalMeasureService
-
+            IPhysiologicalMeasureService physiologicalMeasureService,
+            IPrescriptionService prescriptionService
 
             ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         {
@@ -78,6 +80,7 @@ namespace MedEasy.API.Controllers
             _iRunCreatePatientCommand = iRunCreatePatientCommand;
             _iRunDeletePatientByIdCommand = iRunDeletePatientByIdCommand;
             _physiologicalMeasureService = physiologicalMeasureService;
+            _prescriptionService = prescriptionService;
 
         }
 
@@ -465,6 +468,97 @@ namespace MedEasy.API.Controllers
         private async Task DeleteOneMeasureAsync<TPhysiologicalMeasure>(DeletePhysiologicalMeasureInfo input)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             => await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(new DeleteOnePhysiologicalMeasureCommand(input));
+
+        /// <summary>
+        /// Gets one of the patient's prescription
+        /// </summary>
+        /// <param name="id">Id of the patient</param>
+        /// <param name="prescriptionId">Identifier of the prescription to get</param>
+        /// <returns></returns>
+        /// <response code="200">if the prescription was found</response>
+        /// <response code="404">if no prescription with the <paramref name="prescriptionId"/> found</response>
+        /// <response code="404">if no patient with the <paramref name="id"/> found</response>
+        [HttpGet("{id:int}/[action]/{prescriptionId:int}")]
+        [Produces(typeof(PrescriptionHeaderInfo))]
+        public async Task<IActionResult> Prescriptions(int id, int prescriptionId)
+        {
+            PrescriptionHeaderInfo output = await _prescriptionService.GetOnePrescriptionByPatientIdAsync(id, prescriptionId);
+            IActionResult actionResult;
+            if (output == null)
+            {
+                actionResult = new NotFoundResult();
+            }
+            else
+            {
+                IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+                IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
+                {
+                    Location = new Link
+                    {
+                        Rel = "self",
+                        Href = urlHelper.Action(nameof(Prescriptions), EndpointName, new { id = output.PatientId, prescriptionId = output.Id})
+                    },
+                    Resource = output
+                };
+
+                actionResult = new OkObjectResult(browsableResource);
+            }
+
+            return actionResult;
+        }
+
+
+        /// <summary>
+        /// Create a new prescription for a patient
+        /// </summary>
+        /// <param name="id">id of the patient</param>
+        /// <param name="newPrescription">prescription details</param>
+        /// <returns></returns>
+        /// <response code="201">if the prescription is create successfully</response>
+        /// <response code="400">if the prescription is not valid</response>
+        [HttpPost("{id:int}/[action]")]
+        public async Task<IActionResult> Prescriptions(int id, CreatePrescriptionInfo newPrescription)
+        {
+
+            PrescriptionHeaderInfo createdPrescription = await _prescriptionService.CreatePrescriptionForPatientAsync(id, newPrescription);
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
+            {
+                Location = new Link {
+                    Rel = "self",
+                    Href = urlHelper.Action(nameof(Prescriptions), EndpointName, new { id = createdPrescription.PatientId, prescriptionId = createdPrescription.Id })
+                },
+                Resource = createdPrescription
+
+            };
+
+
+            return new OkObjectResult(browsableResource);
+        }
+
+
+        /// <summary>
+        /// Gets the most recent prescriptions
+        /// </summary>
+        /// <remarks>
+        ///     Only the metadata of the prescriptions are retireved from here. To get the full content of the prescriptions
+        ///     You should call <see cref="PrescriptionsController.Get"/>
+        /// </remarks>
+        /// <param name="id">id of the patient to get the most </param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        [HttpGet("{id:int}/[action]")]
+        [Produces(typeof(IEnumerable<PrescriptionHeaderInfo>))]
+        public async Task<IEnumerable<PrescriptionHeaderInfo>> MostRecentPrescriptions(int id, int? count)
+        {
+            GetMostRecentPrescriptionsInfo input = new GetMostRecentPrescriptionsInfo{ PatientId = id, Count = count };
+            IEnumerable<PrescriptionHeaderInfo> prescriptions = await _prescriptionService.GetMostRecentPrescriptionsAsync(new WantMostRecentPrescriptionsQuery(input));
+            
+            return prescriptions;
+            
+
+        }
     }
             
 }

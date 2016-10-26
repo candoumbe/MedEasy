@@ -18,7 +18,7 @@ namespace MedEasy.API.Filters
                 
             }
 
-            return Task.CompletedTask;
+            return base.OnExceptionAsync(context);
         }
     }
 }

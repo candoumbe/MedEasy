@@ -25,6 +25,10 @@ namespace MedEasy.Mapping
             cfg.CreateMap<Specialty, SpecialtyInfo>();
             cfg.CreateMap<CreateSpecialtyInfo, Specialty>();
 
+            cfg.CreateMap<Prescription, PrescriptionHeaderInfo>();
+            cfg.CreateMap<Prescription, PrescriptionInfo>();
+            cfg.CreateMap<PrescriptionItem, PrescriptionItemInfo>();
+
             #region Autocomplete
 
             cfg.CreateMap<Doctor, DoctorAutocompleteInfo>()

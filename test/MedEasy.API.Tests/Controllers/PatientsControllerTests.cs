@@ -53,6 +53,8 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IPhysiologicalMeasureService> _physiologicalMeasureFacadeMock;
+        private Mock<IPrescriptionService> _prescriptionServiceMock;
+
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -81,6 +83,7 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock = new Mock<IPhysiologicalMeasureService>(Strict);
 
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _prescriptionServiceMock = new Mock<IPrescriptionService>(Strict);
 
             _controller = new PatientsController(
                 _loggerMock.Object, 
@@ -91,7 +94,8 @@ namespace MedEasy.WebApi.Tests
                 _iHandleGetManyPatientInfoQueryMock.Object,
                 _iRunCreatePatientInfoCommandMock.Object,
                 _iRunDeletePatientInfoByIdCommandMock.Object,
-                _physiologicalMeasureFacadeMock.Object);
+                _physiologicalMeasureFacadeMock.Object,
+                _prescriptionServiceMock.Object);
 
         }
 
@@ -199,7 +203,7 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
-        public static IEnumerable<object> GetLastTemperaturesMesuresCases
+        public static IEnumerable<object> GetMostRecentTemperaturesMeasuresCases
         {
             get
             {
@@ -228,6 +232,39 @@ namespace MedEasy.WebApi.Tests
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
+                };
+            }
+        }
+
+        public static IEnumerable<object> GetMostRecentPrescriptionsCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<Prescription>(),
+                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new Prescription { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
+                    },
+                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => !x.Any()))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new Prescription { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
+                    },
+                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
+                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => x.All(prescription => prescription.PatientId == 1) && x.Count() == 1))
                 };
             }
         }
@@ -331,15 +368,13 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Get(1);
 
             //Assert
-            actionResult.Should()
+
+            IBrowsableResource<PatientInfo> result = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                    .BeOfType<BrowsableResource<PatientInfo>>().Which
-                    .Location.Should()
-                        .NotBeNull();
+                    .BeAssignableTo<IBrowsableResource<PatientInfo>>().Which;
 
-            BrowsableResource<PatientInfo> result = (BrowsableResource<PatientInfo>)((OkObjectResult)actionResult).Value;
             Link location = result.Location;
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
@@ -366,6 +401,7 @@ namespace MedEasy.WebApi.Tests
             _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
                 .Returns((ICreatePatientCommand cmd) => Task.Run(()
                 => new PatientInfo {
+                    Id = 3,
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
                     UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
@@ -380,17 +416,11 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Post(info);
 
             //Assert
-
-
-            actionResult.Should()
+            IBrowsableResource<PatientInfo> createdResource = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<BrowsableResource<PatientInfo>>();
-
-
-            BrowsableResource<PatientInfo> createdResource = (BrowsableResource<PatientInfo>)((OkObjectResult)actionResult).Value;
-
+                    .BeAssignableTo<IBrowsableResource<PatientInfo>>().Which;
 
             createdResource.Should()
                 .NotBeNull();
@@ -400,7 +430,7 @@ namespace MedEasy.WebApi.Tests
 
             createdResource.Location.Href.Should()
                 .NotBeNull().And
-                .MatchEquivalentOf($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}=*");
+                .BeEquivalentTo($@"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?id=3");
 
             createdResource.Resource.Firstname.Should()
                 .Be(info.Firstname);
@@ -440,6 +470,71 @@ namespace MedEasy.WebApi.Tests
             //Assert
             action.ShouldThrow<CommandNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
             _iRunCreatePatientInfoCommandMock.Verify();
+
+        }
+
+
+        
+        [Fact]
+        public async Task ShouldReturnNotFoundWhenNoResourceFound()
+        {
+            // Arrange
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(null);
+
+            // Act
+            int patientId = 1,
+                prescriptionId = 12;
+            IActionResult actionResult = await _controller.Prescriptions(patientId, prescriptionId);
+
+            // Assert
+            actionResult.Should().NotBeNull().And
+                .BeOfType<NotFoundResult>();
+
+            _prescriptionServiceMock.Verify(mock => mock.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId), Times.Once);
+        }
+
+
+        [Fact]
+        public async Task ShouldReturnThePrescriptionHeaderResource()
+        {
+            // Arrange
+            PrescriptionHeaderInfo expectedOutput = new PrescriptionHeaderInfo
+            {
+                Id = 1,
+                PatientId = 12,
+                PrescriptorId = 10,
+                DeliveryDate = new DateTimeOffset(1983, 6, 23, 0,0, 0, TimeSpan.Zero)
+            };
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(expectedOutput);
+
+            // Act
+            int patientId = 1,
+                prescriptionId = 12;
+            IActionResult actionResult = await _controller.Prescriptions(patientId, prescriptionId);
+
+            // Assert
+            IBrowsableResource<PrescriptionHeaderInfo> actualResource = actionResult.Should().NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                    .Value.Should()
+                        .NotBeNull().And
+                        .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
+
+
+            actualResource.Should().NotBeNull();
+            actualResource.Location.Should().NotBeNull();
+            actualResource.Location.Rel.Should().Be("self");
+            actualResource.Location.Href.Should().Be($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Prescriptions)}?id={expectedOutput.PatientId}&prescriptionId={expectedOutput.Id}");
+
+            actualResource.Resource.Should().NotBeNull();
+            actualResource.Resource.PatientId.Should().Be(expectedOutput.PatientId);
+            actualResource.Resource.Id.Should().Be(expectedOutput.Id);
+            actualResource.Resource.PrescriptorId.Should().Be(expectedOutput.PrescriptorId);
+            actualResource.Resource.DeliveryDate.Should().Be(expectedOutput.DeliveryDate);
+
+            _prescriptionServiceMock.Verify(mock => mock.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId), Times.Once);
+            _urlHelperFactoryMock.Verify();
 
         }
 
@@ -669,7 +764,7 @@ namespace MedEasy.WebApi.Tests
         }
 
         [Theory]
-        [MemberData(nameof(GetLastTemperaturesMesuresCases))]
+        [MemberData(nameof(GetMostRecentTemperaturesMeasuresCases))]
         public async Task GetLastTemperaturesMesures(IEnumerable<Temperature> measuresInStore, GetMostRecentPhysiologicalMeasuresInfo query, Expression<Func<IEnumerable<TemperatureInfo>, bool>> resultExpectation)
         {
             _outputHelper.WriteLine($"Current store state : {measuresInStore}");
@@ -707,6 +802,99 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.VerifyAll();
             results.Should().NotBeNull()
                 .And.Match(resultExpectation);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMostRecentPrescriptionsCases))]
+        public async Task GetMostRecentPrescriptionsMesures(IEnumerable<Prescription> prescriptionsInStore, GetMostRecentPrescriptionsInfo query, Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>> resultExpectation)
+        {
+            _outputHelper.WriteLine($"Current store state : {prescriptionsInStore}");
+            _outputHelper.WriteLine($"Query : {query}");
+
+            // Arrange
+            using (var uow = _factory.New())
+            {
+                uow.Repository<Prescription>().Create(prescriptionsInStore);
+                await uow.SaveChangesAsync();
+            }
+
+            _prescriptionServiceMock.Setup(mock => mock.GetMostRecentPrescriptionsAsync(It.IsAny<IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>>>()))
+                .Returns((IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> input) => Task.Run(async () =>
+                {
+                    using (var uow = _factory.New())
+                    {
+                        IPagedResult<PrescriptionHeaderInfo> mostRecentPrescriptions = await uow.Repository<Prescription>()
+                            .WhereAsync(
+                                _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>(),
+                                x => x.PatientId == input.Data.PatientId,
+                                new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending) },
+                                input.Data.Count.GetValueOrDefault(15), 1
+                            );
+
+
+                        return mostRecentPrescriptions.Entries;
+                    }
+                }));
+
+            // Act
+            IEnumerable<PrescriptionHeaderInfo> results = await _controller.MostRecentPrescriptions(query.PatientId, query.Count);
+
+            // Assert
+            _prescriptionServiceMock.VerifyAll();
+            results.Should().NotBeNull()
+                .And.Match(resultExpectation);
+        }
+
+
+        [Fact]
+        public async Task CreatePrescriptionForPatient()
+        {
+            // Arrange
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
+                .Returns((int id, CreatePrescriptionInfo input) => Task.Run(() =>
+                {
+                    return new PrescriptionHeaderInfo
+                    {
+                        Id = 1,
+                        DeliveryDate = input.DeliveryDate,
+                        PatientId = id,
+                        PrescriptorId = input.PrescriptorId
+                    };
+                }));
+
+            // Act
+            int patientId = 1;
+            CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
+            {
+                PrescriptorId = 1,
+                DeliveryDate = DateTimeOffset.UtcNow,
+                Duration = 60,
+                Items = new PrescriptionItemInfo[] {
+                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                }
+            };
+
+            IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
+
+            // Assert
+            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = actionResult.Should().NotBeNull().And
+                .BeAssignableTo<OkObjectResult>().Which
+                    .Value.Should()
+                        .NotBeNull().And
+                        .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
+
+
+            browsableResource.Should().NotBeNull();
+            browsableResource.Location.Should().NotBeNull();
+            browsableResource.Location.Href.Should().MatchRegex($@"api\/{PatientsController.EndpointName}\/{nameof(PatientsController.Prescriptions)}\?id={patientId}&prescriptionId=[1-9](\d+)?");
+            browsableResource.Location.Rel.Should().Be("self");
+
+            browsableResource.Resource.Should().NotBeNull();
+            browsableResource.Resource.PatientId.Should().Be(patientId);
+            browsableResource.Resource.PrescriptorId.Should().Be(newPrescription.PrescriptorId);
+            browsableResource.Resource.DeliveryDate.Should().Be(newPrescription.DeliveryDate);
+
+            _prescriptionServiceMock.Verify(mock => mock.CreatePrescriptionForPatientAsync(patientId, newPrescription), Times.Once);
         }
 
 
@@ -793,8 +981,8 @@ namespace MedEasy.WebApi.Tests
 
             _iRunCreatePatientInfoCommandMock = null;
             _iRunDeletePatientInfoByIdCommandMock = null;
-            
 
+            _prescriptionServiceMock = null;
             _factory = null;
             _mapper = null;
         }
