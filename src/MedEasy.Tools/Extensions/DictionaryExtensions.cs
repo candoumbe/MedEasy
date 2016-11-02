@@ -8,9 +8,9 @@ namespace System.Collections.Generic
     public static class DictionaryExtensions
     {
         /// <summary>
-        /// Converts a dictionary to its representation
+        /// Converts a dictionary to a "URL" friendly representation
         /// </summary>
-        /// <param name="dictionary"></param>
+        /// <param name="dictionary">the dictionary to convert</param>
         /// <returns></returns>
         public static string ToQueryString(this IDictionary<string, object> dictionary)
         {

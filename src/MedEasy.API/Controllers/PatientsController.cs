@@ -171,18 +171,7 @@ namespace MedEasy.API.Controllers
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(info));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
-            {
-                Resource = output,
-                Location = new Link
-                {
-                    Href = urlHelper.Action(nameof(Get), ControllerName, new { id = output.Id }),
-                    Rel = "self"
-                }
-            };
-
-
-            return new OkObjectResult(browsableResource);
+            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id }, output);
         }
 
 

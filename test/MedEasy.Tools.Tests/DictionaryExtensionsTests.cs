@@ -49,5 +49,18 @@ namespace MedEasy.Tools.Tests
         public void ToQueryString(IDictionary<string, object> input, string expectedString)
             => input?.ToQueryString()?.Should().Be(expectedString);
 
+
+        [Fact]
+        public void ShouldThrowArgumentNullException()
+        {
+            // Act
+            Action action = () => DictionaryExtensions.ToQueryString(null);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>()
+                .Which.ParamName.Should().NotBeNullOrWhiteSpace();
+
+        }
+
     } 
 }

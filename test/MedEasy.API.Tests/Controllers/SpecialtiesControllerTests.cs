@@ -297,7 +297,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
-                => new SpecialtyInfo { Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
+                => new SpecialtyInfo { Id = 1, Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
             CreateSpecialtyInfo info = new CreateSpecialtyInfo
@@ -311,34 +311,28 @@ namespace MedEasy.WebApi.Tests
             //Assert
 
 
-            actionResult.Should()
+            CreatedAtActionResult createdAtActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<BrowsableResource<SpecialtyInfo>>();
+                .BeOfType<CreatedAtActionResult>().Which;
+
+            createdAtActionResult.ActionName.Should().Be(nameof(SpecialtiesController.Get));
+            createdAtActionResult.ControllerName.Should().Be(SpecialtiesController.EndpointName);
+            createdAtActionResult.RouteValues.Should().NotBeNull();
+            createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex(@"[iI]d=[1-9]\d*");
 
 
-            BrowsableResource<SpecialtyInfo> createdResource = (BrowsableResource<SpecialtyInfo>)((OkObjectResult)actionResult).Value;
-
-
+            SpecialtyInfo createdResource = (SpecialtyInfo)createdAtActionResult.Value;
             createdResource.Should()
                 .NotBeNull();
 
-            createdResource.Location.Should()
-                .NotBeNull();
-
-            createdResource.Location.Href.Should()
-                .NotBeNull().And
-                .MatchEquivalentOf($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}=*");
-
-            createdResource.Resource.Code.Should()
+            createdResource.Code.Should()
                 .Be(info.Code);
-            createdResource.Resource.Name.Should()
+            createdResource.Name.Should()
                 .Be(info.Name);
 
-            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
-            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
-            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
+            createdResource.UpdatedDate.Should().HaveDay(1);
+            createdResource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreateSpecialtyInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()), Times.Once);
 

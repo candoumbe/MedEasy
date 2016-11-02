@@ -416,30 +416,31 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Post(info);
 
             //Assert
-            IBrowsableResource<PatientInfo> createdResource = actionResult.Should()
+            CreatedAtActionResult createdActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<IBrowsableResource<PatientInfo>>().Which;
+                .BeOfType<CreatedAtActionResult>().Which;
+
+
+
+
+            PatientInfo createdResource = createdActionResult.Value.Should().NotBeNull().And
+                .BeOfType<PatientInfo>().Which;
 
             createdResource.Should()
                 .NotBeNull();
 
-            createdResource.Location.Should()
+            createdResource.Should()
                 .NotBeNull();
 
-            createdResource.Location.Href.Should()
-                .NotBeNull().And
-                .BeEquivalentTo($@"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?id=3");
-
-            createdResource.Resource.Firstname.Should()
+            
+            createdResource.Firstname.Should()
                 .Be(info.Firstname);
-            createdResource.Resource.Lastname.Should()
+            createdResource.Lastname.Should()
                 .Be(info.Lastname);
 
-            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
-            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
-            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
+            createdResource.UpdatedDate.Should().HaveDay(1);
+            createdResource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreatePatientInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()), Times.Once);
 

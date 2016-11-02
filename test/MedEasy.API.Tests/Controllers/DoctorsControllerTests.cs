@@ -308,32 +308,29 @@ namespace MedEasy.WebApi.Tests
            IActionResult actionResult = await _controller.Post(info);
 
             //Assert
-            actionResult.Should()
+            CreatedAtActionResult createdActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<BrowsableResource<DoctorInfo>>();
+                .BeOfType<CreatedAtActionResult>().Which;
+
+            createdActionResult.ActionName.Should().Be(nameof(DoctorsController.Get));
+            createdActionResult.ControllerName.Should().Be(DoctorsController.EndpointName);
+            createdActionResult.RouteValues.Should().NotBeNull();
+            createdActionResult.RouteValues.ToQueryString().Should().NotBeNull().And
+                .MatchRegex(@"(i|I)d=[1-9]{1}\d*");
+           
 
 
-            BrowsableResource<DoctorInfo> createdResource = (BrowsableResource<DoctorInfo>)((OkObjectResult)actionResult).Value;
+            DoctorInfo createdResource = (DoctorInfo)((CreatedAtActionResult)actionResult).Value;
 
             createdResource.Should()
                 .NotBeNull();
-
-            createdResource.Location.Should()
-                .NotBeNull();
-
-            createdResource.Location.Href.Should()
-                .NotBeNull().And
-                .MatchEquivalentOf($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}=*");
-            
-            createdResource.Resource.Firstname.Should()
+            createdResource.Firstname.Should()
                 .Be(info.Firstname);
-            createdResource.Resource.Lastname.Should()
+            createdResource.Lastname.Should()
                 .Be(info.Lastname);
-            createdResource.Resource.UpdatedDate.Should().HaveDay(1);
-            createdResource.Resource.UpdatedDate.Should().HaveMonth(2);
-            createdResource.Resource.UpdatedDate.Should().HaveYear(2012);
+            createdResource.UpdatedDate.Should().HaveDay(1);
+            createdResource.UpdatedDate.Should().HaveMonth(2);
+            createdResource.UpdatedDate.Should().HaveYear(2012);
 
             _iRunCreateDoctorInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateDoctorCommand>()), Times.Once);
 

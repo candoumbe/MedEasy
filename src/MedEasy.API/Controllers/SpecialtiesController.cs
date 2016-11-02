@@ -136,19 +136,7 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info)
         {
             SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableResource<SpecialtyInfo> browsableResource = new BrowsableResource<SpecialtyInfo>
-            {
-                Resource = output,
-                Location = new Link
-                {
-                    Href = urlHelper.Action(nameof(Get), ControllerName, new { id = output.Id }),
-                    Rel = "self"
-                }
-            };
-
-
-            return new OkObjectResult(browsableResource);
+            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id}, output);
         }
 
 
