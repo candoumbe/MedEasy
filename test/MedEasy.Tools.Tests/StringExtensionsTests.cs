@@ -35,6 +35,11 @@ namespace MedEasy.Tools.Tests
                     "bruce wayne",
                     "Bruce Wayne"
                 };
+                yield return new object[]
+                {
+                    "cyrille-alexandre",
+                    "Cyrille-Alexandre"
+                };
             }
         }
 
