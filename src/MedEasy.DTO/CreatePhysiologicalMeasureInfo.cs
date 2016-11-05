@@ -13,11 +13,7 @@ namespace MedEasy.DTO
     [JsonObject]
     public abstract class CreatePhysiologicalMeasureInfo
     {
-        /// <summary>
-        /// Id of the patient to get one measure from
-        /// </summary>
-        public int Id { get; set; }
-
+        
         /// <summary>
         /// When the measure was taken
         /// </summary>

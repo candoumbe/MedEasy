@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using static MedEasy.Validators.ErrorLevel;
+using AutoMapper;
 using FluentAssertions;
 using GenFu;
 using MedEasy.API;
@@ -320,12 +321,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<BrowsableResource<PatientInfo>>>();
+                    .And.BeOfType<GenericPagedGetResponse<PatientInfo>>();
 
-            GenericPagedGetResponse<BrowsableResource<PatientInfo>> response = (GenericPagedGetResponse<BrowsableResource<PatientInfo>>)value;
+            GenericPagedGetResponse<PatientInfo> response = (GenericPagedGetResponse<PatientInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -333,6 +334,21 @@ namespace MedEasy.WebApi.Tests
             response.Links.Last.Should().Match(lastPageUrlExpectation);
             
         }
+
+        //[Theory]
+        //[InlineData(int.MinValue, int.MinValue)]
+        //[InlineData(-1, int.MinValue)]
+        //[InlineData(0, int.MinValue)]
+        //[InlineData(0, -1)]
+        //[InlineData(-1, -1)]
+        //[InlineData(0, 0)]
+        //public void GetAllShouldReturnBadRequestResultWhenInputsAreNegativeOrZero(int page, int pageSize)
+        //{
+        //    // Act
+        //    Func<Task> action = async () => await _controller.Get(page, pageSize);
+
+        //    // Assert
+        //}
 
 
         [Fact]
@@ -625,6 +641,22 @@ namespace MedEasy.WebApi.Tests
             _iRunDeletePatientInfoByIdCommandMock.Verify();
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task DeletePatientByNegativeOrZeroReturnsBadRequest(int idToDelete)
+        {
+
+            //Arrange
+            
+            //Act
+            IActionResult actionResult = await _controller.Delete(idToDelete);
+
+            //Assert
+            actionResult.Should().BeAssignableTo<BadRequestResult>();
+        }
+
+
 
         [Fact]
         public async Task AddTemperatureMeasure()
@@ -641,30 +673,32 @@ namespace MedEasy.WebApi.Tests
             // Act
             CreateTemperatureInfo input = new CreateTemperatureInfo
             {
-                Id = 1,
                 Value = 50,
                 DateOfMeasure = DateTimeOffset.UtcNow
             };
 
-            IActionResult actionResult = await _controller.Temperatures(input);
+            IActionResult actionResult = await _controller.Temperatures(1, input);
 
             // Assert
-            BrowsableResource<TemperatureInfo> browsableResource = actionResult.Should()
+            CreatedAtActionResult createdAtActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which
-                .Value.Should()
-                    .NotBeNull().And
-                    .BeOfType<BrowsableResource<TemperatureInfo>>().Which;
+                .BeOfType<CreatedAtActionResult>().Which;
 
-            TemperatureInfo resource = browsableResource.Resource;
+            createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
+            createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Temperatures));
+            createdAtActionResult.RouteValues.Should()
+                .HaveCount(2).And
+                .ContainKey("id").WhichValue.Should().Be(1);
+            createdAtActionResult.RouteValues.Should()
+                .ContainKey("temperatureId").WhichValue.Should().Be(1);
+
+
+            TemperatureInfo resource = createdAtActionResult.Value.Should()
+                .BeOfType<TemperatureInfo>().Which;
             
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(input.Id);
+            resource.PatientId.Should().Be(1);
             resource.Value.Should().Be(input.Value);
-
-            Link resourceLink = browsableResource.Location;
-            resourceLink.Should().NotBeNull();
-            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/Temperatures?id={input.Id}&temperatureId={resource.Id}");
 
             _physiologicalMeasureFacadeMock.VerifyAll();
             
@@ -675,7 +709,6 @@ namespace MedEasy.WebApi.Tests
         {
             CreateBloodPressureInfo input = new CreateBloodPressureInfo
             {
-                Id = 1,
                 SystolicPressure = 150,
                 DiastolicPressure = 100,
                 DateOfMeasure = DateTimeOffset.UtcNow
@@ -696,27 +729,28 @@ namespace MedEasy.WebApi.Tests
             // Act
             
 
-            IActionResult actionResult = await _controller.BloodPressures(input);
+            IActionResult actionResult = await _controller.BloodPressures(1, input);
 
             // Assert
-            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
+            CreatedAtActionResult createdAtActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which
-                .Value.Should()
-                    .NotBeNull().And
-                    .BeOfType<BrowsableResource<BloodPressureInfo>>().Which;
+                .BeOfType<CreatedAtActionResult>().Which;
+            createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
+            createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.BloodPressures));
+            createdAtActionResult.RouteValues.Should()
+                .HaveCount(2).And
+                .ContainKey("id").WhichValue.Should().Be(1);
+            createdAtActionResult.RouteValues.Should()
+                .ContainKey("bloodPressureId").WhichValue.Should().Be(1);
 
-            BloodPressureInfo resource = browsableResource.Resource;
+            BloodPressureInfo resource = createdAtActionResult.Value.Should().BeOfType<BloodPressureInfo>().Which;
 
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(input.Id);
+            resource.PatientId.Should().Be(1);
             resource.SystolicPressure.Should().Be(input.SystolicPressure);
             resource.DiastolicPressure.Should().Be(input.DiastolicPressure);
 
-            Link resourceLink = browsableResource.Location;
-            resourceLink.Should().NotBeNull();
-            resourceLink.Href.ShouldBeEquivalentTo($"api/{PatientsController.EndpointName}/BloodPressures?id={input.Id}&temperatureId={resource.Id}");
-
+           
             _physiologicalMeasureFacadeMock.VerifyAll();
 
         }
@@ -878,22 +912,77 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
 
             // Assert
-            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = actionResult.Should().NotBeNull().And
-                .BeAssignableTo<OkObjectResult>().Which
-                    .Value.Should()
-                        .NotBeNull().And
-                        .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
+
+            CreatedAtActionResult createdAtActionResult = actionResult.Should().NotBeNull().And
+                .BeAssignableTo<CreatedAtActionResult>().Which;
+                    
+            createdAtActionResult.Should().NotBeNull();
+            createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
+            createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Prescriptions));
+            createdAtActionResult.RouteValues.Should().NotBeNull();
+            createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex($@"[iI]d={patientId}&[pP]rescriptionId=[1-9](\d+)?");
+
+            PrescriptionHeaderInfo resource = createdAtActionResult.Value.Should().NotBeNull().And
+                .BeAssignableTo<PrescriptionHeaderInfo>().Which;
 
 
-            browsableResource.Should().NotBeNull();
-            browsableResource.Location.Should().NotBeNull();
-            browsableResource.Location.Href.Should().MatchRegex($@"api\/{PatientsController.EndpointName}\/{nameof(PatientsController.Prescriptions)}\?id={patientId}&prescriptionId=[1-9](\d+)?");
-            browsableResource.Location.Rel.Should().Be("self");
+            resource.PatientId.Should().Be(patientId);
+            resource.PrescriptorId.Should().Be(newPrescription.PrescriptorId);
+            resource.DeliveryDate.Should().Be(newPrescription.DeliveryDate);
 
-            browsableResource.Resource.Should().NotBeNull();
-            browsableResource.Resource.PatientId.Should().Be(patientId);
-            browsableResource.Resource.PrescriptorId.Should().Be(newPrescription.PrescriptorId);
-            browsableResource.Resource.DeliveryDate.Should().Be(newPrescription.DeliveryDate);
+            _prescriptionServiceMock.Verify(mock => mock.CreatePrescriptionForPatientAsync(patientId, newPrescription), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreatePrescriptionForPatientShouldReturnBadRequestResultWhenArgumentNullException()
+        {
+            // Arrange
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
+                .Throws<ArgumentNullException>();
+
+            // Act
+            int patientId = 1;
+            CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
+            {
+                PrescriptorId = 1,
+                DeliveryDate = DateTimeOffset.UtcNow,
+                Duration = 60,
+                Items = new PrescriptionItemInfo[] {
+                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                }
+            };
+
+           IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
+
+            // Assert
+            actionResult.Should().BeAssignableTo<BadRequestResult>();
+
+            _prescriptionServiceMock.Verify(mock => mock.CreatePrescriptionForPatientAsync(patientId, newPrescription), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreatePrescriptionForPatientShouldReturnBadRequestResultWhenArgumentOutOfRangeException()
+        {
+            // Arrange
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
+                .Throws<ArgumentOutOfRangeException>();
+
+            // Act
+            int patientId = 1;
+            CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
+            {
+                PrescriptorId = 1,
+                DeliveryDate = DateTimeOffset.UtcNow,
+                Duration = 60,
+                Items = new PrescriptionItemInfo[] {
+                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                }
+            };
+
+            IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
+
+            // Assert
+            actionResult.Should().BeAssignableTo<BadRequestResult>();
 
             _prescriptionServiceMock.Verify(mock => mock.CreatePrescriptionForPatientAsync(patientId, newPrescription), Times.Once);
         }

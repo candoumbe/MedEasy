@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
 namespace MedEasy.DTO
@@ -19,12 +20,14 @@ namespace MedEasy.DTO
         /// Patient's firstname
         /// </summary>
         [JsonProperty]
+        [Required]
         public string Firstname { get; set; }
 
         /// <summary>
         /// Patient's lastname
         /// </summary>
         [JsonProperty]
+        [Required]
         public string Lastname { get; set; }
 
         /// <summary>
@@ -37,10 +40,11 @@ namespace MedEasy.DTO
         /// Patient's birthplace
         /// </summary>
         [JsonProperty]
+        [Required(AllowEmptyStrings = true)]
         public string BirthPlace { get; set; }
 
         /// <summary>
-        /// Patient's main doctor
+        /// Id of the patient's main doctor
         /// </summary>
         [JsonProperty]
         public int? MainDoctorId { get; set; }

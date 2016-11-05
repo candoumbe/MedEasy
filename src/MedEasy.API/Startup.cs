@@ -77,6 +77,7 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(ValidateModelAttribute));
             });
+            
 
             if (HostingEnvironment.IsDevelopment())
             {

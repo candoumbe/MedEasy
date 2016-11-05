@@ -78,7 +78,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecialtyInfo>))]
-        public async Task<IActionResult> Get(GenericGetQuery query)
+        public async Task<IActionResult> Get([FromQuery] GenericGetQuery query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
 

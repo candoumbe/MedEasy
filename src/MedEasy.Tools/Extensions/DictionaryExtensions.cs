@@ -14,8 +14,6 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static string ToQueryString(this IDictionary<string, object> dictionary)
         {
-
-
             StringBuilder sb = new StringBuilder();
             IEnumerable<KeyValuePair<string, object>> keysAndValues = dictionary?
                 .Where(kv => kv.Value != null) ?? Enumerable.Empty<KeyValuePair<string, object>>();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MedEasy.DTO
 {
@@ -15,6 +13,7 @@ namespace MedEasy.DTO
         /// When the prescription was delivered
         /// </summary>
         [Required]
+        [DataType(DataType.Date)]
         public DateTimeOffset DeliveryDate { get; set; }
         /// <summary>
         /// How long is the prescription valid.
@@ -23,8 +22,8 @@ namespace MedEasy.DTO
         /// <remarks>
         /// This defines how long from <see cref="DeliveryDate"/> the current prescription will be valid
         /// </remarks>
-        [Range(0, int.MaxValue)]
-        public int Duration { get; set; }
+        [Range(0, double.MaxValue)]
+        public double Duration { get; set; }
 
         /// <summary>
         /// Content of the prescription

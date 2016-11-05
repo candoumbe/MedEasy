@@ -28,6 +28,7 @@ namespace MedEasy.API.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [Consumes("application/json")]
+    [Produces("application/json", additionalContentTypes: new [] { "text/xml" })]
     public class PatientsController : RestCRUDControllerBase<int, Patient, PatientInfo, IWantOnePatientInfoByIdQuery, IWantManyPatientInfoQuery, Guid, CreatePatientInfo, ICreatePatientCommand, IRunCreatePatientCommand>
     {
         /// <summary>
@@ -63,6 +64,7 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
+        /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
@@ -95,9 +97,9 @@ namespace MedEasy.API.Controllers
         /// and there's no garanty that the size of page of result will be equal to the <paramref name="pageSize"/> set in the query.
         /// In particular, the number of resources on a page may be caped by the server.
         /// </remarks>
-        /// <returns></returns>
+        /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or zero</response>
         [HttpGet]
-        [Produces(typeof(GenericGetResponse<BrowsableResource<PatientInfo>>))]
+        [Produces(typeof(IEnumerable<PatientInfo>))]
         public async Task<IActionResult> Get(int page, int pageSize)
         {
             GenericGetQuery query = new GenericGetQuery
@@ -128,13 +130,8 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
-                result.Entries.Select(x =>
-                    new BrowsableResource<PatientInfo>
-                    {
-                        Location = new Link { Href = urlHelper.Action(nameof(PatientsController.Get), ControllerName, new { Id = x.Id }) },
-                        Resource = x
-                    }),
+            IGetResponse<PatientInfo> response = new GenericPagedGetResponse<PatientInfo>(
+                result.Entries,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -162,15 +159,13 @@ namespace MedEasy.API.Controllers
         /// Creates the resource
         /// </summary>
         /// <param name="info">data used to create the resource</param>
-        /// <returns>the created resource</returns>
-        /// <response code="200">the resource was created successfuyl</response>
+        /// <response code="201">the resource was created successfully</response>
+        /// <response code="500">if an error occured</response>
         [HttpPost]
         [Produces(typeof(PatientInfo))]
-
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo info)
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(info));
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id }, output);
         }
 
@@ -188,52 +183,53 @@ namespace MedEasy.API.Controllers
             throw new NotImplementedException();
         }
 
-        // DELETE api/specialties/5
+        // DELETE api/patients/5
 
         /// <summary>
         /// Delete the <see cref="PatientInfo"/> by its 
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
         /// <returns></returns>
+        /// <response code="200">if the operation succeed</response>
+        /// <response code="400">if <paramref name="id"/> is negative or zero</response>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _iRunDeletePatientByIdCommand.RunAsync(new DeletePatientByIdCommand(id));
-            return new OkResult();
+            IActionResult actionResult;
+            if (id <= 0)
+            {
+                actionResult = new BadRequestResult();
+            }
+            else
+            {
+                await _iRunDeletePatientByIdCommand.RunAsync(new DeletePatientByIdCommand(id));
+                actionResult = new OkResult();
+            }
+
+            return actionResult;
         }
 
 
         /// <summary>
         /// Create a new <see cref="TemperatureInfo"/> resource
         /// </summary>
+        /// <param name="id">id of the patient the new measure will be attached to</param>
         /// <param name="input">input to create the new resource</param>
-        /// <returns>The created resource</returns>
         /// <see cref="IPhysiologicalMeasureService.AddNewMeasureAsync{TPhysiologicalMeasure, TPhysiologicalMeasureInfo}(ICommand{Guid, TPhysiologicalMeasure})"/>
+        /// <response code="201">if the creation succeed</response>
+        /// <response code="400">if the new measure is not valid</response>
         [HttpPost("{id:int}/[action]")]
         [Produces(typeof(TemperatureInfo))]
-        public async Task<IActionResult> Temperatures([FromBody] CreateTemperatureInfo input)
+        public async Task<IActionResult> Temperatures(int id, [FromBody] CreateTemperatureInfo input)
         {
             Temperature newMeasure = new Temperature
             {
-                PatientId = input.Id,
+                PatientId = id,
                 DateOfMeasure = input.DateOfMeasure,
                 Value = input.Value
             };
             TemperatureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(newMeasure));
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableResource<TemperatureInfo> resource = new BrowsableResource<TemperatureInfo>
-            {
-                Resource = output,
-                Location = new Link
-                {
-                    Href = urlHelper.Action(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }),
-                    Rel = "self",
-                }
-            };
-            OkObjectResult result = new OkObjectResult(resource);
-
-
-            return result;
+            return new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }, output);
         }
 
         /// <summary>
@@ -243,33 +239,23 @@ namespace MedEasy.API.Controllers
         /// <see cref="CreateBloodPressureInfo.SystolicPressure"/> and <see cref="CreateBloodPressureInfo.DiastolicPressure"/> values must be expressed in 
         ///  millimeters of mercury (mmHg)
         /// </remarks>
+        /// <param name="id">id of the patient the new blood pressure will be attached to</param>
         /// <param name="input">input to create the new resource</param>
-        /// <returns>The created resource</returns>
-        /// 
+        /// <response code="201">if the creation succeed</response>
+        /// <response code="400">if the new measure is not valid</response>
         [HttpPost("{id:int}/[action]")]
         [Produces(typeof(BloodPressureInfo))]
-        public async Task<IActionResult> BloodPressures([FromBody] CreateBloodPressureInfo input)
+        public async Task<IActionResult> BloodPressures(int id, [FromBody] CreateBloodPressureInfo input)
         {
             BloodPressure newMeasure = new BloodPressure
             {
-                PatientId = input.Id,
+                PatientId = id,
                 DateOfMeasure = input.DateOfMeasure,
                 SystolicPressure = input.SystolicPressure,
                 DiastolicPressure = input.DiastolicPressure
             };
             BloodPressureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(newMeasure));
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            BrowsableResource<BloodPressureInfo> resource = new BrowsableResource<BloodPressureInfo>
-            {
-                Resource = output,
-                Location = new Link
-                {
-                    Href = urlHelper.Action(nameof(BloodPressures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }),
-                    Rel = "self",
-                }
-            };
-            OkObjectResult result = new OkObjectResult(resource);
-            return result;
+            return new CreatedAtActionResult(nameof(BloodPressures), EndpointName, new { id = output.PatientId, bloodPressureId = output.Id }, output);
         }
 
         /// <summary>
@@ -279,6 +265,7 @@ namespace MedEasy.API.Controllers
         /// <param name="temperatureId">id of the <see cref="TemperatureInfo"/> to get</param>
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{temperatureId:int}")]
+        [HttpHead("{id:int}/[action]/{temperatureId:int}")]
         [Produces(typeof(TemperatureInfo))]
         public async Task<IActionResult> Temperatures(int id, int temperatureId)
         {
@@ -313,6 +300,7 @@ namespace MedEasy.API.Controllers
         /// <param name="bloodPressureId">id of the <see cref="BloodPressureInfo"/> to get</param>
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{bloodPressureId:int}")]
+        [HttpHead("{id:int}/[action]/{bloodPressureId:int}")]
         [Produces(typeof(BloodPressureInfo))]
         public async Task<IActionResult> BloodPressures(int id, int bloodPressureId)
         {
@@ -351,6 +339,7 @@ namespace MedEasy.API.Controllers
         /// <param name="count">Number of result to get at most</param>
         /// <returns>Array of <see cref="BloodPressureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
+        [HttpHead("{id:int}/[action]")]
         [Produces(typeof(IEnumerable<BloodPressureInfo>))]
         public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures(int id, int? count)
             => await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
@@ -367,6 +356,7 @@ namespace MedEasy.API.Controllers
         /// <param name="count">Number of result to get at most</param>
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
+        [HttpHead("{id:int}/[action]")]
         public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures(int id, int? count)
             => await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
 
@@ -380,7 +370,8 @@ namespace MedEasy.API.Controllers
         /// <param name="id">patient id</param>
         /// <param name="bodyWeightId">id of the <see cref="BodyWeightInfo"/> resource to get</param>
         /// <returns></returns>
-        [HttpGet("{id:int}/[action]/{bodyWeightId}")]
+        [HttpGet("{id:int}/[action]/{bodyWeightId:int}")]
+        [HttpHead("{id:int}/[action]/{bodyWeightId:int}")]
         [Produces(typeof(BodyWeightInfo))]
         public async Task<IActionResult> BodyWeights(int id, int bodyWeightId)
         {
@@ -415,7 +406,7 @@ namespace MedEasy.API.Controllers
         /// <param name="input"></param>
         /// <response code="200">if the operation succeed</response>
         /// <response code="400">if the operation is not allowed</response>
-        [HttpDelete("{id:int}/[action]/{measureId}")]
+        [HttpDelete("{id:int}/[action]/{measureId:int}")]
         public async Task<IActionResult> BloodPressures(DeletePhysiologicalMeasureInfo input)
         {
             await DeleteOneMeasureAsync<BloodPressure>(input);
@@ -428,7 +419,7 @@ namespace MedEasy.API.Controllers
         /// <param name="input"></param>
         /// <response code="200">if the operation succeed</response>
         /// <response code="400">if the operation is not allowed</response>
-        [HttpDelete("{id:int}/[action]/{measureId}")]
+        [HttpDelete("{id:int}/[action]/{measureId:int}")]
         public async Task<IActionResult> Temperatures(DeletePhysiologicalMeasureInfo input)
         {
             await DeleteOneMeasureAsync<Temperature>(input);
@@ -506,24 +497,20 @@ namespace MedEasy.API.Controllers
         /// <response code="201">if the prescription is create successfully</response>
         /// <response code="400">if the prescription is not valid</response>
         [HttpPost("{id:int}/[action]")]
-        public async Task<IActionResult> Prescriptions(int id, CreatePrescriptionInfo newPrescription)
+        public async Task<IActionResult> Prescriptions(int id, [FromBody] CreatePrescriptionInfo newPrescription)
         {
-
-            PrescriptionHeaderInfo createdPrescription = await _prescriptionService.CreatePrescriptionForPatientAsync(id, newPrescription);
-
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
+            IActionResult actionResult;
+            try
             {
-                Location = new Link {
-                    Rel = "self",
-                    Href = urlHelper.Action(nameof(Prescriptions), EndpointName, new { id = createdPrescription.PatientId, prescriptionId = createdPrescription.Id })
-                },
-                Resource = createdPrescription
+                PrescriptionHeaderInfo createdPrescription = await _prescriptionService.CreatePrescriptionForPatientAsync(id, newPrescription);
+                actionResult = new  CreatedAtActionResult(nameof(Prescriptions), EndpointName, new { id = createdPrescription.PatientId, prescriptionId = createdPrescription.Id }, createdPrescription);
+            }
+            catch (ArgumentException)
+            {
+                actionResult = new BadRequestResult();
+            }
 
-            };
-
-
-            return new OkObjectResult(browsableResource);
+            return actionResult;
         }
 
 
@@ -541,11 +528,11 @@ namespace MedEasy.API.Controllers
         [Produces(typeof(IEnumerable<PrescriptionHeaderInfo>))]
         public async Task<IEnumerable<PrescriptionHeaderInfo>> MostRecentPrescriptions(int id, int? count)
         {
-            GetMostRecentPrescriptionsInfo input = new GetMostRecentPrescriptionsInfo{ PatientId = id, Count = count };
+            GetMostRecentPrescriptionsInfo input = new GetMostRecentPrescriptionsInfo { PatientId = id, Count = count };
             IEnumerable<PrescriptionHeaderInfo> prescriptions = await _prescriptionService.GetMostRecentPrescriptionsAsync(new WantMostRecentPrescriptionsQuery(input));
-            
+
             return prescriptions;
-            
+
 
         }
     }

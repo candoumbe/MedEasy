@@ -125,7 +125,7 @@ namespace MedEasy.API.Tests.Filters
 
             headers.Should().ContainKey("Link");
             headers["Link"].Should().ContainSingle();
-            headers["Link"][0].Should().Be($@"{browsableResource.Location.Href}; rel={browsableResource.Location.Rel}");
+            headers["Link"][0].Should().Be($@"<{browsableResource.Location.Href}>; rel=""{browsableResource.Location.Rel}""");
             
             
 
@@ -173,10 +173,10 @@ namespace MedEasy.API.Tests.Filters
             headers.Should().ContainKey("Link");
             headers["Link"].Count.Should().Be(1);
             headers["Link"][0].Should()
-                .Match($@"*{page.Links.First.Href}; rel={page.Links.First.Rel}*").And
-                .Match($@"*{page.Links.Previous.Href}; rel={page.Links.Previous.Rel}*").And
-                .Match($@"*{page.Links.Last.Href}; rel={page.Links.Last.Rel}*").And
-                .Match($@"*{page.Links.Next.Href}; rel={page.Links.Next.Rel}*");
+                .Match($@"*<{page.Links.First.Href}>; rel=""{page.Links.First.Rel}""*").And
+                .Match($@"*<{page.Links.Previous.Href}>; rel=""{page.Links.Previous.Rel}""*").And
+                .Match($@"*<{page.Links.Last.Href}>; rel=""{page.Links.Last.Rel}""*").And
+                .Match($@"*<{page.Links.Next.Href}>; rel=""{page.Links.Next.Rel}""*");
 
             headers.Should().ContainKey("X-Total-Count");
             headers["X-Total-Count"].Count.Should().Be(1);

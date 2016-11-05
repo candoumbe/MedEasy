@@ -16,12 +16,9 @@ namespace MedEasy.Validators
         public override IEnumerable<Task<ErrorInfo>> Validate(CreateTemperatureInfo input)
         { 
 #if DEBUG
-            Debug.Assert(input != null); 
+            Debug.Assert(input != null);
 #endif
-            if (input.Id < 1)
-            {
-                yield return Task.FromResult(new ErrorInfo(nameof(input.Id), "", Error));
-            }
+            yield break;
         }
     }
 }

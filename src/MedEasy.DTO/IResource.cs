@@ -1,11 +1,11 @@
-﻿using MedEasy.RestObjects;
-using System;
+﻿using System;
 
 namespace MedEasy.DTO
 {
     /// <summary>
-    /// This interface describes the properties a browsable resource must implements
+    /// Describes the properties a browsable resource must implements
     /// </summary>
+    /// <typeparam name="T">Type of the resource identifier</typeparam>
     public interface IResource<T>
         where T : IEquatable<T>
     {

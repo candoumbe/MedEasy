@@ -8,9 +8,10 @@ using MedEasy.API.Stores;
 namespace MedEasy.API.Migrations
 {
     [DbContext(typeof(MedEasyContext))]
-    partial class MedEasyContextModelSnapshot : ModelSnapshot
+    [Migration("20161103113905_AddedPrescription_Entity")]
+    partial class AddedPrescription_Entity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.1")

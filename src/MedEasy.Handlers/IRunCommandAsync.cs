@@ -1,6 +1,7 @@
 ﻿using MedEasy.Commands;
 using System;
 using System.Threading.Tasks;
+using MedEasy.Handlers.Exceptions;
 
 namespace MedEasy.Handlers.Commands
 {

@@ -53,6 +53,7 @@ namespace MedEasy.API.Stores
         /// Gives access to <see cref="Prescription"/> entities.
         /// </summary>
         public DbSet<Prescription> Prescriptions { get; set; }
+
         
 
         /// <summary>

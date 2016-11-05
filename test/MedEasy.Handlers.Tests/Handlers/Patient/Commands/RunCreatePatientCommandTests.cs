@@ -28,6 +28,36 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         private RunCreatePatientCommand _handler;
         private Mock<IValidate<ICreatePatientCommand>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
+        private ITestOutputHelper _outputHelper;
+
+
+        public RunCreatePatientCommandTests(ITestOutputHelper output)
+        {
+            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+
+            _loggerMock = new Mock<ILogger<RunCreatePatientCommand>>(Strict);
+            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+
+            _validatorMock = new Mock<IValidate<ICreatePatientCommand>>(Strict);
+            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
+
+            _outputHelper = output;
+            _handler = new RunCreatePatientCommand(_validatorMock.Object, _loggerMock.Object,
+                _unitOfWorkFactoryMock.Object,
+               _expressionBuilderMock.Object);
+        }
+
+        public void Dispose()
+        {
+            _unitOfWorkFactoryMock = null;
+            _loggerMock = null;
+            _mapperMock = null;
+            _outputHelper = null;
+            _handler = null;
+
+        }
+
 
         public static IEnumerable<object[]> ConstructorCases
         {
@@ -43,25 +73,43 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 
             }
         }
-        public RunCreatePatientCommandTests(ITestOutputHelper output)
+
+        public static IEnumerable<object> ValidCreatePatientInfoCases
         {
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+            get
+            {
+                yield return new object[] {
+                    new CreatePatientInfo
+                    {
+                        Firstname = "Bruce",
+                        Lastname = "Wayne",
+                        MainDoctorId = 1
+                    }
+                };
 
-            _loggerMock = new Mock<ILogger<RunCreatePatientCommand>>(Strict);
-            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+                yield return new object[] {
+                    new CreatePatientInfo
+                    {
+                        Firstname = "Cyrille-Alexandre",
+                        Lastname = "NDOUMBE",
+                        MainDoctorId = 1
+                    }
+                };
 
-            _validatorMock = new Mock<IValidate<ICreatePatientCommand>>(Strict);
-            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
-           
-            _handler = new RunCreatePatientCommand(_validatorMock.Object, _loggerMock.Object, 
-                _unitOfWorkFactoryMock.Object, 
-               _expressionBuilderMock.Object);
+                yield return new object[] {
+                    new CreatePatientInfo
+                    {
+                        Firstname = "cyrille-alexandre",
+                        Lastname = "NDOUMBE",
+                        MainDoctorId = 1
+                    }
+                };
+            }
         }
 
 
-         [Theory]
-         [MemberData(nameof(ConstructorCases))]
+        [Theory]
+        [MemberData(nameof(ConstructorCases))]
         public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<ICreatePatientCommand> validator, ILogger<RunCreatePatientCommand> logger,
             IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
@@ -72,9 +120,12 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                     .NotBeNullOrWhiteSpace();
         }
 
-        [Fact]
-        public async Task ShouldCreateResource()
+        [Theory]
+        [MemberData(nameof(ValidCreatePatientInfoCases))]
+        public async Task ShouldCreateResource(CreatePatientInfo input)
         {
+            _outputHelper.WriteLine($"input : {input}");
+
             // Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().Create(It.IsAny<Objects.Patient>()))
                 .Returns((Objects.Patient patient) => patient);
@@ -84,7 +135,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<CreatePatientInfo, Objects.Patient>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => 
+               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
                     AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
                         .ExpressionBuilder.CreateMapExpression<CreatePatientInfo, Objects.Patient>(parameters, membersToExpand));
 
@@ -94,14 +145,9 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                         .ExpressionBuilder.CreateMapExpression<Objects.Patient, PatientInfo>(parameters, membersToExpand));
 
             // Act
-            CreatePatientInfo input = new CreatePatientInfo
-            {
-                Firstname = "Bruce",
-                Lastname = "Wayne",
-                MainDoctorId = 1
-            };
+
             PatientInfo output = await _handler.RunAsync(new CreatePatientCommand(input));
-            
+
             // Assert
             output.Should().NotBeNull();
             output.Firstname.Should().Be(input.Firstname?.ToTitleCase());
@@ -114,13 +160,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         }
 
 
-
-        public void Dispose()
-        {
-            _unitOfWorkFactoryMock = null;
-            _loggerMock = null;
-            _mapperMock = null;
-            _handler = null;
-        }
     }
+
 }

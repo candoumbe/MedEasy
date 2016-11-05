@@ -16,6 +16,7 @@ namespace MedEasy.API.Controllers
     /// <summary>
     /// Endpoint that handle <see cref="PrescriptionHeaderInfo"/> resources.
     /// </summary>
+    [Route("api/[controller]")]
     public class PrescriptionsController
     {
         private readonly IPrescriptionService _prescriptionService;

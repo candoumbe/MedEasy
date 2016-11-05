@@ -13,6 +13,9 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace MedEasy.Handlers.Tests.Commands.Patient
 {
@@ -68,6 +71,7 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
         {
             IMapper mapper = AutoMapperConfig.Build().CreateMapper();
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
             _loggerMock = new Mock<ILogger<RunDeletePatientByIdCommand>>(Strict);
             _mapperMock = new Mock<IMapper>(Strict);
             _validatorMock = new Mock<IValidate<IDeletePatientByIdCommand>>(Strict);
@@ -94,6 +98,27 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
+        }
+
+        [Fact]
+        public async Task Delete()
+        {
+            // Arrange 
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IDeletePatientByIdCommand>()))
+                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().Delete(It.IsAny<Expression<Func<Objects.Patient, bool>>>()));
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
+
+            // Act
+            await _handler.RunAsync(new DeletePatientByIdCommand(1));
+
+
+            // Assert
+
+            _unitOfWorkFactoryMock.Verify();
+            _loggerMock.Verify();
+
         }
 
         public void Dispose()

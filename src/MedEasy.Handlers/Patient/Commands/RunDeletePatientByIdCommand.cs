@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Patient;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using static MedEasy.Validators.ErrorLevel;
+using MedEasy.Handlers.Exceptions;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -14,6 +18,9 @@ namespace MedEasy.Handlers.Patient.Commands
     /// </summary>
     public class RunDeletePatientByIdCommand : IRunDeletePatientByIdCommand
     {
+        private readonly IUnitOfWorkFactory _factory;
+        private readonly IValidate<IDeletePatientByIdCommand> _validator;
+
         /// <summary>
         /// Builds a new <see cref="RunDeletePatientByIdCommand"/> instance
         /// </summary>
@@ -43,12 +50,37 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new ArgumentNullException(nameof(expressionBuilder));
             }
 
+            _validator = validator;
+            _factory = factory;
+
 
         }
 
+        /// <summary>
+        /// Deletes a patient by its <see cref="Objects.Patient"/>
+        /// </summary>
+        /// <param name="command">Comand that wraps id of the <see cref="Objects.Patient"/> to delete.</param>
         public async Task RunAsync(IDeletePatientByIdCommand command)
         {
-            throw new NotImplementedException();
+
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            IEnumerable<Task<ErrorInfo>> validationTasks = _validator.Validate(command);
+            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationTasks);
+            if (errors.Any(x => x.Severity == Error))
+            {
+                // TODO Log the error if in DEBUG
+                throw new CommandNotValidException<Guid>(command.Id, errors);
+            }
+
+            using (var uow = _factory.New())
+            {
+                uow.Repository<Objects.Patient>().Delete(x => x.Id == command.Data);
+                await uow.SaveChangesAsync();
+            }
         }
     }
 }

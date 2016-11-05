@@ -23,6 +23,7 @@ namespace MedEasy.Services
         /// <paramref name="patientId"/> found or no <see cref="PrescriptionHeaderInfo"/> with <paramref name="prescriptionId"/>
         /// found
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="patientId"/>is negative of zero</exception>
         Task<PrescriptionHeaderInfo> GetOnePrescriptionByPatientIdAsync(int patientId, int prescriptionId);
 
         /// <summary>
@@ -35,12 +36,14 @@ namespace MedEasy.Services
         /// <param name="patientId">id of the patient the new prescription will be created on</param>
         /// <param name="createPrescriptionInfo">data of the new prescription</param>
         /// <returns>The created prescription's header</returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="createPrescriptionInfo"/> is <c>null</c></exception>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="patientId"/>is negative of zero</exception>
         Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(int patientId, CreatePrescriptionInfo createPrescriptionInfo);
 
         /// <summary>
         /// Gets the most recent prescriptions
         /// </summary>
-        /// <param name="query">query to get the most recent prescriptions</param>
+        /// <param name="query">query to get the most recent <see cref="PrescriptionInfo"/>s.</param>
         /// <returns></returns>
         Task<IEnumerable<PrescriptionHeaderInfo>> GetMostRecentPrescriptionsAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query);
 
