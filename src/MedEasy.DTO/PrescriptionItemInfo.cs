@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
 {
-    public class PrescriptionItemInfo : IResource<int>
+    public class PrescriptionItemInfo : ResourceBase<int>
     {
-        public int Id { get; set; }
-
         /// <summary>
         /// Prescription's category
         /// </summary>

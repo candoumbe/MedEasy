@@ -82,7 +82,7 @@ namespace MedEasy.Handlers.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            Logger.LogInformation($"Start executing query : {query.Id}");
+            Logger.LogInformation($"Start executing query '{query.Id}' : {query}");
             Logger.LogTrace("Validating query");
             IEnumerable<Task<ErrorInfo>> errorsTasks = Validator.Validate(query);
             IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks).ConfigureAwait(false);

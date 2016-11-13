@@ -15,6 +15,7 @@ using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.Commands.Doctor;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
+using MedEasy.Validators;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -76,7 +77,8 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(IEnumerable<DoctorInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Get([FromQuery] GenericGetQuery query)
         {
             if (query == null)
@@ -126,7 +128,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id:int}")]
         [HttpGet("{id:int}")]
-        [Produces(typeof(DoctorInfo))]
+        [ProducesResponseType(typeof(DoctorInfo), 200)]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
             
 
@@ -137,7 +139,8 @@ namespace MedEasy.API.Controllers
         /// <param name="info">data used to create the resource</param>
         /// <returns>the created resource</returns>
         [HttpPost]
-        [Produces(typeof(DoctorInfo))]
+        [ProducesResponseType(typeof(DoctorInfo), 201)]
+        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info)
         {
             DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info));
@@ -174,9 +177,5 @@ namespace MedEasy.API.Controllers
             await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id));
             return new OkResult();
         }
-
-
-
-
     }
 }

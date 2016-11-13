@@ -51,41 +51,10 @@ namespace MedEasy.API.Tests.Filters
         public EnveloppeFilterAttributeTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _loggerMock = new Mock<ILogger<PatientsController>>(Strict);
-
-            _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
-                .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
-
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
-
-            DbContextOptionsBuilder<MedEasyContext> dbOptions = new DbContextOptionsBuilder<MedEasyContext>();
-            dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
-            _factory = new EFUnitOfWorkFactory(dbOptions.Options);
-            _mapper = AutoMapperConfig.Build().CreateMapper();
-
-            _iHandleGetOnePatientInfoByIdQueryMock = new Mock<IHandleGetOnePatientInfoByIdQuery>(Strict);
-            _iHandleGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
-            _iRunCreatePatientInfoCommandMock = new Mock<IRunCreatePatientCommand>(Strict);
-            _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
-            _iHandleGetOnePatientTemperatureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>>(Strict);
-            _iHandleGetOnePatientBloodPressureMock = new Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>>(Strict);
-
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
-            
-
-           
-
         }
 
         [Fact]
-        public void OnResultExecuting_ForActionThatReturnsOneResource()
+        public void OnResultExecuting_ForActionThatReturnsOkObjectResult()
         {
             // Arrange
             PatientInfo resource = new PatientInfo
@@ -94,10 +63,12 @@ namespace MedEasy.API.Tests.Filters
                 Firstname = "Bruce",
                 Lastname = "Wayne"
             };
-            BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+            IBrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
             {
                 Resource = resource,
-                Location = new Link { Href = "url/to/resource", Rel = "self" }
+                Links = new[] {
+                    new Link { Href = "url/to/resource", Rel = "self" }
+                }
             };
             ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
                 new ActionContext()
@@ -125,11 +96,55 @@ namespace MedEasy.API.Tests.Filters
 
             headers.Should().ContainKey("Link");
             headers["Link"].Should().ContainSingle();
-            headers["Link"][0].Should().Be($@"<{browsableResource.Location.Href}>; rel=""{browsableResource.Location.Rel}""");
-            
-            
-
+            headers["Link"][0].Should().Be($@"<{browsableResource.Links.ElementAt(0).Href}>; rel=""{browsableResource.Links.ElementAt(0).Rel}""");
         }
+
+        [Fact]
+        public void OnResultExecuting_ForActionThatReturnsCreatedAtActionResult()
+        {
+            // Arrange
+            PatientInfo resource = new PatientInfo
+            {
+                Id = 1,
+                Firstname = "Bruce",
+                Lastname = "Wayne"
+            };
+            IBrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+            {
+                Resource = resource,
+                Links = new[] {
+                    new Link { Href = "url/to/resource", Rel = "self" }
+                }
+            };
+            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+                new ActionContext()
+                {
+                    HttpContext = new DefaultHttpContext(),
+                    RouteData = new RouteData(),
+                    ActionDescriptor = new ActionDescriptor()
+                    {
+                        DisplayName = "Get"
+                    }
+                },
+                new List<IFilterMetadata>(), new CreatedAtActionResult("Action", "Controller", new { }, browsableResource), _controller);
+
+            // Act
+            EnvelopeFilterAttribute filter = new EnvelopeFilterAttribute();
+            filter.OnResultExecuting(resultExecutingContext);
+
+            //Assert
+            resultExecutingContext.Result.Should()
+                .BeOfType<CreatedAtActionResult>().Which
+                    .Value.Should()
+                        .BeAssignableTo<PatientInfo>();
+
+            IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
+
+            headers.Should().ContainKey("Link");
+            headers["Link"].Should().ContainSingle();
+            headers["Link"][0].Should().Be($@"<{browsableResource.Links.ElementAt(0).Href}>; rel=""{browsableResource.Links.ElementAt(0).Rel}""");
+        }
+
 
         [Fact]
         public void OnResultExecuting_ForActionThatReturnsPageOfResource()
@@ -159,10 +174,6 @@ namespace MedEasy.API.Tests.Filters
             filter.OnResultExecuting(resultExecutingContext);
 
             //Assert
-
-            _apiOptionsMock.Verify();
-
-
             resultExecutingContext.Result.Should()
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()

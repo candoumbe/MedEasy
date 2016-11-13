@@ -27,15 +27,14 @@ namespace MedEasy.Handlers.Specialty.Commands
         /// <inherithed />
         public override async Task OnCreatingAsync(Guid commandId, CreateSpecialtyInfo input)
         {
+            input.Name = input.Name.ToTitleCase();
+
             using (var uow = UowFactory.New())
             {
-                if (await uow.Repository<Objects.Specialty>().AnyAsync(x => x.Code == input.Code).ConfigureAwait(false))
+                if (await uow.Repository<Objects.Specialty>().AnyAsync(x => x.Name == input.Name).ConfigureAwait(false))
                 {
                     throw new CommandNotValidException<Guid>(commandId, new[] { new ErrorInfo("ErrDuplicate", "A specialty with this code already exists", ErrorLevel.Error) });
                 }
-
-                input.Code = input.Code?.ToUpper();
-                input.Name = input.Name?.ToTitleCase();
 
             }
         }

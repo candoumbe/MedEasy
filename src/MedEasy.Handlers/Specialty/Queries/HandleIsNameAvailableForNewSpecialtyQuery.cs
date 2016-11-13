@@ -7,21 +7,21 @@ using System;
 namespace MedEasy.Handlers.Specialty.Queries
 {
     /// <summary>
-    /// An instance of this class can be used to handle <see cref="IIsCodeAvailableForNewSpecialtyQuery"/> interface implementations
+    /// An instance of this class can be used to handle <see cref="IIsNameAvailableForNewSpecialtyQuery"/> interface implementations
     /// </summary>
-    public class HandleIsCodeAvailableForNewSpecialtyQuery : IHandleIsCodeAvailableForNewSpecialtyQuery
+    public class HandleIsNameAvailableForNewSpecialtyQuery : IHandleIsNameAvailableForNewSpecialtyQuery
     {
 
-        private readonly ILogger<HandleIsCodeAvailableForNewSpecialtyQuery> _logger;
+        private readonly ILogger<HandleIsNameAvailableForNewSpecialtyQuery> _logger;
         private readonly IUnitOfWorkFactory _factory;
 
         /// <summary>
-        /// Builds a new <see cref="HandleIsCodeAvailableForNewSpecialtyQuery"/> instance.
+        /// Builds a new <see cref="HandleIsNameAvailableForNewSpecialtyQuery"/> instance.
         /// </summary>
         /// <param name="factory">Factory for creating instances of <see cref="IUnitOfWork"/></param>
         /// <param name="logger">Logger</param>
         /// <exception cref="ArgumentNullException">if <paramref name="factory"/> or <paramref name="logger"/> is <c>null</c></exception>
-        public HandleIsCodeAvailableForNewSpecialtyQuery(IUnitOfWorkFactory factory, ILogger<HandleIsCodeAvailableForNewSpecialtyQuery> logger)
+        public HandleIsNameAvailableForNewSpecialtyQuery(IUnitOfWorkFactory factory, ILogger<HandleIsNameAvailableForNewSpecialtyQuery> logger)
         {
             if (factory == null)
             {
@@ -35,12 +35,12 @@ namespace MedEasy.Handlers.Specialty.Queries
             _logger = logger;
         }
 
-        public  async Task<bool> HandleAsync(IIsCodeAvailableForNewSpecialtyQuery query)
+        public  async Task<bool> HandleAsync(IIsNameAvailableForNewSpecialtyQuery query)
         {
 
-            _logger.LogInformation($"Entering {nameof(HandleIsCodeAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}):'{query}'");
+            _logger.LogInformation($"Entering {nameof(HandleIsNameAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}):'{query}'");
 
-            string code = query.Data?.Trim().ToUpper() ?? string.Empty;
+            string name = query.Data?.Trim().ToUpper() ?? string.Empty;
             bool available = false;
 
             if (!string.IsNullOrWhiteSpace(query.Data))   
@@ -48,12 +48,12 @@ namespace MedEasy.Handlers.Specialty.Queries
                 using (var uow = _factory.New())
                 {
                     available = ! await uow.Repository<Objects.Specialty>()
-                        .AnyAsync(item => item.Code.ToUpper() == code);
+                        .AnyAsync(item => item.Name.ToUpper() == name);
                 }
                 
             }
 
-            _logger.LogInformation($"Exiting {nameof(HandleIsCodeAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}");
+            _logger.LogInformation($"Exiting {nameof(HandleIsNameAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}");
             return available;
 
 

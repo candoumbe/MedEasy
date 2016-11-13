@@ -11,9 +11,8 @@ using MedEasy.Mapping;
 using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
 using MedEasy.API.StartupRegistration;
-using MedEasy.RestObjects;
-using Swashbuckle.Swagger.Model;
 using MedEasy.API.Filters;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace MedEasy.API
 {
@@ -74,8 +73,12 @@ namespace MedEasy.API
             // Add framework services.
             services.AddMvc(options =>
             {
-                options.Filters.Add(typeof(EnvelopeFilterAttribute));
+                options.Filters.Add(typeof(FormatFilter));
                 options.Filters.Add(typeof(ValidateModelAttribute));
+                options.Filters.Add(typeof(EnvelopeFilterAttribute));
+                options.Filters.Add(typeof(HandleErrorAttribute));
+
+                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             });
             
 
@@ -101,26 +104,6 @@ namespace MedEasy.API
                     config.IncludeXmlComments(Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml"));
                     config.DescribeStringEnumsInCamelCase();
                     config.DescribeAllEnumsAsStrings();
-                    config.MapType<GenericGetQuery>(() => new Schema
-                    {
-                        Properties =
-                        {
-                            [nameof(GenericGetQuery.Page)] = new Schema
-                                {
-                                    Type = "int",
-                                    Minimum = 1,
-                                    Default = 1,
-                                    Description = "Index of the page to get"
-                                },
-                            [nameof(GenericGetQuery.PageSize)] = new Schema
-                            {
-                                Type = "int",
-                                Minimum = 1,
-                                Default = 1,
-                                Description = "Number of items a page of result can contain at most"
-                            }
-                        }
-                    });
                 });
             }
 

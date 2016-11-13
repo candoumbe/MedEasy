@@ -262,11 +262,18 @@ namespace MedEasy.WebApi.Tests
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                     .BeOfType<BrowsableResource<DoctorInfo>>().Which
-                    .Location.Should()
+                    .Links.Should()
                         .NotBeNull();
 
             BrowsableResource<DoctorInfo> result = (BrowsableResource<DoctorInfo>)((OkObjectResult)actionResult).Value;
-            Link location = result.Location;
+            IEnumerable<Link> links = result.Links;
+
+            links.Should()
+                .NotBeNull().And
+                .Contain(x => x.Rel == "self");
+
+            Link location = links.Single(x => x.Rel == "self");
+
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}=1");

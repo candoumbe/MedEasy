@@ -5,12 +5,14 @@ namespace MedEasy.Objects
 
     public class Specialty : AuditableEntity<int, Specialty>
     {
-        public string Code { get; set; }
         /// <summary>
         /// List of doctors that has the current speciality
         /// </summary>
         public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
+        /// <summary>
+        /// Name of the specialty
+        /// </summary>
         public string Name { get; set; }
     }
 }

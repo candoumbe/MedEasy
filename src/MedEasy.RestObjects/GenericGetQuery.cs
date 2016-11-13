@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.RestObjects
 {
@@ -72,6 +72,9 @@ namespace MedEasy.RestObjects
                 _page = value < 1 ? 1 : value;
             }
         }
+
+
+        public override string ToString() => SerializeObject(this);
 
     }
 }

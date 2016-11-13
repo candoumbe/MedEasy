@@ -87,10 +87,12 @@ namespace MedEasy.API.Controllers
             BrowsableResource<TResource> browsableResource = new BrowsableResource<TResource>
             {
                 Resource = resource,
-                Location = new Link
-                {
-                    Href = urlHelper.Action(nameof(Get), new { id = resource.Id }),
-                    Rel = "self",
+                Links = new[]{
+                    new Link
+                    {
+                        Href = urlHelper.Action(nameof(Get), new { id = resource.Id }),
+                        Rel = "self",
+                    }
                 }
             };
             return browsableResource;

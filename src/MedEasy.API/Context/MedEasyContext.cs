@@ -178,10 +178,6 @@ namespace MedEasy.API.Stores
                     .UseSqlServerIdentityColumn()
                     .ValueGeneratedOnAdd();
 
-                entity.Property(item => item.Code)
-                    .HasMaxLength(5)
-                    .IsRequired();
-
                 entity.Property(item => item.Name)
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();

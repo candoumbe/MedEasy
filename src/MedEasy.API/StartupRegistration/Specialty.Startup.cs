@@ -23,7 +23,7 @@ namespace MedEasy.API.StartupRegistration
 
             services.AddScoped<IHandleGetSpecialtyInfoByIdQuery, HandleGetSpecialtyInfoByIdQuery>();
             services.AddScoped<IHandleGetManySpecialtyInfosQuery, HandleGetManySpecialtyInfoQuery>();
-            services.AddScoped<IHandleIsCodeAvailableForNewSpecialtyQuery, HandleIsCodeAvailableForNewSpecialtyQuery>();
+            services.AddScoped<IHandleIsNameAvailableForNewSpecialtyQuery, HandleIsNameAvailableForNewSpecialtyQuery>();
             services.AddScoped<IHandleFindDoctorsBySpecialtyIdQuery, HandleFindDoctorsBySpecialtyIdQuery>();
 
             services.AddScoped<IRunCreateSpecialtyCommand, RunCreateSpecialtyCommand>();

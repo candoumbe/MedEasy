@@ -1,14 +1,137 @@
-﻿using System;
+﻿using FluentAssertions;
+using MedEasy.API.Filters;
+using MedEasy.Handlers.Exceptions;
+using MedEasy.Validators;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
+using Moq;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using static MedEasy.Validators.ErrorLevel;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using static Moq.MockBehavior;
+using Xunit;
 
 namespace MedEasy.API.Tests.Filters
 {
-    public class HandleErrorAttributeTests
+    public class HandleErrorAttributeTests : IDisposable
     {
+        private HandleErrorAttribute _handleErrorAttribute;
+        private Mock<ILogger<HandleErrorAttribute>> _loggerMock;
+
+        public HandleErrorAttributeTests()
+        {
+            _loggerMock = new Mock<ILogger<HandleErrorAttribute>>(Strict);
+            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+
+            _handleErrorAttribute = new HandleErrorAttribute(_loggerMock.Object);
+        }
+
+        public void Dispose()
+        {
+            _loggerMock = null;
+            _handleErrorAttribute = null;
+        }
+
+        [Fact]
+        public async Task ShouldReturnsBadRequestWhenHandlingCommandNotValidException()
+        {
+            // Arrange
+            ActionContext actionContext = new ActionContext(
+               new Mock<HttpContext>().Object,
+               new Mock<RouteData>().Object,
+               new Mock<ActionDescriptor>().Object,
+               new ModelStateDictionary());
+
+            // Act
+            IEnumerable<ErrorInfo> exceptionErrors = new[] {
+                new ErrorInfo("prop1", "error 1", Error),
+                new ErrorInfo("prop2", "warning 2", Warning)
+            };
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
+            exceptionContext.Exception = new CommandNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
+            await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
 
 
-        
+            // Assert
+            exceptionContext.ExceptionHandled.Should().BeTrue();
+            BadRequestObjectResult badRequest = exceptionContext.Result.Should()
+                .BeAssignableTo<BadRequestObjectResult>().Which;
+
+            badRequest.Should().NotBeNull();
+            IEnumerable<ErrorInfo> errors = badRequest.Value.Should()
+                .NotBeNull().And
+                .BeAssignableTo<IEnumerable<ErrorInfo>>().Which;
+
+            errors.Should().BeEquivalentTo(exceptionErrors);
+        }
+
+        [Fact]
+        public async Task ShouldReturnsNotFoundResultWhenHandlingNotFoundException()
+        {
+            // Arrange
+            ActionContext actionContext = new ActionContext(
+               new Mock<HttpContext>().Object,
+               new Mock<RouteData>().Object,
+               new Mock<ActionDescriptor>().Object,
+               new ModelStateDictionary());
+
+            // Act
+            IEnumerable<ErrorInfo> exceptionErrors = new[] {
+                new ErrorInfo("prop1", "error 1", Error),
+                new ErrorInfo("prop2", "warning 2", Warning)
+            };
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
+            exceptionContext.Exception = new NotFoundException("exception message");
+            await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
+
+
+            // Assert
+            exceptionContext.ExceptionHandled.Should().BeTrue();
+            exceptionContext.Result.Should()
+                .BeOfType<NotFoundObjectResult>().Which
+                    .Value.Should()
+                        .NotBeNull();
+        }
+
+
+
+        [Fact]
+        public async Task ShouldReturnsBadRequestWhenHandlingQueryNotValidException()
+        {
+            // Arrange
+            ActionContext actionContext = new ActionContext(
+               new Mock<HttpContext>().Object,
+               new Mock<RouteData>().Object,
+               new Mock<ActionDescriptor>().Object,
+               new ModelStateDictionary());
+
+            // Act
+            IEnumerable<ErrorInfo> exceptionErrors = new[] {
+                new ErrorInfo("prop1", "error 1", Error),
+                new ErrorInfo("prop2", "warning 2", Warning)
+            };
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
+            exceptionContext.Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
+            await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
+
+
+            // Assert
+            exceptionContext.ExceptionHandled.Should().BeTrue();
+            BadRequestObjectResult badRequest = exceptionContext.Result.Should()
+                .BeAssignableTo<BadRequestObjectResult>().Which;
+
+            IEnumerable<ErrorInfo> errors = badRequest.Value.Should()
+                .NotBeNull().And
+                .BeAssignableTo<IEnumerable<ErrorInfo>>().Which;
+
+            errors.Should().BeEquivalentTo(exceptionErrors);
+        }
+
     }
 }

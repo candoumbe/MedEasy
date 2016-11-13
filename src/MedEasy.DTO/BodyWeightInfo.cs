@@ -14,8 +14,8 @@ namespace MedEasy.DTO
         /// <summary>
         /// Value of the measure
         /// </summary>
-        [Range(0, float.MaxValue)]
-        public float Value { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal Value { get; set; }
 
     }
 }

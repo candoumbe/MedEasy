@@ -115,9 +115,11 @@ namespace MedEasy.API.Controllers
                 actionResult = new OkObjectResult(new BrowsableResource<TResource>
                 {
                     Resource = resource,
-                    Location = new Link { 
-                        Rel = "self",
-                        Href = urlHelper.Action(nameof(Get), ControllerName,  new { id = resource.Id })
+                    Links = new[] {
+                        new Link {
+                            Rel = "self",
+                            Href = urlHelper.Action(nameof(Get), ControllerName,  new { id = resource.Id })
+                        }
                     }
                 });
             }

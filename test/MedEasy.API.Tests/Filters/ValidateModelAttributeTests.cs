@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Routing;
 using Moq;
 using System.Collections.Generic;
 using Xunit;
-using static Moq.MockBehavior;
 
 namespace MedEasy.API.Tests.Filters
 {

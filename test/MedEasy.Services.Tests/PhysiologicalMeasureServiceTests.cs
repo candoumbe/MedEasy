@@ -89,7 +89,7 @@ namespace MedEasy.Services.Tests
             }
         }
 
-        public static IEnumerable<object> GetOneMeasureAsyncCases
+        public static IEnumerable<object> GetOneBloodPressureAsyncCases
         {
             get
             {
@@ -106,6 +106,27 @@ namespace MedEasy.Services.Tests
                     },
                     new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
                     ((Expression<Func<BloodPressureInfo, bool>>)(x => x.PatientId == 1 && x.Id == 10))
+                };
+            }
+        }
+
+        public static IEnumerable<object> GetOneBodyWeightAsyncCases
+        {
+            get
+            {
+                yield return new object[] {
+                    Enumerable.Empty<BodyWeight>(),
+                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    ((Expression<Func<BodyWeightInfo, bool>>)(x => x == null))
+                };
+
+                yield return new object[] {
+                    new [] {
+                        new BodyWeight { Id = 10, PatientId = 1, Value = 80 },
+                        new BodyWeight { Id = 20, PatientId = 2, Value = 80 }
+                    },
+                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    ((Expression<Func<BodyWeightInfo, bool>>)(x => x.PatientId == 1 && x.Id == 10))
                 };
             }
         }
@@ -204,8 +225,8 @@ namespace MedEasy.Services.Tests
         }
 
         [Theory]
-        [MemberData(nameof(GetOneMeasureAsyncCases))]
-        public async Task GetOneMeasureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BloodPressureInfo, bool>> resultExpectation)
+        [MemberData(nameof(GetOneBloodPressureAsyncCases))]
+        public async Task GetOneBloodPressureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BloodPressureInfo, bool>> resultExpectation)
         {
             // Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>()
@@ -221,6 +242,32 @@ namespace MedEasy.Services.Tests
 
             // Act
             BloodPressureInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(query.PatientId, query.MeasureId));
+
+            // Assert
+            measure.Should().Match(resultExpectation);
+            _unitOfWorkFactoryMock.VerifyAll();
+            _loggerMock.VerifyAll();
+        }
+
+
+        [Theory]
+        [MemberData(nameof(GetOneBodyWeightAsyncCases))]
+        public async Task GetOneBodyWeightAsync(IEnumerable<BodyWeight> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BodyWeightInfo, bool>> resultExpectation)
+        {
+            // Arrange
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BodyWeight>()
+                .SingleOrDefaultAsync(
+                    It.IsAny<Expression<Func<BodyWeight, BodyWeightInfo>>>(),
+                    It.IsAny<Expression<Func<BodyWeight, bool>>>()))
+                .Returns((Expression<Func<BodyWeight, BodyWeightInfo>> selector, Expression<Func<BodyWeight, bool>> filter)
+
+                 => Task.Run(() =>
+                 {
+                     return measuresBdd.Where(filter.Compile()).Select(selector.Compile()).SingleOrDefault();
+                 }));
+
+            // Act
+            BodyWeightInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(query.PatientId, query.MeasureId));
 
             // Assert
             measure.Should().Match(resultExpectation);

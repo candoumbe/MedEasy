@@ -1,5 +1,6 @@
 ﻿using MedEasy.Validators;
 using MedEasy.Validators.Exceptions;
+using System;
 using System.Collections.Generic;
 
 namespace MedEasy.Handlers.Exceptions
@@ -20,8 +21,13 @@ namespace MedEasy.Handlers.Exceptions
         /// </summary>
         /// <param name="queryId"><see cref="IQuery.Id"/> that cause the exception to be thrown</param>
         /// <param name="errors">errors that causes the exception to be thrown</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="queryId"/> is equals to default value of <see cref="TQueryId"/></exception>
         public QueryNotValidException(TQueryId queryId, IEnumerable<ErrorInfo> errors) : base(errors)
         {
+            if (Equals(default(TQueryId), queryId))
+            {
+                throw new ArgumentOutOfRangeException(nameof(queryId), $"{nameof(queryId)} must not be set to default value");
+            }
             QueryId = queryId;
         }
 

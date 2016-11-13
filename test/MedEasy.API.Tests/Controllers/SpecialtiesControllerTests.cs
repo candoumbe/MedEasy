@@ -153,7 +153,7 @@ namespace MedEasy.WebApi.Tests
                 yield return new object[]
                     {
                         new [] {
-                            new Specialty { Id = 1, Code = "MG",  Name = "Médecine générale" }
+                            new Specialty { Id = 1, Name = "Médecine générale" }
                         },
                         GenericGetQuery.DefaultPageSize, 1, // request
                         1,    //expected total
@@ -256,7 +256,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
-                .ReturnsAsync(new SpecialtyInfo { Id = 1, Code = "SPEC", Name = "Specialty" })
+                .ReturnsAsync(new SpecialtyInfo { Id = 1, Name = "Specialty" })
                 .Verifiable();
 
             //Act
@@ -267,12 +267,17 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                    .BeOfType<BrowsableResource<SpecialtyInfo>>().Which
-                    .Location.Should()
+                    .BeAssignableTo<IBrowsableResource<SpecialtyInfo>>().Which
+                    .Links.Should()
                         .NotBeNull();
 
-            BrowsableResource<SpecialtyInfo> result = (BrowsableResource<SpecialtyInfo>)((OkObjectResult)actionResult).Value;
-            Link location = result.Location;
+            IBrowsableResource<SpecialtyInfo> result = (IBrowsableResource<SpecialtyInfo>)((OkObjectResult)actionResult).Value;
+            IEnumerable<Link> links = result.Links;
+            links.Should()
+                .NotBeNull().And
+                .Contain(x => x.Rel == "self");
+
+            Link location = result.Links.Single(x => x.Rel == "self");
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}=1");
@@ -283,7 +288,6 @@ namespace MedEasy.WebApi.Tests
             SpecialtyInfo resource = result.Resource;
             resource.Should().NotBeNull();
             resource.Id.Should().Be(1);
-            resource.Code.Should().Be("SPEC");
             resource.Name.Should().Be("Specialty");
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock.Verify();
@@ -297,12 +301,11 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
-                => new SpecialtyInfo { Id = 1, Code = cmd.Data.Code, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
+                => new SpecialtyInfo { Id = 1, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
             CreateSpecialtyInfo info = new CreateSpecialtyInfo
             {
-                Code = "mg",
                 Name = "médecine générale"
             };
 
@@ -325,8 +328,6 @@ namespace MedEasy.WebApi.Tests
             createdResource.Should()
                 .NotBeNull();
 
-            createdResource.Code.Should()
-                .Be(info.Code);
             createdResource.Name.Should()
                 .Be(info.Name);
 
@@ -386,7 +387,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new CommandNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrDuplicateCode", "A specialty with the same code already exists", ErrorLevel.Error)
+                    new ErrorInfo ("ErrDuplicateName", "A specialty with the same name already exists", ErrorLevel.Error)
                 });
 
             //Arrange
@@ -397,7 +398,6 @@ namespace MedEasy.WebApi.Tests
             //Act
             CreateSpecialtyInfo info = new CreateSpecialtyInfo
             {
-                Code = "mg",
                 Name = "médecine générale"
             };
 

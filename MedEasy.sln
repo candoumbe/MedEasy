@@ -60,6 +60,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.Services", "src\Med
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.Services.Tests", "test\MedEasy.Services.Tests\MedEasy.Services.Tests.xproj", "{0A00CE5E-2013-4A45-AA7A-93A00B4B15FF}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MedEasy.DTO.Tests", "test\MedEasy.DTO.Tests\MedEasy.DTO.Tests.xproj", "{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,10 @@ Global
 		{0A00CE5E-2013-4A45-AA7A-93A00B4B15FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A00CE5E-2013-4A45-AA7A-93A00B4B15FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A00CE5E-2013-4A45-AA7A-93A00B4B15FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -191,5 +197,6 @@ Global
 		{7749F33B-B0C3-4EF5-A3C1-A53087C3E434} = {C52690C1-EC6F-4CEE-9213-C1EFEAA36210}
 		{67419107-64B5-46A5-A5BF-031BC2FCFE84} = {EAAC395F-DA00-4403-B398-420633AC7122}
 		{0A00CE5E-2013-4A45-AA7A-93A00B4B15FF} = {C52690C1-EC6F-4CEE-9213-C1EFEAA36210}
+		{AFEC9A7D-A563-47EF-B6D3-5D111AF329BD} = {C52690C1-EC6F-4CEE-9213-C1EFEAA36210}
 	EndGlobalSection
 EndGlobal

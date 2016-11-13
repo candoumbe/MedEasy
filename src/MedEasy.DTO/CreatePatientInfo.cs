@@ -13,6 +13,7 @@ namespace MedEasy.DTO
     {
         
         [JsonProperty]
+        [StringLength(255)]
         public string Firstname { get; set; }
 
         /// <summary>
@@ -20,6 +21,7 @@ namespace MedEasy.DTO
         /// </summary>
         [JsonProperty]
         [Required]
+        [StringLength(255)]
         public string Lastname { get; set; }
 
         /// <summary>
@@ -32,6 +34,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Where the patient was born ?
         /// </summary>
+        [StringLength(255)]
         [JsonProperty]
         public string BirthPlace { get; set; }
 

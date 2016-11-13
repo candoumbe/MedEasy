@@ -8,10 +8,9 @@ namespace MedEasy.DTO
     /// <summary>
     /// Prescription resource
     /// </summary>
-    public class PrescriptionHeaderInfo : IResource<int>
+    public class PrescriptionHeaderInfo : ResourceBase<int>
     {
-        public int Id { get; set; }
-
+        
         /// <summary>
         /// Date on which the prescription was made
         /// </summary>

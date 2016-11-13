@@ -12,6 +12,11 @@ namespace MedEasy.DTO
     public abstract class ResourceBase<T> : IResource<T>
         where T : IEquatable<T>
     {
-        public T Id { get; }
+        public T Id { get; set; }
+
+        /// <summary>
+        /// Gets/sets when the resource was last modified
+        /// </summary>
+        public DateTimeOffset? UpdatedDate { get; set; }
     }
 }

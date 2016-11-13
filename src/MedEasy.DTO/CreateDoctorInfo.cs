@@ -11,12 +11,14 @@ namespace MedEasy.DTO
     [JsonObject]
     public class CreateDoctorInfo
     {
+        [StringLength(255)]
         [JsonProperty]
         public string Firstname { get; set; }
 
         /// <summary>
         /// Doctor's lastname
         /// </summary>
+        [StringLength(255)]
         [Required]
         [JsonProperty]
         public string Lastname { get; set; }

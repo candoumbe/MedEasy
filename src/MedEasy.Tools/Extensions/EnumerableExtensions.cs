@@ -20,8 +20,19 @@ namespace System.Collections.Generic
             {
                 throw new ArgumentNullException(nameof(groups));
             }
-            return groups.ToDictionary(g => g.Key, g => g.ToList().AsEnumerable());
+            return groups.ToDictionary(g => g.Key, g => g.AsEnumerable());
         }
+
+        /// <summary>
+        /// Tests if <paramref name="items"/> contains exactly one item
+        /// </summary>
+        /// <typeparam name="T">Type of the </typeparam>
+        /// <param name="items">Collection to test</param>
+        /// <returns><c>true</c> if <paramref name="items"/> contains exactly one element</returns>
+
+        public static bool Once<T>(this IEnumerable<T> items) => Once(items, x => true);
+
+
 
         /// <summary>
         /// Tests if <paramref name="items"/> contains exactly one item that verify the specified <paramref name="predicate"/>
@@ -42,7 +53,7 @@ namespace System.Collections.Generic
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            return !Equals(items.SingleOrDefault(predicate.Compile()), default(T));
+            return Exactly(items, predicate, 1);
         }
 
         /// <summary>
@@ -50,7 +61,7 @@ namespace System.Collections.Generic
         /// </summary>
         /// <typeparam name="T">Type of the </typeparam>
         /// <param name="items">Collection to test</param>
-        /// <param name="predicate">re</param>
+        /// <param name="predicate">predicate to use</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
         public static bool AtLeastOnce<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate)
         {
@@ -91,6 +102,8 @@ namespace System.Collections.Generic
             {
                 throw new ArgumentNullException(nameof(predicate));
             }
+
+
             return items.Count(predicate.Compile()) == count;
         }
 

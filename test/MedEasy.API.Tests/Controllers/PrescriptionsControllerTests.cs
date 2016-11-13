@@ -108,7 +108,13 @@ namespace MedEasy.API.Tests.Controllers
                     .Value.Should()
                     .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
 
-            Link location = result.Location;
+            IEnumerable<Link> links = result.Links;
+
+            links.Should()
+                .NotBeNull().And
+                .Contain(x => x.Rel == "self");
+
+            Link location = links.Single(x => x.Rel == "self");
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Get)}?{nameof(PrescriptionHeaderInfo.Id)}=1");
@@ -153,8 +159,8 @@ namespace MedEasy.API.Tests.Controllers
                     ((Expression<Func<IActionResult, bool>>)(x => x != null && 
                         x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 1 &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Location != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Location.Rel == "self"))
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Rel == "self") == 1))
                 };
 
                 yield return new object[] {
@@ -170,8 +176,8 @@ namespace MedEasy.API.Tests.Controllers
                     ((Expression<Func<IActionResult, bool>>)(x => x != null &&
                         x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 0 &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Location != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Location.Rel == "self"))
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Rel == "self") == 1))
                 };
 
                 yield return new object[] {

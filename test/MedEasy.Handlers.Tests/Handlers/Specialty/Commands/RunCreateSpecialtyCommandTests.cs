@@ -106,7 +106,6 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             //Act
             CreateSpecialtyInfo input = new CreateSpecialtyInfo
             {
-                Code = "mg",
                 Name = "médecine générale"
             };
             CreateSpecialtyCommand command = new CreateSpecialtyCommand(input);
@@ -118,7 +117,6 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             //Assert
             output.Should().NotBeNull();
             output.Id.Should().Be(1);
-            output.Code.Should().Be(input.Code.ToUpper());
             output.Name.Should().Be(input.Name.ToTitleCase());
 
             _unitOfWorkFactoryMock.VerifyAll();
@@ -131,16 +129,16 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void CreateAResourceWithACodeThatIsNotAvailableShouldFail()
+        public void CreateAResourceWithANameThatIsNotAvailableShouldFail()
         {
             //Arrange
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns((ICreateSpecialtyCommand cmd) => new Task<ErrorInfo>[] {
-                    Task.FromResult(new ErrorInfo ("ErrDuplicate", $@"a resource with ""{nameof(SpecialtyInfo.Code)}"" : ""{cmd.Data.Code}"" already exists", Error ))
+                    Task.FromResult(new ErrorInfo ("ErrDuplicate", $@"a resource with ""{nameof(SpecialtyInfo.Name)}"" : ""{cmd.Data.Name}"" already exists", Error ))
                 });
 
             //Act
-            ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Code = "CodeThatAlreadyExists" });
+            ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "NameThatAlreadyExists" });
             Func<Task> action = async () => await _runner.RunAsync(command);
 
             var exception = action.ShouldThrow<CommandNotValidException<Guid>>();
@@ -232,7 +230,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 .Verifiable(); 
 
             //Act
-            ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Code = "mg", Name = "Médecine générale" });
+            ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "Médecine générale" });
             Func<Task> action = async () => await _runner.RunAsync(command);
 
             //Assert

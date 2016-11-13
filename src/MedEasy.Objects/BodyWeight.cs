@@ -10,7 +10,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// Gets / sets the temperature
         /// </summary>
-        public float Value { get; set; }
+        public decimal Value { get; set; }
 
         public bool Equals(BodyWeight other) => ReferenceEquals(this, other) || (other != null && Value.Equals(other.Value));
 

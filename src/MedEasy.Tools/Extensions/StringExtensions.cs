@@ -3,14 +3,17 @@ using System.Text;
 
 namespace System
 {
+    /// <summary>
+    /// Extension methods for <see cref="string"/> type
+    /// </summary>
     public static class StringExtensions
     {
         /// <summary>
-        /// Converts the <paramref name="input"/> to Title Case
+        /// Converts the <paramref name="input"/> to its Title Case equivalent
         /// </summary>
         /// <param name="input">the string to convert</param>
         /// <returns>the string converted to Title case</returns>
-        /// <example><c>"cyrille-alexandre".<see cref="ToTitleCase()"/></c> returns <c></c></example>
+        /// <example><c>"cyrille-alexandre".<see cref="ToTitleCase()"/></c> returns <c>"Cyrille-Alexandre"</c></example>
         public static string ToTitleCase(this string input)
         {
             StringBuilder sbResult = new StringBuilder(input?.Length ?? 0);

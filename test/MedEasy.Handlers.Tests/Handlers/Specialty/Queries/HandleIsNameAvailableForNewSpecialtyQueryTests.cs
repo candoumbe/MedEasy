@@ -16,27 +16,27 @@ using MedEasy.Queries.Specialty;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
-    public class HandleIsCodeAvailableForNewSpecialtyQueryTests : IDisposable
+    public class HandleIsNameAvailableForNewSpecialtyQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private Mock<ILogger<HandleIsCodeAvailableForNewSpecialtyQuery>> _loggerMock;
-        private HandleIsCodeAvailableForNewSpecialtyQuery _handler;
+        private Mock<ILogger<HandleIsNameAvailableForNewSpecialtyQuery>> _loggerMock;
+        private HandleIsNameAvailableForNewSpecialtyQuery _handler;
 
-        public HandleIsCodeAvailableForNewSpecialtyQueryTests(ITestOutputHelper outputHelper)
+        public HandleIsNameAvailableForNewSpecialtyQueryTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
 
-            _loggerMock = new Mock<ILogger<HandleIsCodeAvailableForNewSpecialtyQuery>>(Strict);
+            _loggerMock = new Mock<ILogger<HandleIsNameAvailableForNewSpecialtyQuery>>(Strict);
 
-            _handler = new HandleIsCodeAvailableForNewSpecialtyQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object);
+            _handler = new HandleIsNameAvailableForNewSpecialtyQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object);
         }
 
 
 
-        public static IEnumerable<object[]> Cases
+        public static IEnumerable<object[]> IsNameAvailaibleCases
 
         {
             get
@@ -73,7 +73,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    "SPEC-01",
                    false
@@ -82,7 +82,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    "SPEC-01",
                    false
@@ -91,7 +91,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    " SPEC-01",
                    false
@@ -100,7 +100,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    "SPEC-01 ",
                    false
@@ -109,7 +109,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    " SPEC-01 ",
                    false
@@ -117,7 +117,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 yield return new object[]
                 {
                    new [] {
-                       new Objects.Specialty { Code = "SPEC-01" }
+                       new Objects.Specialty { Name = "SPEC-01" }
                    },
                    " spec-01 ",
                    false
@@ -130,46 +130,45 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             {
                 yield return new object[] { null, null };
                 yield return new object[] { Mock.Of<IUnitOfWorkFactory>(), null };
-                yield return new object[] { null, Mock.Of<ILogger<HandleIsCodeAvailableForNewSpecialtyQuery>>() };
+                yield return new object[] { null, Mock.Of<ILogger<HandleIsNameAvailableForNewSpecialtyQuery>>() };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorCases))]
-        public void CtorShouldThrowArgumentNullExcption(IUnitOfWorkFactory factory, ILogger<HandleIsCodeAvailableForNewSpecialtyQuery> logger)
+        public void CtorShouldThrowArgumentNullExcption(IUnitOfWorkFactory factory, ILogger<HandleIsNameAvailableForNewSpecialtyQuery> logger)
         {
-            Action action = () => new HandleIsCodeAvailableForNewSpecialtyQuery(factory, logger);
+            Action action = () => new HandleIsNameAvailableForNewSpecialtyQuery(factory, logger);
             action.ShouldThrow<ArgumentNullException>()
                 .Where(x => x.ParamName != null, "paramName must always be set in order to debug easily");
         }
 
         [Theory]
-        [MemberData(nameof(Cases))]
+        [MemberData(nameof(IsNameAvailaibleCases))]
         public async Task HandleAsync(IEnumerable<Objects.Specialty> specialtiesInStore, string codeToSearch, bool expectedAvailabilty)
         {
-            _outputHelper.WriteLine($"Testing {nameof(HandleIsCodeAvailableForNewSpecialtyQuery)}.{nameof(HandleIsCodeAvailableForNewSpecialtyQuery.HandleAsync)} {Environment.NewLine}");
+            _outputHelper.WriteLine($"Testing {nameof(HandleIsNameAvailableForNewSpecialtyQuery)}.{nameof(HandleIsNameAvailableForNewSpecialtyQuery.HandleAsync)} {Environment.NewLine}");
             _outputHelper.WriteLine($"Code to test : '{codeToSearch}'");
             _outputHelper.WriteLine($"Specialty store content : '{SerializeObject(specialtiesInStore)}");
 
-            #region Arrange
+            // Arrange
 
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>()))
                 .Returns((Expression<Func<Objects.Specialty, bool>> filter) => Task.Run(() => specialtiesInStore.Any(filter.Compile())));
 
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()));
-            #endregion
+            
+            // Act
+            bool currentResult = await _handler.HandleAsync(new IsNameAvailableForNewSpecialtyQuery(codeToSearch));
 
-            bool currentResult = await _handler.HandleAsync(new IsCodeAvailableForNewSpecialtyQuery(codeToSearch));
-
-            #region Assert
+            // Assert
 
             currentResult.Should().Be(expectedAvailabilty);
 
             _unitOfWorkFactoryMock.Verify();
             _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
-            #endregion
         }
 
 

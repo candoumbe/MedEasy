@@ -17,6 +17,7 @@ namespace MedEasy.Mapping
             cfg.CreateMap<Temperature, TemperatureInfo>();
             cfg.CreateMap<CreateBloodPressureInfo, BloodPressure>();
             cfg.CreateMap<BloodPressure, BloodPressureInfo>();
+            cfg.CreateMap<BodyWeight, BodyWeightInfo>();
 
             cfg.CreateMap<Doctor, DoctorInfo>();
 

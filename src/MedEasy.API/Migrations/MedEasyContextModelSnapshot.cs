@@ -61,7 +61,7 @@ namespace MedEasy.API.Migrations
 
                     b.Property<DateTimeOffset?>("UpdatedDate");
 
-                    b.Property<float>("Value");
+                    b.Property<decimal>("Value");
 
                     b.HasKey("Id");
 
@@ -218,10 +218,6 @@ namespace MedEasy.API.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasAnnotation("MaxLength", 5);
 
                     b.Property<string>("CreatedBy");
 

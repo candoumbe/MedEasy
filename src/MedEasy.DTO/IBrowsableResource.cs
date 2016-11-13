@@ -1,4 +1,5 @@
 ﻿using MedEasy.RestObjects;
+using System.Collections.Generic;
 
 namespace MedEasy.DTO
 {
@@ -8,9 +9,12 @@ namespace MedEasy.DTO
     public interface IBrowsableResource<T>
     {
        /// <summary>
-       /// Location of the resource
+       /// Links associated with the resource
        /// </summary>
-        Link Location { get; }
+       /// <remarks>
+       /// This property can be used by <see cref="EnvelopeFilterAttribute"/> to set HTTP response HEADERS
+       /// </remarks>
+        IEnumerable<Link> Links{ get; }
 
         /// <summary>
         /// The resource

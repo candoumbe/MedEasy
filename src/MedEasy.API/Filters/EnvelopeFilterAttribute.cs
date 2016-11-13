@@ -20,7 +20,7 @@ namespace MedEasy.API.Filters
     public class EnvelopeFilterAttribute : ResultFilterAttribute, IResultFilter
     {
 
-        private static Func<Link, string> BuildLinkHeader => location => location == null 
+        private static Func<Link, string> BuildLinkHeader => location => location == null
             ? string.Empty
             : $@"<{location.Href}>;{(string.IsNullOrWhiteSpace(location.Rel) ? string.Empty : $@" rel=""{location.Rel}""")}";
 
@@ -28,29 +28,32 @@ namespace MedEasy.API.Filters
         {
             base.OnResultExecuting(context);
             IActionResult result = context.Result;
-            if (result is OkObjectResult)
+            if (result is ObjectResult)
             {
-                OkObjectResult okObjectResult = (OkObjectResult)result;
-                object value = okObjectResult.Value;
+
+                object value = ((ObjectResult)result).Value;
                 Type valueType = value.GetType();
                 Type typeBrowsable = typeof(IBrowsableResource<>);
                 Type typePageOfResult = typeof(GenericPagedGetResponse<>);
                 if (valueType.IsAssignableToGenericType(typeBrowsable))
                 {
-
                     typeBrowsable = typeBrowsable.MakeGenericType(valueType.GetGenericArguments()[0]);
                     IEnumerable<PropertyInfo> properties = typeBrowsable.GetProperties();
-                    PropertyInfo piLocation = properties
-                        .Single(x => x.CanRead && x.Name == nameof(IBrowsableResource<object>.Location));
+                    PropertyInfo piLinks = properties
+                        .Single(x => x.CanRead && x.Name == nameof(IBrowsableResource<object>.Links));
                     PropertyInfo piResource = properties
                         .Single(x => x.Name == nameof(IBrowsableResource<object>.Resource));
 
 
                     object resource = piResource.GetValue(value);
-                    context.Result = new OkObjectResult(resource); //extract the resource
-                    Link location = (Link)piLocation.GetValue(value);
-                    context.HttpContext.Response.Headers.Add("Link", BuildLinkHeader(location));
-
+                    IEnumerable<Link> links = (IEnumerable<Link>)piLinks.GetValue(value);
+                    StringBuilder sbLinks = new StringBuilder();
+                    foreach (Link link in links)
+                    {
+                        sbLinks.Append($"{(sbLinks.Length > 0 ? ", " : string.Empty)}{BuildLinkHeader(link)}");
+                    }
+                    context.HttpContext.Response.Headers.Add("Link", sbLinks.ToString());
+                    ((ObjectResult)result).Value = resource;
                 }
                 else if (valueType.IsAssignableToGenericType(typePageOfResult))
                 {
@@ -62,7 +65,8 @@ namespace MedEasy.API.Filters
                     PropertyInfo piCount = properties.Single(x => x.Name == nameof(GenericPagedGetResponse<object>.Count));
 
                     object resources = piResources.GetValue(value);
-                    context.Result = new OkObjectResult(resources); //extract the resource
+
+                    // context.Result = new OkObjectResult(resources); //extract the resource
                     PagedRestResponseLink links = (PagedRestResponseLink)piLinks.GetValue(value);
                     StringBuilder sbLinks = new StringBuilder();
                     if (links.First != null)
@@ -86,8 +90,7 @@ namespace MedEasy.API.Filters
                     }
                     context.HttpContext.Response.Headers.Add("Link", sbLinks.ToString());
                     context.HttpContext.Response.Headers.Add("X-Total-Count", piCount.GetValue(value).ToString());
-
-
+                    ((ObjectResult)result).Value = resources;
                 }
             }
         }

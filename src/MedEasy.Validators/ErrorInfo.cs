@@ -1,12 +1,33 @@
-﻿namespace MedEasy.Validators
+﻿using Newtonsoft.Json;
+
+namespace MedEasy.Validators
 {
+    /// <summary>
+    /// Represents an error
+    /// </summary>
+    [JsonObject]
     public class ErrorInfo
     {
-        public string Key { get; }
+        /// <summary>
+        /// Key
+        /// </summary>
+        public string Key { get; set; }
+        /// <summary>
+        /// Description of the error
+        /// </summary>
+        public string Description { get; set; }
 
-        public string Description { get; }
-        public ErrorLevel Severity { get; }
+        /// <summary>
+        /// Severity of the error
+        /// </summary>
+        public ErrorLevel Severity { get; set; }
 
+        /// <summary>
+        /// Builds a new <see cref="ErrorInfo"/> instance.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="description"></param>
+        /// <param name="severity"></param>
         public ErrorInfo(string key, string description, ErrorLevel severity)
         {
             Key = key;

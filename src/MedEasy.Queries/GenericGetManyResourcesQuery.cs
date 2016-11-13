@@ -1,13 +1,15 @@
-﻿using MedEasy.DAL.Repositories;
-using MedEasy.RestObjects;
+﻿using MedEasy.RestObjects;
+using Newtonsoft.Json;
 using System;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Queries
 {
     /// <summary>
     /// Base class for creating queries that request many resources
     /// </summary>
-    /// <typeparam name="TResource"></typeparam>
+    /// <typeparam name="TResource">Type of the resource to get</typeparam>
+    [JsonObject]
     public class GenericGetManyResourcesQuery<TResource> : IWantManyResources<Guid, TResource>
     {
         /// <summary>
@@ -27,6 +29,6 @@ namespace MedEasy.Queries
             Data = queryConfig;
         }
 
-            
+        public override string ToString() => SerializeObject(this);
     }
 }

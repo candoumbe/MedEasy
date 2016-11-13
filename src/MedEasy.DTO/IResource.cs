@@ -14,5 +14,9 @@ namespace MedEasy.DTO
         /// </summary>
         T Id { get; }
 
+        /// <summary>
+        /// Last time the resource was updated
+        /// </summary>
+        DateTimeOffset? UpdatedDate { get; }
     }
 }

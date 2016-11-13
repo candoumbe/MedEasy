@@ -65,10 +65,12 @@ namespace MedEasy.API.Controllers
                 IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
                 {
                     Resource = prescriptionHeaderInfo,
-                    Location = new Link
-                    {
-                        Href = urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
-                        Rel = "self"
+                    Links = new[] {
+                        new Link
+                        {
+                            Href = urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
+                            Rel = "self"
+                        }
                     }
                 };
 
@@ -106,13 +108,15 @@ namespace MedEasy.API.Controllers
                 IBrowsableResource<IEnumerable<PrescriptionItemInfo>> browsableResource = new BrowsableResource<IEnumerable<PrescriptionItemInfo>>
                 {
                     Resource = prescriptionInfo.Items,
-                    Location = new Link
-                    {
-                        Rel = "self",
-                        Href = urlHelper.Action(nameof(Details), EndpointName, new { prescriptionInfo.Id })
+                    Links = new[] {
+                        new Link
+                        {
+                            Rel = "self",
+                            Href = urlHelper.Action(nameof(Details), EndpointName, new { prescriptionInfo.Id })
+                        }
                     }
                 };
-                
+
                 actionResult = new OkObjectResult(browsableResource);
             }
             else
