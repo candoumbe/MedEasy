@@ -2,6 +2,8 @@
 using MedEasy.DTO;
 using MedEasy.DTO.Autocomplete;
 using MedEasy.Objects;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace MedEasy.Mapping
 {
@@ -37,8 +39,12 @@ namespace MedEasy.Mapping
                 .ForMember(dest => dest.Text, opt => opt.MapFrom(source => source.Firstname + " " + source.Lastname))
                 .ForMember(dest => dest.Specialty, opt => opt.MapFrom(source => source.Specialty.Name));
 
-           
+
             #endregion
+
+            cfg.CreateMap(typeof(JsonPatchDocument<>), typeof(JsonPatchDocument<>));
+            cfg.CreateMap(typeof(Operation<>), typeof(Operation<>));
+
 
         });
     }

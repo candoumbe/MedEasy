@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace MedEasy.DTO
 {
@@ -6,7 +7,7 @@ namespace MedEasy.DTO
     /// Represents a set of changes to apply atomically.
     /// </summary>
     /// <typeparam name="TResourceId">Type of the identifier of the resource to update</typeparam>
-    public interface IPatchInfo<TResourceId>
+    public interface IPatchInfo<TResourceId, TResource> where TResource : class
     {
         /// <summary>
         /// Id of the resource
@@ -14,8 +15,8 @@ namespace MedEasy.DTO
         TResourceId Id { get; }
 
         /// <summary>
-        /// Set of <see cref="ChangeInfo"/> to apply.
+        /// Patch document to apply to the resource
         /// </summary>
-        IEnumerable<ChangeInfo> Changes { get; }
+        JsonPatchDocument<TResource> PatchDocument { get; }
     }
 }

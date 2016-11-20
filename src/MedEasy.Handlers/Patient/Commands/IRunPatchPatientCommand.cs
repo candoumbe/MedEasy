@@ -7,8 +7,7 @@ using System.Collections.Generic;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
-    public interface IRunPatchPatientCommand : IRunCommandAsync<Guid, IPatchInfo<int>, PatientInfo, IPatchCommand<int>>
-
+    public interface IRunPatchPatientCommand : IRunCommandAsync<Guid, IPatchInfo<int, Objects.Patient>, IPatchCommand<int, Objects.Patient>>
     {
 
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace MedEasy.Validators
 {
     /// <summary>
-    /// Valid
+    /// Static clas
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public sealed class Validator<T> : IValidate<T>
@@ -16,7 +16,6 @@ namespace MedEasy.Validators
         private Validator()
         {}
 
-        private static object Lock => new object();
         private static readonly Lazy<Validator<T>> lazy = new Lazy<Validator<T>>(() => new Validator<T>());
 
         /// <summary>

@@ -21,14 +21,15 @@ using MedEasy.Commands;
 using MedEasy.Mapping;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using static MedEasy.DTO.ChangeInfoType;
+using Microsoft.AspNetCore.JsonPatch;
+
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
     public class RunPatchPatientCommandTests : IDisposable
     {
         private RunPatchPatientCommand _commandRunner;
-        private Mock<IValidate<IPatchCommand<int>>> _commandValidatorMock;
+        private Mock<IValidate<IPatchCommand<int, Objects.Patient>>> _commandValidatorMock;
         private Mock<ILogger<RunPatchPatientCommand>> _loggerMock;
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _uowFactoryMock;
@@ -43,10 +44,9 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             _loggerMock = new Mock<ILogger<RunPatchPatientCommand>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _commandValidatorMock = new Mock<IValidate<IPatchCommand<int>>>(Strict);
-            _mapper = AutoMapperConfig.Build().CreateMapper();
-
-            _commandRunner = new RunPatchPatientCommand(_uowFactoryMock.Object, _loggerMock.Object, _commandValidatorMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _commandValidatorMock = new Mock<IValidate<IPatchCommand<int, Objects.Patient>>>(Strict);
+            
+            _commandRunner = new RunPatchPatientCommand(_uowFactoryMock.Object, _loggerMock.Object, _commandValidatorMock.Object);
         }
 
         public void Dispose()
@@ -65,20 +65,18 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         {
             get
             {
-                yield return new object[] { null, new Mock<ILogger<RunPatchPatientCommand>>().Object, new Mock<IValidate<IPatchCommand<int>>>().Object, new Mock<IExpressionBuilder>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, new Mock<IValidate<IPatchCommand<int>>>().Object, new Mock<IExpressionBuilder>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, new Mock<ILogger<RunPatchPatientCommand>>().Object, null,  new Mock<IExpressionBuilder>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, new Mock<ILogger<RunPatchPatientCommand>>().Object, new Mock<IValidate<IPatchCommand<int>>>().Object, null };
-                
+                yield return new object[] { null, new Mock<ILogger<RunPatchPatientCommand>>().Object, new Mock<IValidate<IPatchCommand<int, Objects.Patient>>>().Object };
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, new Mock<IValidate<IPatchCommand<int, Objects.Patient>>>().Object};
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, new Mock<ILogger<RunPatchPatientCommand>>().Object, null };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorInvalidCases))]
-        public void CtorShouldThrowArgumentNullException(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int>> validator, IExpressionBuilder expressionBuilder)
+        public void CtorShouldThrowArgumentNullException(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int, Objects.Patient>> validator)
         {
             // Act
-            Action action = () => new RunPatchPatientCommand(uowFactory, logger, validator, expressionBuilder);
+            Action action = () => new RunPatchPatientCommand(uowFactory, logger, validator);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().Which
@@ -92,78 +90,46 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         {
             get
             {
-                yield return new object[]
                 {
-                    new [] {
-                        new Objects.Patient { Id = 1, MainDoctorId = null }
-                    },
-                    new [] {
-                        new Objects.Doctor { Id = 3 },
-                        new Objects.Doctor { Id = 2 }
-                    },
-                    new PatchInfo<int> {
-                        Id = 1,
-                        Changes = new [] {
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 2 }
-                        }
-                    },
-                    ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == 2 ))
-                };
-
-
-                yield return new object[]
+                    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+                    patchDocument.Replace(x => x.MainDoctorId, 2);
+                    yield return new object[]
+                    {
+                        new [] {
+                            new Objects.Patient { Id = 1, MainDoctorId = null }
+                        },
+                        new [] {
+                            new Objects.Doctor { Id = 3 },
+                            new Objects.Doctor { Id = 2 }
+                        },
+                        new PatchInfo<int, Objects.Patient> {
+                            Id = 1,
+                            PatchDocument = patchDocument
+                        },
+                        ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == 2 ))
+                    };
+                }
                 {
-                    new [] {
-                        new Objects.Patient { Id = 1, MainDoctorId = 2 }
-                    },
-                    new [] {
-                        new Objects.Doctor { Id = 3 },
-                        new Objects.Doctor { Id = 2 }
-                    },
-                    new PatchInfo<int> {
-                        Id = 1,
-                        Changes = new [] {
-                            new ChangeInfo { Op = Remove, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 2 }
-                        }
-                    },
-                    ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == null ))
-                };
+                    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+                    patchDocument.Replace(x => x.MainDoctorId, null);
 
-                yield return new object[]
-                {
-                    new [] {
-                        new Objects.Patient { Id = 1, MainDoctorId = 2 }
-                    },
-                    new [] {
-                        new Objects.Doctor { Id = 3 },
-                        new Objects.Doctor { Id = 2 }
-                    },
-                    new PatchInfo<int> {
-                        Id = 1,
-                        Changes = new [] {
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = null }
-                        }
-                    },
-                    ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == null ))
-                };
+                    yield return new object[]
+                    {
+                        new [] {
+                            new Objects.Patient { Id = 1, MainDoctorId = 2 }
+                        },
+                        new [] {
+                            new Objects.Doctor { Id = 3 },
+                            new Objects.Doctor { Id = 2 }
+                        },
+                        new PatchInfo<int, Objects.Patient> {
+                            Id = 1,
+                            PatchDocument = patchDocument
+                        },
+                        ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == null ))
+                    };
+                }
 
-                yield return new object[]
-                {
-                    new [] {
-                        new Objects.Patient { Id = 1, MainDoctorId = 2 }
-                    },
-                    new [] {
-                        new Objects.Doctor { Id = 3 },
-                        new Objects.Doctor { Id = 2 }
-                    },
-                    new PatchInfo<int> {
-                        Id = 1,
-                        Changes = new [] {
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 3 }
-                        }
-                    },
-                    ((Expression<Func<Objects.Patient, bool>>)( x => x.Id == 1 && x.MainDoctorId == 3 ))
-                };
 
             }
         }
@@ -177,7 +143,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// <param name="patientExpectation">Expectation on the output of the command</param>
         [Theory]
         [MemberData(nameof(PatchPatientCases))]
-        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, PatchInfo<int> changes, Expression<Func<Objects.Patient, bool>> patientExpectation)
+        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, PatchInfo<int, Objects.Patient> changes, Expression<Func<Objects.Patient, bool>> patientExpectation)
         {
             _outputHelper.WriteLine($"Current patient store state : {SerializeObject(patients)}");
             _outputHelper.WriteLine($"Current doctor store state : {SerializeObject(doctors)}");
@@ -186,7 +152,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             // Arrange
             Objects.Patient patientToUpdate = null;
 
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int>>()))
+            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int, Objects.Patient>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>().AnyAsync(It.IsAny<Expression<Func<Objects.Doctor, bool>>>()))
@@ -200,11 +166,18 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 .ReturnsAsync(1);
 
             // Act
-            IPatchCommand<int> command = new PatchCommand<int>(new PatchInfo<int> { Id = 1,  Changes = Enumerable.Empty<ChangeInfo>() });
-            PatientInfo patientInfo = await _commandRunner.RunAsync(command);
+            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+
+            IPatchInfo<int, Objects.Patient> commandData = new PatchInfo<int, Objects.Patient>
+            {
+                Id = 1,
+                PatchDocument = patchDocument
+            };
+            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(commandData);
+            await _commandRunner.RunAsync(command);
 
             // Assert
-            
+
             _commandValidatorMock.Verify(mock => mock.Validate(command), Once);
             _uowFactoryMock.Verify(mock => mock.New().SaveChangesAsync(), Once);
         }
@@ -217,15 +190,20 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         public void ShouldThrowCommandNotValidExceptionWhenCommandValidationFails()
         {
             // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int>>()))
+            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int, Objects.Patient>>()))
                 .Returns(new[]
                 {
-                    Task.FromResult(new ErrorInfo(nameof(PatientInfo.MainDoctorId), "Doctor not found", Error))
+                    Task.FromResult(new ErrorInfo(nameof(Objects.Patient.Id), "ID of the resource cannot change", Error))
                 });
 
 
             // Act
-            IPatchCommand<int> command = new PatchCommand<int>(new PatchInfo<int> { Id = 1, Changes = Enumerable.Empty<ChangeInfo>() } );
+            IPatchInfo<int, Objects.Patient> patchInfo = new PatchInfo<int, Objects.Patient>
+            {
+                Id = 1,
+                PatchDocument = new JsonPatchDocument<Objects.Patient>()
+            };
+            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(patchInfo);
             Func<Task> action = async () => await _commandRunner.RunAsync(command);
 
             // Assert
@@ -234,7 +212,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             exception.CommandId.Should().Be(command.Id);
             exception.Errors.Should()
                 .NotBeNullOrEmpty().And
-                .Contain(x => x.Key == nameof(PatientInfo.MainDoctorId));
+                .Contain(x => x.Key == nameof(Objects.Patient.Id));
 
 
         }
@@ -250,14 +228,22 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         public void ShouldThrowNotFoundExceptionIfPatientNotFound()
         {
             // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int>>()))
+            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int, Objects.Patient>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Patient, bool>>>()))
                 .ReturnsAsync(null);
 
             // Act
-            IPatchCommand<int> command = new PatchCommand<int> (new PatchInfo<int>());
+            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+            patchDocument.Replace(x => x.Firstname, "Bruce");
+
+            IPatchInfo<int, Objects.Patient> commandData = new PatchInfo<int, Objects.Patient>
+            {
+                Id = 3,
+                PatchDocument = patchDocument
+            };
+            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(commandData);
             Func<Task> action = async () => await _commandRunner.RunAsync(command);
 
 
@@ -279,21 +265,21 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         public void ShouldThrowNotFoundExceptionIfDoctorNotFound()
         {
             // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int>>()))
+            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<int, Objects.Patient>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>().AnyAsync(It.IsAny<Expression<Func<Objects.Doctor, bool>>>()))
                 .ReturnsAsync(false);
 
             // Act
-            IPatchCommand<int> command = new PatchCommand<int>(new PatchInfo<int>
+            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+            patchDocument.Replace(x => x.MainDoctorId, 3);
+            IPatchInfo<int, Objects.Patient> data = new PatchInfo<int, Objects.Patient>
             {
                 Id = 1,
-                Changes = new[] 
-                {
-                    new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 12 }
-                }
-            });
+                PatchDocument = patchDocument
+            };
+            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(data) ;
             Func<Task> action = async () => await _commandRunner.RunAsync(command);
 
 
@@ -302,6 +288,8 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 .Message.Should()
                     .NotBeNullOrWhiteSpace().And
                     .ContainEquivalentOf("doctor");
+
+            _uowFactoryMock.Verify(mock => mock.New().SaveChangesAsync(), Never);
         }
     }
 }

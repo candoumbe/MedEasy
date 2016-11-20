@@ -9,6 +9,7 @@ using System;
 using MedEasy.DTO;
 using MedEasy.Objects;
 using MedEasy.Services;
+using MedEasy.Commands;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -26,7 +27,7 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
             services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
             services.AddScoped<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(x => Validator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>.Default);
-            services.AddScoped<IValidate<IPatchPatientCommand>>(x => Validator<IPatchPatientCommand>.Default);
+            services.AddScoped<IValidate<IPatchCommand<int, Patient>>, ValidatePatchPatientCommand>();
 
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();

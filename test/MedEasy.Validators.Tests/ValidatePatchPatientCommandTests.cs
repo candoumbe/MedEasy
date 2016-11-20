@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static MedEasy.Validators.ErrorLevel;
-using static MedEasy.DTO.ChangeInfoType;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace MedEasy.Validators.Tests
 {
@@ -38,161 +38,56 @@ namespace MedEasy.Validators.Tests
             {
                 yield return new object[]
                 {
-                    new PatchInfo<int>(),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x => 
+                    new PatchInfo<int, Objects.Patient>(),
+                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
                         x.Count() == 2 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int>.Id)) && 
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int>.Changes)))
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.Id)) &&
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
                     ),
                     "Id of resource to patch not set and no change to make"
                 };
 
                 yield return new object[]
                 {
-                    new PatchInfo<int>
+                    new PatchInfo<int, Objects.Patient>
                     {
                         Id = 1,
                     },
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
                         x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int>.Changes)))
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
                     ),
                     "no change to make"
                 };
 
 
-                yield return new object[]
                 {
-                    new PatchInfo<int>
+                    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+                    patchDocument.Replace(x => x.Id, 1);
+
+                    yield return new object[]
                     {
-                        Id = 1,
-                        Changes = new []
+                        new PatchInfo<int, Objects.Patient>
                         {
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 1 },
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 2 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatientInfo.MainDoctorId)))
-                    ),
-                    "Two changes set for the same operation but with different values is not a valid command"
-                };
-
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Add, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 1 },
-                            new ChangeInfo { Op = Update, Path = $"/{nameof(PatientInfo.MainDoctorId)}", Value = 2 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatientInfo.MainDoctorId)))
-                    ),
-                    "multiple changes for the same path"
-                };
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Update, Path = $"//{nameof(PatientInfo.MainDoctorId)}", Value = 1 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(ChangeInfo.Path)))
-                    ),
-                    $"multiple '/' at the beginning of a {nameof(ChangeInfo.Path)} is not valid"
-                };
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Update, Path = $"", Value = 1 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(ChangeInfo.Path)))
-                    ),
-                    $"Empty {nameof(ChangeInfo.Path)} is not valid"
-                };
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Update, Path = "/", Value = 1 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(ChangeInfo.Path)))
-                    ),
-                    $"Empty {nameof(ChangeInfo.Path)} is not valid"
-                };
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Update, Path = "/   ", Value = 1 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(ChangeInfo.Path)))
-                    ),
-                    $"Whitespace only '{nameof(ChangeInfo.Path)}' is not valid"
-                };
-
-                yield return new object[]
-                {
-                    new PatchInfo<int>
-                    {
-                        Id = 1,
-                        Changes = new []
-                        {
-                            new ChangeInfo { Op = Update, Path = "/Toto", Value = 1 }
-                        }
-                    },
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
-                        x.Count() == 1 &&
-                        x.Once(error => error.Key == nameof(ChangeInfo.Path) && error.Description == "Unknown property 'Toto'" && error.Severity == Error))
-                    ),
-                    $"Whitespace only '{nameof(ChangeInfo.Path)}' is not a property of {nameof(PatientInfo)}"
-                };
-
-
+                            Id = 1,
+                            PatchDocument = patchDocument
+                        },
+                        ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
+                            x.Count() == 1 &&
+                            x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
+                        ),
+                        "Cannot update the ID of the resource"
+                    };
+                }
             }
         }
 
         [Theory]
         [MemberData(nameof(PatchCommandCases))]
-        public async Task Validate(IPatchInfo<int> data, Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation, string reason)
+        public async Task Validate(IPatchInfo<int, Objects.Patient> data, Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation, string reason)
         {
             // Arrange
-            IPatchCommand<int> command = new PatchCommand<int>(data);
+            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(data);
             _outputHelper.WriteLine($"Command to validate : {command} ");
 
             // Act

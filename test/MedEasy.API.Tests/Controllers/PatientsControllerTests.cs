@@ -35,9 +35,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static MedEasy.DAL.Repositories.SortDirection;
-using static MedEasy.Validators.ErrorLevel;
 using static Moq.MockBehavior;
-using static Moq.Times;
 using static System.StringComparison;
 
 namespace MedEasy.WebApi.Tests
@@ -59,7 +57,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IPhysiologicalMeasureService> _physiologicalMeasureFacadeMock;
         private Mock<IPrescriptionService> _prescriptionServiceMock;
         private Mock<IRunPatchPatientCommand> _iRunPatchPatientCommandMock;
-        
+
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -91,10 +89,10 @@ namespace MedEasy.WebApi.Tests
 
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
             _prescriptionServiceMock = new Mock<IPrescriptionService>(Strict);
-
+            _mapper = AutoMapperConfig.Build().CreateMapper();
             _controller = new PatientsController(
-                _loggerMock.Object, 
-                _urlHelperFactoryMock.Object, 
+                _loggerMock.Object,
+                _urlHelperFactoryMock.Object,
                 _actionContextAccessor,
                 _apiOptionsMock.Object,
                 _iHandleGetOnePatientInfoByIdQueryMock.Object,
@@ -103,7 +101,8 @@ namespace MedEasy.WebApi.Tests
                 _iRunDeletePatientInfoByIdCommandMock.Object,
                 _physiologicalMeasureFacadeMock.Object,
                 _prescriptionServiceMock.Object,
-                _iRunPatchPatientCommandMock.Object);
+                _iRunPatchPatientCommandMock.Object,
+                _mapper);
 
         }
 
@@ -333,7 +332,7 @@ namespace MedEasy.WebApi.Tests
                     }
                 }));
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
-            
+
             // Act
             IActionResult actionResult = await _controller.Get(page, pageSize);
 
@@ -360,63 +359,51 @@ namespace MedEasy.WebApi.Tests
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
             response.Links.Next.Should().Match(nextPageUrlExpectation);
             response.Links.Last.Should().Match(lastPageUrlExpectation);
-            
+
         }
 
 
-        [Fact]
-        public async Task Patch()
+        public static IEnumerable<object> PatchCases
+        {
+            get
+            {
+                {
+                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    patchDocument.Replace(x => x.Firstname, "Bruce");
+                    yield return new object[]
+                    {
+                        new Patient { Id = 1, },
+                        patchDocument.Operations,
+                        ((Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce"))
+                    };
+                }
+            }
+        }
+
+
+        [Theory]
+        [MemberData(nameof(PatchCases))]
+        public async Task Patch(Patient source, IEnumerable<Operation<PatientInfo>> patchDocument, Expression<Func<Patient, bool>> patchResultExpectation)
         {
 
             // Arrange
-            _iRunPatchPatientCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<int>>()))
-                .Returns(Task.FromResult(new PatientInfo()));
-
+            _iRunPatchPatientCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<int, Patient>>()))
+                .Returns((IPatchCommand<int, Patient> command) => Task.Run(() => command.Data.PatchDocument.ApplyTo(source)));
 
             // Act
-            IEnumerable<ChangeInfo> changes = new[]
-            {
-                new ChangeInfo { Op = ChangeInfoType.Update, Path = nameof(PatientInfo.BirthDate), From =  null, Value = "Paris 13e" }
-            };
-            IActionResult actionResult = await _controller.Patch(1,  changes);
+            IActionResult actionResult = await _controller.Patch(1, patchDocument);
 
             // Assert
             actionResult.Should()
                 .NotBeNull().And
-                .BeAssignableTo<OkObjectResult>().Which
-                    .Value.Should().BeOfType<PatientInfo>();
+                .BeAssignableTo<OkResult>();
 
             _iRunPatchPatientCommandMock.Verify();
-            
+
+            source.Should().Match(patchResultExpectation);
+
         }
 
-
-        //[Theory]
-        //[InlineData(0, 0)]
-        //[InlineData(0, null)]
-        //[InlineData(0, -1)]
-        //[InlineData(-1, -1)]
-        //[InlineData(-1, 0)]
-        //public async Task PatchMainDoctorWithInvalidInputsShouldReturnBadRequest(int id, int? newDoctorId)
-        //{
-
-        //    // Arrange
-        //    IActionResult actionResult = await _controller.Patch(id, newDoctorId);
-
-        //    // Assert
-
-        //    _iRunChangeMainDoctorCommandMock.Verify(mock => mock.RunAsync(It.IsAny<IChangeMainDoctorCommand>()), Never, "the controller must validate arguments by itself");
-
-        //    actionResult.Should()
-        //        .NotBeNull().And
-        //        .BeAssignableTo<BadRequestObjectResult>().Which
-        //            .Value.Should()
-        //                .NotBeNull().And
-        //                .BeAssignableTo<IEnumerable<ErrorInfo>>().Which.Should()
-        //                    .NotBeNullOrEmpty().And
-        //                    .NotContainNulls().And
-        //                    .OnlyContain(x => x.Severity == Error);
-        //}
 
 
         [Fact]
@@ -490,17 +477,19 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
                 .Returns((ICreatePatientCommand cmd) => Task.Run(()
-                => new PatientInfo {
+                => new PatientInfo
+                {
                     Id = 3,
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
-                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
+                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero)
+                }));
 
             //Act
             CreatePatientInfo info = new CreatePatientInfo
             {
                 Firstname = "Bruce",
-                Lastname = "Lastname"
+                Lastname = "Wayne"
             };
 
             IActionResult actionResult = await _controller.Post(info);
@@ -519,7 +508,7 @@ namespace MedEasy.WebApi.Tests
             createdResource.Should()
                 .NotBeNull();
 
-            
+
             createdResource.Firstname.Should()
                 .Be(info.Firstname);
             createdResource.Lastname.Should()
@@ -562,7 +551,7 @@ namespace MedEasy.WebApi.Tests
         }
 
 
-        
+
         [Fact]
         public async Task ShouldReturnNotFoundWhenNoResourceFound()
         {
@@ -592,7 +581,7 @@ namespace MedEasy.WebApi.Tests
                 Id = 1,
                 PatientId = 12,
                 PrescriptorId = 10,
-                DeliveryDate = new DateTimeOffset(1983, 6, 23, 0,0, 0, TimeSpan.Zero)
+                DeliveryDate = new DateTimeOffset(1983, 6, 23, 0, 0, 0, TimeSpan.Zero)
             };
             _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(expectedOutput);
@@ -724,9 +713,8 @@ namespace MedEasy.WebApi.Tests
         [InlineData(-1)]
         public async Task DeletePatientByNegativeOrZeroReturnsBadRequest(int idToDelete)
         {
-
             //Arrange
-            
+
             //Act
             IActionResult actionResult = await _controller.Delete(idToDelete);
 
@@ -741,7 +729,8 @@ namespace MedEasy.WebApi.Tests
         {
             // Arrange
             _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<ICommand<Guid, Temperature>>()))
-                .Returns((ICommand<Guid, Temperature> localCmd) => Task.FromResult(new TemperatureInfo {
+                .Returns((ICommand<Guid, Temperature> localCmd) => Task.FromResult(new TemperatureInfo
+                {
                     Id = 1,
                     DateOfMeasure = localCmd.Data.DateOfMeasure,
                     PatientId = localCmd.Data.PatientId,
@@ -773,13 +762,13 @@ namespace MedEasy.WebApi.Tests
 
             TemperatureInfo resource = createdAtActionResult.Value.Should()
                 .BeOfType<TemperatureInfo>().Which;
-            
+
             resource.Should().NotBeNull();
             resource.PatientId.Should().Be(1);
             resource.Value.Should().Be(input.Value);
 
             _physiologicalMeasureFacadeMock.VerifyAll();
-            
+
         }
 
         [Fact]
@@ -805,7 +794,7 @@ namespace MedEasy.WebApi.Tests
                 }));
 
             // Act
-            
+
 
             IActionResult actionResult = await _controller.BloodPressures(1, input);
 
@@ -827,8 +816,8 @@ namespace MedEasy.WebApi.Tests
             resource.PatientId.Should().Be(1);
             resource.SystolicPressure.Should().Be(input.SystolicPressure);
             resource.DiastolicPressure.Should().Be(input.DiastolicPressure);
-            
-           
+
+
             _physiologicalMeasureFacadeMock.VerifyAll();
 
         }
@@ -888,7 +877,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"Query : {query}");
 
             // Arrange
-            using (var uow =_factory.New())
+            using (var uow = _factory.New())
             {
                 uow.Repository<BloodPressure>().Create(measuresInStore);
                 await uow.SaveChangesAsync();
@@ -920,7 +909,7 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.VerifyAll();
             results.Should().NotBeNull()
                 .And.Match(resultExpectation);
-            
+
         }
 
         [Theory]
@@ -1040,7 +1029,7 @@ namespace MedEasy.WebApi.Tests
 
             CreatedAtActionResult createdAtActionResult = actionResult.Should().NotBeNull().And
                 .BeAssignableTo<CreatedAtActionResult>().Which;
-                    
+
             createdAtActionResult.Should().NotBeNull();
             createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
             createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Prescriptions));
@@ -1077,7 +1066,7 @@ namespace MedEasy.WebApi.Tests
                 }
             };
 
-           IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
+            IActionResult actionResult = await _controller.Prescriptions(patientId, newPrescription);
 
             // Assert
             actionResult.Should().BeAssignableTo<BadRequestResult>();
@@ -1213,7 +1202,7 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOnePhysiologicalMeasureAsync<BodyWeight>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
         }
 
-       
+
     }
 }
 

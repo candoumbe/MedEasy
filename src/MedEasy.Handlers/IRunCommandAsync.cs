@@ -20,7 +20,7 @@ namespace MedEasy.Handlers.Commands
         where TKey : IEquatable<TKey>
 
     {
-        /// <summary>
+        /// <summary>   
         /// Runs the specified <paramref name="command"/>.
         /// </summary>
         /// <remarks>

@@ -1,4 +1,6 @@
-﻿using MedEasy.Commands;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
@@ -10,6 +12,7 @@ using MedEasy.Queries.Prescriptions;
 using MedEasy.RestObjects;
 using MedEasy.Services;
 using MedEasy.Validators;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -21,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using static MedEasy.Validators.ErrorLevel;
 
@@ -54,7 +58,8 @@ namespace MedEasy.API.Controllers
 
         private readonly IPhysiologicalMeasureService _physiologicalMeasureService;
         private readonly IPrescriptionService _prescriptionService;
-        private readonly IRunPatchPatientCommand _iRunChangeMainDoctorIdCommmand;
+        private readonly IRunPatchPatientCommand _iRunPatchPatientCommmand;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -69,7 +74,7 @@ namespace MedEasy.API.Controllers
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
-        /// <param name="iRunChangeMainDoctorIdCommmand">Runner for changing main doctor ID command.</param>
+        /// <param name="iRunPatchPatientCommmand">Runner for changing main doctor ID command.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
@@ -79,7 +84,7 @@ namespace MedEasy.API.Controllers
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
             IPhysiologicalMeasureService physiologicalMeasureService,
             IPrescriptionService prescriptionService,
-            IRunPatchPatientCommand iRunChangeMainDoctorIdCommmand
+            IRunPatchPatientCommand iRunPatchPatientCommmand, IMapper mapper
             ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         {
             _urlHelperFactory = urlHelperFactory;
@@ -88,7 +93,8 @@ namespace MedEasy.API.Controllers
             _iRunDeletePatientByIdCommand = iRunDeletePatientByIdCommand;
             _physiologicalMeasureService = physiologicalMeasureService;
             _prescriptionService = prescriptionService;
-            _iRunChangeMainDoctorIdCommmand = iRunChangeMainDoctorIdCommmand;
+            _iRunPatchPatientCommmand = iRunPatchPatientCommmand;
+            _mapper = mapper;
         }
 
 
@@ -363,26 +369,43 @@ namespace MedEasy.API.Controllers
 
 
         /// <summary>
-        /// Updates the mainDoctorId property of a patient resource
+        /// Partially update a patient resource.
         /// </summary>
         /// <remarks>
-        /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource
+        /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
+        /// Only the declared modifications will be applied to the resource.
+        ///
+        ///     // PATCH api/Patients/1
+        ///     
+        ///     [
+        ///         {
+        ///             "op": "update",
+        ///             "path": "/MainDoctorId",
+        ///             "from": "string",
+        ///             "value": 1
+        ///       }
+        ///     ]
         /// </remarks>
         /// <param name="id">id of the resource to update</param>
         /// <param name="changes">set of changes to apply to the resource</param>
-        /// <response code="200">change successfully</response>
-        /// <response code="400"><paramref name="id"/> is <c>null</c></response>
+        /// <response code="200">The operation </response>
+        /// <response code="400">Changes are not valid</response>
+        /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id:int}")]
-        [ProducesResponseType(typeof(PatientInfo), 200)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(int id, [FromBody] IEnumerable<ChangeInfo> changes)
+        public async Task<IActionResult> Patch(int id, [FromBody] IEnumerable<Operation<PatientInfo>> changes)
         {
-            PatchInfo<int> patch = new PatchInfo<int> { Id = id, Changes = changes };
-            PatientInfo output = await _iRunChangeMainDoctorIdCommmand.RunAsync(new PatchCommand<int>(patch));
+            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+            patchDocument.Operations.AddRange(changes);
+            PatchInfo<int, Patient> data = new PatchInfo<int, Patient>
+            {
+                Id = id,
+                PatchDocument = _mapper.Map<JsonPatchDocument<Patient>>(patchDocument)
+            };
+            await _iRunPatchPatientCommmand.RunAsync(new PatchCommand<int, Patient>(data));
 
-            IActionResult actionResult = new OkObjectResult(output);
-            
-            return actionResult;
+
+            return new OkResult();
         }
 
         /// <summary>
@@ -396,7 +419,7 @@ namespace MedEasy.API.Controllers
         /// <response code="400">either <paramref name="id"/> or <paramref name="bodyWeightId"/> is negative or zero</response>
         [HttpGet("{id:int}/[action]/{bodyWeightId:int}")]
         [HttpHead("{id:int}/[action]/{bodyWeightId:int}")]
-        [Produces(typeof(BodyWeightInfo))]
+        [ProducesResponseType(typeof(BodyWeightInfo), 200)]
         public async Task<IActionResult> BodyWeights([Range(1, int.MaxValue)] int id, [Range(1, int.MaxValue)] int bodyWeightId)
         {
             BodyWeightInfo output = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(id, bodyWeightId));

@@ -22,11 +22,14 @@ namespace MedEasy.API
         private IHostingEnvironment HostingEnvironment { get; }
         private IConfigurationRoot Configuration { get; }
 
+        private ILoggerFactory LoggerFactory { get; }
+
         /// <summary>
         /// Builds a new <see cref="Startup"/> instance
         /// </summary>
         /// <param name="env">hosting environment configuration</param>
-        public Startup(IHostingEnvironment env)
+        /// <param name="loggerFactory">Logger factory that will be used throughout the lifecycle of the application</param>
+        public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             HostingEnvironment = env;
             var builder = new ConfigurationBuilder()
@@ -35,6 +38,7 @@ namespace MedEasy.API
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+            LoggerFactory = loggerFactory;
         }
 
 
@@ -79,7 +83,9 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(HandleErrorAttribute));
 
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+
             });
+            
             
 
             if (HostingEnvironment.IsDevelopment())
@@ -87,6 +93,7 @@ namespace MedEasy.API
                 ApplicationEnvironment app = PlatformServices.Default.Application;
                 services.AddSwaggerGen(config =>
                 {
+                    
                     //config.SingleApiVersion(new Info
                     //{
                     //    Title = app.ApplicationName,
@@ -112,10 +119,10 @@ namespace MedEasy.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            LoggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            LoggerFactory.AddDebug();
 
             if (env.IsDevelopment())
             {
@@ -123,10 +130,8 @@ namespace MedEasy.API
                 app.UseBrowserLink();
             }
 
-
             app.UseMvc();
-
-
+            
             if (env.IsDevelopment())
             {
                 app.UseSwagger();

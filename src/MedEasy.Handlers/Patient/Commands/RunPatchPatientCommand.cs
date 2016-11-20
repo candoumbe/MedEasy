@@ -11,6 +11,10 @@ using MedEasy.DTO;
 using MedEasy.Commands;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
+using MedEasy.Commands.Patient;
+using Microsoft.AspNetCore.JsonPatch;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -21,7 +25,7 @@ namespace MedEasy.Handlers.Patient.Commands
     {
         private IUnitOfWorkFactory _uowFactory;
         private ILogger<RunPatchPatientCommand> _logger;
-        private IValidate<IPatchCommand<int>> _validator;
+        private IValidate<IPatchCommand<int, Objects.Patient>> _validator;
         private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
@@ -29,8 +33,8 @@ namespace MedEasy.Handlers.Patient.Commands
         /// </summary>
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="logger">Logger.</param>
-        /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchCommand{int})"/>.</param>
-        public RunPatchPatientCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int>> validator, IExpressionBuilder expressionBuilder)
+        /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchPatientCommand)"/>.</param>
+        public RunPatchPatientCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int, Objects.Patient>> validator) 
         {
             if (uowFactory == null)
             {
@@ -48,18 +52,12 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new ArgumentNullException(nameof(validator));
             }
 
-            if (expressionBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-
             _uowFactory = uowFactory;
             _logger = logger;
             _validator = validator;
-            _expressionBuilder = expressionBuilder;
         }
 
-        public async Task<PatientInfo> RunAsync(IPatchCommand<int> command)
+        public async Task RunAsync(IPatchCommand<int, Objects.Patient> command)
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -73,52 +71,31 @@ namespace MedEasy.Handlers.Patient.Commands
 
             using (var uow = _uowFactory.New())
             {
-                IEnumerable<ChangeInfo> changes = command.Data.Changes;
-
-                ChangeInfo mainDoctorChange = changes.SingleOrDefault(x => x.Path.Equals($"/{nameof(PatientInfo.MainDoctorId)}", StringComparison.OrdinalIgnoreCase));
-                if (mainDoctorChange != null)
-                {
-                    int? newDoctorId = (int?) mainDoctorChange.Value;
-                    if (newDoctorId.HasValue && !await uow.Repository<Objects.Doctor>().AnyAsync(x => x.Id == newDoctorId.Value))
-                    {
-                        throw new NotFoundException(nameof(PatientInfo.MainDoctorId));
-                    }
-                }
-
-                Objects.Patient patient = await uow.Repository<Objects.Patient>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
+                JsonPatchDocument<Objects.Patient> changes = command.Data.PatchDocument;
                 
-                if (patient == null)
+                Operation mainDoctorOp =  changes.Operations.SingleOrDefault(x => $"/{nameof(Objects.Patient.MainDoctorId)}".Equals(x.path, StringComparison.OrdinalIgnoreCase));
+                if ((mainDoctorOp?.value as int?) != null)
                 {
-                    throw new NotFoundException("Patient not found");
+                    int? newDoctorIdValue = (int?)mainDoctorOp.value;
+                    if (newDoctorIdValue.HasValue && (!await uow.Repository<Objects.Doctor>().AnyAsync(x => x.Id == newDoctorIdValue.Value)))
+                    {
+                        throw new NotFoundException($"Doctor '{newDoctorIdValue}' not found");
+                    } 
                 }
 
-                await changes.ForEachAsync(x => Task.Run(() => x.Path.Trim().Replace("/", string.Empty)));
+                int patientId = command.Data.Id;
+                Objects.Patient source = await uow.Repository<Objects.Patient>()
+                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
 
-                if(mainDoctorChange != null)
+                if (source == null)
                 {
-                    patient.MainDoctorId = (int?)mainDoctorChange.Value;
+                    throw new NotFoundException($"Patient '{patientId}' not found");
                 }
 
-                ChangeInfo firstnameChange = changes.SingleOrDefault(x => x.Path == $"{nameof(PatientInfo.Firstname)}");
-                if (firstnameChange != null)
-                {
-                    patient.Firstname = (string)firstnameChange.Value;
-                }
 
-                ChangeInfo lastnameChange = changes.SingleOrDefault(x => x.Path == $"{nameof(PatientInfo.Lastname)}");
-                if (firstnameChange != null)
-                {
-                    patient.Lastname = (string)lastnameChange.Value;
-                }
-
+                changes.ApplyTo(source);
                 await uow.SaveChangesAsync();
-
-                Expression<Func<Objects.Patient, PatientInfo>> converter = _expressionBuilder.CreateMapExpression<Objects.Patient, PatientInfo>();
-
                 _logger.LogInformation($"Command {command.Id} completed successfully");
-
-                return converter.Compile()(patient);
             }
         }
     }
