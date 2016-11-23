@@ -2,7 +2,7 @@
   "version": "1.0.0-*",
   "testRunner": "xunit",
   "dependencies": {
-    "MedEasy": "1.0.0-*",
+    "MedEasy.Web": "1.0.0-*",
     "MedEasy.Objects": "1.0.0-*",
     "MedEasy.DTO": "1.0.0-*",
     "xunit": "2.2.0-beta2-build3300",
@@ -13,7 +13,8 @@
     "AutoMapper": "5.1.1",
     "FluentAssertions": "4.14.0",
     "Microsoft.AspNetCore.Mvc": "1.0.1",
-    "Microsoft.NETCore.App": "1.0.1"
+    "Microsoft.NETCore.App": "1.0.1",
+    "MyTested.AspNetCore.Mvc.Lite": "1.0.0"
   },
 
   "frameworks": {

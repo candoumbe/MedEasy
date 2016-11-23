@@ -1134,9 +1134,7 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeOfType<NotFoundResult>();
             _physiologicalMeasureFacadeMock.VerifyAll();
         }
-
-
-
+        
 
         [Fact]
         public async Task GetBodyWeightShouldReturnNotFoundResultWhenServiceReturnsNull()

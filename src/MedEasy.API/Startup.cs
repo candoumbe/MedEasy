@@ -13,6 +13,7 @@ using Microsoft.Extensions.PlatformAbstractions;
 using MedEasy.API.StartupRegistration;
 using MedEasy.API.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Http;
 
 namespace MedEasy.API
 {
@@ -67,6 +68,7 @@ namespace MedEasy.API
             services.AddRouting();
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddOptions();
             services.Configure<MedEasyApiOptions>((options) =>
@@ -83,6 +85,7 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(HandleErrorAttribute));
 
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                
 
             });
             

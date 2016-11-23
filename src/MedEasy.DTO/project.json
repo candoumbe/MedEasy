@@ -3,17 +3,20 @@
   "authors": [ "Cyrille NDOUMBE" ],
   "dependencies": {
     "MedEasy.RestObjects": "1.0.0-*",
-    "System.Runtime.InteropServices": "4.1.0",
     "MedEasy.Tools": "1.0.0-*",
-    "System.Runtime.Serialization.Primitives": "4.1.1",
+    "Microsoft.AspNetCore.JsonPatch": "1.0.0",
     "Newtonsoft.Json": "9.0.1",
-    "Microsoft.AspNetCore.JsonPatch": "1.0.0"
+    "System.ComponentModel.Annotations": "4.1.0",
+    "System.Runtime.InteropServices": "4.1.0",
+    "System.Runtime.Serialization.Primitives": "4.1.1"
   },
 
   "frameworks": {
     "netcoreapp1.0": {
       "imports": "dnxcore50"
-    }
+    },
+
+    "netstandard1.6": {}
   },
   "runtimes": {
     "win10-x64": {}

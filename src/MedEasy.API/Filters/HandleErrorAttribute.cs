@@ -13,10 +13,17 @@ using MedEasy.Validators.Exceptions;
 
 namespace MedEasy.API.Filters
 {
+    /// <summary>
+    /// Attribute to apply to handle exceptions
+    /// </summary>
     public class HandleErrorAttribute : ExceptionFilterAttribute
     {
         private ILogger<HandleErrorAttribute> _logger;
 
+        /// <summary>
+        /// Builds a new <see cref="HandleErrorAttribute"/> instance
+        /// </summary>
+        /// <param name="logger"></param>
         public HandleErrorAttribute(ILogger<HandleErrorAttribute> logger)
         {
             _logger = logger;
@@ -65,6 +72,7 @@ namespace MedEasy.API.Filters
                 context.ExceptionHandled = true;
                 context.Result = new NotFoundObjectResult(context.Exception.Message);
             }
+
             return base.OnExceptionAsync(context);
         }
     }

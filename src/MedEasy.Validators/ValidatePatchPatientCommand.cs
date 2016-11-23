@@ -15,7 +15,6 @@ namespace MedEasy.Validators
     {
         public IEnumerable<Task<ErrorInfo>> Validate(IPatchCommand<int, Objects.Patient> command)
         {
-
             if (command.Data.Id == 0)
             {
                 yield return Task.FromResult(new ErrorInfo(nameof(IPatchInfo<int,Objects.Patient>.Id), "Id of the resource to patch not set", Error));
@@ -30,7 +29,6 @@ namespace MedEasy.Validators
             {
                 yield return Task.FromResult(new ErrorInfo(nameof(PatchInfo<int, Objects.Patient>.PatchDocument), "No change", Error));
             }
-
             else
             { 
                 if (command.Data.PatchDocument.Operations.Any(x => !string.IsNullOrWhiteSpace(x.path) && $"/{nameof(Objects.Patient.Id)}".Equals(x.path.Trim(), StringComparison.OrdinalIgnoreCase)))

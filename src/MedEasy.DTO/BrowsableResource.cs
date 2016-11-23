@@ -1,7 +1,6 @@
 ﻿using MedEasy.RestObjects;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace MedEasy.DTO
@@ -27,7 +26,7 @@ namespace MedEasy.DTO
 
             set
             {
-                _links = value?.ToList() ?? (IList<Link>)ImmutableList.Create<Link>().ToList();
+                _links = value ?? Enumerable.Empty<Link>();
             }
         }
 

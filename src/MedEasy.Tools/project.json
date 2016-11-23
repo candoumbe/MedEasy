@@ -15,11 +15,12 @@
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
-       
+
       },
       "imports": [
         "portable-net451+win8"
       ]
-    }
+    },
+    "netstandard1.6": {}
   }
 }

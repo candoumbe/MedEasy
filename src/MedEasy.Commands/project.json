@@ -8,7 +8,10 @@
   },
 
   "frameworks": {
-    "netcoreapp1.0": {}
+    "netcoreapp1.0": {
+    },
+
+    "netstandard1.6": {}
   },
   "runtimes": {
     "win10-x64": {}

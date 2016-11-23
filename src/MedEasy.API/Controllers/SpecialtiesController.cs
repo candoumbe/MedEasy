@@ -57,6 +57,7 @@ namespace MedEasy.API.Controllers
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
         /// <param name="iFindDoctorsBySpecialtyIdQueryHandler">handlers for queries to get doctors by specialty id</param>
         /// <param name="actionContextAccessor"></param>
+        /// <param name="apiOptions">Options accessor</param>
         public SpecialtiesController(ILogger<SpecialtiesController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, IOptions<MedEasyApiOptions> apiOptions,
             IHandleGetSpecialtyInfoByIdQuery getByIdQueryHandler,

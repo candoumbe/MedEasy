@@ -75,6 +75,7 @@ namespace MedEasy.API.Controllers
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
         /// <param name="iRunPatchPatientCommmand">Runner for changing main doctor ID command.</param>
+        /// <param name="mapper">Mapper to convert one type to an other.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
@@ -415,7 +416,6 @@ namespace MedEasy.API.Controllers
         /// <param name="bodyWeightId">id of the <see cref="BodyWeightInfo"/> resource to get</param>
         /// <response code="404"><paramref name="id"/> does not identify a <see cref="PatientInfo"/> resource or <paramref name="bodyWeightId"/></response> 
         /// <response code="200">the resource was found</response>
-        /// does not identifies a <see cref="BodyWeightInfo"/> resource.</response>
         /// <response code="400">either <paramref name="id"/> or <paramref name="bodyWeightId"/> is negative or zero</response>
         [HttpGet("{id:int}/[action]/{bodyWeightId:int}")]
         [HttpHead("{id:int}/[action]/{bodyWeightId:int}")]

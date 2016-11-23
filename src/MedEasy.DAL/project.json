@@ -14,7 +14,8 @@
       "imports": [
         "portable-net451+win8"
       ]
-    }
+    },
+    "netstandard1.6": {}
   },
   "runtimes": {
     "win10-x64": {}
