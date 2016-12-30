@@ -110,7 +110,7 @@ namespace MedEasy.Handlers.Tests.Handlers
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
                 It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int page, int pageSize)
+                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page)
                     => Task.Run(() =>
                     {
                         

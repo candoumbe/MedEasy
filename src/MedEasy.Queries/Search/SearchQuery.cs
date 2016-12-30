@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
+using Newtonsoft.Json;
 
 namespace MedEasy.Queries.Search
 {
@@ -26,7 +27,7 @@ namespace MedEasy.Queries.Search
             Data = search;
         }
 
-        public override string ToString() => SerializeObject(this);
+        public override string ToString() => SerializeObject(this, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 
     }
 }

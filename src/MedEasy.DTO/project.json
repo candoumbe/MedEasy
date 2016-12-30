@@ -10,7 +10,9 @@
     "System.Runtime.InteropServices": "4.3.0",
     "System.Runtime.Serialization.Primitives": "4.1.1",
     "MedEasy.Data": "1.0.0-*",
-    "System.Runtime": "4.3.0"
+    "System.Runtime": "4.3.0",
+    "System.Linq": "4.3.0",
+    "System.Runtime.Extensions": "4.3.0"
   },
 
   "frameworks": {

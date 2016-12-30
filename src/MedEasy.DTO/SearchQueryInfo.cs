@@ -1,6 +1,9 @@
 ﻿using MedEasy.Data;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
+using System.Linq;
+using System;
 
 namespace MedEasy.DTO
 {
@@ -31,8 +34,20 @@ namespace MedEasy.DTO
         /// </summary>
         public IDataFilter Filter { get; set; }
 
+        /// <summary>
+        /// Builds a new <see cref="SearchQueryInfo{T}"/> instance.
+        /// </summary>
+        public SearchQueryInfo()
+        {
+            Sorts = Enumerable.Empty<Sort>();
+        }
 
-        public override string ToString() => SerializeObject(this);
+
+        public override string ToString()
+            => $"{nameof(Filter)} : {SerializeObject(Filter)}," + Environment.NewLine +
+            $"{nameof(Page)}: {Page}" + Environment.NewLine +
+            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine +
+            $"{nameof(Sorts)} : {string.Join(",", Sorts.Select(x => new { Expression = x.Expression.Body.ToString(), x.Direction }))}";
 
 
     }

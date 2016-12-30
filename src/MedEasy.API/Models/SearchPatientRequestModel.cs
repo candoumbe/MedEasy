@@ -1,4 +1,5 @@
 ﻿using MedEasy.DTO;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -25,6 +26,9 @@ namespace MedEasy.API.Models
         /// </remarks>
         public string Firstname { get; set; }
 
+        /// <summary>
+        /// Criteria for the lastname
+        /// </summary>
         public string Lastname { get; set; }
 
 
