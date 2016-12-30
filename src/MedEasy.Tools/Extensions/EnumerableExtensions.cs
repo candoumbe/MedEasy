@@ -1,8 +1,9 @@
-﻿using System.Collections.Concurrent;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-
+#if NETSTANDARD1_1
+using System.Collections.Concurrent;
+#endif
 namespace System.Collections.Generic
 {
     public static class EnumerableExtensions
@@ -29,7 +30,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">Type of the </typeparam>
         /// <param name="items">Collection to test</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains exactly one element</returns>
-
+        /// <see cref="Exactly{T}(IEnumerable{T}, Expression{Func{T, bool}}, int)"/>
         public static bool Once<T>(this IEnumerable<T> items) => Once(items, x => true);
 
 
@@ -77,6 +78,34 @@ namespace System.Collections.Generic
             return items.Any(predicate.Compile());
         }
 
+        /// <summary>
+        /// Tests if <paramref name="items"/> contains one or more items that verify the specified <paramref name="predicate"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the </typeparam>
+        /// <param name="items">Collection to test</param>
+        /// <param name="predicate">predicate to use</param>
+        /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
+        public static bool AtLeastOnce<T>(this IEnumerable<T> items)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+            return items.Any();
+        }
+
+
+        /// <summary>
+        /// Tests if <paramref name="items"/> contains at least <paramref name="count"/> elements that match <paramref name="predicate"/>
+        /// </summary>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        /// <typeparam name="T">Type of elements</typeparam>
+        /// <param name="items">the collection to test</param>
+        /// <param name="predicate">the predicate</param>
+        /// <param name="count">the number of occurrence</param>
+        /// <returns><c>true</c> if <paramref name="items"/> contains <paramref name="count"/> elements or more that match <paramref name="predicate"/></returns>
         public static bool AtLeast<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -91,6 +120,15 @@ namespace System.Collections.Generic
             return items.Count(predicate.Compile()) >= count;
         }
 
+        /// <summary>
+        /// Tests if <paramref name="items"/> contains <strong>exactly</strong> <paramref name="count"/> elements that match <paramref name="predicate"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements of</typeparam>
+        /// <param name="items">collection under test</param>
+        /// <param name="predicate">predicate to match</param>
+        /// <param name="count">number of elements in <paramref name="items"/> that must match</param>
+        /// <returns><c>true</c> if <paramref name="items"/> contains <strong>exactly</strong> <paramref name="count"/> elements that match <paramref name="predicate"/> and <c>false</c> otherwise</returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="items"/> or <paramref name="predicate"/> are null</exception>
         public static bool Exactly<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -107,6 +145,18 @@ namespace System.Collections.Generic
             return items.Count(predicate.Compile()) == count;
         }
 
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <param name="predicate"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public static bool AtMost<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -121,7 +171,8 @@ namespace System.Collections.Generic
             return items.Count(predicate.Compile()) <= count;
         }
 
-        
+
+
         /// <summary>
         /// Synchronously iterates over source an execute the <paramref name="body"/> action
         /// </summary>
@@ -155,8 +206,9 @@ namespace System.Collections.Generic
             }
         }
 
+#if NETSTANDARD1_1
         /// <summary>
-        /// 
+        /// Asynchronously run the s
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -165,32 +217,22 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static Task ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body, int? dop = null)
         {
-            Task t = null;
-            if (dop.HasValue)
-            {
-                t = Task.WhenAll(
-                    from partition in Partitioner.Create(source).GetPartitions(dop.Value)
-                    select Task.Run(async delegate
+            Task t = Task.WhenAll(
+                from partition in Partitioner.Create(source).GetPartitions(dop.GetValueOrDefault(Environment.ProcessorCount))
+                select Task.Run(async delegate
+                {
+                    using (partition)
                     {
-                        using (partition)
+                        while (partition.MoveNext())
                         {
-                            while (partition.MoveNext())
-                            {
-                                await body(partition.Current);
-                            }
+                            await body(partition.Current);
                         }
-                    }));
-            }
-            else
-            {
-                t = Task.WhenAll(
-                    from item in source
-                    select Task.Run(() => body(item)));
-            }
-
+                    }
+                }));
 
             return t;
         }
+#endif
 
     }
 }

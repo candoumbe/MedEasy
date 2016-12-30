@@ -89,7 +89,7 @@ namespace MedEasy.Services
                 IPagedResult<TPhysiologicalMeasureInfo> measures = await uow.Repository<TPhysiologicalMeasure>()
                     .WhereAsync(
                         selector,
-                        x => x.PatientId == query.Data.PatientId,
+                        (TPhysiologicalMeasure x) => x.PatientId == query.Data.PatientId,
                         new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, SortDirection.Descending) },
                         query.Data.Count.GetValueOrDefault(20),
                         1

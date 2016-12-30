@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace MedEasy.Objects
 {
     public class PrescriptionItem : AuditableEntity<int, PrescriptionItem>

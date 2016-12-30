@@ -1,6 +1,9 @@
 ﻿using Xunit;
 using MedEasy.Tools.Extensions;
 using FluentAssertions;
+using System.Collections;
+using System.Collections.Generic;
+using System;
 
 namespace MedEasy.Tools.Tests
 {
@@ -41,5 +44,34 @@ namespace MedEasy.Tools.Tests
         public class Foo<T> : IFoo<T> { }
         public class Bar : IFoo<int> { }
 
+
+        public static IEnumerable<object> IsAnonymousCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    new {}.GetType(),
+                    true
+                };
+
+                yield return new object[]
+                {
+                    typeof(Bar),
+                    false
+                };
+
+                yield return new object[]
+                {
+                    typeof(Foo<>),
+                    false
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(IsAnonymousCases))]
+        public void IsAnonymous(Type t, bool expectedResult)
+            => t.IsAnonymousType().Should().Be(expectedResult);
     }
 }

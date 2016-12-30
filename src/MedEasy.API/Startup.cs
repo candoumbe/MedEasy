@@ -14,6 +14,8 @@ using MedEasy.API.StartupRegistration;
 using MedEasy.API.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
+using MedEasy.Data.Converters;
+using MedEasy.Handlers;
 
 namespace MedEasy.API
 {
@@ -58,7 +60,7 @@ namespace MedEasy.API
             });
 
             services.AddScoped(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
-
+            services.AddScoped<IHandleSearchQuery, HandleSearchQuery>();
             services.AddPatientsControllerDependencies();
             services.AddSpecialtiesControllerDependencies();
             services.AddDoctorsControllerDependencies();
@@ -83,11 +85,15 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(ValidateModelAttribute));
                 options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(HandleErrorAttribute));
-
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-                
-
+            }).AddJsonOptions(options => {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.Converters.Add(new DataFilterConverter());
+                options.SerializerSettings.Converters.Add(new DataCompositeFilterConverter());
+                options.SerializerSettings.Converters.Add(new DataFilterOperatorConverter());
             });
+
+
             
             
 

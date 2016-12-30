@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace System
 {
@@ -16,8 +19,8 @@ namespace System
         public static T DeepClone<T>(this T source)
         {
             // Don't serialize a null object, simply return the default for that object
-            T clone = (T)(ReferenceEquals(source, null) 
-                ? default(T) 
+            T clone = (T)(ReferenceEquals(source, null)
+                ? default(T)
                 : JsonConvert.DeserializeObject(JsonConvert.SerializeObject(source)));
 
             return clone;
@@ -34,11 +37,28 @@ namespace System
             IDictionary<string, object> dictionary = new Dictionary<string, object>();
 
             if (obj != null)
-            { 
-                dictionary = obj.GetType()
+            {
+                IEnumerable<PropertyInfo> properties = obj.GetType()
                     .GetRuntimeProperties()
-                    .Where(pi => pi.CanRead && pi.GetValue(obj) != null)
-                    .ToDictionary(pi => pi.Name, pi => pi.GetValue(obj));
+                    .Where(pi => pi.CanRead && pi.GetValue(obj) != null);
+
+                dictionary = properties.ToDictionary(
+                    pi => pi.Name,
+                    pi =>
+                    {
+                        object value = pi.GetValue(obj);
+                        Type valueType = value.GetType();
+                        TypeInfo valueTypeInfo = valueType.GetTypeInfo();
+                        
+                        if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string)))
+                        {
+                            value = ParseAnonymousObject(value);
+                        }
+                        
+                        return value;
+                    }
+                );
+
             }
             return dictionary;
         }
@@ -50,9 +70,57 @@ namespace System
         /// </summary>
         /// <param name="obj">The object to convert</param>
         /// <returns>the query string representation preceeded with the "?" or an empty string</returns>
+        public static string ToQueryString(this object obj)
+            => DictionaryExtensions.ToQueryString(obj.ParseAnonymousObject());
 
-        public static string ToQueryString(this object obj) 
-            => DictionaryExtensions.ToQueryString(ParseAnonymousObject(obj));
+
+        /// <summary>
+        /// Performs a "safe cast" of the specified object to the specified type.
+        /// </summary>
+        /// <typeparam name="TSource">Type of the object to be converted</typeparam>
+        /// <typeparam name="TDest">targeted type</typeparam>
+        /// <param name="obj">The object to cast</param>
+        /// <returns>The "safe cast" result</returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="obj"/> is <c>null</c></exception>
+        public static TDest As<TSource, TDest>(this TSource obj) => (TDest)As(obj, typeof(TDest));
+
+
+        /// <summary>
+        /// Performs a "safe cast" of <paramref name="obj"/> to the type <paramref name="targetType"/>.
+        /// </summary>
+        /// <typeparam name="TSource">type of the object to cast </param>
+        /// <param name="targetType">type to cast </param>
+        /// <param name="obj">The object to cast</param>
+        /// <returns>The "safe cast" result</returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="obj"/> or <paramref name="targetType"/> is <c>null</c></exception>
+        public static object As<TSource>(this TSource obj, Type targetType)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            if (targetType == null)
+            {
+                throw new ArgumentNullException(nameof(targetType));
+            }
+
+            object safeCastResult = null;
+
+            Type sourceType = typeof(TSource);
+
+            if (targetType == sourceType || sourceType.GetTypeInfo().IsAssignableFrom(targetType.GetTypeInfo()))
+            {
+                ParameterExpression param = Expression.Parameter(obj.GetType());
+                Expression asExpression = Expression.TypeAs(param, targetType);
+                LambdaExpression expression = Expression.Lambda(asExpression, param);
+                safeCastResult = expression.Compile().DynamicInvoke(obj);
+            }
+
+            return safeCastResult;
+        }
+
+
 
     }
 }

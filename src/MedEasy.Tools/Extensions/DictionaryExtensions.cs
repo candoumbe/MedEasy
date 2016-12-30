@@ -1,12 +1,34 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Reflection;
-using static System.StringSplitOptions;
 
 namespace System.Collections.Generic
 {
     public static class DictionaryExtensions
     {
+        /// <summary>
+        /// List of all types that can be directly converted to their string representation
+        /// </summary>
+        private static IEnumerable<Type> PrimitiveTypes = new[]
+        {
+            typeof(string),
+            typeof(int), typeof(int?),
+            typeof(long), typeof(long?),
+            typeof(short), typeof(short?),
+            typeof(decimal), typeof(decimal?),
+            typeof(bool), typeof(bool?),
+            typeof(DateTime), typeof(DateTime?),
+            typeof(DateTimeOffset), typeof(DateTimeOffset?),
+            typeof(Guid), typeof(Guid?),
+        };
+
+
+
+        /// <summary>
+        /// Converter for a datetime
+        /// </summary>
+        private static Func<DateTime, string> FnDateTimeToQueryString = x => x.ToString("x");
+
         /// <summary>
         /// Converts a dictionary to a "URL" friendly representation
         /// </summary>
@@ -15,49 +37,69 @@ namespace System.Collections.Generic
         public static string ToQueryString(this IDictionary<string, object> dictionary)
         {
             StringBuilder sb = new StringBuilder();
-            IEnumerable<KeyValuePair<string, object>> keysAndValues = dictionary?
-                .Where(kv => kv.Value != null) ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            IEnumerable<string> keys = dictionary.Keys;
-            foreach (var key in keys)
+            foreach (var kv in dictionary)
             {
-                object value = dictionary[key];
-                TypeInfo valueType = value.GetType().GetTypeInfo();
-                //The type of the value is a complex object
-                if (!(valueType.IsPrimitive || valueType.BaseType == typeof(string)))
+                object value = kv.Value;
+                Type valueType = value.GetType();
+                TypeInfo valueTypeInfo = valueType.GetTypeInfo();
+                //The type of the value is a "simple" object
+                if (valueTypeInfo.IsPrimitive || valueTypeInfo.IsEnum || PrimitiveTypes.Any(x =>  x == valueType) )
                 {
-                    dictionary.Remove(key);
-                    string[] localQueryStringParts = value.ToQueryString().Split(new[] { '&' }, RemoveEmptyEntries);
-
-                    foreach (string queryStringPart in localQueryStringParts)
+                    if (sb.Length > 0)
                     {
-                        string[] queryParts = queryStringPart.Split(new[] { '=' }, RemoveEmptyEntries);
-                        if (queryParts.Length == 2)
-                        {
-                            dictionary.Add($"{key}.{queryParts[0]}", queryParts[1]);
-                        }
+                        sb.Append("&");
                     }
+                    sb
+                        .Append(kv.Key)
+                        .Append("=")
+                        .Append(kv.Value.ToString());
                 }
-                else if (valueType.BaseType == typeof(IEnumerable))
+                else if (value is IDictionary<string, object>)
                 {
-                    IEnumerable enumerable = dictionary[key] as IEnumerable;
-                    dictionary.Remove(key);
-                    int nbElementsLu = 0;
+                    IDictionary<string, object> subDictionary = ((IDictionary<string, object>)value)
+#if !NETSTANDARD1_0
+                                    .AsParallel()
+#endif
+                                    .ToDictionary(x => $"{kv.Key}[{x.Key}]", x => x.Value);
+
+                    if (sb.Length > 0)
+                    {
+                        sb.Append("&");
+                    }
+                    sb.Append(ToQueryString(subDictionary));
+                }
+                else if (valueTypeInfo.BaseType == typeof(IEnumerable))
+                {
+                    IEnumerable enumerable = kv.Value as IEnumerable;
+                    int itemPosition = 0;
+                    Type elementType;
+                    TypeInfo elementTypeInfo;
                     foreach (object item in enumerable)
                     {
                         if (item != null)
                         {
-                            dictionary[$"{key}[{nbElementsLu}]"] = item.ToString();
-                            nbElementsLu++;
+                            elementType = item.GetType();
+                            elementTypeInfo = elementType.GetTypeInfo();
+                            if (elementTypeInfo.IsPrimitive || PrimitiveTypes.Any(x => x == elementType))
+                            {
+                                if (sb.Length > 0)
+                                {
+                                    sb.Append("&");
+                                }
+                                sb.Append($"{kv.Key}[{itemPosition}]")
+                                   .Append("=")
+                                   .Append(kv.Value.ToString());
+
+                                itemPosition++;
+                            }
                         }
                     }
-
                 }
 
             }
 
-            string queryString = string.Join("&", dictionary.Select(x => $"{Uri.EscapeUriString(x.Key)}={Uri.EscapeUriString(x.Value.ToString())}"));
-
-            return queryString;
+            
+            return sb.ToString();
         }
     }
 }

@@ -2,6 +2,10 @@
 
 namespace MedEasy.API.Models
 {
+    /// <summary>
+    /// Definies the shape of a resource
+    /// </summary>
+    /// <typeparam name="TKey">Type of the resource identifier</typeparam>
     public interface IResourceModel<TKey> where TKey : IEquatable<TKey>
     {
         /// <summary>

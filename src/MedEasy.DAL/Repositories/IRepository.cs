@@ -92,10 +92,10 @@ namespace MedEasy.DAL.Repositories
         /// The <paramref name="orderBy"/> is applied <strong>AFTER</strong> the <paramref name="selector"/> and <paramref name="selector"/>.
         /// </remarks>
         /// <typeparam name="TResult">Type of result's items</typeparam>
-        /// <param name="selector"></param>
+        /// <param name="selector">Expression to convert from <see cref="TEntry"/> to <typeparamref name="TResult"/></param>
         /// <param name="predicate"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="includedProperties"></param>
+        /// <param name="orderBy">Collection of <see cref="OrderClause{T}"/> to apply.</param>
+        /// <param name="includedProperties">Collection of <see cref="IncludeClause{T}"/> that describes properties to eagerly fetch for each item in the result</param>
         /// <returns></returns>
         Task<IEnumerable<TResult>> WhereAsync<TResult>(
             Expression<Func<TEntry, TResult>> selector, 
@@ -120,6 +120,7 @@ namespace MedEasy.DAL.Repositories
         /// Asynchronously gets a <see cref="IPagedResult{T}"/> of entries that satisfied the <paramref name="predicate"/>
         /// </summary>
         /// <remarks>
+        /// The <paramref name="predicate"/> is apply <strong>BEFORE</strong> <paramref name="selector"/> is applied.
         /// The <paramref name="orderBy"/> is applied <strong>AFTER</strong> both <paramref name="selector"/> and <paramref name="predicate"/> where applied
         /// </remarks>
         /// <typeparam name="TResult">Type of items of the result</typeparam>
@@ -131,7 +132,22 @@ namespace MedEasy.DAL.Repositories
         /// <returns></returns>
         Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
 
-        
+        /// <summary>
+        /// Asynchronously gets a <see cref="IPagedResult{T}"/> of entries that satisfied the <paramref name="predicate"/>
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="predicate"/> is apply <strong>AFTER</strong> <paramref name="selector"/> is applied.
+        /// The <paramref name="orderBy"/> is applied <strong>AFTER</strong> both <paramref name="selector"/> and <paramref name="predicate"/> where applied
+        /// </remarks>
+        /// <typeparam name="TResult">Type of items of the result</typeparam>
+        /// <param name="selector">selector to apply</param>
+        /// <param name="predicate">filter that entries must satisfied</param>
+        /// <param name="orderBy">order to apply</param>
+        /// <param name="pageSize">number of items a page can holds at most</param>
+        /// <param name="page">the page of result to get.</param>
+        /// <returns></returns>
+        Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
+
 
         ///// <summary>
         ///// Gets an entry by its key(s).
@@ -215,7 +231,16 @@ namespace MedEasy.DAL.Repositories
         /// <param name="predicate"></param>
         /// <returns></returns>
         Task<TEntry> SingleAsync(Expression<Func<TEntry, bool>> predicate);
-        
+
+        /// <summary>
+        /// Gets the single entry that matches <paramref name="predicate"/>.
+        /// </summary>
+        /// <typeparam name="TResult">Type of the result</typeparam>
+        /// <param name="selector">selector to convert from <see cref="TEntry"/> to <typeparamref name="TResult"/></param>
+        /// <param name="predicate">predicate the entry to match should match.</param>
+        /// <returns>The entry that matches <paramref name="predicate"/>.</returns>
+        /// <exception cref="InvalidOperationException">if no entry or more than one entry matches <paramref name="predicate"/>.</exception>
+        /// <exception cref="ArgumentNullException">if either <paramref name="selector"/> or <paramref name="predicate"/> is <c>null</c></exception>
         Task<TResult> SingleAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate);
 
         /// <summary>

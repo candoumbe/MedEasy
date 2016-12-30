@@ -2,18 +2,14 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "System.Runtime": "4.1.0",
+    "System.Runtime": "4.3.0",
     "MedEasy.DTO": "1.0.0-*",
     "MedEasy.Objects": "1.*"
   },
 
   "frameworks": {
-    "netcoreapp1.0": {
-    },
-
-    "netstandard1.6": {}
-  },
-  "runtimes": {
-    "win10-x64": {}
+    "netstandard1.1": {
+      "imports": [ "dnxcore50", "portable-dnxcore50+net45+win8+wp8+wpa81" ]
+    }
   }
 }

@@ -43,16 +43,10 @@ namespace MedEasy.DAL.Repositories
             return new OrderClause<T>(keySelector, direction);
         }
 
-        public LambdaExpression Expression
-        {
-            get { return _expression; }
-        }
+        public LambdaExpression Expression => _expression;
         /// <summary>
         /// 
         /// </summary>
-        public SortDirection Direction
-        {
-            get { return _direction; }
-        }
+        public SortDirection Direction => _direction;
     }
 }

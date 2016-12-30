@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace MedEasy.DTO.Autocomplete
 {
     /// <summary>
-    /// An instance of this class models autocomplete response for doctor informations
+    /// Model autocomplete response for doctor informations
     /// </summary>
     [JsonObject]
     public class DoctorAutocompleteInfo : AutocompleteInfo<int>

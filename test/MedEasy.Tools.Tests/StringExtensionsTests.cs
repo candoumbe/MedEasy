@@ -2,52 +2,62 @@
 using Xunit;
 using System;
 using FluentAssertions;
+using Xunit.Abstractions;
 
 namespace MedEasy.Tools.Tests
 {
 
-    public class StringExtensionsTests
+    public class StringExtensionsTests : IDisposable
     {
+        private ITestOutputHelper _outputHelper;
 
-        public static IEnumerable<object> ToTitleCaseCases
+        public StringExtensionsTests(ITestOutputHelper outputHelper)
         {
-            get
-            {
-                yield return new object[]
-                {
-                    null,
-                    null
-                };
-
-                yield return new object[]
-                {
-                    "bruce",
-                    "Bruce"
-                };
-                yield return new object[]
-                {
-                    " bruce",
-                    " Bruce"
-                };
-
-                yield return new object[]
-                {
-                    "bruce wayne",
-                    "Bruce Wayne"
-                };
-                yield return new object[]
-                {
-                    "cyrille-alexandre",
-                    "Cyrille-Alexandre"
-                };
-            }
+            _outputHelper = outputHelper;
         }
 
-
+        public void Dispose()
+        {
+            _outputHelper = null;
+        }
+        
         [Theory]
-        [MemberData(nameof(ToTitleCaseCases))]
+        [InlineData(null, null)]
+        [InlineData("bruce", "Bruce")]
+        [InlineData("bruce wayne", "Bruce Wayne")]
+        [InlineData("cyrille-alexandre", "Cyrille-Alexandre")]
         public void ToTitleCase(string input, string expectedString)
             => input?.ToTitleCase()?.Should().Be(expectedString);
 
+
+        [Theory]
+        [InlineData("bruce", "Bruce", true, true)]
+        [InlineData("bruce", "Bruce", false, false)]
+        [InlineData("bruce", "br*ce", true, true)]
+        [InlineData("bruce", "br?ce", true, true)]
+        [InlineData("bruce", "?r?ce", true, true)]
+        [InlineData("Bruce", "?r?ce", false, true)]
+        [InlineData("Bruce", "Carl", false, false)]
+        [InlineData("Bruce", "Carl", true, false)]
+        [InlineData("Bruce", "B*e", false, true)]
+        [InlineData("Bruce", "B?e", false, false)]
+        [InlineData("Bruce", "B?e", true, false)]
+        [InlineData("Bruce", "*,*", true, false)]
+        [InlineData("Bruce", "*,*", false, false)]
+        [InlineData("Bruce,Dick", "*,*", true, true)]
+        [InlineData("Bruce,Dick", "*,*", false, true)]
+        public void Like(string input, string pattern, bool ignoreCase, bool expectedResult)
+        {
+            _outputHelper.WriteLine($"input : '{input}'");
+            _outputHelper.WriteLine($"pattern : '{pattern}'");
+            _outputHelper.WriteLine($"Ignore case : '{ignoreCase}'");
+
+
+            // Act
+            input?.Like(pattern, ignoreCase).Should().Be(expectedResult);
+        }
     } 
+
+
+
 }

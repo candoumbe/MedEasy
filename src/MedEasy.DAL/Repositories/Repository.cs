@@ -5,6 +5,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
+#if NETSTANDARD1_3
+using Z.EntityFramework.Plus;
+#endif
 
 namespace MedEasy.DAL.Repositories
 {
@@ -125,9 +128,22 @@ namespace MedEasy.DAL.Repositories
 
         public async Task<IPagedResult<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TEntry>> orderBy, int pageSize, int page)
         {
+            if (orderBy == null)
+            {
+                throw new ArgumentNullException(nameof(orderBy), $"{nameof(orderBy)} expression must be set");
+            }
+            IQueryable<TEntry> query = Entries
+                .Where(predicate)
+                .OrderBy(orderBy)
+                .Skip(pageSize * (page < 1 ? 1 : page - 1))
+                .Take(pageSize);
 
-            return await WhereAsync(item => item, predicate, orderBy, pageSize, page)
-                .ConfigureAwait(false);
+            //we compute both task
+            IEnumerable<TEntry> result = await query.ToListAsync();
+            int total = await CountAsync(predicate);
+            IPagedResult<TEntry> pagedResult = new PagedResult<TEntry>(result, total, pageSize);
+
+            return pagedResult;
         }
 
         public async Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page)
@@ -151,6 +167,29 @@ namespace MedEasy.DAL.Repositories
 
             return pagedResult;
         }
+
+        public async Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page)
+        {
+
+            if (orderBy == null)
+            {
+                throw new ArgumentNullException(nameof(orderBy), $"{nameof(orderBy)} expression must be set");
+            }
+            IQueryable<TResult> query = Entries
+                .Select(selector)
+                .Where(predicate)
+                .OrderBy(orderBy)
+                .Skip(pageSize * (page < 1 ? 1 : page - 1))
+                .Take(pageSize);
+
+            //we compute both task
+            IEnumerable<TResult> result = await query.ToListAsync();
+            int total = await Entries.Select(selector).CountAsync(predicate);
+            IPagedResult<TResult> pagedResult = new PagedResult<TResult>(result, total, pageSize);
+
+            return pagedResult;
+        }
+
         public async Task<bool> AnyAsync()
         {
             return await Entries.AnyAsync().ConfigureAwait(false);
@@ -180,17 +219,20 @@ namespace MedEasy.DAL.Repositories
 
         public async Task<int> CountAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.CountAsync(predicate).ConfigureAwait(false);
+            return await Entries.CountAsync(predicate)
+                .ConfigureAwait(false);
         }
 
         public async Task<TEntry> SingleAsync()
         {
-            return await Entries.SingleAsync().ConfigureAwait(false);
+            return await Entries.SingleAsync()
+                .ConfigureAwait(false);
         }
 
         public async Task<TEntry> SingleAsync(Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.SingleAsync(predicate).ConfigureAwait(false);
+            return await Entries.SingleAsync(predicate)
+                .ConfigureAwait(false);
         }
 
 
@@ -243,8 +285,12 @@ namespace MedEasy.DAL.Repositories
 
         public void Delete(Expression<Func<TEntry, bool>> predicate)
         {
+#if NETSTANDARD1_3 
+            Entries.Delete();
+#else
             IEnumerable<TEntry> entries = Entries.Where(predicate);
-            Entries.RemoveRange(entries);
+            Entries.RemoveRange(entries); 
+#endif
         }
 
 

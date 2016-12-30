@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using MedEasy.API.Models;
+using AutoMapper;
 using FluentAssertions;
 using GenFu;
 using MedEasy.API;
@@ -7,6 +8,7 @@ using MedEasy.API.Stores;
 using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
+using MedEasy.Data;
 using MedEasy.DTO;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.Handlers.Patient.Commands;
@@ -37,6 +39,11 @@ using Xunit.Abstractions;
 using static MedEasy.DAL.Repositories.SortDirection;
 using static Moq.MockBehavior;
 using static System.StringComparison;
+using static MedEasy.Data.DataFilterOperator;
+using MedEasy.Handlers;
+using MedEasy.Queries.Search;
+using static Newtonsoft.Json.JsonConvert;
+using static System.StringSplitOptions;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -57,7 +64,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IPhysiologicalMeasureService> _physiologicalMeasureFacadeMock;
         private Mock<IPrescriptionService> _prescriptionServiceMock;
         private Mock<IRunPatchPatientCommand> _iRunPatchPatientCommandMock;
-
+        private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -90,11 +97,15 @@ namespace MedEasy.WebApi.Tests
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
             _prescriptionServiceMock = new Mock<IPrescriptionService>(Strict);
             _mapper = AutoMapperConfig.Build().CreateMapper();
+
+            _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
+
             _controller = new PatientsController(
                 _loggerMock.Object,
                 _urlHelperFactoryMock.Object,
                 _actionContextAccessor,
                 _apiOptionsMock.Object,
+                _iHandleSearchQueryMock.Object,
                 _iHandleGetOnePatientInfoByIdQueryMock.Object,
                 _iHandleGetManyPatientInfoQueryMock.Object,
                 _iRunCreatePatientInfoCommandMock.Object,
@@ -122,6 +133,7 @@ namespace MedEasy.WebApi.Tests
             _iRunCreatePatientInfoCommandMock = null;
             _iRunDeletePatientInfoByIdCommandMock = null;
             _iRunPatchPatientCommandMock = null;
+            _iHandleSearchQueryMock = null;
 
             _prescriptionServiceMock = null;
             _factory = null;
@@ -363,6 +375,167 @@ namespace MedEasy.WebApi.Tests
         }
 
 
+        public static IEnumerable<object> SearchCases
+        {
+            get
+            {
+                {
+                    SearchPatientRequestModel searchInfo = new SearchPatientRequestModel
+                    {
+                        Firstname = "bruce",
+                        Page = 1,
+                        PageSize = 30,
+                        Sort = "-birthdate"
+                    };
+                    yield return new object[]
+                    {
+                        Enumerable.Empty<PatientInfo>(),
+                        searchInfo,
+                        ((Expression<Func<Link, bool>>)(first =>
+                            first != null &&
+                            first.Rel == "first" &&
+                            first.Href != null &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Firstname)}={searchInfo.Firstname}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Page)}=1" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.PageSize)}={searchInfo.PageSize}")  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Sort)}={searchInfo.Sort}" )
+
+                           )),
+                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                        ((Expression<Func<Link, bool>>)(next => next == null)),
+                        ((Expression<Func<Link, bool>>)(last => last == null))
+
+                    };
+
+                }
+                {
+                    SearchPatientRequestModel searchInfo = new SearchPatientRequestModel
+                    {
+                        Firstname = "!bruce",
+                        Page = 1,
+                        PageSize = 30,
+                        Sort = "-birthdate"
+                    };
+                    yield return new object[]
+                    {
+                        new [] {
+                            new PatientInfo { Firstname = "Bruce", Lastname = "Wayne" }
+                        },
+                        searchInfo,
+                        ((Expression<Func<Link, bool>>)(first =>
+                            first != null &&
+                            first.Rel == "first" &&
+                            first.Href != null &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Firstname)}={searchInfo.Firstname}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Page)}=1" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.PageSize)}={searchInfo.PageSize}")  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Sort)}={searchInfo.Sort}" )
+
+                           )),
+                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                        ((Expression<Func<Link, bool>>)(next => next == null)),
+                        ((Expression<Func<Link, bool>>)(last => last == null))
+
+                    };
+
+                }
+                {
+                    SearchPatientRequestModel searchInfo = new SearchPatientRequestModel
+                    {
+                        Firstname = "bruce",
+                        Page = 1,
+                        PageSize = 30,
+                    };
+                    yield return new object[]
+                    {
+                        new[] {
+                            new PatientInfo { Firstname = "bruce" }
+                        },
+                        searchInfo,
+                        ((Expression<Func<Link, bool>>)(first =>
+                            first != null &&
+                            first.Rel == "first" &&
+                            first.Href != null &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Firstname)}={searchInfo.Firstname}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.Page)}=1" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientRequestModel.PageSize)}={searchInfo.PageSize}")  
+
+                            )),
+                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                        ((Expression<Func<Link, bool>>)(next => next == null)),
+                        ((Expression<Func<Link, bool>>)(last => last == null))
+
+                    };
+                }
+
+            }
+        }
+
+
+        [Theory]
+        [MemberData(nameof(SearchCases))]
+        public async Task Search(IEnumerable<PatientInfo> entries, SearchPatientRequestModel searchRequest,
+        Expression<Func<Link, bool>> firstPageLinkExpectation, Expression<Func<Link, bool>> previousPageLinkExpectation, Expression<Func<Link, bool>> nextPageLinkExpectation, Expression<Func<Link, bool>> lastPageLinkExpectation)
+        {
+            _outputHelper.WriteLine($"Entries : {SerializeObject(entries)}");
+            _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
+
+
+            // Arrange
+            MedEasyApiOptions apiOptions = new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 50 };
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
+            _iHandleSearchQueryMock.Setup(mock => mock.Search<Patient, PatientInfo>(It.IsAny<SearchQuery<PatientInfo>>()))
+                    .Returns((SearchQuery<PatientInfo> query) => Task.Run(() =>
+                    {
+                        SearchQueryInfo<PatientInfo> data = query.Data;
+                        Expression<Func<PatientInfo, bool>> filter = data.Filter.ToExpression<PatientInfo>();
+                        int page = query.Data.Page;
+                        int pageSize = query.Data.PageSize;
+                        Func<PatientInfo, bool> fnFilter = filter.Compile();
+
+                        IEnumerable<PatientInfo> result = entries.Where(fnFilter)
+                            .Skip(page * pageSize)
+                            .Take(pageSize);
+
+                        IPagedResult<PatientInfo> pageOfResult = new PagedResult<PatientInfo>(result, entries.Count(fnFilter), pageSize);
+                        return pageOfResult;
+                    })
+                    );
+
+
+            // Act
+            IActionResult actionResult = await _controller.Search(searchRequest);
+
+            // Assert
+            GenericPagedGetResponse<PatientInfo> content = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                    .Value.Should()
+                        .NotBeNull().And
+                        .BeAssignableTo<GenericPagedGetResponse<PatientInfo>>().Which;
+
+
+            content.Items.Should()
+                .NotBeNull();
+
+            content.Links.Should().NotBeNull();
+            PagedRestResponseLink links = content.Links;
+
+            links.First.Should().Match(firstPageLinkExpectation);
+            links.Previous.Should().Match(previousPageLinkExpectation);
+            links.Next.Should().Match(nextPageLinkExpectation);
+            links.Last.Should().Match(nextPageLinkExpectation);
+
+
+
+        }
+
         public static IEnumerable<object> PatchCases
         {
             get
@@ -380,17 +553,21 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
-
         [Theory]
         [MemberData(nameof(PatchCases))]
-        public async Task Patch(Patient source, IEnumerable<Operation<PatientInfo>> patchDocument, Expression<Func<Patient, bool>> patchResultExpectation)
+        public async Task Patch(Patient source, IEnumerable<Operation<PatientInfo>> operations, Expression<Func<Patient, bool>> patchResultExpectation)
         {
 
             // Arrange
+
+
             _iRunPatchPatientCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<int, Patient>>()))
                 .Returns((IPatchCommand<int, Patient> command) => Task.Run(() => command.Data.PatchDocument.ApplyTo(source)));
 
+
             // Act
+            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+            patchDocument.Operations.AddRange(operations);
             IActionResult actionResult = await _controller.Patch(1, patchDocument);
 
             // Assert
@@ -724,6 +901,7 @@ namespace MedEasy.WebApi.Tests
 
 
 
+
         [Fact]
         public async Task AddTemperatureMeasure()
         {
@@ -891,11 +1069,10 @@ namespace MedEasy.WebApi.Tests
                         IPagedResult<BloodPressureInfo> mostRecentMeasures = await uow.Repository<BloodPressure>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<BloodPressure, BloodPressureInfo>(),
-                                x => x.PatientId == input.Data.PatientId,
+                                (BloodPressure x) => x.PatientId == input.Data.PatientId,
                                 new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
-
 
                         return mostRecentMeasures.Entries;
                     }
@@ -934,7 +1111,7 @@ namespace MedEasy.WebApi.Tests
                         IPagedResult<TemperatureInfo> mostRecentMeasures = await uow.Repository<Temperature>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Temperature, TemperatureInfo>(),
-                                x => x.PatientId == input.Data.PatientId,
+                                (TemperatureInfo x) => x.PatientId == input.Data.PatientId,
                                 new[] { OrderClause<TemperatureInfo>.Create(x => x.DateOfMeasure, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
@@ -975,11 +1152,10 @@ namespace MedEasy.WebApi.Tests
                         IPagedResult<PrescriptionHeaderInfo> mostRecentPrescriptions = await uow.Repository<Prescription>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>(),
-                                x => x.PatientId == input.Data.PatientId,
+                                (PrescriptionHeaderInfo x) => x.PatientId == input.Data.PatientId,
                                 new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
-
 
                         return mostRecentPrescriptions.Entries;
                     }
@@ -1134,7 +1310,7 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeOfType<NotFoundResult>();
             _physiologicalMeasureFacadeMock.VerifyAll();
         }
-        
+
 
         [Fact]
         public async Task GetBodyWeightShouldReturnNotFoundResultWhenServiceReturnsNull()
@@ -1199,6 +1375,9 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeOfType<OkResult>();
             _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOnePhysiologicalMeasureAsync<BodyWeight>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
         }
+
+
+
 
 
     }

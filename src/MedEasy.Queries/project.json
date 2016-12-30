@@ -2,16 +2,16 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "System.Runtime": "4.1.0",
+    "System.Runtime": "4.3.0",
     "MedEasy.DTO": "1.0.0-*",
-    "MedEasy.DAL": "1.0.0-*", 
-    "MedEasy.Objects": "1.0.0-*"
+    "MedEasy.DAL": "1.0.0-*",
+    "MedEasy.Objects": "1.0.0-*",
+    "MedEasy.Data": "1.0.0-*"
   },
 
   "frameworks": {
-    "netcoreapp1.0": {
-      "imports": "dnxcore50"
-    },
-    "netstandard1.6": {}
+    "netstandard1.3": {
+      "imports": [ "dnxcore50", "portable-dnxcore50+net45+win8+wp8+wpa81" ]
+    }
   }
 }

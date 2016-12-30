@@ -1,19 +1,21 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using MedEasy.API.Models;
 using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
+using MedEasy.Data;
 using MedEasy.DTO;
+using MedEasy.Handlers;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Objects;
 using MedEasy.Queries.Patient;
 using MedEasy.Queries.Prescriptions;
+using MedEasy.Queries.Search;
 using MedEasy.RestObjects;
 using MedEasy.Services;
 using MedEasy.Validators;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -24,9 +26,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using static MedEasy.Validators.ErrorLevel;
+using static MedEasy.Data.DataFilterLogic;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -60,6 +61,7 @@ namespace MedEasy.API.Controllers
         private readonly IPrescriptionService _prescriptionService;
         private readonly IRunPatchPatientCommand _iRunPatchPatientCommmand;
         private readonly IMapper _mapper;
+        private readonly IHandleSearchQuery _iHandleSearchQuery;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -71,6 +73,7 @@ namespace MedEasy.API.Controllers
         /// <param name="iRunDeletePatientByIdCommand">Runner of DELETE resource command</param>
         /// <param name="logger">logger</param>
         /// <param name="actionContextAccessor"></param>
+        /// <param name="iHandleSearchQuery">handler for <see cref="SearchQueryInfo{T}"/></param>
         /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
@@ -79,6 +82,7 @@ namespace MedEasy.API.Controllers
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
+            IHandleSearchQuery iHandleSearchQuery,
             IHandleGetOnePatientInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
             IRunCreatePatientCommand iRunCreatePatientCommand,
@@ -95,6 +99,7 @@ namespace MedEasy.API.Controllers
             _physiologicalMeasureService = physiologicalMeasureService;
             _prescriptionService = prescriptionService;
             _iRunPatchPatientCommmand = iRunPatchPatientCommmand;
+            _iHandleSearchQuery = iHandleSearchQuery;
             _mapper = mapper;
         }
 
@@ -253,7 +258,7 @@ namespace MedEasy.API.Controllers
         /// <response code="201">the resource creation succeed</response>
         /// <response code="400"><paramref name="newBloodPressure"/> is not valid or <paramref name="id"/> is negative or zero</response>
         [HttpPost("{id:int}/[action]")]
-        [Produces(typeof(BloodPressureInfo))]
+        [ProducesResponseType(typeof(BloodPressureInfo), 200)]
         public async Task<IActionResult> BloodPressures(int id, [FromBody] CreateBloodPressureInfo newBloodPressure)
         {
             BloodPressure newMeasure = new BloodPressure
@@ -275,7 +280,8 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{temperatureId:int}")]
         [HttpHead("{id:int}/[action]/{temperatureId:int}")]
-        [Produces(typeof(TemperatureInfo))]
+        [ProducesResponseType(typeof(TemperatureInfo), 200)]
+        [ProducesResponseType(typeof(ModelStateDictionary), 400)]
         public async Task<IActionResult> Temperatures(int id, int temperatureId)
         {
             TemperatureInfo output = await _physiologicalMeasureService.GetOneMeasureAsync<Temperature, TemperatureInfo>(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(id, temperatureId));
@@ -310,7 +316,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet("{id:int}/[action]/{bloodPressureId:int}")]
         [HttpHead("{id:int}/[action]/{bloodPressureId:int}")]
-        [Produces(typeof(BloodPressureInfo))]
+        [ProducesResponseType(typeof(BloodPressureInfo), 200)]
         public async Task<IActionResult> BloodPressures([Range(1, int.MaxValue)] int id, [Range(1, int.MaxValue)] int bloodPressureId)
         {
             BloodPressureInfo output = await _physiologicalMeasureService.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId));
@@ -350,7 +356,7 @@ namespace MedEasy.API.Controllers
         /// <returns>Array of <see cref="BloodPressureInfo"/></returns>
         [HttpGet("{id:int}/[action]")]
         [HttpHead("{id:int}/[action]")]
-        [Produces(typeof(IEnumerable<BloodPressureInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<BloodPressureInfo>), 200)]
         public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures([Range(1, int.MaxValue)] int id, [Range(1, int.MaxValue)] int? count)
             => await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
 
@@ -367,6 +373,113 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id:int}/[action]")]
         public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures([Range(1, int.MaxValue)] int id, [Range(1, int.MaxValue)]int? count)
             => await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+
+
+
+        /// <summary>
+        /// Search patients resource based on some criteria.
+        /// </summary>
+        /// <remarks>
+        /// All criteria are combined as a AND.
+        /// 
+        /// Advanded search :
+        /// Several operators that can be used to make an advanced search :
+        /// '*' : match zero or more characters in a string property.
+        /// 
+        ///     // GET api/Patients/Search?Firstname=Bruce
+        ///     will match all resources which have exactly 'Bruce' in the Firstname property
+        ///     
+        ///     // GET api/Patients/Search?Firstname=B*e
+        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        /// 
+        /// '?' : match exactly one charcter in a string property.
+        /// 
+        /// '!' : negate a criteria
+        /// 
+        ///     // GET api/Patients/Search?Firstname=!Bruce
+        ///     
+        ///     will match all resources where Firstname is not "Bruce"
+        ///     
+        /// </remarks>
+        /// <response code="200">The search result</response>
+        /// <response code="400">one the search criteria is not valid</response>
+        [HttpGet("[action]")]
+        [ProducesResponseType(typeof(IEnumerable<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
+        public async Task<IActionResult> Search([FromQuery] SearchPatientRequestModel search)
+        {
+            
+            
+            IList<IDataFilter> filters = new List<IDataFilter>();
+            if (!string.IsNullOrWhiteSpace(search.Firstname))
+            {
+                filters.Add($"{nameof(PatientInfo.Firstname)}={search.Firstname}".ToFilter<PatientInfo>());
+            }
+
+            if (!string.IsNullOrWhiteSpace(search.Lastname))
+            {
+                filters.Add($"{nameof(PatientInfo.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
+            }
+
+            SearchQueryInfo<PatientInfo> searchQueryInfo = new SearchQueryInfo<PatientInfo>
+            {
+                Page = search.Page,
+                PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
+                Filter = filters.Count() == 1
+                    ? filters.Single()
+                    : new DataCompositeFilter { Logic = And, Filters = filters },
+                Sorts = (search.Sort ?? $"-{nameof(PatientInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x =>
+                        {
+                            x = x.Trim();
+                            Sort sort;
+                            if (x.StartsWith("-"))
+                            {
+                                x = x.Substring(1);
+                                sort = new Sort { Direction = Data.SortDirection.Descending, Expression = x.ToLambda<PatientInfo>() };
+                            }
+                            else
+                            {
+                                sort = new Sort { Direction = Data.SortDirection.Ascending, Expression = x.ToLambda<PatientInfo>() };
+                            }
+
+                            return sort;
+                        })
+            };
+
+            
+
+            IPagedResult<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo));
+
+            search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
+            int count = pageOfResult.Entries.Count();
+            bool hasPreviousPage = count > 0 && search.Page > 1;
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+
+            string firstPageUrl = urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = 1, search.PageSize, search.Sort });
+            string previousPageUrl = hasPreviousPage
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page - 1, search.PageSize, search.Sort })
+                    : null;
+
+            string nextPageUrl = search.Page < pageOfResult.PageCount
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page + 1, search.PageSize, search.Sort } )
+                    : null;
+            string lastPageUrl = pageOfResult.PageCount > 1
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort } )
+                    : null;
+
+            GenericPagedGetResponse<PatientInfo> reponse = new GenericPagedGetResponse<PatientInfo>(
+                pageOfResult.Entries,
+                first: firstPageUrl,
+                previous: previousPageUrl,
+                next: nextPageUrl,
+                last: lastPageUrl,
+                count : pageOfResult.Total);
+
+            return new OkObjectResult(reponse);
+
+        }
 
 
         /// <summary>
@@ -393,15 +506,14 @@ namespace MedEasy.API.Controllers
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id:int}")]
+        [Consumes("application/json-patch+json")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(int id, [FromBody] IEnumerable<Operation<PatientInfo>> changes)
+        public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<PatientInfo> changes)
         {
-            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-            patchDocument.Operations.AddRange(changes);
             PatchInfo<int, Patient> data = new PatchInfo<int, Patient>
             {
                 Id = id,
-                PatchDocument = _mapper.Map<JsonPatchDocument<Patient>>(patchDocument)
+                PatchDocument = _mapper.Map<JsonPatchDocument<Patient>>(changes)
             };
             await _iRunPatchPatientCommmand.RunAsync(new PatchCommand<int, Patient>(data));
 

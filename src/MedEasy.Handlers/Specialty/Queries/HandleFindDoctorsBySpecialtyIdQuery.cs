@@ -68,7 +68,7 @@ namespace MedEasy.Handlers.Specialty.Queries
                 IPagedResult<DoctorInfo> pageOfResult = await uow.Repository<Objects.Doctor>()
                     .WhereAsync(
                         ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>(),      //selector  
-                        x => x.SpecialtyId == query.Data.SpecialtyId,
+                        (Objects.Doctor x) => x.SpecialtyId == query.Data.SpecialtyId,
                         Enumerable.Empty<OrderClause<DoctorInfo>>(), 
                         getQuery.PageSize, getQuery.Page);
 
