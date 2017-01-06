@@ -29,7 +29,6 @@ namespace MedEasy.API.Filters
             IActionResult result = context.Result;
             if (result is ObjectResult)
             {
-
                 object value = ((ObjectResult)result).Value;
                 Type valueType = value.GetType();
                 Type typeBrowsable = typeof(IBrowsableResource<>);
@@ -92,10 +91,8 @@ namespace MedEasy.API.Filters
                     ((ObjectResult)result).Value = resources;
                 }
             }
-            else
-            {
-                base.OnResultExecuting(context);
-            }
+
+            base.OnResultExecuting(context);
         }
     }
 }

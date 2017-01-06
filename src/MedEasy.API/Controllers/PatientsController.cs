@@ -638,7 +638,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">no patient with the <paramref name="id"/> found</response>
         [HttpGet("{id:int}/[action]/{prescriptionId:int}")]
         [HttpHead("{id:int}/[action]/{prescriptionId:int}")]
-        [Produces(typeof(PrescriptionHeaderInfo))]
+        [ProducesResponseType(typeof(PrescriptionHeaderInfo), 200)]
         public async Task<IActionResult> Prescriptions(int id, int prescriptionId)
         {
             PrescriptionHeaderInfo output = await _prescriptionService.GetOnePrescriptionByPatientIdAsync(id, prescriptionId);
@@ -657,6 +657,11 @@ namespace MedEasy.API.Controllers
                         {
                             Rel = "self",
                             Href = urlHelper.Action(nameof(Prescriptions), EndpointName, new { id = output.PatientId, prescriptionId = output.Id})
+                        },
+                        new Link
+                        {
+                            Rel = nameof(Prescription.Items),
+                            Href = urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName , new { output.Id })
                         }
                     },
                     Resource = output

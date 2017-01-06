@@ -773,30 +773,35 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Prescriptions(patientId, prescriptionId);
 
             // Assert
-            IBrowsableResource<PrescriptionHeaderInfo> actualResource = actionResult.Should().NotBeNull().And
+            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = actionResult.Should().NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
                         .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
 
 
-            actualResource.Should().NotBeNull();
-            IEnumerable<Link> links = actualResource.Links;
+            browsableResource.Should().NotBeNull();
+
+            PrescriptionHeaderInfo resource = browsableResource.Resource;
+
+            IEnumerable<Link> links = browsableResource.Links;
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Rel == "self").And
+                .Contain(x => x.Rel == nameof(Prescription.Items));
 
             Link location = links.Single(x => x.Rel == "self");
-            location.Should().NotBeNull();
-            location.Rel.Should().Be("self");
             location.Href.Should().Be($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Prescriptions)}?id={expectedOutput.PatientId}&prescriptionId={expectedOutput.Id}");
 
-            actualResource.Resource.Should().NotBeNull();
-            actualResource.Resource.PatientId.Should().Be(expectedOutput.PatientId);
-            actualResource.Resource.Id.Should().Be(expectedOutput.Id);
-            actualResource.Resource.PrescriptorId.Should().Be(expectedOutput.PrescriptorId);
-            actualResource.Resource.DeliveryDate.Should().Be(expectedOutput.DeliveryDate);
+            Link locationItems = links.Single(x => x.Rel == nameof(Prescription.Items));
+            locationItems.Href.Should().Be($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Details)}?{nameof(resource.Id)}={resource.Id}");
+
+            resource.Should().NotBeNull();
+            resource.PatientId.Should().Be(expectedOutput.PatientId);
+            resource.Id.Should().Be(expectedOutput.Id);
+            resource.PrescriptorId.Should().Be(expectedOutput.PrescriptorId);
+            resource.DeliveryDate.Should().Be(expectedOutput.DeliveryDate);
 
             _prescriptionServiceMock.Verify(mock => mock.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId), Times.Once);
             _urlHelperFactoryMock.Verify();
@@ -1295,6 +1300,7 @@ namespace MedEasy.WebApi.Tests
         }
 
 
+       
         [Fact]
         public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
@@ -1352,7 +1358,6 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
                 .Returns(Task.CompletedTask);
 
-
             // Act
             IActionResult actionResult = await _controller.BloodPressures(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
 
@@ -1367,7 +1372,6 @@ namespace MedEasy.WebApi.Tests
             // Arrange
             _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOnePhysiologicalMeasureAsync<Temperature>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
                 .Returns(Task.CompletedTask);
-
 
             // Act
             IActionResult actionResult = await _controller.Temperatures(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
@@ -1384,7 +1388,6 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.Setup(mock => mock.DeleteOnePhysiologicalMeasureAsync<BodyWeight>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
                 .Returns(Task.CompletedTask);
 
-
             // Act
             IActionResult actionResult = await _controller.BodyWeights(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
 
@@ -1392,16 +1395,5 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeOfType<OkResult>();
             _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOnePhysiologicalMeasureAsync<BodyWeight>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
         }
-
-
-
-
-
     }
 }
-
-
-
-
-
-
