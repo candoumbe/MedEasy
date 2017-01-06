@@ -97,7 +97,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if no prescription with <paramref name="id"/> found</response>
         [HttpGet("{id:int}/[action]")]
         [HttpHead("{id:int}/[action]")]
-        [Produces(typeof(IEnumerable<PrescriptionItemInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<PrescriptionItemInfo>), 200)]
         public async Task<IActionResult> Details(int id)
         {
             IActionResult actionResult;

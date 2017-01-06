@@ -60,15 +60,14 @@ namespace MedEasy.API.Tests.Filters
 
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
-            BadRequestObjectResult badRequest = exceptionContext.Result.Should()
-                .BeAssignableTo<BadRequestObjectResult>().Which;
+            exceptionContext.Result.Should()
+                .BeAssignableTo<BadRequestResult>();
 
-            badRequest.Should().NotBeNull();
-            IEnumerable<ErrorInfo> errors = badRequest.Value.Should()
+           
+            exceptionContext.ModelState.Should()
                 .NotBeNull().And
-                .BeAssignableTo<IEnumerable<ErrorInfo>>().Which;
-
-            errors.Should().BeEquivalentTo(exceptionErrors);
+                .Contain(x => x.Key == "prop1").And
+                .Contain(x => x.Key == "prop2");
         }
 
         [Fact]
@@ -123,15 +122,16 @@ namespace MedEasy.API.Tests.Filters
 
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
-            BadRequestObjectResult badRequest = exceptionContext.Result.Should()
-                .BeAssignableTo<BadRequestObjectResult>().Which;
+            exceptionContext.Result.Should()
+                .BeAssignableTo<BadRequestResult>();
 
-            IEnumerable<ErrorInfo> errors = badRequest.Value.Should()
+
+            exceptionContext.ModelState.Should()
                 .NotBeNull().And
-                .BeAssignableTo<IEnumerable<ErrorInfo>>().Which;
-
-            errors.Should().BeEquivalentTo(exceptionErrors);
+                .Contain(x => x.Key == "prop1").And
+                .Contain(x => x.Key == "prop2");
         }
 
+        
     }
 }

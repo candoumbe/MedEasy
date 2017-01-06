@@ -16,11 +16,10 @@
   },
 
   "frameworks": {
-    "netcoreapp1.0": {
+    "netstandard1.0": {
       "imports": [ "dnxcore50", "portable-dnxcore50+net45+win8+wp8+wpa81" ]
     },
-
-    "netstandard1.1": {
+    "netcoreapp1.0": {
       "imports": [ "dnxcore50", "portable-dnxcore50+net45+win8+wp8+wpa81" ]
     }
   }

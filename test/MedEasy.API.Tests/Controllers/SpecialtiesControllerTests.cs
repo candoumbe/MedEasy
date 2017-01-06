@@ -4,6 +4,7 @@ using GenFu;
 using MedEasy.API;
 using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
+using MedEasy.Commands;
 using MedEasy.Commands.Specialty;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
@@ -484,14 +485,18 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
             _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
-                .Returns(Task.CompletedTask)
+                .Returns(Nothing.Task)
                 .Verifiable();
 
 
             //Act
-            await _controller.Delete(1);
+            IActionResult actionResult = await _controller.Delete(1);
 
             //Assert
+            actionResult.Should()
+                .NotBeNull().And
+                .BeAssignableTo<OkResult>();
+
             _iRunDeleteSpecialtyInfoByIdCommandMock.Verify();
         }
 

@@ -45,22 +45,10 @@ namespace MedEasy.Handlers.Commands
     /// <typeparam name="TKey">Type of the key that uniquely identify a command</typeparam>
     /// <typeparam name="TInput">Type of the data the command carries</typeparam>
     /// <typeparam name="TCommand">Type of the command</typeparam>
-    public interface IRunCommandAsync<TKey, TInput, TCommand>
+    public interface IRunCommandAsync<TKey, TInput, TCommand> :  IRunCommandAsync<TKey, TInput, Nothing, TCommand>
         where TCommand : ICommand<TKey, TInput>
         where TKey : IEquatable<TKey>
-
-
     {
-        /// <summary>
-        /// Process the specified <paramref name="command"/>.
-        /// </summary>
-        /// <remarks>
-        /// A good practice when implementing this command is to validate it before processing.
-        /// </remarks>
-        /// <param name="command">The command to process</param>
-        /// <returns>Data resulting of the execution of the command</returns>
-        /// <exception cref="CommandNotValidException{TCommandId}">if <paramref name="command"/> is not valid</exception>
-        /// <exception cref="ArgumentNullException">if <paramref name="command"/>is null</exception>
-        Task RunAsync(TCommand command);
+        
     }
 }

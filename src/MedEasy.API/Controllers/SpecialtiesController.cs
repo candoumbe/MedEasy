@@ -148,7 +148,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">new values to set</param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        [Produces(typeof(SpecialtyInfo))]
+        [ProducesResponseType(typeof(SpecialtyInfo), 200)]
         public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
         {
             throw new NotImplementedException();
@@ -165,7 +165,7 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id));
-            return await Task.FromResult(new OkResult());
+            return new OkResult();
         }
 
 

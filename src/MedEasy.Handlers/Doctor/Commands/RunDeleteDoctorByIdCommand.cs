@@ -3,6 +3,7 @@ using MedEasy.DAL.Interfaces;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using MedEasy.Commands.Doctor;
+using MedEasy.Commands;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {
@@ -21,7 +22,7 @@ namespace MedEasy.Handlers.Doctor.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task RunAsync(IDeleteDoctorByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeleteDoctorByIdCommand command)
         {
             if (command == null)
             {
@@ -35,7 +36,11 @@ namespace MedEasy.Handlers.Doctor.Commands
             {
                 uow.Repository<Objects.Doctor>().Delete(item => item.Id == id);
                 await uow.SaveChangesAsync().ConfigureAwait(false);
+
+                return Nothing.Value;
             }
+
+            
         }
     }
 }

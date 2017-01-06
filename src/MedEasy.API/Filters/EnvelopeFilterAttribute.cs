@@ -26,7 +26,6 @@ namespace MedEasy.API.Filters
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
-            base.OnResultExecuting(context);
             IActionResult result = context.Result;
             if (result is ObjectResult)
             {
@@ -92,6 +91,10 @@ namespace MedEasy.API.Filters
                     context.HttpContext.Response.Headers.Add("X-Total-Count", piCount.GetValue(value).ToString());
                     ((ObjectResult)result).Value = resources;
                 }
+            }
+            else
+            {
+                base.OnResultExecuting(context);
             }
         }
     }

@@ -1,7 +1,15 @@
-﻿using MedEasy.DAL.Interfaces;
+﻿using System.Linq;
+using MedEasy.DAL.Interfaces;
 using MedEasy.Objects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Reflection;
+using System.Collections.Generic;
+using System;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Threading;
+using System.Threading.Tasks;
+using MedEasy.Tools.Extensions;
 
 namespace MedEasy.API.Stores
 {
@@ -191,6 +199,68 @@ namespace MedEasy.API.Stores
 
             
 
+        }
+
+
+        private IEnumerable<EntityEntry> GetModifiedEntities()
+            => ChangeTracker.Entries()
+                .AsParallel()
+                .Where(x => x.Entity.GetType().IsAssignableFrom(typeof(IAuditableEntity)) && (x.State == EntityState.Added || x.State == EntityState.Modified));
+
+
+        private Action<EntityEntry> UpdateModifiedEntry 
+            => x =>
+            {
+                IAuditableEntity auditableEntity = (IAuditableEntity)x;
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                auditableEntity.UpdatedDate = now;
+                if (x.State == EntityState.Added)
+                {
+                    auditableEntity.CreatedDate = now;
+                }
+            };
+
+        
+
+        public override int SaveChanges()
+        {
+            IEnumerable<EntityEntry> entities = GetModifiedEntities();
+            entities.ForEach(UpdateModifiedEntry);
+            return base.SaveChanges();
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            IEnumerable<EntityEntry> entities = GetModifiedEntities();
+            entities
+                .AsParallel()
+                .ForEach(UpdateModifiedEntry);
+
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            IEnumerable<EntityEntry> entities = GetModifiedEntities();
+
+            entities
+                .AsParallel()
+                .ForEach(UpdateModifiedEntry);
+
+
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            IEnumerable<EntityEntry> entities = GetModifiedEntities();
+
+            entities
+                .AsParallel()
+                .ForEach(UpdateModifiedEntry);
+
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

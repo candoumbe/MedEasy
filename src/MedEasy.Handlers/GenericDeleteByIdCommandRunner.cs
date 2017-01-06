@@ -55,7 +55,7 @@ namespace MedEasy.Handlers.Commands
         /// <returns>The result of command's execution</returns>
         /// <exception cref="CommandNotValidException{TCommandId}">if  <paramref name="command"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/> is <c>null</c></exception>
-        public override async Task RunAsync(TCommand command)
+        public override async Task<Nothing> RunAsync(TCommand command)
         {
             if (command == null)
             {
@@ -88,6 +88,8 @@ namespace MedEasy.Handlers.Commands
                 await uow.SaveChangesAsync();
 
                 Logger.LogInformation($"Command {command.Id} processed successfully");
+
+                return Nothing.Value;
 
             }
         }

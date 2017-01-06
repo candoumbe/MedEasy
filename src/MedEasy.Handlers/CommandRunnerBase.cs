@@ -66,6 +66,6 @@ namespace MedEasy.Handlers.Commands
             Validator = validator;
         }
 
-        public abstract Task RunAsync(TCommand command);
+        public abstract Task<Nothing> RunAsync(TCommand command);
     }
 }

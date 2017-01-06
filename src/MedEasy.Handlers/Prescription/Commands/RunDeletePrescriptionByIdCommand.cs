@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Prescription;
 using System.Threading.Tasks;
+using MedEasy.Commands;
 
 namespace MedEasy.Handlers.Prescription.Commands
 {
@@ -46,9 +47,9 @@ namespace MedEasy.Handlers.Prescription.Commands
 
         }
 
-        public async Task RunAsync(IDeletePrescriptionByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeletePrescriptionByIdCommand command)
         {
-            throw new NotImplementedException();
+            return Nothing.Value;
         }
     }
 }

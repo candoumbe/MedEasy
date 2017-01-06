@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static MedEasy.Validators.ErrorLevel;
 using MedEasy.Handlers.Exceptions;
+using MedEasy.Commands;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -60,7 +61,7 @@ namespace MedEasy.Handlers.Patient.Commands
         /// Deletes a patient by its <see cref="Objects.Patient"/>
         /// </summary>
         /// <param name="command">Comand that wraps id of the <see cref="Objects.Patient"/> to delete.</param>
-        public async Task RunAsync(IDeletePatientByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeletePatientByIdCommand command)
         {
 
             if (command == null)
@@ -80,6 +81,8 @@ namespace MedEasy.Handlers.Patient.Commands
             {
                 uow.Repository<Objects.Patient>().Delete(x => x.Id == command.Data);
                 await uow.SaveChangesAsync();
+
+                return Nothing.Value;
             }
         }
     }

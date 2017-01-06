@@ -189,8 +189,10 @@ namespace MedEasy.API.Controllers
         /// <param name="id">identifier of the resource to update</param>
         /// <param name="info">new values to set</param>
         /// <returns></returns>
+        /// <response code="200">the operation succeed</response>
+        /// <response code="400">Submitted values contains an error</response>
         [HttpPut("{id:int}")]
-        [Produces(typeof(PatientInfo))]
+        [ProducesResponseType(typeof(PatientInfo), 200)]
         public async Task<IActionResult> Put([Range(1, int.MaxValue)] int id, [FromBody] CreatePatientInfo info)
         {
             throw new NotImplementedException();
@@ -379,6 +381,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Search patients resource based on some criteria.
         /// </summary>
+        /// <param name="search">Search criteria</param>
         /// <remarks>
         /// All criteria are combined as a AND.
         /// 
@@ -397,16 +400,15 @@ namespace MedEasy.API.Controllers
         /// '!' : negate a criteria
         /// 
         ///     // GET api/Patients/Search?Firstname=!Bruce
-        ///     
         ///     will match all resources where Firstname is not "Bruce"
         ///     
         /// </remarks>
-        /// <response code="200">The search result</response>
+        /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(IEnumerable<PatientInfo>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchPatientRequestModel search)
+        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search)
         {
             
             
@@ -499,14 +501,16 @@ namespace MedEasy.API.Controllers
         ///             "value": 1
         ///       }
         ///     ]
+        /// 
+        /// The set of changes to apply will be applied atomically. 
+        /// 
         /// </remarks>
         /// <param name="id">id of the resource to update</param>
         /// <param name="changes">set of changes to apply to the resource</param>
-        /// <response code="200">The operation </response>
+        /// <response code="200">The resource was successfully patched </response>
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id:int}")]
-        [Consumes("application/json-patch+json")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<PatientInfo> changes)
         {
@@ -526,9 +530,9 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">patient id</param>
         /// <param name="bodyWeightId">id of the <see cref="BodyWeightInfo"/> resource to get</param>
-        /// <response code="404"><paramref name="id"/> does not identify a <see cref="PatientInfo"/> resource or <paramref name="bodyWeightId"/></response> 
         /// <response code="200">the resource was found</response>
         /// <response code="400">either <paramref name="id"/> or <paramref name="bodyWeightId"/> is negative or zero</response>
+        /// <response code="404"><paramref name="id"/> does not identify a <see cref="PatientInfo"/> resource or <paramref name="bodyWeightId"/></response> 
         [HttpGet("{id:int}/[action]/{bodyWeightId:int}")]
         [HttpHead("{id:int}/[action]/{bodyWeightId:int}")]
         [ProducesResponseType(typeof(BodyWeightInfo), 200)]
@@ -671,23 +675,30 @@ namespace MedEasy.API.Controllers
         /// <param name="id">id of the patient</param>
         /// <param name="newPrescription">prescription details</param>
         /// <returns></returns>
-        /// <response code="201">if the prescription is create successfully</response>
-        /// <response code="400">if the prescription is not valid</response>
+        /// <response code="201">The header of the prescription.</response>
+        /// <response code="400">if <paramref name="newPrescription"/> contains invalid data.</response>
         [HttpPost("{id:int}/[action]")]
+        [ProducesResponseType(typeof(PrescriptionHeaderInfo), 201)]
         public async Task<IActionResult> Prescriptions(int id, [FromBody] CreatePrescriptionInfo newPrescription)
         {
-            IActionResult actionResult;
-            try
-            {
-                PrescriptionHeaderInfo createdPrescription = await _prescriptionService.CreatePrescriptionForPatientAsync(id, newPrescription);
-                actionResult = new CreatedAtActionResult(nameof(Prescriptions), EndpointName, new { id = createdPrescription.PatientId, prescriptionId = createdPrescription.Id }, createdPrescription);
-            }
-            catch (ArgumentException)
-            {
-                actionResult = new BadRequestResult();
-            }
 
-            return actionResult;
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            
+            PrescriptionHeaderInfo createdPrescription = await _prescriptionService.CreatePrescriptionForPatientAsync(id, newPrescription);
+            IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
+            {
+                Resource = createdPrescription,
+                Links = new[]
+                {
+                    new Link {
+                        Href = urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {id = createdPrescription.Id}),
+                        Method = "GET",
+                        Rel = nameof(Prescription.Items),
+                        Title = "Content"
+                    }
+                }
+            };
+            return new CreatedAtActionResult(nameof(Prescriptions), EndpointName, new { id = createdPrescription.PatientId, prescriptionId = createdPrescription.Id }, browsableResource);
         }
 
 
@@ -702,7 +713,7 @@ namespace MedEasy.API.Controllers
         /// <param name="count"></param>
         /// <returns></returns>
         [HttpGet("{id:int}/[action]")]
-        [Produces(typeof(IEnumerable<PrescriptionHeaderInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<PrescriptionHeaderInfo>), 200)]
         public async Task<IEnumerable<PrescriptionHeaderInfo>> MostRecentPrescriptions(int id, int? count)
         {
             GetMostRecentPrescriptionsInfo input = new GetMostRecentPrescriptionsInfo { PatientId = id, Count = count };
@@ -722,7 +733,7 @@ namespace MedEasy.API.Controllers
         /// <response code="201">the resource created successfully</response>
         /// <response code="400"><paramref name="newBodyWeight"/> is not valid or <paramref name="id"/> is negative or zero</response>
         [HttpPost("{id:int}/[action]")]
-        [Produces(typeof(BodyWeightInfo))]
+        [ProducesResponseType(typeof(BodyWeightInfo), 200)]
         public async Task<IActionResult> BodyWeights(int id, [FromBody] CreateBodyWeightInfo newBodyWeight)
         {
             BodyWeight newMeasure = new BodyWeight

@@ -10,6 +10,7 @@ using System.Reflection;
 using MedEasy.Validators;
 using MedEasy.Tools.Extensions;
 using MedEasy.Validators.Exceptions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace MedEasy.API.Filters
 {
@@ -29,7 +30,7 @@ namespace MedEasy.API.Filters
             _logger = logger;
         }
 
-        public override Task OnExceptionAsync(ExceptionContext context)
+        public override async Task OnExceptionAsync(ExceptionContext context)
         {
             Exception exception = context.Exception;
             Type exceptionType = exception.GetType();
@@ -62,9 +63,14 @@ namespace MedEasy.API.Filters
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
 
                     _logger.LogError($"Query '{queryId}' is not valid");
+
+                }
+                foreach (var error in errors)
+                {
+                    context.ModelState.TryAddModelError(error.Key, error.Description);
                 }
 
-                context.Result = new BadRequestObjectResult(errors);
+                context.Result = new BadRequestResult();
                 context.ExceptionHandled = true;
             }
             else if (context.Exception is NotFoundException)
@@ -73,7 +79,8 @@ namespace MedEasy.API.Filters
                 context.Result = new NotFoundObjectResult(context.Exception.Message);
             }
 
-            return base.OnExceptionAsync(context);
+            await base.OnExceptionAsync(context);
+            
         }
     }
 }

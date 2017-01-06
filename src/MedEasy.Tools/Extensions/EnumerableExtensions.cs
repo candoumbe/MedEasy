@@ -150,13 +150,13 @@ namespace System.Collections.Generic
 
 
         /// <summary>
-        /// 
+        /// Tests if there are <paramref name="count"/> elements at most that match <paramref name="predicate"/>.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Type of the elements of the collection to test</typeparam>
         /// <param name="items"></param>
-        /// <param name="predicate"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <param name="predicate">Filter that <paramref name="count"/> elements should match.</param>
+        /// <param name="count">Number of elements that match <paramref name="predicate"/></param>
+        /// <returns><c>true</c> if there are 0 to <paramref name="count"/> elements that matches <paramref name="predicate"/> and <c>false</c> otherwise.</returns>
         public static bool AtMost<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)

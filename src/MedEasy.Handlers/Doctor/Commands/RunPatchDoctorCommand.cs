@@ -11,30 +11,29 @@ using MedEasy.DTO;
 using MedEasy.Commands;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Patient;
+using MedEasy.Commands.Doctor;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
-namespace MedEasy.Handlers.Patient.Commands
+namespace MedEasy.Handlers.Doctor.Commands
 {
     /// <summary>
     /// Command runner for <see cref="PatchInfo{TResourceId}"/> commands
     /// </summary>
-    public class RunPatchPatientCommand : IRunPatchPatientCommand
+    public class RunPatchDoctorCommand : IRunPatchDoctorCommand
     {
         private IUnitOfWorkFactory _uowFactory;
-        private ILogger<RunPatchPatientCommand> _logger;
-        private IValidate<IPatchCommand<int, Objects.Patient>> _validator;
-        private readonly IExpressionBuilder _expressionBuilder;
-
+        private ILogger<RunPatchDoctorCommand> _logger;
+        private IValidate<IPatchCommand<int, Objects.Doctor>> _validator;
+        
         /// <summary>
-        /// Builds a new <see cref="RunPatchPatientCommand"/> instance.
+        /// Builds a new <see cref="RunPatchDoctorCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="logger">Logger.</param>
-        /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchPatientCommand)"/>.</param>
-        public RunPatchPatientCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int, Objects.Patient>> validator) 
+        /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchDoctorCommand)"/>.</param>
+        public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchDoctorCommand> logger, IValidate<IPatchCommand<int, Objects.Doctor>> validator) 
         {
             if (uowFactory == null)
             {
@@ -57,7 +56,7 @@ namespace MedEasy.Handlers.Patient.Commands
             _validator = validator;
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<int, Objects.Patient> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<int, Objects.Doctor> command)
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -71,31 +70,23 @@ namespace MedEasy.Handlers.Patient.Commands
 
             using (var uow = _uowFactory.New())
             {
-                JsonPatchDocument<Objects.Patient> changes = command.Data.PatchDocument;
+                JsonPatchDocument<Objects.Doctor> changes = command.Data.PatchDocument;
                 
-                Operation mainDoctorOp =  changes.Operations.SingleOrDefault(x => $"/{nameof(Objects.Patient.MainDoctorId)}".Equals(x.path, StringComparison.OrdinalIgnoreCase));
-                if ((mainDoctorOp?.value as int?) != null)
-                {
-                    int? newDoctorIdValue = (int?)mainDoctorOp.value;
-                    if (newDoctorIdValue.HasValue && (!await uow.Repository<Objects.Doctor>().AnyAsync(x => x.Id == newDoctorIdValue.Value)))
-                    {
-                        throw new NotFoundException($"Doctor '{newDoctorIdValue}' not found");
-                    } 
-                }
-
+                
                 int patientId = command.Data.Id;
-                Objects.Patient source = await uow.Repository<Objects.Patient>()
+                Objects.Doctor source = await uow.Repository<Objects.Doctor>()
                     .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
 
                 if (source == null)
                 {
-                    throw new NotFoundException($"Patient '{patientId}' not found");
+                    throw new NotFoundException($"Doctor '{patientId}' not found");
                 }
+
 
                 changes.ApplyTo(source);
                 await uow.SaveChangesAsync();
-
                 _logger.LogInformation($"Command {command.Id} completed successfully");
+
 
                 return Nothing.Value;
             }

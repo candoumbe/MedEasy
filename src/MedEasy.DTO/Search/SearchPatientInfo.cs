@@ -1,10 +1,6 @@
 ﻿using MedEasy.DTO;
-using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MedEasy.API.Models
 {
@@ -12,7 +8,7 @@ namespace MedEasy.API.Models
     /// Request for searching patient resources.
     /// </summary>
     /// <remarks>
-    public class SearchPatientRequestModel : AbstractSearchRequestModel<PatientInfo>
+    public class SearchPatientInfo : AbstractSearchInfo<PatientInfo>
     {
         /// <summary>
         /// Criteria for the <see cref="Firstname"/>.
@@ -34,12 +30,14 @@ namespace MedEasy.API.Models
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!string.IsNullOrWhiteSpace(Firstname))
-            {
+            IList<ValidationResult> validationsResults = new List<ValidationResult>(base.Validate(validationContext));
 
+            if (string.IsNullOrWhiteSpace(Firstname) && string.IsNullOrWhiteSpace(Lastname))
+            {
+                validationsResults.Add(new ValidationResult("One of the search criteria must be set.", new[] { nameof(Firstname), nameof(Lastname) }));
             }
 
-            return base.Validate(validationContext);
+            return validationsResults;
         }
 
 

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
 using MedEasy.Data.Converters;
 using MedEasy.Handlers;
+using System;
 
 namespace MedEasy.API
 {
@@ -50,8 +51,9 @@ namespace MedEasy.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton((provider) => AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
 
-            services.AddTransient<IUnitOfWorkFactory, EFUnitOfWorkFactory>(item =>
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory>(item =>
             {
                 DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>();
                 builder.UseSqlServer(Configuration.GetConnectionString("Default"));
@@ -59,7 +61,6 @@ namespace MedEasy.API
 
             });
 
-            services.AddScoped(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
             services.AddScoped<IHandleSearchQuery, HandleSearchQuery>();
             services.AddPatientsControllerDependencies();
             services.AddSpecialtiesControllerDependencies();
@@ -86,6 +87,7 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+
             }).AddJsonOptions(options => {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.Converters.Add(new DataFilterConverter());

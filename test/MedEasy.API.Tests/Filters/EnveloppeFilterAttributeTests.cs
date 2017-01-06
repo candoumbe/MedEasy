@@ -145,6 +145,52 @@ namespace MedEasy.API.Tests.Filters
             headers["Link"][0].Should().Be($@"<{browsableResource.Links.ElementAt(0).Href}>; rel=""{browsableResource.Links.ElementAt(0).Rel}""");
         }
 
+        [Fact]
+        public void OnResultExecuting_ForActionThatReturnsCreatedAtActionResult_That_Contains_IBrowsableResource()
+        {
+            // Arrange
+            PatientInfo resource = new PatientInfo
+            {
+                Id = 1,
+                Firstname = "Bruce",
+                Lastname = "Wayne"
+            };
+            IBrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+            {
+                Resource = resource,
+                Links = new[] {
+                    new Link { Href = "url/to/resource", Rel = "self" }
+                }
+            };
+            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+                new ActionContext()
+                {
+                    HttpContext = new DefaultHttpContext(),
+                    RouteData = new RouteData(),
+                    ActionDescriptor = new ActionDescriptor()
+                    {
+                        DisplayName = "Get"
+                    }
+                },
+                new List<IFilterMetadata>(), new CreatedAtActionResult("Action", "Controller", new { }, browsableResource), _controller);
+
+            // Act
+            EnvelopeFilterAttribute filter = new EnvelopeFilterAttribute();
+            filter.OnResultExecuting(resultExecutingContext);
+
+            //Assert
+            resultExecutingContext.Result.Should()
+                .BeOfType<CreatedAtActionResult>().Which
+                    .Value.Should()
+                        .BeAssignableTo<PatientInfo>();
+
+            IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
+
+            headers.Should().ContainKey("Link");
+            headers["Link"].Should().ContainSingle();
+            headers["Link"][0].Should().Be($@"<{browsableResource.Links.ElementAt(0).Href}>; rel=""{browsableResource.Links.ElementAt(0).Rel}""");
+        }
+
 
         [Fact]
         public void OnResultExecuting_ForActionThatReturnsPageOfResource()
