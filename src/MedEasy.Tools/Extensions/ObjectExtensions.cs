@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace System
 {
@@ -38,26 +37,60 @@ namespace System
 
             if (obj != null)
             {
-                IEnumerable<PropertyInfo> properties = obj.GetType()
-                    .GetRuntimeProperties()
-                    .Where(pi => pi.CanRead && pi.GetValue(obj) != null);
 
-                dictionary = properties.ToDictionary(
-                    pi => pi.Name,
-                    pi =>
+                Type objType = obj.GetType();
+                TypeInfo objTypeInfo = objType.GetTypeInfo();
+
+                if (obj is IEnumerable)
+                {
+                    dictionary = new Dictionary<string, object>();
+                    IEnumerator enumerator = (obj as IEnumerable).GetEnumerator();
+                    int count = 0;
+                    while (enumerator.MoveNext())
                     {
-                        object value = pi.GetValue(obj);
-                        Type valueType = value.GetType();
-                        TypeInfo valueTypeInfo = valueType.GetTypeInfo();
-                        
-                        if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string)))
+                        object current = enumerator.Current;
+                        if (current != null)
                         {
-                            value = ParseAnonymousObject(value);
+                            Type currentType = current.GetType();
+                            TypeInfo currentTypeInfo =currentType.GetTypeInfo();
+                            if (currentTypeInfo.IsPrimitive || currentTypeInfo.IsEnum || currentType == typeof(string))
+                            {
+                                dictionary.Add($"{count}", current);
+                            }
+                            else
+                            {
+                                dictionary.Add($"{count}", ParseAnonymousObject(current));
+                            }
+                            count++;
                         }
-                        
-                        return value;
                     }
-                );
+                    
+                }
+
+                else
+                {
+                    IEnumerable<PropertyInfo> properties = obj.GetType()
+                            .GetRuntimeProperties()
+                            .Where(pi => pi.CanRead && pi.GetValue(obj) != null);
+
+                    dictionary = properties.ToDictionary(
+                        pi => pi.Name,
+                        pi =>
+                        {
+                            object value = pi.GetValue(obj);
+                            Type valueType = value.GetType();
+                            TypeInfo valueTypeInfo = valueType.GetTypeInfo();
+
+
+                            if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string)))
+                            {
+                                value = ParseAnonymousObject(value);
+                            }
+
+                            return value;
+                        }
+                    ); 
+                }
 
             }
             return dictionary;

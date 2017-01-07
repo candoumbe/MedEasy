@@ -15,6 +15,8 @@ using Xunit;
 using MedEasy.Mapping;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using MedEasy.Handlers.Exceptions;
+using MedEasy.DAL.Repositories;
 
 namespace MedEasy.Services.Tests
 {
@@ -40,7 +42,7 @@ namespace MedEasy.Services.Tests
             _service = new PrescriptionService(_factoryMock.Object, _loggerMock.Object, _expressionBuilder);
         }
 
-        public static IEnumerable<object> GetOnePrescriptionCases
+        public static IEnumerable<object> GetOnePrescriptionByPatientIdAsyncCases
         {
             get
             {
@@ -79,6 +81,34 @@ namespace MedEasy.Services.Tests
                     },
                     1, 2,
                     ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  == null))
+                };
+            }
+        }
+
+        public static IEnumerable<object> GetOnePrescriptionTestsCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<Prescription>(),
+                    1, 
+                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  == null))
+                };
+
+                yield return new object[]
+                {
+                    new []
+                    {
+                        new Prescription
+                        {
+                            Id = 2,
+                            PatientId = 1,
+                            DeliveryDate = 23.December(2000)
+                        }
+                    },
+                    2,
+                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  != null && x.DeliveryDate == 23.December(2000) && x.Id == 2 && x.PatientId == 1))
                 };
             }
         }
@@ -177,8 +207,8 @@ namespace MedEasy.Services.Tests
         }
 
         [Theory]
-        [MemberData(nameof(GetOnePrescriptionCases))]
-        public async Task GetOnePrescriptionTests(IEnumerable<Prescription> prescriptionsBdd, int patientId, int prescriptionId, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
+        [MemberData(nameof(GetOnePrescriptionByPatientIdAsyncCases))]
+        public async Task GetOnePrescriptionByPatientIdAsync(IEnumerable<Prescription> prescriptionsBdd, int patientId, int prescriptionId, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
         {
             // Arrange 
             _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, PrescriptionHeaderInfo>>>(), It.IsAny<Expression<Func<Prescription, bool>>>()))
@@ -191,12 +221,54 @@ namespace MedEasy.Services.Tests
                 }));
 
             // Act
-            PrescriptionHeaderInfo output = await _service.GetOnePrescriptionByPatientIdAsync(1, 2);
+            PrescriptionHeaderInfo output = await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);
 
             // Assert
             output.Should().Match(resultExpectation);
 
         }
+
+        [Fact]
+        public void GetDetailsByPrescriptionIdThrowsNotFoundExceptionWhenPrescriptionIdNotFound()
+        {
+
+            // Arrange
+            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, bool>>>(), It.IsAny<IEnumerable<IncludeClause<Prescription>>>()))
+                .ReturnsAsync(null);
+
+            // Act
+            Func<Task> action = async () => await _service.GetItemsByPrescriptionIdAsync(1);
+
+            // Assert
+            action.ShouldThrow<NotFoundException>()
+                .Which.Message.Should()
+                .MatchRegex(@"Prescription <\d+> not found");
+        }
+
+        
+
+        [Theory]
+        [MemberData(nameof(GetOnePrescriptionTestsCases))]
+        public async Task GetOnePrescriptionTests(IEnumerable<Prescription> prescriptionsBdd, int id, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
+        {
+            // Arrange 
+            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, PrescriptionHeaderInfo>>>(), It.IsAny<Expression<Func<Prescription, bool>>>()))
+                .Returns((Expression<Func<Prescription, PrescriptionHeaderInfo>> selector, Expression<Func<Prescription, bool>> filter) => Task.Run(() =>
+                {
+                    return prescriptionsBdd
+                        .Where(filter.Compile())
+                        .Select(selector.Compile())
+                        .SingleOrDefault();
+                }));
+
+            // Act
+            PrescriptionHeaderInfo output = await _service.GetOnePrescriptionAsync(id);
+
+            // Assert
+            output.Should().Match(resultExpectation);
+
+        }
+
 
         /// <summary>
         /// Tests that <see cref="PrescriptionService.GetOnePrescriptionByPatientIdAsync(int, int)"/> throws <see cref="ArgumentOutOfRangeException"/>

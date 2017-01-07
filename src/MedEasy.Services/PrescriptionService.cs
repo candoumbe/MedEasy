@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
 using AutoMapper.QueryableExtensions;
 using System.Linq.Expressions;
+using MedEasy.Handlers.Exceptions;
+using MedEasy.DAL.Repositories;
 
 namespace MedEasy.Services
 {
@@ -19,7 +21,7 @@ namespace MedEasy.Services
         private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
-        /// Builds a new <see cref="PrescriptionService"/> instance
+        /// Builds a new <see cref="PrescriptionService"/> instance.
         /// </summary>
         /// <param name="uowFactory">Factory that can build new <see cref="IUnitOfWork"/> instances</param>
         /// <param name="logger">logger</param>
@@ -61,9 +63,17 @@ namespace MedEasy.Services
             throw new NotImplementedException();
         }
 
-        public Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(int id)
+        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(int id)
         {
-            throw new NotImplementedException();
+
+            using (var uow = _uowFactory.New())
+            {
+                Expression<Func<Prescription, PrescriptionHeaderInfo>> selector = _expressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>();
+                PrescriptionHeaderInfo result = await uow.Repository<Prescription>()
+                    .SingleOrDefaultAsync(selector, x => x.Id == id);
+
+                return result;
+            }
         }
 
 
@@ -96,9 +106,24 @@ namespace MedEasy.Services
             }
         }
 
-        public Task<PrescriptionInfo> GetPrescriptionWithDetailsAsync(int id)
+        public async Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(int id)
         {
-            throw new NotImplementedException();
+            using (var uow = _uowFactory.New())
+            {
+                Prescription prescription = await uow.Repository<Prescription>()
+                    .SingleOrDefaultAsync(x => x.Id == id, new[] { IncludeClause<Prescription>.Create(x => x.Items) });
+
+                if (prescription == null)
+                {
+                    throw new NotFoundException($"Prescription <{id}> not found");
+                }
+
+                var converterExpression =_expressionBuilder.CreateMapExpression<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>();
+                IEnumerable<PrescriptionItemInfo> results = converterExpression.Compile()(prescription.Items);
+
+
+                return results;
+            }
         }
     }
 }

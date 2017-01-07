@@ -10,6 +10,7 @@ using MedEasy.DTO;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using MedEasy.Objects;
 
 namespace MedEasy.API.Controllers
 {
@@ -70,6 +71,11 @@ namespace MedEasy.API.Controllers
                         {
                             Href = urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
                             Rel = "self"
+                        },
+                        new Link
+                        {
+                            Rel = nameof(Prescription.Items),
+                            Href = urlHelper.Action(nameof(PrescriptionsController.Details), EndpointName , new { prescriptionHeaderInfo.Id })
                         }
                     }
                 };
@@ -100,33 +106,23 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<PrescriptionItemInfo>), 200)]
         public async Task<IActionResult> Details(int id)
         {
-            IActionResult actionResult;
-            PrescriptionInfo prescriptionInfo = await _prescriptionService.GetPrescriptionWithDetailsAsync(id);
-            if (prescriptionInfo != null)
+            IEnumerable<PrescriptionItemInfo> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id);
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            IBrowsableResource<IEnumerable<PrescriptionItemInfo>> browsableResource = new BrowsableResource<IEnumerable<PrescriptionItemInfo>>
             {
-                IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-                IBrowsableResource<IEnumerable<PrescriptionItemInfo>> browsableResource = new BrowsableResource<IEnumerable<PrescriptionItemInfo>>
-                {
-                    Resource = prescriptionInfo.Items,
-                    Links = new[] {
+                Resource = items,
+                Links = new[] {
                         new Link
                         {
                             Rel = "self",
-                            Href = urlHelper.Action(nameof(Details), EndpointName, new { prescriptionInfo.Id })
+                            Href = urlHelper.Action(nameof(Details), EndpointName, new { id })
                         }
                     }
-                };
+            };
 
-                actionResult = new OkObjectResult(browsableResource);
-            }
-            else
-            {
-                actionResult = new NotFoundResult();
-            }
-
-
-            return actionResult;
-
+            return new OkObjectResult(browsableResource);
+            
         }
     }
 }

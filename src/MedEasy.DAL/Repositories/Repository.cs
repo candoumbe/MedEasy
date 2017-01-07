@@ -71,7 +71,9 @@ namespace MedEasy.DAL.Repositories
         
         public virtual async Task<IEnumerable<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector).ToArrayAsync().ConfigureAwait(false);
+            return await Entries.Where(predicate).Select(selector)
+                .ToArrayAsync()
+                .ConfigureAwait(false);
         }
 
 
@@ -248,7 +250,15 @@ namespace MedEasy.DAL.Repositories
             return await Entries.SingleOrDefaultAsync()
                 .ConfigureAwait(false);
         }
-        
+
+        public async Task<TEntry> SingleOrDefaultAsync(IEnumerable<IncludeClause<TEntry>> includedProperties)
+        {
+            return await Entries
+                .Include(includedProperties)
+                .SingleOrDefaultAsync()
+                .ConfigureAwait(false);
+        }
+
 
         public async Task<TEntry> SingleOrDefaultAsync(Expression<Func<TEntry, bool>> predicate)
         {
@@ -257,9 +267,19 @@ namespace MedEasy.DAL.Repositories
         }
 
 
+
+        public async Task<TEntry> SingleOrDefaultAsync(Expression<Func<TEntry, bool>> predicate, IEnumerable<IncludeClause<TEntry>> includedProperties)
+        {
+            return await Entries
+                .Include(includedProperties)
+                .SingleOrDefaultAsync(predicate)
+                .ConfigureAwait(false);
+        }
+
         public async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate)
         {
-            return await Entries.Where(predicate).Select(selector)
+            return await Entries.Where(predicate)
+                .Select(selector)
                 .SingleOrDefaultAsync()
                 .ConfigureAwait(false);
         }

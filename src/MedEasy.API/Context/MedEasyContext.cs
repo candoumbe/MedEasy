@@ -9,7 +9,6 @@ using System;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Threading;
 using System.Threading.Tasks;
-using MedEasy.Tools.Extensions;
 
 namespace MedEasy.API.Stores
 {

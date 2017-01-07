@@ -63,6 +63,6 @@ namespace MedEasy.Services
         /// </remarks>
         /// <param name="id">id of the resource</param>
         /// <returns></returns>
-        Task<PrescriptionInfo> GetPrescriptionWithDetailsAsync(int id);
+        Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(int id);
     }
 }

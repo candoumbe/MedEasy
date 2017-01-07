@@ -3,8 +3,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace MedEasy.Tools.Extensions
-{
+namespace System
+{ 
     public static class TypeExtensions
     {
         /// <summary>

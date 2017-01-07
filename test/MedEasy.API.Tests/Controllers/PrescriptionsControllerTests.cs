@@ -4,6 +4,7 @@ using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
+using MedEasy.Handlers.Exceptions;
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
@@ -108,21 +109,25 @@ namespace MedEasy.API.Tests.Controllers
                     .Value.Should()
                     .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
 
+            PrescriptionHeaderInfo resource = result.Resource;
             IEnumerable<Link> links = result.Links;
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Rel == "self").And
+                .Contain(x => x.Rel == nameof(Prescription.Items));
 
             Link location = links.Single(x => x.Rel == "self");
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Get)}?{nameof(PrescriptionHeaderInfo.Id)}=1");
-            location.Rel.Should()
-                .NotBeNullOrWhiteSpace()
-                .And.BeEquivalentTo("self");
+                .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Get)}?{nameof(resource.Id)}={resource.Id}");
 
-            PrescriptionHeaderInfo resource = result.Resource;
+            Link locationItems = links.Single(x => x.Rel == nameof(Prescription.Items));
+            locationItems.Href.Should()
+                .NotBeNullOrWhiteSpace().And
+                .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Details)}?{nameof(resource.Id)}={resource.Id}");
+
+
             resource.Should().NotBeNull();
             resource.Id.Should().Be(1);
             resource.PatientId.Should().Be(1);
@@ -137,12 +142,7 @@ namespace MedEasy.API.Tests.Controllers
         {
             get
             {
-                yield return new object[] {
-                    Enumerable.Empty<Prescription>(),
-                    1,
-                    ((Expression<Func<IActionResult, bool>>)(x => x != null && x is NotFoundResult))
-                };
-
+                
                 yield return new object[] {
                     new [] {
                         new Prescription
@@ -179,22 +179,6 @@ namespace MedEasy.API.Tests.Controllers
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Rel == "self") == 1))
                 };
-
-                yield return new object[] {
-                    new [] {
-                        new Prescription
-                        {
-                            Id = 3,
-                            PatientId = 1,
-                            Items = new []
-                            {
-                                new PrescriptionItem { Id = 1, Code = "DRUG", Quantity = 1, Designation = "Doliprane" }
-                            }
-                        }
-                    },
-                    1,
-                     ((Expression<Func<IActionResult, bool>>)(x => x != null && x is NotFoundResult))
-                };
             }
         }
 
@@ -210,15 +194,15 @@ namespace MedEasy.API.Tests.Controllers
         public async Task GetDetails(IEnumerable<Prescription> prescriptions, int id, Expression<Func<IActionResult, bool>> resultExpectation)
         {
 
-
-
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.GetPrescriptionWithDetailsAsync(It.IsAny<int>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<int>()))
                 .Returns((int prescriptionId) => Task.Run(() =>
                 {
-                    return prescriptions
-                        .Select(_mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Prescription, PrescriptionInfo>().Compile())
-                        .SingleOrDefault(x => x.Id == prescriptionId);
+                    IEnumerable<PrescriptionItem> items = prescriptions
+                        .Single(x => x.Id == prescriptionId).Items;
+
+                    return _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(items);
+
                 }));
 
             // Act
@@ -232,7 +216,27 @@ namespace MedEasy.API.Tests.Controllers
                 .Match(resultExpectation);
 
             
-            _prescriptionServiceMock.Verify(mock => mock.GetPrescriptionWithDetailsAsync(id), Times.Once);
+            _prescriptionServiceMock.Verify(mock => mock.GetItemsByPrescriptionIdAsync(id), Times.Once);
+        }
+
+        [Fact]
+        public void GetDetailsShouldNotSwallowNotFoundException()
+        {
+
+            // Arrange
+            Exception expectedException = new NotFoundException($"No prescription found");
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<int>()))
+                .Throws(expectedException);
+
+            // Act
+            Func<Task> action = async () => await _controller.Details(1);
+
+
+            // Assert
+            action.ShouldThrow<NotFoundException>()
+                .Which.Message.Should()
+                .Be(expectedException.Message);
+
         }
 
     }

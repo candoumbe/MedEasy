@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
-using MedEasy.Tools.Extensions;
 using System.Text;
 
 namespace MedEasy.API.Filters

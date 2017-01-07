@@ -96,6 +96,25 @@ namespace MedEasy.Tools.Tests
         {
             get
             {
+
+                yield return new object[]
+                {
+                    new {limit = new [] {0, 2, 4}},
+                    ((Expression<Func<IDictionary<string, object>, bool>>)(x =>
+                        x != null
+                        && x.Keys.Count == 1
+                        && x.ContainsKey("limit")
+                        && x["limit"] is IDictionary<string, object>
+                        && ((IDictionary<string, object>) x["limit"]).Keys.Count == 3
+                        && ((IDictionary<string, object>) x["limit"]).ContainsKey("0")
+                        && Equals(((IDictionary<string, object>) x["limit"])["0"], 0)
+                        && ((IDictionary<string, object>) x["limit"]).ContainsKey("1")
+                        && Equals(((IDictionary<string, object>) x["limit"])["1"], 2)
+                        && ((IDictionary<string, object>) x["limit"]).ContainsKey("2")
+                        && Equals(((IDictionary<string, object>) x["limit"])["2"], 4)
+                    ))
+                };
+
                 yield return new object[]
                 {
                     new { propName = "value" },

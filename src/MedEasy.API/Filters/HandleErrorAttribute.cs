@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using MedEasy.Validators;
-using MedEasy.Tools.Extensions;
 using MedEasy.Validators.Exceptions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
