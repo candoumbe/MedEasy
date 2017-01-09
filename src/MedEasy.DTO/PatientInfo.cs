@@ -9,13 +9,8 @@ namespace MedEasy.DTO
     /// Informations on a patient
     /// </summary>
     [JsonObject]
-    public class PatientInfo : IResource<int>
+    public class PatientInfo : ResourceBase<int>
     {
-        /// <summary>
-        /// Id of the patient
-        /// </summary>
-        [JsonProperty]
-        public int Id { get; set; }
         /// <summary>
         /// Patient's firstname
         /// </summary>
@@ -52,9 +47,6 @@ namespace MedEasy.DTO
 
         [JsonProperty]
         public string Fullname { get; set; }
-
-        [JsonProperty]
-        public DateTimeOffset? UpdatedDate { get; set; }
         
     }
 }
