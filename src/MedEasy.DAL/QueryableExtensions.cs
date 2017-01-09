@@ -1,4 +1,5 @@
 ﻿using MedEasy.DAL.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
 namespace System.Linq
@@ -65,7 +66,7 @@ namespace System.Linq
             {
                 foreach (IncludeClause<T> includeClause in includes)
                 {
-                    entries = QueryableExtensions.Include(entries, (dynamic)includeClause.Expression);
+                    entries = EntityFrameworkQueryableExtensions.Include(entries, (dynamic)includeClause.Expression);
                 }
             }
             return entries;

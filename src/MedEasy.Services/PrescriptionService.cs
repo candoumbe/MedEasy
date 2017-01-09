@@ -11,6 +11,7 @@ using AutoMapper.QueryableExtensions;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Exceptions;
 using MedEasy.DAL.Repositories;
+using AutoMapper;
 
 namespace MedEasy.Services
 {
@@ -39,7 +40,7 @@ namespace MedEasy.Services
                 throw new ArgumentOutOfRangeException(nameof(patientId), $"{nameof(patientId)} cannot be negative or zero");
             }
 
-            if(newPrescription == null)
+            if (newPrescription == null)
             {
                 throw new ArgumentNullException(nameof(newPrescription), $"{nameof(newPrescription)} cannot be null");
             }
@@ -117,10 +118,10 @@ namespace MedEasy.Services
                 {
                     throw new NotFoundException($"Prescription <{id}> not found");
                 }
-
-                var converterExpression =_expressionBuilder.CreateMapExpression<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>();
-                IEnumerable<PrescriptionItemInfo> results = converterExpression.Compile()(prescription.Items);
-
+                Func<PrescriptionItem, PrescriptionItemInfo> funcConverter = _expressionBuilder.CreateMapExpression<PrescriptionItem, PrescriptionItemInfo>()
+                    .Compile();
+                IEnumerable<PrescriptionItemInfo> results = prescription.Items
+                    .Select(funcConverter);
 
                 return results;
             }
