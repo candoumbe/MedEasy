@@ -751,7 +751,22 @@ namespace MedEasy.API.Controllers
             return new CreatedAtActionResult(nameof(BodyWeights), EndpointName, new { id = output.PatientId, bodyWeightId = output.Id }, output);
         }
 
-
+        /// <summary>
+        /// Generates additional id for the patient resource
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <param name="urlHelper"></param>
+        /// <returns></returns>
+        protected override IEnumerable<Link> BuildAdditionalLinksForResource(PatientInfo resource, IUrlHelper urlHelper)
+            => resource.MainDoctorId.HasValue
+                ? new[]
+                {
+                    new Link {
+                        Rel = "main-doctor-id",
+                        Href = urlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new { id = resource.MainDoctorId })
+                    }
+                }
+                : Enumerable.Empty<Link>();
     }
 
 }

@@ -553,6 +553,9 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
+        
+
+
         [Theory]
         [MemberData(nameof(PatchCases))]
         public async Task Patch(Patient source, IEnumerable<Operation<PatientInfo>> operations, Expression<Func<Patient, bool>> patchResultExpectation)
@@ -605,6 +608,8 @@ namespace MedEasy.WebApi.Tests
 
         }
 
+        
+
         [Fact]
         public async Task Get()
         {
@@ -612,8 +617,15 @@ namespace MedEasy.WebApi.Tests
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
+            PatientInfo expectedResource = new PatientInfo
+            {
+                Id = 1,
+                Firstname = "Bruce",
+                Lastname = "Wayne",
+                MainDoctorId = 72
+            };
             _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
-                .ReturnsAsync(new PatientInfo { Id = 1, Firstname = "Bruce", Lastname = "Wayne" })
+                .ReturnsAsync(expectedResource)
                 .Verifiable();
 
             //Act
@@ -631,7 +643,8 @@ namespace MedEasy.WebApi.Tests
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Rel == "self").And
+                .Contain(x => x.Rel == "main-doctor-id");
 
             Link location = links.Single(x => x.Rel == "self");
             location.Href.Should()
@@ -641,11 +654,23 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo("self");
 
-            PatientInfo resource = result.Resource;
-            resource.Should().NotBeNull();
-            resource.Id.Should().Be(1);
-            resource.Firstname.Should().Be("Bruce");
-            resource.Lastname.Should().Be("Wayne");
+           
+            Link linkMainDoctor = links.Single(x => x.Rel == "main-doctor-id");
+            linkMainDoctor.Href.Should()
+                .NotBeNullOrWhiteSpace().And
+                .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={expectedResource.MainDoctorId}");
+            
+
+
+            PatientInfo actualResource = result.Resource;
+            actualResource.Should().NotBeNull();
+            actualResource.Id.Should().Be(1);
+            actualResource.Firstname.Should().Be(expectedResource.Firstname);
+            actualResource.Lastname.Should().Be(expectedResource.Lastname);
+
+
+            actualResource.MainDoctorId.Should().Be(expectedResource.MainDoctorId);
+
 
             _iHandleGetOnePatientInfoByIdQueryMock.Verify();
             _urlHelperFactoryMock.Verify();

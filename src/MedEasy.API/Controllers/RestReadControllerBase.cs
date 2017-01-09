@@ -10,6 +10,9 @@ using MedEasy.DTO;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 namespace MedEasy.API.Controllers
 {
@@ -23,9 +26,9 @@ namespace MedEasy.API.Controllers
     public abstract class RestReadControllerBase<TKey, TResource> : AbstractBaseController, IRestController<TKey, TResource>
         where TKey : IEquatable<TKey>
         where TResource : IResource<TKey>
-        
+
     {
-        
+
         /// <summary>
         /// Handler for "I want one resource" queries
         /// </summary>
@@ -62,11 +65,11 @@ namespace MedEasy.API.Controllers
         /// <param name="getManyQueryHandler">handler to use to lookup for many resources</param>
         /// <exception cref="ArgumentNullException">if either <paramref name="logger"/> or <paramref name="getByIdHandler"/> is <code>null</code></exception>
         protected RestReadControllerBase(
-            ILogger logger, 
+            ILogger logger,
             IOptions<MedEasyApiOptions> apiOptions,
-            IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource> > getByIdHandler,
-            IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler, 
-            IUrlHelperFactory urlHelperFactory, 
+            IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
+            IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
+            IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor) : base(logger)
         {
             if (getByIdHandler == null)
@@ -74,7 +77,7 @@ namespace MedEasy.API.Controllers
                 throw new ArgumentNullException(nameof(getByIdHandler), "Handler cannot be null");
             }
 
-            if (getManyQueryHandler  == null)
+            if (getManyQueryHandler == null)
             {
                 throw new ArgumentNullException(nameof(getManyQueryHandler), "GET many queryHandler cannot be null");
             }
@@ -112,21 +115,36 @@ namespace MedEasy.API.Controllers
             else
             {
                 IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
+                IEnumerable<Link> links = new List<Link>
+                {
+                    new Link
+                    {
+                        Rel = "self",
+                        Href = urlHelper.Action(nameof(Get), ControllerName,  new { id = resource.Id })
+                    }
+                };
+                IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(resource, urlHelper);
+
+                Debug.Assert(additionalLinks != null, "Implementation cannot return null");
+
                 actionResult = new OkObjectResult(new BrowsableResource<TResource>
                 {
                     Resource = resource,
-                    Links = new[] {
-                        new Link {
-                            Rel = "self",
-                            Href = urlHelper.Action(nameof(Get), ControllerName,  new { id = resource.Id })
-                        }
-                    }
+                    Links = links.Union(additionalLinks)
                 });
             }
             return actionResult;
 
 
         }
+
+        /// <summary>
+        /// Builds links that can be used to get resource related to the resource retrieved by calling <see cref="Get(TKey)"/>
+        /// </summary>
+        /// <param name="resource">The resource to build links for</param>
+        /// <param name="urlHelper"><see cref="IUrlHelper"/> that can be used to generate additional links.</param>
+        /// <returns></returns>
+        protected virtual IEnumerable<Link> BuildAdditionalLinksForResource(TResource resource, IUrlHelper urlHelper) => Enumerable.Empty<Link>();
 
         /// <summary>
         /// Name of the controller
