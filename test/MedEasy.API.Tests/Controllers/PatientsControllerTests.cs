@@ -660,18 +660,13 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={expectedResource.MainDoctorId}");
             
-
-
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
             actualResource.Id.Should().Be(1);
             actualResource.Firstname.Should().Be(expectedResource.Firstname);
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
-
-
             actualResource.MainDoctorId.Should().Be(expectedResource.MainDoctorId);
-
-
+            
             _iHandleGetOnePatientInfoByIdQueryMock.Verify();
             _urlHelperFactoryMock.Verify();
 
@@ -681,6 +676,7 @@ namespace MedEasy.WebApi.Tests
         public async Task Post()
         {
             //Arrange
+
             _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
                 .Returns((ICreatePatientCommand cmd) => Task.Run(()
                 => new PatientInfo
@@ -688,14 +684,16 @@ namespace MedEasy.WebApi.Tests
                     Id = 3,
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
-                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero)
+                    UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero),
+                    MainDoctorId = cmd.Data.MainDoctorId
                 }));
 
             //Act
             CreatePatientInfo info = new CreatePatientInfo
             {
                 Firstname = "Bruce",
-                Lastname = "Wayne"
+                Lastname = "Wayne",
+                MainDoctorId = 75
             };
 
             IActionResult actionResult = await _controller.Post(info);
@@ -705,24 +703,36 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNull().And
                 .BeOfType<CreatedAtActionResult>().Which;
 
-            PatientInfo createdResource = createdActionResult.Value.Should().NotBeNull().And
-                .BeOfType<PatientInfo>().Which;
+            IBrowsableResource<PatientInfo> browsableResource = createdActionResult.Value.Should()
+                .NotBeNull().And
+                .BeAssignableTo<IBrowsableResource<PatientInfo>>().Which;
+
+
+            PatientInfo createdResource = browsableResource.Resource;
 
             createdResource.Should()
                 .NotBeNull();
-
             createdResource.Should()
                 .NotBeNull();
-
-
             createdResource.Firstname.Should()
                 .Be(info.Firstname);
             createdResource.Lastname.Should()
                 .Be(info.Lastname);
+            createdResource.MainDoctorId.Should()
+                .Be(info.MainDoctorId);
 
             createdResource.UpdatedDate.Should().HaveDay(1);
             createdResource.UpdatedDate.Should().HaveMonth(2);
             createdResource.UpdatedDate.Should().HaveYear(2012);
+
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeNullOrEmpty().And
+                .Contain(x => x.Rel == "main-doctor-id");
+
+            Link locationMainDoctor = links.Single(x => x.Rel == "main-doctor-id");
+            locationMainDoctor.Href.Should()
+                .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={createdResource.MainDoctorId}");
 
             _iRunCreatePatientInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()), Times.Once);
 

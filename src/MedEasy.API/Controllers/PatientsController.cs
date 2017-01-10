@@ -179,7 +179,13 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient)
         {
             PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(newPatient));
-            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id }, output);
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            IBrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+            {
+                Resource = output,
+                Links = BuildAdditionalLinksForResource(output, urlHelper)
+            };
+            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id }, browsableResource);
         }
 
 
