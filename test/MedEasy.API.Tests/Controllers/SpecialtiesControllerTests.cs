@@ -216,12 +216,12 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<SpecialtyInfo>>();
+                    .And.BeAssignableTo<IGenericPagedGetResponse<SpecialtyInfo>>();
 
-            GenericPagedGetResponse<SpecialtyInfo> response = (GenericPagedGetResponse<SpecialtyInfo>)value;
+            IGenericPagedGetResponse<SpecialtyInfo> response = (IGenericPagedGetResponse<SpecialtyInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<SpecialtyInfo>)}.{nameof(GenericPagedGetResponse<SpecialtyInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<SpecialtyInfo>)}.{nameof(IGenericPagedGetResponse<SpecialtyInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -360,9 +360,9 @@ namespace MedEasy.WebApi.Tests
 
             OkObjectResult objectResult = (OkObjectResult)actionResult;
             objectResult.Value.Should()
-                .BeOfType<GenericPagedGetResponse<DoctorInfo>>();
+                .BeAssignableTo<IGenericPagedGetResponse<DoctorInfo>>();
 
-            GenericPagedGetResponse<DoctorInfo> pagedResponse = (GenericPagedGetResponse<DoctorInfo>)objectResult.Value;
+            IGenericPagedGetResponse<DoctorInfo> pagedResponse = (IGenericPagedGetResponse<DoctorInfo>)objectResult.Value;
             pagedResponse.Links.Should().NotBeNull();
 
             Link firstPageLink = pagedResponse.Links.First;

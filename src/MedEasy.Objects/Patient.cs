@@ -61,6 +61,14 @@ namespace MedEasy.Objects
         /// </summary>
         public ICollection<BloodPressure> BloodPressures { get; set; }
 
+        /// <summary>
+        /// <see cref="PatientDocument"/>
+        /// </summary>
+        public ICollection<PatientDocument> Documents { get; set; }
+
+        /// <summary>
+        /// Builds a new <see cref="Patient"/> instance.
+        /// </summary>
         public Patient()
         {
             Firstname = string.Empty;

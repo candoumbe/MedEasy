@@ -102,7 +102,7 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<SpecialtyInfo> response = new GenericPagedGetResponse<SpecialtyInfo>(
+            IGenericPagedGetResponse<SpecialtyInfo> response = new GenericPagedGetResponse<SpecialtyInfo>(
                 result.Entries,
                 firstPageUrl,
                 previousPageUrl,
@@ -194,7 +194,7 @@ namespace MedEasy.API.Controllers
             Debug.Assert(pageResult != null);
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            IGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
+            IGenericPagedGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
                 pageResult.Entries,
                 first: urlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
                 previous: pageResult.PageCount > 1 && query.Page > 1

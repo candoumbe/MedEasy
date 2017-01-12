@@ -39,11 +39,11 @@ using Xunit.Abstractions;
 using static MedEasy.DAL.Repositories.SortDirection;
 using static Moq.MockBehavior;
 using static System.StringComparison;
-using static MedEasy.Data.DataFilterOperator;
 using MedEasy.Handlers;
 using MedEasy.Queries.Search;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringSplitOptions;
+using MedEasy.Queries.Patient;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -65,6 +65,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IPrescriptionService> _prescriptionServiceMock;
         private Mock<IRunPatchPatientCommand> _iRunPatchPatientCommandMock;
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
+        private Mock<IHandleGetDocumentsByPatientIdQuery> _iHandleGetDocumentsByPatientIdQueryMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -99,6 +100,7 @@ namespace MedEasy.WebApi.Tests
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
+            _iHandleGetDocumentsByPatientIdQueryMock = new Mock<IHandleGetDocumentsByPatientIdQuery>(Strict);
 
             _controller = new PatientsController(
                 _loggerMock.Object,
@@ -112,6 +114,7 @@ namespace MedEasy.WebApi.Tests
                 _iRunDeletePatientInfoByIdCommandMock.Object,
                 _physiologicalMeasureFacadeMock.Object,
                 _prescriptionServiceMock.Object,
+                _iHandleGetDocumentsByPatientIdQueryMock.Object,
                 _iRunPatchPatientCommandMock.Object,
                 _mapper);
 
@@ -352,20 +355,20 @@ namespace MedEasy.WebApi.Tests
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.GetAll)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
 
             actionResult.Should()
-                    .NotBeNull()
-                    .And.BeOfType<OkObjectResult>();
+                    .NotBeNull().And
+                    .BeOfType<OkObjectResult>();
             ObjectResult okObjectResult = (OkObjectResult)actionResult;
 
             object value = okObjectResult.Value;
 
             okObjectResult.Value.Should()
-                    .NotBeNull()
-                    .And.BeOfType<GenericPagedGetResponse<PatientInfo>>();
+                    .NotBeNull().And
+                    .BeAssignableTo<IGenericPagedGetResponse<PatientInfo>>();
 
-            GenericPagedGetResponse<PatientInfo> response = (GenericPagedGetResponse<PatientInfo>)value;
+            IGenericPagedGetResponse<PatientInfo> response = (IGenericPagedGetResponse<PatientInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<PatientInfo>)}.{nameof(IGenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -513,12 +516,12 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            GenericPagedGetResponse<PatientInfo> content = actionResult.Should()
+            IGenericPagedGetResponse<PatientInfo> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<PatientInfo>>().Which;
+                        .BeAssignableTo<IGenericPagedGetResponse<PatientInfo>>().Which;
 
 
             content.Items.Should()
@@ -587,8 +590,6 @@ namespace MedEasy.WebApi.Tests
             source.Should().Match(patchResultExpectation);
 
         }
-
-
 
         [Fact]
         public async Task GetWithUnknownIdShouldReturnNotFound()
@@ -1429,6 +1430,88 @@ namespace MedEasy.WebApi.Tests
             // Assert
             actionResult.Should().BeOfType<OkResult>();
             _physiologicalMeasureFacadeMock.Verify(mock => mock.DeleteOnePhysiologicalMeasureAsync<BodyWeight>(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()), Times.Once);
+        }
+
+        public static IEnumerable<object> GetAllDocumentsCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<DocumentInfo>(),
+                    1,
+                    new GenericGetQuery { Page = 1, PageSize = 10 },
+                    ((Expression<Func<IEnumerable<DocumentInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
+                    ((Expression<Func<Link, bool>>)(first =>
+                            first != null &&
+                            first.Rel == "first" &&
+                            first.Href != null &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[0] == $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Documents)}" &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(GenericGetQuery.Page)}=1".Equals(x, CurrentCultureIgnoreCase) )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(GenericGetQuery.PageSize)}=10".Equals(x, CurrentCultureIgnoreCase) )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PatientInfo.Id)}=1".Equals(x, CurrentCultureIgnoreCase))
+                           )),
+                    ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                    ((Expression<Func<Link, bool>>)(next => next == null)),
+                    ((Expression<Func<Link, bool>>)(last => last == null))
+
+
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetAllDocumentsCases))]
+        public async Task GetDocuments(IEnumerable<DocumentInfo> items,int patientId, GenericGetQuery getQuery,
+            Expression<Func<IEnumerable<DocumentInfo>, bool>> pageOfResultExpectation,
+            Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
+        {
+
+           
+
+            // Arrange
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _iHandleGetDocumentsByPatientIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantDocumentsByPatientIdQuery>()))
+                .Returns((IWantDocumentsByPatientIdQuery  query) => Task.Run(() =>
+                {
+                    Func<DocumentInfo, bool> filter = x => x.PatientId == query.Data.PatientId;
+                    GenericGetQuery pageConfiguration = query.Data.PageConfiguration;
+                    IEnumerable<DocumentInfo> documents = items
+                        .Where(filter)
+                        .Skip(pageConfiguration.PageSize * (pageConfiguration.Page < 1 ? 1 : pageConfiguration.Page))
+                        .Take(pageConfiguration.PageSize);
+
+                    int total = items.Count(filter);
+
+                    return  (IPagedResult<DocumentInfo>)new PagedResult<DocumentInfo>(items, total, pageConfiguration.PageSize);
+                }));
+
+            // Act
+            IActionResult actionResult = await _controller.Documents(patientId, getQuery.Page, getQuery.PageSize);
+
+
+            // Assert
+            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.Documents)} must always check that {nameof(GenericGetQuery.PageSize)} don't exceed {nameof(MedEasyApiOptions.MaxPageSize)} value");
+
+            actionResult.Should()
+                    .NotBeNull()
+                    .And.BeOfType<OkObjectResult>();
+            ObjectResult okObjectResult = (OkObjectResult)actionResult;
+
+            object value = okObjectResult.Value;
+
+            IGenericPagedGetResponse<DocumentInfo> pageOfResult = okObjectResult.Value.Should()
+                    .NotBeNull()
+                    .And.BeAssignableTo<IGenericPagedGetResponse<DocumentInfo>>().Which;
+
+            pageOfResult.Items.Should().Match(pageOfResultExpectation);
+
+            pageOfResult?.Links?.First?.Should().Match(firstPageUrlExpectation);
+            pageOfResult?.Links?.Previous?.Should().Match(previousPageUrlExpectation);
+            pageOfResult?.Links?.Next?.Should().Match(nextPageUrlExpectation);
+            pageOfResult?.Links?.Last?.Should().Match(lastPageUrlExpectation);
         }
     }
 }

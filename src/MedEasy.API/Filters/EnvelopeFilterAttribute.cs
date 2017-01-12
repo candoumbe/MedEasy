@@ -31,7 +31,7 @@ namespace MedEasy.API.Filters
                 object value = ((ObjectResult)result).Value;
                 Type valueType = value.GetType();
                 Type typeBrowsable = typeof(IBrowsableResource<>);
-                Type typePageOfResult = typeof(GenericPagedGetResponse<>);
+                Type typePageOfResult = typeof(IGenericPagedGetResponse<>);
                 if (valueType.IsAssignableToGenericType(typeBrowsable))
                 {
                     typeBrowsable = typeBrowsable.MakeGenericType(valueType.GetGenericArguments()[0]);
@@ -57,9 +57,9 @@ namespace MedEasy.API.Filters
                     typePageOfResult = typePageOfResult.MakeGenericType(valueType.GetGenericArguments()[0]);
                     IEnumerable<PropertyInfo> properties = typePageOfResult.GetProperties();
 
-                    PropertyInfo piResources = properties.Single(x => x.Name == nameof(GenericPagedGetResponse<object>.Items));
-                    PropertyInfo piLinks = properties.Single(x => x.Name == nameof(GenericPagedGetResponse<object>.Links));
-                    PropertyInfo piCount = properties.Single(x => x.Name == nameof(GenericPagedGetResponse<object>.Count));
+                    PropertyInfo piResources = properties.Single(x => x.Name == nameof(IGenericPagedGetResponse<object>.Items));
+                    PropertyInfo piLinks = properties.Single(x => x.Name == nameof(IGenericPagedGetResponse<object>.Links));
+                    PropertyInfo piCount = properties.Single(x => x.Name == nameof(IGenericPagedGetResponse<object>.Count));
 
                     object resources = piResources.GetValue(value);
 

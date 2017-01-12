@@ -196,7 +196,7 @@ namespace MedEasy.API.Tests.Filters
         public void OnResultExecuting_ForActionThatReturnsPageOfResource()
         {
             // Arrange
-            GenericPagedGetResponse<PatientInfo> page = new GenericPagedGetResponse<PatientInfo>(Enumerable.Empty<PatientInfo>(),
+            IGenericPagedGetResponse<PatientInfo> page = new GenericPagedGetResponse<PatientInfo>(Enumerable.Empty<PatientInfo>(),
                 first: "url/patients?page=2",
                 previous: "url/patients?page=1",
                 next: "url/patients?page=3",

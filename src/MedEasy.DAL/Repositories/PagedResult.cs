@@ -7,8 +7,8 @@ namespace MedEasy.DAL.Repositories
     /// <summary>
     /// Helper to encapsulates a page of results.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PagedResult<T> : IPagedResult<T>
+    /// <typeparam name="T">Type of elements the page will contains.</typeparam>
+    public sealed class PagedResult<T> : IPagedResult<T>
     {
         /// <summary>
         /// Items of the current page

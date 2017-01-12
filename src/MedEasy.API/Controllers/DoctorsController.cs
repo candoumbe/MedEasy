@@ -128,7 +128,7 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<DoctorInfo> response = new GenericPagedGetResponse<DoctorInfo>(
+            IGenericPagedGetResponse<DoctorInfo> response = new GenericPagedGetResponse<DoctorInfo>(
                 result.Entries,
                 firstPageUrl,
                 previousPageUrl,
@@ -333,7 +333,7 @@ namespace MedEasy.API.Controllers
                     ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
-            GenericPagedGetResponse<DoctorInfo> reponse = new GenericPagedGetResponse<DoctorInfo>(
+            IGenericPagedGetResponse<DoctorInfo> reponse = new GenericPagedGetResponse<DoctorInfo>(
                 pageOfResult.Entries,
                 first: firstPageUrl,
                 previous: previousPageUrl,

@@ -62,6 +62,7 @@ namespace MedEasy.API.Controllers
         private readonly IRunPatchPatientCommand _iRunPatchPatientCommmand;
         private readonly IMapper _mapper;
         private readonly IHandleSearchQuery _iHandleSearchQuery;
+        private readonly IHandleGetDocumentsByPatientIdQuery _iHandleGetDocumentByPatientIdQuery;
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -78,6 +79,7 @@ namespace MedEasy.API.Controllers
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
         /// <param name="iRunPatchPatientCommmand">Runner for changing main doctor ID command.</param>
+        /// <param name="iHandleGetDocumentByPatientIdQuery">Handler for retrieving patient's <see cref="DocumentInfo"/>s.</param>
         /// <param name="mapper">Mapper to convert one type to an other.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
@@ -89,6 +91,7 @@ namespace MedEasy.API.Controllers
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
             IPhysiologicalMeasureService physiologicalMeasureService,
             IPrescriptionService prescriptionService,
+            IHandleGetDocumentsByPatientIdQuery iHandleGetDocumentByPatientIdQuery,
             IRunPatchPatientCommand iRunPatchPatientCommmand, IMapper mapper
             ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         {
@@ -100,6 +103,7 @@ namespace MedEasy.API.Controllers
             _prescriptionService = prescriptionService;
             _iRunPatchPatientCommmand = iRunPatchPatientCommmand;
             _iHandleSearchQuery = iHandleSearchQuery;
+            _iHandleGetDocumentByPatientIdQuery = iHandleGetDocumentByPatientIdQuery;
             _mapper = mapper;
         }
 
@@ -145,7 +149,7 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGetResponse<PatientInfo> response = new GenericPagedGetResponse<PatientInfo>(
+            IGenericPagedGetResponse<PatientInfo> response = new GenericPagedGetResponse<PatientInfo>(
                 result.Entries,
                 firstPageUrl,
                 previousPageUrl,
@@ -178,14 +182,14 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient)
         {
-            PatientInfo output = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(newPatient));
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            PatientInfo resource = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(newPatient));
             IBrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
             {
-                Resource = output,
-                Links = BuildAdditionalLinksForResource(output, urlHelper)
+                Resource = resource,
+                Links = BuildAdditionalLinksForResource(resource, urlHelper)
             };
-            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id }, browsableResource);
+            return new CreatedAtActionResult(nameof(Get), EndpointName, new { resource.Id }, browsableResource);
         }
 
 
@@ -250,7 +254,8 @@ namespace MedEasy.API.Controllers
                 DateOfMeasure = newTemperature.DateOfMeasure,
                 Value = newTemperature.Value
             };
-            TemperatureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(newMeasure));
+            TemperatureInfo output = await _physiologicalMeasureService
+                .AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(newMeasure));
             return new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }, output);
         }
 
@@ -477,7 +482,7 @@ namespace MedEasy.API.Controllers
                     ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort } )
                     : null;
 
-            GenericPagedGetResponse<PatientInfo> reponse = new GenericPagedGetResponse<PatientInfo>(
+            IGenericPagedGetResponse<PatientInfo> reponse = new GenericPagedGetResponse<PatientInfo>(
                 pageOfResult.Entries,
                 first: firstPageUrl,
                 previous: previousPageUrl,
@@ -718,11 +723,18 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <remarks>
         ///     Only the metadata of the prescriptions are retireved from here. To get the full content of the prescriptions
-        ///     You should call <see cref="PrescriptionsController.Get"/>
+        ///     You should call :
+        ///     
+        ///     // api/Prescriptions/{id}/Items
+        ///     
+        ///     where {id} is the id of the prescription
+        ///     
         /// </remarks>
         /// <param name="id">id of the patient to get the most </param>
         /// <param name="count"></param>
         /// <returns></returns>
+        /// <reponse code="200">List of the most recent prescriptions' metadata</reponse>
+        /// <reponse code="404">List of prescriptions' metadata</reponse>
         [HttpGet("{id:int}/[action]")]
         [ProducesResponseType(typeof(IEnumerable<PrescriptionHeaderInfo>), 200)]
         public async Task<IEnumerable<PrescriptionHeaderInfo>> MostRecentPrescriptions(int id, int? count)
@@ -731,8 +743,6 @@ namespace MedEasy.API.Controllers
             IEnumerable<PrescriptionHeaderInfo> prescriptions = await _prescriptionService.GetMostRecentPrescriptionsAsync(new WantMostRecentPrescriptionsQuery(input));
 
             return prescriptions;
-
-
         }
 
 
@@ -773,6 +783,60 @@ namespace MedEasy.API.Controllers
                     }
                 }
                 : Enumerable.Empty<Link>();
+
+
+        /// <summary>
+        /// Gets all patient's documents metadata
+        /// </summary>
+        /// <remarks>
+        /// This method gets all documents' metadata that are related to the patient <paramref name="id"/>.
+        /// </remarks>
+        /// <param name="id">id of the patient to get documents from</param>
+        /// <param name="page">Index of the page of result set (the first page is 1).</param>
+        /// <param name="pageSize">Size of a page of results.</param>
+        /// <returns></returns>
+        /// <response code="200">The documents' metadata.</response>
+        /// <response code="404">if no patient found.</response>
+        [HttpGet("{id}/[action]")]
+        [ProducesResponseType(typeof(IEnumerable<DocumentInfo>), 200)]
+        public async Task<IActionResult> Documents(int id, int page, int pageSize)
+        {
+            GenericGetQuery query = new GenericGetQuery
+            {
+                Page = page,
+                PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pageSize)
+            };
+
+            IPagedResult<DocumentInfo> result = await _iHandleGetDocumentByPatientIdQuery.HandleAsync(new WantDocumentsByPatientIdQuery(id, query));
+
+            int count = result.Entries.Count();
+            bool hasPreviousPage = count > 0 && query.Page > 1;
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+
+            string firstPageUrl = urlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = 1, id });
+            string previousPageUrl = hasPreviousPage
+                    ? urlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1, id, })
+                    : null;
+
+            string nextPageUrl = query.Page < result.PageCount
+                    ? urlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1, id })
+                    : null;
+            string lastPageUrl = result.PageCount > 0
+                    ? urlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount, id })
+                    : null;
+
+
+            IGenericPagedGetResponse<DocumentInfo> response = new GenericPagedGetResponse<DocumentInfo>(
+                result.Entries,
+                firstPageUrl,
+                previousPageUrl,
+                nextPageUrl,
+                lastPageUrl,
+                result.Total);
+            
+            return new OkObjectResult(response);
+        }
     }
 
 }

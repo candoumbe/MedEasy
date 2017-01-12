@@ -238,13 +238,13 @@ namespace MedEasy.WebApi.Tests
             object value = okObjectResult.Value;
 
             okObjectResult.Value.Should()
-                    .NotBeNull()
-                    .And.BeAssignableTo<GenericPagedGetResponse<DoctorInfo>>();
+                    .NotBeNull().And
+                    .BeAssignableTo<IGenericPagedGetResponse<DoctorInfo>>();
 
-            GenericPagedGetResponse<DoctorInfo> response = (GenericPagedGetResponse<DoctorInfo>)value;
+            IGenericPagedGetResponse<DoctorInfo> response = (IGenericPagedGetResponse<DoctorInfo>)value;
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<DoctorInfo>)}.{nameof(GenericPagedGetResponse<BrowsableResource<DoctorInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<DoctorInfo>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -592,12 +592,12 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            GenericPagedGetResponse<DoctorInfo> content = actionResult.Should()
+            IGenericPagedGetResponse<DoctorInfo> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<DoctorInfo>>().Which;
+                        .BeAssignableTo<IGenericPagedGetResponse<DoctorInfo>>().Which;
 
 
             content.Items.Should()
