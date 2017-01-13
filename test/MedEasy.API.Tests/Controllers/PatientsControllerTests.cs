@@ -1438,10 +1438,10 @@ namespace MedEasy.WebApi.Tests
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<DocumentInfo>(),
+                    Enumerable.Empty<DocumentMetadataInfo>(),
                     1,
                     new GenericGetQuery { Page = 1, PageSize = 10 },
-                    ((Expression<Func<IEnumerable<DocumentInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
+                    ((Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
                     ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
                             first.Rel == "first" &&
@@ -1464,8 +1464,8 @@ namespace MedEasy.WebApi.Tests
 
         [Theory]
         [MemberData(nameof(GetAllDocumentsCases))]
-        public async Task GetDocuments(IEnumerable<DocumentInfo> items,int patientId, GenericGetQuery getQuery,
-            Expression<Func<IEnumerable<DocumentInfo>, bool>> pageOfResultExpectation,
+        public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items,int patientId, GenericGetQuery getQuery,
+            Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>> pageOfResultExpectation,
             Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
 
@@ -1476,16 +1476,16 @@ namespace MedEasy.WebApi.Tests
             _iHandleGetDocumentsByPatientIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantDocumentsByPatientIdQuery>()))
                 .Returns((IWantDocumentsByPatientIdQuery  query) => Task.Run(() =>
                 {
-                    Func<DocumentInfo, bool> filter = x => x.PatientId == query.Data.PatientId;
+                    Func<DocumentMetadataInfo, bool> filter = x => x.PatientId == query.Data.PatientId;
                     GenericGetQuery pageConfiguration = query.Data.PageConfiguration;
-                    IEnumerable<DocumentInfo> documents = items
+                    IEnumerable<DocumentMetadataInfo> documents = items
                         .Where(filter)
                         .Skip(pageConfiguration.PageSize * (pageConfiguration.Page < 1 ? 1 : pageConfiguration.Page))
                         .Take(pageConfiguration.PageSize);
 
                     int total = items.Count(filter);
 
-                    return  (IPagedResult<DocumentInfo>)new PagedResult<DocumentInfo>(items, total, pageConfiguration.PageSize);
+                    return  (IPagedResult<DocumentMetadataInfo>)new PagedResult<DocumentMetadataInfo>(items, total, pageConfiguration.PageSize);
                 }));
 
             // Act
@@ -1502,9 +1502,9 @@ namespace MedEasy.WebApi.Tests
 
             object value = okObjectResult.Value;
 
-            IGenericPagedGetResponse<DocumentInfo> pageOfResult = okObjectResult.Value.Should()
+            IGenericPagedGetResponse<DocumentMetadataInfo> pageOfResult = okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeAssignableTo<IGenericPagedGetResponse<DocumentInfo>>().Which;
+                    .And.BeAssignableTo<IGenericPagedGetResponse<DocumentMetadataInfo>>().Which;
 
             pageOfResult.Items.Should().Match(pageOfResultExpectation);
 

@@ -79,7 +79,7 @@ namespace MedEasy.API.Controllers
         /// <param name="physiologicalMeasureService">Service that deals with everything that's related to <see cref="PhysiologicalMeasurementInfo"/> resources</param>
         /// <param name="prescriptionService">Service that deals with everything that's related to <see cref="PrescriptionInfo"/> resources</param>
         /// <param name="iRunPatchPatientCommmand">Runner for changing main doctor ID command.</param>
-        /// <param name="iHandleGetDocumentByPatientIdQuery">Handler for retrieving patient's <see cref="DocumentInfo"/>s.</param>
+        /// <param name="iHandleGetDocumentByPatientIdQuery">Handler for retrieving patient's <see cref="DocumentMetadataInfo"/>s.</param>
         /// <param name="mapper">Mapper to convert one type to an other.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
@@ -798,7 +798,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">The documents' metadata.</response>
         /// <response code="404">if no patient found.</response>
         [HttpGet("{id}/[action]")]
-        [ProducesResponseType(typeof(IEnumerable<DocumentInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
         public async Task<IActionResult> Documents(int id, int page, int pageSize)
         {
             GenericGetQuery query = new GenericGetQuery
@@ -807,7 +807,7 @@ namespace MedEasy.API.Controllers
                 PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pageSize)
             };
 
-            IPagedResult<DocumentInfo> result = await _iHandleGetDocumentByPatientIdQuery.HandleAsync(new WantDocumentsByPatientIdQuery(id, query));
+            IPagedResult<DocumentMetadataInfo> result = await _iHandleGetDocumentByPatientIdQuery.HandleAsync(new WantDocumentsByPatientIdQuery(id, query));
 
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && query.Page > 1;
@@ -827,7 +827,7 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGenericPagedGetResponse<DocumentInfo> response = new GenericPagedGetResponse<DocumentInfo>(
+            IGenericPagedGetResponse<DocumentMetadataInfo> response = new GenericPagedGetResponse<DocumentMetadataInfo>(
                 result.Entries,
                 firstPageUrl,
                 previousPageUrl,

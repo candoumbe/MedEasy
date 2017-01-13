@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace MedEasy.DTO
 {
     /// <summary>
-    /// Query to get <see cref="DocumentInfo"/>s for a <see cref="PatientInfo"/>
+    /// Query to get <see cref="DocumentMetadataInfo"/>s for a <see cref="PatientInfo"/>
     /// </summary>
     public class GetDocumentsByPatientIdInfo
     {
         /// <summary>
-        /// Id of the patient to get its <see cref="DocumentInfo"/>s for
+        /// Id of the patient to get its <see cref="DocumentMetadataInfo"/>s for
         /// </summary>
         public int PatientId { get; set; }
 

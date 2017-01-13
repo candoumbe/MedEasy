@@ -10,10 +10,10 @@ using System.Collections.Generic;
 namespace MedEasy.Handlers.Patient.Queries
 {
     /// <summary>
-    /// Defines methods for handling requests that lookup for <see cref="DocumentInfo"/>s for a <see cref="Objects.Patient"/>
+    /// Defines methods for handling requests that lookup for <see cref="DocumentMetadataInfo"/>s for a <see cref="Objects.Patient"/>
     /// </summary>
     /// <typeparam name="TPhysiologicalMeasurement">Type of the physiological measurement that will be handled</typeparam>
-    public interface IHandleGetDocumentsByPatientIdQuery : IHandleQueryAsync<Guid, GetDocumentsByPatientIdInfo, IPagedResult<DocumentInfo>, IWantDocumentsByPatientIdQuery>
+    public interface IHandleGetDocumentsByPatientIdQuery : IHandleQueryAsync<Guid, GetDocumentsByPatientIdInfo, IPagedResult<DocumentMetadataInfo>, IWantDocumentsByPatientIdQuery>
     {
     }
 }

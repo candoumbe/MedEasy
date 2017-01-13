@@ -95,6 +95,7 @@ namespace MedEasy.API.Stores
         {
             
             base.OnModelCreating(modelBuilder);
+
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.Relational().TableName = entity.DisplayName();
@@ -134,6 +135,7 @@ namespace MedEasy.API.Stores
                     .HasDefaultValue(string.Empty)
                     .IsRequired();
 
+                entity.HasMany(x => x.Documents);
                 
                 entity.HasIndex(item => item.Lastname);
                 entity.HasIndex(item => item.BirthDate);
@@ -195,8 +197,49 @@ namespace MedEasy.API.Stores
 
             #endregion
 
+            modelBuilder.Entity<Document>(entity => {
+                entity.HasKey(item => item.Id);
 
-            
+                entity.Property(item => item.Id)
+                    .UseSqlServerIdentityColumn()
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(item => item.Content)
+                    .IsRequired();
+
+                entity.HasOne(item => item.DocumentMetadata)
+                    .WithOne(item => item.Document);
+                    
+            });
+
+
+            modelBuilder.Entity<DocumentMetadata>(entity => {
+                entity.HasKey(item => item.Id);
+
+                entity.Property(item => item.Id)
+                    .UseSqlServerIdentityColumn()
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(item => item.Title)
+                    .IsRequired()
+                    .HasMaxLength(NormalTextLength);
+
+                entity.Property(item => item.MimeType)
+                    .IsRequired()
+                    .HasMaxLength(NormalTextLength);
+
+                entity.Property(item => item.Size)
+                    .IsRequired();
+
+                entity.HasOne(item => item.Document)
+                    .WithOne(item => item.DocumentMetadata)
+                    .HasForeignKey<DocumentMetadata>(item => item.DocumentId);
+
+                entity.HasIndex(x => x.Title);
+                entity.HasIndex(x => x.MimeType);
+
+            });
+
 
         }
 

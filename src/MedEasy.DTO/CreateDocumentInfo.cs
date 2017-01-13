@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace MedEasy.DTO
 {
     /// <summary>
-    /// Defines the content of a <see cref="DocumentInfo"/> upload.
+    /// Defines the content of a <see cref="DocumentMetadataInfo"/> upload.
     /// </summary>
     public class CreateDocumentInfo
     {

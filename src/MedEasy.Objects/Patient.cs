@@ -64,7 +64,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// <see cref="PatientDocument"/>
         /// </summary>
-        public ICollection<PatientDocument> Documents { get; set; }
+        public ICollection<DocumentMetadata> Documents { get; set; }
 
         /// <summary>
         /// Builds a new <see cref="Patient"/> instance.

@@ -70,7 +70,10 @@ namespace MedEasy.DAL.Repositories
         /// <param name="keySelector">Selector which defines how results should be grouped</param>
         /// <param name="predicate">Predicate that will be used to filter groups</param>
         /// <returns><see cref="IEnumerable{T}"/></returns>
-        Task<IEnumerable<TResult>> WhereAsync<TKey, TResult>(Expression<Func<TEntry, bool>> predicate, Expression<Func<TEntry, TKey>> keySelector, Expression<Func<IGrouping<TKey, TEntry>, TResult>> groupSelector);
+        Task<IEnumerable<TResult>> WhereAsync<TKey, TResult>(
+            Expression<Func<TEntry, bool>> predicate, 
+            Expression<Func<TEntry, TKey>> keySelector, 
+            Expression<Func<IGrouping<TKey, TEntry>, TResult>> groupSelector);
 
 
         /// <summary>
@@ -113,8 +116,11 @@ namespace MedEasy.DAL.Repositories
         /// <param name="pageSize">number of items one page can contain at most</param>
         /// <param name="page">the page of result to get (1 for the page, 2 for the second, ...)</param>
         /// <returns><see cref="IPagedResult{T}"/> which holds the </returns>
-        Task<IPagedResult<TEntry>> WhereAsync(Expression<Func<TEntry, bool>> predicate,  
-            IEnumerable<OrderClause<TEntry>> orderBy, int pageSize, int page);
+        Task<IPagedResult<TEntry>> WhereAsync(
+            Expression<Func<TEntry, bool>> predicate,  
+            IEnumerable<OrderClause<TEntry>> orderBy, 
+            int pageSize, 
+            int page);
 
         /// <summary>
         /// gets a <see cref="IPagedResult{T}"/> of entries that satisfied the <paramref name="predicate"/>
@@ -130,7 +136,12 @@ namespace MedEasy.DAL.Repositories
         /// <param name="pageSize">number of items a page can holds at most</param>
         /// <param name="page">the page of result to get.</param>
         /// <returns></returns>
-        Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
+        Task<IPagedResult<TResult>> WhereAsync<TResult>(
+            Expression<Func<TEntry, TResult>> selector, 
+            Expression<Func<TEntry, bool>> predicate, 
+            IEnumerable<OrderClause<TResult>> orderBy, 
+            int pageSize, 
+            int page);
 
         /// <summary>
         /// gets a <see cref="IPagedResult{T}"/> of entries that satisfied the <paramref name="predicate"/>
@@ -146,7 +157,12 @@ namespace MedEasy.DAL.Repositories
         /// <param name="pageSize">number of items a page can holds at most</param>
         /// <param name="page">the page of result to get.</param>
         /// <returns></returns>
-        Task<IPagedResult<TResult>> WhereAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate, IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
+        Task<IPagedResult<TResult>> WhereAsync<TResult>(
+            Expression<Func<TEntry, TResult>> selector, 
+            Expression<Func<TResult, bool>> predicate, 
+            IEnumerable<OrderClause<TResult>> orderBy, int pageSize, int page);
+
+
 
 
         ///// <summary>

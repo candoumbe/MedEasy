@@ -13,24 +13,25 @@ namespace MedEasy.Mapping
         {
 
 
-            cfg.CreateMap<Patient, PatientInfo>();
+            cfg.CreateMap<Patient, PatientInfo>().ReverseMap();
             cfg.CreateMap<CreatePatientInfo, Patient>();
             cfg.CreateMap<CreateTemperatureInfo, Temperature>();
-            cfg.CreateMap<Temperature, TemperatureInfo>();
+            cfg.CreateMap<Temperature, TemperatureInfo>().ReverseMap();
             cfg.CreateMap<CreateBloodPressureInfo, BloodPressure>();
             cfg.CreateMap<BloodPressure, BloodPressureInfo>();
             cfg.CreateMap<BodyWeight, BodyWeightInfo>();
 
+            cfg.CreateMap<DocumentMetadata, DocumentMetadataInfo>().ReverseMap();
+
             cfg.CreateMap<Doctor, DoctorInfo>();
 
-            cfg.CreateMap<Specialty, SpecialtyInfo>();
+            cfg.CreateMap<Specialty, SpecialtyInfo>().ReverseMap();
             cfg.CreateMap<CreateSpecialtyInfo, Specialty>();
 
             cfg.CreateMap<Prescription, PrescriptionHeaderInfo>();
             cfg.CreateMap<CreatePrescriptionInfo, Prescription>();
-            cfg.CreateMap<Prescription, PrescriptionInfo>();
-            cfg.CreateMap<PrescriptionItem, PrescriptionItemInfo>();
-            cfg.CreateMap<PrescriptionItemInfo, PrescriptionItem>();
+            cfg.CreateMap<Prescription, PrescriptionInfo>().ReverseMap();
+            cfg.CreateMap<PrescriptionItem, PrescriptionItemInfo>().ReverseMap();
 
             #region Autocomplete
 

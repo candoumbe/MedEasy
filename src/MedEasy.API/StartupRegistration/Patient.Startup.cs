@@ -43,6 +43,8 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IPhysiologicalMeasureService, PhysiologicalMeasureService>();
             services.AddScoped<IPrescriptionService, PrescriptionService>();
 
+
+            //services.AddScoped<IHandleGetDocumentsByPatientIdQuery, HandleGetDocumentsByPatientIdQuery>();
             
         }
     }
