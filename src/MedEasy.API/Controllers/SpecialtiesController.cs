@@ -79,7 +79,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecialtyInfo>))]
-        public async Task<IActionResult> Get([FromQuery] GenericGetQuery query)
+        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
 
@@ -177,11 +177,11 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet("{id:int}/Doctors")]
         [Produces(typeof(IEnumerable<DoctorInfo>))]
-        public async Task<IActionResult> Doctors(int id, [FromQuery] GenericGetQuery query)
+        public async Task<IActionResult> Doctors(int id, [FromQuery] PaginationConfiguration query)
         {
             if (query == null)
             {
-                query = new GenericGetQuery
+                query = new PaginationConfiguration
                 {
                     Page = 1,
                     PageSize = ApiOptions.Value.DefaultPageSize

@@ -19,7 +19,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Page configuration
         /// </summary>
-        public GenericGetQuery PageConfiguration { get; set; }
+        public PaginationConfiguration PageConfiguration { get; set; }
 
     }
 }

@@ -108,7 +108,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .ReturnsAsync(PagedResult<DocumentMetadataInfo>.Default);
 
             // Act
-            IPagedResult<DocumentMetadataInfo> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(1, new GenericGetQuery { Page = 1, PageSize = 3 }));
+            IPagedResult<DocumentMetadataInfo> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(1, new PaginationConfiguration { Page = 1, PageSize = 3 }));
 
             //Assert
             output.Should().NotBeNull();

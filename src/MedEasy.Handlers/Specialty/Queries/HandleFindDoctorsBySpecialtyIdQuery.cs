@@ -61,7 +61,7 @@ namespace MedEasy.Handlers.Specialty.Queries
                 Logger.LogTrace("query to handle is null");
                 throw new ArgumentNullException(nameof(query));
             }
-            GenericGetQuery getQuery = query.Data?.GetQuery ?? new GenericGetQuery();
+            PaginationConfiguration getQuery = query.Data?.GetQuery ?? new PaginationConfiguration();
             
             using (var uow = UowFactory.New())
             { 

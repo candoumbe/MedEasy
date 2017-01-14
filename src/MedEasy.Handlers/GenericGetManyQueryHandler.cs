@@ -26,8 +26,8 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TResult">Type of the query execution résult</typeparam>
     /// <typeparam name="TQuery">Type of the query</typeparam>
     /// <typeparam name="TQueryValidator">Type of the query validator</typeparam>
-    public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> : QueryHandlerBase<TQueryId, TEntity, GenericGetQuery, IPagedResult<TResult>, TQuery, TQueryValidator>
-        where TQuery : IQuery<TQueryId, GenericGetQuery, IPagedResult<TResult>>
+    public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> : QueryHandlerBase<TQueryId, TEntity, PaginationConfiguration, IPagedResult<TResult>, TQuery, TQueryValidator>
+        where TQuery : IQuery<TQueryId, PaginationConfiguration, IPagedResult<TResult>>
         where TEntity : class, IEntity<TEntityId>
         where TQueryId : IEquatable<TQueryId>
         where TQueryValidator : IValidate<TQuery>
@@ -102,7 +102,7 @@ namespace MedEasy.Handlers.Queries
 
             using (var uow = UowFactory.New())
             {
-                GenericGetQuery data = query.Data;
+                PaginationConfiguration data = query.Data;
 
                 Debug.Assert(data != null);
 
@@ -127,7 +127,7 @@ namespace MedEasy.Handlers.Queries
     /// <typeparam name="TQuery">Type of the query</typeparam>
     /// <typeparam name="TQueryValidator">Type of the query validator</typeparam>
     public abstract class GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery> : GenericGetManyQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, IValidate<TQuery>>
-        where TQuery : IQuery<TQueryId, GenericGetQuery, IPagedResult<TResult>>
+        where TQuery : IQuery<TQueryId, PaginationConfiguration, IPagedResult<TResult>>
         where TEntity : class, IEntity<TEntityId>
         where TQueryId : IEquatable<TQueryId>
         

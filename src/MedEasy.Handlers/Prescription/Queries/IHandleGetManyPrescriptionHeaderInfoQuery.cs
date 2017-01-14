@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Prescription.Queries
 {
-    public interface IHandleGetManyPrescriptionHeaderInfosQuery : IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<PrescriptionHeaderInfo>, IWantManyResources<Guid, PrescriptionHeaderInfo>>
+    public interface IHandleGetManyPrescriptionHeaderInfosQuery : IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<PrescriptionHeaderInfo>, IWantManyResources<Guid, PrescriptionHeaderInfo>>
     {
     }
 }

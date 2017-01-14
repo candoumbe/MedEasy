@@ -10,7 +10,7 @@ namespace MedEasy.RestObjects
     /// Both <see cref="PageSize"/> and <see cref="Page"/> returns <c>null</c> or positive integer
     /// </remarks>
     [JsonObject]
-    public class GenericGetQuery
+    public class PaginationConfiguration
     {
         private int _pageSize;
 
@@ -26,12 +26,12 @@ namespace MedEasy.RestObjects
         public const int MaxPageSize = 200;
 
         /// <summary>
-        /// Builds a new <see cref="GenericGetQuery"/> instances.
+        /// Builds a new <see cref="PaginationConfiguration"/> instance.
         /// </summary>
         /// <remarks>
         /// <see cref="Page"/> is set to <c>1</c> and <see cref="PageSize"/> is set to <see cref="DefaultPageSize"/> value
         /// </remarks>
-        public GenericGetQuery()
+        public PaginationConfiguration()
         {
             PageSize = DefaultPageSize;
             Page = 1;

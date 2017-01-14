@@ -64,7 +64,7 @@ namespace MedEasy.API.Controllers
             ILogger logger,
             IOptions<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
-            IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
+            IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
             TRunCreateCommand iRunCreateCommand, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelperFactory, actionContextAccessor )
         {
             _iRunCreateCommand = iRunCreateCommand;

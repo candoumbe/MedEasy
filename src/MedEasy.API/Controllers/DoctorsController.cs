@@ -99,11 +99,11 @@ namespace MedEasy.API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Get([FromQuery] GenericGetQuery query)
+        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
             if (query == null)
             {
-                query = new GenericGetQuery();
+                query = new PaginationConfiguration();
             }
 
             IPagedResult<DoctorInfo> result = await GetAll(query);

@@ -22,15 +22,15 @@ namespace MedEasy.Queries.Specialty
         /// <remarks>
         /// This allows to customize the page of result (number of items per page, page size)
         /// </remarks>
-        /// <see cref="GenericGetQuery"/>
-        public GenericGetQuery GetQuery { get;  }
+        /// <see cref="PaginationConfiguration"/>
+        public PaginationConfiguration GetQuery { get;  }
 
         /// <summary>
         /// Builds a new <see cref="FindDoctorsBySpecialtyIdQueryArgs"/>
         /// </summary>
         /// <param name="specialtyId">id of the specialty</param>
         /// <param name="getQuery">Configuration of page of result</param>
-        public FindDoctorsBySpecialtyIdQueryArgs(int specialtyId, GenericGetQuery getQuery)
+        public FindDoctorsBySpecialtyIdQueryArgs(int specialtyId, PaginationConfiguration getQuery)
         {
             SpecialtyId = specialtyId;
             GetQuery = getQuery;

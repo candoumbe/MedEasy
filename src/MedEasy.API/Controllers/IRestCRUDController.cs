@@ -36,7 +36,7 @@ namespace MedEasy.API.Controllers
         ///// </summary>
         ///// <param name="query"></param>
         ///// <returns><see cref="BrowsableResource{TEntityInfo}"/></returns>
-        //Task<IActionResult> List(GenericGetQuery query);
+        //Task<IActionResult> List(PaginationConfiguration query);
 
         ///// <summary>
         ///// Asynchronously updates the specified resource

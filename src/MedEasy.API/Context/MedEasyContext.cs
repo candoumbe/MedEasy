@@ -61,7 +61,15 @@ namespace MedEasy.API.Stores
         /// </summary>
         public DbSet<Prescription> Prescriptions { get; set; }
 
-        
+        /// <summary>
+        /// Gives access to <see cref="DocumentMetadata"/> collection
+        /// </summary>
+        public DbSet<DocumentMetadata> DocumentsMetadatas { get; set; }
+
+        /// <summary>
+        /// Gives access to <see cref="Document"/> collection.
+        /// </summary>
+        public DbSet<Document> Documents { get; set; }
 
         /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options

@@ -68,7 +68,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                             new Objects.Doctor { Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 2 }
                         },
                         1,
-                        new GenericGetQuery(),
+                        new PaginationConfiguration(),
                         1,
                         1,
                         0,
@@ -82,7 +82,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                             new Objects.Doctor {Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 1 }
                         },
                         1,
-                        new GenericGetQuery {Page = 1, PageSize = 1 },
+                        new PaginationConfiguration {Page = 1, PageSize = 1 },
                         1,
                         1,
                         1,
@@ -146,7 +146,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
             // Act
 
-            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(1, new GenericGetQuery()));
+            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(1, new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();
@@ -156,7 +156,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
             output.Total.Should().Be(0);
             output.PageCount.Should().Be(0);
-            output.PageSize.Should().Be(GenericGetQuery.DefaultPageSize);
+            output.PageSize.Should().Be(PaginationConfiguration.DefaultPageSize);
 
             _expressionBuilderMock.VerifyAll();
             _unitOfWorkFactoryMock.VerifyAll();
@@ -165,7 +165,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
         [Theory]
         [MemberData(nameof(FindDoctorsBySpecialtyIdCases))]
-        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, int specialtyId, GenericGetQuery getQuery, int expectedPageSize,
+        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, int specialtyId, PaginationConfiguration getQuery, int expectedPageSize,
             int expectedPage, int expectedTotal, Expression<Func<IEnumerable<DoctorInfo>, bool>> itemsExpectation)
         {
 

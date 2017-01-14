@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
-    public interface IHandleGetManyPatientInfosQuery: IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<PatientInfo>, IWantManyResources<Guid, PatientInfo>>
+    public interface IHandleGetManyPatientInfosQuery: IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<PatientInfo>, IWantManyResources<Guid, PatientInfo>>
     {
     }
 }

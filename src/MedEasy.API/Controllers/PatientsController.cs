@@ -124,28 +124,28 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<PatientInfo>), 200)]
         public async Task<IActionResult> Get([FromQuery] int page, [FromQuery] int pageSize)
         {
-            GenericGetQuery query = new GenericGetQuery
+            PaginationConfiguration pageConfig = new PaginationConfiguration
             {
                 Page = page,
                 PageSize = pageSize
             };
-            IPagedResult<PatientInfo> result = await GetAll(query);
+            IPagedResult<PatientInfo> result = await GetAll(pageConfig);
 
             int count = result.Entries.Count();
-            bool hasPreviousPage = count > 0 && query.Page > 1;
+            bool hasPreviousPage = count > 0 && pageConfig.Page > 1;
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
-            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
                     : null;
 
-            string nextPageUrl = query.Page < result.PageCount
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
+            string nextPageUrl = pageConfig.Page < result.PageCount
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page + 1 })
                     : null;
             string lastPageUrl = result.PageCount > 0
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
+                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = result.PageCount })
                     : null;
 
 
@@ -801,7 +801,7 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
         public async Task<IActionResult> Documents(int id, int page, int pageSize)
         {
-            GenericGetQuery query = new GenericGetQuery
+            PaginationConfiguration query = new PaginationConfiguration
             {
                 Page = page,
                 PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pageSize)

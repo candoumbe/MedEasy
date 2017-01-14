@@ -13,7 +13,7 @@ namespace MedEasy.Tests.RestObjects
 
 
         /// <summary>
-        /// Tests cases when setting <see cref="GenericGetQuery.PageSize"/>
+        /// Tests cases when setting <see cref="PaginationConfiguration.PageSize"/>
         /// </summary>
         public static IEnumerable<object[]> PageSizeTestCases
         {
@@ -34,7 +34,7 @@ namespace MedEasy.Tests.RestObjects
         }
 
         /// <summary>
-        /// Tests cases when setting <see cref="GenericGetQuery.Page"/>
+        /// Tests cases when setting <see cref="PaginationConfiguration.Page"/>
         /// </summary>
         public static IEnumerable<object[]> PageTestCases
         {
@@ -57,9 +57,9 @@ namespace MedEasy.Tests.RestObjects
         [Fact]
         public void DefaultCtor()
         {
-            GenericGetQuery getQuery = new GenericGetQuery();
+            PaginationConfiguration getQuery = new PaginationConfiguration();
 
-            getQuery.PageSize.Should().Be(GenericGetQuery.DefaultPageSize);
+            getQuery.PageSize.Should().Be(PaginationConfiguration.DefaultPageSize);
             getQuery.Page.Should().Be(1);
         }
 
@@ -68,9 +68,9 @@ namespace MedEasy.Tests.RestObjects
         [MemberData(nameof(PageSizeTestCases))]
         public void PageSize(int input, int expectedValue)
         {
-            GenericGetQuery query = new GenericGetQuery { PageSize = input };
+            PaginationConfiguration query = new PaginationConfiguration { PageSize = input };
             query.PageSize.Should()
-                .Be(expectedValue, $"because getting the value of {nameof(GenericGetQuery.PageSize)} after setting its value with {input} should output {expectedValue} ");
+                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.PageSize)} after setting its value with {input} should output {expectedValue} ");
 
         }
 
@@ -79,9 +79,9 @@ namespace MedEasy.Tests.RestObjects
         [MemberData(nameof(PageTestCases))]
         public void Page( int input, int expectedValue)
         {
-            GenericGetQuery query =  new GenericGetQuery { Page = input };
+            PaginationConfiguration query =  new PaginationConfiguration { Page = input };
             query.Page.Should()
-                .Be(expectedValue, $"because getting the value of {nameof(GenericGetQuery.Page)} after setting its value with {input} should output {expectedValue} ");
+                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.Page)} after setting its value with {input} should output {expectedValue} ");
         }
     }
 }

@@ -37,7 +37,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Handler for "I want several resources" queries
         /// </summary>
-        private readonly IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> _genericGetManyQueryHandler;
+        private readonly IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> _genericGetManyQueryHandler;
 
         /// <summary>
         /// Options associated with the API
@@ -68,7 +68,7 @@ namespace MedEasy.API.Controllers
             ILogger logger,
             IOptions<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
-            IHandleQueryAsync<Guid, GenericGetQuery, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
+            IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
             IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor) : base(logger)
         {
@@ -157,11 +157,11 @@ namespace MedEasy.API.Controllers
         /// <param name="query">GET many resources query</param>
         /// <returns><see cref="Task{GenericPagedGetResponse}"/></returns>
         [NonAction]
-        public async Task<IPagedResult<TResource>> GetAll(GenericGetQuery query)
+        public async Task<IPagedResult<TResource>> GetAll(PaginationConfiguration query)
         {
             if (query == null)
             {
-                query = new GenericGetQuery
+                query = new PaginationConfiguration
                 {
                     Page = 1,
                     PageSize = ApiOptions.Value.DefaultPageSize

@@ -108,7 +108,7 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
                 .ReturnsAsync(PagedResult<DoctorInfo>.Default);
 
             // Act
-            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<DoctorInfo>(new GenericGetQuery()));
+            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<DoctorInfo>(new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();

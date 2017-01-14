@@ -17,13 +17,13 @@ namespace MedEasy.Queries
         /// </summary>
         public Guid Id { get; }
 
-        public GenericGetQuery Data { get; }
+        public PaginationConfiguration Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="GenericGetManyResourcesQuery{TResource}"/> instance.
         /// </summary>
         /// <param name="queryConfig"></param>
-        public GenericGetManyResourcesQuery(GenericGetQuery queryConfig)
+        public GenericGetManyResourcesQuery(PaginationConfiguration queryConfig)
         {
             Id = Guid.NewGuid();
             Data = queryConfig;

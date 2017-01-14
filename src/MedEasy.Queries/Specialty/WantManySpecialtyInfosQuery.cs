@@ -10,13 +10,13 @@ namespace MedEasy.Queries.Specialty
     {
         public Guid Id { get; }
 
-        public GenericGetQuery Data { get; }
+        public PaginationConfiguration Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="WantManySpecialtyInfosQuery"/> instance
         /// </summary>
         /// <param name="queryConfig">configuration of the query</param>
-        public WantManySpecialtyInfosQuery(GenericGetQuery queryConfig)
+        public WantManySpecialtyInfosQuery(PaginationConfiguration queryConfig)
         {
             Id = Guid.NewGuid();
             Data = queryConfig;
