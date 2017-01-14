@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0-*",
 
   "testRunner": "xunit",
@@ -27,8 +27,8 @@
     "moq.netcore": "4.4.0-beta8",
     "System.Diagnostics.TraceSource": "4.0.0",
     "Microsoft.AspNetCore.Http": "1.0.0",
-    "AutoMapper": "5.1.1",
-    "FluentAssertions": "4.14.0",
+    "AutoMapper": "5.2.0",
+    "FluentAssertions": "4.18.0",
     "Microsoft.NETCore.App": "1.0.1"
   },
 
