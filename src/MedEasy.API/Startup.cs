@@ -141,15 +141,17 @@ namespace MedEasy.API
             LoggerFactory.AddConsole(Configuration.GetSection("Logging"));
             LoggerFactory.AddDebug();
 
+            app.UseResponseCompression();
+            app.UseResponseCaching();
+
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
 
-            app.UseResponseCompression();
-            app.UseResponseCaching();
-
+            
             app.UseMvc();
             
             if (env.IsDevelopment())
