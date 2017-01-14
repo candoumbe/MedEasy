@@ -70,6 +70,12 @@ namespace MedEasy.API
 
             services.AddRouting();
 
+            services.AddResponseCaching();
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+            });
+
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -140,6 +146,9 @@ namespace MedEasy.API
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
+
+            app.UseResponseCompression();
+            app.UseResponseCaching();
 
             app.UseMvc();
             

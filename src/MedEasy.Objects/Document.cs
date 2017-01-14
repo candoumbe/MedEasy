@@ -8,11 +8,13 @@ namespace MedEasy.Objects
     /// <summary>
     /// The binary content associated to a <see cref="DocumentMetadata"/>
     /// </summary>
-    public class Document: AuditableEntity<int, Document>
+    public class Document: AuditableBaseEntity<Document>
     {
         /// <summary>
         /// ID of the related <see cref="DocumentMetadata"/>
         /// </summary>
+        /// <remarks>
+        /// </remarks>
         public int DocumentMetadataId { get; set; }
 
         /// <summary>

@@ -206,18 +206,17 @@ namespace MedEasy.API.Stores
             #endregion
 
             modelBuilder.Entity<Document>(entity => {
-                entity.HasKey(item => item.Id);
+                entity.HasKey(item => item.DocumentMetadataId);
 
-                entity.Property(item => item.Id)
-                    .UseSqlServerIdentityColumn()
-                    .ValueGeneratedOnAdd();
+                entity.Property(item => item.DocumentMetadataId);
 
                 entity.Property(item => item.Content)
                     .IsRequired();
 
                 entity.HasOne(item => item.DocumentMetadata)
-                    .WithOne(item => item.Document);
-                    
+                    .WithOne(item => item.Document)
+                    .HasForeignKey<Document>(item => item.DocumentMetadataId);
+
             });
 
 
@@ -240,9 +239,8 @@ namespace MedEasy.API.Stores
                     .IsRequired();
 
                 entity.HasOne(item => item.Document)
-                    .WithOne(item => item.DocumentMetadata)
-                    .HasForeignKey<DocumentMetadata>(item => item.DocumentId);
-
+                    .WithOne(item => item.DocumentMetadata);
+                    
                 entity.HasIndex(x => x.Title);
                 entity.HasIndex(x => x.MimeType);
 
