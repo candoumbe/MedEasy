@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace MedEasy.Objects
 {
     /// <summary>
-    /// The binary content
+    /// The binary content associated to a <see cref="DocumentMetadata"/>
     /// </summary>
     public class Document: AuditableEntity<int, Document>
     {
