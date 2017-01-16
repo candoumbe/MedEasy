@@ -3,11 +3,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using MedEasy.DTO;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
 using System.Threading.Tasks;
 using MedEasy.Objects;
 using System.Linq.Expressions;
+using MedEasy.Handlers.Core.Queries;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Patient.Queries
 {

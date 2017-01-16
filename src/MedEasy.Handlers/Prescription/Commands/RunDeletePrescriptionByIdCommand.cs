@@ -6,6 +6,7 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Prescription;
 using System.Threading.Tasks;
 using MedEasy.Commands;
+using MedEasy.Handlers.Core.Prescription.Commands;
 
 namespace MedEasy.Handlers.Prescription.Commands
 {

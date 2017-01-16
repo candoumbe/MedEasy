@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using MedEasy.Queries;
-using MedEasy.Handlers.Queries;
 using MedEasy.DTO;
-using MedEasy.Handlers.Commands;
 using MedEasy.Commands;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
+using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Queries;
 
 namespace MedEasy.API.Controllers
 {

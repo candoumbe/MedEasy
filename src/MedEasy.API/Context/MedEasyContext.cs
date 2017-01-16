@@ -208,7 +208,7 @@ namespace MedEasy.API.Stores
             modelBuilder.Entity<Document>(entity => {
                 entity.HasKey(item => item.DocumentMetadataId);
 
-                entity.Property(item => item.DocumentMetadataId);
+                
 
                 entity.Property(item => item.Content)
                     .IsRequired();
@@ -221,11 +221,12 @@ namespace MedEasy.API.Stores
 
 
             modelBuilder.Entity<DocumentMetadata>(entity => {
-                entity.HasKey(item => item.Id);
+                entity.HasKey(item =>  item.Id);
 
                 entity.Property(item => item.Id)
                     .UseSqlServerIdentityColumn()
-                    .ValueGeneratedOnAdd();
+                    .IsRequired();
+                
 
                 entity.Property(item => item.Title)
                     .IsRequired()

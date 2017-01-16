@@ -6,7 +6,7 @@ using MedEasy.Commands.Patient;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Mapping;

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
-using MedEasy.Queries;
 using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
 using System.Linq.Expressions;
@@ -12,6 +10,7 @@ using MedEasy.DAL.Repositories;
 using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
 using MedEasy.Queries.Patient;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Patient.Queries
 {

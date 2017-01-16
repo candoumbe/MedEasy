@@ -1,4 +1,5 @@
 ﻿using MedEasy.DAL.Interfaces;
+using MedEasy.Handlers.Core.Autocomplete.Queries;
 using MedEasy.Queries.Autocomplete;
 using Microsoft.Extensions.Logging;
 using System;

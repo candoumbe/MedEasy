@@ -1,5 +1,4 @@
-﻿using MedEasy.Handlers.Exceptions;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using MedEasy.Validators;
 using MedEasy.Validators.Exceptions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.API.Filters
 {

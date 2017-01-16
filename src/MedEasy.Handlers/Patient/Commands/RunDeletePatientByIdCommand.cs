@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using static MedEasy.Validators.ErrorLevel;
-using MedEasy.Handlers.Exceptions;
 using MedEasy.Commands;
+using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Patient.Commands
 {

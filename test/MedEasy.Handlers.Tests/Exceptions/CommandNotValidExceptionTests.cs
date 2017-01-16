@@ -1,12 +1,11 @@
 ﻿using FluentAssertions;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Validators;
 using MedEasy.Validators.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace MedEasy.Handlers.Tests.Exceptions

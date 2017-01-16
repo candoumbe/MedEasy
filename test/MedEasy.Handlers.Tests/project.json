@@ -14,7 +14,7 @@
     "System.Threading.Tasks": "4.3.0",
     "Microsoft.EntityFrameworkCore": "1.1.0",
     "Microsoft.EntityFrameworkCore.InMemory": "1.0.1",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
+    "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
     "System.Diagnostics.TraceSource": "4.0.0",
     "System.Linq.Expressions": "4.3.0",
     "Microsoft.Bcl": "1.1.10",

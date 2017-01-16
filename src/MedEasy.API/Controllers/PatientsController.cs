@@ -5,9 +5,6 @@ using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
-using MedEasy.Handlers;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Objects;
 using MedEasy.Queries.Patient;
 using MedEasy.Queries.Prescriptions;
@@ -28,6 +25,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using static MedEasy.Data.DataFilterLogic;
+using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Search.Queries;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -64,6 +64,8 @@ namespace MedEasy.API.Controllers
         private readonly IHandleSearchQuery _iHandleSearchQuery;
         private readonly IHandleGetDocumentsByPatientIdQuery _iHandleGetDocumentByPatientIdQuery;
 
+        private readonly IRunCreateDocumentForPatientCommand _iRunCreateDocumentForPatientCommand;
+
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
@@ -84,6 +86,7 @@ namespace MedEasy.API.Controllers
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
+            IMapper mapper,
             IHandleSearchQuery iHandleSearchQuery,
             IHandleGetOnePatientInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyPatientInfosQuery getManyPatientQueryHandler,
@@ -91,9 +94,10 @@ namespace MedEasy.API.Controllers
             IRunDeletePatientByIdCommand iRunDeletePatientByIdCommand,
             IPhysiologicalMeasureService physiologicalMeasureService,
             IPrescriptionService prescriptionService,
-            IHandleGetDocumentsByPatientIdQuery iHandleGetDocumentByPatientIdQuery,
-            IRunPatchPatientCommand iRunPatchPatientCommmand, IMapper mapper
-            ) : base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
+            IHandleGetDocumentsByPatientIdQuery iHandleGetDocumentByPatientIdQuery, 
+            IRunPatchPatientCommand iRunPatchPatientCommmand,
+            IRunCreateDocumentForPatientCommand iRunCreateDocumentForPatientCommand) : 
+            base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         {
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
@@ -104,6 +108,7 @@ namespace MedEasy.API.Controllers
             _iRunPatchPatientCommmand = iRunPatchPatientCommmand;
             _iHandleSearchQuery = iHandleSearchQuery;
             _iHandleGetDocumentByPatientIdQuery = iHandleGetDocumentByPatientIdQuery;
+            _iRunCreateDocumentForPatientCommand = iRunCreateDocumentForPatientCommand;
             _mapper = mapper;
         }
 
@@ -789,7 +794,8 @@ namespace MedEasy.API.Controllers
         /// Gets all patient's documents metadata
         /// </summary>
         /// <remarks>
-        /// This method gets all documents' metadata that are related to the patient <paramref name="id"/>.
+        /// This method gets all documents' metadata that are related to the patient with the specified <paramref name="id"/>.
+        /// Documents are sorted by their last updated date descending.
         /// </remarks>
         /// <param name="id">id of the patient to get documents from</param>
         /// <param name="page">Index of the page of result set (the first page is 1).</param>
@@ -836,6 +842,55 @@ namespace MedEasy.API.Controllers
                 result.Total);
             
             return new OkObjectResult(response);
+        }
+
+
+        /// <summary>
+        /// Creates a new <paramref name="document"/> and attaches it to the patient resource with the specified <paramref name="id"/>.
+        /// </summary>
+        /// <param name="id">id of the patient resource <paramref name="document"/> must be attached the to.</param>
+        /// <param name="document">document informations</param>
+        /// <returns></returns>
+        /// <response code="201">the document metadata</response>
+        /// <response code="400">Invalid data sent (no binary content, missing required field(s), ...)</response>
+        /// <response code="404">No patient found</response>
+        [HttpPost("{id}/[action]")]
+        [ProducesResponseType(typeof(DocumentMetadataInfo), 201)]
+        public async Task<IActionResult> Documents(int id, CreateDocumentInfo document)
+        {
+            CreateDocumentForPatientCommand cmd = new CreateDocumentForPatientCommand(id, document);
+            DocumentMetadataInfo resource = await _iRunCreateDocumentForPatientCommand.RunAsync(cmd);
+            IBrowsableResource<DocumentMetadataInfo> browsableResource = new BrowsableResource<DocumentMetadataInfo>
+            {
+                Resource = resource,
+                Links = new[]
+                {
+                    new Link { Rel = "direct-link" },
+                    new Link { Rel = "file" }
+                }
+            };
+
+            return new CreatedAtActionResult(
+                nameof(Documents), 
+                EndpointName, 
+                new { id, documentId = resource.Id }, 
+                browsableResource);
+        }
+
+
+
+
+        /// <summary>
+        /// Gets the specified document that is associated to the specified patient
+        /// </summary>
+        /// <param name="id">id of the patient to </param>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        [HttpGet("{id}/[action]/{documentId}")]
+        [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
+        public async Task<IActionResult> Documents(int id, int documentId)
+        {
+            throw new NotImplementedException();
         }
     }
 

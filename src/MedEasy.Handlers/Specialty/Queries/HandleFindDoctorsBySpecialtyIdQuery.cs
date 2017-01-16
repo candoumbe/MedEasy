@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using MedEasy.RestObjects;
 using AutoMapper.QueryableExtensions;
+using MedEasy.Handlers.Core.Specialty.Queries;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {

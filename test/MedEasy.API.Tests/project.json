@@ -10,6 +10,7 @@
       "version": "1.0.0-*",
       "target": "project"
     },
+    "MedEasy.Handlers.Core": "1.0.0-*",
     "MedEasy.DTO": {
       "version": "1.0.0-*",
       "target": "project"
@@ -35,7 +36,8 @@
     "MedEasy.Services": "1.0.*",
     "System.Linq.Expressions": "4.3.0",
     "System.ComponentModel.Annotations": "4.3.0",
-    "Microsoft.AspNetCore.JsonPatch": "1.0.0"
+    "Microsoft.AspNetCore.JsonPatch": "1.0.0",
+    "System.IO": "4.3.0"
   },
 
   "frameworks": {

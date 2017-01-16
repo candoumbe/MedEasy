@@ -5,8 +5,8 @@ using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Prescription;
-using MedEasy.Handlers.Commands;
-using System.Threading.Tasks;
+using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Prescription.Commands;
 
 namespace MedEasy.Handlers.Prescription.Commands
 {

@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
 using MedEasy.Data.Converters;
 using MedEasy.Handlers;
-using System;
+using MedEasy.Handlers.Core.Search.Queries;
 
 namespace MedEasy.API
 {

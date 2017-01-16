@@ -7,20 +7,18 @@ using MedEasy.Validators;
 using AutoMapper;
 using Xunit;
 using FluentAssertions;
-using MedEasy.Commands.Patient;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using MedEasy.Handlers.Patient.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
 using MedEasy.Handlers.Patient.Queries;
-using MedEasy.Queries.Patient;
 using MedEasy.DTO;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Queries;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {

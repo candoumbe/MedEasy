@@ -9,9 +9,8 @@ using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
 using AutoMapper.QueryableExtensions;
 using System.Linq.Expressions;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.DAL.Repositories;
-using AutoMapper;
 
 namespace MedEasy.Services
 {

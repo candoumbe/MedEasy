@@ -1,12 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MedEasy.DTO;
-using MedEasy.Commands;
-using System;
 
 namespace MedEasy.API.Controllers
 {
-    
+
 
     /// <summary>
     /// Defines the contract for controllers that are RESTFULL and CRUD

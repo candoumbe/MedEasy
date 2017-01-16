@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.DAL.Repositories;
 using System.Linq;
-using MedEasy.Handlers.Specialty.Queries;
 using MedEasy.Queries.Specialty;
-using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.Commands.Specialty;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
+using MedEasy.Handlers.Core.Specialty.Commands;
+using MedEasy.Handlers.Core.Specialty.Queries;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 

@@ -18,6 +18,7 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Objects;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {

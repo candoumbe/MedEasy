@@ -9,6 +9,7 @@ using MedEasy.Data;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
+using MedEasy.Handlers.Core.Search.Queries;
 
 namespace MedEasy.Handlers
 {

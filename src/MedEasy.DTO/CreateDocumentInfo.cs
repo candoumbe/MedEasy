@@ -1,6 +1,7 @@
 ﻿
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
 {
@@ -9,8 +10,17 @@ namespace MedEasy.DTO
     /// </summary>
     public class CreateDocumentInfo
     {
+        [Required]
+        [MaxLength(256)]
         public string Title { get; set; }
 
-        public IEnumerable<byte> File { get; set; }
+        [Required]
+        [MaxLength(256)]
+        public string MimeType { get; set; }
+
+        /// <summary>
+        /// The binary content of the document
+        /// </summary>
+        public byte[] Content { get; set; }
     }
 }

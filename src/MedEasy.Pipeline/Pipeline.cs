@@ -1,5 +1,5 @@
 ﻿using MedEasy.Commands;
-using MedEasy.Handlers.Commands;
+using MedEasy.Handlers.Core.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;

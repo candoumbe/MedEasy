@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using MedEasy.RestObjects;
 using MedEasy.DAL.Repositories;
-using MedEasy.Handlers.Queries;
 using MedEasy.Queries;
 using MedEasy.DTO;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using MedEasy.Handlers.Core.Queries;
 
 namespace MedEasy.API.Controllers
 {

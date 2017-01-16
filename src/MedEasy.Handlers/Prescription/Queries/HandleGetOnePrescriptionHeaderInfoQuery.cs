@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using MedEasy.DTO;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Handlers.Queries;
+using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Prescription.Queries
@@ -13,8 +13,7 @@ namespace MedEasy.Handlers.Prescription.Queries
     /// </summary
     public class HandleGetOnePrescriptionHeaderInfoQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Prescription, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>>
     {
-        private readonly IExpressionBuilder _expressionBuilder;
-
+        
         /// <summary>
         /// Builds a new <see cref="HandleGetOnePhysiologicalMeasurementInfoQuery{TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo}"/> instance
         /// </summary>

@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands;
 using System.Linq;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using static MedEasy.Validators.ErrorLevel;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;

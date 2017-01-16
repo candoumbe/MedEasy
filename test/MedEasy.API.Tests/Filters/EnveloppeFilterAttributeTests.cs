@@ -4,40 +4,27 @@ using MedEasy.API.Controllers;
 using MedEasy.API.Filters;
 using MedEasy.API.Stores;
 using MedEasy.DTO;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Patient.Queries;
-using MedEasy.Mapping;
+using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using Moq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static Moq.MockBehavior;
 
 namespace MedEasy.API.Tests.Filters
 {
     public class EnveloppeFilterAttributeTests
     {
-        private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
-        private Mock<ILogger<PatientsController>> _loggerMock;
         private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
-        private IActionContextAccessor _actionContextAccessor;
-        private Mock<IHandleGetOnePatientInfoByIdQuery> _iHandleGetOnePatientInfoByIdQueryMock;
         private Mock<IHandleGetManyPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
         private EFUnitOfWorkFactory _factory;
         private IMapper _mapper;

@@ -1,6 +1,5 @@
 ﻿using MedEasy.Commands;
 using MedEasy.Handlers;
-using MedEasy.Handlers.Commands;
 using System;
 using System.Threading.Tasks;
 

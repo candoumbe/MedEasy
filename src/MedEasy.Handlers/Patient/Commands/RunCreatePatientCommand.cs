@@ -5,8 +5,9 @@ using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Patient;
-using MedEasy.Handlers.Commands;
 using System.Threading.Tasks;
+using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Patient.Commands;
 
 namespace MedEasy.Handlers.Patient.Commands
 {

@@ -10,6 +10,7 @@ namespace MedEasy.Objects
     /// </summary>
     public class Document: AuditableBaseEntity<Document>
     {
+
         /// <summary>
         /// ID of the related <see cref="DocumentMetadata"/>
         /// </summary>

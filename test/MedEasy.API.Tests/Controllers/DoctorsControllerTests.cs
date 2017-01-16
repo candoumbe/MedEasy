@@ -9,10 +9,7 @@ using MedEasy.Commands.Doctor;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
-using MedEasy.Handlers;
-using MedEasy.Handlers.Doctor.Commands;
-using MedEasy.Handlers.Doctor.Queries;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.Queries;
@@ -40,6 +37,9 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static System.StringSplitOptions;
+using MedEasy.Handlers.Core.Search.Queries;
+using MedEasy.Handlers.Core.Doctor.Commands;
+using MedEasy.Handlers.Core.Doctor.Queries;
 
 namespace MedEasy.WebApi.Tests
 {

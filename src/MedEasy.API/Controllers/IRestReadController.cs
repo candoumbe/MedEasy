@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MedEasy.DTO;
 using System;
-using MedEasy.Objects;
 
 namespace MedEasy.API.Controllers
 {

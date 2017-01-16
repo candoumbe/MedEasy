@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Patient.Queries
 {

@@ -6,15 +6,10 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using static MedEasy.Validators.ErrorLevel;
-using MedEasy.Handlers.Exceptions;
-using MedEasy.DTO;
 using MedEasy.Commands;
-using System.Linq.Expressions;
-using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Doctor;
 using Microsoft.AspNetCore.JsonPatch;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.JsonPatch.Operations;
+using MedEasy.Handlers.Core.Doctor.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {

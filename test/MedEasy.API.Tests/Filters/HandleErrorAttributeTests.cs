@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using MedEasy.API.Filters;
-using MedEasy.Handlers.Exceptions;
 using MedEasy.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using static Moq.MockBehavior;
 using Xunit;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.API.Tests.Filters
 {

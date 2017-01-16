@@ -6,8 +6,9 @@ using MedEasy.Commands.Specialty;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Handlers.Commands;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Specialty.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Specialty.Commands
 {

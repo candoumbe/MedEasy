@@ -15,10 +15,11 @@ using System.Threading.Tasks;
 using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
-using MedEasy.Handlers.Exceptions;
 using System.Linq;
 using MedEasy.Mapping;
 using System.Linq.Expressions;
+using MedEasy.Handlers.Core.Specialty.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 {

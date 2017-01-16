@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using MedEasy.Commands.Doctor;
 using MedEasy.Commands;
+using MedEasy.Handlers.Core.Doctor.Commands;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {

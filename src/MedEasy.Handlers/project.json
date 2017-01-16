@@ -5,19 +5,21 @@
     "MedEasy.Validators": "1.0.0-*",
     "MedEasy.DAL": "1.0.0-*",
     "MedEasy.Objects": "1.0.0-*",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
+    "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
     "System.Linq": "4.3.0",
     "System.Runtime": "4.3.0",
     "System.Threading.Tasks": "4.3.0",
     "MedEasy.Commands": "1.0.0-*",
     "MedEasy.Queries": "1.0.0-*",
     "AutoMapper": "5.2.0",
-    "System.Linq.Expressions": "4.3.0"
+    "System.Linq.Expressions": "4.3.0",
+    "System.Linq.Parallel": "4.3.0",
+    "MedEasy.Handlers.Core": "1.0.0-*"
   },
 
   "frameworks": {
     "netstandard1.3": {
-      "imports": [ "dnxcore50", "portable-dnxcore50+net45+win8+wp8+wpa81" ]
+      "imports": [ "dnxcore50" ]
     },
   }
 }

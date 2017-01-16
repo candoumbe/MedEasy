@@ -3,6 +3,7 @@ using MedEasy.DAL.Interfaces;
 using Microsoft.Extensions.Logging;
 using MedEasy.Queries.Specialty;
 using System;
+using MedEasy.Handlers.Core.Specialty.Queries;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {

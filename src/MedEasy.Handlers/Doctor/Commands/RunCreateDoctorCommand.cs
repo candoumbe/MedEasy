@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using AutoMapper;
 using MedEasy.Commands.Doctor;
+using MedEasy.Handlers.Core.Doctor.Commands;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {

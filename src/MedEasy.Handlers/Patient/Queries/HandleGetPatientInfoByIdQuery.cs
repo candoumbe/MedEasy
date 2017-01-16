@@ -5,7 +5,8 @@ using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Queries;
-using MedEasy.Handlers.Queries;
+using MedEasy.Handlers.Core.Queries;
+using MedEasy.Handlers.Core.Patient.Queries;
 
 namespace MedEasy.Handlers.Patient.Queries
 {

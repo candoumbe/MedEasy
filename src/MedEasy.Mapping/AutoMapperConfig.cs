@@ -22,7 +22,6 @@ namespace MedEasy.Mapping
             cfg.CreateMap<BodyWeight, BodyWeightInfo>();
 
             cfg.CreateMap<DocumentMetadata, DocumentMetadataInfo>().ReverseMap();
-
             cfg.CreateMap<Doctor, DoctorInfo>();
 
             cfg.CreateMap<Specialty, SpecialtyInfo>().ReverseMap();

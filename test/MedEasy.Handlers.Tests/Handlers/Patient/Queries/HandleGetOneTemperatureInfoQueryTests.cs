@@ -3,7 +3,8 @@ using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Mapping;
 using MedEasy.Objects;
@@ -14,12 +15,10 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static MedEasy.Validators.ErrorLevel;
 using static Moq.MockBehavior;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries

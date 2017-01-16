@@ -3,24 +3,21 @@ using System.Collections.Generic;
 using Xunit.Abstractions;
 using Moq;
 using static Moq.MockBehavior;
-using MedEasy.Validators;
 using AutoMapper;
 using Xunit;
 using FluentAssertions;
-using MedEasy.Commands.Doctor;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
 using MedEasy.Handlers.Doctor.Queries;
-using MedEasy.Queries.Doctor;
 using MedEasy.DTO;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Queries;
+using MedEasy.Handlers.Core.Doctor.Queries;
 
 namespace MedEasy.Handlers.Tests.Doctor.Queries
 {

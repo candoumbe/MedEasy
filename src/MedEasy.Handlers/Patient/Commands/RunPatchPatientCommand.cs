@@ -6,15 +6,11 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using static MedEasy.Validators.ErrorLevel;
-using MedEasy.Handlers.Exceptions;
-using MedEasy.DTO;
 using MedEasy.Commands;
-using System.Linq.Expressions;
-using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Patient;
 using Microsoft.AspNetCore.JsonPatch;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -26,8 +22,7 @@ namespace MedEasy.Handlers.Patient.Commands
         private IUnitOfWorkFactory _uowFactory;
         private ILogger<RunPatchPatientCommand> _logger;
         private IValidate<IPatchCommand<int, Objects.Patient>> _validator;
-        private readonly IExpressionBuilder _expressionBuilder;
-
+        
         /// <summary>
         /// Builds a new <see cref="RunPatchPatientCommand"/> instance.
         /// </summary>

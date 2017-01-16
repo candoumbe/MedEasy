@@ -3,7 +3,8 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Commands.Specialty;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
-using MedEasy.Handlers.Commands;
+using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Specialty.Commands;
 
 namespace MedEasy.Handlers.Specialty.Commands
 {

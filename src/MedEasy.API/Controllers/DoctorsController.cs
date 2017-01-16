@@ -9,9 +9,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.DAL.Repositories;
 using System.Linq;
-using MedEasy.Handlers.Doctor.Queries;
 using MedEasy.Queries.Doctor;
-using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.Commands.Doctor;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -23,7 +21,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MedEasy.Data;
 using MedEasy.Queries.Search;
 using static MedEasy.Data.DataFilterLogic;
-using MedEasy.Handlers;
+using MedEasy.Handlers.Core.Doctor.Commands;
+using MedEasy.Handlers.Core.Search.Queries;
+using MedEasy.Handlers.Core.Doctor.Queries;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 

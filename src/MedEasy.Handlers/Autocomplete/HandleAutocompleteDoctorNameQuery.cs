@@ -7,7 +7,7 @@ using AutoMapper;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Queries.Autocomplete;
-using MedEasy.Handlers.Autocomplete;
+using MedEasy.Handlers.Core.Autocomplete;
 
 namespace MedEasy.Handlers.Doctor.Queries
 {

@@ -4,6 +4,8 @@ using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.API.Controllers;
 using MedEasy.Commands.Specialty;
 using MedEasy.Validators;
+using MedEasy.Handlers.Core.Specialty.Queries;
+using MedEasy.Handlers.Core.Specialty.Commands;
 
 namespace MedEasy.API.StartupRegistration
 {

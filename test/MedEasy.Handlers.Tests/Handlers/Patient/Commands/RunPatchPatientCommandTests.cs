@@ -15,14 +15,11 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static Moq.Times;
 using static MedEasy.Validators.ErrorLevel;
-using MedEasy.Handlers.Exceptions;
 using static Newtonsoft.Json.JsonConvert;
 using MedEasy.Commands;
-using MedEasy.Mapping;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.JsonPatch;
-
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {

@@ -15,7 +15,7 @@ using Xunit;
 using MedEasy.Mapping;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Handlers.Exceptions;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.DAL.Repositories;
 
 namespace MedEasy.Services.Tests

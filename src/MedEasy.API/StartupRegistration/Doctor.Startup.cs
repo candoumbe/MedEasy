@@ -2,6 +2,8 @@
 using MedEasy.Handlers.Doctor.Queries;
 using MedEasy.Handlers.Doctor.Commands;
 using MedEasy.API.Controllers;
+using MedEasy.Handlers.Core.Doctor.Queries;
+using MedEasy.Handlers.Core.Doctor.Commands;
 
 namespace MedEasy.API.StartupRegistration
 {

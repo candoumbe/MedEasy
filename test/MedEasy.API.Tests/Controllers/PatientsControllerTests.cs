@@ -10,9 +10,7 @@ using MedEasy.Commands.Patient;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
-using MedEasy.Handlers.Exceptions;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Patient.Queries;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.Queries;
@@ -39,11 +37,13 @@ using Xunit.Abstractions;
 using static MedEasy.DAL.Repositories.SortDirection;
 using static Moq.MockBehavior;
 using static System.StringComparison;
-using MedEasy.Handlers;
 using MedEasy.Queries.Search;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringSplitOptions;
 using MedEasy.Queries.Patient;
+using MedEasy.Handlers.Core.Patient.Queries;
+using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Search.Queries;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -66,6 +66,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunPatchPatientCommand> _iRunPatchPatientCommandMock;
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
         private Mock<IHandleGetDocumentsByPatientIdQuery> _iHandleGetDocumentsByPatientIdQueryMock;
+        private Mock<IRunCreateDocumentForPatientCommand> _iRunCreateDocumentForPatientCommandMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -100,13 +101,16 @@ namespace MedEasy.WebApi.Tests
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
+
             _iHandleGetDocumentsByPatientIdQueryMock = new Mock<IHandleGetDocumentsByPatientIdQuery>(Strict);
+            _iRunCreateDocumentForPatientCommandMock = new Mock<IRunCreateDocumentForPatientCommand>(Strict);
 
             _controller = new PatientsController(
                 _loggerMock.Object,
                 _urlHelperFactoryMock.Object,
                 _actionContextAccessor,
                 _apiOptionsMock.Object,
+                _mapper,
                 _iHandleSearchQueryMock.Object,
                 _iHandleGetOnePatientInfoByIdQueryMock.Object,
                 _iHandleGetManyPatientInfoQueryMock.Object,
@@ -116,7 +120,7 @@ namespace MedEasy.WebApi.Tests
                 _prescriptionServiceMock.Object,
                 _iHandleGetDocumentsByPatientIdQueryMock.Object,
                 _iRunPatchPatientCommandMock.Object,
-                _mapper);
+                _iRunCreateDocumentForPatientCommandMock.Object);
 
         }
 
@@ -137,6 +141,8 @@ namespace MedEasy.WebApi.Tests
             _iRunDeletePatientInfoByIdCommandMock = null;
             _iRunPatchPatientCommandMock = null;
             _iHandleSearchQueryMock = null;
+            _iHandleGetDocumentsByPatientIdQueryMock = null;
+
 
             _prescriptionServiceMock = null;
             _factory = null;
@@ -1513,5 +1519,74 @@ namespace MedEasy.WebApi.Tests
             pageOfResult?.Links?.Next?.Should().Match(nextPageUrlExpectation);
             pageOfResult?.Links?.Last?.Should().Match(lastPageUrlExpectation);
         }
+
+
+        [Fact]
+        public async Task PostDocument()
+        {
+            // Arrange
+            _iRunCreateDocumentForPatientCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<ICreateDocumentForPatientCommand>()))
+                .Returns((ICreateDocumentForPatientCommand cmd) => Task.Run(() =>
+                {
+                    DocumentMetadataInfo createdDocument = new DocumentMetadataInfo
+                    {
+                        Id = 15,
+                        DocumentId = 15,
+                        MimeType = cmd.Data.Document.MimeType,
+                        Size = 500,
+                        Title = cmd.Data.Document.Title,
+                        PatientId = cmd.Data.PatientId
+                    };
+                    createdDocument.PatientId = cmd.Data.PatientId;
+                    return createdDocument;
+                }));
+
+            // Act
+            CreateDocumentInfo documentInfo = new CreateDocumentInfo
+            {
+                Title = "Medical certificate",
+                Content = new byte[] { 1, 2, 3, 4, 5 },
+                MimeType = "application/.pdf"
+            };
+            IActionResult actionResult = await _controller.Documents(1, documentInfo);
+
+
+            // Assert
+            CreatedAtActionResult createdAtActionResult = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<CreatedAtActionResult>().Which;
+
+
+            createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
+            createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Documents));
+            createdAtActionResult.RouteValues.Should()
+                .ContainKey(nameof(PatientInfo.Id)).And
+                .ContainKey("documentId");
+
+            var browsableResource = createdAtActionResult.Value.Should()
+                .NotBeNull().And
+                .BeAssignableTo<IBrowsableResource<DocumentMetadataInfo>>().Which;
+
+            IEnumerable<Link> links = browsableResource.Links;
+
+            links?.Should()
+                .NotBeNullOrEmpty().And
+                .Contain(x => x.Rel == "direct-link", "link to get the document should be provided").And
+                .Contain(x => x.Rel == "file", "link to download the file must be provided");
+
+            DocumentMetadataInfo resource = browsableResource.Resource;
+
+            resource?.Should()
+                .NotBeNull();
+
+            resource.DocumentId.Should().Be(15);
+            resource.PatientId.Should().Be(1);
+            resource.Title.Should().Be(documentInfo.Title);
+
+            _iRunCreateDocumentForPatientCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
+
+        }
+
+        
     }
 }

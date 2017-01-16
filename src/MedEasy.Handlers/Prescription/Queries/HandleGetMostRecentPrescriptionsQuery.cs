@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
+using MedEasy.Handlers.Core.Prescription.Queries;
 
 namespace MedEasy.Handlers.Prescription.Queries
 {

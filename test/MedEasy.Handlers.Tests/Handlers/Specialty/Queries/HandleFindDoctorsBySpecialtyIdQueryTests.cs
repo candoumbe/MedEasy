@@ -18,6 +18,7 @@ using System.Linq;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Mapping;
 using static Newtonsoft.Json.JsonConvert;
+using MedEasy.Handlers.Core.Specialty.Queries;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
