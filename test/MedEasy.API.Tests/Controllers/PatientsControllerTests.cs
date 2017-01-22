@@ -67,6 +67,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
         private Mock<IHandleGetDocumentsByPatientIdQuery> _iHandleGetDocumentsByPatientIdQueryMock;
         private Mock<IRunCreateDocumentForPatientCommand> _iRunCreateDocumentForPatientCommandMock;
+        private Mock<IHandleGetOneDocumentInfoByPatientIdAndDocumentId> _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -104,6 +105,7 @@ namespace MedEasy.WebApi.Tests
 
             _iHandleGetDocumentsByPatientIdQueryMock = new Mock<IHandleGetDocumentsByPatientIdQuery>(Strict);
             _iRunCreateDocumentForPatientCommandMock = new Mock<IRunCreateDocumentForPatientCommand>(Strict);
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock = new Mock<IHandleGetOneDocumentInfoByPatientIdAndDocumentId>(Strict);
 
             _controller = new PatientsController(
                 _loggerMock.Object,
@@ -120,7 +122,8 @@ namespace MedEasy.WebApi.Tests
                 _prescriptionServiceMock.Object,
                 _iHandleGetDocumentsByPatientIdQueryMock.Object,
                 _iRunPatchPatientCommandMock.Object,
-                _iRunCreateDocumentForPatientCommandMock.Object);
+                _iRunCreateDocumentForPatientCommandMock.Object,
+                _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Object);
 
         }
 
@@ -141,8 +144,9 @@ namespace MedEasy.WebApi.Tests
             _iRunDeletePatientInfoByIdCommandMock = null;
             _iRunPatchPatientCommandMock = null;
             _iHandleSearchQueryMock = null;
-            _iHandleGetDocumentsByPatientIdQueryMock = null;
 
+            _iHandleGetDocumentsByPatientIdQueryMock = null;
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock = null;
 
             _prescriptionServiceMock = null;
             _factory = null;
@@ -1468,6 +1472,18 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
+        /// <summary>
+        /// Tests getting all the documents of a patient
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="patientId"></param>
+        /// <param name="getQuery"></param>
+        /// <param name="pageOfResultExpectation"></param>
+        /// <param name="firstPageUrlExpectation"></param>
+        /// <param name="previousPageUrlExpectation"></param>
+        /// <param name="nextPageUrlExpectation"></param>
+        /// <param name="lastPageUrlExpectation"></param>
+        /// <returns></returns>
         [Theory]
         [MemberData(nameof(GetAllDocumentsCases))]
         public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items,int patientId, PaginationConfiguration getQuery,
@@ -1520,7 +1536,10 @@ namespace MedEasy.WebApi.Tests
             pageOfResult?.Links?.Last?.Should().Match(lastPageUrlExpectation);
         }
 
-
+        /// <summary>
+        /// Test creating a new document
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task PostDocument()
         {
@@ -1587,6 +1606,91 @@ namespace MedEasy.WebApi.Tests
 
         }
 
-        
+
+        /// <summary>
+        /// Tests <see cref="PatientsController.Documents(int, int)"/>
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task GetOneDocumentByPatientIdAndDocumentId()
+        {
+            // Arrange
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneDocumentByPatientIdAndDocumentIdQuery>()))
+                .Returns((IWantOneDocumentByPatientIdAndDocumentIdQuery query) => Task.Run(() =>
+                {
+                    DocumentMetadataInfo documentMetadataInfo = new DocumentMetadataInfo
+                    {
+                        Id = query.Data.DocumentMetadataId,
+                        DocumentId = query.Data.DocumentMetadataId,
+                        MimeType = "application/pdf",
+                        Size = 500,
+                        Title = "Document 1",
+                        PatientId = query.Data.PatientId
+                    };
+                    
+                    return documentMetadataInfo;
+                }));
+
+
+            // Act
+            int patientId = 1,
+                documentMetadataId = 3;
+            IActionResult actionResult = await _controller.Documents(patientId, documentMetadataId);
+
+
+            // Assert
+            IBrowsableResource<DocumentMetadataInfo> browsableResource = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                    .Value.Should()
+                        .NotBeNull().And
+                        .BeAssignableTo<IBrowsableResource<DocumentMetadataInfo>>().Which;
+
+
+            DocumentMetadataInfo actualResource = browsableResource.Resource;
+            actualResource.Should().NotBeNull();
+            actualResource.PatientId.Should().Be(patientId);
+            actualResource.Id.Should().Be(documentMetadataId);
+            actualResource.MimeType.Should().Be("application/pdf");
+            actualResource.Size.Should().Be(500);
+
+            
+            IEnumerable<Link> links = browsableResource.Links;
+
+            links?.Should()
+                .NotBeNullOrEmpty().And
+                .Contain(x => x.Rel == "direct-link", "link to get the document should be provided").And
+                .Contain(x => x.Rel == "file", "link to download the file must be provided");
+
+            
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Verify(mock => mock.HandleAsync(It.IsAny<IWantOneDocumentByPatientIdAndDocumentIdQuery>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests <see cref="PatientsController.Documents(int, int)"/>
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task GetOneDocumentByPatientIdAndDocumentId_Returns_Not_Found()
+        {
+            // Arrange
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneDocumentByPatientIdAndDocumentIdQuery>()))
+                .ReturnsAsync(null);
+
+
+            // Act
+            int patientId = 1,
+                documentMetadataId = 3;
+            IActionResult actionResult = await _controller.Documents(patientId, documentMetadataId);
+
+
+            // Assert
+           actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<NotFoundResult>();
+
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Verify(mock => mock.HandleAsync(It.IsAny<IWantOneDocumentByPatientIdAndDocumentIdQuery>()), Times.Once);
+        }
+
     }
 }

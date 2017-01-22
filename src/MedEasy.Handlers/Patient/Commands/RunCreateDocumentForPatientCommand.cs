@@ -82,7 +82,7 @@ namespace MedEasy.Handlers.Patient.Commands
                     MimeType = document.MimeType,
                     Title = document.Title,
                     Size = document.Content.Length,
-                    Document = new Document
+                    Document = new Objects.Document
                     {
                         Content = data.Document.Content
                     }

@@ -1,0 +1,73 @@
+﻿using System;
+using System.Threading.Tasks;
+using AutoMapper.QueryableExtensions;
+using MedEasy.DAL.Interfaces;
+using MedEasy.DTO;
+using Microsoft.Extensions.Logging;
+using MedEasy.Objects;
+using System.Linq.Expressions;
+using MedEasy.DAL.Repositories;
+using static MedEasy.DAL.Repositories.SortDirection;
+using System.Linq;
+using MedEasy.Queries.Patient;
+using MedEasy.Handlers.Core.Patient.Queries;
+
+namespace MedEasy.Handlers.Patient.Queries
+{
+    public class HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery : IHandleGetOneDocumentInfoByPatientIdAndDocumentId
+    {
+        private IExpressionBuilder _expressionBuilder;
+        private IUnitOfWorkFactory _uowFactory;
+        private ILogger<HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery> _logger;
+
+
+        /// <summary>
+        /// Builds a new <see cref="HandleGetDocumentsByPatientIdQuery"/> instance.
+        /// </summary>
+        /// <param name="uowFactory"></param>
+        /// <param name="logger"></param>
+        /// <param name="expressionBuilder"></param>
+        public HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery> logger, IExpressionBuilder expressionBuilder)
+        {
+            if (uowFactory == null)
+            {
+                throw new ArgumentNullException(nameof(uowFactory));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            if (expressionBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(expressionBuilder));
+            }
+            _uowFactory = uowFactory;
+            _logger = logger;
+            _expressionBuilder = expressionBuilder;
+        }
+
+        public async Task<DocumentMetadataInfo> HandleAsync(IWantOneDocumentByPatientIdAndDocumentIdQuery query)
+        {
+            _logger.LogInformation($"Start looking for documents metadata : {query}");
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            using (var uow = _uowFactory.New())
+            {
+                _logger.LogTrace($"Start querying {query}");
+                GetOneDocumentInfoByPatientIdAndDocumentIdInfo input = query.Data;
+                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
+                DocumentMetadataInfo result = await uow.Repository<DocumentMetadata>()
+                    .SingleOrDefaultAsync(
+                        selector,
+                        x => x.PatientId == input.PatientId && x.Id == input.DocumentMetadataId);
+
+                _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}> {(result == null ? "not" : string.Empty)}found");
+                _logger.LogInformation($"Handling query {query.Id} successfully");
+                return result;
+            }
+        }
+    }
+}

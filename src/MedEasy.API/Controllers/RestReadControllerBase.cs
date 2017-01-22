@@ -32,12 +32,12 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Handler for "I want one resource" queries
         /// </summary>
-        private readonly IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> _genericGetByIdQueryHandler;
+        protected IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> GetByIdQueryHandler { get; }
 
         /// <summary>
         /// Handler for "I want several resources" queries
         /// </summary>
-        private readonly IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> _genericGetManyQueryHandler;
+        protected IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> GetManyQueryHandler { get; }
 
         /// <summary>
         /// Options associated with the API
@@ -91,8 +91,8 @@ namespace MedEasy.API.Controllers
             {
                 throw new ArgumentNullException(nameof(urlHelperFactory), $"{nameof(urlHelperFactory)} cannot be null");
             }
-            _genericGetByIdQueryHandler = getByIdHandler;
-            _genericGetManyQueryHandler = getManyQueryHandler;
+            GetByIdQueryHandler = getByIdHandler;
+            GetManyQueryHandler = getManyQueryHandler;
             UrlHelperFactory = urlHelperFactory;
             ActionContextAccessor = actionContextAccessor;
             ApiOptions = apiOptions;
@@ -106,7 +106,7 @@ namespace MedEasy.API.Controllers
         /// <returns><see cref="Task{TEntityInfo}"/></returns>
         public async virtual Task<IActionResult> Get(TKey id)
         {
-            TResource resource = await _genericGetByIdQueryHandler.HandleAsync(new GenericGetOneResourceByIdQuery<TKey, TResource>(id));
+            TResource resource = await GetByIdQueryHandler.HandleAsync(new GenericGetOneResourceByIdQuery<TKey, TResource>(id));
             IActionResult actionResult;
             if (resource == null)
             {
@@ -170,7 +170,7 @@ namespace MedEasy.API.Controllers
 
             query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
 
-            return await _genericGetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
+            return await GetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query));
         }
     }
 }

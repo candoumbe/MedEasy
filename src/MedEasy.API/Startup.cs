@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.Mapping;
 using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
-using MedEasy.API.StartupRegistration;
+using MedEasy.API.StartupRegistration;                                                                                                                                                
 using MedEasy.API.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
@@ -100,10 +100,6 @@ namespace MedEasy.API
                 options.SerializerSettings.Converters.Add(new DataCompositeFilterConverter());
                 options.SerializerSettings.Converters.Add(new DataFilterOperatorConverter());
             });
-
-
-            
-            
 
             if (HostingEnvironment.IsDevelopment())
             {

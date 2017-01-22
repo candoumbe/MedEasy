@@ -66,6 +66,8 @@ namespace MedEasy.API.Controllers
 
         private readonly IRunCreateDocumentForPatientCommand _iRunCreateDocumentForPatientCommand;
 
+        private readonly IHandleGetOneDocumentInfoByPatientIdAndDocumentId _iHandleGetOneDocumentInfoByPatientIdAndDocumentId;
+
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
@@ -83,6 +85,7 @@ namespace MedEasy.API.Controllers
         /// <param name="iRunPatchPatientCommmand">Runner for changing main doctor ID command.</param>
         /// <param name="iHandleGetDocumentByPatientIdQuery">Handler for retrieving patient's <see cref="DocumentMetadataInfo"/>s.</param>
         /// <param name="mapper">Mapper to convert one type to an other.</param>
+        /// <param name="iRunCreateDocumentForPatientCommand">Runner for CREATE document resource commands.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
@@ -96,7 +99,8 @@ namespace MedEasy.API.Controllers
             IPrescriptionService prescriptionService,
             IHandleGetDocumentsByPatientIdQuery iHandleGetDocumentByPatientIdQuery, 
             IRunPatchPatientCommand iRunPatchPatientCommmand,
-            IRunCreateDocumentForPatientCommand iRunCreateDocumentForPatientCommand) : 
+            IRunCreateDocumentForPatientCommand iRunCreateDocumentForPatientCommand,
+            IHandleGetOneDocumentInfoByPatientIdAndDocumentId iHandleGetOneDocumentInfoByPatientIdAndDocumentId) : 
             base(logger, apiOptions, getByIdQueryHandler, getManyPatientQueryHandler, iRunCreatePatientCommand, urlHelperFactory, actionContextAccessor)
         {
             _urlHelperFactory = urlHelperFactory;
@@ -109,6 +113,7 @@ namespace MedEasy.API.Controllers
             _iHandleSearchQuery = iHandleSearchQuery;
             _iHandleGetDocumentByPatientIdQuery = iHandleGetDocumentByPatientIdQuery;
             _iRunCreateDocumentForPatientCommand = iRunCreateDocumentForPatientCommand;
+            _iHandleGetOneDocumentInfoByPatientIdAndDocumentId = iHandleGetOneDocumentInfoByPatientIdAndDocumentId;
             _mapper = mapper;
         }
 
@@ -884,14 +889,42 @@ namespace MedEasy.API.Controllers
         /// Gets the specified document that is associated to the specified patient
         /// </summary>
         /// <param name="id">id of the patient to </param>
-        /// <param name="documentId"></param>
+        /// <param name="documentMetadataId">id of the document to get</param>
         /// <returns></returns>
-        [HttpGet("{id}/[action]/{documentId}")]
-        [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
-        public async Task<IActionResult> Documents(int id, int documentId)
+        /// <response code="404">no patient/document found</response>
+        /// <response code="200">The document</response>
+        [HttpGet("{id}/[action]/{documentMetadataId}")]
+        [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
+        public async Task<IActionResult> Documents(int id, int documentMetadataId)
         {
-            throw new NotImplementedException();
+            DocumentMetadataInfo resource = await _iHandleGetOneDocumentInfoByPatientIdAndDocumentId
+                .HandleAsync(new WantOneDocumentByPatientIdAndDocumentIdQuery(id, documentMetadataId));
+            IActionResult actionResult;
+
+            if (resource != null)
+            {
+                IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
+                IBrowsableResource<DocumentMetadataInfo> browsableResource = new BrowsableResource<DocumentMetadataInfo>
+                {
+                    Resource = resource,
+                    Links = new[]
+                    {
+                        new Link { Rel = "file", Href = urlHelper.Action(nameof(DocumentsController.File), DocumentsController.EndpointName, new { resource.Id }) },
+                        new Link { Rel = "direct-link", Href = urlHelper.Action(nameof(DocumentsController.Get), DocumentsController.EndpointName, new { resource.Id }) }
+                    }
+                };
+                actionResult = new OkObjectResult(browsableResource);
+            }
+            else
+            {
+                actionResult = new NotFoundResult();
+            }
+
+
+            return actionResult;
         }
+
+        
     }
 
 }

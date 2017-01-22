@@ -31,6 +31,8 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
             services.AddScoped<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(x => Validator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>.Default);
             services.AddScoped<IValidate<IPatchCommand<int, Patient>>, ValidatePatchPatientCommand>();
+            services.AddScoped<IValidate<ICreateDocumentForPatientCommand>>(x => Validator<ICreateDocumentForPatientCommand>.Default);
+
 
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();
             services.AddScoped<IHandleGetManyPatientInfosQuery, HandleGetManyPatientInfoQuery>();
@@ -48,9 +50,9 @@ namespace MedEasy.API.StartupRegistration
 
 
             services.AddScoped<IRunCreateDocumentForPatientCommand, RunCreateDocumentForPatientCommand>();
-
-
             services.AddScoped<IHandleGetDocumentsByPatientIdQuery, HandleGetDocumentsByPatientIdQuery>();
+            services.AddScoped<IHandleGetOneDocumentInfoByPatientIdAndDocumentId, HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery>();
+            
         }
     }
 }
