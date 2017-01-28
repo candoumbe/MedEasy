@@ -21,7 +21,7 @@ namespace MedEasy.API.Filters
 
         private static Func<Link, string> BuildLinkHeader => location => location == null
             ? string.Empty
-            : $@"<{location.Href}>;{(string.IsNullOrWhiteSpace(location.Rel) ? string.Empty : $@" rel=""{location.Rel}""")}";
+            : $@"<{location.Href}>;{(string.IsNullOrWhiteSpace(location.Relation) ? string.Empty : $@" rel=""{location.Relation}""")}";
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {

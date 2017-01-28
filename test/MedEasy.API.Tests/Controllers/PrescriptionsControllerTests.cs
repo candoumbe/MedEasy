@@ -114,15 +114,15 @@ namespace MedEasy.API.Tests.Controllers
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self").And
-                .Contain(x => x.Rel == nameof(Prescription.Items));
+                .Contain(x => x.Relation.Contains("self")).And
+                .Contain(x => x.Relation.Contains(nameof(Prescription.Items)));
 
-            Link location = links.Single(x => x.Rel == "self");
+            Link location = links.Single(x => x.Relation.Contains("self"));
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Get)}?{nameof(resource.Id)}={resource.Id}");
 
-            Link locationItems = links.Single(x => x.Rel == nameof(Prescription.Items));
+            Link locationItems = links.Single(x => x.Relation.Contains(nameof(Prescription.Items)));
             locationItems.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Details)}?{nameof(resource.Id)}={resource.Id}");
@@ -160,7 +160,7 @@ namespace MedEasy.API.Tests.Controllers
                         x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 1 &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Rel == "self") == 1))
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
                 };
 
                 yield return new object[] {
@@ -177,7 +177,7 @@ namespace MedEasy.API.Tests.Controllers
                         x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 0 &&
                         ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Rel == "self") == 1))
+                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
                 };
             }
         }

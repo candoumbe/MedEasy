@@ -43,11 +43,11 @@ namespace System
 
 
         /// <summary>
-        /// Perfom
+        /// Perfoms a VB "Like" comparison
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="pattern"></param>
-        /// <param name="ignoreCase"></param>
+        /// <param name="input">the string to test</param>
+        /// <param name="pattern">the pattern to test <paramref name="input"/> against</param>
+        /// <param name="ignoreCase"><c>true</c> to ignore case</param>
         /// <returns></returns>
         public static bool Like(this string input, string pattern, bool ignoreCase = true)
         {
@@ -58,11 +58,7 @@ namespace System
             }
             pattern = pattern.Replace("?", ".")
                 .Replace("*", ".*");
-            //return new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\").Replace(pattern, ch => @"\" + ch)
-            //    .Replace('?', '.')
-            //    .Replace("*", ".*")
-            //    + @"\z", regexOptions).IsMatch(input);
-
+            
             return Regex.IsMatch(input, pattern, regexOptions);
         }
 
@@ -94,6 +90,52 @@ namespace System
 
             return Lambda(property, pe);
         }
+
+        /// <summary>
+        /// Decodes a <see cref="string"/> converted using <see cref="GuidExtensions.Encode{string}"/> back to <see cref="Guid"/>. 
+        /// </summary>
+        /// <remarks>
+        /// See http://madskristensen.net/post/A-shorter-and-URL-friendly-GUID for more details.
+        /// </remarks>
+        /// <param name="encoded">the encoded <see cref="Guid"/> string</param>
+        /// <returns>The original <see cref="Guid"/></returns>
+        public static Guid Decode(this string encoded)
+        {
+            encoded = encoded.Replace("_", "/");
+            encoded = encoded.Replace("-", "+");
+            byte[] buffer = Convert.FromBase64String(encoded + "==");
+            return new Guid(buffer);
+        }
+
+
+        /// <summary>
+        /// Converts <see cref="input"/> to its lower kebab representation
+        /// 
+        /// </summary>
+        /// <param name="input">The string to transform</param>
+        /// <returns>The lower-kebab-cased string</returns>
+        public static string ToLowerKebabCase(this string input)
+        {
+
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input), $"{input} cannot be null");
+            }
+
+            StringBuilder sb = new StringBuilder(input.Length * 2);
+            foreach (char character in input)
+            {
+                if (char.IsUpper(character) && sb.Length > 0)
+                {
+                    sb.Append("-");
+                }
+                sb.Append(char.ToLower(character));
+            }
+            
+
+            return sb.ToString();
+        }
+
 
     }
 }

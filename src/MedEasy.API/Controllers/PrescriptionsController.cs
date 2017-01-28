@@ -21,7 +21,6 @@ namespace MedEasy.API.Controllers
         private readonly IPrescriptionService _prescriptionService;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
-        private object details;
 
         /// <summary>
         /// Builds a new <see cref="PrescriptionsController"/> instance
@@ -68,11 +67,11 @@ namespace MedEasy.API.Controllers
                         new Link
                         {
                             Href = urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
-                            Rel = "self"
+                            Relation = "self"
                         },
                         new Link
                         {
-                            Rel = nameof(Prescription.Items),
+                            Relation = nameof(Prescription.Items),
                             Href = urlHelper.Action(nameof(PrescriptionsController.Details), EndpointName , new { prescriptionHeaderInfo.Id })
                         }
                     }
@@ -113,7 +112,7 @@ namespace MedEasy.API.Controllers
                 Links = new[] {
                         new Link
                         {
-                            Rel = "self",
+                            Relation = "self",
                             Href = urlHelper.Action(nameof(Details), EndpointName, new { id })
                         }
                     }

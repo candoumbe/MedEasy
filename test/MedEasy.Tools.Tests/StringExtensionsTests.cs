@@ -3,6 +3,7 @@ using Xunit;
 using System;
 using FluentAssertions;
 using Xunit.Abstractions;
+using MedEasy.Tools.Extensions;
 
 namespace MedEasy.Tools.Tests
 {
@@ -20,7 +21,7 @@ namespace MedEasy.Tools.Tests
         {
             _outputHelper = null;
         }
-        
+
         [Theory]
         [InlineData(null, null)]
         [InlineData("bruce", "Bruce")]
@@ -56,7 +57,38 @@ namespace MedEasy.Tools.Tests
             // Act
             input?.Like(pattern, ignoreCase).Should().Be(expectedResult);
         }
-    } 
+
+        [Fact]
+        public void ToLowerKebabCase_Throws_ArgumentNullException()
+        {
+            Action act = () => StringExtensions.ToLowerKebabCase(null);
+
+
+            act.ShouldThrow<ArgumentNullException>().Which
+                .ParamName.ShouldBeEquivalentTo("input");
+        }
+
+
+
+
+        [Theory]
+        [InlineData("firstname", "firstname")]
+        [InlineData("firstName", "first-name")]
+        [InlineData("FirstName", "first-name")]
+        public void ToLowerKebabCase(string input, string expectedOutput)
+        {
+            _outputHelper.WriteLine($"input : '{input}'");
+            input.ToLowerKebabCase().Should().Be(expectedOutput);
+        }
+
+
+        [Fact]
+        public void Decode()
+        {
+            Guid guid = Guid.NewGuid();
+            guid.Encode().Decode().Should().Be(guid);
+        }
+    }
 
 
 

@@ -44,6 +44,7 @@ using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
+using System.IO;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -170,7 +171,7 @@ namespace MedEasy.WebApi.Tests
                             Enumerable.Empty<Patient>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                             ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
@@ -186,10 +187,10 @@ namespace MedEasy.WebApi.Tests
                         items,
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
                 {
@@ -201,10 +202,10 @@ namespace MedEasy.WebApi.Tests
                         items,
                         10, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
 
@@ -215,10 +216,10 @@ namespace MedEasy.WebApi.Tests
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
                     };
             }
         }
@@ -406,7 +407,7 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation == "first" &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
@@ -439,7 +440,7 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation == "first" &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
@@ -471,13 +472,13 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation == "first" &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.Firstname)}={searchInfo.Firstname}" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.Page)}=1" )  &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.PageSize)}={searchInfo.PageSize}")  
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.PageSize)}={searchInfo.PageSize}")
 
                             )),
                         ((Expression<Func<Link, bool>>)(previous => previous == null)),
@@ -566,7 +567,7 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
-        
+
 
 
         [Theory]
@@ -619,7 +620,7 @@ namespace MedEasy.WebApi.Tests
 
         }
 
-        
+
 
         [Fact]
         public async Task Get()
@@ -654,30 +655,39 @@ namespace MedEasy.WebApi.Tests
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self").And
-                .Contain(x => x.Rel == "main-doctor-id");
+                .Contain(x => x.Relation == "self").And
+                .Contain(x => x.Relation == "delete").And
+                .Contain(x => x.Relation == "main-doctor").And
+                .Contain(x => x.Relation ==  "documents").And
+                .Contain(x => x.Relation == "most-recent-temperatures").And
+                .Contain(x => x.Relation == "most-recent-blood-pressures");
 
-            Link location = links.Single(x => x.Rel == "self");
+            Link location = links.Single(x => x.Relation == "self");
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}=1");
-            location.Rel.Should()
+            location.Relation.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo("self");
 
-           
-            Link linkMainDoctor = links.Single(x => x.Rel == "main-doctor-id");
+
+            Link linkMainDoctor = links.Single(x => x.Relation == nameof(Patient.MainDoctor).ToLowerKebabCase());
             linkMainDoctor.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={expectedResource.MainDoctorId}");
-            
+
+            Link linkDelete = links.Single(x => x.Relation == "delete");
+            linkDelete.Href.Should()
+                .NotBeNullOrWhiteSpace().And
+                .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Delete)}?{nameof(PatientInfo.Id)}={expectedResource.Id}");
+
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
             actualResource.Id.Should().Be(1);
             actualResource.Firstname.Should().Be(expectedResource.Firstname);
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
             actualResource.MainDoctorId.Should().Be(expectedResource.MainDoctorId);
-            
+
             _iHandleGetOnePatientInfoByIdQueryMock.Verify();
             _urlHelperFactoryMock.Verify();
 
@@ -739,9 +749,9 @@ namespace MedEasy.WebApi.Tests
             IEnumerable<Link> links = browsableResource.Links;
             links.Should()
                 .NotBeNullOrEmpty().And
-                .Contain(x => x.Rel == "main-doctor-id");
+                .Contain(x => x.Relation == "main-doctor");
 
-            Link locationMainDoctor = links.Single(x => x.Rel == "main-doctor-id");
+            Link locationMainDoctor = links.Single(x => x.Relation == "main-doctor");
             locationMainDoctor.Href.Should()
                 .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={createdResource.MainDoctorId}");
 
@@ -834,13 +844,13 @@ namespace MedEasy.WebApi.Tests
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self").And
-                .Contain(x => x.Rel == nameof(Prescription.Items));
+                .Contain(x => x.Relation == "self").And
+                .Contain(x => x.Relation == nameof(Prescription.Items));
 
-            Link location = links.Single(x => x.Rel == "self");
+            Link location = links.Single(x => x.Relation == "self");
             location.Href.Should().Be($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Prescriptions)}?id={expectedOutput.PatientId}&prescriptionId={expectedOutput.Id}");
 
-            Link locationItems = links.Single(x => x.Rel == nameof(Prescription.Items));
+            Link locationItems = links.Single(x => x.Relation == nameof(Prescription.Items));
             locationItems.Href.Should().Be($"api/{PrescriptionsController.EndpointName}/{nameof(PrescriptionsController.Details)}?{nameof(resource.Id)}={resource.Id}");
 
             resource.Should().NotBeNull();
@@ -1279,7 +1289,7 @@ namespace MedEasy.WebApi.Tests
 
             linkToItems.Should()
                 .NotBeNull();
-            linkToItems.Rel.Should().BeEquivalentTo(nameof(Prescription.Items));
+            linkToItems.Relation.Should().BeEquivalentTo(nameof(Prescription.Items));
             linkToItems.Method.Should().BeEquivalentTo("get");
             linkToItems.Href.Should().MatchRegex($@"api\/{PrescriptionsController.EndpointName}\/{nameof(PrescriptionsController.Details)}\?[iI]d=\d+");
 
@@ -1346,7 +1356,7 @@ namespace MedEasy.WebApi.Tests
         }
 
 
-       
+
         [Fact]
         public async Task GetTemperatureShouldReturnNotFoundResultWhenServiceReturnsNull()
         {
@@ -1454,7 +1464,7 @@ namespace MedEasy.WebApi.Tests
                     ((Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
                     ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation == "first" &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[0] == $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Documents)}" &&
@@ -1486,29 +1496,29 @@ namespace MedEasy.WebApi.Tests
         /// <returns></returns>
         [Theory]
         [MemberData(nameof(GetAllDocumentsCases))]
-        public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items,int patientId, PaginationConfiguration getQuery,
+        public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items, int patientId, PaginationConfiguration getQuery,
             Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>> pageOfResultExpectation,
             Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
 
-           
+
 
             // Arrange
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
             _iHandleGetDocumentsByPatientIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantDocumentsByPatientIdQuery>()))
-                .Returns((IWantDocumentsByPatientIdQuery  query) => Task.Run(() =>
-                {
-                    Func<DocumentMetadataInfo, bool> filter = x => x.PatientId == query.Data.PatientId;
-                    PaginationConfiguration pageConfiguration = query.Data.PageConfiguration;
-                    IEnumerable<DocumentMetadataInfo> documents = items
-                        .Where(filter)
-                        .Skip(pageConfiguration.PageSize * (pageConfiguration.Page < 1 ? 1 : pageConfiguration.Page))
-                        .Take(pageConfiguration.PageSize);
+                .Returns((IWantDocumentsByPatientIdQuery query) => Task.Run(() =>
+               {
+                   Func<DocumentMetadataInfo, bool> filter = x => x.PatientId == query.Data.PatientId;
+                   PaginationConfiguration pageConfiguration = query.Data.PageConfiguration;
+                   IEnumerable<DocumentMetadataInfo> documents = items
+                       .Where(filter)
+                       .Skip(pageConfiguration.PageSize * (pageConfiguration.Page < 1 ? 1 : pageConfiguration.Page))
+                       .Take(pageConfiguration.PageSize);
 
-                    int total = items.Count(filter);
+                   int total = items.Count(filter);
 
-                    return  (IPagedResult<DocumentMetadataInfo>)new PagedResult<DocumentMetadataInfo>(items, total, pageConfiguration.PageSize);
-                }));
+                   return (IPagedResult<DocumentMetadataInfo>)new PagedResult<DocumentMetadataInfo>(items, total, pageConfiguration.PageSize);
+               }));
 
             // Act
             IActionResult actionResult = await _controller.Documents(patientId, getQuery.Page, getQuery.PageSize);
@@ -1544,6 +1554,21 @@ namespace MedEasy.WebApi.Tests
         public async Task PostDocument()
         {
             // Arrange
+            Mock<IFormFile> fileMock = new Mock<IFormFile>();
+            //Setup mock file using a memory stream
+            string content = "Hello World from a Fake File";
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            writer.Write(content);
+            writer.Flush();
+            ms.Position = 0;
+            fileMock.Setup(mock => mock.OpenReadStream()).Returns(ms);
+            fileMock.SetupGet(mock => mock.FileName).Returns(@"C:\Users\Batman\dummy-file.txt");
+            fileMock.SetupGet(mock => mock.Name).Returns(@"Dummy file");
+            fileMock.SetupGet(mock => mock.Length).Returns(ms.Length);
+
+
+
             _iRunCreateDocumentForPatientCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<ICreateDocumentForPatientCommand>()))
                 .Returns((ICreateDocumentForPatientCommand cmd) => Task.Run(() =>
                 {
@@ -1561,13 +1586,9 @@ namespace MedEasy.WebApi.Tests
                 }));
 
             // Act
-            CreateDocumentInfo documentInfo = new CreateDocumentInfo
-            {
-                Title = "Medical certificate",
-                Content = new byte[] { 1, 2, 3, 4, 5 },
-                MimeType = "application/.pdf"
-            };
-            IActionResult actionResult = await _controller.Documents(1, documentInfo);
+            IFormFile file = fileMock.Object;
+            
+            IActionResult actionResult = await _controller.Documents(1, file);
 
 
             // Assert
@@ -1590,8 +1611,8 @@ namespace MedEasy.WebApi.Tests
 
             links?.Should()
                 .NotBeNullOrEmpty().And
-                .Contain(x => x.Rel == "direct-link", "link to get the document should be provided").And
-                .Contain(x => x.Rel == "file", "link to download the file must be provided");
+                .Contain(x => x.Relation == "direct-link", "link to get the document should be provided").And
+                .Contain(x => x.Relation == "file", "link to download the file must be provided");
 
             DocumentMetadataInfo resource = browsableResource.Resource;
 
@@ -1600,7 +1621,7 @@ namespace MedEasy.WebApi.Tests
 
             resource.DocumentId.Should().Be(15);
             resource.PatientId.Should().Be(1);
-            resource.Title.Should().Be(documentInfo.Title);
+            resource.Title.Should().Be(file.Name);
 
             _iRunCreateDocumentForPatientCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
 
@@ -1627,7 +1648,7 @@ namespace MedEasy.WebApi.Tests
                         Title = "Document 1",
                         PatientId = query.Data.PatientId
                     };
-                    
+
                     return documentMetadataInfo;
                 }));
 
@@ -1654,15 +1675,27 @@ namespace MedEasy.WebApi.Tests
             actualResource.MimeType.Should().Be("application/pdf");
             actualResource.Size.Should().Be(500);
 
-            
+
             IEnumerable<Link> links = browsableResource.Links;
 
-            links?.Should()
+            links.Should()
                 .NotBeNullOrEmpty().And
-                .Contain(x => x.Rel == "direct-link", "link to get the document should be provided").And
-                .Contain(x => x.Rel == "file", "link to download the file must be provided");
+                .Contain(x => x.Relation == "direct-link", "link to get the document should be provided").And
+                .Contain(x => x.Relation == "file", "link to download the file must be provided");
 
-            
+            Link directLink = links.Single(x => x.Relation == "direct-link");
+            directLink.Method.Should().BeNullOrEmpty();
+            directLink.Template.Should().NotHaveValue();
+            directLink.Href.Should()
+                .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?{nameof(DocumentMetadataInfo.Id)}={documentMetadataId}");
+
+            Link fileLink = links.Single(x => x.Relation == "file");
+            fileLink.Method.Should().BeNullOrEmpty();
+            fileLink.Template.Should().NotHaveValue();
+            fileLink.Href.Should()
+                .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.File)}?{nameof(DocumentInfo.Id)}={documentMetadataId}");
+
+
             _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Verify(mock => mock.HandleAsync(It.IsAny<IWantOneDocumentByPatientIdAndDocumentIdQuery>()), Times.Once);
         }
 
@@ -1685,9 +1718,9 @@ namespace MedEasy.WebApi.Tests
 
 
             // Assert
-           actionResult.Should()
-                .NotBeNull().And
-                .BeOfType<NotFoundResult>();
+            actionResult.Should()
+                 .NotBeNull().And
+                 .BeOfType<NotFoundResult>();
 
             _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock.Verify(mock => mock.HandleAsync(It.IsAny<IWantOneDocumentByPatientIdAndDocumentIdQuery>()), Times.Once);
         }

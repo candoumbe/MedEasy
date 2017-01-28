@@ -10,13 +10,16 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.Mapping;
 using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
-using MedEasy.API.StartupRegistration;                                                                                                                                                
+using MedEasy.API.StartupRegistration;
 using MedEasy.API.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
 using MedEasy.Data.Converters;
 using MedEasy.Handlers;
 using MedEasy.Handlers.Core.Search.Queries;
+using Microsoft.AspNetCore.ResponseCompression;
+using MedEasy.API.Swagger;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace MedEasy.API
 {
@@ -65,15 +68,17 @@ namespace MedEasy.API
             services.AddPatientsControllerDependencies();
             services.AddSpecialtiesControllerDependencies();
             services.AddDoctorsControllerDependencies();
+            services.AddDocumentsControllerDependencies();
 
             services.AddLogging();
 
-            services.AddRouting();
+            services.AddRouting(opt => opt.LowercaseUrls = true);
 
             services.AddResponseCaching();
             services.AddResponseCompression(options =>
             {
                 options.EnableForHttps = true;
+                options.Providers.Add<GzipCompressionProvider>();
             });
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -106,29 +111,27 @@ namespace MedEasy.API
                 ApplicationEnvironment app = PlatformServices.Default.Application;
                 services.AddSwaggerGen(config =>
                 {
-                    
-                    //config.SingleApiVersion(new Info
-                    //{
-                    //    Title = app.ApplicationName,
-                    //    Description = "REST API for MedEasy",
-                    //    Contact = new Contact
-                    //    {
-                    //        Email = Configuration.GetValue<string>("Swagger:Contact:Email"),
-                    //        Name = Configuration.GetValue<string>("Swagger:Contact:Name"),
-                    //        Url = Configuration.GetValue<string>("Swagger:Contact:Url"),
-                    //    }
-                    //});
+                    config.SwaggerDoc("v1", new Info
+                    {
+                        Title = app.ApplicationName,
+                        Description = "REST API for MedEasy",
+                        Version = "v1",
+                        Contact = new Contact
+                        {
+                            Email = Configuration.GetValue<string>("Swagger:Contact:Email"),
+                            Name = Configuration.GetValue<string>("Swagger:Contact:Name"),
+                            Url = Configuration.GetValue<string>("Swagger:Contact:Url")
+                        }
+                    });
 
                     config.IgnoreObsoleteActions();
                     config.IgnoreObsoleteProperties();
                     config.IncludeXmlComments(Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml"));
                     config.DescribeStringEnumsInCamelCase();
                     config.DescribeAllEnumsAsStrings();
+                    config.OperationFilter<FileUploadOperationFilter>();
                 });
             }
-
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -137,8 +140,8 @@ namespace MedEasy.API
             LoggerFactory.AddConsole(Configuration.GetSection("Logging"));
             LoggerFactory.AddDebug();
 
-            app.UseResponseCompression();
             app.UseResponseCaching();
+            app.UseResponseCompression();
 
 
             if (env.IsDevelopment())
@@ -147,15 +150,14 @@ namespace MedEasy.API
                 app.UseBrowserLink();
             }
 
+            app.UseSwagger();
+            app.UseSwaggerUi(opt =>
+            {
+                opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+            });
             
             app.UseMvc();
             
-            if (env.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUi();
-            }
-
             app.UseWelcomePage();
 
 

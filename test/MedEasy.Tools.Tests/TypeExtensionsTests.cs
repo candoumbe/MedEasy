@@ -2,6 +2,7 @@
 using FluentAssertions;
 using System.Collections.Generic;
 using System;
+using System.Linq.Expressions;
 
 namespace MedEasy.Tools.Tests
 {
@@ -37,6 +38,7 @@ namespace MedEasy.Tools.Tests
         {
            typeof(Bar).IsAssignableToGenericType(typeof(IFoo<>)).Should().BeTrue();
         }
+
 
         public interface IFoo<T> { }
         public class Foo<T> : IFoo<T> { }

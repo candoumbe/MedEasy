@@ -174,9 +174,10 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">Specialty to lookup doctors for</param>
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
-        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <response code="404">Specialty not found</response>
         [HttpGet("{id:int}/Doctors")]
-        [Produces(typeof(IEnumerable<DoctorInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
         public async Task<IActionResult> Doctors(int id, [FromQuery] PaginationConfiguration query)
         {
             if (query == null)

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MedEasy.RestObjects
 {
@@ -12,18 +10,20 @@ namespace MedEasy.RestObjects
     public sealed class Link
     {
         /// <summary>
-        /// Url of the resource
+        /// Url of the resource the current <see cref="Link"/> points to.
         /// </summary>
         public string Href { get; set; }
 
         /// <summary>
-        /// Relation of the link with the resource
+        /// Relation of the resource that <see cref="Link"/> points to with the current resource
         /// </summary>
-        public string Rel { get; set; }
+        public string Relation { get; set; }
 
         /// <summary>
-        /// Http method needed to call <see cref="Href"/>
+        /// Http method to used in conjunction with <see cref="Href"/>.
         /// </summary>
+        /// <remarks>
+        /// </remarks>
         public string Method { get; set; }
 
         /// <summary>
@@ -33,5 +33,17 @@ namespace MedEasy.RestObjects
         /// Should be a friendly name suitable to used in a HTML a tag.
         /// </remarks>
         public string Title { get; set; }
+
+        /// <summary>
+        /// Indicates if the current <see cref="Href"/> is a template url
+        /// </summary>
+        /// <remarks>
+        /// A template url is a url with generic placeholder.
+        /// 
+        /// <code>api/patients/{id?}</code> is a template url as it contiains one placeholder
+        /// 
+        /// </remarks>
+        public bool? Template { get; set; }
+
     }
 }

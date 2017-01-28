@@ -119,7 +119,7 @@ namespace MedEasy.API.Controllers
                 {
                     new Link
                     {
-                        Rel = "self",
+                        Relation = "self",
                         Href = urlHelper.Action(nameof(Get), ControllerName,  new { id = resource.Id })
                     }
                 };
@@ -130,7 +130,7 @@ namespace MedEasy.API.Controllers
                 actionResult = new OkObjectResult(new BrowsableResource<TResource>
                 {
                     Resource = resource,
-                    Links = links.Union(additionalLinks)
+                    Links = links.Concat(additionalLinks)
                 });
             }
             return actionResult;

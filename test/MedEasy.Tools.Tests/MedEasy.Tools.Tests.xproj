@@ -21,7 +21,7 @@
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.targets" Condition="'$(VSToolsPath)' != ''" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties xunit_1json__JSONSchema="http://json.schemastore.org/jsonld" />
+      <UserProperties />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -38,7 +38,7 @@
       "type": "platform"
     },
     "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
-    "Swashbuckle": "6.0.0-beta902",
+    "Swashbuckle.AspNetCore": "1.0.0-rc1",
     "System.ComponentModel": "4.3.0",
     "System.ComponentModel.Annotations": "4.3.0",
     "System.Diagnostics.Debug": "4.3.0",
@@ -46,7 +46,8 @@
     "System.Reflection.TypeExtensions": "4.3.0",
     "System.Runtime": "4.3.0",
     "System.Text.RegularExpressions": "4.3.0",
-    "System.Threading.Tasks": "4.3.0"
+    "System.Threading.Tasks": "4.3.0",
+    "System.IO": "4.3.0"
   },
 
   "tools": {

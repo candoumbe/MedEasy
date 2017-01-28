@@ -34,7 +34,7 @@ namespace MedEasy.API.Tests.Controllers
         private Mock<ILogger<DocumentsController>> _logger;
         private Mock<IHandleGetOneDocumentMetadataInfoByIdQuery> _iHandleGetOneDocumentMetadataInfoByIdQueryMock;
         private Mock<IHandleGetManyDocumentsQuery> _iHandleGetManyDocumentMetadataInfoQueryMock;
-        private Mock<IHandleQueryAsync<Guid, int, DocumentInfo, IWantOneResource<Guid, int, DocumentInfo>>> _iHandleGetOneDocumentInfoByIdQueryMock;
+        private Mock<IHandleGetOneDocumentInfoByIdQuery> _iHandleGetOneDocumentInfoByIdQueryMock;
         private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
         private ActionContextAccessor _actionContextAccessor;
 
@@ -58,9 +58,9 @@ namespace MedEasy.API.Tests.Controllers
             };
 
 
-            _iHandleGetOneDocumentMetadataInfoByIdQueryMock = new Mock<IHandleGetOneDocumentMetadataInfoByIdQuery>();
-            _iHandleGetManyDocumentMetadataInfoQueryMock = new Mock<IHandleGetManyDocumentsQuery>();
-            _iHandleGetOneDocumentInfoByIdQueryMock = new Mock<IHandleQueryAsync<Guid, int, DocumentInfo, IWantOneResource<Guid, int, DocumentInfo>>>();
+            _iHandleGetOneDocumentMetadataInfoByIdQueryMock = new Mock<IHandleGetOneDocumentMetadataInfoByIdQuery>(Strict);
+            _iHandleGetManyDocumentMetadataInfoQueryMock = new Mock<IHandleGetManyDocumentsQuery>(Strict);
+            _iHandleGetOneDocumentInfoByIdQueryMock = new Mock<IHandleGetOneDocumentInfoByIdQuery>(Strict);
 
 
             _controller = new DocumentsController(
@@ -110,7 +110,7 @@ namespace MedEasy.API.Tests.Controllers
                             Enumerable.Empty<DocumentMetadataInfo>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                             ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
@@ -126,10 +126,10 @@ namespace MedEasy.API.Tests.Controllers
                         items,
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
                 {
@@ -141,10 +141,10 @@ namespace MedEasy.API.Tests.Controllers
                         items,
                         10, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
 
@@ -155,10 +155,10 @@ namespace MedEasy.API.Tests.Controllers
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
                     };
             }
         }
@@ -260,14 +260,14 @@ namespace MedEasy.API.Tests.Controllers
             links.Should()
                 .NotBeNullOrEmpty().And
                 .HaveCount(2).And
-                .Contain(x => x.Rel == "file").And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Relation == "file").And
+                .Contain(x => x.Relation == "self");
 
-            Link self = links.Single(x => x.Rel == "self");
+            Link self = links.Single(x => x.Relation == "self");
             self.Href.Should()
                 .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?{nameof(DocumentMetadataInfo.Id)}={expectedResource.Id}");
 
-            Link file = links.Single(x => x.Rel == "file");
+            Link file = links.Single(x => x.Relation == "file");
             file.Href.Should()
                 .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.File)}?{nameof(DocumentMetadataInfo.Id)}={expectedResource.Id}");
 
@@ -309,16 +309,16 @@ namespace MedEasy.API.Tests.Controllers
             links.Should()
                 .NotBeNullOrEmpty().And
                 .HaveCount(2).And
-                .Contain(x => x.Rel == "metadata").And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Relation == "metadata").And
+                .Contain(x => x.Relation == "self");
 
 
-            Link self = links.Single(x => x.Rel == "self");
+            Link self = links.Single(x => x.Relation == "self");
             self.Href.Should()
                 .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.File)}?{nameof(DocumentInfo.Id)}={expectedResource.Id}");
 
 
-            Link metadata = links.Single(x => x.Rel == "metadata");
+            Link metadata = links.Single(x => x.Relation == "metadata");
             metadata.Href.Should()
                 .BeEquivalentTo($"api/{DocumentsController.EndpointName}/{nameof(DocumentsController.Get)}?{nameof(DocumentMetadataInfo.Id)}={expectedResource.Id}");
         }

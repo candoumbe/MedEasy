@@ -1,5 +1,4 @@
 ﻿using MedEasy.DTO;
-using MedEasy.Objects;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using MedEasy.Queries.Document;
-using MedEasy.Handlers.Document.Queries;
 using MedEasy.Handlers.Core.Document.Queries;
 
 namespace MedEasy.API.Controllers
@@ -34,10 +32,11 @@ namespace MedEasy.API.Controllers
         /// <param name="urlHelperFactory"></param>
         /// <param name="actionContextAccessor"></param>
         public DocumentsController(
-            ILogger logger, IOptions<MedEasyApiOptions> apiOptions,
+            ILogger<DocumentsController> logger, IOptions<MedEasyApiOptions> apiOptions,
             IHandleGetOneDocumentMetadataInfoByIdQuery getByIdHandler,
             IHandleGetManyDocumentsQuery getManyQueryHandler,
-            IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IHandleQueryAsync<Guid, int, DocumentInfo, IWantOneResource<Guid, int, DocumentInfo>> getContentByIdHandler
+            IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, 
+            IHandleGetOneDocumentInfoByIdQuery getContentByIdHandler
              ) : base(logger, apiOptions, getByIdHandler, getManyQueryHandler, urlHelperFactory, actionContextAccessor)
         {
             GetDocumentContentByIdHandler = getContentByIdHandler;
@@ -61,7 +60,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
-        public async Task<IActionResult> Get(int page, int pageSize)
+        public async Task<IActionResult> Get([FromQuery]int page, [FromQuery]int pageSize)
         {
             PaginationConfiguration pageConfig = new PaginationConfiguration
             {
@@ -109,7 +108,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if no document metadata found.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
-        public override async Task<IActionResult> Get(int id)
+        public override async Task<IActionResult> Get([FromQuery]int id)
         {
             DocumentMetadataInfo resource = await GetByIdQueryHandler.HandleAsync(new WantOneDocumentMetadataInfoByIdQuery(id));
             IActionResult actionResult;
@@ -153,8 +152,8 @@ namespace MedEasy.API.Controllers
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link { Rel = "self", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id }) },
-                        new Link { Rel = "metadata", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id }) }
+                        new Link { Relation = "self", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id }) },
+                        new Link { Relation = "metadata", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id }) }
                     }
                 };
                 actionResult = new OkObjectResult(browsableResource);
@@ -176,8 +175,8 @@ namespace MedEasy.API.Controllers
         protected override IEnumerable<Link> BuildAdditionalLinksForResource(DocumentMetadataInfo resource, IUrlHelper urlHelper) 
             => new[]
             {
-                new Link { Rel = "self", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id })},
-                new Link { Rel = "file", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id })}
+                new Link { Relation = "self", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id })},
+                new Link { Relation = "file", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id })}
             };
     }
 }

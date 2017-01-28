@@ -136,7 +136,7 @@ namespace MedEasy.WebApi.Tests
                             Enumerable.Empty<Doctor>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, PaginationConfiguration.MaxPageSize))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("first") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, PaginationConfiguration.MaxPageSize))}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                             ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                             ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
@@ -152,10 +152,10 @@ namespace MedEasy.WebApi.Tests
                         items,
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("first") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("next") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("last") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=14".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
                 {
@@ -167,10 +167,10 @@ namespace MedEasy.WebApi.Tests
                         items,
                         10, 1, // request
                         400,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("first") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "next" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("next") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=2".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("last") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize=10&page=40".Equals(x.Href, OrdinalIgnoreCase))),  // expected link to last page
                     };
                 }
 
@@ -179,15 +179,15 @@ namespace MedEasy.WebApi.Tests
                         A.ListOf<Doctor>(1),
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "first" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("first") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Rel == "last" && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
+                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains("last") && $"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
                     };
             }
         }
 
-
+        
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
         public async Task GetAll(IEnumerable<Doctor> items, int pageSize, int page,
@@ -301,16 +301,15 @@ namespace MedEasy.WebApi.Tests
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Rel == "self");
+                .Contain(x => x.Relation.Contains("self"));
 
-            Link location = links.Single(x => x.Rel == "self");
+            Link location = links.Single(x => x.Relation.Contains("self"));
 
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}=1");
-            location.Rel.Should()
-                .NotBeNullOrWhiteSpace()
-                .And.BeEquivalentTo("self");
+            location.Relation?.Should()
+                .BeEquivalentTo("self");
 
             DoctorInfo resource = result.Resource;
             resource.Should().NotBeNull();
@@ -472,7 +471,7 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation.Contains("first") &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
@@ -505,7 +504,7 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation.Contains("first") &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
@@ -537,7 +536,7 @@ namespace MedEasy.WebApi.Tests
                         searchInfo,
                         ((Expression<Func<Link, bool>>)(first =>
                             first != null &&
-                            first.Rel == "first" &&
+                            first.Relation.Contains("first") &&
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&

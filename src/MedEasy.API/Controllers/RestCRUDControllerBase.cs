@@ -91,7 +91,7 @@ namespace MedEasy.API.Controllers
                     new Link
                     {
                         Href = urlHelper.Action(nameof(Get), new { id = resource.Id }),
-                        Rel = "self",
+                        Relation = "self",
                     }
                 }
             };
