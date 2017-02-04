@@ -175,8 +175,28 @@ namespace MedEasy.Tools.Tests
                     ))
 
                 };
+
+                {
+                    DateTimeOffset? from = null;
+                    DateTimeOffset? to = 1.February(2001);
+
+                    yield return new object[]
+                    {
+                        new
+                        {
+                            from,
+                            to
+                        },
+                        ((Expression<Func<IDictionary<string, object>, bool>>)(x =>
+                            x != null
+                            && x.Keys.Count == 1
+                            && x.ContainsKey("to") && Equals(x["to"], to)
+                        ))
+                    };
+                }
             }
         }
+        
 
         [Theory]
         [MemberData(nameof(ParseAnonymousObjectCases))]

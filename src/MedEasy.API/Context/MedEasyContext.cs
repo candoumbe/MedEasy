@@ -72,6 +72,11 @@ namespace MedEasy.API.Stores
         public DbSet<Document> Documents { get; set; }
 
         /// <summary>
+        /// Gives access to <see cref="Appointment"/> collection.
+        /// </summary>
+        public DbSet<Appointment> Appointments { get; set; }
+
+        /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options
         /// </summary>
         public MedEasyContext()
@@ -108,7 +113,7 @@ namespace MedEasy.API.Stores
             {
                 entity.Relational().TableName = entity.DisplayName();
                 
-                if (entity.ClrType is IAuditableEntity)
+                if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
 
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
@@ -118,12 +123,24 @@ namespace MedEasy.API.Stores
 
                     modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
                         .HasMaxLength(NormalTextLength);
+
+                    modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset?), nameof(IAuditableEntity.UpdatedDate))
+                        .ValueGeneratedOnAddOrUpdate()
+                        .IsConcurrencyToken();
+                }
+
+                if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
+                {
+                    modelBuilder.Entity(entity.Name).Property(typeof(Guid), nameof(IEntity<int>.UUID))
+                        .ValueGeneratedOnAdd();
+                    modelBuilder.Entity(entity.Name)
+                        .HasIndex(nameof(IEntity<int>.UUID))
+                        .IsUnique();
                 }
 
             }
 
             
-            #region Patient
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.Property(item => item.Id)
@@ -147,21 +164,10 @@ namespace MedEasy.API.Stores
                 
                 entity.HasIndex(item => item.Lastname);
                 entity.HasIndex(item => item.BirthDate);
-
-
-
-
-                entity.Property(item => item.UpdatedDate)
-                    .IsConcurrencyToken();
-
-
+                
 
 
             });
-
-            #endregion
-
-            #region Doctor
 
             modelBuilder.Entity<Doctor>(entity =>
             {
@@ -180,13 +186,8 @@ namespace MedEasy.API.Stores
 
                 entity.HasIndex(item => item.Lastname);
 
-                entity.Property(item => item.UpdatedDate)
-                    .IsConcurrencyToken();
             });
-
-            #endregion
-
-            #region Specialty
+            
             modelBuilder.Entity<Specialty>(entity =>
             {
                 entity.HasKey(item => item.Id);
@@ -199,16 +200,10 @@ namespace MedEasy.API.Stores
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();
 
-                entity.Property(item => item.UpdatedDate)
-                    .IsConcurrencyToken();
             });
-
-            #endregion
-
+            
             modelBuilder.Entity<Document>(entity => {
                 entity.HasKey(item => item.DocumentMetadataId);
-
-                
 
                 entity.Property(item => item.Content)
                     .IsRequired();
@@ -218,8 +213,7 @@ namespace MedEasy.API.Stores
                     .HasForeignKey<Document>(item => item.DocumentMetadataId);
 
             });
-
-
+            
             modelBuilder.Entity<DocumentMetadata>(entity => {
                 entity.HasKey(item =>  item.Id);
 
@@ -247,6 +241,21 @@ namespace MedEasy.API.Stores
 
             });
 
+
+            modelBuilder.Entity<Appointment>(entity =>
+            {
+                entity.Property(x => x.DoctorId)
+                    .IsRequired();
+
+                entity.HasOne(x => x.Doctor);
+
+                entity.Property(x => x.PatientId)
+                    .IsRequired();
+                entity.HasOne(x => x.Patient);
+
+
+
+            });
 
         }
 

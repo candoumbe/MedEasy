@@ -69,6 +69,7 @@ namespace MedEasy.API
             services.AddSpecialtiesControllerDependencies();
             services.AddDoctorsControllerDependencies();
             services.AddDocumentsControllerDependencies();
+            services.AddAppointmentsControllerDependencies();
 
             services.AddLogging();
 
@@ -99,11 +100,11 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
-            }).AddJsonOptions(options => {
+            }).AddJsonOptions(options =>
+            {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.Converters.Add(new DataFilterConverter());
-                options.SerializerSettings.Converters.Add(new DataCompositeFilterConverter());
-                options.SerializerSettings.Converters.Add(new DataFilterOperatorConverter());
+                options.SerializerSettings.DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat;
+                options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
             });
 
             if (HostingEnvironment.IsDevelopment())
@@ -140,24 +141,26 @@ namespace MedEasy.API
             LoggerFactory.AddConsole(Configuration.GetSection("Logging"));
             LoggerFactory.AddDebug();
 
-            app.UseResponseCaching();
-            app.UseResponseCompression();
-
-
-            if (env.IsDevelopment())
+            if (!env.IsDevelopment())
             {
+                app.UseResponseCaching();
+                app.UseResponseCompression();
+            }
+            else
+            { 
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
+
 
             app.UseSwagger();
             app.UseSwaggerUi(opt =>
             {
                 opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
             });
-            
+
             app.UseMvc();
-            
+
             app.UseWelcomePage();
 
 

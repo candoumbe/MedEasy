@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace MedEasy.DTO
 {
+    /// <summary>
+    /// Base class
+    /// </summary>
+    /// <typeparam name="T">Type of the searched resources.</typeparam>
     public abstract class AbstractSearchInfo<T> : IValidatableObject
     {
 
@@ -55,8 +59,7 @@ namespace MedEasy.DTO
 #if !NETSTANDARD1_0
                         .AsParallel()
 #endif
-                        .Select(x => x.Name)
-                        .ToArray();
+                        .Select(x => x.Name);
 
                     IEnumerable<string> unknowProperties = sorts.Except(properties)
 #if !NETSTANDARD1_0
@@ -68,7 +71,7 @@ namespace MedEasy.DTO
                     {
                         string unknownPropertiesErrorMsg = unknowProperties.Once()
                             ? $"Unknown {unknowProperties.Single()} property."
-                            : $"Unknown {string.Join(", ", unknowProperties)} properties.";
+                            : $"Unknown {string.Join(", ", unknowProperties.OrderBy(x => x))} properties.";
 
                         yield return new ValidationResult(unknownPropertiesErrorMsg, new[] { nameof(Sort) });
 

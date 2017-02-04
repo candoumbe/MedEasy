@@ -282,7 +282,7 @@ namespace MedEasy.Services.Tests
         [InlineData(-1, -1)]
         [InlineData(0, -1)]
         [InlineData(0, -1)]
-        public async Task ShouldThrowArgumentOutOfRangeException(int patientId, int prescriptionId)
+        public void ShouldThrowArgumentOutOfRangeException(int patientId, int prescriptionId)
         {
             // Act
             Func<Task> action = async () =>  await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);

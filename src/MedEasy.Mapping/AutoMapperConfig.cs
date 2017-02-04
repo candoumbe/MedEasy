@@ -32,6 +32,9 @@ namespace MedEasy.Mapping
             cfg.CreateMap<Prescription, PrescriptionInfo>().ReverseMap();
             cfg.CreateMap<PrescriptionItem, PrescriptionItemInfo>().ReverseMap();
 
+
+            cfg.CreateMap<Appointment, AppointmentInfo>().ReverseMap();
+
             #region Autocomplete
 
             cfg.CreateMap<Doctor, DoctorAutocompleteInfo>()

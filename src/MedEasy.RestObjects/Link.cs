@@ -7,6 +7,9 @@ namespace MedEasy.RestObjects
     /// <summary>
     /// Link representation
     /// </summary>
+    /// <remarks>
+    ///     Follows ION spec (see http://ionwg.org/draft-ion.html#links for more details)
+    /// </remarks>
     public sealed class Link
     {
         /// <summary>

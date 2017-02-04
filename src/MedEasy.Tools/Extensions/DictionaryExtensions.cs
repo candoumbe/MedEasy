@@ -9,7 +9,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// List of all types that can be directly converted to their string representation
         /// </summary>
-        private static IEnumerable<Type> PrimitiveTypes = new[]
+        internal static IEnumerable<Type> PrimitiveTypes = new[]
         {
             typeof(string),
             typeof(int), typeof(int?),

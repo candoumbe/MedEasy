@@ -40,7 +40,9 @@ namespace MedEasy.Objects
         /// </summary>
         public string Fullname => $"{Firstname}{(!string.IsNullOrWhiteSpace(Firstname) && !string.IsNullOrWhiteSpace(Lastname)? " ": string.Empty)}{Lastname}";
 
-        
+        /// <summary>
+        /// BirthDate
+        /// </summary>
         public DateTimeOffset? BirthDate { get; set; } = null;
 
         public string BirthPlace { get; set; } = string.Empty;
@@ -59,12 +61,17 @@ namespace MedEasy.Objects
         /// <summary>
         /// <see cref="BloodPressure"/>s measure taken for this patient
         /// </summary>
-        public ICollection<BloodPressure> BloodPressures { get; set; }
+        public IEnumerable<BloodPressure> BloodPressures { get; set; }
 
         /// <summary>
-        /// <see cref="PatientDocument"/>
+        /// <see cref="DocumentMetadata"/>
         /// </summary>
-        public ICollection<DocumentMetadata> Documents { get; set; }
+        public IEnumerable<DocumentMetadata> Documents { get; set; }
+
+        /// <summary>
+        /// <see cref="Patient"/>'s <see cref="Appointment"/>s
+        /// </summary>
+        public IEnumerable<Appointment> Appointments { get; set; }
 
         /// <summary>
         /// Builds a new <see cref="Patient"/> instance.

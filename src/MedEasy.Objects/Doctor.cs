@@ -38,6 +38,8 @@ namespace MedEasy.Objects
 
         public Specialty Specialty { get; set; }
 
-        public ICollection<Patient> Patients { get; set; }
+        public IEnumerable<Patient> Patients { get; set; }
+
+        public IEnumerable<Appointment> Appointments { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace MedEasy.API.Filters
 
         private static Func<Link, string> BuildLinkHeader => location => location == null
             ? string.Empty
-            : $@"<{location.Href}>;{(string.IsNullOrWhiteSpace(location.Relation) ? string.Empty : $@" rel=""{location.Relation}""")}";
+            : $@"<{location.Href.ToLower()}>;{(string.IsNullOrWhiteSpace(location.Relation) ? string.Empty : $@" rel=""{location.Relation.ToLowerKebabCase()}""")}";
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
@@ -47,7 +47,11 @@ namespace MedEasy.API.Filters
                     StringBuilder sbLinks = new StringBuilder();
                     foreach (Link link in links)
                     {
-                        sbLinks.Append($"{(sbLinks.Length > 0 ? ", " : string.Empty)}{BuildLinkHeader(link)}");
+                        if (sbLinks.Length > 0)
+                        {
+                            sbLinks.Append(",");
+                        }
+                        sbLinks.Append(BuildLinkHeader(link));
                     }
                     context.HttpContext.Response.Headers.Add("Link", sbLinks.ToString());
                     ((ObjectResult)result).Value = resource;

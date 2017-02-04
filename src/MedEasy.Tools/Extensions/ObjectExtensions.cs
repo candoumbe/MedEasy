@@ -82,7 +82,7 @@ namespace System
                             TypeInfo valueTypeInfo = valueType.GetTypeInfo();
 
 
-                            if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string)))
+                            if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string) || DictionaryExtensions.PrimitiveTypes.Contains(valueType)))
                             {
                                 value = ParseAnonymousObject(value);
                             }

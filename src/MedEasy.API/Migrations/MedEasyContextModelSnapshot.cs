@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using MedEasy.API.Stores;
 
 namespace MedEasy.API.Migrations
@@ -15,12 +16,53 @@ namespace MedEasy.API.Migrations
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("MedEasy.Objects.Appointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("CreatedDate");
+
+                    b.Property<int>("DoctorId");
+
+                    b.Property<double>("Duration");
+
+                    b.Property<int>("PatientId");
+
+                    b.Property<DateTimeOffset>("StartDate");
+
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
+
+                    b.ToTable("Appointment");
+                });
+
             modelBuilder.Entity("MedEasy.Objects.BloodPressure", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -32,13 +74,22 @@ namespace MedEasy.API.Migrations
 
                     b.Property<float>("SystolicPressure");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
                     b.HasIndex("PatientId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("BloodPressure");
                 });
@@ -48,7 +99,8 @@ namespace MedEasy.API.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -56,15 +108,24 @@ namespace MedEasy.API.Migrations
 
                     b.Property<int>("PatientId");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<decimal>("Value");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PatientId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("BodyWeight");
                 });
@@ -75,7 +136,8 @@ namespace MedEasy.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -91,16 +153,24 @@ namespace MedEasy.API.Migrations
 
                     b.Property<int?>("SpecialtyId");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("UpdatedDate")
-                        .IsConcurrencyToken();
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
                     b.HasIndex("Lastname");
 
                     b.HasIndex("SpecialtyId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("Doctor");
                 });
@@ -112,13 +182,17 @@ namespace MedEasy.API.Migrations
                     b.Property<byte[]>("Content")
                         .IsRequired();
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("DocumentMetadataId");
 
@@ -131,7 +205,8 @@ namespace MedEasy.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -149,9 +224,15 @@ namespace MedEasy.API.Migrations
                         .IsRequired()
                         .HasAnnotation("MaxLength", 256);
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
@@ -160,6 +241,9 @@ namespace MedEasy.API.Migrations
                     b.HasIndex("PatientId");
 
                     b.HasIndex("Title");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("DocumentMetadata");
                 });
@@ -174,7 +258,8 @@ namespace MedEasy.API.Migrations
 
                     b.Property<string>("BirthPlace");
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -195,10 +280,15 @@ namespace MedEasy.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValue("");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("UpdatedDate")
-                        .IsConcurrencyToken();
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
@@ -208,6 +298,9 @@ namespace MedEasy.API.Migrations
 
                     b.HasIndex("MainDoctorId");
 
+                    b.HasIndex("UUID")
+                        .IsUnique();
+
                     b.ToTable("Patient");
                 });
 
@@ -216,7 +309,8 @@ namespace MedEasy.API.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -226,15 +320,24 @@ namespace MedEasy.API.Migrations
 
                     b.Property<int>("PrescriptorId");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
                     b.HasIndex("PatientId");
 
                     b.HasIndex("PrescriptorId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("Prescription");
                 });
@@ -248,7 +351,8 @@ namespace MedEasy.API.Migrations
 
                     b.Property<string>("Code");
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -260,13 +364,22 @@ namespace MedEasy.API.Migrations
 
                     b.Property<decimal>("Quantity");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
                     b.HasIndex("PrescriptionId");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("PrescriptionItem");
                 });
@@ -277,7 +390,8 @@ namespace MedEasy.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -285,12 +399,20 @@ namespace MedEasy.API.Migrations
                         .IsRequired()
                         .HasAnnotation("MaxLength", 256);
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("UpdatedDate")
-                        .IsConcurrencyToken();
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UUID")
+                        .IsUnique();
 
                     b.ToTable("Specialty");
                 });
@@ -300,7 +422,8 @@ namespace MedEasy.API.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CreatedBy");
+                    b.Property<string>("CreatedBy")
+                        .HasAnnotation("MaxLength", 256);
 
                     b.Property<DateTimeOffset?>("CreatedDate");
 
@@ -308,9 +431,15 @@ namespace MedEasy.API.Migrations
 
                     b.Property<int>("PatientId");
 
-                    b.Property<string>("UpdatedBy");
+                    b.Property<Guid>("UUID")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTimeOffset?>("UpdatedDate");
+                    b.Property<string>("UpdatedBy")
+                        .HasAnnotation("MaxLength", 256);
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<float>("Value");
 
@@ -318,7 +447,23 @@ namespace MedEasy.API.Migrations
 
                     b.HasIndex("PatientId");
 
+                    b.HasIndex("UUID")
+                        .IsUnique();
+
                     b.ToTable("Temperature");
+                });
+
+            modelBuilder.Entity("MedEasy.Objects.Appointment", b =>
+                {
+                    b.HasOne("MedEasy.Objects.Doctor", "Doctor")
+                        .WithMany("Appointments")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MedEasy.Objects.Patient", "Patient")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("MedEasy.Objects.BloodPressure", b =>

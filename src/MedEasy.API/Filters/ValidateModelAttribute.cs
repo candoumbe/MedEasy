@@ -7,7 +7,7 @@ using static Newtonsoft.Json.JsonConvert;
 namespace MedEasy.API.Filters
 {
     /// <summary>
-    /// Filter that check if model is valid BEFORE executing actions
+    /// Filter that check if model is valid <strong>BEFORE</strong> executing actions.
     /// </summary>
     /// <remarks>
     /// This attribute sets the result to <see cref="BadRequestObjectResult"/> if model state is not valid.
@@ -20,7 +20,7 @@ namespace MedEasy.API.Filters
         /// Builds a new <see cref="ValidateModelAttribute"/> instance
         /// </summary>
         /// <param name="logger"></param>
-        /// <exception cref="ArgumentNullException">if <paramref name="logger"/> is null</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="logger"/> is <c>null</c>.</exception>
         public ValidateModelAttribute(ILogger<ValidateModelAttribute> logger)
         {
             if (logger == null)

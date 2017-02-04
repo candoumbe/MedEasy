@@ -72,7 +72,7 @@ namespace MedEasy.API.Tests.Models
                         Sort = "Name, Nickname"
                     },
                     ((Expression<Func<IEnumerable<ValidationResult>, bool>>)(x =>
-                        x.Once() &&
+                        x.Count() == 1 &&
                         x.Once(item => item.MemberNames.Contains(nameof(SearchPatientInfo.Sort)) &&
                             item.ErrorMessage == $"Unknown <Name>, <Nickname> properties."
                         )))

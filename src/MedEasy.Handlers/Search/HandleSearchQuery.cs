@@ -14,7 +14,7 @@ using MedEasy.Handlers.Core.Search.Queries;
 namespace MedEasy.Handlers
 {
     /// <summary>
-    /// Handlers for 
+    /// Generic handler for search queries 
     /// </summary>
     public class HandleSearchQuery : IHandleSearchQuery
     {

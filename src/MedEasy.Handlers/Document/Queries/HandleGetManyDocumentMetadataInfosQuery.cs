@@ -13,11 +13,7 @@ namespace MedEasy.Handlers.Document.Queries
 {
     public class HandleGetManyDocumentMetadataInfosQuery : GenericGetManyQueryHandler<Guid, DocumentMetadata, int, DocumentMetadataInfo, IWantManyResources<Guid, DocumentMetadataInfo>>,  IHandleGetManyDocumentsQuery
     {
-        private IExpressionBuilder _expressionBuilder;
-        private IUnitOfWorkFactory _uowFactory;
-        private ILogger<HandleGetManyDocumentMetadataInfosQuery> _logger;
-
-
+        
         /// <summary>
         /// Builds a new <see cref="HandleGetManyDocumentMetadataInfosQuery"/> instance.
         /// </summary>

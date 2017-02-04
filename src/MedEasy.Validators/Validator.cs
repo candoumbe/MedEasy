@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace MedEasy.Validators
 {
     /// <summary>
-    /// Static clas
+    /// Static class
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public sealed class Validator<T> : IValidate<T>
