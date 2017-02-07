@@ -159,7 +159,10 @@ namespace MedEasy.API
                 opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
             });
 
-            app.UseMvc();
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.MapRoute("default", "api/{controller=root}/{action=index}/{id?}");
+            });
 
             app.UseWelcomePage();
 

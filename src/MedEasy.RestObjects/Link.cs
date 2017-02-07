@@ -8,9 +8,9 @@ namespace MedEasy.RestObjects
     /// Link representation
     /// </summary>
     /// <remarks>
-    ///     Follows ION spec (see http://ionwg.org/draft-ion.html#links for more details)
+    ///     Inspired by ION spec (see http://ionwg.org/draft-ion.html#links for more details)
     /// </remarks>
-    public sealed class Link
+    public class Link
     {
         /// <summary>
         /// Url of the resource the current <see cref="Link"/> points to.

@@ -48,7 +48,8 @@
     "System.Runtime": "4.3.0",
     "System.Text.RegularExpressions": "4.3.0",
     "System.Threading.Tasks": "4.3.0",
-    "System.IO": "4.3.0"
+    "System.IO": "4.3.0",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.1.0"
   },
 
   "tools": {

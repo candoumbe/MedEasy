@@ -383,7 +383,7 @@ namespace MedEasy.WebApi.Tests
                 .Contain(x => x.Relation == nameof(Appointment.Patient));
 
 
-            AppointmentInfo createdResource = (AppointmentInfo)((CreatedAtActionResult)actionResult).Value;
+            AppointmentInfo createdResource = browsableResource.Resource;
 
             createdResource.Should()
                 .NotBeNull();
