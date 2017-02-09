@@ -1282,16 +1282,18 @@ namespace MedEasy.WebApi.Tests
                 .BeAssignableTo<IBrowsableResource<PrescriptionHeaderInfo>>().Which;
 
             browsableResource.Links.Should()
-                .NotBeNull().And
-                .HaveCount(1);
+                .NotBeNullOrEmpty().And
+                .Contain(x => x.Relation == nameof(Prescription.Items));
 
-            Link linkToItems = browsableResource.Links.ElementAt(0);
+            Link linkToItems = browsableResource.Links.Single(x => x.Relation == nameof(Prescription.Items));
 
             linkToItems.Should()
                 .NotBeNull();
             linkToItems.Relation.Should().BeEquivalentTo(nameof(Prescription.Items));
             linkToItems.Method.Should().BeEquivalentTo("get");
             linkToItems.Href.Should().MatchRegex($@"api\/{PrescriptionsController.EndpointName}\/{nameof(PrescriptionsController.Details)}\?[iI]d=\d+");
+
+
 
             PrescriptionHeaderInfo resource = browsableResource.Resource;
             resource.PatientId.Should().Be(patientId);

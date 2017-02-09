@@ -20,6 +20,9 @@ using MedEasy.Handlers.Core.Search.Queries;
 using Microsoft.AspNetCore.ResponseCompression;
 using MedEasy.API.Swagger;
 using Swashbuckle.AspNetCore.Swagger;
+using static Newtonsoft.Json.DateFormatHandling;
+using static Newtonsoft.Json.DateTimeZoneHandling;
+
 
 namespace MedEasy.API
 {
@@ -103,8 +106,9 @@ namespace MedEasy.API
             }).AddJsonOptions(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat;
-                options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+                options.SerializerSettings.DateFormatHandling = IsoDateFormat;
+                options.SerializerSettings.DateTimeZoneHandling = Utc;
+                options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
             });
 
             if (HostingEnvironment.IsDevelopment())
@@ -161,7 +165,8 @@ namespace MedEasy.API
 
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute("default", "api/{controller=root}/{action=index}/{id?}");
+                routeBuilder
+                    .MapRoute("default", "api/{controller=root}/{id?}");
             });
 
             app.UseWelcomePage();
