@@ -10,5 +10,9 @@ namespace MedEasy.Objects
     /// </summary>
     public class Disease : AuditableEntity<int,  Disease>
     {
+
+        public string Code { get; set; }
+
+
     }
 }

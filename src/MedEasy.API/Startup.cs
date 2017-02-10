@@ -63,6 +63,7 @@ namespace MedEasy.API
             {
                 DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>();
                 builder.UseSqlServer(Configuration.GetConnectionString("Default"));
+
                 return new EFUnitOfWorkFactory(builder.Options);
 
             });

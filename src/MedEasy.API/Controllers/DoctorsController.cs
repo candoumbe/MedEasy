@@ -25,8 +25,6 @@ using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
 
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace MedEasy.API.Controllers
 {
     /// <summary>
@@ -199,13 +197,13 @@ namespace MedEasy.API.Controllers
         }
 
         /// <summary>
-        /// Partially update a patient resource.
+        /// Partially update a doctor resource.
         /// </summary>
         /// <remarks>
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
         ///
-        ///     // PATCH api/Patients/1
+        ///     // PATCH api/Docgtors/1
         ///     
         ///     [
         ///         {

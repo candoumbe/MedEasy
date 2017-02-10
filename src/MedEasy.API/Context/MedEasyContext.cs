@@ -77,6 +77,11 @@ namespace MedEasy.API.Stores
         public DbSet<Appointment> Appointments { get; set; }
 
         /// <summary>
+        /// Gives access to <see cref="Disease"/> collection.
+        /// </summary>
+        public DbSet<Disease> Diseases { get; set; }
+
+        /// <summary>
         /// Builds a new instance of <see cref="MedEasyContext"/> with default options
         /// </summary>
         public MedEasyContext()
@@ -140,7 +145,6 @@ namespace MedEasy.API.Stores
 
             }
 
-            
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.Property(item => item.Id)
@@ -241,7 +245,6 @@ namespace MedEasy.API.Stores
 
             });
 
-
             modelBuilder.Entity<Appointment>(entity =>
             {
                 entity.Property(x => x.DoctorId)
@@ -255,6 +258,16 @@ namespace MedEasy.API.Stores
 
 
 
+            });
+
+            modelBuilder.Entity<Disease>(entity =>
+            {
+                entity.Property(x => x.Code)
+                    .HasMaxLength(20)
+                    .IsRequired();
+                
+                entity.HasIndex(x => x.Code)
+                    .IsUnique();
             });
 
         }

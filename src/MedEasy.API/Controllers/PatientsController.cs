@@ -88,6 +88,7 @@ namespace MedEasy.API.Controllers
         /// <param name="iHandleGetDocumentByPatientIdQuery">Handler for retrieving patient's <see cref="DocumentMetadataInfo"/>s.</param>
         /// <param name="mapper">Mapper to convert one type to an other.</param>
         /// <param name="iRunCreateDocumentForPatientCommand">Runner for CREATE document resource commands.</param>
+        /// <param name="iHandleGetOneDocumentInfoByPatientIdAndDocumentId">Runner for CREATE document resource commands.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
             IOptions<MedEasyApiOptions> apiOptions,
@@ -916,9 +917,7 @@ namespace MedEasy.API.Controllers
                     browsableResource);
             }
         }
-
-
-
+        
 
         /// <summary>
         /// Gets the specified document that is associated to the specified patient
@@ -955,11 +954,7 @@ namespace MedEasy.API.Controllers
                 actionResult = new NotFoundResult();
             }
 
-
             return actionResult;
         }
-
-
     }
-
 }
