@@ -43,7 +43,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// BirthDate
         /// </summary>
-        public DateTimeOffset? BirthDate { get; set; } = null;
+        public DateTime? BirthDate { get; set; } = null;
 
         public string BirthPlace { get; set; } = string.Empty;
 

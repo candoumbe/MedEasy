@@ -50,8 +50,8 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         /// <response code="200">if a prescription is the specified <paramref name="id"/> is found</response>
         /// <response code="404">if no prescription found</response>
-        [HttpGet("{id:int}")]
-        [HttpHead("{id:int}")]
+        [HttpGet("{id}")]
+        [HttpHead("{id}")]
         [Produces(typeof(PrescriptionHeaderInfo))]
         public async Task<IActionResult> Get(int id)
         {

@@ -78,7 +78,7 @@ namespace MedEasy.API.Controllers
         /// Gets all the entries in the repository
         /// </summary>
         [HttpGet]
-        [Produces(typeof(IEnumerable<SpecialtyInfo>))]
+        [ProducesResponseType(typeof(IEnumerable<SpecialtyInfo>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
@@ -119,10 +119,10 @@ namespace MedEasy.API.Controllers
         /// Gets the <see cref="SpecialtyInfo"/> resource by its <paramref name="id"/>
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
-        /// <returns></returns>
-        [HttpHead("{id:int}")]
-        [HttpGet("{id:int}")]
-        [Produces(typeof(SpecialtyInfo))]
+        /// <response code="404">Resource not found</response>
+        [HttpHead("{id}")]
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(SpecialtyInfo), 200)]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
 
 
@@ -133,7 +133,7 @@ namespace MedEasy.API.Controllers
         /// <param name="info">data used to create the resource</param>
         /// <returns>the created resource</returns>
         [HttpPost]
-        [Produces(typeof(SpecialtyInfo))]
+        [ProducesResponseType(typeof(SpecialtyInfo), 201)]
         public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info)
         {
             SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
@@ -147,7 +147,7 @@ namespace MedEasy.API.Controllers
         /// <param name="id">identifier of the resource to update</param>
         /// <param name="info">new values to set</param>
         /// <returns></returns>
-        [HttpPut("{id:int}")]
+        [HttpPut("{id}")]
         [ProducesResponseType(typeof(SpecialtyInfo), 200)]
         public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
         {
@@ -161,7 +161,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
         /// <returns></returns>
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id));
@@ -176,7 +176,7 @@ namespace MedEasy.API.Controllers
         /// <param name="query">Page of result configuration (page index, page size, ..)</param>
         /// <response code="200"></response>
         /// <response code="404">Specialty not found</response>
-        [HttpGet("{id:int}/Doctors")]
+        [HttpGet("{id}/Doctors")]
         [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
         public async Task<IActionResult> Doctors(int id, [FromQuery] PaginationConfiguration query)
         {

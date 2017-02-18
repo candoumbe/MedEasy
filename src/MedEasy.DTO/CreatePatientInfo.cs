@@ -29,7 +29,7 @@ namespace MedEasy.DTO
         /// </summary>
         [JsonProperty]
         [DataType(Date)]
-        public DateTimeOffset? BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         /// <summary>
         /// Where the patient was born ?

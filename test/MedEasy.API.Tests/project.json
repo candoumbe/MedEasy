@@ -42,7 +42,8 @@
     "System.Linq": "4.3.0",
     "Microsoft.Extensions.Options": "1.1.0",
     "Microsoft.AspNetCore.Mvc.Abstractions": "1.1.0",
-    "Microsoft.Extensions.Logging.Abstractions": "1.1.0"
+    "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.1.0"
   },
 
   "frameworks": {

@@ -167,7 +167,7 @@ namespace MedEasy.API
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder
-                    .MapRoute("default", "api/{controller=root}/{id?}");
+                    .MapRoute("default", "api/{controller=root}/{action=index}/{id?}");
             });
 
             app.UseWelcomePage();

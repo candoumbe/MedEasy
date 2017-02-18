@@ -1,8 +1,8 @@
-﻿using MedEasy.DTO;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace MedEasy.API.Models
+namespace MedEasy.DTO.Search
 {
     /// <summary>
     /// Request for searching patient resources.
@@ -26,6 +26,12 @@ namespace MedEasy.API.Models
         /// Criteria for the lastname
         /// </summary>
         public string Lastname { get; set; }
+
+        /// <summary>
+        /// Criteria for the birthdate
+        /// </summary>
+        [DataType(DataType.Date)]
+        public DateTime? BirthDate { get; set; }
 
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

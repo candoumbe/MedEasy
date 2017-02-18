@@ -40,6 +40,7 @@ using static System.StringSplitOptions;
 using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Doctor.Queries;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.WebApi.Tests
 {

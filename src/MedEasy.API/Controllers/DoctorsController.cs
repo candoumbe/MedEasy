@@ -24,6 +24,7 @@ using static MedEasy.Data.DataFilterLogic;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.API.Controllers
 {
@@ -144,8 +145,8 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
         /// <returns></returns>
-        [HttpHead("{id:int}")]
-        [HttpGet("{id:int}")]
+        [HttpHead("{id}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(DoctorInfo), 200)]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
             
@@ -174,7 +175,7 @@ namespace MedEasy.API.Controllers
         /// <param name="id">identifier of the resource to update</param>
         /// <param name="info">new values to set</param>
         /// <returns></returns>
-        [HttpPut("{id:int}")]
+        [HttpPut("{id}")]
         [Produces(typeof(DoctorInfo))]
         public async Task<IActionResult> Put(int id, [FromBody] DoctorInfo info)
         {
@@ -189,7 +190,7 @@ namespace MedEasy.API.Controllers
         /// <param name="id">identifier of the resource to delete</param>
         /// <response code="200">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id));
@@ -222,7 +223,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">The resource was successfully patched </response>
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<DoctorInfo> changes)
         {

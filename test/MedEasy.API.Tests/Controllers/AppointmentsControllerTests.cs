@@ -40,6 +40,7 @@ using static System.StringSplitOptions;
 using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Appointment.Commands;
 using MedEasy.Handlers.Core.Appointment.Queries;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -516,7 +517,7 @@ namespace MedEasy.WebApi.Tests
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.To)}={searchInfo.To}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.To)}={searchInfo.To.Value.ToString("s")}" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.Page)}=1" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.PageSize)}={searchInfo.PageSize}")  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.Sort)}={searchInfo.Sort}" )
@@ -550,8 +551,8 @@ namespace MedEasy.WebApi.Tests
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 5 &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.From)}={searchInfo.From}" )  &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.To)}={searchInfo.To}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.From)}={searchInfo.From.Value.ToString("s")}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.To)}={searchInfo.To.Value.ToString("s")}" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.Page)}=1" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.PageSize)}={searchInfo.PageSize}")  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.Sort)}={searchInfo.Sort}" )
@@ -583,7 +584,7 @@ namespace MedEasy.WebApi.Tests
                             first.Href != null &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.From)}={searchInfo.From}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.From)}={searchInfo.From.Value.ToString("s")}" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.Page)}=1" )  &&
                             first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchAppointmentInfo.PageSize)}={searchInfo.PageSize}")
 

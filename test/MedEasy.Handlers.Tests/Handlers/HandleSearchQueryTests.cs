@@ -4,6 +4,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
+using MedEasy.DTO.Search;
 using MedEasy.Mapping;
 using MedEasy.Queries.Search;
 using Microsoft.Extensions.Logging;

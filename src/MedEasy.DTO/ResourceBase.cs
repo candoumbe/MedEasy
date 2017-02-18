@@ -18,5 +18,10 @@ namespace MedEasy.DTO
         /// Gets/sets when the resource was last modified
         /// </summary>
         public DateTimeOffset? UpdatedDate { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the resource
+        /// </summary>
+        public Guid UUID { get; set; }
     }
 }

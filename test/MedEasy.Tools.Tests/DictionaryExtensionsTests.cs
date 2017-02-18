@@ -52,6 +52,30 @@ namespace MedEasy.Tools.Tests
                 };
 
                 yield return new object[]
+                {
+                    new Dictionary<string, object>{
+                        ["limit"] = null
+                    },
+                    ((Expression<Func<string, bool>>)(x => x == string.Empty))
+                };
+
+                yield return new object[]
+               {
+                    new Dictionary<string, object>{
+                        ["date"] = 1.February(2010).AddMinutes(30)
+                    },
+                    ((Expression<Func<string, bool>>)(x => "date=2010-02-01T00:30:00".Equals(x)))
+               };
+
+                yield return new object[]
+               {
+                    new Dictionary<string, object>{
+                        ["date"] = 1.February(2010)
+                    },
+                    ((Expression<Func<string, bool>>)(x => "date=2010-02-01T00:00:00".Equals(x)))
+               };
+
+                yield return new object[]
                  {
                     new Dictionary<string, object>{
                         ["limit"] = 1,
@@ -59,6 +83,8 @@ namespace MedEasy.Tools.Tests
                     },
                     ((Expression<Func<string, bool>>)(x => "limit=1&offset=3".Equals(x)))
                  };
+
+
 
                 yield return new object[]
                  {

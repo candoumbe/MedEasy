@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
 using Newtonsoft.Json;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.Queries.Search
 {

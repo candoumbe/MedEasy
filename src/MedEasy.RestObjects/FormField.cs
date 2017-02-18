@@ -1,4 +1,7 @@
-﻿namespace MedEasy.RestObjects
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace MedEasy.RestObjects
 {
     /// <summary>
     /// Form field representation
@@ -6,13 +9,63 @@
     /// <remarks>
     ///     Inspired by ION spec (see http://ionwg.org/draft-ion.html#form-fields for more details)
     /// </remarks>
+    [JsonObject]
     public class FormField
     {
         /// <summary>
-        /// Is the form enabled by 
+        /// indicates whether or not the field value may be modified or submitted to a linked resource location. 
         /// </summary>
+        /// <remarks>
+        /// 
+        /// </remarks>
         public bool? Enabled { get; set; }
 
+        /// <summary>
+        /// Type of the field 
+        /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public FormFieldType Type { get; set; }
+
+        /// <summary>
+        /// Description of the field
+        /// </summary>
+        public string Label { get; set; }
+
+        /// <summary>
+        /// Name of the field that should be submitted
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Regular expression that the field should be validated against.
+        /// </summary>
+        public string Pattern { get; set; }
+
+        /// <summary>
+        /// Short hint that described the expected value of the field.
+        /// </summary>
+        public string Placeholder { get; set; }
+
+        /// <summary>
+        /// Indicates if the field must be submitted
+        /// </summary>
+        public bool? Required { get; set; }
+
+        /// <summary>
+        /// Indicates the maximum length of the value
+        /// </summary>
+        public int? MaxLength { get; set; }
+
+        /// <summary>
+        /// Indicates the minimum length of the value
+        /// </summary>
+        public int? MinLength { get; set; }
+
+
+        /// <summary>
+        /// Indicates whether or not the field value is considered sensitive information 
+        /// and should be kept secret.
+        /// </summary>
         public bool? Secret { get; set; }
 
 

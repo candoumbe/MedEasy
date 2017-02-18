@@ -91,12 +91,12 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                         {
                             Title = "Doc 1",
                             MimeType = "application/pdf",
-                            Content = new byte[] {1, 2, 3, 4, 5}                            
+                            Content = new byte[] {1, 2, 3, 4, 5}
                         }
                     }
                 };
 
-                
+
             }
         }
 
@@ -123,9 +123,12 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().SingleOrDefaultAsync(It.IsNotNull<Expression<Func<Objects.Patient, bool>>>()))
                 .Returns((Expression<Func<Objects.Patient, bool>> predicate) => Task.FromResult(patients.SingleOrDefault(predicate.Compile())));
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<DocumentMetadata>().Create(It.IsNotNull<DocumentMetadata>()))
-                .Returns((DocumentMetadata documentMetadata) => 
+                .Returns((DocumentMetadata documentMetadata) =>
                 {
-
+                    if (documentMetadata.UUID == Guid.Empty)
+                    {
+                        documentMetadata.UUID = Guid.NewGuid();
+                    }
                     return documentMetadata;
                 });
 
@@ -154,7 +157,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             output.Title.Should().Be(input.Document.Title);
             output.Size.Should().Be(input.Document.Content.Length);
             output.PatientId.Should().Be(input.PatientId);
-            
+
             _validatorMock.Verify(mock => mock.Validate(It.Is<ICreateDocumentForPatientCommand>(x => x.Id == cmd.Id)), Times.Once);
             _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
             _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));

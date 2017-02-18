@@ -41,10 +41,10 @@ namespace MedEasy.Data
                 {
                     Type type = typeof(T);
                     ParameterExpression pe = Parameter(type, "item");
-                    ConstantExpression constantExpression = Constant(df.Value);
 
                     string[] fields = df.Field.Split(new[] { '.' });
                     MemberExpression property = null;
+                    Type memberType;
                     foreach (string field in fields)
                     {
                         property = property == null
@@ -52,12 +52,14 @@ namespace MedEasy.Data
                             : Property(property, field);
                     }
 
-
                     Expression body;
-
+                    memberType = (property.Member as PropertyInfo)?.PropertyType;
+                    ConstantExpression constantExpression = Constant(df.Value, memberType);
+                    
                     switch (df.Operator)
                     {
                         case NotEqualTo:
+                            // 
                             body = NotEqual(property, constantExpression);
                             break;
                         case IsNull:

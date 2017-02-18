@@ -8,6 +8,7 @@ using Xunit;
 using Xunit.Abstractions;
 using FluentAssertions;
 using static Newtonsoft.Json.JsonConvert;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.API.Tests.Models
 {

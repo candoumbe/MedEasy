@@ -30,6 +30,8 @@ using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Patient.Queries;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using MedEasy.DTO.Search;
+using System.Dynamic;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -179,8 +181,8 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
         /// <returns></returns>
-        [HttpHead("{id:int}")]
-        [HttpGet("{id:int}")]
+        [HttpHead("{id}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(PatientInfo), 200)]
         public async override Task<IActionResult> Get(int id) => await base.Get(id);
 
@@ -214,7 +216,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         /// <response code="200">the operation succeed</response>
         /// <response code="400">Submitted values contains an error</response>
-        [HttpPut("{id:int}")]
+        [HttpPut("{id}")]
         [ProducesResponseType(typeof(PatientInfo), 200)]
         public async Task<IActionResult> Put(int id, [FromBody] CreatePatientInfo info)
         {
@@ -230,7 +232,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         /// <response code="200">if the operation succeed</response>
         /// <response code="400">if <paramref name="id"/> is negative or zero</response>
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             IActionResult actionResult;
@@ -447,6 +449,12 @@ namespace MedEasy.API.Controllers
                 filters.Add($"{nameof(PatientInfo.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
             }
 
+            if (search.BirthDate.HasValue)
+            {
+                
+                filters.Add(new DataFilter { Field = nameof(PatientInfo.BirthDate), Operator = DataFilterOperator.EqualTo, Value = search.BirthDate.Value });
+            }
+
             SearchQueryInfo<PatientInfo> searchQueryInfo = new SearchQueryInfo<PatientInfo>
             {
                 Page = search.Page,
@@ -474,7 +482,6 @@ namespace MedEasy.API.Controllers
             };
 
 
-
             IPagedResult<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo));
 
             search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
@@ -483,16 +490,16 @@ namespace MedEasy.API.Controllers
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
-            string firstPageUrl = urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = 1, search.PageSize, search.Sort });
+            string firstPageUrl = urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate , Page = 1, search.PageSize, search.Sort});
             string previousPageUrl = hasPreviousPage
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page - 1, search.PageSize, search.Sort })
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = search.Page - 1, search.PageSize, search.Sort })
                     : null;
 
             string nextPageUrl = search.Page < pageOfResult.PageCount
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page + 1, search.PageSize, search.Sort })
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = search.Page + 1, search.PageSize, search.Sort })
                     : null;
             string lastPageUrl = pageOfResult.PageCount > 1
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
+                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
             IGenericPagedGetResponse<PatientInfo> reponse = new GenericPagedGetResponse<PatientInfo>(
@@ -534,7 +541,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">The resource was successfully patched </response>
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<PatientInfo> changes)
         {
@@ -956,5 +963,8 @@ namespace MedEasy.API.Controllers
 
             return actionResult;
         }
+
+
+
     }
 }

@@ -9,7 +9,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// List of all types that can be directly converted to their string representation
         /// </summary>
-        internal static IEnumerable<Type> PrimitiveTypes = new[]
+        public static IEnumerable<Type> PrimitiveTypes = new[]
         {
             typeof(string),
             typeof(int), typeof(int?),
@@ -37,7 +37,7 @@ namespace System.Collections.Generic
         public static string ToQueryString(this IDictionary<string, object> dictionary)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var kv in dictionary)
+            foreach (var kv in dictionary.Where(kv => kv.Value != null))
             {
                 object value = kv.Value;
                 Type valueType = value.GetType();
@@ -49,10 +49,29 @@ namespace System.Collections.Generic
                     {
                         sb.Append("&");
                     }
+
                     sb
                         .Append(kv.Key)
-                        .Append("=")
-                        .Append(kv.Value.ToString());
+                        .Append("=");
+
+                    // DateTime/DateTimeOffset should be encoded in ISO format
+                    if ( value is DateTime? || value is DateTimeOffset?)
+                    {
+                        if (value is DateTime?)
+                        {
+                            sb.Append(((DateTime?)value).Value.ToString("s"));
+                        }
+                        else
+                        {
+                            sb.Append(((DateTimeOffset?)value).Value.ToString("s"));
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(kv.Value.ToString());
+                    }
+
+                    
                 }
                 else if (value is IDictionary<string, object>)
                 {

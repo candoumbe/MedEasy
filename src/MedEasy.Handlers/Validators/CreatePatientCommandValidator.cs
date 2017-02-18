@@ -12,13 +12,13 @@ namespace MedEasy.Validators.Patient
         /// <summary>
         /// Gets the max birthdate the current validator allowed to set
         /// </summary>
-        public DateTimeOffset? MaxBirthDateAllowed { get; }
+        public DateTime? MaxBirthDateAllowed { get; }
 
         /// <summary>
-        /// 
+        /// Builds a new <see cref="CreatePatientCommandValidator"/> instance.
         /// </summary>
-        /// <param name="maxBirthDateAllowed"></param>
-        public CreatePatientCommandValidator(DateTimeOffset? maxBirthDateAllowed = null)
+        /// <param name="maxBirthDateAllowed">Max allowed birth date</param>
+        public CreatePatientCommandValidator(DateTime? maxBirthDateAllowed = null)
         {
             MaxBirthDateAllowed = maxBirthDateAllowed;
         }

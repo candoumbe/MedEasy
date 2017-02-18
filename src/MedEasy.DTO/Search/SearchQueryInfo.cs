@@ -1,11 +1,10 @@
 ﻿using MedEasy.Data;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
 using System.Linq;
 using System;
 
-namespace MedEasy.DTO
+namespace MedEasy.DTO.Search
 {
     /// <summary>
     /// Represents a request for a search on resources of type.

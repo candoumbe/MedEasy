@@ -12,15 +12,8 @@ namespace MedEasy.DTO
     public class SearchAppointmentInfo : AbstractSearchInfo<AppointmentInfo>
     {
         /// <summary>
-        /// Criteria for the <see cref="Firstname"/>.
+        /// Criteria for the <see cref="AppointmentInfo.StartDate"/>.
         /// </summary>
-        /// <remarks>
-        /// Can be :
-        ///  
-        ///     "Bruce" to match all Doctor where the firstname is exactly "Bruce"
-        ///    
-        ///     "B*e" to match all resources
-        /// </remarks>
         public DateTimeOffset? From { get; set; }
 
         /// <summary>
@@ -28,9 +21,14 @@ namespace MedEasy.DTO
         /// </summary>
         public DateTimeOffset? To { get; set; }
 
+        /// <summary>
+        /// Id of the doctor that is part of the <see cref="AppointmentInfo"/>
+        /// </summary>
         public int? DoctorId { get; set; }
 
-
+        /// <summary>
+        /// Id of the patient that is part of the appointment
+        /// </summary>
         public int? PatientId { get; set; }
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -44,7 +42,5 @@ namespace MedEasy.DTO
 
             return validationsResults;
         }
-
-
     }
 }

@@ -45,6 +45,7 @@ using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
 using System.IO;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -69,7 +70,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IHandleGetDocumentsByPatientIdQuery> _iHandleGetDocumentsByPatientIdQueryMock;
         private Mock<IRunCreateDocumentForPatientCommand> _iRunCreateDocumentForPatientCommandMock;
         private Mock<IHandleGetOneDocumentInfoByPatientIdAndDocumentId> _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock;
-
+        
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -488,6 +489,39 @@ namespace MedEasy.WebApi.Tests
                     };
                 }
 
+                {
+                    SearchPatientInfo searchInfo = new SearchPatientInfo
+                    {
+                        Firstname = "bruce",
+                        Page = 1,
+                        PageSize = 30,
+                        BirthDate = 31.July(2010)
+                    };
+                    yield return new object[]
+                    {
+                        new[] {
+                            new PatientInfo { Firstname = "bruce", BirthDate = 31.July(2010) }
+                        },
+                        searchInfo,
+                        ((Expression<Func<Link, bool>>)(first =>
+                            first != null &&
+                            first.Relation == "first" &&
+                            first.Href != null &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 4 &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.Firstname)}={searchInfo.Firstname}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.BirthDate)}={searchInfo.BirthDate.Value.ToString("s")}" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.Page)}=1" )  &&
+                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => x == $"{nameof(SearchPatientInfo.PageSize)}={searchInfo.PageSize}")
+
+                            )),
+                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                        ((Expression<Func<Link, bool>>)(next => next == null)),
+                        ((Expression<Func<Link, bool>>)(last => last == null))
+
+                    };
+                }
+
             }
         }
 
@@ -504,7 +538,7 @@ namespace MedEasy.WebApi.Tests
             // Arrange
             MedEasyApiOptions apiOptions = new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 50 };
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
-            _iHandleSearchQueryMock.Setup(mock => mock.Search<Patient, PatientInfo>(It.IsAny<SearchQuery<PatientInfo>>()))
+            _iHandleSearchQueryMock.Setup(mock => mock.Search<Patient, PatientInfo>(It.IsNotNull<SearchQuery<PatientInfo>>()))
                     .Returns((SearchQuery<PatientInfo> query) => Task.Run(() =>
                     {
                         SearchQueryInfo<PatientInfo> data = query.Data;
@@ -545,10 +579,11 @@ namespace MedEasy.WebApi.Tests
             links.Previous.Should().Match(previousPageLinkExpectation);
             links.Next.Should().Match(nextPageLinkExpectation);
             links.Last.Should().Match(nextPageLinkExpectation);
-
-
-
         }
+
+
+
+
 
         public static IEnumerable<object> PatchCases
         {
@@ -619,9 +654,7 @@ namespace MedEasy.WebApi.Tests
                     .StatusCode.Should().Be(404);
 
         }
-
-
-
+        
         [Fact]
         public async Task Get()
         {

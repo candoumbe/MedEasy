@@ -292,7 +292,10 @@ namespace MedEasy.API.Stores
             };
 
         
-
+        /// <summary>
+        /// <see cref="DbContext.SaveChanges()"/>
+        /// </summary>
+        /// <returns></returns>
         public override int SaveChanges()
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
@@ -300,6 +303,9 @@ namespace MedEasy.API.Stores
             return base.SaveChanges();
         }
 
+        /// <summary>
+        /// <see cref="DbContext.SaveChanges(bool)"/>
+        /// </summary>
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
@@ -310,6 +316,9 @@ namespace MedEasy.API.Stores
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
+        /// <summary>
+        /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
+        /// </summary>
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
@@ -322,6 +331,9 @@ namespace MedEasy.API.Stores
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
+        /// <summary>
+        /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
+        /// </summary>
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
