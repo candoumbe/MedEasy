@@ -21,7 +21,7 @@ namespace MedEasy.Handlers.Patient.Commands
     {
         private IUnitOfWorkFactory _uowFactory;
         private ILogger<RunPatchPatientCommand> _logger;
-        private IValidate<IPatchCommand<int, Objects.Patient>> _validator;
+        private IValidate<IPatchCommand<Guid, Objects.Patient>> _validator;
         
         /// <summary>
         /// Builds a new <see cref="RunPatchPatientCommand"/> instance.
@@ -29,7 +29,7 @@ namespace MedEasy.Handlers.Patient.Commands
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchPatientCommand)"/>.</param>
-        public RunPatchPatientCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<int, Objects.Patient>> validator) 
+        public RunPatchPatientCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<Guid, Objects.Patient>> validator) 
         {
             if (uowFactory == null)
             {
@@ -52,7 +52,7 @@ namespace MedEasy.Handlers.Patient.Commands
             _validator = validator;
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<int, Objects.Patient> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Patient> command)
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -78,13 +78,13 @@ namespace MedEasy.Handlers.Patient.Commands
                     } 
                 }
 
-                int patientId = command.Data.Id;
+                Guid patientId = command.Data.Id;
                 Objects.Patient source = await uow.Repository<Objects.Patient>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
+                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id);
 
                 if (source == null)
                 {
-                    throw new NotFoundException($"Patient '{patientId}' not found");
+                    throw new NotFoundException($"Patient <{patientId}> not found");
                 }
 
                 changes.ApplyTo(source);

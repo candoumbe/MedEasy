@@ -6,6 +6,7 @@ using MedEasy.Handlers.Core.Doctor.Queries;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Validators;
 using MedEasy.Commands;
+using System;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -27,7 +28,7 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IRunDeleteDoctorInfoByIdCommand, RunDeleteDoctorByIdCommand>();
             services.AddScoped<IRunPatchDoctorCommand, RunPatchDoctorCommand>();
 
-            services.AddScoped<IValidate<IPatchCommand<int, Objects.Doctor>>>(x => Validator<IPatchCommand<int, Objects.Doctor>>.Default);
+            services.AddScoped<IValidate<IPatchCommand<Guid, Objects.Doctor>>>(x => Validator<IPatchCommand<Guid, Objects.Doctor>>.Default);
 
 
 

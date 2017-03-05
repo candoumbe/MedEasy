@@ -28,9 +28,9 @@ namespace MedEasy.API.StartupRegistration
         {
             services.AddScoped<IValidate<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
             services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
-            services.AddScoped<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(x => Validator<IWantOneResource<Guid, int, PatientInfo>>.Default);
+            services.AddScoped<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(x => Validator<IWantOneResource<Guid, Guid, PatientInfo>>.Default);
             services.AddScoped<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(x => Validator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>.Default);
-            services.AddScoped<IValidate<IPatchCommand<int, Patient>>, ValidatePatchPatientCommand>();
+            services.AddScoped<IValidate<IPatchCommand<Guid, Patient>>, ValidatePatchPatientCommand>();
             services.AddScoped<IValidate<ICreateDocumentForPatientCommand>>(x => Validator<ICreateDocumentForPatientCommand>.Default);
 
 

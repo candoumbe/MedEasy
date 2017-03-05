@@ -555,14 +555,14 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<PatientInfo> changes)
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes)
         {
-            PatchInfo<int, Patient> data = new PatchInfo<int, Patient>
+            IPatchInfo<Guid, Patient> data = new PatchInfo<Guid, Patient>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Patient>>(changes)
             };
-            await _iRunPatchPatientCommmand.RunAsync(new PatchCommand<int, Patient>(data));
+            await _iRunPatchPatientCommmand.RunAsync(new PatchCommand<Guid, Patient>(data));
 
 
             return new OkResult();

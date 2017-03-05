@@ -622,8 +622,8 @@ namespace MedEasy.WebApi.Tests
             // Arrange
 
 
-            _iRunPatchPatientCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<int, Patient>>()))
-                .Returns((IPatchCommand<int, Patient> command) => Task.Run(() =>
+            _iRunPatchPatientCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<Guid, Patient>>()))
+                .Returns((IPatchCommand<Guid, Patient> command) => Task.Run(() =>
                 {
                     command.Data.PatchDocument.ApplyTo(source);
                     return Nothing.Value;
@@ -633,7 +633,7 @@ namespace MedEasy.WebApi.Tests
             // Act
             JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
             patchDocument.Operations.AddRange(operations);
-            IActionResult actionResult = await _controller.Patch(1, patchDocument);
+            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument);
 
             // Assert
             actionResult.Should()
