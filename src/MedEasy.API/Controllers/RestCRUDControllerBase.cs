@@ -40,7 +40,7 @@ namespace MedEasy.API.Controllers
         where TKey : IEquatable<TKey>
         where TGetByIdQuery : IWantOneResource<Guid, TKey, TResource>
         where TGetManyQuery : IWantManyResources<Guid, TResource>
-        where TEntity : IEntity<TKey>
+        where TEntity : IEntity<int>
         where TCommandId : IEquatable<TCommandId>
         where TCreateCommand : ICommand<TCommandId, TPost>
         where TRunCreateCommand : IRunCommandAsync<TCommandId, TPost, TResource, TCreateCommand>

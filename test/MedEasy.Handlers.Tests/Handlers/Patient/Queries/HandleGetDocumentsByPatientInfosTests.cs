@@ -109,14 +109,12 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .ReturnsAsync(PagedResult<DocumentMetadataInfo>.Default);
 
             // Act
-            IPagedResult<DocumentMetadataInfo> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(1, new PaginationConfiguration { Page = 1, PageSize = 3 }));
+            IPagedResult<DocumentMetadataInfo> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(Guid.NewGuid(), new PaginationConfiguration { Page = 1, PageSize = 3 }));
 
             //Assert
             output.Should().NotBeNull();
-            output.Entries?.Should().BeEmpty();
-
+            output.Entries.Should().BeEmpty();
             output.Total.Should().Be(0);
-
 
             _unitOfWorkFactoryMock.Verify();
         }

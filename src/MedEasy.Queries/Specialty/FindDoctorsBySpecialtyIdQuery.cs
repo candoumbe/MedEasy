@@ -21,7 +21,7 @@ namespace MedEasy.Queries.Specialty
         /// Builds a new <see cref="FindDoctorsBySpecialtyIdQuery"/>
         /// </summary>
         /// <param name="args">containts</param>
-        public FindDoctorsBySpecialtyIdQuery(int specialtyId, PaginationConfiguration query)
+        public FindDoctorsBySpecialtyIdQuery(Guid specialtyId, PaginationConfiguration query)
         {
             Data = new FindDoctorsBySpecialtyIdQueryArgs(specialtyId, query);
         }

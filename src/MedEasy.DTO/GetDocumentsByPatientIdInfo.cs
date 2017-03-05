@@ -14,7 +14,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the patient to get its <see cref="DocumentMetadataInfo"/>s for
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Page configuration

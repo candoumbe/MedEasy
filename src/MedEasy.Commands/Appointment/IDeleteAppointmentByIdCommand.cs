@@ -2,7 +2,7 @@
 
 namespace MedEasy.Commands.Appointment
 {
-    public interface IDeleteAppointmentByIdCommand : ICommand<Guid, int>
+    public interface IDeleteAppointmentByIdCommand : ICommand<Guid, Guid>
     {
     }
 }

@@ -16,6 +16,8 @@ using MedEasy.DAL.Interfaces;
 using System.Linq;
 using MedEasy.Mapping;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using MedEasy.API.Stores;
 
 namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 {
@@ -23,9 +25,9 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IValidate<IDeleteSpecialtyByIdCommand>> _validatorMock;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private RunDeleteSpecialtyByIdCommand _runner;
-        
+
         private Mock<ILogger<RunDeleteSpecialtyByIdCommand>> _loggerMock;
         private IMapper _mapper;
 
@@ -35,13 +37,15 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             _validatorMock = new Mock<IValidate<IDeleteSpecialtyByIdCommand>>(Strict);
             _mapper = AutoMapperConfig.Build().CreateMapper();
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+            DbContextOptionsBuilder<MedEasyContext> dbOptionsBuiler = new DbContextOptionsBuilder<MedEasyContext>();
+            dbOptionsBuiler.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(dbOptionsBuiler.Options);
+
 
             _loggerMock = new Mock<ILogger<RunDeleteSpecialtyByIdCommand>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _runner = new RunDeleteSpecialtyByIdCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactoryMock.Object);
+            _runner = new RunDeleteSpecialtyByIdCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactory);
         }
 
 
@@ -84,31 +88,37 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().Delete(It.IsAny<Expression<Func<Objects.Specialty, bool>>>()))
-               .Verifiable();
+            Guid idToDelete = Guid.NewGuid();
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Objects.Specialty>().Create(new Objects.Specialty { Name = "SPEC1", UUID = idToDelete });
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
-                .ReturnsAsync(1)
-                .Verifiable();
-            
+                await uow.SaveChangesAsync();
+            }
+
             //Act
-            DeleteSpecialtyByIdCommand command = new DeleteSpecialtyByIdCommand(1);
+            DeleteSpecialtyByIdCommand command = new DeleteSpecialtyByIdCommand(idToDelete);
             _outputHelper.WriteLine($"Command : {command}");
-            
-            Func<Task> action = async () => await _runner.RunAsync(command);
+
+            await _runner.RunAsync(command);
 
 
-            //Assert
-            action.ShouldNotThrow<Exception>();
+            // Assert
 
-            _unitOfWorkFactoryMock.VerifyAll();
-            _validatorMock.VerifyAll();
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                (await uow.Repository<Objects.Specialty>().AnyAsync(x => x.UUID == idToDelete )).Should()
+                    .BeFalse();
+                
+            }
+
+
 
         }
 
-        
 
-        
+
+
 
         [Fact]
         public void ShouldThrowArgumentNullException()
@@ -125,13 +135,13 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             action.ShouldThrow<ArgumentNullException>();
         }
 
-        
-        
+
+
         public void Dispose()
         {
             _outputHelper = null;
             _validatorMock = null;
-            _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactory = null;
             _runner = null;
             _mapper = null;
         }

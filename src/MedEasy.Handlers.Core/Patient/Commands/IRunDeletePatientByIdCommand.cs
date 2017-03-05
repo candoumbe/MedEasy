@@ -4,7 +4,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Patient.Commands
 {
-    public interface IRunDeletePatientByIdCommand : IRunCommandAsync<Guid, int, IDeletePatientByIdCommand>
+    public interface IRunDeletePatientByIdCommand : IRunCommandAsync<Guid, Guid, IDeletePatientByIdCommand>
     {
 
     }

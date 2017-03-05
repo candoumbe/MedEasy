@@ -8,11 +8,11 @@ namespace MedEasy.Commands.Patient
     {
         public Guid Id => Guid.NewGuid();
 
-        public int Data { get; }
+        public Guid Data { get; }
 
-        public DeletePatientByIdCommand(int id)
+        public DeletePatientByIdCommand(Guid id)
         {
-            if (id <= 0)
+            if (Guid.Empty == id)
             {
                 throw new ArgumentOutOfRangeException(nameof(id));
             }

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -44,9 +45,10 @@ namespace MedEasy.API.Tests.Filters
         public void OnResultExecuting_ForActionThatReturnsOkObjectResult()
         {
             // Arrange
+            Guid patientId = Guid.NewGuid();
             PatientInfo resource = new PatientInfo
             {
-                Id = 1,
+                Id = patientId,
                 Firstname = "Bruce",
                 Lastname = "Wayne"
             };
@@ -90,9 +92,10 @@ namespace MedEasy.API.Tests.Filters
         public void OnResultExecuting_ForActionThatReturnsCreatedAtActionResult()
         {
             // Arrange
+            Guid patientId = Guid.NewGuid();
             PatientInfo resource = new PatientInfo
             {
-                Id = 1,
+                Id = patientId,
                 Firstname = "Bruce",
                 Lastname = "Wayne"
             };
@@ -136,9 +139,10 @@ namespace MedEasy.API.Tests.Filters
         public void OnResultExecuting_ForActionThatReturnsCreatedAtActionResult_That_Contains_IBrowsableResource()
         {
             // Arrange
+            Guid patientId = Guid.NewGuid();
             PatientInfo resource = new PatientInfo
             {
-                Id = 1,
+                Id = patientId,
                 Firstname = "Bruce",
                 Lastname = "Wayne"
             };

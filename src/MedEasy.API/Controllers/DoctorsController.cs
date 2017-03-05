@@ -32,7 +32,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="DoctorInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
-    public class DoctorsController : RestCRUDControllerBase<int, Doctor, DoctorInfo, IWantOneDoctorInfoByIdQuery, IWantManyDoctorInfoQuery, Guid, CreateDoctorInfo, ICreateDoctorCommand, IRunCreateDoctorCommand>
+    public class DoctorsController : RestCRUDControllerBase<Guid, Doctor, DoctorInfo, IWantOneDoctorInfoByIdQuery, IWantManyDoctorInfoQuery, Guid, CreateDoctorInfo, ICreateDoctorCommand, IRunCreateDoctorCommand>
     {
         /// <summary>
         /// Name of the endpoint
@@ -148,7 +148,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DoctorInfo), 200)]
-        public async override Task<IActionResult> Get(int id) => await base.Get(id);
+        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
             
 
         
@@ -177,7 +177,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [Produces(typeof(DoctorInfo))]
-        public async Task<IActionResult> Put(int id, [FromBody] DoctorInfo info)
+        public async Task<IActionResult> Put(Guid id, [FromBody] DoctorInfo info)
         {
             throw new NotImplementedException();
         }
@@ -191,7 +191,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id));
             return new OkResult();
@@ -225,14 +225,14 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<DoctorInfo> changes)
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<DoctorInfo> changes)
         {
-            PatchInfo<int, Doctor> data = new PatchInfo<int, Doctor>
+            PatchInfo<Guid, Doctor> data = new PatchInfo<Guid, Doctor>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Doctor>>(changes)
             };
-            await _iRunPatchDoctorCommand.RunAsync(new PatchCommand<int, Doctor>(data));
+            await _iRunPatchDoctorCommand.RunAsync(new PatchCommand<Guid, Doctor>(data));
 
 
             return new OkResult();

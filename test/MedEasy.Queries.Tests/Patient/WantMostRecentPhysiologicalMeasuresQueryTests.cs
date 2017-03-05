@@ -42,7 +42,7 @@ namespace MedEasy.Queries.Tests.Patient
             // Arrange
             GetMostRecentPhysiologicalMeasuresInfo input = new GetMostRecentPhysiologicalMeasuresInfo {
                 Count = 10,
-                PatientId = 20
+                PatientId = Guid.NewGuid()
             };
 
 

@@ -19,40 +19,43 @@ using System.Linq;
 using System.Reflection;
 using System.Linq.Expressions;
 using MedEasy.Objects;
+using Microsoft.EntityFrameworkCore;
+using MedEasy.API.Stores;
 
 namespace MedEasy.BLL.Tests.Commands.Patient
 {
     public class RunCreateDocumentForPatientCommandTests : IDisposable
     {
         private Mock<ILogger<RunCreateDocumentForPatientCommand>> _loggerMock;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private Mock<IMapper> _mapperMock;
         private RunCreateDocumentForPatientCommand _handler;
         private Mock<IValidate<ICreateDocumentForPatientCommand>> _validatorMock;
-        private Mock<IExpressionBuilder> _expressionBuilderMock;
+        private IMapper _mapper;
         private ITestOutputHelper _outputHelper;
 
 
         public RunCreateDocumentForPatientCommandTests(ITestOutputHelper output)
         {
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
-
+            DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>()
+                .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
+            
             _loggerMock = new Mock<ILogger<RunCreateDocumentForPatientCommand>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
             _validatorMock = new Mock<IValidate<ICreateDocumentForPatientCommand>>(Strict);
-            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
+            _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _outputHelper = output;
             _handler = new RunCreateDocumentForPatientCommand(_validatorMock.Object, _loggerMock.Object,
-                _unitOfWorkFactoryMock.Object,
-               _expressionBuilderMock.Object);
+                _unitOfWorkFactory,
+               _mapper);
         }
 
         public void Dispose()
         {
-            _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactory = null;
             _loggerMock = null;
             _mapperMock = null;
             _outputHelper = null;
@@ -80,13 +83,14 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             get
             {
+                Guid patientId = Guid.NewGuid();
                 yield return new object[] {
                     new [] {
-                        new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne" }
+                        new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne", UUID = patientId }
                     },
                     new CreateDocumentForPatientInfo
                     {
-                        PatientId = 1,
+                        PatientId = patientId,
                         Document = new CreateDocumentInfo
                         {
                             Title = "Doc 1",
@@ -104,9 +108,9 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         [Theory]
         [MemberData(nameof(ConstructorCases))]
         public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<ICreateDocumentForPatientCommand> validator, ILogger<RunCreateDocumentForPatientCommand> logger,
-            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
+            IUnitOfWorkFactory factory, IMapper mapper)
         {
-            Action action = () => new RunCreateDocumentForPatientCommand(validator, logger, factory, expressionBuilder);
+            Action action = () => new RunCreateDocumentForPatientCommand(validator, logger, factory, mapper);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -120,33 +124,18 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _outputHelper.WriteLine($"input : {input}");
 
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().SingleOrDefaultAsync(It.IsNotNull<Expression<Func<Objects.Patient, bool>>>()))
-                .Returns((Expression<Func<Objects.Patient, bool>> predicate) => Task.FromResult(patients.SingleOrDefault(predicate.Compile())));
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<DocumentMetadata>().Create(It.IsNotNull<DocumentMetadata>()))
-                .Returns((DocumentMetadata documentMetadata) =>
-                {
-                    if (documentMetadata.UUID == Guid.Empty)
-                    {
-                        documentMetadata.UUID = Guid.NewGuid();
-                    }
-                    return documentMetadata;
-                });
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Objects.Patient>().Create(patients);
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
+                await uow.SaveChangesAsync();
+            }
 
+            
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<CreatePatientInfo, Objects.Patient>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
-                    AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<CreatePatientInfo, Objects.Patient>(parameters, membersToExpand));
-
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.DocumentMetadata, DocumentMetadataInfo>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
-                    AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<Objects.DocumentMetadata, DocumentMetadataInfo>(parameters, membersToExpand));
-
+            
             // Act
             CreateDocumentForPatientCommand cmd = new CreateDocumentForPatientCommand(input);
             DocumentMetadataInfo output = await _handler.RunAsync(cmd);
@@ -157,6 +146,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             output.Title.Should().Be(input.Document.Title);
             output.Size.Should().Be(input.Document.Content.Length);
             output.PatientId.Should().Be(input.PatientId);
+            output.Id.Should().NotBeEmpty();
 
             _validatorMock.Verify(mock => mock.Validate(It.Is<ICreateDocumentForPatientCommand>(x => x.Id == cmd.Id)), Times.Once);
             _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);

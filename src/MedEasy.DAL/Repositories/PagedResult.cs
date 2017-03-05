@@ -41,10 +41,6 @@ namespace MedEasy.DAL.Repositories
         /// <exception cref="ArgumentNullException">if <paramref name="entries"/> is <c>null</c></exception>
         public PagedResult(IEnumerable<T> entries, int total, int pageSize)
         {
-            if (entries == null)
-            {
-                throw new ArgumentNullException(nameof(entries));
-            }
             if (total < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(total));
@@ -54,7 +50,10 @@ namespace MedEasy.DAL.Repositories
             {
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
-
+if (entries == null)
+{ 
+    throw new ArgumentNullException(nameof(entries));
+} 
             Entries = entries;
             Total = total;
             PageSize = pageSize;

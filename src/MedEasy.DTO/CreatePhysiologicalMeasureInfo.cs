@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MedEasy.Objects;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,15 @@ namespace MedEasy.DTO
     /// Base class for data to provide when creating any physiological measure informations
     /// </summary>
     [JsonObject]
-    public abstract class CreatePhysiologicalMeasureInfo
+    public class CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure> where TPhysiologicalMeasure : PhysiologicalMeasurement 
     {
-        
         /// <summary>
-        /// When the measure was taken
+        /// Id of the patient for which the measure is created
         /// </summary>
-        public DateTimeOffset DateOfMeasure { get; set; }
+        public Guid PatientId { get; set; }
+        
+
+        public TPhysiologicalMeasure Measure { get; set; }
 
     }
 }

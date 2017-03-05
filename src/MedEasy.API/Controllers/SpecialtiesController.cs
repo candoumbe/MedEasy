@@ -25,7 +25,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="SpecialtyInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
-    public class SpecialtiesController : RestCRUDControllerBase<int, Specialty, SpecialtyInfo, IWantOneSpecialtyInfoByIdQuery, IWantManySpecialtyInfoQuery, Guid, CreateSpecialtyInfo, ICreateSpecialtyCommand, IRunCreateSpecialtyCommand>
+    public class SpecialtiesController : RestCRUDControllerBase<Guid, Specialty, SpecialtyInfo, IWantOneSpecialtyInfoByIdQuery, IWantManySpecialtyInfoQuery, Guid, CreateSpecialtyInfo, ICreateSpecialtyCommand, IRunCreateSpecialtyCommand>
     {
         /// <summary>
         /// Name of the endpoint
@@ -123,7 +123,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(SpecialtyInfo), 200)]
-        public async override Task<IActionResult> Get(int id) => await base.Get(id);
+        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
 
 
 
@@ -149,7 +149,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(SpecialtyInfo), 200)]
-        public async Task<IActionResult> Put(int id, [FromBody] SpecialtyInfo info)
+        public async Task<IActionResult> Put(Guid id, [FromBody] SpecialtyInfo info)
         {
             throw new NotImplementedException();
         }
@@ -162,7 +162,7 @@ namespace MedEasy.API.Controllers
         /// <param name="id">identifier of the resource to delete</param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id));
             return new OkResult();
@@ -178,7 +178,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Specialty not found</response>
         [HttpGet("{id}/Doctors")]
         [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
-        public async Task<IActionResult> Doctors(int id, [FromQuery] PaginationConfiguration query)
+        public async Task<IActionResult> Doctors(Guid id, [FromQuery] PaginationConfiguration query)
         {
             if (query == null)
             {

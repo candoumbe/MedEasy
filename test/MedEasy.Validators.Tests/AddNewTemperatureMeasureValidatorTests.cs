@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
+using MedEasy.Objects;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -31,19 +32,25 @@ namespace MedEasy.Validators.Tests
             {
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
-                    $"because int.MinValue is valid for {nameof(CreateTemperatureInfo.Value)}"
+                    new CreatePhysiologicalMeasureInfo<Temperature> {
+                        Measure = new Temperature {Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow }
+                    },
+                    $"because {nameof(Temperature.Value)} == int.MinValue"
                 };
 
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
-                    $"because 0 is valid for {nameof(CreateTemperatureInfo.Value)}"
+                    new CreatePhysiologicalMeasureInfo<Temperature> {
+                        Measure = new Temperature {Value = 0, DateOfMeasure = DateTimeOffset.UtcNow }
+                    },
+                    $"because {nameof(Temperature.Value)} == 0"
                 };
                 yield return new object[]
                 {
-                    new CreateTemperatureInfo {Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow },
-                    $"because int.MaxValue valid for {nameof(CreateTemperatureInfo.Value)}"
+                    new CreatePhysiologicalMeasureInfo<Temperature> {
+                        Measure = new Temperature {Value = int.MaxValue, DateOfMeasure = DateTimeOffset.UtcNow }
+                    },
+                    $"because {nameof(Temperature.Value)} == int.MinValue"
                 };
             }
         }
@@ -51,12 +58,14 @@ namespace MedEasy.Validators.Tests
 
         [Theory]
         [MemberData(nameof(CommandsValidCases))]
-        public async Task ValidateShouldReturnsErrors(CreateTemperatureInfo input, string reason)
+        public async Task ValidateShouldReturnsErrors(CreatePhysiologicalMeasureInfo<Temperature> input, string reason)
         {
             _outputHelper.WriteLine($"Validation of {input}");
+
+
             IEnumerable<Task<ErrorInfo>> validationsResults = _validator.Validate(input);
 
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationsResults).ConfigureAwait(false);
+            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationsResults);
             errors.Should().BeEmpty();
             
         }

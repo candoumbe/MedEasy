@@ -88,7 +88,7 @@ namespace MedEasy.Handlers.Core.Commands
             {
                 Logger.LogTrace("validation failed", errors);
 #if DEBUG || TRACE
-                foreach (var error in errors)
+                foreach (ErrorInfo error in errors)
                 {
                     Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
@@ -98,7 +98,7 @@ namespace MedEasy.Handlers.Core.Commands
             }
             Logger.LogTrace("Command validation succeeded");
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
                 TData data = command.Data;
                 await OnCreatingAsync(command.Id, data);

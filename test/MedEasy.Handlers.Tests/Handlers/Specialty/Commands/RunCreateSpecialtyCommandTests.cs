@@ -20,6 +20,8 @@ using MedEasy.Mapping;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Specialty.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using MedEasy.API.Stores;
 
 namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 {
@@ -27,7 +29,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IValidate<ICreateSpecialtyCommand>> _validatorMock;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private RunCreateSpecialtyCommand _runner;
         
         private Mock<ILogger<RunCreateSpecialtyCommand>> _loggerMock;
@@ -39,15 +41,14 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             _validatorMock = new Mock<IValidate<ICreateSpecialtyCommand>>(Strict);
             _mapper = AutoMapperConfig.Build().CreateMapper();
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
-
-
+            DbContextOptionsBuilder<MedEasyContext> dbOptionsBuiler = new DbContextOptionsBuilder<MedEasyContext>();
+            dbOptionsBuiler.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(dbOptionsBuiler.Options);
 
             _loggerMock = new Mock<ILogger<RunCreateSpecialtyCommand>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _runner = new RunCreateSpecialtyCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactoryMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _runner = new RunCreateSpecialtyCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactory, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -89,20 +90,6 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
-
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>()))
-                .ReturnsAsync(false)
-                .Verifiable();
-
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().Create(It.IsAny<Objects.Specialty>()))
-                .Returns((Objects.Specialty newValue) => {
-                    newValue.Id = 1;
-                    return newValue;
-                })
-                .Verifiable();
-
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
-                .ReturnsAsync(1);
             
             //Act
             CreateSpecialtyInfo input = new CreateSpecialtyInfo
@@ -117,10 +104,9 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             //Assert
             output.Should().NotBeNull();
-            output.Id.Should().Be(1);
+            output.Id.Should().NotBeEmpty();
             output.Name.Should().Be(input.Name.ToTitleCase());
-
-            _unitOfWorkFactoryMock.VerifyAll();
+            
             _validatorMock.VerifyAll();
 
         }
@@ -142,16 +128,17 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "NameThatAlreadyExists" });
             Func<Task> action = async () => await _runner.RunAsync(command);
 
-            var exception = action.ShouldThrow<CommandNotValidException<Guid>>();
+            CommandNotValidException<Guid> exception = action.ShouldThrow<CommandNotValidException<Guid>>()
+                .Which;
             
-            exception.Which.CommandId.Should().Be(command.Id);
-            exception.Which.Errors.Should().ContainSingle();
-            exception.Which.Errors.Single().Key.Should().Be("ErrDuplicate");
-            exception.Which.Errors.Single().Description.Should().Match("*already exists");
-            exception.Which.Errors.Single().Severity.Should().Be(Error);
+            exception.CommandId.Should().Be(command.Id);
+            exception.Errors.Should().ContainSingle();
+            exception.Errors.Single().Key.Should().Be("ErrDuplicate");
+            exception.Errors.Single().Description.Should().Match("*already exists");
+            exception.Errors.Single().Severity.Should().Be(Error);
 
             _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
-            _unitOfWorkFactoryMock.Verify(mock => mock.New(), Times.Never);
+
         }
 
 
@@ -218,7 +205,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
         }
 
         [Fact]
-        public void CreatingANewSpecialtyWithACodeAlreadyUsedByAnOtherShouldThrowCommandNotValidException()
+        public async Task CreatingANewSpecialtyWithACodeAlreadyUsedByAnOtherShouldThrowCommandNotValidException()
         {
 
             //Arrange
@@ -226,9 +213,12 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable("validation should already have occured");
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>()))
-                .ReturnsAsync(true) // <-- We emulate the fact that there's already a specialty with the same code
-                .Verifiable(); 
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Objects.Specialty>().Create(new Objects.Specialty { Name = "médecine générale" });
+
+                await uow.SaveChangesAsync();
+            }
 
             //Act
             ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "Médecine générale" });
@@ -243,7 +233,6 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 .Contain(x => "ErrDuplicate".Equals(x.Key, StringComparison.OrdinalIgnoreCase) && x.Severity == Error);
 
             _validatorMock.Verify();
-            _unitOfWorkFactoryMock.Verify();
 
 
         }
@@ -252,7 +241,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
         {
             _outputHelper = null;
             _validatorMock = null;
-            _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactory = null;
             _runner = null;
             _mapper = null;
         }

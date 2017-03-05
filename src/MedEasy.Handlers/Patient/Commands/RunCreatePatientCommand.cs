@@ -27,12 +27,19 @@ namespace MedEasy.Handlers.Patient.Commands
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
         /// <see cref="GenericCreateCommandRunner{TKey, TEntity, TData, TOutput, TCommand}"/>
         public RunCreatePatientCommand(IValidate<ICreatePatientCommand> validator, ILogger<RunCreatePatientCommand> logger, IUnitOfWorkFactory factory,
-            IExpressionBuilder expressionBuilder) 
-            : base (validator, logger, factory, expressionBuilder)
+            IExpressionBuilder expressionBuilder)
+            : base(validator, logger, factory, expressionBuilder)
         {
 
         }
 
+
+        public override async Task<PatientInfo> RunAsync(ICreatePatientCommand command)
+        {
+            PatientInfo patientInfo = await base.RunAsync(command);
+            patientInfo.MainDoctorId = command.Data.MainDoctorId;
+            return patientInfo;
+        }
 
         public override Task OnCreatingAsync(Guid id, CreatePatientInfo input)
         {

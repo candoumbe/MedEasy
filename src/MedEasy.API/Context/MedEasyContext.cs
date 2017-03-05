@@ -9,6 +9,7 @@ using System;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Stores
 {
@@ -114,7 +115,7 @@ namespace MedEasy.API.Stores
             
             base.OnModelCreating(modelBuilder);
 
-            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            foreach (IMutableEntityType entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.Relational().TableName = entity.DisplayName();
                 

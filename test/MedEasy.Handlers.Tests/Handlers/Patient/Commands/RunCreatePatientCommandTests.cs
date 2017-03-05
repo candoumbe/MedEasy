@@ -83,7 +83,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                     {
                         Firstname = "Bruce",
                         Lastname = "Wayne",
-                        MainDoctorId = 1
+                        MainDoctorId = Guid.NewGuid()
                     }
                 };
 
@@ -92,7 +92,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                     {
                         Firstname = "Cyrille-Alexandre",
                         Lastname = "NDOUMBE",
-                        MainDoctorId = 1
+                        MainDoctorId = Guid.NewGuid()
                     }
                 };
 
@@ -101,7 +101,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                     {
                         Firstname = "cyrille-alexandre",
                         Lastname = "NDOUMBE",
-                        MainDoctorId = 1
+                        MainDoctorId = Guid.NewGuid()
                     }
                 };
             }

@@ -11,7 +11,7 @@ namespace MedEasy.Handlers.Prescription.Queries
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneResource{TQueryId, TData, TResult}"/> interface implementations
     /// </summary
-    public class HandleGetOnePrescriptionHeaderInfoQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Prescription, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>>
+    public class HandleGetOnePrescriptionHeaderInfoQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Prescription, PrescriptionHeaderInfo, IWantOneResource<Guid, Guid, PrescriptionHeaderInfo>>
     {
         
         /// <summary>

@@ -30,13 +30,13 @@ namespace MedEasy.Handlers.Doctor.Commands
                 throw new ArgumentNullException(nameof(command));
             }
 
-            int id = command.Data;
-            Debug.Assert(id > 0);
+            Guid id = command.Data;
+            Debug.Assert(id != Guid.Empty);
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                uow.Repository<Objects.Doctor>().Delete(item => item.Id == id);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
+                uow.Repository<Objects.Doctor>().Delete(item => item.UUID == id);
+                await uow.SaveChangesAsync();
 
                 return Nothing.Value;
             }

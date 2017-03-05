@@ -27,8 +27,7 @@ namespace MedEasy.DTO
         /// Id of the doctor's main specialty
         /// </summary>
         [JsonProperty]
-        [Range(1, int.MaxValue)]
-        public int? SpecialtyId { get; set; }
+        public Guid? SpecialtyId { get; set; }
     }
 
 }

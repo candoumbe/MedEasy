@@ -111,7 +111,7 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
             _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
-            await _handler.RunAsync(new DeletePatientByIdCommand(1));
+            await _handler.RunAsync(new DeletePatientByIdCommand(Guid.NewGuid()));
 
 
             // Assert

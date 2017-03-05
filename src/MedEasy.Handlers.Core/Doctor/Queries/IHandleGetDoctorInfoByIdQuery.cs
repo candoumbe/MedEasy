@@ -6,7 +6,7 @@ using System;
 namespace MedEasy.Handlers.Core.Doctor.Queries
 {
 
-    public interface IHandleGetDoctorInfoByIdQuery : IHandleQueryAsync<Guid, int, DoctorInfo, IWantOneResource<Guid, int, DoctorInfo>>
+    public interface IHandleGetDoctorInfoByIdQuery : IHandleQueryAsync<Guid, Guid, DoctorInfo, IWantOneResource<Guid, Guid, DoctorInfo>>
     {
     }
 }

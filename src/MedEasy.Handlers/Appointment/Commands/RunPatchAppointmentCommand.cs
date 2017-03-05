@@ -20,7 +20,7 @@ namespace MedEasy.Handlers.Appointment.Commands
     {
         private IUnitOfWorkFactory _uowFactory;
         private ILogger<RunPatchAppointmentCommand> _logger;
-        private IValidate<IPatchCommand<int, Objects.Appointment>> _validator;
+        private IValidate<IPatchCommand<Guid, Objects.Appointment>> _validator;
         
         /// <summary>
         /// Builds a new <see cref="RunPatchAppointmentCommand"/> instance.
@@ -28,7 +28,7 @@ namespace MedEasy.Handlers.Appointment.Commands
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchAppointmentCommand)"/>.</param>
-        public RunPatchAppointmentCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchAppointmentCommand> logger, IValidate<IPatchCommand<int, Objects.Appointment>> validator) 
+        public RunPatchAppointmentCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchAppointmentCommand> logger, IValidate<IPatchCommand<Guid, Objects.Appointment>> validator) 
         {
             if (uowFactory == null)
             {
@@ -51,7 +51,7 @@ namespace MedEasy.Handlers.Appointment.Commands
             _validator = validator;
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<int, Objects.Appointment> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Appointment> command)
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -68,13 +68,14 @@ namespace MedEasy.Handlers.Appointment.Commands
                 JsonPatchDocument<Objects.Appointment> changes = command.Data.PatchDocument;
                 
                 
-                int patientId = command.Data.Id;
+                
+                Guid appointmentId = command.Data.Id;
                 Objects.Appointment source = await uow.Repository<Objects.Appointment>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
+                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id);
 
                 if (source == null)
                 {
-                    throw new NotFoundException($"Appointment '{patientId}' not found");
+                    throw new NotFoundException($"Appointment <{appointmentId}> not found");
                 }
 
 

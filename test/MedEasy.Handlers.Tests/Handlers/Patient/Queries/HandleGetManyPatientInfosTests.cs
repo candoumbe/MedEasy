@@ -66,7 +66,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, int, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
@@ -87,7 +87,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             Func<Task> action = async () =>
             {
                 IHandleGetOnePatientInfoByIdQuery handler = new HandleGetPatientInfoByIdQuery(
-                    Mock.Of<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(),
+                    Mock.Of<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(),
                     Mock.Of<ILogger<HandleGetPatientInfoByIdQuery>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     Mock.Of<IExpressionBuilder>());

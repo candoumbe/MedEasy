@@ -41,12 +41,11 @@ namespace MedEasy.Handlers.Appointment.Commands
 
             CreateAppointmentInfo info = command.Data;
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
                 var doctor = await uow.Repository<Objects.Doctor>()
-                    .SingleOrDefaultAsync(
-                        x => new { x.Id, x.UUID },
-                        x => x.Id == info.DoctorId);
+                    .SingleOrDefaultAsync(x => new { x.Id, x.UUID },
+                        (Objects.Doctor x) => x.UUID == info.DoctorId);
 
                 if (doctor == null)
                 {
@@ -55,8 +54,8 @@ namespace MedEasy.Handlers.Appointment.Commands
 
                 var patient = await uow.Repository<Objects.Patient>()
                     .SingleOrDefaultAsync(
-                        x => new { x.Id, x.UUID }, 
-                        x => x.Id == info.PatientId);
+                        x => new { x.Id, x.UUID },
+                        (Objects.Patient x) => x.UUID == info.PatientId);
 
                 if (patient == null)
                 {
@@ -64,13 +63,13 @@ namespace MedEasy.Handlers.Appointment.Commands
                 }
 
 
-                var now = DateTimeOffset.UtcNow;
+                DateTimeOffset now = DateTimeOffset.UtcNow;
                 Objects.Appointment itemToCreate = new Objects.Appointment()
                 {
                     StartDate = info.StartDate,
                     Duration = info.Duration,
-                    PatientId = info.PatientId,
-                    DoctorId = info.DoctorId,
+                    PatientId = patient.Id,
+                    DoctorId = doctor.Id,
                     UpdatedDate = now,
                     CreatedDate = now,
                     UUID = Guid.NewGuid()
@@ -79,8 +78,10 @@ namespace MedEasy.Handlers.Appointment.Commands
                 uow.Repository<Objects.Appointment>().Create(itemToCreate);
                 await uow.SaveChangesAsync();
 
-                return Mapper.Map<AppointmentInfo>(itemToCreate);
-
+                AppointmentInfo output = Mapper.Map<AppointmentInfo>(itemToCreate);
+                output.PatientId = info.PatientId;
+                output.DoctorId = info.DoctorId;
+                return output;
             }
         }
     }

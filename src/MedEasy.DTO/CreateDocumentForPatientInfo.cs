@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
@@ -16,7 +17,7 @@ namespace MedEasy.DTO
         /// This is the id of the <see cref="PatientInfo"/> the <see cref="DocumentMetadataInfo"/> will be 
         /// attached to.
         /// </remarks>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
 
         public CreateDocumentInfo Document { get; set; }

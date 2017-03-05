@@ -13,7 +13,7 @@ namespace MedEasy.Handlers.Appointment.Queries
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneAppointmentInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetAppointmentInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Appointment, int, AppointmentInfo, IWantOneResource<Guid, int, AppointmentInfo>, IValidate<IWantOneResource<Guid, int, AppointmentInfo>>>, IHandleGetAppointmentInfoByIdQuery
+    public class HandleGetAppointmentInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Appointment, Guid, AppointmentInfo, IWantOneResource<Guid, Guid, AppointmentInfo>, IValidate<IWantOneResource<Guid, Guid, AppointmentInfo>>>, IHandleGetAppointmentInfoByIdQuery
     {
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace MedEasy.Handlers.Appointment.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Appointment"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder"></param>
-        public HandleGetAppointmentInfoByIdQuery(IUnitOfWorkFactory factory, ILogger<HandleGetAppointmentInfoByIdQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantOneResource<Guid, int, AppointmentInfo>>.Default, logger, factory, expressionBuilder)
+        public HandleGetAppointmentInfoByIdQuery(IUnitOfWorkFactory factory, ILogger<HandleGetAppointmentInfoByIdQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantOneResource<Guid, Guid, AppointmentInfo>>.Default, logger, factory, expressionBuilder)
         {
         }
     }

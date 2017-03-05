@@ -36,10 +36,10 @@ namespace MedEasy.Objects
 
         public int? SpecialtyId { get; set; }
 
-        public Specialty Specialty { get; set; }
+        public virtual Specialty Specialty { get; set; }
 
-        public IEnumerable<Patient> Patients { get; set; }
+        public virtual IEnumerable<Patient> Patients { get; set; } = new List<Patient>();
 
-        public IEnumerable<Appointment> Appointments { get; set; }
+        public virtual IEnumerable<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

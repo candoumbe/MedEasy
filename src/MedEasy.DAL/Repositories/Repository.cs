@@ -284,6 +284,14 @@ namespace MedEasy.DAL.Repositories
                 .ConfigureAwait(false);
         }
 
+        public async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate)
+        {
+            return await Entries
+                .Select(selector)
+                .SingleOrDefaultAsync(predicate)
+                .ConfigureAwait(false);
+        }
+
         public async Task<TEntry> FirstAsync()
         {
             return await Entries.FirstAsync()
@@ -305,12 +313,8 @@ namespace MedEasy.DAL.Repositories
 
         public void Delete(Expression<Func<TEntry, bool>> predicate)
         {
-#if NETSTANDARD1_3 
-            Entries.Delete();
-#else
             IEnumerable<TEntry> entries = Entries.Where(predicate);
             Entries.RemoveRange(entries); 
-#endif
         }
 
 

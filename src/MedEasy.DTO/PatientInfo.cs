@@ -9,7 +9,7 @@ namespace MedEasy.DTO
     /// Informations on a patient
     /// </summary>
     [JsonObject]
-    public class PatientInfo : ResourceBase<int>
+    public class PatientInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Patient's firstname
@@ -42,7 +42,7 @@ namespace MedEasy.DTO
         /// Id of the patient's main doctor
         /// </summary>
         [JsonProperty]
-        public int? MainDoctorId { get; set; }
+        public Guid? MainDoctorId { get; set; }
 
 
         [JsonProperty]

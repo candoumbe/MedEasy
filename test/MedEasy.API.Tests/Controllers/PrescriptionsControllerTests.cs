@@ -87,20 +87,22 @@ namespace MedEasy.API.Tests.Controllers
         [Fact]
         public void CheckEndpointName() => PrescriptionsController.EndpointName.Should().Be(nameof(PrescriptionsController).Replace("Controller", string.Empty));
 
-        
+
         [Fact]
         public async Task Get()
         {
+            Guid prescriptionId = Guid.NewGuid();
+            Guid patientId = Guid.NewGuid();
             //Arrange
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
-            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<int>()))
-                .ReturnsAsync(new PrescriptionHeaderInfo { Id = 1, PatientId = 1, DeliveryDate = DateTimeOffset.UtcNow })
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new PrescriptionHeaderInfo { Id = prescriptionId, PatientId = patientId, DeliveryDate = DateTimeOffset.UtcNow })
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(prescriptionId);
 
             //Assert
             IBrowsableResource<PrescriptionHeaderInfo> result = actionResult.Should()
@@ -129,61 +131,67 @@ namespace MedEasy.API.Tests.Controllers
 
 
             resource.Should().NotBeNull();
-            resource.Id.Should().Be(1);
-            resource.PatientId.Should().Be(1);
-            
+            resource.Id.Should().Be(prescriptionId);
+            resource.PatientId.Should().Be(patientId);
+
             _prescriptionServiceMock.Verify();
             _urlHelperFactoryMock.Verify();
 
         }
 
-        
+
         public static IEnumerable<object[]> DetailsCases
         {
             get
             {
-                
-                yield return new object[] {
-                    new [] {
-                        new Prescription
-                        {
-                            Id = 1,
-                            PatientId = 1,
-                            Items = new []
+                {
+                    Guid prescriptionId = Guid.NewGuid();
+                    yield return new object[] {
+                        new [] {
+                            new Prescription
                             {
-                                new PrescriptionItem { Id = 1, Code = "DRUG", Quantity = 1, Designation = "Doliprane" }
+                                Id = 1,
+                                PatientId = 1,
+                                UUID = prescriptionId,
+                                Items = new []
+                                {
+                                    new PrescriptionItem { Id = 1, Code = "DRUG", Quantity = 1, Designation = "Doliprane" }
+                                }
                             }
-                        }
-                    },
-                    1,
-                    ((Expression<Func<IActionResult, bool>>)(x => x != null && 
-                        x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 1 &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
-                };
-
-                yield return new object[] {
-                    new [] {
-                        new Prescription
-                        {
-                            Id = 1,
-                            PatientId = 1,
-                            Items = Enumerable.Empty<PrescriptionItem>().ToList()
-                        }
-                    },
-                    1,
-                    ((Expression<Func<IActionResult, bool>>)(x => x != null &&
-                        x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 0 &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
-                        ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
-                };
+                        },
+                        prescriptionId,
+                        ((Expression<Func<IActionResult, bool>>)(x => x != null &&
+                            x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 1 &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
+                    };
+                }
+                {
+                    Guid prescriptionId = Guid.NewGuid();
+                    yield return new object[] {
+                        new [] {
+                            new Prescription
+                            {
+                                Id = 1,
+                                PatientId = 1,
+                                UUID = prescriptionId,
+                                Items = Enumerable.Empty<PrescriptionItem>().ToList()
+                            }
+                        },
+                        prescriptionId,
+                        ((Expression<Func<IActionResult, bool>>)(x => x != null &&
+                            x is OkObjectResult && ((OkObjectResult) x).Value is IBrowsableResource<IEnumerable<PrescriptionItemInfo>> &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Resource.Count() == 0 &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links != null &&
+                            ((IBrowsableResource<IEnumerable<PrescriptionItemInfo>>)((OkObjectResult) x).Value).Links.Count(link => link.Relation.Contains("self")) == 1))
+                    };  
+                }
             }
         }
 
         /// <summary>
-        /// Tests the <see cref="PrescriptionsController.Details(int)"/> method
+        /// Tests the <see cref="PrescriptionsController.Details(Guid)"/> method
         /// </summary>
         /// <param name="prescriptions">Current <see cref="Prescription"/> repository state</param>
         /// <param name="id">id of the prescription</param>
@@ -191,15 +199,15 @@ namespace MedEasy.API.Tests.Controllers
         /// <returns></returns>
         [Theory]
         [MemberData(nameof(DetailsCases))]
-        public async Task GetDetails(IEnumerable<Prescription> prescriptions, int id, Expression<Func<IActionResult, bool>> resultExpectation)
+        public async Task GetDetails(IEnumerable<Prescription> prescriptions, Guid id, Expression<Func<IActionResult, bool>> resultExpectation)
         {
 
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<int>()))
-                .Returns((int prescriptionId) => Task.Run(() =>
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>()))
+                .Returns((Guid prescriptionId) => Task.Run(() =>
                 {
                     IEnumerable<PrescriptionItem> items = prescriptions
-                        .Single(x => x.Id == prescriptionId).Items;
+                        .Single(x => x.UUID == prescriptionId).Items;
 
                     return _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(items);
 
@@ -215,7 +223,7 @@ namespace MedEasy.API.Tests.Controllers
             actionResult.Should().NotBeNull().And
                 .Match(resultExpectation);
 
-            
+
             _prescriptionServiceMock.Verify(mock => mock.GetItemsByPrescriptionIdAsync(id), Times.Once);
         }
 
@@ -225,11 +233,11 @@ namespace MedEasy.API.Tests.Controllers
 
             // Arrange
             Exception expectedException = new NotFoundException($"No prescription found");
-            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<int>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>()))
                 .Throws(expectedException);
 
             // Act
-            Func<Task> action = async () => await _controller.Details(1);
+            Func<Task> action = async () => await _controller.Details(Guid.NewGuid());
 
 
             // Assert

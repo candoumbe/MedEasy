@@ -17,9 +17,7 @@ namespace MedEasy.Data.Tests.Converters
     public class DataFilterConverterTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<JsonSerializer> _serializerMock;
-        private object obj;
-
+        
         private static IImmutableDictionary<string, DataFilterOperator> Operators => new Dictionary<string, DataFilterOperator>
         {
             ["eq"] = EqualTo,

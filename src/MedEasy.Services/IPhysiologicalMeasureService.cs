@@ -28,7 +28,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="command">command that holds data to create the resource</param>
         /// <returns>The created resource</returns>
-        Task<TPhysiologicalMeasureInfo> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, TPhysiologicalMeasure> query)
+        Task<TPhysiologicalMeasureInfo> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>> query)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo;
         

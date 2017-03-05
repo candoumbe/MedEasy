@@ -29,7 +29,8 @@
     "Microsoft.AspNetCore.Http": "1.1.0",
     "AutoMapper": "5.2.0",
     "FluentAssertions": "4.18.0",
-    "Microsoft.NETCore.App": "1.0.1"
+    "Microsoft.NETCore.App": "1.0.1",
+    "Microsoft.EntityFrameworkCore.InMemory": "1.1.0"
   },
 
   "frameworks": {

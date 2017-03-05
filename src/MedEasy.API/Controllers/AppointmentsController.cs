@@ -33,7 +33,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="AppointmentInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
-    public class AppointmentsController : RestCRUDControllerBase<int, Appointment, AppointmentInfo, IWantOneAppointmentInfoByIdQuery, IWantManyAppointmentInfoQuery, Guid, CreateAppointmentInfo, ICreateAppointmentCommand, IRunCreateAppointmentCommand>
+    public class AppointmentsController : RestCRUDControllerBase<Guid, Appointment, AppointmentInfo, IWantOneAppointmentInfoByIdQuery, IWantManyAppointmentInfoQuery, Guid, CreateAppointmentInfo, ICreateAppointmentCommand, IRunCreateAppointmentCommand>
     {
         /// <summary>
         /// Name of the endpoint
@@ -150,7 +150,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AppointmentInfo), 200)]
-        public async override Task<IActionResult> Get(int id) => await base.Get(id);
+        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
             
 
         
@@ -203,7 +203,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _iRunDeleteAppointmentByIdCommand.RunAsync(new DeleteAppointmentByIdCommand(id));
             return new OkResult();
@@ -237,14 +237,14 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(int id, [FromBody] JsonPatchDocument<AppointmentInfo> changes)
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AppointmentInfo> changes)
         {
-            PatchInfo<int, Appointment> data = new PatchInfo<int, Appointment>
+            PatchInfo<Guid, Appointment> data = new PatchInfo<Guid, Appointment>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Appointment>>(changes)
             };
-            await _iRunPatchAppointmentCommand.RunAsync(new PatchCommand<int, Appointment>(data));
+            await _iRunPatchAppointmentCommand.RunAsync(new PatchCommand<Guid, Appointment>(data));
 
 
             return new OkResult();

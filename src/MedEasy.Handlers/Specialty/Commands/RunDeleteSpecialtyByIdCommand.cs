@@ -13,7 +13,7 @@ namespace MedEasy.Handlers.Specialty.Commands
     /// <summary>
     /// An instance of this class can run <see cref="IRunDeleteSpecialtyByIdCommand"/> commands
     /// </summary>
-    public class RunDeleteSpecialtyByIdCommand : GenericDeleteByIdCommandRunner<Guid, Objects.Specialty, int, IDeleteSpecialtyByIdCommand>, IRunDeleteSpecialtyByIdCommand
+    public class RunDeleteSpecialtyByIdCommand : GenericDeleteByIdCommandRunner<Guid, Objects.Specialty, IDeleteSpecialtyByIdCommand>, IRunDeleteSpecialtyByIdCommand
     {
 
         /// <summary>

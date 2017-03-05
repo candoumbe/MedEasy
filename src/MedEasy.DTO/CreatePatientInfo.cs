@@ -43,7 +43,7 @@ namespace MedEasy.DTO
         /// </summary>
         [JsonProperty]
         [Range(0, int.MaxValue)]
-        public int? MainDoctorId { get; set; }
+        public Guid? MainDoctorId { get; set; }
         
         
     }

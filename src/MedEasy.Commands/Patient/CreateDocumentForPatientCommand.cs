@@ -15,7 +15,7 @@ namespace MedEasy.Commands.Patient
         /// </summary>
         /// <param name="patientId">id of the patient the <paramref name="documentInfo"/> will be attached to.</param>
         /// <param name="documentInfo">The document to attach.</param>
-        public CreateDocumentForPatientCommand(int patientId, CreateDocumentInfo documentInfo) : this(new CreateDocumentForPatientInfo { Document = documentInfo, PatientId = patientId })
+        public CreateDocumentForPatientCommand(Guid patientId, CreateDocumentInfo documentInfo) : this(new CreateDocumentForPatientInfo { Document = documentInfo, PatientId = patientId })
         {
 
         }

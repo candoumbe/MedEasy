@@ -33,7 +33,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the doctor who created the prescription
         /// </summary>
-        public int PrescriptorId { get; set; }
+        public Guid PrescriptorId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

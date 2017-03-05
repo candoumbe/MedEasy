@@ -1,20 +1,19 @@
-﻿using AutoMapper.QueryableExtensions;
+﻿using AutoMapper;
 using FluentAssertions;
-using GenFu;
+using MedEasy.API.Stores;
 using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Exceptions;
-using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Handlers.Patient.Queries;
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.Queries.Patient;
 using MedEasy.Validators;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +22,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Services.Tests
 {
@@ -32,8 +32,8 @@ namespace MedEasy.Services.Tests
         private PhysiologicalMeasureService _physiologicalMeasureService;
         private Mock<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>> _iValidateDeleteOnePhysiologicalMeasureCommandMock;
         private Mock<ILogger<PhysiologicalMeasureService>> _loggerMock;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private IExpressionBuilder _expressionBuilder;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
+        private IMapper _mapper;
 
         public PhysiologicalMeasureServiceTests(ITestOutputHelper outputHelper)
         {
@@ -45,47 +45,59 @@ namespace MedEasy.Services.Tests
 
             _loggerMock = new Mock<ILogger<PhysiologicalMeasureService>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose())
-                .Verifiable("unit of work must be in a using block");
+            DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>()
+                .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
 
-            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
+
+            _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _physiologicalMeasureService = new PhysiologicalMeasureService(
-                _unitOfWorkFactoryMock.Object,
+                _unitOfWorkFactory,
                 _loggerMock.Object,
                 _iValidateDeleteOnePhysiologicalMeasureCommandMock.Object,
-                _expressionBuilder);
+                _mapper);
         }
 
         public static IEnumerable<object> GetMostRecentMeasuresCases
         {
             get
             {
-                yield return new object[] {
-                    Enumerable.Empty<BloodPressure>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => !x.Any()))
-                };
-
-                yield return new object[] {
-                    new [] {
-                        new BloodPressure { PatientId = 1, SystolicPressure = 120, DiastolicPressure = 80 },
-                        new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
-                    },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 1))
-                };
-
-                yield return new object[] {
-                    new [] {
-                        new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 },
-                        new BloodPressure { PatientId = 2, SystolicPressure = 128, DiastolicPressure = 95 },
-                        new BloodPressure { PatientId = 2, SystolicPressure = 130, DiastolicPressure = 95 }
-                    },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 2, Count = 2 },
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 2))
-                };
+                {
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[] {
+                        Enumerable.Empty<BloodPressure>(),
+                        new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
+                        ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => !x.Any()))
+                    };
+                }
+                {
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[] {
+                        new [] {
+                            new BloodPressure { SystolicPressure = 120, DiastolicPressure = 80, Patient = new Patient { Id = 1, UUID = patientId } },
+                            new BloodPressure { SystolicPressure = 120, DiastolicPressure = 80, Patient = new Patient { Id = 2, UUID = Guid.NewGuid() }  }
+                        },
+                        new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
+                        ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 1))
+                    };
+                }
+                {
+                    Guid patientId = Guid.NewGuid();
+                    Patient p = new Patient
+                    {
+                        UUID = patientId
+                    };
+                    yield return new object[] {
+                        new [] {
+                            new BloodPressure { PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80, Patient = p },
+                            new BloodPressure { PatientId = 2, SystolicPressure = 128, DiastolicPressure = 95, Patient = p },
+                            new BloodPressure { PatientId = 2, SystolicPressure = 130, DiastolicPressure = 95, Patient = new Patient { Id = 3, } }
+                        },
+                        new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 2 },
+                        ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>)(x => x.Count() == 2))
+                    };
+                }
             }
         }
 
@@ -95,18 +107,22 @@ namespace MedEasy.Services.Tests
             {
                 yield return new object[] {
                     Enumerable.Empty<BloodPressure>(),
-                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    new GetOnePhysiologicalMeasureInfo { PatientId = Guid.NewGuid(), MeasureId = Guid.NewGuid() },
                     ((Expression<Func<BloodPressureInfo, bool>>)(x => x == null))
                 };
 
-                yield return new object[] {
-                    new [] {
-                        new BloodPressure { Id = 10, PatientId = 1, SystolicPressure = 120, DiastolicPressure = 80 },
-                        new BloodPressure { Id = 20, PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
-                    },
-                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
-                    ((Expression<Func<BloodPressureInfo, bool>>)(x => x.PatientId == 1 && x.Id == 10))
-                };
+                {
+                    Patient p = new Patient {UUID = Guid.NewGuid() };
+                    Guid measureId = Guid.NewGuid();
+                    yield return new object[] {
+                        new [] {
+                            new BloodPressure { Id = 10, PatientId = 1, SystolicPressure = 120, DiastolicPressure = 90, Patient = p, UUID = measureId },
+                            new BloodPressure { Id = 20, PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
+                        },
+                        new GetOnePhysiologicalMeasureInfo { PatientId = p.UUID, MeasureId = measureId },
+                        ((Expression<Func<BloodPressureInfo, bool>>)(x => x.PatientId == p.UUID && x.Id == measureId && x.SystolicPressure == 120 && x.DiastolicPressure == 90))
+                    };
+                }
             }
         }
 
@@ -116,59 +132,95 @@ namespace MedEasy.Services.Tests
             {
                 yield return new object[] {
                     Enumerable.Empty<BodyWeight>(),
-                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
+                    new GetOnePhysiologicalMeasureInfo { PatientId = Guid.NewGuid(), MeasureId = Guid.NewGuid() },
                     ((Expression<Func<BodyWeightInfo, bool>>)(x => x == null))
                 };
 
-                yield return new object[] {
-                    new [] {
-                        new BodyWeight { Id = 10, PatientId = 1, Value = 80 },
-                        new BodyWeight { Id = 20, PatientId = 2, Value = 80 }
-                    },
-                    new GetOnePhysiologicalMeasureInfo { PatientId = 1, MeasureId = 10 },
-                    ((Expression<Func<BodyWeightInfo, bool>>)(x => x.PatientId == 1 && x.Id == 10))
-                };
+                {
+                    Patient patient = new Patient
+                    {
+                        UUID = Guid.NewGuid()
+                    };
+                    Guid measureId = Guid.NewGuid();
+                    yield return new object[] {
+                        new [] {
+                            new BodyWeight { Id = 10, PatientId = 1, Value = 93,  Patient = patient },
+                            new BodyWeight { Id = 20, PatientId = 2, Value = 80 }
+                        },
+                        new GetOnePhysiologicalMeasureInfo { PatientId = patient.UUID, MeasureId = measureId },
+                        ((Expression<Func<BodyWeightInfo, bool>>)(x => x.PatientId == patient.UUID && x.Id == measureId && x.Value == 93))
+                    };
+                }
             }
         }
+
+        [Fact]
+        public void AddNewBloodPressureResource_Throws_NotFoundException_If_Patient_Not_Found()
+        {
+            // Arrange
+
+
+            // Act
+            CreatePhysiologicalMeasureInfo<BloodPressure> input = new CreatePhysiologicalMeasureInfo<BloodPressure>
+            {
+                PatientId = Guid.NewGuid(),
+                Measure = new BloodPressure
+                {
+                    DateOfMeasure = DateTimeOffset.UtcNow,
+                    SystolicPressure = 120,
+                    DiastolicPressure = 80
+                }
+            };
+
+            Func<Task> action = async () => await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
+
+            // Assert
+            action.ShouldThrow<NotFoundException>()
+                .Which
+                .Message.Should()
+                    .BeEquivalentTo($"Patient <{input.PatientId}> not found");
+
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
+            _loggerMock.VerifyAll();
+        }
+
 
         [Fact]
         public async Task AddNewBloodPressureResource()
         {
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Create(It.IsAny<BloodPressure>()))
-                .Returns((BloodPressure measure) =>
-                {
-                    DateTimeOffset now = DateTimeOffset.UtcNow;
-                    measure.Id = 1;
-                    measure.CreatedDate = now;
-                    measure.UpdatedDate = now;
 
-                    return measure;
-                });
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
-                .ReturnsAsync(1)
-                .Verifiable();
+            Guid patientId = Guid.NewGuid();
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Patient>().Create(new Patient { Id = 3, UUID = patientId });
+
+                await uow.SaveChangesAsync();
+            }
 
             // Act
-            BloodPressure input = new BloodPressure
+            CreatePhysiologicalMeasureInfo<BloodPressure> input = new CreatePhysiologicalMeasureInfo<BloodPressure>
             {
-                PatientId = 1,
-                DateOfMeasure = DateTimeOffset.UtcNow,
-                SystolicPressure = 120,
-                DiastolicPressure = 80
+                PatientId = patientId,
+                Measure = new BloodPressure
+                {
+                    DateOfMeasure = DateTimeOffset.UtcNow,
+                    SystolicPressure = 120,
+                    DiastolicPressure = 80
+                }
             };
             BloodPressureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
 
             // Assert
             output.Should().NotBeNull();
-            output.PatientId.Should().Be(input.Id);
-            output.DateOfMeasure.Should().Be(input.DateOfMeasure);
-            output.SystolicPressure.Should().Be(input.SystolicPressure);
-            output.DiastolicPressure.Should().Be(input.DiastolicPressure);
+            output.PatientId.Should().Be(input.PatientId);
+            output.Id.Should().NotBeEmpty();
+            output.DateOfMeasure.Should().Be(input.Measure.DateOfMeasure);
+            output.SystolicPressure.Should().Be(input.Measure.SystolicPressure);
+            output.DiastolicPressure.Should().Be(input.Measure.DiastolicPressure);
 
 
             _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
-            _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
 
         }
@@ -178,37 +230,25 @@ namespace MedEasy.Services.Tests
         [MemberData(nameof(GetMostRecentMeasuresCases))]
         public async Task GetMostRecentMeasures(IEnumerable<BloodPressure> measuresBdd, GetMostRecentPhysiologicalMeasuresInfo query, Expression<Func<IEnumerable<BloodPressureInfo>, bool>> resultExpectation)
         {
-            _outputHelper.WriteLine($"Current store state : {measuresBdd}");
+            _outputHelper.WriteLine($"Current store state : { SerializeObject(measuresBdd, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
             _outputHelper.WriteLine($"Query : {query}");
-            // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>()
-                .WhereAsync(
-                    It.IsAny<Expression<Func<BloodPressure, BloodPressureInfo>>>(),
-                    It.IsAny<Expression<Func<BloodPressure, bool>>>(),
-                    It.IsAny<IEnumerable<OrderClause<BloodPressureInfo>>>(),
-                    It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((Expression<Func<BloodPressure, BloodPressureInfo>> selector, Expression<Func<BloodPressure, bool>> filter,
-                    IEnumerable<OrderClause<BloodPressureInfo>> sorts, int pageSize, int page
-                ) => Task.Run(() =>
+
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                foreach (Patient p in measuresBdd.Where(x => x.Patient != null).Select(x => x.Patient))
                 {
+                    uow.Repository<Patient>().Create(p);
+                }
 
-                    IEnumerable<BloodPressureInfo> results = measuresBdd.Where(filter.Compile())
-                        .Select(selector.Compile())
-                        .AsQueryable()
-                        .OrderBy(sorts)
-                        .Skip(page < 1 ? pageSize : page - 1 * pageSize)
-                        .Take(pageSize)
-                        .ToArray();
-
-                    return (IPagedResult<BloodPressureInfo>)new PagedResult<BloodPressureInfo>(results, measuresBdd.Count(filter.Compile()), pageSize);
-                }));
+                uow.Repository<BloodPressure>().Create(measuresBdd);
+                await uow.SaveChangesAsync();
+            }
 
             // Act
             IEnumerable<BloodPressureInfo> measures = await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
 
             // Assert
             measures.Should().NotBeNull().And.Match(resultExpectation);
-            _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }
 
@@ -229,23 +269,18 @@ namespace MedEasy.Services.Tests
         public async Task GetOneBloodPressureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BloodPressureInfo, bool>> resultExpectation)
         {
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>()
-                .SingleOrDefaultAsync(
-                    It.IsAny<Expression<Func<BloodPressure, BloodPressureInfo>>>(),
-                    It.IsAny<Expression<Func<BloodPressure, bool>>>()))
-                .Returns((Expression<Func<BloodPressure, BloodPressureInfo>> selector, Expression<Func<BloodPressure, bool>> filter)
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<BloodPressure>().Create(measuresBdd);
 
-                 => Task.Run(() =>
-                {
-                    return measuresBdd.Where(filter.Compile()).Select(selector.Compile()).SingleOrDefault();
-                }));
-
+                await uow.SaveChangesAsync();
+            }
             // Act
-            BloodPressureInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(query.PatientId, query.MeasureId));
+            BloodPressureInfo measure = await _physiologicalMeasureService
+                .GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(query.PatientId, query.MeasureId));
 
             // Assert
             measure.Should().Match(resultExpectation);
-            _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
         }
 
@@ -255,23 +290,23 @@ namespace MedEasy.Services.Tests
         public async Task GetOneBodyWeightAsync(IEnumerable<BodyWeight> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BodyWeightInfo, bool>> resultExpectation)
         {
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BodyWeight>()
-                .SingleOrDefaultAsync(
-                    It.IsAny<Expression<Func<BodyWeight, BodyWeightInfo>>>(),
-                    It.IsAny<Expression<Func<BodyWeight, bool>>>()))
-                .Returns((Expression<Func<BodyWeight, BodyWeightInfo>> selector, Expression<Func<BodyWeight, bool>> filter)
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                foreach (Patient p in measuresBdd.Where(x => x.Patient != null).Select(x => x.Patient))
+                {
+                    uow.Repository<Patient>().Create(p);
+                }
 
-                 => Task.Run(() =>
-                 {
-                     return measuresBdd.Where(filter.Compile()).Select(selector.Compile()).SingleOrDefault();
-                 }));
+                uow.Repository<BodyWeight>().Create(measuresBdd);
+                await uow.SaveChangesAsync();
+            }
+
 
             // Act
             BodyWeightInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(query.PatientId, query.MeasureId));
 
             // Assert
-            measure.Should().Match(resultExpectation);
-            _unitOfWorkFactoryMock.VerifyAll();
+            measure?.Should().Match(resultExpectation);
             _loggerMock.VerifyAll();
         }
 
@@ -296,18 +331,13 @@ namespace MedEasy.Services.Tests
             // Arrange
             _iValidateDeleteOnePhysiologicalMeasureCommandMock.Setup(mock => mock.Validate(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<BloodPressure>().Delete(It.IsAny<Expression<Func<BloodPressure, bool>>>()))
-                .Verifiable();
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync())
-                .ReturnsAsync(1)
-                .Verifiable();
+
 
             // Act
-            await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(new DeleteOnePhysiologicalMeasureCommand(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 3 }));
+            await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<BloodPressure>(new DeleteOnePhysiologicalMeasureCommand(new DeletePhysiologicalMeasureInfo { Id = Guid.NewGuid(), MeasureId = Guid.NewGuid() }));
 
             // Assert
             _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
-            _unitOfWorkFactoryMock.VerifyAll();
             _loggerMock.VerifyAll();
 
         }
@@ -318,7 +348,7 @@ namespace MedEasy.Services.Tests
             _iValidateDeleteOnePhysiologicalMeasureCommandMock = null;
             _loggerMock = null;
             _outputHelper = null;
-            _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactory = null;
             _physiologicalMeasureService = null;
         }
     }

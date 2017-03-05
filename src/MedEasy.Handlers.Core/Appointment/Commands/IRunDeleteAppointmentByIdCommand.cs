@@ -4,7 +4,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Appointment.Commands
 {
-    public interface IRunDeleteAppointmentInfoByIdCommand : IRunCommandAsync<Guid, int, IDeleteAppointmentByIdCommand>
+    public interface IRunDeleteAppointmentInfoByIdCommand : IRunCommandAsync<Guid, Guid, IDeleteAppointmentByIdCommand>
     {
 
     }

@@ -10,9 +10,9 @@ using MedEasy.Handlers.Core.Specialty.Queries;
 namespace MedEasy.Handlers.Specialty.Queries
 {
     /// <summary>
-    /// An instance of this class can be used to handle <see cref="IWantOneSpecialtyInfoByIdQuery"/> interface implementations
+    /// An instance of this class can be used to handle <see cref="IWantOneResource{TQueryId, TData, TResult}"/> interface implementations
     /// </summary
-    public class HandleGetSpecialtyInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Specialty, int, SpecialtyInfo, IWantOneResource<Guid, int, SpecialtyInfo>>, IHandleGetSpecialtyInfoByIdQuery
+    public class HandleGetSpecialtyInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Specialty, SpecialtyInfo, IWantOneResource<Guid, Guid, SpecialtyInfo>>, IHandleGetSpecialtyInfoByIdQuery
     {
 
         /// <summary>

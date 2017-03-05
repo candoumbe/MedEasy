@@ -18,7 +18,6 @@ namespace MedEasy.DAL.Repositories
             {
                 throw new ArgumentNullException(nameof(context));
             }
-
             Context = context;
         } 
     }

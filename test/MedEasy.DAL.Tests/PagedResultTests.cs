@@ -26,7 +26,7 @@ namespace MedEasy.DAL.Tests
             Action action = () => new PagedResult<object>(null, 0, 0);
 
             //Assert
-            var exception = action.ShouldThrow<ArgumentNullException>().Which;
+            ArgumentNullException exception = action.ShouldThrow<ArgumentNullException>().Which;
             exception.ParamName.Should().NotBeNullOrWhiteSpace();
         }
 

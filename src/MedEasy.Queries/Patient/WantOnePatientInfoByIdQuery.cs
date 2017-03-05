@@ -9,13 +9,13 @@ namespace MedEasy.Queries.Patient
     {
         public Guid Id { get; }
 
-        public int Data { get; }
+        public Guid Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="WantOnePatientInfoByIdQuery"/> instance
         /// </summary>
         /// <param name="id">of the <see cref="PatientInfo"/> to retrieve</param>
-        public WantOnePatientInfoByIdQuery(int id)
+        public WantOnePatientInfoByIdQuery(Guid id)
         {
             Id = Guid.NewGuid();
             Data = id;

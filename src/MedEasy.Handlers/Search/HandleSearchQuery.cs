@@ -37,7 +37,7 @@ namespace MedEasy.Handlers
 
         public async Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery) where TEntity : class
         {
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
 
                 _logger.LogInformation("Start searching");

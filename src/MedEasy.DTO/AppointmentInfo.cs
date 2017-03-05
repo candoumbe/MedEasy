@@ -8,7 +8,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Resource that holds appointment informations.
     /// </summary>
-    public class AppointmentInfo : ResourceBase<int>
+    public class AppointmentInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Date of the beginning of the appointment
@@ -22,11 +22,11 @@ namespace MedEasy.DTO
         /// <summary>
         /// The patient of the appointment
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Doctor of the appointment
         /// </summary>
-        public int DoctorId { get; set; }
+        public Guid DoctorId { get; set; }
     }
 }

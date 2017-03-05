@@ -18,7 +18,7 @@ namespace MedEasy.Queries.Patient
         /// </summary>
         /// <param name="id">unique id of the <see cref="PatientInfo"/> to retrieve temperature measure from</param>
         /// <param name="measureId">unique id of the measure to retrieve</param>
-        public WantOnePhysiologicalMeasureQuery(int id, int measureId)
+        public WantOnePhysiologicalMeasureQuery(Guid id, Guid measureId)
         {
             Id = Guid.NewGuid();
             Data = new GetOnePhysiologicalMeasureInfo { PatientId = id, MeasureId = measureId };

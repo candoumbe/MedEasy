@@ -22,11 +22,11 @@ namespace MedEasy.DTO
         /// <summary>
         /// The patient of the appointment
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Doctor of the appointment
         /// </summary>
-        public int DoctorId { get; set; }
+        public Guid DoctorId { get; set; }
     }
 }

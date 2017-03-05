@@ -7,14 +7,14 @@ namespace MedEasy.Commands.Doctor
     /// Command to delete a doctor by its id
     /// </summary>
     [JsonObject]
-    public class DeleteDoctorByIdCommand : CommandBase<Guid, int>, IDeleteDoctorByIdCommand
+    public class DeleteDoctorByIdCommand : CommandBase<Guid, Guid>, IDeleteDoctorByIdCommand
     {
 
         /// <summary>
         /// Builds a new <see cref="DeleteDoctorByIdCommand"/> with a default validator
         /// </summary>
         /// <param name="id">id of the resource to delete</param>
-        public DeleteDoctorByIdCommand(int id) : base(Guid.NewGuid(), id)
+        public DeleteDoctorByIdCommand(Guid id) : base(Guid.NewGuid(), id)
         {}
 
         

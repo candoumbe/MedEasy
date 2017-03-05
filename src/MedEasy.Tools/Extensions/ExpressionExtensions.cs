@@ -38,11 +38,11 @@ namespace System.Linq.Expressions
                 throw new ArgumentNullException($"{nameof(second)}");
             }
 
-            var param = Expression.Parameter(typeof(T1), "param");
+            ParameterExpression param = Expression.Parameter(typeof(T1), "param");
 
-            var newFirst = new ReplaceVisitor(first.Parameters.First(), param).Visit(first.Body);
+            Expression newFirst = new ReplaceVisitor(first.Parameters.First(), param).Visit(first.Body);
 
-            var newSecond = new ReplaceVisitor(second.Parameters.First(), newFirst).Visit(second.Body);
+            Expression newSecond = new ReplaceVisitor(second.Parameters.First(), newFirst).Visit(second.Body);
 
             return Expression.Lambda<Func<T1, T3>>(newSecond, param);
         }
@@ -69,7 +69,7 @@ namespace System.Linq.Expressions
             }
 
 
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(first.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(first.Body);
@@ -91,7 +91,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> OrElse<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(expr1.Body);
@@ -113,7 +113,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(expr1.Body);
@@ -134,7 +134,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);
@@ -155,7 +155,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> LessThan<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);
@@ -177,7 +177,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> GreaterThan<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);
@@ -199,7 +199,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> GreaterThanOrEqual<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);
@@ -221,7 +221,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> LessThanOrEqual<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);
@@ -243,7 +243,7 @@ namespace System.Linq.Expressions
 
         public static Expression<Func<T, bool>> Equal<T>(this Expression<Func<T, bool>> f, Expression<Func<T, bool>> g)
         {
-            var parameter = Expression.Parameter(typeof(T));
+            ParameterExpression parameter = Expression.Parameter(typeof(T));
 
             ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
             Expression left = leftVisitor.Visit(f.Body);

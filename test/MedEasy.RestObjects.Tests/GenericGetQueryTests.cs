@@ -21,7 +21,7 @@ namespace MedEasy.Tests.RestObjects
             {
                                 
                 IEnumerable<int> pageSizes = new[] { 0, int.MinValue, int.MaxValue };
-                foreach (var pageSize in pageSizes)
+                foreach (int pageSize in pageSizes)
                 {
                     yield return new object[]
                     {
@@ -42,7 +42,7 @@ namespace MedEasy.Tests.RestObjects
             {
                 
                 IEnumerable<int> pages = new[] { 0, int.MinValue, int.MaxValue };
-                foreach (var page in pages)
+                foreach (int page in pages)
                 {
                     yield return new object[]
                     {

@@ -66,7 +66,7 @@ namespace MedEasy.Data.Converters
                             if (nbFilters > 2)
                             {
                                 IList<IDataFilter> filters = new List<IDataFilter>(nbFilters);
-                                foreach (var item in filtersArray)
+                                foreach (JToken item in filtersArray)
                                 {
                                     IDataFilter kf = (IDataFilter)item.ToObject<DataFilter>() ?? item.ToObject<DataCompositeFilter>();
 

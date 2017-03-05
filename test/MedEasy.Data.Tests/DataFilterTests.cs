@@ -62,7 +62,7 @@ namespace MedEasy.Data.Tests
         {
             get
             {
-                foreach (var item in Operators)
+                foreach (KeyValuePair<string, DataFilterOperator> item in Operators)
                 {
                     yield return new object[]
                     {

@@ -15,15 +15,15 @@ namespace MedEasy.Commands.Specialty
         /// <summary>
         /// Id of the resource to delete
         /// </summary>
-        public int Data { get; }
+        public Guid Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="DeleteSpecialtyByIdCommand"/> instance
         /// </summary>
         /// <param name="id">Id of the resource to delete</param>
-        public DeleteSpecialtyByIdCommand(int id)
+        public DeleteSpecialtyByIdCommand(Guid id)
         {
-            if (id <= 0)
+            if (id == Guid.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(id));
             }

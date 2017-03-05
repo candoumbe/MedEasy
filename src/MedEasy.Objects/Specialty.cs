@@ -8,7 +8,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// List of doctors that has the current speciality
         /// </summary>
-        public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
+        public IEnumerable<Doctor> Doctors { get; set; } = new List<Doctor>();
 
         /// <summary>
         /// Name of the specialty

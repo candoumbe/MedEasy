@@ -13,6 +13,7 @@ using MedEasy.Objects;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Commands;
+using AutoMapper;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -22,7 +23,7 @@ namespace MedEasy.Handlers.Patient.Commands
     /// </summary>
     public class RunCreateDocumentForPatientCommand : CommandRunnerBase<Guid, CreateDocumentForPatientInfo, DocumentMetadataInfo, ICreateDocumentForPatientCommand>, IRunCreateDocumentForPatientCommand
     {
-        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly IMapper _mapper;
         private readonly IUnitOfWorkFactory _factory;
         private readonly ILogger<RunCreateDocumentForPatientCommand> _logger;
 
@@ -30,18 +31,18 @@ namespace MedEasy.Handlers.Patient.Commands
         /// Builds a new <see cref="RunCreateDocumentForPatientCommand"/> instance.
         /// </summary>
         /// <param name="factory"> Factory that can build<see cref="IUnitOfWorkFactory"/></param>
-        /// <param name="expressionBuilder">Builder that can provide expressions to convert from one type to an other</param>
+        /// <param name="mapper">Mapper to convert from one type to an other</param>
         /// <param name="validator">Validator to use to validate commands before processing them</param>
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
         /// <see cref="CommandRunnerBase{TKey, TInput, TOutput, TCommand}"/>
         public RunCreateDocumentForPatientCommand(IValidate<ICreateDocumentForPatientCommand> validator, ILogger<RunCreateDocumentForPatientCommand> logger, IUnitOfWorkFactory factory,
-            IExpressionBuilder expressionBuilder) 
+            IMapper mapper) 
             : base (validator)
         {
             _logger = logger;
             _factory = factory;
-            _expressionBuilder = expressionBuilder;
+            _mapper = mapper;
         }
 
 
@@ -57,7 +58,7 @@ namespace MedEasy.Handlers.Patient.Commands
                 _logger.LogInformation($"Command <{command.Id}> is not valid");
 
 #if DEBUG
-                foreach (var error in errors)
+                foreach (ErrorInfo error in errors)
                 {
                     _logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
@@ -66,13 +67,16 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
-                var data = command.Data;
-                Objects.Patient patient = await uow.Repository<Objects.Patient>().SingleOrDefaultAsync(x => x.Id == data.PatientId);
+                CreateDocumentForPatientInfo data = command.Data;
+                var patient = await uow.Repository<Objects.Patient>()
+                    .SingleOrDefaultAsync(
+                        x => new {x.Id}, 
+                        x => x.UUID == data.PatientId);
                 if (patient == null)
                 {
-                    throw new NotFoundException("No patient found");
+                    throw new NotFoundException($"Patient <{data.PatientId}> not found");
                 }
 
                 CreateDocumentInfo document = data.Document;
@@ -84,16 +88,17 @@ namespace MedEasy.Handlers.Patient.Commands
                     Size = document.Content.Length,
                     Document = new Objects.Document
                     {
-                        Content = data.Document.Content
-                    }
+                        Content = data.Document.Content,
+                        UUID = Guid.NewGuid()
+                    },
+                    UUID = Guid.NewGuid()
                 };
 
                 documentMetadata = uow.Repository<DocumentMetadata>().Create(documentMetadata);
                 await uow.SaveChangesAsync();
 
-                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> converter = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
-                DocumentMetadataInfo result = converter.Compile()(documentMetadata); 
-
+                DocumentMetadataInfo result = _mapper.Map<DocumentMetadata, DocumentMetadataInfo>(documentMetadata);
+                result.PatientId = data.PatientId;
                 _logger.LogTrace($"Command's result : {result}");
                 _logger.LogInformation($"Command <{command.Id}> runned successfully");
 

@@ -22,6 +22,8 @@ using MedEasy.Handlers.Core.Patient.Queries;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using System.Linq;
+using static Newtonsoft.Json.JsonConvert;
+using Newtonsoft.Json;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -30,7 +32,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery _handler;
-        
+
         private Mock<ILogger<HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery>> _loggerMock;
         private IMapper _mapper;
 
@@ -65,7 +67,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         }
 
 
-        
+
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
@@ -75,7 +77,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
-            Action action = () => new HandleGetDocumentsByPatientIdQuery( factory, logger,expressionBuilder);
+            Action action = () => new HandleGetDocumentsByPatientIdQuery(factory, logger, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -102,31 +104,47 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         }
 
 
-        public static IEnumerable<object> GetOneDocumentByPatientIdAndDocumentIdCases { get
+        public static IEnumerable<object> GetOneDocumentByPatientIdAndDocumentIdCases
+        {
+            get
             {
-                yield return new object[]
                 {
-                    Enumerable.Empty<Objects.Patient>(),
-                    new WantOneDocumentByPatientIdAndDocumentIdQuery(1, 1),
-                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
-                };
+                    Guid patientId = Guid.NewGuid();
+                    Guid documentId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        Enumerable.Empty<Objects.Patient>(),
+                        new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
+                        ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
+                    };
+                }
+                {
+                    Guid patientId = Guid.NewGuid();
+                    Guid documentId = Guid.NewGuid();
 
-                yield return new object[]
-                {
-                    new [] {
-                        new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne" }
-                    },
-                    new WantOneDocumentByPatientIdAndDocumentIdQuery(1, 1),
+                    yield return new object[]
+                    {
+                        new [] {
+                            new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne", UUID = patientId }
+                        },
+                    new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
                     ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
-                };
+                    };
+                }
 
-                yield return new object[]
                 {
+                    Guid patientId = Guid.NewGuid();
+                    Guid documentId = Guid.NewGuid();
+
+                    yield return new object[]
+                    {
+
                     new [] {
                         new Objects.Patient {
                             Id = 1,
                             Firstname = "Bruce",
                             Lastname = "Wayne",
+                            UUID = patientId,
                             Documents  = new []
                             {
                                 new DocumentMetadata
@@ -135,59 +153,72 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                                     MimeType = "application/pdf",
                                     Title = "Secret weapon",
                                     Size = 512,
-                                    DocumentId = 4
+                                    Document = new Objects.Document {
+                                        Content = new byte[512],
+                                        UUID = Guid.NewGuid()
+                                    },
+                                    UUID = documentId
                                 }
                             }
 
                         }
                     },
-                    new WantOneDocumentByPatientIdAndDocumentIdQuery(1, 4),
-                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x != null && x.Id == 4 && x.PatientId == 1
+                    new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
+                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x != null && x.Id == documentId && x.PatientId == patientId
                         && x.MimeType == "application/pdf"
                         && x.Title == "Secret weapon"
                         && x.Size == 512
                     ))
-                };
-
-                yield return new object[]
+                    };
+                }
                 {
-                    new [] {
-                        new Objects.Patient {
-                            Id = 1,
-                            Firstname = "Bruce",
-                            Lastname = "Wayne",
-                            Documents  = new []
-                            {
-                                new DocumentMetadata
-                                {
-                                    Id = 4,
-                                    MimeType = "application/pdf",
-                                    Title = "Secret weapon",
-                                    Size = 512,
-                                    DocumentId = 4
-                                }
-                            }
+                    Guid patientId = Guid.NewGuid();
+                    Guid documentId = Guid.NewGuid();
 
-                        }
-                    },
-                    new WantOneDocumentByPatientIdAndDocumentIdQuery(2, 4),
-                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
-                };
+                    yield return new object[]
+                    {
+                        new [] {
+                            new Objects.Patient {
+                                Id = 1,
+                                Firstname = "Bruce",
+                                Lastname = "Wayne",
+                                UUID = patientId,
+                                Documents  = new []
+                                {
+                                    new DocumentMetadata
+                                    {
+                                        MimeType = "application/pdf",
+                                        Title = "Secret weapon",
+                                        Size = 512,
+                                        Document = new Objects.Document {
+                                            Content = new byte[0],
+                                            UUID = Guid.NewGuid()
+                                        },
+                                        UUID = Guid.NewGuid()
+                                    }
+                                }
+
+                            }
+                        },
+                        new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
+                        ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
+                    };
+                }
 
             }
         }
 
         [Theory]
         [MemberData(nameof(GetOneDocumentByPatientIdAndDocumentIdCases))]
-        public async Task GetOneDocumentByPatientIdAndDocumentId(IEnumerable<Objects.Patient> patients, IWantOneDocumentByPatientIdAndDocumentIdQuery query,  Expression<Func<DocumentMetadataInfo, bool>> resultExpectation)
+        public async Task GetOneDocumentByPatientIdAndDocumentId(IEnumerable<Objects.Patient> patients, IWantOneDocumentByPatientIdAndDocumentIdQuery query, Expression<Func<DocumentMetadataInfo, bool>> resultExpectation)
         {
             // Arrange
-            using (var uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
             {
                 uow.Repository<Objects.Patient>().Create(patients);
                 await uow.SaveChangesAsync();
             }
-
+            _outputHelper.WriteLine($"Patients  : {SerializeObject(patients, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
             // Act
             DocumentMetadataInfo documentMetadataInfo = await _handler.HandleAsync(query);
 
@@ -203,7 +234,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public void Dispose()
         {
             _outputHelper = null;
-           _unitOfWorkFactory = null;
+            _unitOfWorkFactory = null;
             _handler = null;
             _mapper = null;
         }

@@ -37,7 +37,7 @@ namespace System.Collections.Generic
         public static string ToQueryString(this IDictionary<string, object> dictionary)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var kv in dictionary.Where(kv => kv.Value != null))
+            foreach (KeyValuePair<string, object> kv in dictionary.Where(kv => kv.Value != null))
             {
                 object value = kv.Value;
                 Type valueType = value.GetType();

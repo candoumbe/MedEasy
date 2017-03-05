@@ -13,7 +13,7 @@ namespace MedEasy.Handlers.Doctor.Queries
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneDoctorInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, int, DoctorInfo, IWantOneResource<Guid, int, DoctorInfo>, IValidate<IWantOneResource<Guid, int, DoctorInfo>>>, IHandleGetDoctorInfoByIdQuery
+    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, Guid, DoctorInfo, IWantOneResource<Guid, Guid, DoctorInfo>, IValidate<IWantOneResource<Guid, Guid, DoctorInfo>>>, IHandleGetDoctorInfoByIdQuery
     {
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace MedEasy.Handlers.Doctor.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Doctor"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder"></param>
-        public HandleGetDoctorInfoByIdQuery(IUnitOfWorkFactory factory, ILogger<HandleGetDoctorInfoByIdQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantOneResource<Guid, int, DoctorInfo>>.Default, logger, factory, expressionBuilder)
+        public HandleGetDoctorInfoByIdQuery(IUnitOfWorkFactory factory, ILogger<HandleGetDoctorInfoByIdQuery> logger, IExpressionBuilder expressionBuilder) : base(Validator<IWantOneResource<Guid, Guid, DoctorInfo>>.Default, logger, factory, expressionBuilder)
         {
         }
     }

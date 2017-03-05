@@ -17,17 +17,20 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.DAL.Repositories;
+using Microsoft.EntityFrameworkCore;
+using MedEasy.API.Stores;
+using Newtonsoft.Json;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Services.Tests
 {
     public class PrescriptionServicesTests : IDisposable
     {
-        private Mock<IUnitOfWorkFactory> _factoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private Mock<ILogger<PrescriptionService>> _loggerMock;
         private ITestOutputHelper _outputHelper;
         private PrescriptionService _service;
         private IMapper _mapper;
-        private IExpressionBuilder _expressionBuilder;
 
         public PrescriptionServicesTests(ITestOutputHelper outputHelper)
         {
@@ -35,12 +38,26 @@ namespace MedEasy.Services.Tests
 
             _loggerMock = new Mock<ILogger<PrescriptionService>>(Strict);
 
-            _factoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _factoryMock.Setup(mock => mock.New().Dispose());
-
-            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
-            _service = new PrescriptionService(_factoryMock.Object, _loggerMock.Object, _expressionBuilder);
+            DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>()
+                .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
+            
+            _mapper = AutoMapperConfig.Build().CreateMapper();
+            _service = new PrescriptionService(_unitOfWorkFactory, _loggerMock.Object, _mapper);
         }
+
+        public void Dispose()
+        {
+            _mapper = null;
+            _outputHelper = null;
+
+            _loggerMock = null;
+
+            _unitOfWorkFactory = null;
+
+            _service = null;
+        }
+
 
         public static IEnumerable<object> GetOnePrescriptionByPatientIdAsyncCases
         {
@@ -49,24 +66,34 @@ namespace MedEasy.Services.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<Prescription>(),
-                    1, 2,
+                    Guid.NewGuid(), Guid.NewGuid(),
                     ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  == null))
                 };
 
-                yield return new object[]
                 {
-                    new []
+                    Guid patientId = Guid.NewGuid();
+                    Guid prescriptionId = Guid.NewGuid();
+                    Patient p = new Patient
                     {
-                        new Prescription
+
+                        UUID = patientId
+                    };
+                    yield return new object[]
+                    {
+                        new []
                         {
-                            Id = 2,
-                            PatientId = 1,
-                            DeliveryDate = 23.December(2000)
-                        }
-                    },
-                    1, 2,
-                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  != null && x.DeliveryDate == 23.December(2000) && x.Id == 2 && x.PatientId == 1))
-                };
+                            new Prescription
+                            {
+                                Id = 2,
+                                Patient = p,
+                                DeliveryDate = 23.December(2000),
+                                UUID = prescriptionId
+                            }
+                        },
+                        patientId, prescriptionId,
+                        ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  != null && x.DeliveryDate == 23.December(2000) && x.Id == prescriptionId && x.PatientId == patientId))
+                    };
+                }
 
                 yield return new object[]
                 {
@@ -79,7 +106,7 @@ namespace MedEasy.Services.Tests
                             DeliveryDate = 23.December(2000)
                         }
                     },
-                    1, 2,
+                    Guid.NewGuid(), Guid.NewGuid(),
                     ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  == null))
                 };
             }
@@ -92,77 +119,72 @@ namespace MedEasy.Services.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<Prescription>(),
-                    1, 
-                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  == null))
+                    Guid.NewGuid(), 
+                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x == null))
                 };
-
-                yield return new object[]
                 {
-                    new []
+                    Guid prescriptionId = Guid.NewGuid();
+                    Guid patientId = Guid.NewGuid();
+                    Patient p = new Patient
                     {
-                        new Prescription
+                        Id = 1,
+                        UUID = patientId
+                    };
+                    yield return new object[]
+                    {
+                        new []
                         {
-                            Id = 2,
-                            PatientId = 1,
-                            DeliveryDate = 23.December(2000)
-                        }
-                    },
-                    2,
-                    ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  != null && x.DeliveryDate == 23.December(2000) && x.Id == 2 && x.PatientId == 1))
-                };
+                            new Prescription
+                            {
+                                Id = 2,
+                                DeliveryDate = 23.December(2000),
+                                Patient = p,
+                                PatientId = p.Id,
+                                UUID = prescriptionId
+                            }
+                        },
+                        prescriptionId,
+                        ((Expression<Func<PrescriptionHeaderInfo, bool>>)(x => x  != null && x.DeliveryDate == 23.December(2000) && x.Id == prescriptionId && x.PatientId == patientId))
+                    };
+                }
             }
-        }
-
-
-        public void Dispose()
-        {
-            _expressionBuilder = null;
-            _outputHelper = null;
-
-            _loggerMock = null;
-
-            _factoryMock = null;
-
-            _service = null;
         }
 
         [Fact]
         public async Task CreateNewPrescriptionForPatient()
         {
             // Arrange
-            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().Create(It.IsAny<Prescription>()))
-                .Returns((Prescription input) =>
-                {
-                    input.Id = 1;
+            Guid patientId = Guid.NewGuid();
+            Guid prescriptorId = Guid.NewGuid();
 
-                    return input;
-                });
+            using (var uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Patient>().Create(new Patient { UUID = patientId });
+                uow.Repository<Doctor>().Create(new Doctor { UUID = prescriptorId });
 
-            _factoryMock.Setup(mock => mock.New().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>()))
-                .ReturnsAsync(true);
+                await uow.SaveChangesAsync();
+            }
 
-            _factoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
-            
             // Act
             CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
             {
                 DeliveryDate = 23.June(2005),
                 Duration = TimeSpan.FromDays(30).TotalDays,
+                PrescriptorId = prescriptorId,
                 Items = new[]
                 {
                     new PrescriptionItemInfo { Code = "DRUG",  Quantity = 1m  }
                 }
             };
-            PrescriptionHeaderInfo prescriptionHeader = await _service.CreatePrescriptionForPatientAsync(1, newPrescription);
+            PrescriptionHeaderInfo prescriptionHeader = await _service.CreatePrescriptionForPatientAsync(patientId, newPrescription);
 
 
             // Assert
 
             prescriptionHeader.Should().NotBeNull();
             prescriptionHeader.DeliveryDate.Should().Be(newPrescription.DeliveryDate);
-            prescriptionHeader.PatientId.Should().Be(1, "id of the patient must match the first argument");
+            prescriptionHeader.PatientId.Should().Be(patientId, "id of the patient must match the first argument");
 
-            _factoryMock.Verify();
             _loggerMock.VerifyAll();
         }
 
@@ -170,7 +192,7 @@ namespace MedEasy.Services.Tests
         public void ShouldThrowArgumentNullExceptionWhenPrescriptionIsNull()
         {
             // Act
-            Func<Task> action = async () => await _service.CreatePrescriptionForPatientAsync(1, null);
+            Func<Task> action = async () => await _service.CreatePrescriptionForPatientAsync(Guid.NewGuid(), null);
 
 
             // Assert
@@ -180,10 +202,8 @@ namespace MedEasy.Services.Tests
                     .NotBeNullOrWhiteSpace();
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public void ShouldThrowArgumentOutOfRangeExceptionWhenPatientIdIsNegativeOrNull(int patientId)
+        [Fact]
+        public void ShouldThrowArgumentOutOfRangeExceptionWhenPatientIdIsNegativeOrNull()
         {
             // Act
             CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
@@ -196,29 +216,27 @@ namespace MedEasy.Services.Tests
                 }
             };
 
-            Func<Task> action = async () => await _service.CreatePrescriptionForPatientAsync(patientId, newPrescription);
+            Func<Task> action = async () => await _service.CreatePrescriptionForPatientAsync(Guid.Empty, newPrescription);
 
 
             // Assert
 
-            action.ShouldThrow<ArgumentOutOfRangeException>($"{nameof(patientId)} is {patientId}").Which
+            action.ShouldThrow<ArgumentOutOfRangeException>().Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }
 
         [Theory]
         [MemberData(nameof(GetOnePrescriptionByPatientIdAsyncCases))]
-        public async Task GetOnePrescriptionByPatientIdAsync(IEnumerable<Prescription> prescriptionsBdd, int patientId, int prescriptionId, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
+        public async Task GetOnePrescriptionByPatientIdAsync(IEnumerable<Prescription> prescriptionsBdd, Guid patientId, Guid prescriptionId, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
         {
             // Arrange 
-            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, PrescriptionHeaderInfo>>>(), It.IsAny<Expression<Func<Prescription, bool>>>()))
-                .Returns((Expression<Func<Prescription, PrescriptionHeaderInfo>> selector, Expression<Func<Prescription, bool>> filter) => Task.Run(() =>
-                {
-                    return prescriptionsBdd
-                        .Where(filter.Compile())
-                        .Select(selector.Compile())
-                        .SingleOrDefault();
-                }));
+            using (var uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Prescription>().Create(prescriptionsBdd);
+
+                await uow.SaveChangesAsync();
+            }
 
             // Act
             PrescriptionHeaderInfo output = await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);
@@ -233,33 +251,32 @@ namespace MedEasy.Services.Tests
         {
 
             // Arrange
-            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, bool>>>(), It.IsAny<IEnumerable<IncludeClause<Prescription>>>()))
-                .ReturnsAsync(null);
 
             // Act
-            Func<Task> action = async () => await _service.GetItemsByPrescriptionIdAsync(1);
+            Guid prescriptionId = Guid.NewGuid();
+            Func<Task> action = async () => await _service.GetItemsByPrescriptionIdAsync(prescriptionId);
 
             // Assert
             action.ShouldThrow<NotFoundException>()
                 .Which.Message.Should()
-                .MatchRegex(@"Prescription <\d+> not found");
+                .Be($"Prescription <{prescriptionId}> not found");
         }
 
         
 
         [Theory]
         [MemberData(nameof(GetOnePrescriptionTestsCases))]
-        public async Task GetOnePrescriptionTests(IEnumerable<Prescription> prescriptionsBdd, int id, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
+        public async Task GetOnePrescriptionTests(IEnumerable<Prescription> prescriptionsBdd, Guid id, Expression<Func<PrescriptionHeaderInfo, bool>> resultExpectation)
         {
             // Arrange 
-            _factoryMock.Setup(mock => mock.New().Repository<Prescription>().SingleOrDefaultAsync(It.IsAny<Expression<Func<Prescription, PrescriptionHeaderInfo>>>(), It.IsAny<Expression<Func<Prescription, bool>>>()))
-                .Returns((Expression<Func<Prescription, PrescriptionHeaderInfo>> selector, Expression<Func<Prescription, bool>> filter) => Task.Run(() =>
-                {
-                    return prescriptionsBdd
-                        .Where(filter.Compile())
-                        .Select(selector.Compile())
-                        .SingleOrDefault();
-                }));
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Prescription>().Create(prescriptionsBdd);
+
+                await uow.SaveChangesAsync();
+            }
+
+            _outputHelper.WriteLine($"Prescriptions : {SerializeObject(prescriptionsBdd, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
 
             // Act
             PrescriptionHeaderInfo output = await _service.GetOnePrescriptionAsync(id);
@@ -272,20 +289,16 @@ namespace MedEasy.Services.Tests
 
         /// <summary>
         /// Tests that <see cref="PrescriptionService.GetOnePrescriptionByPatientIdAsync(int, int)"/> throws <see cref="ArgumentOutOfRangeException"/>
-        /// if any parameter is negative or zero
+        /// if any parameter is empty
         /// </summary>
         /// <param name="patientId"></param>
         /// <param name="prescriptionId"></param>
         /// <returns></returns>
-        [Theory]
-        [InlineData(int.MinValue, int.MinValue)]
-        [InlineData(-1, -1)]
-        [InlineData(0, -1)]
-        [InlineData(0, -1)]
-        public void ShouldThrowArgumentOutOfRangeException(int patientId, int prescriptionId)
+        [Fact]
+        public void ShouldThrowArgumentOutOfRangeException()
         {
             // Act
-            Func<Task> action = async () =>  await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);
+            Func<Task> action = async () =>  await _service.GetOnePrescriptionByPatientIdAsync(Guid.Empty, Guid.Empty);
 
             // Assert
             action.ShouldThrow<ArgumentOutOfRangeException>().Which

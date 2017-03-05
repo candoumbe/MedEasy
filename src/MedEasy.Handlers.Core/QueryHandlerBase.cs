@@ -13,7 +13,7 @@ namespace MedEasy.Handlers.Core.Queries
     ///     Queries processed by <see cref="QueryHandlerBase{TKey, TEntity, TData, TOutput, TQuery, TQueryValidator}"/> outputs
     /// </remarks>
     /// <typeparam name="TKey">Type of the identifiar of the command</typeparam>
-    /// <typeparam name="TOutput">Type of the expected result of the <see cref="IExecuteQueryAsync{TKey, TResult, TQuery}"/></typeparam>
+    /// <typeparam name="TOutput">Type of the expected result of the <see cref="IQuery{TKey, TData, TResult}"/></typeparam>
     /// <typeparam name="TQuery">Type of the query</typeparam>
     /// <typeparam name="TData">Type of data the query carries</typeparam>
     /// <typeparam name="TEntity">Type of the entity store will be handled against</typeparam>

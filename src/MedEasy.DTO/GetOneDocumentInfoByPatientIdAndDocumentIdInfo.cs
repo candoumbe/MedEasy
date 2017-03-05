@@ -14,12 +14,12 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the patient 
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Id of the document metadata to get file from
         /// </summary>
-        public int DocumentMetadataId { get; set; }
+        public Guid DocumentMetadataId { get; set; }
 
     }
 }

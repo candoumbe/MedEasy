@@ -17,7 +17,7 @@ namespace MedEasy.Queries.Patient
         /// </summary>
         /// <param name="patientId">id of the patient</param>
         /// <param name="documentMetadataId">Configuration used to split results in pages.</param>
-        public WantOneDocumentByPatientIdAndDocumentIdQuery(int patientId, int documentMetadataId)
+        public WantOneDocumentByPatientIdAndDocumentIdQuery(Guid patientId, Guid documentMetadataId)
         {
             Id = Guid.NewGuid();
             Data = new GetOneDocumentInfoByPatientIdAndDocumentIdInfo { PatientId = patientId, DocumentMetadataId = documentMetadataId };

@@ -18,13 +18,15 @@ using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Specialty.Queries;
+using MedEasy.API.Stores;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
     public class HandleGetManySpecialtyInfosQueryTests: IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private HandleGetManySpecialtyInfoQuery _handler;
         
         private Mock<ILogger<HandleGetManySpecialtyInfoQuery>> _loggerMock;
@@ -35,13 +37,15 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             _outputHelper = outputHelper;
 
             _mapper = AutoMapperConfig.Build().CreateMapper();
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+            DbContextOptionsBuilder<MedEasyContext> builder = new DbContextOptionsBuilder<MedEasyContext>();
+            builder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
+            
 
             _loggerMock = new Mock<ILogger<HandleGetManySpecialtyInfoQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _handler = new HandleGetManySpecialtyInfoQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetManySpecialtyInfoQuery(_unitOfWorkFactory, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -99,24 +103,15 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         [Fact]
         public async Task QueryAnEmptyDatabase()
         {
-            //Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>()
-                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Specialty, SpecialtyInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<SpecialtyInfo>>>()))
-                .ReturnsAsync(PagedResult<SpecialtyInfo>.Default);
 
             // Act
             IPagedResult<SpecialtyInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<SpecialtyInfo>(new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();
-            output.Entries.Should()
-                .NotBeNull().And
-                .BeEmpty();
-
+            output.Entries.Should().BeEmpty();
             output.Total.Should().Be(0);
-
-
-            _unitOfWorkFactoryMock.Verify();
+            
         }
         
 
@@ -125,7 +120,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         public void Dispose()
         {
             _outputHelper = null;
-           _unitOfWorkFactoryMock = null;
+           _unitOfWorkFactory = null;
             _handler = null;
             _mapper = null;
         }

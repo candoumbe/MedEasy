@@ -185,7 +185,7 @@ namespace System.Collections.Generic
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> body)
         {
             IList<Exception> exceptions = null;
-            foreach (var item in source)
+            foreach (T item in source)
             {
                 try
                 {

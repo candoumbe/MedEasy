@@ -32,16 +32,15 @@ namespace MedEasy.Handlers.Patient.Queries
         /// <param name="expressionBuilder"></param>
         public HandleGetMostRecentPhysiologicalMeasuresQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> logger, IExpressionBuilder expressionBuilder)
         {
-            if (uowFactory == null)
-            {
+            if (uowFactory == null) {
                 throw new ArgumentNullException(nameof(uowFactory));
             }
-            if (logger == null)
-            {
+                
+            if (logger == null) {
                 throw new ArgumentNullException(nameof(logger));
             }
-            if (expressionBuilder == null)
-            {
+
+            if (expressionBuilder == null) {
                 throw new ArgumentNullException(nameof(expressionBuilder));
             }
             _uowFactory = uowFactory;
@@ -57,7 +56,7 @@ namespace MedEasy.Handlers.Patient.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 _logger.LogTrace($"Start querying most recents measures {query}");
                 GetMostRecentPhysiologicalMeasuresInfo input = query.Data;
@@ -65,7 +64,7 @@ namespace MedEasy.Handlers.Patient.Queries
                 IPagedResult<TPhysiologicalMeasureInfo> mostRecentsMeasures = await uow.Repository<TPhysiologicalMeasure>()
                     .WhereAsync(
                         selector,
-                        (TPhysiologicalMeasure x) => x.PatientId == input.PatientId,
+                        (TPhysiologicalMeasure x) => x.Patient.UUID == input.PatientId,
                         new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, Descending)}, 
                         1, input.Count.GetValueOrDefault(15));
 

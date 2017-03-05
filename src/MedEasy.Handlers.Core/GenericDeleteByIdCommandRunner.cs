@@ -20,9 +20,9 @@ namespace MedEasy.Handlers.Core.Commands
     /// <typeparam name="TData">Type of the data the command this instance handles will carry</typeparam>
     /// <typeparam name="TOutput">Type of the TCommand outputs</typeparam>
     /// <typeparam name="TCommand">Type of the commmand</typeparam>
-    public abstract class GenericDeleteByIdCommandRunner<TKey, TEntity, TData, TCommand> : CommandRunnerBase<TKey, TData, TCommand>
-        where TCommand : ICommand<TKey, TData>
-        where TEntity : class, IEntity<TData>
+    public abstract class GenericDeleteByIdCommandRunner<TKey, TEntity, TCommand> : CommandRunnerBase<TKey, Guid, TCommand>
+        where TCommand : ICommand<TKey, Guid>
+        where TEntity : class, IEntity<int>
         where TKey : IEquatable<TKey>
     {
 
@@ -35,7 +35,7 @@ namespace MedEasy.Handlers.Core.Commands
         /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
         /// <param name="entityToOutputMapper">Function to convert entity to command</param>
         public GenericDeleteByIdCommandRunner(IValidate<TCommand> validator,
-            ILogger<GenericDeleteByIdCommandRunner<TKey, TEntity, TData, TCommand>> logger,
+            ILogger<GenericDeleteByIdCommandRunner<TKey, TEntity, TCommand>> logger,
             IUnitOfWorkFactory uowFactory) : base (validator)
         {
             UowFactory = uowFactory;
@@ -44,7 +44,7 @@ namespace MedEasy.Handlers.Core.Commands
 
         public IUnitOfWorkFactory UowFactory { get; }
 
-        public ILogger<GenericDeleteByIdCommandRunner<TKey, TEntity, TData, TCommand>> Logger { get; }
+        public ILogger<GenericDeleteByIdCommandRunner<TKey, TEntity, TCommand>> Logger { get; }
 
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace MedEasy.Handlers.Core.Commands
             {
                 Logger.LogTrace("validation failed", errors);
 #if DEBUG || TRACE
-                foreach (var error in errors)
+                foreach (ErrorInfo error in errors)
                 {
                     Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
@@ -80,11 +80,11 @@ namespace MedEasy.Handlers.Core.Commands
             }
             Logger.LogTrace("Command validation succeeded");
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                TData data = command.Data;
+                Guid data = command.Data;
                 
-                uow.Repository<TEntity>().Delete(item => data.Equals(item.Id));
+                uow.Repository<TEntity>().Delete(item => data.Equals(item.UUID));
                 await uow.SaveChangesAsync();
 
                 Logger.LogInformation($"Command {command.Id} processed successfully");

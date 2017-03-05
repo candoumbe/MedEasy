@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace MedEasy.DTO
 {
     [JsonObject]
-    public class DoctorInfo : ResourceBase<int>
+    public class DoctorInfo : ResourceBase<Guid>
     {
         
 
@@ -17,7 +17,7 @@ namespace MedEasy.DTO
         
 
         [JsonProperty]
-        public int? SpecialtyId { get; set; }
+        public Guid? SpecialtyId { get; set; }
     }
 
 }

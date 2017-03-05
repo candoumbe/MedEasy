@@ -41,6 +41,11 @@ namespace MedEasy.API.Swagger
                 typeof(decimal?),
             };
 
+        /// <summary>
+        /// Implements the <see cref="IOperationFilter.Apply(Operation, OperationFilterContext)"/> method.
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="context"></param>
         public void Apply(Operation operation, OperationFilterContext context)
         {
 
@@ -57,7 +62,7 @@ namespace MedEasy.API.Swagger
                     .Where(x => FormFilePropertyNames.Contains(x.Name))
                     .ToArray();
                 int index = operation.Parameters.IndexOf(formFileParameters.First());
-                foreach (var formFileParameter in formFileParameters)
+                foreach (NonBodyParameter formFileParameter in formFileParameters)
                 {
                     operation.Parameters.Remove(formFileParameter);
                 }

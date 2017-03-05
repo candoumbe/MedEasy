@@ -1,14 +1,15 @@
 ﻿
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
 {
-    public class PrescriptionItemInfo : ResourceBase<int>
+    public class PrescriptionItemInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Prescription's category
         /// </summary>
-        public int CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
 
         /// <summary>

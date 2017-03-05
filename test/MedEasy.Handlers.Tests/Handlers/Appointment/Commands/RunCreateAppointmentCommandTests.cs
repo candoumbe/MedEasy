@@ -51,19 +51,21 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
         public async Task Create()
         {
             // Arrange
+            Guid doctorUUID = Guid.NewGuid();
+            Guid patientUUID = Guid.NewGuid();
 
             using (var uow = _unitOfWorkFactory.New())
             {
-                uow.Repository<Objects.Patient>().Create(new Objects.Patient { Id = 3, Firstname = "Bruce", Lastname = "Wayne" });
-                uow.Repository<Objects.Doctor>().Create(new Objects.Doctor { Id = 1, Firstname = "Hugo", Lastname = "Strange" });
+                uow.Repository<Objects.Patient>().Create(new Objects.Patient { Id = 3, Firstname = "Bruce", Lastname = "Wayne", UUID = patientUUID });
+                uow.Repository<Objects.Doctor>().Create(new Objects.Doctor { Id = 1, Firstname = "Hugo", Lastname = "Strange", UUID = doctorUUID });
 
                 await uow.SaveChangesAsync();
             }
 
             CreateAppointmentInfo data = new CreateAppointmentInfo
             {
-                DoctorId = 1,
-                PatientId = 3,
+                DoctorId = doctorUUID,
+                PatientId = patientUUID,
                 StartDate = 1.February(2010),
                 Duration = 15
             };
@@ -73,8 +75,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
             AppointmentInfo result = await _handler.RunAsync(cmd);
 
             // Assert
-            //result.Id.Should().NotBe(1);
-            result.UUID.Should().NotBeEmpty();
+            result.Id.Should().NotBeEmpty();
             result.PatientId.Should().Be(data.PatientId);
             result.DoctorId.Should().Be(data.DoctorId);
             result.StartDate.Should().Be(data.StartDate);
@@ -92,9 +93,11 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
         public async Task Run_Throws_NotFoundException_If_Doctor_Not_Found()
         {
             // Arrange
+            Guid patientUUID = Guid.NewGuid();
+
             using (var uow = _unitOfWorkFactory.New())
             {
-                uow.Repository<Objects.Patient>().Create(new Objects.Patient { Id = 3, Firstname = "Bruce", Lastname = "Wayne" });
+                uow.Repository<Objects.Patient>().Create(new Objects.Patient { Id = 3, Firstname = "Bruce", Lastname = "Wayne", UUID = patientUUID });
 
                 await uow.SaveChangesAsync();
             }
@@ -102,8 +105,8 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
 
             CreateAppointmentInfo data = new CreateAppointmentInfo
             {
-                DoctorId = 18,
-                PatientId = 3,
+                DoctorId = Guid.NewGuid(),
+                PatientId = patientUUID,
                 StartDate = 1.February(2010),
                 Duration = 15
             };
@@ -130,17 +133,19 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
         public async Task Run_Throws_NotFoundException_If_Patient_Not_Found()
         {
             // Arrange
+            Guid doctorUUID = Guid.NewGuid();
+
             using (var uow = _unitOfWorkFactory.New())
             {
-                uow.Repository<Objects.Doctor>().Create(new Objects.Doctor { Id = 3, Firstname = "Bruce", Lastname = "Wayne" });
+                uow.Repository<Objects.Doctor>().Create(new Objects.Doctor { Id = 3, Firstname = "Bruce", Lastname = "Wayne", UUID = doctorUUID });
 
                 await uow.SaveChangesAsync();
             }
 
             CreateAppointmentInfo data = new CreateAppointmentInfo
             {
-                DoctorId = 3,
-                PatientId = 18,
+                DoctorId = doctorUUID,
+                PatientId =  Guid.NewGuid(),
                 StartDate = 1.February(2010),
                 Duration = 15
             };

@@ -1,9 +1,11 @@
-﻿namespace MedEasy.DTO
+﻿using System;
+
+namespace MedEasy.DTO
 {
     /// <summary>
     /// Binary content
     /// </summary>
-    public class DocumentInfo : ResourceBase<int>
+    public class DocumentInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Binary content

@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace MedEasy.DTO
 {
@@ -12,13 +12,11 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the patient to get one measure from
         /// </summary>
-        [Range(1, int.MaxValue)]
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Id of the measure to get
         /// </summary>
-        [Range(1, int.MaxValue)]
-        public int MeasureId { get; set; }
+        public Guid MeasureId { get; set; }
     }
 }

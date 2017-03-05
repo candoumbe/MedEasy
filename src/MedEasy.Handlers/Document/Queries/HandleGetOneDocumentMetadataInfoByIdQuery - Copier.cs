@@ -16,7 +16,7 @@ using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Document.Queries
 {
-    public class HandleGetOneDocumentMetadataInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, DocumentMetadata, int, DocumentMetadataInfo, IWantOneResource<Guid, int, DocumentMetadataInfo>>, IHandleGetOneDocumentMetadataInfoByIdQuery
+    public class HandleGetOneDocumentMetadataInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, DocumentMetadata, DocumentMetadataInfo, IWantOneResource<Guid, Guid, DocumentMetadataInfo>>, IHandleGetOneDocumentMetadataInfoByIdQuery
     {
 
 

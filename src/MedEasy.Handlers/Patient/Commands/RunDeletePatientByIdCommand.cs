@@ -80,7 +80,7 @@ namespace MedEasy.Handlers.Patient.Commands
 
             using (var uow = _factory.New())
             {
-                uow.Repository<Objects.Patient>().Delete(x => x.Id == command.Data);
+                uow.Repository<Objects.Patient>().Delete(x => x.UUID == command.Data);
                 await uow.SaveChangesAsync();
 
                 return Nothing.Value;

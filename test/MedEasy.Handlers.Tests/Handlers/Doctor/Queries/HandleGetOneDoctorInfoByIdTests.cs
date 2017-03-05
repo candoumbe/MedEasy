@@ -103,7 +103,7 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
                 .ReturnsAsync(null);
 
             // Act
-            DoctorInfo output = await _handler.HandleAsync(new WantOneDoctorInfoByIdQuery(1));
+            DoctorInfo output = await _handler.HandleAsync(new WantOneDoctorInfoByIdQuery(Guid.NewGuid()));
 
             //Assert
             output.Should().BeNull();

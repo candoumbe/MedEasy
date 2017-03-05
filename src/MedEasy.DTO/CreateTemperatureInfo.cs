@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
 {
@@ -6,8 +8,11 @@ namespace MedEasy.DTO
     /// data to provide when creating a new temperature info
     /// </summary>
     [JsonObject]
-    public class CreateTemperatureInfo : CreatePhysiologicalMeasureInfo
+    public class CreateTemperatureInfo 
     {
+        [DataType(DataType.DateTime)]
+        public DateTimeOffset DateOfMeasure { get; set; }
+
         /// <summary>
         /// The new temperature value
         /// </summary>

@@ -54,7 +54,7 @@ namespace MedEasy.Handlers.Patient.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 _logger.LogTrace($"Start querying {query}");
                 GetOneDocumentInfoByPatientIdAndDocumentIdInfo input = query.Data;
@@ -62,9 +62,9 @@ namespace MedEasy.Handlers.Patient.Queries
                 DocumentMetadataInfo result = await uow.Repository<DocumentMetadata>()
                     .SingleOrDefaultAsync(
                         selector,
-                        x => x.PatientId == input.PatientId && x.Id == input.DocumentMetadataId);
+                        x => x.Patient.UUID == input.PatientId && x.UUID == input.DocumentMetadataId);
 
-                _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}> {(result == null ? "not" : string.Empty)}found");
+                _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}>{(result == null ? " not" : string.Empty)} found");
                 _logger.LogInformation($"Handling query {query.Id} successfully");
                 return result;
             }

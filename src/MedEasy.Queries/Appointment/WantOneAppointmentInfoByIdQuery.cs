@@ -9,13 +9,13 @@ namespace MedEasy.Queries.Appointment
     {
         public Guid Id { get; }
 
-        public int Data { get; }
+        public Guid Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="WantOneAppointmentInfoByIdQuery"/> instance
         /// </summary>
         /// <param name="id">of the <see cref="AppointmentInfo"/> to retrieve</param>
-        public WantOneAppointmentInfoByIdQuery(int id)
+        public WantOneAppointmentInfoByIdQuery(Guid id)
         {
             Id = Guid.NewGuid();
             Data = id;

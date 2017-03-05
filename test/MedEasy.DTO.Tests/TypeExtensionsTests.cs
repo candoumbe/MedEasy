@@ -77,7 +77,7 @@ namespace MedEasy.DTO.Extensions.Tests
             FormField mainDoctorIdField = f.Items.Single(x => x.Name == nameof(CreatePatientInfo.MainDoctorId));
             mainDoctorIdField.Name.Should().Be(mainDoctorIdField.Name);
             mainDoctorIdField.Label.Should().Be(mainDoctorIdField.Name);
-            mainDoctorIdField.Type.Should().Be(FormFieldType.Integer);
+            mainDoctorIdField.Type.Should().Be(FormFieldType.String);
             mainDoctorIdField.Placeholder.Should().BeNull();
             mainDoctorIdField.Secret.Should().BeNull();
             mainDoctorIdField.MaxLength.Should().BeNull();

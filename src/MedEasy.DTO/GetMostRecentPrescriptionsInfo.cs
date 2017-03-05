@@ -16,8 +16,7 @@ namespace MedEasy.DTO
         /// <summary>
         /// Id of the patient to get one measure from
         /// </summary>
-        [Range(1, int.MaxValue)]
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Number of prescriptions to return

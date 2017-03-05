@@ -103,7 +103,7 @@ namespace MedEasy.Handlers.Tests.Appointment.Queries
                 .ReturnsAsync(null);
 
             // Act
-            AppointmentInfo output = await _handler.HandleAsync(new WantOneAppointmentInfoByIdQuery(1));
+            AppointmentInfo output = await _handler.HandleAsync(new WantOneAppointmentInfoByIdQuery(Guid.NewGuid()));
 
             //Assert
             output.Should().BeNull();

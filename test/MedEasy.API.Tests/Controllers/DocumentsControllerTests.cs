@@ -120,7 +120,7 @@ namespace MedEasy.API.Tests.Controllers
 
                 {
                     IEnumerable<DocumentMetadataInfo> items = A.ListOf<DocumentMetadataInfo>(400);
-                    items.ForEach(item => item.Id = default(int));
+                    items.ForEach(item => item.Id = Guid.NewGuid());
                     yield return new object[]
                     {
                         items,
@@ -134,7 +134,7 @@ namespace MedEasy.API.Tests.Controllers
                 }
                 {
                     IEnumerable<DocumentMetadataInfo> items = A.ListOf<DocumentMetadataInfo>(400);
-                    items.ForEach(item => item.Id = default(int));
+                    items.ForEach(item => item.Id = Guid.NewGuid());
 
                     yield return new object[]
                     {
@@ -151,7 +151,7 @@ namespace MedEasy.API.Tests.Controllers
                 yield return new object[]
                     {
                         new [] {
-                            new DocumentMetadataInfo { Id = 1, Title = "Doc 1",  MimeType = "application/pdf" }
+                            new DocumentMetadataInfo { Id = Guid.NewGuid(), Title = "Doc 1",  MimeType = "application/pdf" }
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
@@ -222,21 +222,22 @@ namespace MedEasy.API.Tests.Controllers
         public async Task GetById_ShouldReturns_The_BrowsableResource()
         {
             // Arrange
+            Guid id = Guid.NewGuid();
             DocumentMetadataInfo expectedResource = new DocumentMetadataInfo
             {
-                Id = 1,
-                DocumentId = 3,
+                Id = id,
+                DocumentId = Guid.NewGuid(),
                 MimeType = "application/pdf",
-                PatientId = 5,
+                PatientId = Guid.NewGuid(),
                 Size = 542,
                 Title = "Document 1"
             };
 
-            _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, int, DocumentMetadataInfo>>()))
+            _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentMetadataInfo>>()))
                 .ReturnsAsync(expectedResource);
 
             // Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(id);
 
             // Assert
             IBrowsableResource<DocumentMetadataInfo> browsableResource = actionResult.Should()
@@ -277,17 +278,18 @@ namespace MedEasy.API.Tests.Controllers
         public async Task File_ShouldReturns_The_BrowsableResource()
         {
             // Arrange
+            Guid fileUUID = Guid.NewGuid();
             DocumentInfo expectedResource = new DocumentInfo
             {
-                Id = 1,
-                Content = new byte[] { 1, 2, 3, 4, 5}
+                Id = fileUUID,
+                Content = new byte[] { 1, 2, 3, 4, 5},
             };
 
-            _iHandleGetOneDocumentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, int, DocumentInfo>>()))
+            _iHandleGetOneDocumentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentInfo>>()))
                 .ReturnsAsync(expectedResource);
 
             // Act
-            IActionResult actionResult = await _controller.File(1);
+            IActionResult actionResult = await _controller.File(fileUUID);
 
             // Assert
             IBrowsableResource<DocumentInfo> browsableResource = actionResult.Should()

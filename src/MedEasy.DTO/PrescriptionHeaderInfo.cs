@@ -8,7 +8,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Prescription resource
     /// </summary>
-    public class PrescriptionHeaderInfo : ResourceBase<int>
+    public class PrescriptionHeaderInfo : ResourceBase<Guid>
     {
         
         /// <summary>
@@ -19,12 +19,12 @@ namespace MedEasy.DTO
         /// <summary>
         /// <see cref="Doctor"/> who made the prescription
         /// </summary>
-        public int PrescriptorId { get; set; }
+        public Guid PrescriptorId { get; set; }
 
         /// <summary>
         /// Id of the <see cref="PatientInfo"/> the prescription was made for
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
     }
 }

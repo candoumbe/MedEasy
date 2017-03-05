@@ -13,7 +13,8 @@
     "System.Runtime": "4.3.0",
     "System.Linq": "4.3.0",
     "System.Runtime.Extensions": "4.3.0",
-    "System.Collections.Concurrent": "4.3.0"
+    "System.Collections.Concurrent": "4.3.0",
+    "MedEasy.Objects": "1.0.*"
   },
 
   "frameworks": {

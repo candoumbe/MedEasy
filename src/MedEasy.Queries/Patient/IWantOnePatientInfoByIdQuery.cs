@@ -6,7 +6,7 @@ namespace MedEasy.Queries.Patient
     /// <summary>
     /// Gets a <see cref="PatientInfo"/> by its <see cref="PatientInfo.Id"/>
     /// </summary>
-    public interface IWantOnePatientInfoByIdQuery : IWantOneResource<Guid, int, PatientInfo>
+    public interface IWantOnePatientInfoByIdQuery : IWantOneResource<Guid, Guid, PatientInfo>
     { 
     }
 

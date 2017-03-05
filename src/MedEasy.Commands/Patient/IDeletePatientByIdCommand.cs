@@ -2,7 +2,7 @@
 
 namespace MedEasy.Commands.Patient
 {
-    public interface IDeletePatientByIdCommand : ICommand<Guid, int>
+    public interface IDeletePatientByIdCommand : ICommand<Guid, Guid>
     {
     }
 }

@@ -32,7 +32,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         
         private Mock<ILogger<HandleGetPatientInfoByIdQuery>> _loggerMock;
         private IMapper _mapper;
-        private Mock<IValidate<IWantOneResource<Guid, int, PatientInfo>>> _validatorMock;
+        private Mock<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>> _validatorMock;
 
         public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper)
         {
@@ -45,7 +45,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _loggerMock = new Mock<ILogger<HandleGetPatientInfoByIdQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _validatorMock = new Mock<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(Strict);
+            _validatorMock = new Mock<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(Strict);
 
             _handler = new HandleGetPatientInfoByIdQuery(_validatorMock.Object, _loggerMock.Object,  _unitOfWorkFactoryMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
@@ -71,7 +71,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, int, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
@@ -91,7 +91,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             Func<Task> action = async () =>
             {
                 IHandleGetOnePatientInfoByIdQuery handler = new HandleGetPatientInfoByIdQuery(
-                    Mock.Of<IValidate<IWantOneResource<Guid, int, PatientInfo>>>(),
+                    Mock.Of<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(),
                     Mock.Of<ILogger<HandleGetPatientInfoByIdQuery>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     Mock.Of<IExpressionBuilder>());
@@ -108,7 +108,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public async Task UnknownIdShouldReturnNull()
         {
             //Arrange
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
@@ -117,7 +117,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .Verifiable();
 
             // Act
-            PatientInfo output = await _handler.HandleAsync(new WantOnePatientInfoByIdQuery(1));
+            PatientInfo output = await _handler.HandleAsync(new WantOnePatientInfoByIdQuery(Guid.NewGuid()));
 
             //Assert
             output.Should().BeNull();
@@ -131,11 +131,11 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public void ShouldThrowQueryNotValidExceptionIfValidationFails()
         {
             //Arrange
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
-                .Returns((IWantOneResource<Guid, int, PatientInfo> q) => new[] { Task.FromResult(new ErrorInfo("ErrCode", "A description", Error)) });
+            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
+                .Returns((IWantOneResource<Guid, Guid, PatientInfo> q) => new[] { Task.FromResult(new ErrorInfo("ErrCode", "A description", Error)) });
 
             // Act
-            IWantOneResource<Guid, int, PatientInfo> query = new WantOnePatientInfoByIdQuery(1);
+            IWantOneResource<Guid, Guid, PatientInfo> query = new WantOnePatientInfoByIdQuery(Guid.NewGuid());
             Func<Task> action = async () =>  await _handler.HandleAsync(query);
 
             //Assert

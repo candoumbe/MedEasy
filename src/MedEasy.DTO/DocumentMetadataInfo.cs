@@ -1,9 +1,11 @@
-﻿namespace MedEasy.DTO
+﻿using System;
+
+namespace MedEasy.DTO
 {
     /// <summary>
     /// Metadata of a document
     /// </summary>
-    public class DocumentMetadataInfo : ResourceBase<int>
+    public class DocumentMetadataInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Size of the file
@@ -13,7 +15,7 @@
         /// <summary>
         /// Id of the patient the document belongs to
         /// </summary>
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// Title of the document
@@ -28,7 +30,7 @@
         /// <summary>
         /// Id of the binary content
         /// </summary>
-        public int DocumentId { get; set; }
+        public Guid DocumentId { get; set; }
 
     }
 }

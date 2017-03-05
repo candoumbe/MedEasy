@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace MedEasy.DTO
+namespace MedEasy.DTO.Search
 {
     /// <summary>
     /// Request for searching appointment resources.
@@ -12,24 +12,24 @@ namespace MedEasy.DTO
     public class SearchAppointmentInfo : AbstractSearchInfo<AppointmentInfo>
     {
         /// <summary>
-        /// Criteria for the <see cref="AppointmentInfo.StartDate"/>.
+        /// Criterion for the <see cref="AppointmentInfo.StartDate"/>.
         /// </summary>
         public DateTimeOffset? From { get; set; }
 
         /// <summary>
-        /// Criteria end date
+        /// Criterion end date
         /// </summary>
         public DateTimeOffset? To { get; set; }
 
         /// <summary>
         /// Id of the doctor that is part of the <see cref="AppointmentInfo"/>
         /// </summary>
-        public int? DoctorId { get; set; }
+        public Guid? DoctorId { get; set; }
 
         /// <summary>
         /// Id of the patient that is part of the appointment
         /// </summary>
-        public int? PatientId { get; set; }
+        public Guid? PatientId { get; set; }
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

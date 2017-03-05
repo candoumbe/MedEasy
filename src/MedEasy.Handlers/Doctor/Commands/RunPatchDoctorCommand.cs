@@ -20,7 +20,7 @@ namespace MedEasy.Handlers.Doctor.Commands
     {
         private IUnitOfWorkFactory _uowFactory;
         private ILogger<RunPatchDoctorCommand> _logger;
-        private IValidate<IPatchCommand<int, Objects.Doctor>> _validator;
+        private IValidate<IPatchCommand<Guid, Objects.Doctor>> _validator;
         
         /// <summary>
         /// Builds a new <see cref="RunPatchDoctorCommand"/> instance.
@@ -28,30 +28,26 @@ namespace MedEasy.Handlers.Doctor.Commands
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchDoctorCommand)"/>.</param>
-        public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchDoctorCommand> logger, IValidate<IPatchCommand<int, Objects.Doctor>> validator) 
+        public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchDoctorCommand> logger, IValidate<IPatchCommand<Guid, Objects.Doctor>> validator) 
         {
             if (uowFactory == null)
             {
                 throw new ArgumentNullException(nameof(uowFactory));
             }
-
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
             }
-
-
             if (validator == null)
             {
                 throw new ArgumentNullException(nameof(validator));
             }
-
             _uowFactory = uowFactory;
             _logger = logger;
             _validator = validator;
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<int, Objects.Doctor> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Doctor> command)
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -63,18 +59,18 @@ namespace MedEasy.Handlers.Doctor.Commands
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 JsonPatchDocument<Objects.Doctor> changes = command.Data.PatchDocument;
                 
                 
-                int patientId = command.Data.Id;
+                Guid doctorId = command.Data.Id;
                 Objects.Doctor source = await uow.Repository<Objects.Doctor>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id);
+                    .SingleOrDefaultAsync(x => x.UUID == doctorId);
 
                 if (source == null)
                 {
-                    throw new NotFoundException($"Doctor '{patientId}' not found");
+                    throw new NotFoundException($"Doctor '{doctorId}' not found");
                 }
 
 

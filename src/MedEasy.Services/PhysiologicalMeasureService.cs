@@ -15,6 +15,7 @@ using MedEasy.Handlers.Core.Exceptions;
 using static MedEasy.Validators.ErrorLevel;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
+using AutoMapper;
 
 namespace MedEasy.Services
 {
@@ -23,10 +24,10 @@ namespace MedEasy.Services
     /// </summary>
     public class PhysiologicalMeasureService : IPhysiologicalMeasureService
     {
-        private IUnitOfWorkFactory _uowFactory;
+        private readonly IUnitOfWorkFactory _uowFactory;
         private readonly ILogger<PhysiologicalMeasureService> _logger;
         private readonly IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> _deleteOnePhysiologicalMeasureCommandValidator;
-        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Builds a new <see cref="PhysiologicalMeasureService"/> instance
@@ -37,7 +38,7 @@ namespace MedEasy.Services
             IUnitOfWorkFactory uowFactory,
             ILogger<PhysiologicalMeasureService> logger,
             IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> deleteOnePhysiologicalMeasureCommandValidator,
-            IExpressionBuilder expressionBuilder
+            IMapper mapper
             )
         {
 
@@ -45,7 +46,6 @@ namespace MedEasy.Services
             {
                 throw new ArgumentNullException(nameof(uowFactory));
             }
-
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
@@ -55,22 +55,23 @@ namespace MedEasy.Services
             {
                 throw new ArgumentNullException(nameof(deleteOnePhysiologicalMeasureCommandValidator));
             }
-            if (expressionBuilder == null)
+
+            if (mapper == null)
             {
-                throw new ArgumentNullException(nameof(expressionBuilder));
+                throw new ArgumentNullException(nameof(mapper));
             }
 
             _uowFactory = uowFactory;
             _logger = logger;
             _deleteOnePhysiologicalMeasureCommandValidator = deleteOnePhysiologicalMeasureCommandValidator;
-            _expressionBuilder = expressionBuilder;
+            _mapper = mapper;
         }
 
         /// <summary>
-        /// Asynchronously gets the most recent <see cref="BloodPressureInfo"/> measures.
+        /// Asynchronously gets the most recent <see cref="TPhysiologicalMeasureInfo"/> measures.
         /// </summary>
         /// <param name="query">specifies which patient to get its most recent measures for</param>
-        /// <returns><see cref="IEnumerable{T}"/>holding the most recent <see cref="BloodPressureInfo"/></returns>
+        /// <returns><see cref="IEnumerable{TPhysiologicalMeasureInfo}"/>holding the most recent <see cref="TPhysiologicalMeasureInfo"/></returns>
         public async Task<IEnumerable<TPhysiologicalMeasureInfo>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
@@ -83,28 +84,30 @@ namespace MedEasy.Services
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
-                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
+                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
                 IPagedResult<TPhysiologicalMeasureInfo> measures = await uow.Repository<TPhysiologicalMeasure>()
                     .WhereAsync(
                         selector,
-                        (TPhysiologicalMeasure x) => x.PatientId == query.Data.PatientId,
+                        (TPhysiologicalMeasure x) => x.Patient.UUID == query.Data.PatientId,
                         new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, SortDirection.Descending) },
                         query.Data.Count.GetValueOrDefault(20),
                         1
-                    );
-                _logger.LogInformation($"Found {measures.Entries.Count()} results");
+                    )
+                    .ConfigureAwait(false);
+                int nbResults = measures.Entries.Count();
+                _logger.LogInformation($"Found {measures.Entries.Count()} result{(nbResults > 1 ? "s" : string.Empty)}");
                 return measures.Entries;
             }
         }
 
-        public async Task<TPhysiologicalMeasureInfo> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, TPhysiologicalMeasure> command)
+        public async Task<TPhysiologicalMeasureInfo> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>> command)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {
-            _logger.LogInformation($"Start adding new measure");
             
+            _logger.LogInformation($"Start adding new measure");
 
             if (command == null)
             {
@@ -113,13 +116,23 @@ namespace MedEasy.Services
             }
 
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
-                TPhysiologicalMeasure input = command.Data;
-                input = uow.Repository<TPhysiologicalMeasure>().Create(input);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
+                if (!await uow.Repository<Patient>().AnyAsync(x => x.UUID == command.Data.PatientId).ConfigureAwait(false))
+                {
+                    throw new NotFoundException($"Patient <{command.Data.PatientId}> not found");
+                }
 
-                return _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>().Compile()(input);
+                CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure> input = command.Data;
+                TPhysiologicalMeasure newMeasure = input.Measure;
+                newMeasure = uow.Repository<TPhysiologicalMeasure>().Create(newMeasure);
+                await uow.SaveChangesAsync().ConfigureAwait(false);
+                TPhysiologicalMeasureInfo output = _mapper.Map<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(newMeasure);
+                output.PatientId = input.PatientId;
+
+                _logger.LogInformation("Command <{0}> completed successfully", command.Id);
+
+                return output;
             }
         }
 
@@ -132,13 +145,14 @@ namespace MedEasy.Services
                 throw new ArgumentNullException(nameof(query));
             }
             _logger.LogInformation($"Start querying one measure : {query}");
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
-                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMesureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMesureInfo>();
+                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMesureInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMesureInfo>();
                 TPhysiologicalMesureInfo measure = await uow.Repository<TPhysiologicalMeasure>()
-                    .SingleOrDefaultAsync(selector, x => x.PatientId == query.Data.PatientId && x.Id == query.Data.MeasureId);
+                    .SingleOrDefaultAsync(selector, x => x.Patient.UUID == query.Data.PatientId && x.UUID == query.Data.MeasureId)
+                    .ConfigureAwait(false);
 
-                _logger.LogInformation($"Measure {(measure == null ? "not" : string.Empty)}found");
+                _logger.LogInformation($"Measure {(measure == null ? "not " : string.Empty)}found");
                 return measure;
             }
         }
@@ -151,13 +165,12 @@ namespace MedEasy.Services
             }
             _logger.LogInformation($"Start running delete one measure id : {command}");
             IEnumerable<Task<ErrorInfo>> validationTasks = _deleteOnePhysiologicalMeasureCommandValidator.Validate(command);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationTasks);
 
             if (errors.Any(x => x.Severity == Error))
             {
                 _logger.LogDebug("Command's validation failed");
 #if TRACE || DEBUG
-
                 foreach (ErrorInfo error in errors)
                 {
                     _logger.LogTrace($"Validation error : {error.Key} : {error.Description}");
@@ -166,10 +179,11 @@ namespace MedEasy.Services
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
-                uow.Repository<TPhysiologicalMeasure>().Delete(x => x.PatientId == command.Data.Id && x.Id == command.Data.MeasureId);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
+                uow.Repository<TPhysiologicalMeasure>().Delete(x => x.Patient.UUID == command.Data.Id && x.UUID == command.Data.MeasureId);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             _logger.LogInformation("Measure deleted successfully");

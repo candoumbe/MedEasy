@@ -1,10 +1,11 @@
 using Newtonsoft.Json;
+using System;
 
 namespace MedEasy.DTO
 {
 
     [JsonObject]
-    public class SpecialtyInfo : ResourceBase<int>
+    public class SpecialtyInfo : ResourceBase<Guid>
     {
         /// <summary>
         /// Name of the specialty

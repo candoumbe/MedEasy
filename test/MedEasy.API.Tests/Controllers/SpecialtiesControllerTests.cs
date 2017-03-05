@@ -6,6 +6,7 @@ using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
 using MedEasy.Commands;
 using MedEasy.Commands.Specialty;
+using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Exceptions;
@@ -104,9 +105,9 @@ namespace MedEasy.WebApi.Tests
                 int[] pages = { 0, int.MinValue, int.MaxValue };
 
 
-                foreach (var pageSize in pageSizes)
+                foreach (int pageSize in pageSizes)
                 {
-                    foreach (var page in pages)
+                    foreach (int page in pages)
                     {
                         yield return new object[]
                         {
@@ -179,7 +180,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<Specialty>().Create(items);
                 await uow.SaveChangesAsync();
@@ -190,7 +191,7 @@ namespace MedEasy.WebApi.Tests
                 {
 
 
-                    using (var uow = _factory.New())
+                    using (IUnitOfWork uow = _factory.New())
                     {
                         PaginationConfiguration queryConfig = getQuery.Data ?? new PaginationConfiguration();
 
@@ -235,11 +236,11 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
                 .ReturnsAsync(null);
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid());
 
             //Assert
             actionResult.Should()
@@ -256,12 +257,13 @@ namespace MedEasy.WebApi.Tests
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
-                .ReturnsAsync(new SpecialtyInfo { Id = 1, Name = "Specialty" })
+            Guid resourceId = Guid.NewGuid();
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
+                .ReturnsAsync(new SpecialtyInfo { Id =resourceId, Name = "Specialty" })
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(resourceId);
 
             //Assert
             actionResult.Should()
@@ -281,14 +283,14 @@ namespace MedEasy.WebApi.Tests
             Link location = result.Links.Single(x => x.Relation.Contains("self"));
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}=1");
+                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Get)}?{nameof(SpecialtyInfo.Id)}={resourceId}");
             location.Relation.Should()
                 .NotBeNullOrEmpty().And
                 .Contain("self");
 
             SpecialtyInfo resource = result.Resource;
             resource.Should().NotBeNull();
-            resource.Id.Should().Be(1);
+            resource.Id.Should().Be(resourceId);
             resource.Name.Should().Be("Specialty");
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock.Verify();
@@ -302,7 +304,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
-                => new SpecialtyInfo { Id = 1, Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
+                => new SpecialtyInfo { Id = Guid.NewGuid(), Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
             CreateSpecialtyInfo info = new CreateSpecialtyInfo
@@ -322,7 +324,7 @@ namespace MedEasy.WebApi.Tests
             createdAtActionResult.ActionName.Should().Be(nameof(SpecialtiesController.Get));
             createdAtActionResult.ControllerName.Should().Be(SpecialtiesController.EndpointName);
             createdAtActionResult.RouteValues.Should().NotBeNull();
-            createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex(@"[iI]d=[1-9]\d*");
+            //createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex(@"[iI]d=[1-9]\d*");
 
 
             SpecialtyInfo createdResource = (SpecialtyInfo)createdAtActionResult.Value;
@@ -348,10 +350,10 @@ namespace MedEasy.WebApi.Tests
                 .ReturnsAsync(PagedResult<DoctorInfo>.Default)
                 .Verifiable();
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
-            
+
             // Act
-            IActionResult actionResult = await _controller.Doctors(1, new PaginationConfiguration())
-                .ConfigureAwait(false);
+            Guid doctorId = Guid.NewGuid();
+            IActionResult actionResult = await _controller.Doctors(doctorId, new PaginationConfiguration());
 
             // Assert 
             actionResult.Should()
@@ -370,7 +372,7 @@ namespace MedEasy.WebApi.Tests
             firstPageLink.Relation.Should()
                 .BeEquivalentTo("first");
             firstPageLink.Href.Should()
-                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Doctors)}?id=1&pageSize=30&page=1");
+                .BeEquivalentTo($"api/{SpecialtiesController.EndpointName}/{nameof(SpecialtiesController.Doctors)}?id={doctorId}&pageSize=30&page=1");
 
             pagedResponse.Links.Previous.Should().BeNull();
             pagedResponse.Links.Next.Should().BeNull();
@@ -419,13 +421,13 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, SpecialtyInfo>>()))
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
 
             //Act
-            Func<Task> action = async () => await _controller.Get(1);
+            Func<Task> action = async () => await _controller.Get(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -472,7 +474,7 @@ namespace MedEasy.WebApi.Tests
 
 
             //Act
-            Func<Task> action = async () => await _controller.Delete(1);
+            Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -485,12 +487,12 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
             _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
-                .Returns(Nothing.Task)
+                .ReturnsAsync(Nothing.Value)
                 .Verifiable();
 
 
             //Act
-            IActionResult actionResult = await _controller.Delete(1);
+            IActionResult actionResult = await _controller.Delete(Guid.NewGuid());
 
             //Assert
             actionResult.Should()

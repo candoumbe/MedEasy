@@ -5,7 +5,7 @@ using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Core.Document.Queries
 {
-    public interface IHandleGetOneDocumentInfoByIdQuery : IHandleQueryAsync<Guid, int, DocumentInfo, IWantOneResource<Guid, int, DocumentInfo>>
+    public interface IHandleGetOneDocumentInfoByIdQuery : IHandleQueryAsync<Guid, Guid, DocumentInfo, IWantOneResource<Guid, Guid, DocumentInfo>>
     {
     }
 }

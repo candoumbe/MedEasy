@@ -19,9 +19,7 @@ namespace MedEasy.Handlers.Specialty.Queries
     {
         private IUnitOfWorkFactory UowFactory { get; }
         private ILogger<HandleFindDoctorsBySpecialtyIdQuery> Logger { get; }
-
-        private IExpressionBuilder ExpressionBuilder { get; }
-
+        
         /// <summary>
         /// Builds a new <see cref="HandleFindDoctorsBySpecialtyIdQuery"/> instance
         /// </summary>
@@ -31,26 +29,18 @@ namespace MedEasy.Handlers.Specialty.Queries
         /// This handler is thread safe
         /// </remarks>
         /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/> or <paramref name="logger"/> is <c>null</c></exception>
-        public HandleFindDoctorsBySpecialtyIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger, IExpressionBuilder expressionBuilder)
+        public HandleFindDoctorsBySpecialtyIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger)
         {
             if (uowFactory == null)
             {
                 throw new ArgumentNullException(nameof(uowFactory));
             }
-
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
             }
-
-            if (expressionBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-
             UowFactory = uowFactory;
             Logger = logger;
-            ExpressionBuilder = expressionBuilder;
 
         }
 
@@ -64,17 +54,40 @@ namespace MedEasy.Handlers.Specialty.Queries
             }
             PaginationConfiguration getQuery = query.Data?.GetQuery ?? new PaginationConfiguration();
             
-            using (var uow = UowFactory.New())
-            { 
-                IPagedResult<DoctorInfo> pageOfResult = await uow.Repository<Objects.Doctor>()
-                    .WhereAsync(
-                        ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>(),      //selector  
-                        (Objects.Doctor x) => x.SpecialtyId == query.Data.SpecialtyId,
-                        Enumerable.Empty<OrderClause<DoctorInfo>>(), 
+            using (IUnitOfWork uow = UowFactory.New())
+            {
+                //IPagedResult<DoctorInfo> pageOfResult = await uow.Repository<Objects.Doctor>()
+                //    .WhereAsync(
+                //        x => new DoctorInfo
+                //        {
+                //            Firstname = x.Firstname,
+                //            Lastname = x.Lastname,
+                //            Id = x.UUID,
+                //            SpecialtyId = x.Specialty != null ? x.Specialty.UUID : (Guid?)null,
+                //            UpdatedDate = x.UpdatedDate
+                //        },  
+                //        (DoctorInfo x) => x.SpecialtyId == query.Data.SpecialtyId,
+                //        Enumerable.Empty<OrderClause<DoctorInfo>>(), 
+                //        getQuery.PageSize, getQuery.Page);
+
+                //return pageOfResult;
+
+                IPagedResult<Objects.Doctor> pageOfResult = await uow.Repository<Objects.Doctor>()
+                    .WhereAsync(x => x.Specialty.UUID == query.Data.SpecialtyId,
+                        Enumerable.Empty<OrderClause<Objects.Doctor>>(),
                         getQuery.PageSize, getQuery.Page);
 
 
-                return pageOfResult;
+                // TODO Move the selector into the query 
+                return new PagedResult<DoctorInfo>(pageOfResult.Entries.Select(x => new DoctorInfo
+                {
+                    Firstname = x.Firstname,
+                    Lastname = x.Lastname,
+                    Id = x.UUID,
+                    SpecialtyId = x.Specialty != null ? x.Specialty.UUID : (Guid?)null,
+                    UpdatedDate = x.UpdatedDate
+                }), pageOfResult.Total, pageOfResult.PageSize);
+
             }
         }
     }

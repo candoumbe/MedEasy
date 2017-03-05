@@ -39,12 +39,12 @@ namespace MedEasy.Handlers.Patient.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
                 Expression<Func<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>();
 
                 TPhysiologicalMeasurementInfo result = await uow.Repository<TPhysiologicalMeasurementEntity>()
-                    .SingleOrDefaultAsync(selector, x => x.PatientId == query.Data.PatientId && x.Id == query.Data.MeasureId);
+                    .SingleOrDefaultAsync(selector, x => x.Patient.UUID == query.Data.PatientId && x.UUID == query.Data.MeasureId);
 
 
                 return result;

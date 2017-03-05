@@ -8,10 +8,8 @@ using MedEasy.Handlers.Core.Appointment.Commands;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
-
-
     /// <summary>
-    /// An instance of this class process process <see cref="IRunDeleteAppointmentByIdCommand"/>
+    /// Process <see cref="IRunDeleteAppointmentByIdCommand"/> instances
     /// </summary>
     public class RunDeleteAppointmentByIdCommand : IRunDeleteAppointmentInfoByIdCommand
     {
@@ -30,13 +28,12 @@ namespace MedEasy.Handlers.Appointment.Commands
                 throw new ArgumentNullException(nameof(command));
             }
 
-            int id = command.Data;
-            Debug.Assert(id > 0);
-
-            using (var uow = UowFactory.New())
+            Guid id = command.Data;
+           
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                uow.Repository<Objects.Appointment>().Delete(item => item.Id == id);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
+                uow.Repository<Objects.Appointment>().Delete(item => item.UUID == id);
+                await uow.SaveChangesAsync();
 
                 return Nothing.Value;
             }

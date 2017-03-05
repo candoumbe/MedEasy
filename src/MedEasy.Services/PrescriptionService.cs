@@ -11,50 +11,66 @@ using AutoMapper.QueryableExtensions;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.DAL.Repositories;
+using AutoMapper;
 
 namespace MedEasy.Services
 {
     public class PrescriptionService : IPrescriptionService
     {
-        private readonly IUnitOfWorkFactory _uowFactory;
+        private IUnitOfWorkFactory UowFactory { get; }
         private readonly ILogger<PrescriptionService> _logger;
-        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Builds a new <see cref="PrescriptionService"/> instance.
         /// </summary>
         /// <param name="uowFactory">Factory that can build new <see cref="IUnitOfWork"/> instances</param>
         /// <param name="logger">logger</param>
-        public PrescriptionService(IUnitOfWorkFactory uowFactory, ILogger<PrescriptionService> logger, IExpressionBuilder expressionBuilder)
+        public PrescriptionService(IUnitOfWorkFactory uowFactory, ILogger<PrescriptionService> logger, IMapper mapper)
         {
-            _uowFactory = uowFactory;
+            UowFactory = uowFactory;
             _logger = logger;
-            _expressionBuilder = expressionBuilder;
+            _mapper = mapper;
         }
 
-        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(int patientId, CreatePrescriptionInfo newPrescription)
+        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription)
         {
-            if (patientId <= 0)
+            if (patientId == Guid.Empty)
             {
-                throw new ArgumentOutOfRangeException(nameof(patientId), $"{nameof(patientId)} cannot be negative or zero");
+                throw new ArgumentOutOfRangeException(nameof(patientId), $"{nameof(patientId)} cannot be empty");
             }
 
             if (newPrescription == null)
             {
                 throw new ArgumentNullException(nameof(newPrescription), $"{nameof(newPrescription)} cannot be null");
-            }
+            } 
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                Expression<Func<CreatePrescriptionInfo, Prescription>> convertCreatePrescriptionToPrescription = _expressionBuilder.CreateMapExpression<CreatePrescriptionInfo, Prescription>();
-                Prescription prescription = convertCreatePrescriptionToPrescription.Compile()(newPrescription);
-                prescription.PatientId = patientId;
+                var patient = await uow.Repository<Patient>().SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == patientId);
+                if (patient == null)
+                {
+                    throw new NotFoundException($"Patient <{patientId}> not found");
+                }
+
+                var prescriptor = await uow.Repository<Doctor>().SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == newPrescription.PrescriptorId);
+                if (prescriptor == null)
+                {
+                    throw new NotFoundException($"Prescriptor <{newPrescription.PrescriptorId}> not found");
+                }
+
+                Prescription prescription = _mapper.Map<CreatePrescriptionInfo, Prescription>(newPrescription);
+                prescription.PatientId = patient.Id;
+                prescription.PrescriptorId = prescriptor.Id;
                 prescription = uow.Repository<Prescription>().Create(prescription);
-                await uow.SaveChangesAsync();
 
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
 
-                Expression<Func<Prescription, PrescriptionHeaderInfo>> convertPrescriptionToHeader = _expressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>();
-                return convertPrescriptionToHeader.Compile().Invoke(prescription);
+                PrescriptionHeaderInfo output = _mapper.Map<Prescription, PrescriptionHeaderInfo>(prescription);
+                output.PatientId = patientId;
+
+                return output;
             }
         }
 
@@ -63,16 +79,17 @@ namespace MedEasy.Services
             throw new NotImplementedException();
         }
 
-        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(int id)
+        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(Guid id)
         {
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                Expression<Func<Prescription, PrescriptionHeaderInfo>> selector = _expressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>();
-                PrescriptionHeaderInfo result = await uow.Repository<Prescription>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == id);
-
-                return result;
+                Prescription p = await uow.Repository<Prescription>().SingleOrDefaultAsync(
+                    x => x.UUID == id, 
+                    new[] {
+                        IncludeClause<Prescription>.Create(x => x.Patient),
+                        IncludeClause<Prescription>.Create(x => x.Prescriptor) });
+                return _mapper.Map<PrescriptionHeaderInfo>(p);
             }
         }
 
@@ -85,43 +102,49 @@ namespace MedEasy.Services
         /// <param name="prescriptionId">id of the prescription to get</param>
         /// <returns>a <see cref="PrescriptionHeaderInfo"/> or <c>null</c> if no <see cref="Prescription"/> found.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     if either <paramref name="patientId"/> or <paramref name="prescriptionId"/> is negative or null
+        ///     if either <paramref name="patientId"/> or <paramref name="prescriptionId"/> is <see cref="Guid.Empty"/>
         /// </exception>
-        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionByPatientIdAsync(int patientId, int prescriptionId)
+        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionByPatientIdAsync(Guid patientId, Guid prescriptionId)
         {
-            if (patientId <= 0)
+            if (patientId == Guid.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(patientId));
             }
 
-            if (prescriptionId <= 0)
+            if (prescriptionId == Guid.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(prescriptionId));
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                Expression<Func<Prescription, PrescriptionHeaderInfo>> selector = _expressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>();
-                return await uow.Repository<Prescription>().SingleOrDefaultAsync(selector, x => x.Id == prescriptionId && x.PatientId == patientId);
+                Prescription p = await uow.Repository<Prescription>().SingleOrDefaultAsync(
+                    x => x.UUID == prescriptionId,
+                    new[] {
+                        IncludeClause<Prescription>.Create(x => x.Patient),
+                        IncludeClause<Prescription>.Create(x => x.Prescriptor) });
+
+                PrescriptionHeaderInfo header = _mapper.Map<PrescriptionHeaderInfo>(p);
+
+                return header?.PatientId == patientId 
+                    ? header
+                    : null;
             }
         }
 
-        public async Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(int id)
+        public async Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(Guid id)
         {
-            using (var uow = _uowFactory.New())
+            using (var uow = UowFactory.New())
             {
                 Prescription prescription = await uow.Repository<Prescription>()
-                    .SingleOrDefaultAsync(x => x.Id == id, new[] { IncludeClause<Prescription>.Create(x => x.Items) });
+                    .SingleOrDefaultAsync(x => x.UUID == id, new[] { IncludeClause<Prescription>.Create(x => x.Items) });
 
                 if (prescription == null)
                 {
                     throw new NotFoundException($"Prescription <{id}> not found");
                 }
-                Func<PrescriptionItem, PrescriptionItemInfo> funcConverter = _expressionBuilder.CreateMapExpression<PrescriptionItem, PrescriptionItemInfo>()
-                    .Compile();
-                IEnumerable<PrescriptionItemInfo> results = prescription.Items
-                    .Select(funcConverter);
 
+                IEnumerable<PrescriptionItemInfo> results = _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(prescription.Items);
                 return results;
             }
         }

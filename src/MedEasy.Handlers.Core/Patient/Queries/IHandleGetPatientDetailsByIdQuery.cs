@@ -8,7 +8,7 @@ namespace MedEasy.Handlers.Core.Patient.Queries
     /// <summary>
     /// Defines the contract for classes that can handle
     /// </summary>
-    public interface IHandleGetOnePatientInfoByIdQuery : IHandleQueryAsync<Guid, int, PatientInfo, IWantOneResource<Guid, int, PatientInfo>>
+    public interface IHandleGetOnePatientInfoByIdQuery : IHandleQueryAsync<Guid, Guid, PatientInfo, IWantOneResource<Guid, Guid, PatientInfo>>
     {
     }
 }

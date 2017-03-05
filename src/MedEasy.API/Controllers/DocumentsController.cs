@@ -20,7 +20,7 @@ namespace MedEasy.API.Controllers
     /// <summary>
     /// Endpoint that handles <see cref="DocumentMetadataInfo"/> resources.
     /// </summary>
-    public class DocumentsController : RestReadControllerBase<int, DocumentMetadataInfo>
+    public class DocumentsController : RestReadControllerBase<Guid, DocumentMetadataInfo>
     {
         /// <summary>
         /// Builds a new <see cref="DocumentsController"/> instance.
@@ -49,7 +49,7 @@ namespace MedEasy.API.Controllers
 
         protected override string ControllerName => EndpointName;
 
-        public IHandleQueryAsync<Guid, int, DocumentInfo, IWantOneResource<Guid, int, DocumentInfo>> GetDocumentContentByIdHandler { get; }
+        public IHandleQueryAsync<Guid, Guid, DocumentInfo, IWantOneResource<Guid, Guid, DocumentInfo>> GetDocumentContentByIdHandler { get; }
 
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if no document metadata found.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
-        public override async Task<IActionResult> Get([FromQuery]int id)
+        public override async Task<IActionResult> Get([FromQuery]Guid id)
         {
             DocumentMetadataInfo resource = await GetByIdQueryHandler.HandleAsync(new WantOneDocumentMetadataInfoByIdQuery(id));
             IActionResult actionResult;
@@ -140,9 +140,9 @@ namespace MedEasy.API.Controllers
         /// <response code="404">The resource was not found</response>
         [HttpGet("{id}/[action]")]
         [ProducesResponseType(typeof(DocumentInfo), 200)]
-        public async Task<IActionResult> File(int id)
+        public async Task<IActionResult> File(Guid id)
         {
-            DocumentInfo resource = await GetDocumentContentByIdHandler.HandleAsync(new GenericGetOneResourceByIdQuery<int, DocumentInfo>(id));
+            DocumentInfo resource = await GetDocumentContentByIdHandler.HandleAsync(new GenericGetOneResourceByIdQuery<Guid, DocumentInfo>(id));
             IActionResult actionResult;
             if (resource != null)
             {

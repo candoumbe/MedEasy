@@ -11,14 +11,13 @@ namespace MedEasy.DTO
     /// Base class for physiological measure resources
     /// </summary>
     [JsonObject]
-    public abstract class PhysiologicalMeasurementInfo : ResourceBase<int>
+    public abstract class PhysiologicalMeasurementInfo : ResourceBase<Guid>
     {
         
         /// <summary>
         /// Id of the <see cref="PatientInfo"/> resource the measure was taken on
         /// </summary>
-        [Range(1, int.MaxValue)]
-        public int PatientId { get; set; }
+        public Guid PatientId { get; set; }
 
         /// <summary>
         /// When the measure was made

@@ -14,7 +14,7 @@ namespace MedEasy.Queries.Specialty
         /// <summary>
         /// Id of the specialty
         /// </summary>
-        public int SpecialtyId { get; }
+        public Guid SpecialtyId { get; }
 
         /// <summary>
         /// Page of result configuration
@@ -30,7 +30,7 @@ namespace MedEasy.Queries.Specialty
         /// </summary>
         /// <param name="specialtyId">id of the specialty</param>
         /// <param name="getQuery">Configuration of page of result</param>
-        public FindDoctorsBySpecialtyIdQueryArgs(int specialtyId, PaginationConfiguration getQuery)
+        public FindDoctorsBySpecialtyIdQueryArgs(Guid specialtyId, PaginationConfiguration getQuery)
         {
             SpecialtyId = specialtyId;
             GetQuery = getQuery;

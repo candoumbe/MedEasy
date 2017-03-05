@@ -9,13 +9,13 @@ namespace MedEasy.Queries.Document
     /// <summary>
     /// A query to get one <see cref="DocumentMetadataInfo"/> by its id.
     /// </summary>
-    public class WantOneDocumentMetadataInfoByIdQuery : GenericGetOneResourceByIdQuery<int, DocumentMetadataInfo>, IWantOneDocumentMetadataInfoByIdQuery
+    public class WantOneDocumentMetadataInfoByIdQuery : GenericGetOneResourceByIdQuery<Guid, DocumentMetadataInfo>, IWantOneDocumentMetadataInfoByIdQuery
     {
         /// <summary>
         /// Builds a new <see cref="WantOneDocumentMetadataInfoByIdQuery"/>
         /// </summary>
         /// <param name="id">id of the document to query.</param>
-        public WantOneDocumentMetadataInfoByIdQuery(int id) : base(id)
+        public WantOneDocumentMetadataInfoByIdQuery(Guid id) : base(id)
         {
         }
     }

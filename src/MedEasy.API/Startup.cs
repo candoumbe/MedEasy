@@ -42,7 +42,7 @@ namespace MedEasy.API
         public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             HostingEnvironment = env;
-            var builder = new ConfigurationBuilder()
+            IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
@@ -104,7 +104,8 @@ namespace MedEasy.API
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
-            }).AddJsonOptions(options =>
+            })
+            .AddJsonOptions(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.DateFormatHandling = IsoDateFormat;

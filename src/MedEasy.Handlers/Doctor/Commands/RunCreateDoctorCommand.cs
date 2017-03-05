@@ -6,6 +6,7 @@ using System.Diagnostics;
 using AutoMapper;
 using MedEasy.Commands.Doctor;
 using MedEasy.Handlers.Core.Doctor.Commands;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {
@@ -36,21 +37,32 @@ namespace MedEasy.Handlers.Doctor.Commands
             CreateDoctorInfo info = command.Data;
             Debug.Assert(!string.IsNullOrWhiteSpace(info.Lastname));
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                var now = DateTimeOffset.UtcNow;
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+
+                int? specialtyId = null;
+                if (info.SpecialtyId.HasValue)
+                {
+                    var specialty = await uow.Repository<Objects.Specialty>().SingleOrDefaultAsync(x => new { x.Id  } , x => x.UUID == info.SpecialtyId);
+                    if (specialty == null)
+                    {
+                        throw new NotFoundException($"{nameof(Objects.Specialty)} <{info.SpecialtyId}> not found");
+                    }
+                    else
+                    {
+                        specialtyId = specialty.Id;
+                    }
+
+                }
+
                 Objects.Doctor itemToCreate = new Objects.Doctor()
                 {
                     Firstname = info.Firstname?.Trim()?.ToTitleCase(),
                     Lastname = info.Lastname?.ToUpper(),
-                    SpecialtyId = info.SpecialtyId,
+                    SpecialtyId = specialtyId,
                     UpdatedDate = now,
-                    CreatedDate = now,
-#if DNX451
-                    CreatedBy = Environment.UserName,
-                    UpdatedBy = Environment.UserName
-#endif
-
+                    CreatedDate = now
                 };
 
                 uow.Repository<Objects.Doctor>().Create(itemToCreate);

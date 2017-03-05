@@ -19,33 +19,45 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Mapping;
 using static Newtonsoft.Json.JsonConvert;
 using MedEasy.Handlers.Core.Specialty.Queries;
+using Microsoft.EntityFrameworkCore;
+using MedEasy.API.Stores;
+using System.Reflection;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
     public class HandleFindDoctorsBySpecialtyIdQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private HandleFindDoctorsBySpecialtyIdQuery _handler;
 
         private Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>> _loggerMock;
-        private Mock<IExpressionBuilder> _expressionBuilderMock;
+        private IExpressionBuilder _expressionBuilder;
 
         public HandleFindDoctorsBySpecialtyIdQueryTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
 
-            _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+            DbContextOptionsBuilder<MedEasyContext> dbOptionsBuiler = new DbContextOptionsBuilder<MedEasyContext>();
+            dbOptionsBuiler.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _unitOfWorkFactory = new EFUnitOfWorkFactory(dbOptionsBuiler.Options);
 
             _loggerMock = new Mock<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
-            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
+            _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
 
-            _handler = new HandleFindDoctorsBySpecialtyIdQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _expressionBuilderMock.Object);
+            _handler = new HandleFindDoctorsBySpecialtyIdQuery(_unitOfWorkFactory, _loggerMock.Object);
         }
 
+        public void Dispose()
+        {
+            _outputHelper = null;
+            _unitOfWorkFactory = null;
+            _handler = null;
+            _expressionBuilder = null;
+            _loggerMock = null;
+        }
 
         public static IEnumerable<object> CtorCases
         {
@@ -63,33 +75,43 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         {
             get
             {
+                
                 yield return new object[]
-                    {
-                        new [] {
-                            new Objects.Doctor { Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 2 }
-                        },
-                        1,
-                        new PaginationConfiguration(),
-                        1,
-                        1,
-                        0,
-                        ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 0))
+                {
+                    new [] {
+                        new Objects.Doctor {
+                            Id = 1, Firstname = "Henry", Lastname = "Jekyll", Specialty = new Objects.Specialty { Id = 1, Name = "SPEC1", UUID = Guid.NewGuid() }
+                        }
+                    },
+                    Guid.NewGuid(),
+                    new PaginationConfiguration(),
+                    1,
+                    1,
+                    0,
+                    ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 0))
 
                 };
+                
 
-                yield return new object[]
+                {
+                    Guid specialtyId = Guid.NewGuid();
+                    Objects.Specialty specialty = new Objects.Specialty { Id = 1, Name = "SPEC1", UUID = specialtyId };
+                    Guid doctorId = Guid.NewGuid();
+                    Guid doctorId2 = Guid.NewGuid();
+                    yield return new object[]
                     {
                         new [] {
-                            new Objects.Doctor {Id = 1, Firstname = "Henry", Lastname = "Jekyll", SpecialtyId = 1 }
+                            new Objects.Doctor {Id = 1, Firstname = "Henry", Lastname = "Jekyll", UUID = doctorId, Specialty = specialty },
+                            new Objects.Doctor {Id = 2, Firstname = "Hugo", Lastname = "Strange", UUID = doctorId2, Specialty = specialty }
                         },
-                        1,
+                        specialtyId,
                         new PaginationConfiguration {Page = 1, PageSize = 1 },
                         1,
                         1,
-                        1,
-                        ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 1 && items.Once(x => x.Id == 1)))
-
-                };
+                        2,
+                        ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 1 && items.Once(x => x.Id == doctorId)))
+                    };
+                }
             }
         }
 
@@ -103,7 +125,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"ExpressionBuilder : {expressionBuilder}");
-            Action action = () => new HandleFindDoctorsBySpecialtyIdQuery(factory, logger, expressionBuilder);
+            Action action = () => new HandleFindDoctorsBySpecialtyIdQuery(factory, logger);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -118,8 +140,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             {
                 IHandleFindDoctorsBySpecialtyIdQuery handler = new HandleFindDoctorsBySpecialtyIdQuery(
                     Mock.Of<IUnitOfWorkFactory>(),
-                    Mock.Of<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>(),
-                    Mock.Of<IExpressionBuilder>());
+                    Mock.Of<ILogger<HandleFindDoctorsBySpecialtyIdQuery>>());
 
                 await handler.HandleAsync(null);
             };
@@ -134,20 +155,10 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         {
             //Arrange
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Doctor, DoctorInfo>(It.IsAny<IDictionary<string, object>>()))
-               .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>())
-               .Verifiable();
-
-
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
-                .WhereAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>(), It.IsAny<IEnumerable<OrderClause<DoctorInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((Expression<Func<Objects.Doctor, DoctorInfo>> selector, Expression<Func<Objects.Doctor, bool>> filter, IEnumerable<OrderClause<DoctorInfo>> order, int pageSize, int page)
-                    => Task.FromResult<IPagedResult<DoctorInfo>>(new PagedResult<DoctorInfo>(Enumerable.Empty<DoctorInfo>(), 0, pageSize)))
-                .Verifiable();
+            
 
             // Act
-
-            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(1, new PaginationConfiguration()));
+            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(Guid.NewGuid(), new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();
@@ -158,15 +169,14 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             output.Total.Should().Be(0);
             output.PageCount.Should().Be(0);
             output.PageSize.Should().Be(PaginationConfiguration.DefaultPageSize);
+            
 
-            _expressionBuilderMock.VerifyAll();
-            _unitOfWorkFactoryMock.VerifyAll();
         }
 
 
         [Theory]
         [MemberData(nameof(FindDoctorsBySpecialtyIdCases))]
-        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, int specialtyId, PaginationConfiguration getQuery, int expectedPageSize,
+        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, Guid specialtyId, PaginationConfiguration getQuery, int expectedPageSize,
             int expectedPage, int expectedTotal, Expression<Func<IEnumerable<DoctorInfo>, bool>> itemsExpectation)
         {
 
@@ -175,27 +185,13 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
 
             // Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
-                .WhereAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>(), It.IsAny<IEnumerable<OrderClause<DoctorInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((Expression<Func<Objects.Doctor, DoctorInfo>> selector, Expression<Func<Objects.Doctor, bool>> filter, IEnumerable<OrderClause<DoctorInfo>> order, int pageSize, int page)
-                    => Task.Factory.StartNew(() => {
-                        IEnumerable<DoctorInfo> result = doctors.AsQueryable()
-                            .Where(filter)
-                            .Skip((page - 1) * pageSize)
-                            .Take(pageSize)
-                            .Select(selector);
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<Objects.Doctor>().Create(doctors);
 
-                        int count = doctors.Count(filter.Compile());
+                await uow.SaveChangesAsync();
+            }
 
-                        IPagedResult<DoctorInfo> pagedResult = new PagedResult<DoctorInfo>(result, count, pageSize);
-
-                        return pagedResult;
-                    }))
-                    .Verifiable();
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Doctor, DoctorInfo>(It.IsAny<IDictionary<string, object>>()))
-                .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorInfo>())
-                .Verifiable();
-            
             // Act
             IPagedResult<DoctorInfo> pageOfResult = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, getQuery));
 
@@ -206,20 +202,11 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                 .Match(itemsExpectation);
 
             pageOfResult.Total.Should().Be(expectedTotal);
-
-            _expressionBuilderMock.VerifyAll();
-            _unitOfWorkFactoryMock.VerifyAll();
-
+            
 
         }
 
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _unitOfWorkFactoryMock = null;
-            _handler = null;
-            _expressionBuilderMock = null;
-        }
+
     }
 }

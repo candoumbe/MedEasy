@@ -61,6 +61,9 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunPatchAppointmentCommand> _iRunPatchAppointmentCommandMock;
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
 
+        private const string GuidRegexPattern = @"^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$";
+
+
         public AppointmentsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -81,7 +84,7 @@ namespace MedEasy.WebApi.Tests
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
             _factory = new EFUnitOfWorkFactory(dbOptions.Options);
             _mapper = AutoMapperConfig.Build().CreateMapper();
-           
+
             _handleGetOneAppointmentInfoByIdQueryMock = new Mock<IHandleGetAppointmentInfoByIdQuery>(Strict);
             _handlerGetManyAppointmentInfoQueryMock = new Mock<IHandleGetManyAppointmentInfosQuery>(Strict);
             _iRunCreateAppointmentInfoCommandMock = new Mock<IRunCreateAppointmentCommand>(Strict);
@@ -188,7 +191,7 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
-        
+
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
         public async Task GetAll(IEnumerable<Appointment> items, int pageSize, int page,
@@ -251,7 +254,7 @@ namespace MedEasy.WebApi.Tests
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
             response.Links.Next.Should().Match(nextPageUrlExpectation);
             response.Links.Last.Should().Match(lastPageUrlExpectation);
-           
+
 
         }
 
@@ -260,11 +263,11 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, AppointmentInfo>>()))
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
                 .ReturnsAsync(null);
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid());
 
             //Assert
             actionResult.Should()
@@ -280,9 +283,9 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             AppointmentInfo expectedAppointementInfo = new AppointmentInfo
             {
-                Id = 1,
-                PatientId = 5,
-                DoctorId = 3,
+                Id = Guid.NewGuid(),
+                PatientId = Guid.NewGuid(),
+                DoctorId = Guid.NewGuid(),
                 StartDate = 1.February(2015),
                 Duration = 1.Hours().TotalSeconds
             };
@@ -291,12 +294,12 @@ namespace MedEasy.WebApi.Tests
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
 
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, AppointmentInfo>>()))
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
                 .ReturnsAsync(expectedAppointementInfo)
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(expectedAppointementInfo.Id);
 
             //Assert
             actionResult.Should()
@@ -318,7 +321,7 @@ namespace MedEasy.WebApi.Tests
 
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"api/{AppointmentsController.EndpointName}/{nameof(AppointmentsController.Get)}?{nameof(AppointmentInfo.Id)}=1");
+                .BeEquivalentTo($"api/{AppointmentsController.EndpointName}/{nameof(AppointmentsController.Get)}?{nameof(AppointmentInfo.Id)}={expectedAppointementInfo.Id}");
             location.Relation?.Should()
                 .BeEquivalentTo("self");
 
@@ -328,7 +331,7 @@ namespace MedEasy.WebApi.Tests
             resource.DoctorId.Should().Be(expectedAppointementInfo.DoctorId);
             resource.PatientId.Should().Be(expectedAppointementInfo.PatientId);
             resource.StartDate.Should().Be(expectedAppointementInfo.StartDate);
-            
+
 
             _handleGetOneAppointmentInfoByIdQueryMock.Verify();
             _urlHelperFactoryMock.Verify();
@@ -339,10 +342,12 @@ namespace MedEasy.WebApi.Tests
         public async Task Post()
         {
             //Arrange
+            Guid appointmentId = Guid.NewGuid();
             _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>()))
-                .Returns((ICreateAppointmentCommand cmd) => Task.Run(() 
-                => new AppointmentInfo {
-                    Id = 1,
+                .Returns((ICreateAppointmentCommand cmd) => Task.Run(()
+                => new AppointmentInfo
+                {
+                    Id = appointmentId,
                     DoctorId = cmd.Data.DoctorId,
                     PatientId = cmd.Data.PatientId,
                     StartDate = cmd.Data.StartDate,
@@ -353,13 +358,13 @@ namespace MedEasy.WebApi.Tests
             //Act
             CreateAppointmentInfo info = new CreateAppointmentInfo
             {
-                PatientId = 22,
-                DoctorId = 70,
+                PatientId = Guid.NewGuid(),
+                DoctorId = Guid.NewGuid(),
                 StartDate = 23.July(2015),
                 Duration = 3.Hours().TotalSeconds
             };
 
-           IActionResult actionResult = await _controller.Post(info);
+            IActionResult actionResult = await _controller.Post(info);
 
             //Assert
             CreatedAtActionResult createdActionResult = actionResult.Should()
@@ -368,9 +373,11 @@ namespace MedEasy.WebApi.Tests
 
             createdActionResult.ActionName.Should().Be(nameof(AppointmentsController.Get));
             createdActionResult.ControllerName.Should().Be(AppointmentsController.EndpointName);
-            createdActionResult.RouteValues.Should().NotBeNull();
-            createdActionResult.RouteValues.ToQueryString().Should().NotBeNull().And
-                .MatchRegex(@"(i|I)d=[1-9]{1}\d*");
+            createdActionResult.RouteValues.Should()
+                .HaveCount(1).And
+                .ContainKey("id");
+
+            createdActionResult.RouteValues["id"].Should().Be(appointmentId);
 
 
             createdActionResult.Value.Should()
@@ -388,8 +395,7 @@ namespace MedEasy.WebApi.Tests
 
             createdResource.Should()
                 .NotBeNull();
-            createdResource.Id.Should()
-                .Be(1);
+            createdResource.Id.Should().NotBeEmpty();
             createdResource.DoctorId.Should()
                 .Be(info.DoctorId);
             createdResource.PatientId.Should()
@@ -419,8 +425,8 @@ namespace MedEasy.WebApi.Tests
             //Act
             CreateAppointmentInfo info = new CreateAppointmentInfo
             {
-                PatientId = 22,
-                DoctorId = 70,
+                PatientId = Guid.NewGuid(),
+                DoctorId = Guid.NewGuid(),
                 Duration = 3.Hours().TotalSeconds
             };
 
@@ -428,59 +434,25 @@ namespace MedEasy.WebApi.Tests
             Func<Task> action = async () => await _controller.Post(info);
 
             //Assert
-            action.ShouldThrow<CommandNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
+            action.ShouldThrow<CommandNotValidException<Guid>>().Which.Should()
+                .Be(exceptionFromTheHandler);
             _iRunCreateAppointmentInfoCommandMock.Verify();
 
         }
 
 
-
-        public static IEnumerable<object> PatchCases
-        {
-            get
-            {
-                {
-                    JsonPatchDocument<AppointmentInfo> patchDocument = new JsonPatchDocument<AppointmentInfo>();
-                    patchDocument.Replace(x => x.DoctorId, 23);
-                    yield return new object[]
-                    {
-                        new Appointment { Id = 1, DoctorId = 3},
-                        patchDocument.Operations,
-                        ((Expression<Func<Appointment, bool>>)(x => x.Id == 1 && x.DoctorId == 23))
-                    };
-                }
-                {
-                    JsonPatchDocument<AppointmentInfo> patchDocument = new JsonPatchDocument<AppointmentInfo>();
-                    patchDocument.Replace(x => x.DoctorId, 23);
-                    yield return new object[]
-                    {
-                        new Appointment { Id = 1},
-                        patchDocument.Operations,
-                        ((Expression<Func<Appointment, bool>>)(x => x.Id == 1 && x.DoctorId == 23))
-                    };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(PatchCases))]
-        public async Task Patch(Appointment source, IEnumerable<Operation<AppointmentInfo>> operations, Expression<Func<Appointment, bool>> patchResultExpectation)
+        [Fact]
+        public async Task Patch()
         {
 
             // Arrange
-            _iRunPatchAppointmentCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<int, Appointment>>()))
-                .Returns((IPatchCommand<int, Appointment> command) => Task.Run(() => 
-                {
-                    command.Data.PatchDocument.ApplyTo(source);
-
-                    return Nothing.Value;
-                }));
+            _iRunPatchAppointmentCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<Guid, Appointment>>()))
+                .ReturnsAsync(Nothing.Value);
 
 
             // Act
             JsonPatchDocument<AppointmentInfo> patchDocument = new JsonPatchDocument<AppointmentInfo>();
-            patchDocument.Operations.AddRange(operations);
-            IActionResult actionResult = await _controller.Patch(1, patchDocument);
+            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument);
 
             // Assert
             actionResult.Should()
@@ -488,9 +460,6 @@ namespace MedEasy.WebApi.Tests
                 .BeAssignableTo<OkResult>();
 
             _iRunPatchAppointmentCommandMock.Verify();
-
-            source.Should().Match(patchResultExpectation);
-
         }
 
 
@@ -668,13 +637,13 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, AppointmentInfo>>()))
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
-            
+
 
             //Act
-            Func<Task> action = async () => await _controller.Get(1);
+            Func<Task> action = async () => await _controller.Get(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -725,7 +694,7 @@ namespace MedEasy.WebApi.Tests
 
 
             //Act
-            Func<Task> action = async () => await _controller.Delete(1);
+            Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -735,23 +704,17 @@ namespace MedEasy.WebApi.Tests
         [Fact]
         public async Task DeleteMustRelyOnDeleteCommandHandler()
         {
-
             //Arrange
-            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteAppointmentByIdCommand>()))
+            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<IDeleteAppointmentByIdCommand>()))
                 .Returns(Nothing.Task)
                 .Verifiable();
 
-
             //Act
-            await _controller.Delete(1);
+            await _controller.Delete(Guid.NewGuid());
 
             //Assert
             _iRunDeleteAppointmentInfoByIdCommandMock.Verify();
         }
-
-
-
-
     }
 }
 

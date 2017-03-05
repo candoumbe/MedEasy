@@ -61,7 +61,7 @@ namespace MedEasy.Handlers.Document.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public async Task<DocumentInfo> HandleAsync(IWantOneResource<Guid, int, DocumentInfo> query)
+        public async Task<DocumentInfo> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query)
         {
             if (query == null)
             {
@@ -88,10 +88,10 @@ namespace MedEasy.Handlers.Document.Queries
 
             using (var uow = UowFactory.New())
             {
-                int data = query.Data;
+                Guid data = query.Data;
 
                 Expression<Func<Objects.Document, DocumentInfo>> selector = ExpressionBuilder.CreateMapExpression<Objects.Document, DocumentInfo>();
-                DocumentInfo output = await uow.Repository<Objects.Document>().SingleOrDefaultAsync(selector, x => x.DocumentMetadataId == data);
+                DocumentInfo output = await uow.Repository<Objects.Document>().SingleOrDefaultAsync(selector, x => x.DocumentMetadata.UUID == data);
 
                 Logger.LogInformation($"Query {query.Id} processed successfully");
 

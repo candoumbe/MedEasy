@@ -9,6 +9,7 @@ using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.Objects;
+using System;
 
 namespace MedEasy.API.Controllers
 {
@@ -53,7 +54,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         [Produces(typeof(PrescriptionHeaderInfo))]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(Guid id)
         {
             IActionResult actionResult;
             PrescriptionHeaderInfo prescriptionHeaderInfo = await _prescriptionService.GetOnePrescriptionAsync(id);
@@ -98,10 +99,10 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         /// <response code="200">if the resource exists</response>
         /// <response code="404">if no prescription with <paramref name="id"/> found</response>
-        [HttpGet("{id:int}/[action]")]
-        [HttpHead("{id:int}/[action]")]
+        [HttpGet("{id}/[action]")]
+        [HttpHead("{id}/[action]")]
         [ProducesResponseType(typeof(IEnumerable<PrescriptionItemInfo>), 200)]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(Guid id)
         {
             IEnumerable<PrescriptionItemInfo> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id);
 

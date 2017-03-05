@@ -74,27 +74,31 @@ namespace MedEasy.Handlers.Tests.Handlers
                         x.PageSize == 3))
                 };
 
-                yield return new object[]
-               {
-                    new []
-                    {
-                        new Objects.Patient {Id = 1, Firstname = "bruce", Lastname = "wayne" },
-                        new Objects.Patient {Id = 2, Firstname = "dick", Lastname = "grayson" },
-                        new Objects.Patient {Id = 3, Firstname = "damian", Lastname = "wayne" },
 
-                    },
-                    new SearchQueryInfo<PatientInfo>
-                    {
-                        Filter = new DataFilter { Field = nameof(PatientInfo.Lastname), Operator = Contains, Value = "y" },
-                        Page = 3,
-                        PageSize = 1
-                    },
-                    ((Expression<Func<IPagedResult<PatientInfo>, bool>>)(x => x != null && 
-                        x.Entries.Count() == 1 && 
-                        x.Entries.ElementAt(0).Id == 3 && 
-                        x.PageCount == 3 && 
-                        x.PageSize == 1))
-               };
+                {
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
+                   {
+                        new []
+                        {
+                            new Objects.Patient {Id = 1, Firstname = "bruce", Lastname = "wayne" },
+                            new Objects.Patient {Id = 2, Firstname = "dick", Lastname = "grayson" },
+                            new Objects.Patient {Id = 3, Firstname = "damian", Lastname = "wayne", UUID = patientId },
+
+                        },
+                        new SearchQueryInfo<PatientInfo>
+                        {
+                            Filter = new DataFilter { Field = nameof(PatientInfo.Lastname), Operator = Contains, Value = "y" },
+                            Page = 3,
+                            PageSize = 1
+                        },
+                        ((Expression<Func<IPagedResult<PatientInfo>, bool>>)(x => x != null &&
+                            x.Entries.Count() == 1 &&
+                            x.Entries.ElementAt(0).Id == patientId &&
+                            x.PageCount == 3 &&
+                            x.PageSize == 1))
+                       };
+                }
             }
         }
 
@@ -133,12 +137,6 @@ namespace MedEasy.Handlers.Tests.Handlers
             // Assert
             pageOfResult.Should()
                 .Match(resultExpectation);
-
-            
-        }
-
-
-
-        
+        }        
     }
 }

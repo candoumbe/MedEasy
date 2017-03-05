@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Runtime.Serialization;
 
 namespace MedEasy.DTO.Autocomplete
@@ -7,7 +8,7 @@ namespace MedEasy.DTO.Autocomplete
     /// Model autocomplete response for doctor informations
     /// </summary>
     [JsonObject]
-    public class DoctorAutocompleteInfo : AutocompleteInfo<int>
+    public class DoctorAutocompleteInfo : AutocompleteInfo<Guid>
     {
         /// <summary>
         /// Doctor's firstname

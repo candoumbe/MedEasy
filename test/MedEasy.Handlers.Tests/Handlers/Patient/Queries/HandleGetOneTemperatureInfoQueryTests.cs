@@ -111,7 +111,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .Verifiable();
 
             // Act
-            TemperatureInfo output = await _handler.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(1, 23));
+            TemperatureInfo output = await _handler.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(Guid.NewGuid(), Guid.NewGuid()));
 
             //Assert
             output.Should().BeNull();
@@ -127,7 +127,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             //Arrange
             
             // Act
-            IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo> query = new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(1, 12);
+            IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo> query = new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(Guid.NewGuid(), Guid.NewGuid());
             Func<Task> action = async () =>  await _handler.HandleAsync(query);
 
             //Assert

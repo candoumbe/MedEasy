@@ -28,7 +28,7 @@ namespace System
                 .ToList();
 
             IList<FormField> fields = new List<FormField>(properties.Count());
-            foreach (var pi in properties)
+            foreach (PropertyInfo pi in properties)
             {
                 FormField ff = new FormField { Name = pi.Name };
 

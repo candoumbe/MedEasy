@@ -316,6 +316,21 @@ namespace MedEasy.DAL.Repositories
         Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TEntry, bool>> predicate);
 
         /// <summary>
+        /// Gets the one and only entry that match <paramref name="predicate"/>.
+        /// </summary>
+        /// <remarks>
+        ///     The <paramref name="predicate"/> is applied prior the <paramref name="selector"/>.
+        /// </remarks>
+        /// <typeparam name="TResult">Type of the result of the projection</typeparam>
+        /// <param name="selector">Projection to apply after finding the entry that matches <paramref name="predicate"/></param>
+        /// <param name="predicate">Filter to apply to echj</param>
+        /// <returns>The entry that matches <paramref name="predicate"/> or <c>null</c> if no matches found</returns>
+        /// <exception cref="InvalidOperationException">if no entry or more than one entry matches <paramref name="predicate"/>.</exception>
+        /// <exception cref="ArgumentNullException">if either <paramref name="selector"/> or <paramref name="predicate"/> is <c>null</c></exception>
+        Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<TEntry, TResult>> selector, Expression<Func<TResult, bool>> predicate);
+
+
+        /// <summary>
         /// Gets the first entry of the repository
         /// </summary>
         /// <returns>The first entry of the repository</returns>

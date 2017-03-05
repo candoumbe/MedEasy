@@ -46,6 +46,7 @@ using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
 using System.IO;
 using MedEasy.DTO.Search;
+using MedEasy.DAL.Interfaces;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -70,7 +71,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IHandleGetDocumentsByPatientIdQuery> _iHandleGetDocumentsByPatientIdQueryMock;
         private Mock<IRunCreateDocumentForPatientCommand> _iRunCreateDocumentForPatientCommandMock;
         private Mock<IHandleGetOneDocumentInfoByPatientIdAndDocumentId> _iHandleGetOneDocumentInfoByPatientIdAndDocumentIdMock;
-        
+
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -90,7 +91,6 @@ namespace MedEasy.WebApi.Tests
             DbContextOptionsBuilder<MedEasyContext> dbOptions = new DbContextOptionsBuilder<MedEasyContext>();
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
             _factory = new EFUnitOfWorkFactory(dbOptions.Options);
-            _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _iHandleGetOnePatientInfoByIdQueryMock = new Mock<IHandleGetOnePatientInfoByIdQuery>(Strict);
             _iHandleGetManyPatientInfoQueryMock = new Mock<IHandleGetManyPatientInfosQuery>(Strict);
@@ -217,7 +217,9 @@ namespace MedEasy.WebApi.Tests
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
-                        ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "first" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        ((Expression<Func<Link, bool>>) (x => x != null
+                            && x.Relation == "first"
+                            && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
                         ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == "last" && $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?pageSize={PaginationConfiguration.DefaultPageSize}&page=1".Equals(x.Href, OrdinalIgnoreCase))), // expected link to last page
@@ -232,7 +234,7 @@ namespace MedEasy.WebApi.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<BloodPressure>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -242,19 +244,23 @@ namespace MedEasy.WebApi.Tests
                     {
                         new BloodPressure { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
+
                     ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
                 };
 
-                yield return new object[]
                 {
-                    new []
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
                     {
-                        new BloodPressure { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
-                    },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
-                };
+                        new []
+                        {
+                            new BloodPressure { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
+                        },
+                        new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
+                        ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1))
+                    };
+                }
             }
         }
 
@@ -265,7 +271,7 @@ namespace MedEasy.WebApi.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<Temperature>(),
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
                 };
 
@@ -275,19 +281,21 @@ namespace MedEasy.WebApi.Tests
                     {
                         new Temperature { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
                     },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
+                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
                     ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
                 };
-
-                yield return new object[]
                 {
-                    new []
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
                     {
-                        new Temperature { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
-                    },
-                    new GetMostRecentPhysiologicalMeasuresInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == 1) && x.Count() == 1))
-                };
+                        new []
+                        {
+                            new Temperature { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
+                        },
+                        new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
+                        ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1))
+                    };
+                }
             }
         }
 
@@ -297,30 +305,31 @@ namespace MedEasy.WebApi.Tests
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<Prescription>(),
-                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => !x.Any()))
+                    Enumerable.Empty<PrescriptionHeaderInfo>(),
+                    new GetMostRecentPrescriptionsInfo { PatientId = Guid.NewGuid(), Count = 10 }
                 };
-
-                yield return new object[]
                 {
-                    new []
+                    yield return new object[]
                     {
-                        new Prescription { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
-                    },
-                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => !x.Any()))
-                };
-
-                yield return new object[]
+                        new []
+                        {
+                            new PrescriptionHeaderInfo { Id = Guid.NewGuid(), DeliveryDate = 23.June(1988), PatientId = Guid.NewGuid(), PrescriptorId = Guid.NewGuid(), UpdatedDate = DateTimeOffset.UtcNow }
+                        },
+                        new GetMostRecentPrescriptionsInfo { PatientId = Guid.NewGuid(), Count = 10 }
+                    };
+                }
                 {
-                    new []
+                    yield return new object[]
                     {
-                        new Prescription { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow }
-                    },
-                    new GetMostRecentPrescriptionsInfo { PatientId = 1, Count = 10 },
-                    ((Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>>) (x => x.All(prescription => prescription.PatientId == 1) && x.Count() == 1))
-                };
+                        new []
+                        {
+                            new PrescriptionHeaderInfo { Id = Guid.NewGuid(), DeliveryDate = 23.June(1988), PatientId = Guid.NewGuid(), PrescriptorId = Guid.NewGuid(), UpdatedDate = DateTimeOffset.UtcNow },
+                            new PrescriptionHeaderInfo { Id = Guid.NewGuid(), DeliveryDate = 15.August(2006), PatientId = Guid.NewGuid(), PrescriptorId = Guid.NewGuid(), UpdatedDate = DateTimeOffset.UtcNow }
+
+                        },
+                        new GetMostRecentPrescriptionsInfo { PatientId = Guid.NewGuid(), Count = 10 }
+                    };
+                }
             }
         }
 
@@ -337,7 +346,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<Patient>().Create(items);
                 await uow.SaveChangesAsync();
@@ -348,7 +357,7 @@ namespace MedEasy.WebApi.Tests
                 {
 
 
-                    using (var uow = _factory.New())
+                    using (IUnitOfWork uow = _factory.New())
                     {
                         PaginationConfiguration queryConfig = getQuery.Data ?? new PaginationConfiguration();
 
@@ -641,11 +650,11 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
                 .ReturnsAsync(null);
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid());
 
             //Assert
             actionResult.Should()
@@ -654,7 +663,7 @@ namespace MedEasy.WebApi.Tests
                     .StatusCode.Should().Be(404);
 
         }
-        
+
         [Fact]
         public async Task Get()
         {
@@ -662,19 +671,20 @@ namespace MedEasy.WebApi.Tests
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
+            Guid patientId = Guid.NewGuid();
             PatientInfo expectedResource = new PatientInfo
             {
-                Id = 1,
+                Id = patientId,
                 Firstname = "Bruce",
                 Lastname = "Wayne",
-                MainDoctorId = 72
+                MainDoctorId = Guid.NewGuid()
             };
-            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
                 .ReturnsAsync(expectedResource)
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.Get(1);
+            IActionResult actionResult = await _controller.Get(patientId);
 
             //Assert
 
@@ -691,14 +701,14 @@ namespace MedEasy.WebApi.Tests
                 .Contain(x => x.Relation == "self").And
                 .Contain(x => x.Relation == "delete").And
                 .Contain(x => x.Relation == "main-doctor").And
-                .Contain(x => x.Relation ==  "documents").And
+                .Contain(x => x.Relation == "documents").And
                 .Contain(x => x.Relation == "most-recent-temperatures").And
                 .Contain(x => x.Relation == "most-recent-blood-pressures");
 
             Link location = links.Single(x => x.Relation == "self");
             location.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}=1");
+                .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}={patientId}");
             location.Relation.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo("self");
@@ -716,7 +726,7 @@ namespace MedEasy.WebApi.Tests
 
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
-            actualResource.Id.Should().Be(1);
+            actualResource.Id.Should().Be(expectedResource.Id);
             actualResource.Firstname.Should().Be(expectedResource.Firstname);
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
             actualResource.MainDoctorId.Should().Be(expectedResource.MainDoctorId);
@@ -730,12 +740,12 @@ namespace MedEasy.WebApi.Tests
         public async Task Post()
         {
             //Arrange
-
+            Guid patientId = Guid.NewGuid();
             _iRunCreatePatientInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreatePatientCommand>()))
                 .Returns((ICreatePatientCommand cmd) => Task.Run(()
                 => new PatientInfo
                 {
-                    Id = 3,
+                    Id = patientId,
                     Firstname = cmd.Data.Firstname,
                     Lastname = cmd.Data.Lastname,
                     UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero),
@@ -747,7 +757,7 @@ namespace MedEasy.WebApi.Tests
             {
                 Firstname = "Bruce",
                 Lastname = "Wayne",
-                MainDoctorId = 75
+                MainDoctorId = Guid.NewGuid()
             };
 
             IActionResult actionResult = await _controller.Post(info);
@@ -826,12 +836,13 @@ namespace MedEasy.WebApi.Tests
         public async Task ShouldReturnNotFoundWhenNoResourceFound()
         {
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<int>(), It.IsAny<int>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<Guid>(), It.IsAny<Guid>()))
                 .ReturnsAsync(null);
 
             // Act
-            int patientId = 1,
-                prescriptionId = 12;
+            Guid patientId = Guid.NewGuid();
+            Guid prescriptionId = Guid.NewGuid();
+
             IActionResult actionResult = await _controller.Prescriptions(patientId, prescriptionId);
 
             // Assert
@@ -846,19 +857,20 @@ namespace MedEasy.WebApi.Tests
         public async Task ShouldReturnThePrescriptionHeaderResource()
         {
             // Arrange
+            Guid patientId = Guid.NewGuid();
+            Guid prescriptionId = Guid.NewGuid();
             PrescriptionHeaderInfo expectedOutput = new PrescriptionHeaderInfo
             {
-                Id = 1,
-                PatientId = 12,
-                PrescriptorId = 10,
+                Id = prescriptionId,
+                PatientId = patientId,
+                PrescriptorId = Guid.NewGuid(),
                 DeliveryDate = new DateTimeOffset(1983, 6, 23, 0, 0, 0, TimeSpan.Zero)
             };
-            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<int>(), It.IsAny<int>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionByPatientIdAsync(It.IsAny<Guid>(), It.IsAny<Guid>()))
                 .ReturnsAsync(expectedOutput);
 
             // Act
-            int patientId = 1,
-                prescriptionId = 12;
+
             IActionResult actionResult = await _controller.Prescriptions(patientId, prescriptionId);
 
             // Assert
@@ -906,13 +918,13 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, int, PatientInfo>>()))
+            _iHandleGetOnePatientInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
 
             //Act
-            Func<Task> action = async () => await _controller.Get(1);
+            Func<Task> action = async () => await _controller.Get(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -959,7 +971,7 @@ namespace MedEasy.WebApi.Tests
 
 
             //Act
-            Func<Task> action = async () => await _controller.Delete(1);
+            Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -977,21 +989,19 @@ namespace MedEasy.WebApi.Tests
 
 
             //Act
-            await _controller.Delete(1);
+            await _controller.Delete(Guid.NewGuid());
 
             //Assert
             _iRunDeletePatientInfoByIdCommandMock.Verify();
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task DeletePatientByNegativeOrZeroReturnsBadRequest(int idToDelete)
+        [Fact]
+        public async Task DeletePatientByNegativeOrZeroReturnsBadRequest()
         {
             //Arrange
 
             //Act
-            IActionResult actionResult = await _controller.Delete(idToDelete);
+            IActionResult actionResult = await _controller.Delete(Guid.Empty);
 
             //Assert
             actionResult.Should().BeAssignableTo<BadRequestResult>();
@@ -1004,13 +1014,13 @@ namespace MedEasy.WebApi.Tests
         public async Task AddTemperatureMeasure()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<ICommand<Guid, Temperature>>()))
-                .Returns((ICommand<Guid, Temperature> localCmd) => Task.FromResult(new TemperatureInfo
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>>>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>> localCmd) => Task.FromResult(new TemperatureInfo
                 {
-                    Id = 1,
-                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    Id = Guid.NewGuid(),
+                    DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
                     PatientId = localCmd.Data.PatientId,
-                    Value = localCmd.Data.Value
+                    Value = localCmd.Data.Measure.Value
                 }));
 
             // Act
@@ -1020,7 +1030,8 @@ namespace MedEasy.WebApi.Tests
                 DateOfMeasure = DateTimeOffset.UtcNow
             };
 
-            IActionResult actionResult = await _controller.Temperatures(1, input);
+            Guid patientId = Guid.NewGuid();
+            IActionResult actionResult = await _controller.Temperatures(patientId, input);
 
             // Assert
             CreatedAtActionResult createdAtActionResult = actionResult.Should()
@@ -1031,16 +1042,18 @@ namespace MedEasy.WebApi.Tests
             createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Temperatures));
             createdAtActionResult.RouteValues.Should()
                 .HaveCount(2).And
-                .ContainKey("id").WhichValue.Should().Be(1);
+                .ContainKey("id").WhichValue.Should().Be(patientId);
             createdAtActionResult.RouteValues.Should()
-                .ContainKey("temperatureId").WhichValue.Should().Be(1);
+                .ContainKey("temperatureId").WhichValue.Should()
+                .BeOfType<Guid>().Which.Should()
+                .NotBeEmpty();
 
 
             TemperatureInfo resource = createdAtActionResult.Value.Should()
                 .BeOfType<TemperatureInfo>().Which;
 
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(1);
+            resource.PatientId.Should().Be(patientId);
             resource.Value.Should().Be(input.Value);
 
             _physiologicalMeasureFacadeMock.VerifyAll();
@@ -1058,21 +1071,21 @@ namespace MedEasy.WebApi.Tests
             };
 
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(It.IsAny<ICommand<Guid, BloodPressure>>()))
-                .Returns((ICommand<Guid, BloodPressure> localCmd) => Task.FromResult(new BloodPressureInfo
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>>>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>> localCmd) => Task.FromResult(new BloodPressureInfo
                 {
-                    Id = 1,
-                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    Id = Guid.NewGuid(),
+                    DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
                     PatientId = localCmd.Data.PatientId,
-                    SystolicPressure = localCmd.Data.SystolicPressure,
-                    DiastolicPressure = localCmd.Data.DiastolicPressure,
+                    SystolicPressure = localCmd.Data.Measure.SystolicPressure,
+                    DiastolicPressure = localCmd.Data.Measure.DiastolicPressure,
 
                 }));
 
             // Act
 
-
-            IActionResult actionResult = await _controller.BloodPressures(1, input);
+            Guid patientId = Guid.NewGuid();
+            IActionResult actionResult = await _controller.BloodPressures(patientId, input);
 
             // Assert
             CreatedAtActionResult createdAtActionResult = actionResult.Should()
@@ -1082,14 +1095,16 @@ namespace MedEasy.WebApi.Tests
             createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.BloodPressures));
             createdAtActionResult.RouteValues.Should()
                 .HaveCount(2).And
-                .ContainKey("id").WhichValue.Should().Be(1);
+                .ContainKey("id").WhichValue.Should().Be(patientId);
             createdAtActionResult.RouteValues.Should()
-                .ContainKey("bloodPressureId").WhichValue.Should().Be(1);
+                .ContainKey("bloodPressureId").WhichValue.Should()
+                .BeOfType<Guid>().And
+                .NotBe(Guid.Empty);
 
             BloodPressureInfo resource = createdAtActionResult.Value.Should().BeOfType<BloodPressureInfo>().Which;
 
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(1);
+            resource.PatientId.Should().Be(patientId);
             resource.SystolicPressure.Should().Be(input.SystolicPressure);
             resource.DiastolicPressure.Should().Be(input.DiastolicPressure);
 
@@ -1108,19 +1123,20 @@ namespace MedEasy.WebApi.Tests
             };
 
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(It.IsAny<ICommand<Guid, BodyWeight>>()))
-                .Returns((ICommand<Guid, BodyWeight> localCmd) => Task.FromResult(new BodyWeightInfo
+            Guid measureId = Guid.NewGuid();
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>>>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>> localCmd) => Task.FromResult(new BodyWeightInfo
                 {
-                    Id = 1,
-                    DateOfMeasure = localCmd.Data.DateOfMeasure,
+                    Id = measureId,
+                    DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
                     PatientId = localCmd.Data.PatientId,
-                    Value = localCmd.Data.Value
+                    Value = localCmd.Data.Measure.Value
                 }));
 
             // Act
 
-
-            IActionResult actionResult = await _controller.BodyWeights(1, input);
+            Guid patientId = Guid.NewGuid();
+            IActionResult actionResult = await _controller.BodyWeights(patientId, input);
 
             // Assert
             CreatedAtActionResult createdAtActionResult = actionResult.Should()
@@ -1130,14 +1146,18 @@ namespace MedEasy.WebApi.Tests
             createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.BodyWeights));
             createdAtActionResult.RouteValues.Should()
                 .HaveCount(2).And
-                .ContainKey("id").WhichValue.Should().Be(1);
+                .ContainKey("id").WhichValue.Should()
+                .BeOfType<Guid>().And
+                .Be(patientId);
             createdAtActionResult.RouteValues.Should()
-                .ContainKey("bodyWeightId").WhichValue.Should().Be(1);
+                .ContainKey("bodyWeightId").WhichValue.Should()
+                .BeOfType<Guid>().And
+                .Be(measureId);
 
             BodyWeightInfo resource = createdAtActionResult.Value.Should().BeOfType<BodyWeightInfo>().Which;
 
             resource.Should().NotBeNull();
-            resource.PatientId.Should().Be(1);
+            resource.PatientId.Should().Be(patientId);
             resource.Value.Should().Be(input.Value);
 
 
@@ -1153,7 +1173,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"Query : {query}");
 
             // Arrange
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<BloodPressure>().Create(measuresInStore);
                 await uow.SaveChangesAsync();
@@ -1162,12 +1182,12 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.Setup(mock => mock.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>>>()))
                 .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<BloodPressureInfo>> input) => Task.Run(async () =>
                 {
-                    using (var uow = _factory.New())
+                    using (IUnitOfWork uow = _factory.New())
                     {
                         IPagedResult<BloodPressureInfo> mostRecentMeasures = await uow.Repository<BloodPressure>()
                             .WhereAsync(
                                 _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<BloodPressure, BloodPressureInfo>(),
-                                (BloodPressure x) => x.PatientId == input.Data.PatientId,
+                                (BloodPressure x) => x.Patient.UUID == input.Data.PatientId,
                                 new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure, Descending) },
                                 input.Data.Count.GetValueOrDefault(15), 1
                             );
@@ -1195,7 +1215,7 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"Query : {query}");
 
             // Arrange
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<Temperature>().Create(measuresInStore);
                 await uow.SaveChangesAsync();
@@ -1204,7 +1224,7 @@ namespace MedEasy.WebApi.Tests
             _physiologicalMeasureFacadeMock.Setup(mock => mock.GetMostRecentMeasuresAsync<Temperature, TemperatureInfo>(It.IsAny<IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>>>()))
                 .Returns((IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TemperatureInfo>> input) => Task.Run(async () =>
                 {
-                    using (var uow = _factory.New())
+                    using (IUnitOfWork uow = _factory.New())
                     {
                         IPagedResult<TemperatureInfo> mostRecentMeasures = await uow.Repository<Temperature>()
                             .WhereAsync(
@@ -1228,44 +1248,30 @@ namespace MedEasy.WebApi.Tests
                 .And.Match(resultExpectation);
         }
 
+        /// <summary>
+        /// Tests that <see cref="PatientsController.MostRecentPrescriptions(Guid, int?)"/> 
+        /// </summary>
+        /// <param name="prescriptions">Results returned by <see cref="PrescriptionService.GetMostRecentPrescriptionsAsync(IQuery{Guid, GetMostRecentPrescriptionsInfo, IEnumerable{PrescriptionHeaderInfo}})"/></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         [Theory]
         [MemberData(nameof(GetMostRecentPrescriptionsCases))]
-        public async Task GetMostRecentPrescriptionsMesures(IEnumerable<Prescription> prescriptionsInStore, GetMostRecentPrescriptionsInfo query, Expression<Func<IEnumerable<PrescriptionHeaderInfo>, bool>> resultExpectation)
+        public async Task GetMostRecentPrescriptionsMesures(IEnumerable<PrescriptionHeaderInfo> prescriptions, GetMostRecentPrescriptionsInfo query)
         {
-            _outputHelper.WriteLine($"Current store state : {prescriptionsInStore}");
+            _outputHelper.WriteLine($"Current store state : {prescriptions}");
             _outputHelper.WriteLine($"Query : {query}");
 
-            // Arrange
-            using (var uow = _factory.New())
-            {
-                uow.Repository<Prescription>().Create(prescriptionsInStore);
-                await uow.SaveChangesAsync();
-            }
+            
 
             _prescriptionServiceMock.Setup(mock => mock.GetMostRecentPrescriptionsAsync(It.IsAny<IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>>>()))
-                .Returns((IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> input) => Task.Run(async () =>
-                {
-                    using (var uow = _factory.New())
-                    {
-                        IPagedResult<PrescriptionHeaderInfo> mostRecentPrescriptions = await uow.Repository<Prescription>()
-                            .WhereAsync(
-                                _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Prescription, PrescriptionHeaderInfo>(),
-                                (PrescriptionHeaderInfo x) => x.PatientId == input.Data.PatientId,
-                                new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending) },
-                                input.Data.Count.GetValueOrDefault(15), 1
-                            );
-
-                        return mostRecentPrescriptions.Entries;
-                    }
-                }));
+                .ReturnsAsync(prescriptions);
 
             // Act
             IEnumerable<PrescriptionHeaderInfo> results = await _controller.MostRecentPrescriptions(query.PatientId, query.Count);
 
             // Assert
             _prescriptionServiceMock.VerifyAll();
-            results.Should().NotBeNull()
-                .And.Match(resultExpectation);
+            results.Should().BeEquivalentTo(prescriptions);
         }
 
 
@@ -1273,12 +1279,12 @@ namespace MedEasy.WebApi.Tests
         public async Task CreatePrescriptionForPatient()
         {
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
-                .Returns((int id, CreatePrescriptionInfo input) => Task.Run(() =>
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<Guid>(), It.IsAny<CreatePrescriptionInfo>()))
+                .Returns((Guid id, CreatePrescriptionInfo input) => Task.Run(() =>
                 {
                     return new PrescriptionHeaderInfo
                     {
-                        Id = 1,
+                        Id = Guid.NewGuid(),
                         DeliveryDate = input.DeliveryDate,
                         PatientId = id,
                         PrescriptorId = input.PrescriptorId
@@ -1286,14 +1292,14 @@ namespace MedEasy.WebApi.Tests
                 }));
 
             // Act
-            int patientId = 1;
+            Guid patientId = Guid.NewGuid();
             CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
             {
-                PrescriptorId = 1,
+                PrescriptorId = Guid.NewGuid(),
                 DeliveryDate = DateTimeOffset.UtcNow,
                 Duration = 60,
                 Items = new PrescriptionItemInfo[] {
-                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                    new PrescriptionItemInfo { CategoryId = Guid.NewGuid(), Code = "Prescription CODE" }
                 }
             };
 
@@ -1306,8 +1312,16 @@ namespace MedEasy.WebApi.Tests
             createdAtActionResult.Should().NotBeNull();
             createdAtActionResult.ControllerName.Should().Be(PatientsController.EndpointName);
             createdAtActionResult.ActionName.Should().Be(nameof(PatientsController.Prescriptions));
-            createdAtActionResult.RouteValues.Should().NotBeNull();
-            createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex($@"[iI]d={patientId}&[pP]rescriptionId=[1-9](\d+)?");
+            createdAtActionResult.RouteValues.Should().HaveCount(2);
+            createdAtActionResult.RouteValues.Should()
+                .ContainKey("Id").WhichValue.Should()
+                .BeOfType<Guid>().Which.Should()
+                .Be(patientId);
+
+            createdAtActionResult.RouteValues.Should()
+                .ContainKey("prescriptionId").WhichValue.Should()
+                .BeOfType<Guid>().Which.Should()
+                .NotBeEmpty();
 
 
             IBrowsableResource<PrescriptionHeaderInfo> browsableResource = createdAtActionResult.Value.Should()
@@ -1337,21 +1351,21 @@ namespace MedEasy.WebApi.Tests
         }
 
         [Fact]
-        public async Task CreatePrescriptionForPatientShouldNotSwallowArgumentNullException()
+        public void CreatePrescriptionForPatientShouldNotSwallowArgumentNullException()
         {
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<Guid>(), It.IsAny<CreatePrescriptionInfo>()))
                 .Throws<ArgumentNullException>();
 
             // Act
-            int patientId = 1;
+            Guid patientId = Guid.NewGuid();
             CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
             {
-                PrescriptorId = 1,
+                PrescriptorId = Guid.NewGuid(),
                 DeliveryDate = DateTimeOffset.UtcNow,
                 Duration = 60,
                 Items = new PrescriptionItemInfo[] {
-                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                    new PrescriptionItemInfo { CategoryId = Guid.NewGuid(), Code = "Prescription CODE" }
                 }
             };
 
@@ -1363,22 +1377,26 @@ namespace MedEasy.WebApi.Tests
             _prescriptionServiceMock.Verify(mock => mock.CreatePrescriptionForPatientAsync(patientId, newPrescription), Times.Once);
         }
 
+
+        /// <summary>
+        /// Verifies that <see cref="PatientsController.Prescriptions(Guid, CreatePrescriptionInfo)"/> does not swallow <see cref="ArgumentOutRangeException"/>
+        /// </summary>
         [Fact]
-        public async Task CreatePrescriptionForPatientShouldNotSwallowArgumentOutOfRangeException()
+        public void CreatePrescriptionForPatientShouldNotSwallowArgumentOutOfRangeException()
         {
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<int>(), It.IsAny<CreatePrescriptionInfo>()))
+            _prescriptionServiceMock.Setup(mock => mock.CreatePrescriptionForPatientAsync(It.IsAny<Guid>(), It.IsAny<CreatePrescriptionInfo>()))
                 .Throws<ArgumentOutOfRangeException>();
 
             // Act
-            int patientId = 1;
+            Guid patientId = Guid.NewGuid();
             CreatePrescriptionInfo newPrescription = new CreatePrescriptionInfo
             {
-                PrescriptorId = 1,
+                PrescriptorId = Guid.NewGuid(),
                 DeliveryDate = DateTimeOffset.UtcNow,
                 Duration = 60,
                 Items = new PrescriptionItemInfo[] {
-                    new PrescriptionItemInfo { CategoryId = 3, Code = "Prescription CODE" }
+                    new PrescriptionItemInfo { CategoryId = Guid.NewGuid(), Code = "Prescription CODE" }
                 }
             };
 
@@ -1401,7 +1419,7 @@ namespace MedEasy.WebApi.Tests
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.Temperatures(1, 12);
+            IActionResult actionResult = await _controller.Temperatures(Guid.NewGuid(), Guid.NewGuid());
 
             //Assert
             actionResult.Should().BeOfType<NotFoundResult>();
@@ -1418,7 +1436,7 @@ namespace MedEasy.WebApi.Tests
 
 
             //Act
-            IActionResult actionResult = await _controller.BloodPressures(1, 12);
+            IActionResult actionResult = await _controller.BloodPressures(Guid.NewGuid(), Guid.NewGuid());
 
             //Assert
             actionResult.Should().BeOfType<NotFoundResult>();
@@ -1435,7 +1453,7 @@ namespace MedEasy.WebApi.Tests
                 .Verifiable();
 
             //Act
-            IActionResult actionResult = await _controller.BodyWeights(1, 12);
+            IActionResult actionResult = await _controller.BodyWeights(Guid.NewGuid(), Guid.NewGuid());
 
             //Assert
             actionResult.Should().BeOfType<NotFoundResult>();
@@ -1450,7 +1468,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns(Task.CompletedTask);
 
             // Act
-            IActionResult actionResult = await _controller.BloodPressures(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
+            IActionResult actionResult = await _controller.BloodPressures(new DeletePhysiologicalMeasureInfo { Id = Guid.NewGuid(), MeasureId = Guid.NewGuid() });
 
             // Assert
             actionResult.Should().BeOfType<OkResult>();
@@ -1465,7 +1483,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns(Task.CompletedTask);
 
             // Act
-            IActionResult actionResult = await _controller.Temperatures(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
+            IActionResult actionResult = await _controller.Temperatures(new DeletePhysiologicalMeasureInfo { Id = Guid.NewGuid(), MeasureId = Guid.NewGuid() });
 
             // Assert
             actionResult.Should().BeOfType<OkResult>();
@@ -1480,7 +1498,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns(Task.CompletedTask);
 
             // Act
-            IActionResult actionResult = await _controller.BodyWeights(new DeletePhysiologicalMeasureInfo { Id = 1, MeasureId = 4 });
+            IActionResult actionResult = await _controller.BodyWeights(new DeletePhysiologicalMeasureInfo { Id = Guid.NewGuid(), MeasureId = Guid.NewGuid() });
 
             // Assert
             actionResult.Should().BeOfType<OkResult>();
@@ -1491,29 +1509,32 @@ namespace MedEasy.WebApi.Tests
         {
             get
             {
-                yield return new object[]
                 {
-                    Enumerable.Empty<DocumentMetadataInfo>(),
-                    1,
-                    new PaginationConfiguration { Page = 1, PageSize = 10 },
-                    ((Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
-                    ((Expression<Func<Link, bool>>)(first =>
-                            first != null &&
-                            first.Relation == "first" &&
-                            first.Href != null &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[0] == $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Documents)}" &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PaginationConfiguration.Page)}=1".Equals(x, CurrentCultureIgnoreCase) )  &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PaginationConfiguration.PageSize)}=10".Equals(x, CurrentCultureIgnoreCase) )  &&
-                            first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PatientInfo.Id)}=1".Equals(x, CurrentCultureIgnoreCase))
-                           )),
-                    ((Expression<Func<Link, bool>>)(previous => previous == null)),
-                    ((Expression<Func<Link, bool>>)(next => next == null)),
-                    ((Expression<Func<Link, bool>>)(last => last == null))
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        Enumerable.Empty<DocumentMetadataInfo>(),
+                        patientId,
+                        new PaginationConfiguration { Page = 1, PageSize = 10 },
+                        ((Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>>) (x => x != null && !x.Any())), // expected link to first page
+                        ((Expression<Func<Link, bool>>)(first =>
+                                first != null &&
+                                first.Relation == "first" &&
+                                first.Href != null &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries).Length == 2 &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[0] == $"api/{PatientsController.EndpointName}/{nameof(PatientsController.Documents)}" &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Length == 3 &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PaginationConfiguration.Page)}=1".Equals(x, CurrentCultureIgnoreCase) )  &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PaginationConfiguration.PageSize)}=10".Equals(x, CurrentCultureIgnoreCase) )  &&
+                                first.Href.Split(new [] {"?" }, RemoveEmptyEntries)[1].Split(new [] {"&"}, RemoveEmptyEntries).Once(x => $"{nameof(PatientInfo.Id)}={patientId}".Equals(x, CurrentCultureIgnoreCase))
+                               )),
+                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
+                        ((Expression<Func<Link, bool>>)(next => next == null)),
+                        ((Expression<Func<Link, bool>>)(last => last == null))
 
 
-                };
+                    };
+                }
             }
         }
 
@@ -1531,7 +1552,7 @@ namespace MedEasy.WebApi.Tests
         /// <returns></returns>
         [Theory]
         [MemberData(nameof(GetAllDocumentsCases))]
-        public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items, int patientId, PaginationConfiguration getQuery,
+        public async Task GetDocuments(IEnumerable<DocumentMetadataInfo> items, Guid patientId, PaginationConfiguration getQuery,
             Expression<Func<IEnumerable<DocumentMetadataInfo>, bool>> pageOfResultExpectation,
             Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
@@ -1592,8 +1613,8 @@ namespace MedEasy.WebApi.Tests
             Mock<IFormFile> fileMock = new Mock<IFormFile>();
             //Setup mock file using a memory stream
             string content = "Hello World from a Fake File";
-            var ms = new MemoryStream();
-            var writer = new StreamWriter(ms);
+            MemoryStream ms = new MemoryStream();
+            StreamWriter writer = new StreamWriter(ms);
             writer.Write(content);
             writer.Flush();
             ms.Position = 0;
@@ -1609,8 +1630,8 @@ namespace MedEasy.WebApi.Tests
                 {
                     DocumentMetadataInfo createdDocument = new DocumentMetadataInfo
                     {
-                        Id = 15,
-                        DocumentId = 15,
+                        Id = Guid.NewGuid(),
+                        DocumentId = Guid.NewGuid(),
                         MimeType = cmd.Data.Document.MimeType,
                         Size = 500,
                         Title = cmd.Data.Document.Title,
@@ -1622,8 +1643,8 @@ namespace MedEasy.WebApi.Tests
 
             // Act
             IFormFile file = fileMock.Object;
-            
-            IActionResult actionResult = await _controller.Documents(1, file);
+
+            IActionResult actionResult = await _controller.Documents(Guid.NewGuid(), file);
 
 
             // Assert
@@ -1638,7 +1659,7 @@ namespace MedEasy.WebApi.Tests
                 .ContainKey(nameof(PatientInfo.Id)).And
                 .ContainKey("documentId");
 
-            var browsableResource = createdAtActionResult.Value.Should()
+            IBrowsableResource<DocumentMetadataInfo> browsableResource = createdAtActionResult.Value.Should()
                 .NotBeNull().And
                 .BeAssignableTo<IBrowsableResource<DocumentMetadataInfo>>().Which;
 
@@ -1654,8 +1675,8 @@ namespace MedEasy.WebApi.Tests
             resource?.Should()
                 .NotBeNull();
 
-            resource.DocumentId.Should().Be(15);
-            resource.PatientId.Should().Be(1);
+            resource.DocumentId.Should().NotBeEmpty();
+            resource.PatientId.Should().NotBeEmpty();
             resource.Title.Should().Be(file.Name);
 
             _iRunCreateDocumentForPatientCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
@@ -1689,8 +1710,8 @@ namespace MedEasy.WebApi.Tests
 
 
             // Act
-            int patientId = 1,
-                documentMetadataId = 3;
+            Guid patientId = Guid.NewGuid(),
+                documentMetadataId = Guid.NewGuid();
             IActionResult actionResult = await _controller.Documents(patientId, documentMetadataId);
 
 
@@ -1705,7 +1726,7 @@ namespace MedEasy.WebApi.Tests
 
             DocumentMetadataInfo actualResource = browsableResource.Resource;
             actualResource.Should().NotBeNull();
-            actualResource.PatientId.Should().Be(patientId);
+            actualResource.PatientId.Should().NotBeEmpty();
             actualResource.Id.Should().Be(documentMetadataId);
             actualResource.MimeType.Should().Be("application/pdf");
             actualResource.Size.Should().Be(500);
@@ -1747,8 +1768,8 @@ namespace MedEasy.WebApi.Tests
 
 
             // Act
-            int patientId = 1,
-                documentMetadataId = 3;
+            Guid patientId = Guid.NewGuid(),
+                documentMetadataId = Guid.NewGuid();
             IActionResult actionResult = await _controller.Documents(patientId, documentMetadataId);
 
 

@@ -24,8 +24,16 @@ namespace MedEasy.Objects
         public byte[] Content { get; set; }
 
         /// <summary>
-        /// The document metadata
+        /// The document metadata.
         /// </summary>
         public DocumentMetadata DocumentMetadata { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the <see cref="Document"/>.
+        /// </summary>
+        public Guid UUID { get; set; }
+
+
+
     }
 }
