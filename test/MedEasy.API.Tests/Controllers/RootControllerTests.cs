@@ -15,6 +15,7 @@ using FluentAssertions;
 using MedEasy.RestObjects;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
+using Microsoft.Extensions.Options;
 
 namespace MedEasy.API.Tests.Controllers
 {
@@ -23,6 +24,7 @@ namespace MedEasy.API.Tests.Controllers
         private ActionContextAccessor _actionContextAccessor;
         private RootController _controller;
         private Mock<IHostingEnvironment> _hostingEnvironmentMock;
+        private Mock<IOptions<MedEasyApiOptions>> _optionsMock;
         private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
 
         public RootControllerTests()
@@ -39,7 +41,10 @@ namespace MedEasy.API.Tests.Controllers
                     HttpContext = new DefaultHttpContext()
                 }
             };
-            _controller = new RootController(_hostingEnvironmentMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor);
+
+            _optionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+
+            _controller = new RootController(_hostingEnvironmentMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor, _optionsMock.Object);
         }
 
         public void Dispose()
@@ -48,6 +53,7 @@ namespace MedEasy.API.Tests.Controllers
             _urlHelperFactoryMock = null;
             _actionContextAccessor = null;
             _controller = null;
+            _optionsMock = null;
 
 
         }

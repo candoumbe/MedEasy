@@ -34,15 +34,14 @@ namespace MedEasy.DTO
         /// <summary>
         /// Where the patient was born ?
         /// </summary>
-        [StringLength(255)]
         [JsonProperty]
+        [StringLength(255)]
         public string BirthPlace { get; set; }
 
         /// <summary>
         /// Id of the patient's main doctor
         /// </summary>
         [JsonProperty]
-        [Range(0, int.MaxValue)]
         public Guid? MainDoctorId { get; set; }
         
         

@@ -38,24 +38,24 @@ namespace MedEasy.Validators.Tests
             {
                 yield return new object[]
                 {
-                    new PatchInfo<int, Objects.Patient>(),
+                    new PatchInfo<Guid, Objects.Patient>(),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
                         x.Count() == 2 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.Id)) &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<Guid, Objects.Patient>.Id)) &&
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument)))
                     ),
                     "Id of resource to patch not set and no change to make"
                 };
 
                 yield return new object[]
                 {
-                    new PatchInfo<int, Objects.Patient>
+                    new PatchInfo<Guid, Objects.Patient>
                     {
-                        Id = 1,
+                        Id = Guid.NewGuid(),
                     },
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
                         x.Count() == 1 &&
-                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
+                        x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument)))
                     ),
                     "no change to make"
                 };
@@ -67,16 +67,35 @@ namespace MedEasy.Validators.Tests
 
                     yield return new object[]
                     {
-                        new PatchInfo<int, Objects.Patient>
+                        new PatchInfo<Guid, Objects.Patient>
                         {
-                            Id = 1,
+                            Id = Guid.NewGuid(),
                             PatchDocument = patchDocument
                         },
                         ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
                             x.Count() == 1 &&
-                            x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<int, Objects.Patient>.PatchDocument)))
+                            x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument)))
                         ),
-                        "Cannot update the ID of the resource"
+                        "Cannot change the ID of the resource"
+                    };
+                }
+
+                {
+                    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+                    patchDocument.Replace(x => x.UUID, Guid.NewGuid());
+
+                    yield return new object[]
+                    {
+                        new PatchInfo<Guid, Objects.Patient>
+                        {
+                            Id = Guid.NewGuid(),
+                            PatchDocument = patchDocument
+                        },
+                        ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)(x =>
+                            x.Count() == 1 &&
+                            x.Once(error => error.Severity == Error && error.Key == nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument)))
+                        ),
+                        "Cannot change the UUID of the resource"
                     };
                 }
             }
@@ -84,10 +103,10 @@ namespace MedEasy.Validators.Tests
 
         [Theory]
         [MemberData(nameof(PatchCommandCases))]
-        public async Task Validate(IPatchInfo<int, Objects.Patient> data, Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation, string reason)
+        public async Task Validate(IPatchInfo<Guid, Objects.Patient> data, Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation, string reason)
         {
             // Arrange
-            IPatchCommand<int, Objects.Patient> command = new PatchCommand<int, Objects.Patient>(data);
+            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(data);
             _outputHelper.WriteLine($"Command to validate : {command} ");
 
             // Act

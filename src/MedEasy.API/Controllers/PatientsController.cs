@@ -548,23 +548,22 @@ namespace MedEasy.API.Controllers
         /// The set of changes to apply will be applied atomically. 
         /// 
         /// </remarks>
-        /// <param name="id">id of the resource to update</param>
-        /// <param name="changes">set of changes to apply to the resource</param>
-        /// <response code="200">The resource was successfully patched </response>
-        /// <response code="400">Changes are not valid</response>
+        /// <param name="id">id of the resource to update.</param>
+        /// <param name="changes">set of changes to apply to the resource.</param>
+        /// <response code="200">The resource was successfully patched.</response>
+        /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes)
         {
-            IPatchInfo<Guid, Patient> data = new PatchInfo<Guid, Patient>
+            PatchInfo<Guid, Patient> data = new PatchInfo<Guid, Patient>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Patient>>(changes)
             };
             await _iRunPatchPatientCommmand.RunAsync(new PatchCommand<Guid, Patient>(data));
-
-
+            
             return new OkResult();
         }
 
@@ -677,7 +676,7 @@ namespace MedEasy.API.Controllers
         /// <param name="prescriptionId">Identifier of the prescription to get</param>
         /// <returns></returns>
         /// <response code="200">if the prescription was found</response>
-        /// <response code="404">no prescription with the <paramref name="prescriptionId"/> found</response>
+        /// <response code="404">no prescription with the <paramref name="prescriptionId"/> found.</response>
         /// <response code="404">no patient with the <paramref name="id"/> found</response>
         [HttpGet("{id}/[action]/{prescriptionId}")]
         [HttpHead("{id}/[action]/{prescriptionId}")]
@@ -695,7 +694,8 @@ namespace MedEasy.API.Controllers
                 IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
                 IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
                 {
-                    Links = new[] {
+                    Links = new[] 
+                    {
                         new Link
                         {
                             Relation = "self",
@@ -830,12 +830,12 @@ namespace MedEasy.API.Controllers
                     },
                     new Link
                     {
-                        Relation = "most-recent-temperatures",
+                        Relation = nameof(PatientsController.MostRecentTemperatures).ToLowerKebabCase(),
                         Href = urlHelper.Action(nameof(PatientsController.MostRecentTemperatures), EndpointName, new { id = resource.Id })
                     },
                     new Link
                     {
-                        Relation = "most-recent-blood-pressures",
+                        Relation = nameof(PatientsController.MostRecentBloodPressures).ToLowerKebabCase(),
                         Href = urlHelper.Action(nameof(PatientsController.MostRecentBloodPressures), EndpointName, new { id = resource.Id })
                     }
                 }

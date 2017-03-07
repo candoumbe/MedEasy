@@ -111,6 +111,8 @@ namespace MedEasy.API
                 options.SerializerSettings.DateFormatHandling = IsoDateFormat;
                 options.SerializerSettings.DateTimeZoneHandling = Utc;
                 options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+
             });
 
             if (HostingEnvironment.IsDevelopment())
@@ -153,17 +155,17 @@ namespace MedEasy.API
                 app.UseResponseCompression();
             }
             else
-            { 
+            {
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
+
+                app.UseSwagger();
+                app.UseSwaggerUi(opt =>
+                {
+                    opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+                });
+
             }
-
-
-            app.UseSwagger();
-            app.UseSwaggerUi(opt =>
-            {
-                opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
-            });
 
             app.UseMvc(routeBuilder =>
             {

@@ -22,7 +22,7 @@ namespace MedEasy.Validators
 
             if (command.Data.PatchDocument == null)
             {
-                yield return Task.FromResult(new ErrorInfo(nameof(IPatchInfo<Guid, Objects.Patient>.PatchDocument), $"{nameof(IPatchInfo<int, Objects.Patient>.PatchDocument)}", Error));
+                yield return Task.FromResult(new ErrorInfo(nameof(IPatchInfo<Guid, Objects.Patient>.PatchDocument), $"{nameof(IPatchInfo<Guid, Objects.Patient>.PatchDocument)}", Error));
             }
 
             else if (!command.Data.PatchDocument.Operations.Any())
@@ -35,11 +35,17 @@ namespace MedEasy.Validators
                 {
                     yield return Task.FromResult(new ErrorInfo(nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument), "Change the ID is not allowed", Error));
                 }
+
+
+                if (command.Data.PatchDocument.Operations.Any(x => !string.IsNullOrWhiteSpace(x.path) && $"/{nameof(Objects.Patient.UUID)}".Equals(x.path.Trim(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    yield return Task.FromResult(new ErrorInfo(nameof(PatchInfo<Guid, Objects.Patient>.PatchDocument), "Change the ID is not allowed", Error));
+                }
+
+
+
             }        
-            // we select all changes that are related to the same path to see if there are the same operation to apply twice or not
             
-
-
         }
     }
 }

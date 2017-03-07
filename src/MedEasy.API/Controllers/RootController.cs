@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using MedEasy.DTO.Search;
 using System.Linq;
+using Microsoft.Extensions.Options;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,18 +24,21 @@ namespace MedEasy.API.Controllers
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IUrlHelperFactory _urlHelperFactory;
+        private IOptions<MedEasyApiOptions> ApiOptions { get; }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="hostingEnvironment"></param>
+        /// <param name="hostingEnvironment">Gives access to hosting environment</param>
         /// <param name="urlHelperFactory"></param>
         /// <param name="actionContextAccessor"></param>
-        public RootController(IHostingEnvironment hostingEnvironment, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor)
+        /// <param name="apiOptions">Gives access to the API configuration</param>
+        public RootController(IHostingEnvironment hostingEnvironment, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IOptions<MedEasyApiOptions> apiOptions)
         {
             _hostingEnvironment = hostingEnvironment;
             _urlHelperFactory = urlHelperFactory;
             _actionContextAccessor = actionContextAccessor;
+            ApiOptions = apiOptions;
         }
 
 
@@ -54,14 +58,15 @@ namespace MedEasy.API.Controllers
         public IEnumerable<Endpoint> Index()
         {
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-
+            int page = 1,
+                pageSize = ApiOptions.Value.DefaultPageSize;
             IList<Endpoint> endpoints = new List<Endpoint>() {
                 new Endpoint
                 {
                     Name = PatientsController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = PatientsController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = PatientsController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []
@@ -82,7 +87,7 @@ namespace MedEasy.API.Controllers
                     Name = DoctorsController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = DoctorsController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = DoctorsController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []
@@ -99,7 +104,7 @@ namespace MedEasy.API.Controllers
                     Name = SpecialtiesController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = SpecialtiesController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = SpecialtiesController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []
@@ -116,7 +121,7 @@ namespace MedEasy.API.Controllers
                     Name = PrescriptionsController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = PrescriptionsController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = PrescriptionsController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []
@@ -133,7 +138,7 @@ namespace MedEasy.API.Controllers
                     Name = DocumentsController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = DocumentsController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = DocumentsController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []
@@ -150,7 +155,7 @@ namespace MedEasy.API.Controllers
                     Name = AppointmentsController.EndpointName,
                     Link = new Link
                     {
-                        Href = urlHelper.Link("default", new { controller = AppointmentsController.EndpointName }),
+                        Href = urlHelper.Link("default", new { controller = AppointmentsController.EndpointName, page, pageSize }),
                         Relation = "collection"
                     },
                     Forms = new []

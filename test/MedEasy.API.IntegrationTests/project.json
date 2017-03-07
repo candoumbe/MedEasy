@@ -1,0 +1,26 @@
+﻿{
+  "version": "1.0.0-*",
+  "testRunner": "xunit",
+
+  "dependencies": {
+    "MedEasy.API": "1.0.0",
+    "Microsoft.AspNetCore.Hosting": "1.1.0",
+    "Microsoft.AspNetCore.TestHost": "1.1.0",
+    "xunit": "2.2.0",
+    "dotnet-test-xunit" : "2.2.0-preview2-build1029",
+    "FluentAssertions": "4.19.0"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dnxcore50",
+        "net35",
+        "portable-net45+win8+wp8+wpa81"
+      ]
+    }
+  },
+  "runtimes": {
+    "win10-x64": {}
+  }
+}
