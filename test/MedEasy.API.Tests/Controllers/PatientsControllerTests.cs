@@ -1299,7 +1299,10 @@ namespace MedEasy.WebApi.Tests
                 DeliveryDate = DateTimeOffset.UtcNow,
                 Duration = 60,
                 Items = new PrescriptionItemInfo[] {
-                    new PrescriptionItemInfo { CategoryId = Guid.NewGuid(), Code = "Prescription CODE" }
+                    new PrescriptionItemInfo {
+                        CategoryId = Guid.NewGuid(),
+                        Code = "Prescription CODE"
+                    }
                 }
             };
 
@@ -1338,7 +1341,7 @@ namespace MedEasy.WebApi.Tests
                 .NotBeNull();
             linkToItems.Relation.Should().BeEquivalentTo(nameof(Prescription.Items));
             linkToItems.Method.Should().BeEquivalentTo("get");
-            linkToItems.Href.Should().MatchRegex($@"api\/{PrescriptionsController.EndpointName}\/{nameof(PrescriptionsController.Details)}\?[iI]d=\d+");
+            linkToItems.Href.Should().MatchRegex($@"api\/{PrescriptionsController.EndpointName}\/{nameof(PrescriptionsController.Details)}\?[iI]d={browsableResource.Resource.Id}");
 
 
 

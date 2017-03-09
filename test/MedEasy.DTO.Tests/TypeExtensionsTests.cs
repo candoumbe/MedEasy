@@ -1,10 +1,7 @@
 ﻿using FluentAssertions;
 using MedEasy.RestObjects;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
 using Xunit;
 
 namespace MedEasy.DTO.Extensions.Tests

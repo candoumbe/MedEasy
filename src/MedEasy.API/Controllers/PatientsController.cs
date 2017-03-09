@@ -738,7 +738,7 @@ namespace MedEasy.API.Controllers
                 Links = new[]
                 {
                     new Link {
-                        Href = urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {id = createdPrescription.Id}),
+                        Href = urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {createdPrescription.Id}),
                         Method = "GET",
                         Relation = nameof(Prescription.Items),
                         Title = "Content"

@@ -8,7 +8,13 @@ namespace MedEasy.DTO
     /// <summary>
     /// Wraps data to create a new <see cref="PrescriptionHeaderInfo"/>
     /// </summary>
-    public class CreatePrescriptionInfo : IValidatableObject
+    public class CreatePrescriptionInfo
+#if NETCOREAPP1_0
+
+        : IValidatableObject
+
+#endif
+
     {
         /// <summary>
         /// When the prescription was delivered

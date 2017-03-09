@@ -1,12 +1,11 @@
-﻿using System;
-using MedEasy.DTO;
-using MedEasy.DAL.Interfaces;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using AutoMapper;
+﻿using MedEasy.DAL.Interfaces;
 using MedEasy.Commands.Appointment;
 using MedEasy.Handlers.Core.Appointment.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using System;
+using MedEasy.DTO;
+using System.Threading.Tasks;
+using AutoMapper;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {

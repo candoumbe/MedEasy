@@ -11,11 +11,11 @@ namespace MedEasy.DTO
     public class CreateDocumentInfo
     {
         [Required]
-        [MaxLength(256)]
+        [StringLength(256)]
         public string Title { get; set; }
 
         [Required]
-        [MaxLength(256)]
+        [StringLength(256)]
         public string MimeType { get; set; }
 
         /// <summary>

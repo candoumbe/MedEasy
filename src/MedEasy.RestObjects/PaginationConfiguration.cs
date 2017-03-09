@@ -45,8 +45,8 @@ namespace MedEasy.RestObjects
         /// </remarks>
         public int PageSize
         {
-            get { return _pageSize; }
-            set { _pageSize = value < 1 ? 1 : value; }
+            get => _pageSize;
+            set => _pageSize = value < 1 ? 1 : value;
         }
 
         /// <summary>
@@ -57,8 +57,8 @@ namespace MedEasy.RestObjects
         /// </remarks>
         public int Page
         {
-            get { return _page; }
-            set { _page = value < 1 ? 1 : value; }
+            get => _page;
+            set => _page = value < 1 ? 1 : value;
         }
 
 

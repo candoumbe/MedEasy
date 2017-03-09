@@ -50,11 +50,8 @@ namespace MedEasy.DAL.Repositories
             {
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
-if (entries == null)
-{ 
-    throw new ArgumentNullException(nameof(entries));
-} 
-            Entries = entries;
+
+            Entries = entries ?? throw new ArgumentNullException(nameof(entries));
             Total = total;
             PageSize = pageSize;
             PageCount = PageSize >= 1 

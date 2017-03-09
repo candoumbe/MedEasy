@@ -26,6 +26,9 @@ using static Newtonsoft.Json.DateTimeZoneHandling;
 
 namespace MedEasy.API
 {
+    /// <summary>
+    /// Contains all informations to bootstrap the application
+    /// </summary>
     public class Startup
     {
 
@@ -160,7 +163,7 @@ namespace MedEasy.API
                 app.UseBrowserLink();
 
                 app.UseSwagger();
-                app.UseSwaggerUi(opt =>
+                app.UseSwaggerUI(opt =>
                 {
                     opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
                 });

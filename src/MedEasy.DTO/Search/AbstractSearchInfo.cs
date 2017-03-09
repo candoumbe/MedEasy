@@ -13,7 +13,10 @@ namespace MedEasy.DTO
     /// Base class
     /// </summary>
     /// <typeparam name="T">Type of the searched resources.</typeparam>
-    public abstract class AbstractSearchInfo<T> : IValidatableObject
+    public abstract class AbstractSearchInfo<T>
+#if NETCOREAPP1_0
+        : IValidatableObject
+#endif
     {
 
         public const string SortPattern = @"\s*(-{0,1}_*[a-zA-Z]+){0,1}\s*";

@@ -8,28 +8,16 @@ namespace MedEasy.Objects
 
         public string Firstname
         {
-            get
-            {
-                return _firstname;
-            }
-            set
-            {
-                _firstname = value ?? string.Empty;
-            }
+            get => _firstname;
+            set => _firstname = value ?? string.Empty;
         }
 
         private string _lastname;
 
         public string Lastname
         {
-            get
-            {
-                return _lastname;
-            }
-            set
-            {
-                _lastname = value ?? string.Empty;
-            }
+            get => _lastname;
+            set => _lastname = value ?? string.Empty;
         }
 
         public string Fullname => $"{Firstname}{(!string.IsNullOrWhiteSpace(Firstname) && !string.IsNullOrWhiteSpace(Lastname) ? " " : string.Empty)}{Lastname}";

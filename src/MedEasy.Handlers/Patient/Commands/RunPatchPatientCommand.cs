@@ -64,7 +64,7 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 JsonPatchDocument<Objects.Patient> changes = command.Data.PatchDocument;
                 
@@ -74,7 +74,7 @@ namespace MedEasy.Handlers.Patient.Commands
                     int? newDoctorIdValue = (int?)mainDoctorOp.value;
                     if (newDoctorIdValue.HasValue && (!await uow.Repository<Objects.Doctor>().AnyAsync(x => x.Id == newDoctorIdValue.Value)))
                     {
-                        throw new NotFoundException($"Doctor '{newDoctorIdValue}' not found");
+                        throw new NotFoundException($"Doctor <{newDoctorIdValue}> not found");
                     } 
                 }
 
