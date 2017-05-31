@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MedEasy.DTO
 {
-    public class PrescriptionItemInfo : ResourceBase<Guid>
+    public class PrescriptionItemInfo : Resource<Guid>
     {
         /// <summary>
         /// Prescription's category

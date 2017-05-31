@@ -23,11 +23,7 @@ namespace MedEasy.API.Filters
         /// <exception cref="ArgumentNullException">if <paramref name="logger"/> is <c>null</c>.</exception>
         public ValidateModelAttribute(ILogger<ValidateModelAttribute> logger)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
 

@@ -16,6 +16,7 @@ using MedEasy.Queries.Doctor;
 using MedEasy.DTO;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Doctor.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Doctor.Queries
 {
@@ -99,8 +100,8 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
         {
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
-                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>()))
-                .ReturnsAsync(null);
+                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<Expression<Func<Objects.Doctor, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((DoctorInfo)null);
 
             // Act
             DoctorInfo output = await _handler.HandleAsync(new WantOneDoctorInfoByIdQuery(Guid.NewGuid()));

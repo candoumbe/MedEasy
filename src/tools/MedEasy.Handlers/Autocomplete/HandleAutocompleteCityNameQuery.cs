@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MedEasy.Handlers.Autocomplete
@@ -21,17 +22,17 @@ namespace MedEasy.Handlers.Autocomplete
         }
 
 
-        public async Task<IEnumerable<string>> HandleAsync(IWantAutocompleteCityNameQuery query)
+        public async Task<IEnumerable<string>> HandleAsync(IWantAutocompleteCityNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = Factory.New())
+            using (IUnitOfWork uow = Factory.New())
             {
                 return (await uow.Repository<Objects.Patient>()
-                    .WhereAsync(p => p.BirthPlace, p => p.BirthPlace != null && p.BirthPlace.Contains(query.Data)))
+                    .WhereAsync(p => p.BirthPlace, p => p.BirthPlace != null && p.BirthPlace.Contains(query.Data), cancellationToken))
                     .Distinct()
                     .OrderBy(city => city)
                     .ToArray();

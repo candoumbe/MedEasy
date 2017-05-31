@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using MedEasy.DTO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace MedEasy.BLL.Tests.Commands.Patient
 {
@@ -129,7 +130,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             // Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().Create(It.IsAny<Objects.Patient>()))
                 .Returns((Objects.Patient patient) => patient);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
@@ -154,7 +155,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             output.Lastname.Should().Be(input.Lastname?.ToUpper());
             output.BirthDate.Should().Be(input.BirthDate);
             output.BirthPlace.Should().Be(input.BirthPlace?.ToTitleCase());
-            output.MainDoctorId.Should().Be(input.MainDoctorId);
+            output.MainDoctorId.ShouldBeEquivalentTo(input.MainDoctorId);
 
             _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()), Times.Once);
         }

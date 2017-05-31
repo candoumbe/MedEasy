@@ -40,6 +40,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// Additional notes on the patient
         /// </summary>
+        // TODO move this to its own repo
         public string Notes { get; set; }
         /// <summary>
         /// Id of the current patient's main doctor

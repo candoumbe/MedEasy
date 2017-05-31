@@ -10,6 +10,7 @@ using MedEasy.Commands;
 using Microsoft.AspNetCore.JsonPatch;
 using MedEasy.Handlers.Core.Appointment.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
@@ -30,28 +31,12 @@ namespace MedEasy.Handlers.Appointment.Commands
         /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchAppointmentCommand)"/>.</param>
         public RunPatchAppointmentCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchAppointmentCommand> logger, IValidate<IPatchCommand<Guid, Objects.Appointment>> validator) 
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-
-            if (validator == null)
-            {
-                throw new ArgumentNullException(nameof(validator));
-            }
-
-            _uowFactory = uowFactory;
-            _logger = logger;
-            _validator = validator;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Appointment> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Appointment> command, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -63,15 +48,13 @@ namespace MedEasy.Handlers.Appointment.Commands
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 JsonPatchDocument<Objects.Appointment> changes = command.Data.PatchDocument;
                 
-                
-                
                 Guid appointmentId = command.Data.Id;
                 Objects.Appointment source = await uow.Repository<Objects.Appointment>()
-                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id);
+                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id, cancellationToken);
 
                 if (source == null)
                 {
@@ -80,7 +63,7 @@ namespace MedEasy.Handlers.Appointment.Commands
 
 
                 changes.ApplyTo(source);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation($"Command {command.Id} completed successfully");
 
 

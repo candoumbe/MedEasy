@@ -5,7 +5,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Metadata of a document
     /// </summary>
-    public class DocumentMetadataInfo : ResourceBase<Guid>
+    public class DocumentMetadataInfo : Resource<Guid>
     {
         /// <summary>
         /// Size of the file

@@ -9,9 +9,10 @@ using MedEasy.Data;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 using MedEasy.Handlers.Core.Search.Queries;
 
-namespace MedEasy.Handlers
+namespace MedEasy.Handlers.Search
 {
     /// <summary>
     /// Generic handler for search queries 
@@ -35,7 +36,7 @@ namespace MedEasy.Handlers
             _logger = logger;
         }
 
-        public async Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery) where TEntity : class
+        public async Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default(CancellationToken)) where TEntity : class
         {
             using (IUnitOfWork uow = _uowFactory.New())
             {
@@ -50,7 +51,7 @@ namespace MedEasy.Handlers
                     .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.CreateMapExpression<TEntity, TResult>();
                 IPagedResult<TResult> result = await uow.Repository<TEntity>()
-                    .WhereAsync(selector, filter, sorts, pageSize, page)
+                    .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);
 
                     

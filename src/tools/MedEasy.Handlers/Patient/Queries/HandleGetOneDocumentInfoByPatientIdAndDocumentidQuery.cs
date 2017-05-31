@@ -11,6 +11,7 @@ using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
 using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -29,24 +30,12 @@ namespace MedEasy.Handlers.Patient.Queries
         /// <param name="expressionBuilder"></param>
         public HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery> logger, IExpressionBuilder expressionBuilder)
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (expressionBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-            _uowFactory = uowFactory;
-            _logger = logger;
-            _expressionBuilder = expressionBuilder;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<DocumentMetadataInfo> HandleAsync(IWantOneDocumentByPatientIdAndDocumentIdQuery query)
+        public async Task<DocumentMetadataInfo> HandleAsync(IWantOneDocumentByPatientIdAndDocumentIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start looking for documents metadata : {query}");
             if (query == null)

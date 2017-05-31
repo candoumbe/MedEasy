@@ -23,6 +23,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using MedEasy.Handlers.Search;
 
 namespace MedEasy.API
 {
@@ -93,18 +94,20 @@ namespace MedEasy.API
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+
+
             services.AddOptions();
             services.Configure<MedEasyApiOptions>((options) =>
             {
-                options.DefaultPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 30);
-                options.MaxPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 100);
+                options.DefaulLimit = Configuration.GetValue("APIOptions:DefaultPageSize", 30);
+                options.MaxPageSize = Configuration.GetValue("APIOptions:MaxPageSize", 100);
             });
             // Add framework services.
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(FormatFilter));
                 options.Filters.Add(typeof(ValidateModelAttribute));
-                options.Filters.Add(typeof(EnvelopeFilterAttribute));
+                //options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
@@ -181,7 +184,9 @@ namespace MedEasy.API
 
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute("default", "api/{controller=root}/{action=index}/{id?}");
+                MedEasyApiOptions apiOptions = Configuration.Get<MedEasyApiOptions>();
+                routeBuilder.MapRoute("default", "api/{controller=root}/{action=index}");
+                routeBuilder.MapRoute("defaultGetById", "api/{controller}/{id}");
             });
 
             app.UseWelcomePage();

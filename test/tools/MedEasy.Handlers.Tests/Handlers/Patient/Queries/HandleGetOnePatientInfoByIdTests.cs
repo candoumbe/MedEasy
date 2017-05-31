@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -112,8 +113,8 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
-                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<Expression<Func<Objects.Patient, bool>>>()))
-                .ReturnsAsync(null)
+                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<Expression<Func<Objects.Patient, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((PatientInfo)null)
                 .Verifiable();
 
             // Act

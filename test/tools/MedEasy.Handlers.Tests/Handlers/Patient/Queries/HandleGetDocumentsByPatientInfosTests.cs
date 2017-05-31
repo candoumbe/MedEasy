@@ -19,6 +19,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Objects;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -105,7 +106,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .WhereAsync(
                     It.IsAny<Expression<Func<DocumentMetadata, DocumentMetadataInfo>>>(),
                     It.IsAny<Expression<Func<DocumentMetadataInfo, bool>>>(), 
-                    It.IsAny<IEnumerable<OrderClause<DocumentMetadataInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
+                    It.IsAny<IEnumerable<OrderClause<DocumentMetadataInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PagedResult<DocumentMetadataInfo>.Default);
 
             // Act

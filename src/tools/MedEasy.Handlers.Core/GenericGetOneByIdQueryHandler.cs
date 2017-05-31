@@ -11,6 +11,7 @@ using MedEasy.Queries;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -91,7 +92,7 @@ namespace MedEasy.Handlers.Core.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public override async Task<TResult> HandleAsync(TQuery query)
+        public override async Task<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {

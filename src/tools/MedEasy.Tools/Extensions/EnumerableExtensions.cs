@@ -208,7 +208,7 @@ namespace System.Collections.Generic
 
 #if NETSTANDARD1_1
         /// <summary>
-        /// Asynchronously run the s
+        /// Asynchronously run the 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -218,7 +218,8 @@ namespace System.Collections.Generic
         public static Task ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body, int? dop = null)
         {
             Task t = Task.WhenAll(
-                from partition in Partitioner.Create(source).GetPartitions(dop.GetValueOrDefault(Environment.ProcessorCount))
+                from partition in Partitioner.Create(source)
+                        .GetPartitions(dop.GetValueOrDefault(Environment.ProcessorCount))
                 select Task.Run(async delegate
                 {
                     using (partition)

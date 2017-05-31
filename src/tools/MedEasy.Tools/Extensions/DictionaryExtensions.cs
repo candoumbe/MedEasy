@@ -68,7 +68,7 @@ namespace System.Collections.Generic
                     }
                     else
                     {
-                        sb.Append(kv.Value.ToString());
+                        sb.Append(Uri.EscapeDataString(kv.Value.ToString()));
                     }
 
                     

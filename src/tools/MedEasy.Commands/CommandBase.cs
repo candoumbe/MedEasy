@@ -42,14 +42,13 @@ namespace MedEasy.Commands
             {
                 throw new ArgumentException(nameof(id), $"{nameof(id)} cannot be set to the default value of {typeof(TKey).FullName}");
             }
-
-            if (data == null)
+            if (Equals(data, default(TData)))
             {
                 throw new ArgumentNullException(nameof(data), $"{nameof(data)} cannot be null");
             }
-            
+
             Id = id;
-            Data = data;
+            Data = data ;
         }
 
 

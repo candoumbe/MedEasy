@@ -9,6 +9,7 @@ using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Commands;
 using System;
 using AutoMapper.QueryableExtensions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -73,7 +74,7 @@ namespace MedEasy.Handlers.Core.Commands
         ///     - if <paramref name="command"/> validation fails,
         /// </exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/> is <c>null</c></exception>
-        public override async Task<TOutput> RunAsync(TCommand command)
+        public override async Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {

@@ -8,6 +8,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Queries.Autocomplete;
 using MedEasy.Handlers.Core.Autocomplete;
+using System.Threading;
 
 namespace MedEasy.Handlers.Doctor.Queries
 {
@@ -29,7 +30,7 @@ namespace MedEasy.Handlers.Doctor.Queries
         }
 
 
-        public async Task<IEnumerable<DoctorAutocompleteInfo>> HandleAsync(IAutocompleteDoctorNameQuery query)
+        public async Task<IEnumerable<DoctorAutocompleteInfo>> HandleAsync(IAutocompleteDoctorNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             
             if (query == null)
@@ -37,7 +38,7 @@ namespace MedEasy.Handlers.Doctor.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = Factory.New())
+            using (IUnitOfWork uow = Factory.New())
             {
                 IEnumerable<DoctorAutocompleteInfo> results = (await uow.Repository<Objects.Doctor>()
                     .WhereAsync(
@@ -47,7 +48,8 @@ namespace MedEasy.Handlers.Doctor.Queries
                         {
                             OrderClause<DoctorAutocompleteInfo>.Create(item => item.Firstname),
                             OrderClause<DoctorAutocompleteInfo>.Create(item => item.Lastname),
-                        }
+                        },
+                        cancellationToken : cancellationToken
                         ));
 
                 return results;

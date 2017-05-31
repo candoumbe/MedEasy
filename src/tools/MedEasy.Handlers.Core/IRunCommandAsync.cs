@@ -1,5 +1,6 @@
 ﻿using MedEasy.Commands;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MedEasy.Handlers.Core.Commands
@@ -8,7 +9,7 @@ namespace MedEasy.Handlers.Core.Commands
     /// Defines the contract that any command handler must fullfil.
     /// </summary>
     /// <remarks>
-    /// <see cref="RunAsync(TCommand)"/> returns <see cref="TOutput"/>
+    /// <see cref="RunAsync(TCommand, CancellationToken)"/> returns <see cref="TOutput"/>
     /// </remarks>
     /// <typeparam name="TKey">Type of the key that uniquely identify a command</typeparam>
     /// <typeparam name="TOutput">Type of the data processing will output</typeparam>
@@ -24,12 +25,14 @@ namespace MedEasy.Handlers.Core.Commands
         /// </summary>
         /// <remarks>
         /// A good practice when implementing this method is to validate the <paramref name="command"/> before processing.
+        /// An optional <paramref name="cancellationToken"/> can be passed to abort processing the command
         /// </remarks>
         /// <param name="command">The command to run</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>Data resulting of the execution of the command</returns>
         /// <exception cref="CommandNotValidException{TKey}">if <paramref name="command"/> is not valid</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/>is null</exception>
-        Task<TOutput> RunAsync(TCommand command);
+        Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
 
         
     }

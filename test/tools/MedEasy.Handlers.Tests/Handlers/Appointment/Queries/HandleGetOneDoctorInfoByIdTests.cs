@@ -16,6 +16,7 @@ using MedEasy.Queries.Appointment;
 using MedEasy.DTO;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Appointment.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Appointment.Queries
 {
@@ -99,8 +100,8 @@ namespace MedEasy.Handlers.Tests.Appointment.Queries
         {
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Appointment>()
-                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Appointment, AppointmentInfo>>>(), It.IsAny<Expression<Func<Objects.Appointment, bool>>>()))
-                .ReturnsAsync(null);
+                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Appointment, AppointmentInfo>>>(), It.IsAny<Expression<Func<Objects.Appointment, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((AppointmentInfo)null);
 
             // Act
             AppointmentInfo output = await _handler.HandleAsync(new WantOneAppointmentInfoByIdQuery(Guid.NewGuid()));

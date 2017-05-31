@@ -12,6 +12,7 @@ using MedEasy.DAL.Repositories;
 using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -32,23 +33,12 @@ namespace MedEasy.Handlers.Patient.Queries
         /// <param name="expressionBuilder"></param>
         public HandleGetMostRecentPhysiologicalMeasuresQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> logger, IExpressionBuilder expressionBuilder)
         {
-            if (uowFactory == null) {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-                
-            if (logger == null) {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (expressionBuilder == null) {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-            _uowFactory = uowFactory;
-            _logger = logger;
-            _expressionBuilder = expressionBuilder;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> HandleAsync(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query)
+        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> HandleAsync(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start handling most recents measures : {query}");
             if (query == null)

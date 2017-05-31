@@ -43,7 +43,7 @@ namespace MedEasy.API.Tests.Controllers
             };
 
             _optionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
-            _optionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
+            _optionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
 
             _controller = new RootController(_hostingEnvironmentMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor, _optionsMock.Object);
         }

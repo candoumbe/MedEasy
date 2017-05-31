@@ -7,6 +7,7 @@ using AutoMapper;
 using MedEasy.Commands.Doctor;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {
@@ -27,7 +28,7 @@ namespace MedEasy.Handlers.Doctor.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<DoctorInfo> RunAsync(ICreateDoctorCommand command)
+        public async Task<DoctorInfo> RunAsync(ICreateDoctorCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
@@ -66,7 +67,7 @@ namespace MedEasy.Handlers.Doctor.Commands
                 };
 
                 uow.Repository<Objects.Doctor>().Create(itemToCreate);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken);
 
                 return _mapper.Map<DoctorInfo>(itemToCreate); 
 

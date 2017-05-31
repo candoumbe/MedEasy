@@ -77,8 +77,16 @@ namespace MedEasy.Tools.Tests
                     "search[filter][field]=Firstname&search[filter][op]=eq&search[filter][value]=Bruce"
                 };
 
-                
-
+                yield return new object[]
+                {
+                    new {
+                        search = new
+                        {
+                            filter = new { field = "Firstname", op = "eq", value = "Bru&ce" }
+                        }
+                    },
+                    "search[filter][field]=Firstname&search[filter][op]=eq&search[filter][value]=Bru%26ce"
+                };
             }
         }
 

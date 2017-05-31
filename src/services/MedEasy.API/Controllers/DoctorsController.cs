@@ -25,6 +25,7 @@ using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
 using MedEasy.DTO.Search;
+using System.Threading;
 
 namespace MedEasy.API.Controllers
 {
@@ -99,7 +100,7 @@ namespace MedEasy.API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
+        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {
@@ -145,25 +146,27 @@ namespace MedEasy.API.Controllers
         /// Gets the <see cref="DoctorInfo"/> resource by its <paramref name="id"/>
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DoctorInfo), 200)]
-        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
-            
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id, cancellationToken);
 
-        
+
+
         /// <summary>
         /// Creates the resource
         /// </summary>
         /// <param name="info">data used to create the resource</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns>the created resource</returns>
         [HttpPost]
         [ProducesResponseType(typeof(DoctorInfo), 201)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info)
+        public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info));
+            DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             
             return new CreatedAtActionResult(nameof(Get), ControllerName, new { id = output.Id }, output);
@@ -178,7 +181,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [Produces(typeof(DoctorInfo))]
-        public async Task<IActionResult> Put(Guid id, [FromBody] DoctorInfo info)
+        public Task<IActionResult> Put(Guid id, [FromBody] DoctorInfo info)
         {
             throw new NotImplementedException();
         }
@@ -189,13 +192,14 @@ namespace MedEasy.API.Controllers
         /// Delete the <see cref="DoctorInfo"/> by its 
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="200">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id));
-            return new OkResult();
+            await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id), cancellationToken);
+            return new NoContentResult();
         }
 
         /// <summary>
@@ -221,19 +225,20 @@ namespace MedEasy.API.Controllers
         /// </remarks>
         /// <param name="id">id of the resource to update</param>
         /// <param name="changes">set of changes to apply to the resource</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="200">The resource was successfully patched </response>
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<DoctorInfo> changes)
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<DoctorInfo> changes, CancellationToken cancellationToken = default(CancellationToken))
         {
             PatchInfo<Guid, Doctor> data = new PatchInfo<Guid, Doctor>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Doctor>>(changes)
             };
-            await _iRunPatchDoctorCommand.RunAsync(new PatchCommand<Guid, Doctor>(data));
+            await _iRunPatchDoctorCommand.RunAsync(new PatchCommand<Guid, Doctor>(data), cancellationToken);
 
 
             return new OkResult();

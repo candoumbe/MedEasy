@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MedEasy.Queries.Specialty;
 using System;
 using MedEasy.Handlers.Core.Specialty.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {
@@ -24,19 +25,11 @@ namespace MedEasy.Handlers.Specialty.Queries
         /// <exception cref="ArgumentNullException">if <paramref name="factory"/> or <paramref name="logger"/> is <c>null</c></exception>
         public HandleIsNameAvailableForNewSpecialtyQuery(IUnitOfWorkFactory factory, ILogger<HandleIsNameAvailableForNewSpecialtyQuery> logger)
         {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            _factory = factory;
-            _logger = logger;
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public  async Task<bool> HandleAsync(IIsNameAvailableForNewSpecialtyQuery query)
+        public  async Task<bool> HandleAsync(IIsNameAvailableForNewSpecialtyQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
 
             _logger.LogInformation($"Entering {nameof(HandleIsNameAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}):'{query}'");
@@ -46,10 +39,11 @@ namespace MedEasy.Handlers.Specialty.Queries
 
             if (!string.IsNullOrWhiteSpace(query.Data))   
             {
-                using (var uow = _factory.New())
+                using (IUnitOfWork uow = _factory.New())
                 {
                     available = ! await uow.Repository<Objects.Specialty>()
-                        .AnyAsync(item => item.Name.ToUpper() == name);
+                        .AnyAsync(item => item.Name.ToUpper() == name, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 
             }

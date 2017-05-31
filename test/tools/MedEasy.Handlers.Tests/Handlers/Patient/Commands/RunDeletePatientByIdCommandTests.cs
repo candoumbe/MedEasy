@@ -16,6 +16,7 @@ using MedEasy.Mapping;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Commands.Patient
 {
@@ -108,7 +109,7 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().Delete(It.IsAny<Expression<Func<Objects.Patient, bool>>>()));
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync()).ReturnsAsync(1);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
             // Act
             await _handler.RunAsync(new DeletePatientByIdCommand(Guid.NewGuid()));

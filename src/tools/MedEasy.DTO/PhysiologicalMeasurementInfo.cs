@@ -11,7 +11,7 @@ namespace MedEasy.DTO
     /// Base class for physiological measure resources
     /// </summary>
     [JsonObject]
-    public abstract class PhysiologicalMeasurementInfo : ResourceBase<Guid>
+    public abstract class PhysiologicalMeasurementInfo : Resource<Guid>
     {
         
         /// <summary>

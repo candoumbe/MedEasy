@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.10
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F72403D0-FC8E-461B-A4C1-10D33764B526}"
 EndProject
@@ -66,8 +66,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.API.Tests", "test\services\MedEasy.API.Tests\MedEasy.API.Tests.csproj", "{7178F629-91B0-419D-9BB8-7339BEC908C6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Tools.Tests", "test\tools\MedEasy.Tools.Tests\MedEasy.Tools.Tests.csproj", "{EACD3699-17F7-45DB-9799-957110FB3D2E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Web", "src\clients\MedEasy.Web\MedEasy.Web.csproj", "{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,10 +169,6 @@ Global
 		{EACD3699-17F7-45DB-9799-957110FB3D2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EACD3699-17F7-45DB-9799-957110FB3D2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EACD3699-17F7-45DB-9799-957110FB3D2E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,6 +204,5 @@ Global
 		{780A76B0-1A8F-4D34-B6B9-29A3AC7A71C9} = {6C7B66AE-623D-49BC-9243-38408233FE85}
 		{7178F629-91B0-419D-9BB8-7339BEC908C6} = {BAF3A8C2-E464-4BE0-83C4-6FAFD843C84F}
 		{EACD3699-17F7-45DB-9799-957110FB3D2E} = {6C7B66AE-623D-49BC-9243-38408233FE85}
-		{58DA0FBC-BF31-4952-9F8A-0F7D13B5D8D6} = {AC32FECD-9645-4F34-B258-BA4927D11017}
 	EndGlobalSection
 EndGlobal

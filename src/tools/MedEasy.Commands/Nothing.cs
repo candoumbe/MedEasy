@@ -11,12 +11,12 @@
         /// <summary>
         /// Default and only value of the <see cref="Nothing"/> type.
         /// </summary>
-        public static readonly Nothing Value = new Nothing();
+        public static Nothing Value => new Nothing();
 
         /// <summary>
         /// Task from a <see cref="Nothing"/> type.
         /// </summary>
-        public static readonly Task<Nothing> Task = System.Threading.Tasks.Task.FromResult(Value);
+        public static ValueTask<Nothing> Task => new ValueTask<Nothing>(Value);
 
         /// <summary>
         /// Compares the current object with another object of the same type.
@@ -29,10 +29,7 @@
         ///  - Zero: This object is equal to <paramref name="other" />.
         ///  - Greater than zero: This object is greater than <paramref name="other" />.
         /// </returns>
-        public int CompareTo(Nothing other)
-        {
-            return 0;
-        }
+        public int CompareTo(Nothing other) => 0;
 
         /// <summary>
         /// Compares the current instance with another object of the same type and returns an integer that indicates whether the current instance precedes, follows, or occurs in the same position in the sort order as the other object.
@@ -45,10 +42,7 @@
         ///  - Zero: This instance occurs in the same position in the sort order as <paramref name="obj" />.
         ///  - Greater than zero: This instance follows <paramref name="obj" /> in the sort order.
         /// </returns>
-        int IComparable.CompareTo(object obj)
-        {
-            return 0;
-        }
+        int IComparable.CompareTo(object obj) => 0;
 
         /// <summary>
         /// Returns a hash code for this instance.
@@ -56,10 +50,7 @@
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return 0;
-        }
+        public override int GetHashCode() => 0;
 
         /// <summary>
         /// Determines whether the current object is equal to another object of the same type.
@@ -68,22 +59,16 @@
         /// <returns>
         /// <c>true</c> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(Nothing other)
-        {
-            return true;
-        }
+        public bool Equals(Nothing other) => true;
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object" /> is equal to this instance.
+        /// Determines whether the specified <see cref="object" /> is equal to this instance.
         /// </summary>
         /// <param name="obj">The object to compare with the current instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object" /> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
-        {
-            return obj is Nothing;
-        }
+        public override bool Equals(object obj) => obj is Nothing;
 
         /// <summary>
         /// Determines whether the <paramref name="first"/> object is equal to the <paramref name="second"/> object.
@@ -108,12 +93,9 @@
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
-        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
-        public override string ToString()
-        {
-            return "()";
-        }
+        /// <returns>A <see cref="string" /> that represents this instance.</returns>
+        public override string ToString() => "()";
     }
 }

@@ -19,6 +19,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -105,7 +106,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         {
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
-                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>()))
+                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PagedResult<PatientInfo>.Default);
 
             // Act

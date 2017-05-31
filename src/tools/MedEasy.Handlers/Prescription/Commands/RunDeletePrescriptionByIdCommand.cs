@@ -7,6 +7,7 @@ using MedEasy.Commands.Prescription;
 using System.Threading.Tasks;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Prescription.Commands;
+using System.Threading;
 
 namespace MedEasy.Handlers.Prescription.Commands
 {
@@ -48,7 +49,7 @@ namespace MedEasy.Handlers.Prescription.Commands
 
         }
 
-        public async Task<Nothing> RunAsync(IDeletePrescriptionByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeletePrescriptionByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             return await Task.FromResult(Nothing.Value);
         }

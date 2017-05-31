@@ -5,6 +5,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
+using MedEasy.Handlers.Search;
 using MedEasy.Mapping;
 using MedEasy.Queries.Search;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -114,8 +116,8 @@ namespace MedEasy.Handlers.Tests.Handlers
                 .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Patient, PatientInfo>());
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
-                It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page)
+                It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
                     => Task.Run(() =>
                     {
                         

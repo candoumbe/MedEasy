@@ -27,7 +27,11 @@ namespace MedEasy.API.Filters
         {
             _logger = logger;
         }
-
+        /// <summary>
+        /// <see cref="ExceptionFilterAttribute.OnExceptionAsync(ExceptionContext)"/>
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override async Task OnExceptionAsync(ExceptionContext context)
         {
             Exception exception = context.Exception;
@@ -63,7 +67,7 @@ namespace MedEasy.API.Filters
                     _logger.LogError($"Query '{queryId}' is not valid");
 
                 }
-                foreach (var error in errors)
+                foreach (ErrorInfo error in errors)
                 {
                     context.ModelState.TryAddModelError(error.Key, error.Description);
                 }

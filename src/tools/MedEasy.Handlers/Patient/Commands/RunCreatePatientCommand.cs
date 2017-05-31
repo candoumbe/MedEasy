@@ -8,6 +8,7 @@ using MedEasy.Commands.Patient;
 using System.Threading.Tasks;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Patient.Commands;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -34,9 +35,9 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<PatientInfo> RunAsync(ICreatePatientCommand command)
+        public override async Task<PatientInfo> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
-            PatientInfo patientInfo = await base.RunAsync(command);
+            PatientInfo patientInfo = await base.RunAsync(command, cancellationToken);
             patientInfo.MainDoctorId = command.Data.MainDoctorId;
             return patientInfo;
         }

@@ -5,7 +5,7 @@ namespace MedEasy.DTO
 {
 
     [JsonObject]
-    public class SpecialtyInfo : ResourceBase<Guid>
+    public class SpecialtyInfo : Resource<Guid>
     {
         /// <summary>
         /// Name of the specialty

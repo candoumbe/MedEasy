@@ -9,6 +9,7 @@ using MedEasy.Objects;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -32,7 +33,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder;
         }
 
-        public override async Task<TPhysiologicalMeasurementInfo> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query)
+        public override async Task<TPhysiologicalMeasurementInfo> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {

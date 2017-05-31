@@ -23,12 +23,16 @@ namespace MedEasy.API.Filters
             ? string.Empty
             : $@"<{location.Href.ToLower()}>;{(string.IsNullOrWhiteSpace(location.Relation) ? string.Empty : $@" rel=""{location.Relation.ToLowerKebabCase()}""")}";
 
+        /// <summary>
+        /// <see cref="ResultFilterAttribute.OnResultExecuting(ResultExecutingContext)"/>
+        /// </summary>
+        /// <param name="context"></param>
         public override void OnResultExecuting(ResultExecutingContext context)
         {
             IActionResult result = context.Result;
-            if (result is ObjectResult)
+            if (result is ObjectResult objResult)
             {
-                object value = ((ObjectResult)result).Value;
+                object value = objResult.Value;
                 Type valueType = value.GetType();
                 Type typeBrowsable = typeof(IBrowsableResource<>);
                 Type typePageOfResult = typeof(IGenericPagedGetResponse<>);
@@ -54,7 +58,7 @@ namespace MedEasy.API.Filters
                         sbLinks.Append(BuildLinkHeader(link));
                     }
                     context.HttpContext.Response.Headers.Add("Link", sbLinks.ToString());
-                    ((ObjectResult)result).Value = resource;
+                    objResult.Value = resource;
                 }
                 else if (valueType.IsAssignableToGenericType(typePageOfResult))
                 {
@@ -91,7 +95,7 @@ namespace MedEasy.API.Filters
                     }
                     context.HttpContext.Response.Headers.Add("Link", sbLinks.ToString());
                     context.HttpContext.Response.Headers.Add("X-Total-Count", piCount.GetValue(value).ToString());
-                    ((ObjectResult)result).Value = resources;
+                    objResult.Value = resources;
                 }
             }
 

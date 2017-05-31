@@ -289,6 +289,11 @@ namespace MedEasy.API.Stores
                 if (x.State == EntityState.Added)
                 {
                     auditableEntity.CreatedDate = now;
+                    auditableEntity.UpdatedDate = now;
+                }
+                else if (x.State == EntityState.Modified)
+                {
+                    auditableEntity.UpdatedDate = now;
                 }
             };
 

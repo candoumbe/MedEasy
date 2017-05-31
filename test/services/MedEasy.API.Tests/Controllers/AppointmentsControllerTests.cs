@@ -41,9 +41,14 @@ using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Appointment.Commands;
 using MedEasy.Handlers.Core.Appointment.Queries;
 using MedEasy.DTO.Search;
+using MedEasy.DAL.Interfaces;
+using System.Threading;
 
 namespace MedEasy.WebApi.Tests
 {
+    /// <summary>
+    /// Unit tests for <see cref="AppointmentsController"/>
+    /// </summary>
     public class AppointmentsControllerTests : IDisposable
     {
         private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
@@ -63,7 +68,10 @@ namespace MedEasy.WebApi.Tests
 
         private const string GuidRegexPattern = @"^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$";
 
-
+        /// <summary>
+        /// Builds new <see cref="AppointmentsControllerTests"/> instance
+        /// </summary>
+        /// <param name="outputHelper"></param>
         public AppointmentsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -131,9 +139,9 @@ namespace MedEasy.WebApi.Tests
                 int[] pages = { 0, int.MinValue, int.MaxValue };
 
 
-                foreach (var pageSize in pageSizes)
+                foreach (int pageSize in pageSizes)
                 {
-                    foreach (var page in pages)
+                    foreach (int page in pages)
                     {
                         yield return new object[]
                         {
@@ -204,18 +212,18 @@ namespace MedEasy.WebApi.Tests
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<Appointment>().Create(items);
                 await uow.SaveChangesAsync();
             }
 
-            _handlerGetManyAppointmentInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, AppointmentInfo>>()))
-                .Returns((IWantManyResources<Guid, AppointmentInfo> getQuery) => Task.Run(async () =>
+            _handlerGetManyAppointmentInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((IWantManyResources<Guid, AppointmentInfo> getQuery, CancellationToken cancellationToken) => Task.Run(async () =>
                 {
 
 
-                    using (var uow = _factory.New())
+                    using (IUnitOfWork uow = _factory.New())
                     {
                         PaginationConfiguration queryConfig = getQuery.Data ?? new PaginationConfiguration();
 
@@ -226,7 +234,7 @@ namespace MedEasy.WebApi.Tests
                     }
                 }));
 
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 30, MaxPageSize = 200 });
             // Act
             IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page });
 
@@ -263,11 +271,11 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
-                .ReturnsAsync(null);
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((AppointmentInfo)null);
 
             //Act
-            IActionResult actionResult = await _controller.Get(Guid.NewGuid());
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid(), default(CancellationToken));
 
             //Assert
             actionResult.Should()
@@ -294,7 +302,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
 
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedAppointementInfo)
                 .Verifiable();
 
@@ -338,13 +346,17 @@ namespace MedEasy.WebApi.Tests
 
         }
 
+        /// <summary>
+        /// Unit test post
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Post()
         {
             //Arrange
             Guid appointmentId = Guid.NewGuid();
-            _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>()))
-                .Returns((ICreateAppointmentCommand cmd) => Task.Run(()
+            _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((ICreateAppointmentCommand cmd, CancellationToken cancellationToken) => Task.Run(()
                 => new AppointmentInfo
                 {
                     Id = appointmentId,
@@ -364,7 +376,7 @@ namespace MedEasy.WebApi.Tests
                 Duration = 3.Hours().TotalSeconds
             };
 
-            IActionResult actionResult = await _controller.Post(info);
+            IActionResult actionResult = await _controller.Post(info, CancellationToken.None);
 
             //Assert
             CreatedAtActionResult createdActionResult = actionResult.Should()
@@ -405,7 +417,7 @@ namespace MedEasy.WebApi.Tests
             createdResource.UpdatedDate.Should().HaveMonth(2);
             createdResource.UpdatedDate.Should().HaveYear(2012);
 
-            _iRunCreateAppointmentInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>()), Times.Once);
+            _iRunCreateAppointmentInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>(), It.IsAny<CancellationToken>()), Times.Once);
 
         }
 
@@ -419,7 +431,7 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
 
-            _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>()))
+            _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateAppointmentCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler);
 
             //Act
@@ -431,7 +443,7 @@ namespace MedEasy.WebApi.Tests
             };
 
 
-            Func<Task> action = async () => await _controller.Post(info);
+            Func<Task> action = async () => await _controller.Post(info, CancellationToken.None);
 
             //Assert
             action.ShouldThrow<CommandNotValidException<Guid>>().Which.Should()
@@ -446,18 +458,18 @@ namespace MedEasy.WebApi.Tests
         {
 
             // Arrange
-            _iRunPatchAppointmentCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<Guid, Appointment>>()))
+            _iRunPatchAppointmentCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<Guid, Appointment>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Nothing.Value);
 
 
             // Act
             JsonPatchDocument<AppointmentInfo> patchDocument = new JsonPatchDocument<AppointmentInfo>();
-            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument);
+            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument, CancellationToken.None);
 
             // Assert
             actionResult.Should()
                 .NotBeNull().And
-                .BeAssignableTo<OkResult>();
+                .BeAssignableTo<NoContentResult>();
 
             _iRunPatchAppointmentCommandMock.Verify();
         }
@@ -579,10 +591,10 @@ namespace MedEasy.WebApi.Tests
 
 
             // Arrange
-            MedEasyApiOptions apiOptions = new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 50 };
+            MedEasyApiOptions apiOptions = new MedEasyApiOptions { DefaulLimit = 30, MaxPageSize = 50 };
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
-            _iHandleSearchQueryMock.Setup(mock => mock.Search<Appointment, AppointmentInfo>(It.IsAny<SearchQuery<AppointmentInfo>>()))
-                    .Returns((SearchQuery<AppointmentInfo> query) => Task.Run(() =>
+            _iHandleSearchQueryMock.Setup(mock => mock.Search<Appointment, AppointmentInfo>(It.IsAny<SearchQuery<AppointmentInfo>>(), It.IsAny<CancellationToken>()))
+                    .Returns((SearchQuery<AppointmentInfo> query, CancellationToken cancellationToken) => Task.Run(() =>
                     {
                         SearchQueryInfo<AppointmentInfo> data = query.Data;
                         Expression<Func<AppointmentInfo, bool>> filter = data.Filter.ToExpression<AppointmentInfo>();
@@ -637,7 +649,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>()))
+            _handleGetOneAppointmentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -662,9 +674,9 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 20, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 20, MaxPageSize = 200 });
 
-            _handlerGetManyAppointmentInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, AppointmentInfo>>()))
+            _handlerGetManyAppointmentInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -688,13 +700,13 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteAppointmentByIdCommand>()))
+            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
 
             //Act
-            Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
+            Func<Task> action = async () => await _controller.Delete(Guid.NewGuid(), CancellationToken.None);
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
@@ -705,8 +717,8 @@ namespace MedEasy.WebApi.Tests
         public async Task DeleteMustRelyOnDeleteCommandHandler()
         {
             //Arrange
-            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<IDeleteAppointmentByIdCommand>()))
-                .Returns(Nothing.Task)
+            _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<IDeleteAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Nothing.Value)
                 .Verifiable();
 
             //Act

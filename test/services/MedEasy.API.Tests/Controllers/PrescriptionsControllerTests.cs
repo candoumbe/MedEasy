@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,7 +98,7 @@ namespace MedEasy.API.Tests.Controllers
             _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
-            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<Guid>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PrescriptionHeaderInfo { Id = prescriptionId, PatientId = patientId, DeliveryDate = DateTimeOffset.UtcNow })
                 .Verifiable();
 
@@ -203,8 +204,8 @@ namespace MedEasy.API.Tests.Controllers
         {
 
             // Arrange
-            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>()))
-                .Returns((Guid prescriptionId) => Task.Run(() =>
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Returns((Guid prescriptionId, CancellationToken cancellationToken) => Task.Run(() =>
                 {
                     IEnumerable<PrescriptionItem> items = prescriptions
                         .Single(x => x.UUID == prescriptionId).Items;
@@ -224,7 +225,7 @@ namespace MedEasy.API.Tests.Controllers
                 .Match(resultExpectation);
 
 
-            _prescriptionServiceMock.Verify(mock => mock.GetItemsByPrescriptionIdAsync(id), Times.Once);
+            _prescriptionServiceMock.Verify(mock => mock.GetItemsByPrescriptionIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -233,7 +234,7 @@ namespace MedEasy.API.Tests.Controllers
 
             // Arrange
             Exception expectedException = new NotFoundException($"No prescription found");
-            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>()))
+            _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .Throws(expectedException);
 
             // Act

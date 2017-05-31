@@ -8,7 +8,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Prescription resource
     /// </summary>
-    public class PrescriptionHeaderInfo : ResourceBase<Guid>
+    public class PrescriptionHeaderInfo : Resource<Guid>
     {
         
         /// <summary>

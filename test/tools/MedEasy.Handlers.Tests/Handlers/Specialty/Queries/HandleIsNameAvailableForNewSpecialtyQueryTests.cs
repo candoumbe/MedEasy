@@ -13,6 +13,7 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Specialty.Queries;
 using MedEasy.Queries.Specialty;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
@@ -153,8 +154,8 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
             // Arrange
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>()))
-                .Returns((Expression<Func<Objects.Specialty, bool>> filter) => Task.Run(() => specialtiesInStore.Any(filter.Compile())));
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns((Expression<Func<Objects.Specialty, bool>> filter, CancellationToken cancellationToken) => Task.Run(() => specialtiesInStore.Any(filter.Compile())));
 
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()));

@@ -11,6 +11,7 @@ using static MedEasy.Validators.ErrorLevel;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -34,17 +35,9 @@ namespace MedEasy.Handlers.Patient.Commands
         public RunDeletePatientByIdCommand(IValidate<IDeletePatientByIdCommand> validator, ILogger<RunDeletePatientByIdCommand> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder) 
         {
-            if (validator == null)
-            {
-                throw new ArgumentNullException(nameof(validator));
-            }
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
-            }
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
             }
 
             if (expressionBuilder == null)
@@ -52,8 +45,8 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new ArgumentNullException(nameof(expressionBuilder));
             }
 
-            _validator = validator;
-            _factory = factory;
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
 
 
         }
@@ -62,7 +55,7 @@ namespace MedEasy.Handlers.Patient.Commands
         /// Deletes a patient by its <see cref="Objects.Patient"/>
         /// </summary>
         /// <param name="command">Comand that wraps id of the <see cref="Objects.Patient"/> to delete.</param>
-        public async Task<Nothing> RunAsync(IDeletePatientByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeletePatientByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
 
             if (command == null)
@@ -78,10 +71,10 @@ namespace MedEasy.Handlers.Patient.Commands
                 throw new CommandNotValidException<Guid>(command.Id, errors);
             }
 
-            using (var uow = _factory.New())
+            using (IUnitOfWork uow = _factory.New())
             {
                 uow.Repository<Objects.Patient>().Delete(x => x.UUID == command.Data);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken);
 
                 return Nothing.Value;
             }

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using MedEasy.Handlers.Core.Specialty.Commands;
 using MedEasy.Handlers.Core.Specialty.Queries;
+using System.Threading;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -119,11 +120,13 @@ namespace MedEasy.API.Controllers
         /// Gets the <see cref="SpecialtyInfo"/> resource by its <paramref name="id"/>
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <response code="200">Resource</response>
         /// <response code="404">Resource not found</response>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(SpecialtyInfo), 200)]
-        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id, cancellationToken);
 
 
 
@@ -131,12 +134,14 @@ namespace MedEasy.API.Controllers
         /// Creates the resource
         /// </summary>
         /// <param name="info">data used to create the resource</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <response code="404">Resource not found</response>
         /// <returns>the created resource</returns>
         [HttpPost]
         [ProducesResponseType(typeof(SpecialtyInfo), 201)]
-        public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info)
+        public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info));
+            SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info), cancellationToken);
             return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id}, output);
         }
 
@@ -149,7 +154,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(SpecialtyInfo), 200)]
-        public async Task<IActionResult> Put(Guid id, [FromBody] SpecialtyInfo info)
+        public Task<IActionResult> Put(Guid id, [FromBody] SpecialtyInfo info)
         {
             throw new NotImplementedException();
         }
@@ -160,12 +165,14 @@ namespace MedEasy.API.Controllers
         /// Delete the <see cref="SpecialtyInfo"/> by its 
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
+        /// <response code="404">Resource not found</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id));
-            return new OkResult();
+            await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id), cancellationToken);
+            return new NoContentResult();
         }
 
 
@@ -185,7 +192,7 @@ namespace MedEasy.API.Controllers
                 query = new PaginationConfiguration
                 {
                     Page = 1,
-                    PageSize = ApiOptions.Value.DefaultPageSize
+                    PageSize = ApiOptions.Value.DefaulLimit
                 };
             }
 

@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -186,8 +187,8 @@ namespace MedEasy.WebApi.Tests
                 await uow.SaveChangesAsync();
             }
 
-            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>()))
-                .Returns((IWantManyResources<Guid, SpecialtyInfo> getQuery) => Task.Run(async () =>
+            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((IWantManyResources<Guid, SpecialtyInfo> getQuery, CancellationToken cancellationToken) => Task.Run(async () =>
                 {
 
 
@@ -201,7 +202,7 @@ namespace MedEasy.WebApi.Tests
                         return results;
                     }
                 }));
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 30, MaxPageSize = 200 });
             // Act
             IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page });
 
@@ -236,8 +237,8 @@ namespace MedEasy.WebApi.Tests
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
-                .ReturnsAsync(null);
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SpecialtyInfo)null);
 
             //Act
             IActionResult actionResult = await _controller.Get(Guid.NewGuid());
@@ -258,7 +259,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
             Guid resourceId = Guid.NewGuid();
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SpecialtyInfo { Id =resourceId, Name = "Specialty" })
                 .Verifiable();
 
@@ -302,8 +303,8 @@ namespace MedEasy.WebApi.Tests
         public async Task Post()
         {
             //Arrange
-            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
-                .Returns((ICreateSpecialtyCommand cmd) => Task.Run(()
+            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((ICreateSpecialtyCommand cmd, CancellationToken cancellationToken) => Task.Run(()
                 => new SpecialtyInfo { Id = Guid.NewGuid(), Name = cmd.Data.Name, UpdatedDate = new DateTimeOffset(2012, 2, 1, 0, 0, 0, TimeSpan.Zero) }));
 
             //Act
@@ -338,7 +339,7 @@ namespace MedEasy.WebApi.Tests
             createdResource.UpdatedDate.Should().HaveMonth(2);
             createdResource.UpdatedDate.Should().HaveYear(2012);
 
-            _iRunCreateSpecialtyInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()), Times.Once);
+            _iRunCreateSpecialtyInfoCommandMock.Verify(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>(), It.IsAny<CancellationToken>()), Times.Once);
 
         }
 
@@ -346,10 +347,10 @@ namespace MedEasy.WebApi.Tests
         public async Task FindDoctorsBySpecialtyIdShouldReturnEmptyResultWhenNoDoctorFound()
         {
             // Arrange
-            _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>()))
+            _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PagedResult<DoctorInfo>.Default)
                 .Verifiable();
-            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 30, MaxPageSize = 200 });
 
             // Act
             Guid doctorId = Guid.NewGuid();
@@ -395,7 +396,7 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
 
-            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>()))
+            _iRunCreateSpecialtyInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateSpecialtyCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler);
 
             //Act
@@ -421,7 +422,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>()))
+            _iHandleGetOneSpecialtyInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantOneResource<Guid, Guid, SpecialtyInfo>>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -444,9 +445,9 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 20, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 20, MaxPageSize = 200 });
 
-            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>()))
+            _iHandlerGetManySpecialtyInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, SpecialtyInfo>>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -468,7 +469,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             //Arrange
-            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
+            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
 
@@ -486,7 +487,7 @@ namespace MedEasy.WebApi.Tests
         {
 
             //Arrange
-            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>()))
+            _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Nothing.Value)
                 .Verifiable();
 

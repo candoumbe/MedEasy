@@ -9,6 +9,7 @@ using System.Linq;
 using MedEasy.RestObjects;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Specialty.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {
@@ -31,20 +32,12 @@ namespace MedEasy.Handlers.Specialty.Queries
         /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/> or <paramref name="logger"/> is <c>null</c></exception>
         public HandleFindDoctorsBySpecialtyIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleFindDoctorsBySpecialtyIdQuery> logger)
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            UowFactory = uowFactory;
-            Logger = logger;
+            UowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         }
 
-        public async Task<IPagedResult<DoctorInfo>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query)
+        public async Task<IPagedResult<DoctorInfo>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             Logger.LogInformation($"Starting {nameof(IFindDoctorsBySpecialtyIdQuery)}  query handling");
             if (query == null)

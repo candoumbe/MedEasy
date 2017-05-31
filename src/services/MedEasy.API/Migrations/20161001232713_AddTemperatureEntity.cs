@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Migrations
 {
+    /// <summary>
+    /// Adds temperature entity
+    /// </summary>
     public partial class AddTemperatureEntity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

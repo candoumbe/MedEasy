@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Commands;
 using AutoMapper;
+using System.Threading;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -46,7 +47,7 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<DocumentMetadataInfo> RunAsync(ICreateDocumentForPatientCommand command)
+        public override async Task<DocumentMetadataInfo> RunAsync(ICreateDocumentForPatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start running command : {command}");
 
@@ -73,7 +74,7 @@ namespace MedEasy.Handlers.Patient.Commands
                 var patient = await uow.Repository<Objects.Patient>()
                     .SingleOrDefaultAsync(
                         x => new {x.Id}, 
-                        x => x.UUID == data.PatientId);
+                        x => x.UUID == data.PatientId, cancellationToken);
                 if (patient == null)
                 {
                     throw new NotFoundException($"Patient <{data.PatientId}> not found");
@@ -95,7 +96,7 @@ namespace MedEasy.Handlers.Patient.Commands
                 };
 
                 documentMetadata = uow.Repository<DocumentMetadata>().Create(documentMetadata);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken);
 
                 DocumentMetadataInfo result = _mapper.Map<DocumentMetadata, DocumentMetadataInfo>(documentMetadata);
                 result.PatientId = data.PatientId;

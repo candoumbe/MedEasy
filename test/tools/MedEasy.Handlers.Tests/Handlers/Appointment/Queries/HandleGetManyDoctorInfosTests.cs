@@ -18,6 +18,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Appointment.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Appointment.Queries
 {
@@ -101,7 +102,7 @@ namespace MedEasy.Handlers.Tests.Appointment.Queries
         {
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Appointment>()
-                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Appointment, AppointmentInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<AppointmentInfo>>>()))
+                .ReadPageAsync(It.IsAny<Expression<Func<Objects.Appointment, AppointmentInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<AppointmentInfo>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PagedResult<AppointmentInfo>.Default);
 
             // Act

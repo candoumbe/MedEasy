@@ -13,26 +13,26 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Queries;
+using System.Threading;
 
 namespace MedEasy.API.Controllers
 {
 
 
     /// <summary>
-    /// Base controller that can be used as a starting point for building REST controllers
+    /// Base controller that can be used as a starting point for building RESTfull controllers.
     /// </summary>
-    /// <typeparam name="TKey">
+    /// <typeparam name="TKey"></typeparam>
     /// <para>
     /// Type of the resource identifier.
     /// </para>
-    /// The resource identifier is used in <see cref="RestReadControllerBase{TKey, TResource}.Get(TKey)"/> operation
-    /// </typeparam>
+    /// The resource identifier is used in <see cref="RestReadControllerBase{TKey, TResource}.Get(TKey, System.Threading.CancellationToken)"/> operation.
     /// <typeparam name="TEntity">Type of entity</typeparam>
     /// <typeparam name="TCommandId">Type of the command identifier</typeparam>
     /// <typeparam name="TResource">Type of the resource</typeparam>
     /// <typeparam name="TGetManyQuery">Type of query to get many resources</typeparam>
     /// <typeparam name="TGetByIdQuery">Type of queries to get a resource by its id</typeparam>
-    /// <typeparam name="TPost">Type of <see cref="Create(TCreateCommand)"/> operation input</typeparam>
+    /// <typeparam name="TPost">Type of <see cref="Create(TCreateCommand, CancellationToken)"/> operation input</typeparam>
     /// <typeparam name="TCreateCommand">Type of commands that create resource</typeparam>
     /// <typeparam name="TRunCreateCommand">Type of handler that can run commands to create a resource</typeparam>
     public abstract class RestCRUDControllerBase<TKey, TEntity, TResource, TGetByIdQuery, TGetManyQuery, TCommandId, TPost, TCreateCommand, TRunCreateCommand> : RestReadControllerBase<TKey, TResource>
@@ -78,24 +78,20 @@ namespace MedEasy.API.Controllers
         /// Creates the resource
         /// </summary>
         /// <param name="createCommand">The command which create the resource</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         [NonAction]
-        public async Task<BrowsableResource<TResource>> Create(TCreateCommand createCommand)
+        public async ValueTask<TResource> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
         {
             TResource resource = await _iRunCreateCommand.RunAsync(createCommand);
             IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
-            BrowsableResource<TResource> browsableResource = new BrowsableResource<TResource>
+            resource.Meta = new Link
             {
-                Resource = resource,
-                Links = new[]{
-                    new Link
-                    {
-                        Href = urlHelper.Action(nameof(Get), new { id = resource.Id }),
-                        Relation = "self",
-                    }
-                }
+                Href = urlHelper.Action(nameof(Get), new  { resource.Id }),
+                Relation = "self",
             };
-            return browsableResource;
+            
+            return resource;
 
         }
 

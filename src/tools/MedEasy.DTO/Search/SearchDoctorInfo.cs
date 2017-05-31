@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace MedEasy.DTO
+namespace MedEasy.DTO.Search
 {
     /// <summary>
     /// Request for searching doctor resources.

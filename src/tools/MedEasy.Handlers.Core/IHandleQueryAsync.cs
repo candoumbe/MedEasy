@@ -1,5 +1,6 @@
 ﻿using MedEasy.Queries;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MedEasy.Handlers.Core.Queries
@@ -15,13 +16,14 @@ namespace MedEasy.Handlers.Core.Queries
         where TKey : IEquatable<TKey>
         where TQuery : IQuery<TKey, TData, TResult>
     {
-        
+
         /// <summary>
         /// Asynchronously handles the specified <see cref="query"/>
         /// </summary>
         /// <param name="query">the query to handle</param>
+        /// <param name="cancellationToken"></param>
         /// <returns><see cref="Task{TResult}"/></returns>
-        Task<TResult> HandleAsync(TQuery query);
+        Task<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken));
         
     }   
 }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using MedEasy.Commands.Appointment;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Appointment.Commands;
+using System.Threading;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
@@ -21,7 +22,7 @@ namespace MedEasy.Handlers.Appointment.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<Nothing> RunAsync(IDeleteAppointmentByIdCommand command)
+        public async Task<Nothing> RunAsync(IDeleteAppointmentByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
@@ -33,7 +34,8 @@ namespace MedEasy.Handlers.Appointment.Commands
             using (IUnitOfWork uow = UowFactory.New())
             {
                 uow.Repository<Objects.Appointment>().Delete(item => item.UUID == id);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 return Nothing.Value;
             }

@@ -1,5 +1,4 @@
-﻿using MedEasy.DTO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
 using Newtonsoft.Json;

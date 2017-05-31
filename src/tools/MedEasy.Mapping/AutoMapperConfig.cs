@@ -13,13 +13,13 @@ namespace MedEasy.Mapping
         public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
         {
 
-            cfg.CreateMap<IEntity<int>, ResourceBase<Guid>>()
+            cfg.CreateMap<IEntity<int>, Resource<Guid>>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID));
 
             cfg.CreateMap<Patient, PatientInfo>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.MainDoctorId, opt => opt.MapFrom(source => source.MainDoctor.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap();
             cfg.CreateMap<CreatePatientInfo, Patient>()
                 .ForMember(dest => dest.MainDoctorId, opt => opt.Ignore());
@@ -50,15 +50,15 @@ namespace MedEasy.Mapping
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Patient.UUID))
                 .ForMember(dest => dest.DocumentId, opt => opt.MapFrom(source => source.Document.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap();
             cfg.CreateMap<Doctor, DoctorInfo>()
                 .ForMember(dest => dest.SpecialtyId, opt => opt.MapFrom(source => source.Specialty.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>();
+                .IncludeBase<IEntity<int>, Resource<Guid>>();
 
             cfg.CreateMap<Specialty, SpecialtyInfo>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap();
             cfg.CreateMap<CreateSpecialtyInfo, Specialty>();
 
@@ -66,7 +66,7 @@ namespace MedEasy.Mapping
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Patient.UUID))
                 .ForMember(dest => dest.PrescriptorId, opt => opt.MapFrom(source => source.Prescriptor.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>();
+                .IncludeBase<IEntity<int>, Resource<Guid>>();
 
             cfg.CreateMap<CreatePrescriptionInfo, Prescription>()
                 .ForMember(dest => dest.PatientId, opt => opt.Ignore())
@@ -75,11 +75,11 @@ namespace MedEasy.Mapping
             cfg.CreateMap<Prescription, PrescriptionInfo>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Patient.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap();
             cfg.CreateMap<PrescriptionItem, PrescriptionItemInfo>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
@@ -88,7 +88,7 @@ namespace MedEasy.Mapping
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Patient.UUID))
                 .ForMember(dest => dest.DoctorId, opt => opt.MapFrom(source => source.Doctor.UUID))
-                .IncludeBase<IEntity<int>, ResourceBase<Guid>>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap();
 
             #region Autocomplete

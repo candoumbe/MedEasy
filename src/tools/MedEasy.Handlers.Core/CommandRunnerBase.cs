@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using MedEasy.Commands;
+using System.Threading;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -33,7 +34,7 @@ namespace MedEasy.Handlers.Core.Commands
             Validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
-        public abstract Task<TOutput> RunAsync(TCommand command);
+        public abstract Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
     }
 
     /// <summary>
@@ -58,6 +59,6 @@ namespace MedEasy.Handlers.Core.Commands
             Validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
-        public abstract Task<Nothing> RunAsync(TCommand command);
+        public abstract Task<Nothing> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

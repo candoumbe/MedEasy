@@ -6,6 +6,7 @@ using System;
 using MedEasy.DTO;
 using System.Threading.Tasks;
 using AutoMapper;
+using System.Threading;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
@@ -31,7 +32,7 @@ namespace MedEasy.Handlers.Appointment.Commands
         }
 
 
-        public async Task<AppointmentInfo> RunAsync(ICreateAppointmentCommand command)
+        public async Task<AppointmentInfo> RunAsync(ICreateAppointmentCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
@@ -75,7 +76,8 @@ namespace MedEasy.Handlers.Appointment.Commands
                 };
 
                 uow.Repository<Objects.Appointment>().Create(itemToCreate);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 AppointmentInfo output = Mapper.Map<AppointmentInfo>(itemToCreate);
                 output.PatientId = info.PatientId;

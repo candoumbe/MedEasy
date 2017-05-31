@@ -11,6 +11,7 @@ using MedEasy.DAL.Repositories;
 using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
 using MedEasy.Handlers.Core.Prescription.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Prescription.Queries
 {
@@ -29,24 +30,12 @@ namespace MedEasy.Handlers.Prescription.Queries
         /// <param name="expressionBuilder"></param>
         public HandleGetMostRecentPrescriptionsQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetMostRecentPrescriptionsQuery> logger, IExpressionBuilder expressionBuilder)
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (expressionBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-            _uowFactory = uowFactory;
-            _logger = logger;
-            _expressionBuilder = expressionBuilder;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<IEnumerable<PrescriptionHeaderInfo>> HandleAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query)
+        public async Task<IEnumerable<PrescriptionHeaderInfo>> HandleAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start handling most recents measures : {query}");
             if (query == null)
@@ -54,7 +43,7 @@ namespace MedEasy.Handlers.Prescription.Queries
                 throw new ArgumentNullException(nameof(query));
             }
 
-            using (var uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
                 _logger.LogTrace($"Start querying most recents measures {query}");
                 GetMostRecentPrescriptionsInfo input = query.Data;
@@ -63,7 +52,8 @@ namespace MedEasy.Handlers.Prescription.Queries
                     .ReadPageAsync(
                         selector, 
                         input.Count.GetValueOrDefault(15), 1,
-                        new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending)});
+                        new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending)},
+                        cancellationToken);
 
                 _logger.LogTrace($"Nb of results : {items.Entries.Count()}");
                 _logger.LogInformation($"Handling query {query.Id} successfully");

@@ -16,6 +16,7 @@ using MedEasy.Queries;
 using MedEasy.Validators;
 using System.Collections.Generic;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Document.Queries
 {
@@ -33,23 +34,9 @@ namespace MedEasy.Handlers.Document.Queries
         /// <param name="expressionBuilder"></param>
         public HandleGetOneDocumentInfoByIdQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetOneDocumentInfoByIdQuery> logger, IExpressionBuilder expressionBuilder)
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (expressionBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(expressionBuilder));
-            }
-
-            UowFactory = uowFactory;
-            Logger = logger;
-            ExpressionBuilder = expressionBuilder; 
+            UowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            ExpressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder)); 
         }
 
 
@@ -61,7 +48,7 @@ namespace MedEasy.Handlers.Document.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public async Task<DocumentInfo> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query)
+        public async Task<DocumentInfo> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {
@@ -86,12 +73,13 @@ namespace MedEasy.Handlers.Document.Queries
 //            }
             Logger.LogTrace("Query validation succeeded");
 
-            using (var uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
                 Guid data = query.Data;
 
                 Expression<Func<Objects.Document, DocumentInfo>> selector = ExpressionBuilder.CreateMapExpression<Objects.Document, DocumentInfo>();
-                DocumentInfo output = await uow.Repository<Objects.Document>().SingleOrDefaultAsync(selector, x => x.DocumentMetadata.UUID == data);
+                DocumentInfo output = await uow.Repository<Objects.Document>()
+                    .SingleOrDefaultAsync(selector, x => x.DocumentMetadata.UUID == data, cancellationToken);
 
                 Logger.LogInformation($"Query {query.Id} processed successfully");
 

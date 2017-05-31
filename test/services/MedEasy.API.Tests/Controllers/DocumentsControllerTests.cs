@@ -23,6 +23,7 @@ using MedEasy.Handlers.Core.Queries;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using System.Threading;
 
 namespace MedEasy.API.Tests.Controllers
 {
@@ -176,8 +177,8 @@ namespace MedEasy.API.Tests.Controllers
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            _iHandleGetManyDocumentMetadataInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, DocumentMetadataInfo>>()))
-                .Returns((IWantManyResources<Guid, DocumentMetadataInfo> getQuery) => Task.Run(() =>
+            _iHandleGetManyDocumentMetadataInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantManyResources<Guid, DocumentMetadataInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((IWantManyResources<Guid, DocumentMetadataInfo> getQuery, CancellationToken cancellationToken) => Task.Run(() =>
                 {
                     IEnumerable<DocumentMetadataInfo> results = items
                         .OrderByDescending(x => x.UpdatedDate)
@@ -185,7 +186,7 @@ namespace MedEasy.API.Tests.Controllers
                         .Take(getQuery.Data.PageSize);
                     return (IPagedResult<DocumentMetadataInfo>) new PagedResult<DocumentMetadataInfo>(results, items.Count(), getQuery.Data.PageSize);
                 }));
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaulLimit = 30, MaxPageSize = 200 });
 
             // Act
             IActionResult actionResult = await _controller.Get(page, pageSize);
@@ -233,7 +234,7 @@ namespace MedEasy.API.Tests.Controllers
                 Title = "Document 1"
             };
 
-            _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentMetadataInfo>>()))
+            _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentMetadataInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResource);
 
             // Act
@@ -285,7 +286,7 @@ namespace MedEasy.API.Tests.Controllers
                 Content = new byte[] { 1, 2, 3, 4, 5},
             };
 
-            _iHandleGetOneDocumentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentInfo>>()))
+            _iHandleGetOneDocumentInfoByIdQueryMock.Setup(mock => mock.HandleAsync(It.IsNotNull<IWantOneResource<Guid, Guid, DocumentInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResource);
 
             // Act

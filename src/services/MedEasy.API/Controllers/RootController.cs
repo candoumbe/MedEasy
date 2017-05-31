@@ -59,7 +59,7 @@ namespace MedEasy.API.Controllers
         {
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             int page = 1,
-                pageSize = ApiOptions.Value.DefaultPageSize;
+                pageSize = ApiOptions.Value.DefaulLimit;
             IList<Endpoint> endpoints = new List<Endpoint>() {
                 new Endpoint
                 {

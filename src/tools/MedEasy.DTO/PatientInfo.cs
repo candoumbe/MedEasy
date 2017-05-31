@@ -9,7 +9,7 @@ namespace MedEasy.DTO
     /// Informations on a patient
     /// </summary>
     [JsonObject]
-    public class PatientInfo : ResourceBase<Guid>
+    public class PatientInfo : Resource<Guid>
     {
         /// <summary>
         /// Patient's firstname

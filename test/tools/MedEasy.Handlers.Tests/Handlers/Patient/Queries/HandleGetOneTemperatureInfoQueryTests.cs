@@ -16,6 +16,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -105,9 +106,9 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public async Task UnknownIdShouldReturnNull()
         {
             //Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Temperature>()
-                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Temperature, TemperatureInfo>>>(), It.IsAny<Expression<Func<Objects.Temperature, bool>>>()))
-                .ReturnsAsync(null)
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Temperature>()
+                .SingleOrDefaultAsync(It.IsAny<Expression<Func<Temperature, TemperatureInfo>>>(), It.IsAny<Expression<Func<Temperature, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TemperatureInfo)null)
                 .Verifiable();
 
             // Act

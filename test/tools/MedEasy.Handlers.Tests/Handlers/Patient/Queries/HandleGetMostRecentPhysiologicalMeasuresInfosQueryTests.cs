@@ -18,6 +18,7 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.Objects;
 using MedEasy.Handlers.Core.Patient.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -102,7 +103,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         {
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Temperature>()
-                .WhereAsync(It.IsAny<Expression<Func<Temperature, TemperatureInfo>>>(),  It.IsAny<Expression<Func<Temperature, bool>>>(), It.IsAny<IEnumerable<OrderClause<TemperatureInfo>>>(), It.IsAny<int>(), It.IsAny<int>()))
+                .WhereAsync(It.IsAny<Expression<Func<Temperature, TemperatureInfo>>>(),  It.IsAny<Expression<Func<Temperature, bool>>>(), It.IsAny<IEnumerable<OrderClause<TemperatureInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PagedResult<TemperatureInfo>.Default);
 
             // Act

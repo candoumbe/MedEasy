@@ -70,7 +70,7 @@ namespace MedEasy.Tests.RestObjects
         {
             PaginationConfiguration query = new PaginationConfiguration { PageSize = input };
             query.PageSize.Should()
-                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.PageSize)} after setting its value with {input} should output {expectedValue} ");
+                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.PageSize)} after setting its value with <{input}> should output <{expectedValue}> ");
 
         }
 
@@ -81,7 +81,7 @@ namespace MedEasy.Tests.RestObjects
         {
             PaginationConfiguration query =  new PaginationConfiguration { Page = input };
             query.Page.Should()
-                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.Page)} after setting its value with {input} should output {expectedValue} ");
+                .Be(expectedValue, $"because getting the value of {nameof(PaginationConfiguration.Page)} after setting its value with <{input}> should output <{expectedValue}> ");
         }
     }
 }

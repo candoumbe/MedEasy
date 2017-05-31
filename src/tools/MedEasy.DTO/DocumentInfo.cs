@@ -5,7 +5,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Binary content
     /// </summary>
-    public class DocumentInfo : ResourceBase<Guid>
+    public class DocumentInfo : Resource<Guid>
     {
         /// <summary>
         /// Binary content

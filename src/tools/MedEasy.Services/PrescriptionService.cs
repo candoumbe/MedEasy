@@ -9,6 +9,7 @@ using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.DAL.Repositories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace MedEasy.Services
 {
@@ -30,7 +31,7 @@ namespace MedEasy.Services
             _mapper = mapper;
         }
 
-        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription)
+        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (patientId == Guid.Empty)
             {
@@ -71,12 +72,12 @@ namespace MedEasy.Services
             }
         }
 
-        public Task<IEnumerable<PrescriptionHeaderInfo>> GetMostRecentPrescriptionsAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query)
+        public Task<IEnumerable<PrescriptionHeaderInfo>> GetMostRecentPrescriptionsAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(Guid id)
+        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionAsync(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
 
             using (IUnitOfWork uow = UowFactory.New())
@@ -85,7 +86,8 @@ namespace MedEasy.Services
                     x => x.UUID == id, 
                     new[] {
                         IncludeClause<Prescription>.Create(x => x.Patient),
-                        IncludeClause<Prescription>.Create(x => x.Prescriptor) });
+                        IncludeClause<Prescription>.Create(x => x.Prescriptor) },
+                    cancellationToken);
                 return _mapper.Map<PrescriptionHeaderInfo>(p);
             }
         }
@@ -101,7 +103,7 @@ namespace MedEasy.Services
         /// <exception cref="ArgumentOutOfRangeException">
         ///     if either <paramref name="patientId"/> or <paramref name="prescriptionId"/> is <see cref="Guid.Empty"/>
         /// </exception>
-        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionByPatientIdAsync(Guid patientId, Guid prescriptionId)
+        public async Task<PrescriptionHeaderInfo> GetOnePrescriptionByPatientIdAsync(Guid patientId, Guid prescriptionId, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (patientId == Guid.Empty)
             {
@@ -129,7 +131,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(Guid id)
+        public async Task<IEnumerable<PrescriptionItemInfo>> GetItemsByPrescriptionIdAsync(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (IUnitOfWork uow = UowFactory.New())
             {

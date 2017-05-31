@@ -8,7 +8,7 @@ namespace MedEasy.DTO
     /// <summary>
     /// Resource that holds appointment informations.
     /// </summary>
-    public class AppointmentInfo : ResourceBase<Guid>
+    public class AppointmentInfo : Resource<Guid>
     {
         /// <summary>
         /// Date of the beginning of the appointment

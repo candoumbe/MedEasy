@@ -26,6 +26,7 @@ using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Validators;
 using MedEasy.Handlers.Core.Appointment.Queries;
 using MedEasy.Queries.Search;
+using System.Threading;
 
 namespace MedEasy.API.Controllers
 {
@@ -146,25 +147,28 @@ namespace MedEasy.API.Controllers
         /// Gets the <see cref="AppointmentInfo"/> resource by its <paramref name="id"/>
         /// </summary>
         /// <param name="id">identifier of the resource to look for</param>
+        /// <param name="cancellationToken">notifies lower level to abort processing the request</param>
         /// <returns></returns>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AppointmentInfo), 200)]
-        public async override Task<IActionResult> Get(Guid id) => await base.Get(id);
-            
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id);
 
-        
+
+
         /// <summary>
         /// Creates the resource
         /// </summary>
         /// <param name="info">data used to create the resource</param>
+        /// <param name="cancellationToken">notifies lower level to abort processing the request</param>
         /// <returns>the created resource</returns>
+        /// <response code="409">the new appointment overlaps an existing one and </response>
         [HttpPost]
         [ProducesResponseType(typeof(AppointmentInfo), 201)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info)
+        public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            AppointmentInfo output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info));
+            AppointmentInfo output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info), cancellationToken);
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             IBrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
@@ -189,7 +193,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [Produces(typeof(AppointmentInfo))]
-        public async Task<IActionResult> Put(int id, [FromBody] AppointmentInfo info)
+        public Task<IActionResult> Put(int id, [FromBody] AppointmentInfo info)
         {
             throw new NotImplementedException();
         }
@@ -200,13 +204,14 @@ namespace MedEasy.API.Controllers
         /// Delete the <see cref="AppointmentInfo"/> by its 
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
-        /// <response code="200">if the deletion succeed</response>
+        /// <param name="cancellationToken">notifies lower level to abort processing the request</param>
+        /// <response code="204">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _iRunDeleteAppointmentByIdCommand.RunAsync(new DeleteAppointmentByIdCommand(id));
-            return new OkResult();
+            await _iRunDeleteAppointmentByIdCommand.RunAsync(new DeleteAppointmentByIdCommand(id), cancellationToken);
+            return new NoContentResult();
         }
 
         /// <summary>
@@ -232,22 +237,23 @@ namespace MedEasy.API.Controllers
         /// </remarks>
         /// <param name="id">id of the resource to update</param>
         /// <param name="changes">set of changes to apply to the resource</param>
-        /// <response code="200">The resource was successfully patched </response>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <response code="204">The resource was successfully patched </response>
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AppointmentInfo> changes)
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AppointmentInfo> changes, CancellationToken cancellationToken = default(CancellationToken))
         {
             PatchInfo<Guid, Appointment> data = new PatchInfo<Guid, Appointment>
             {
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Appointment>>(changes)
             };
-            await _iRunPatchAppointmentCommand.RunAsync(new PatchCommand<Guid, Appointment>(data));
+            
+            await _iRunPatchAppointmentCommand.RunAsync(new PatchCommand<Guid, Appointment>(data), cancellationToken);
 
-
-            return new OkResult();
+            return new NoContentResult();
         }
 
 
@@ -255,6 +261,7 @@ namespace MedEasy.API.Controllers
         /// Search Appointments resource based on some criteria.
         /// </summary>
         /// <param name="search">Search criteria</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <remarks>
         /// All criteria are combined as a AND.
         /// 
@@ -281,7 +288,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(IEnumerable<AppointmentInfo>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search)
+        public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken cancellationToken = default(CancellationToken))
         {
 
 
@@ -322,7 +329,7 @@ namespace MedEasy.API.Controllers
                         })
             };
             
-            IPagedResult<AppointmentInfo> pageOfResult = await _iHandleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo));
+            IPagedResult<AppointmentInfo> pageOfResult = await _iHandleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo), cancellationToken);
 
             search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
             int count = pageOfResult.Entries.Count();

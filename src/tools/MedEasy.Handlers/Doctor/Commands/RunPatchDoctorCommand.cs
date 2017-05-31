@@ -10,6 +10,7 @@ using MedEasy.Commands;
 using Microsoft.AspNetCore.JsonPatch;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using System.Threading;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {
@@ -30,24 +31,12 @@ namespace MedEasy.Handlers.Doctor.Commands
         /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchDoctorCommand)"/>.</param>
         public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchDoctorCommand> logger, IValidate<IPatchCommand<Guid, Objects.Doctor>> validator) 
         {
-            if (uowFactory == null)
-            {
-                throw new ArgumentNullException(nameof(uowFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (validator == null)
-            {
-                throw new ArgumentNullException(nameof(validator));
-            }
-            _uowFactory = uowFactory;
-            _logger = logger;
-            _validator = validator;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
-        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Doctor> command)
+        public async Task<Nothing> RunAsync(IPatchCommand<Guid, Objects.Doctor> command, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start running command : {command}");
 

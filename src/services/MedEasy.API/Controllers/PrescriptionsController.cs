@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.Objects;
 using System;
+using System.Threading;
 
 namespace MedEasy.API.Controllers
 {
@@ -48,16 +49,17 @@ namespace MedEasy.API.Controllers
         /// Gets the <see cref="PrescriptionHeaderInfo"/> with the specified <paramref name="id"/>
         /// </summary>
         /// <param name="id">id of the prescription header to retrieve</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         /// <response code="200">if a prescription is the specified <paramref name="id"/> is found</response>
         /// <response code="404">if no prescription found</response>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         [Produces(typeof(PrescriptionHeaderInfo))]
-        public async Task<IActionResult> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
             IActionResult actionResult;
-            PrescriptionHeaderInfo prescriptionHeaderInfo = await _prescriptionService.GetOnePrescriptionAsync(id);
+            PrescriptionHeaderInfo prescriptionHeaderInfo = await _prescriptionService.GetOnePrescriptionAsync(id, cancellationToken);
             if (prescriptionHeaderInfo != null)
             {
                 IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
@@ -96,15 +98,16 @@ namespace MedEasy.API.Controllers
         /// 
         /// </remarks>
         /// <param name="id">id of the resource to get details.</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         /// <response code="200">if the resource exists</response>
         /// <response code="404">if no prescription with <paramref name="id"/> found</response>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
         [ProducesResponseType(typeof(IEnumerable<PrescriptionItemInfo>), 200)]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            IEnumerable<PrescriptionItemInfo> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id);
+            IEnumerable<PrescriptionItemInfo> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id, cancellationToken);
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             IBrowsableResource<IEnumerable<PrescriptionItemInfo>> browsableResource = new BrowsableResource<IEnumerable<PrescriptionItemInfo>>

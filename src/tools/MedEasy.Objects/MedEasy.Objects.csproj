@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="IHaveTenant.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 

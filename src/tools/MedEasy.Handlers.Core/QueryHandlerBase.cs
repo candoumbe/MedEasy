@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Queries;
+using System.Threading;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -74,7 +75,7 @@ namespace MedEasy.Handlers.Core.Queries
 
         }
 
-        public abstract Task<TOutput> HandleAsync(TQuery query);
+        public abstract Task<TOutput> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken));
     }
 
 

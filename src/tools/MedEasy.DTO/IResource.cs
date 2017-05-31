@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MedEasy.RestObjects;
+using System;
 
 namespace MedEasy.DTO
 {
@@ -13,6 +14,11 @@ namespace MedEasy.DTO
         /// Id of the resource
         /// </summary>
         T Id { get; }
+
+        /// <summary>
+        /// Metadata associated with the current resource.
+        /// </summary>
+        Link Meta { get; set; }
 
         /// <summary>
         /// Last time the resource was updated
