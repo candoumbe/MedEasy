@@ -498,7 +498,7 @@ namespace MedEasy.WebApi.Tests
             //Assert
             actionResult.Should()
                 .NotBeNull().And
-                .BeAssignableTo<OkResult>();
+                .BeAssignableTo<NoContentResult>();
 
             _iRunDeleteSpecialtyInfoByIdCommandMock.Verify();
         }

@@ -34,7 +34,7 @@ namespace MedEasy.Validators.Tests
                     null,
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Once(errorItem => "".Equals(errorItem.Key) && errorItem.Severity == ErrorLevel.Error))),
-                    $"because {nameof(DoctorInfo)} is null"
+                    $"{nameof(DoctorInfo)} is null"
                 };
 
                 yield return new object[]
@@ -42,7 +42,7 @@ namespace MedEasy.Validators.Tests
                     new DoctorInfo(),
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Once(errorItem => string.Empty.Equals(errorItem.Key) && errorItem.Severity == ErrorLevel.Error))),
-                    $"because {nameof(DoctorInfo)}'s is null"
+                    $"{nameof(DoctorInfo)}'s is null"
                 };
 
                 yield return new object[]
@@ -50,7 +50,7 @@ namespace MedEasy.Validators.Tests
                     new DoctorInfo() { Firstname = "Bruce" },
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Once(errorItem => nameof(DoctorInfo.Lastname).Equals(errorItem.Key) && errorItem.Severity == ErrorLevel.Error))),
-                    $"because {nameof(DoctorInfo.Firstname)} is set and {nameof(DoctorInfo.Lastname)} is not"
+                    $"{nameof(DoctorInfo.Firstname)} is set and {nameof(DoctorInfo.Lastname)} is not"
                 };
 
                 yield return new object[]
@@ -58,7 +58,7 @@ namespace MedEasy.Validators.Tests
                     new DoctorInfo() { Lastname = "Wayne" },
                     ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
                         (errors => errors.Once(errorItem => nameof(DoctorInfo.Firstname).Equals(errorItem.Key) && errorItem.Severity == ErrorLevel.Warning))),
-                    $"because {nameof(DoctorInfo.Lastname)} is set and {nameof(DoctorInfo.Firstname)} is not"
+                    $"{nameof(DoctorInfo.Lastname)} is set and {nameof(DoctorInfo.Firstname)} is not"
                 };
             }
         }
