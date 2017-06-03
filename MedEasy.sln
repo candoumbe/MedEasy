@@ -69,6 +69,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Tools.Tests", "test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Validators.Tests", "test\tools\MedEasy.Validators.Tests\MedEasy.Validators.Tests.csproj", "{AAB3FF36-9624-4AAC-B370-3520B0E2EF55}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Web", "src\clients\MedEasy.Web\MedEasy.Web.csproj", "{1F6C8A26-38CC-425D-8AEF-505FF84B070E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,10 @@ Global
 		{AAB3FF36-9624-4AAC-B370-3520B0E2EF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAB3FF36-9624-4AAC-B370-3520B0E2EF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAB3FF36-9624-4AAC-B370-3520B0E2EF55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F6C8A26-38CC-425D-8AEF-505FF84B070E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F6C8A26-38CC-425D-8AEF-505FF84B070E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F6C8A26-38CC-425D-8AEF-505FF84B070E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F6C8A26-38CC-425D-8AEF-505FF84B070E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -211,5 +217,6 @@ Global
 		{7178F629-91B0-419D-9BB8-7339BEC908C6} = {BAF3A8C2-E464-4BE0-83C4-6FAFD843C84F}
 		{EACD3699-17F7-45DB-9799-957110FB3D2E} = {6C7B66AE-623D-49BC-9243-38408233FE85}
 		{AAB3FF36-9624-4AAC-B370-3520B0E2EF55} = {6C7B66AE-623D-49BC-9243-38408233FE85}
+		{1F6C8A26-38CC-425D-8AEF-505FF84B070E} = {AC32FECD-9645-4F34-B258-BA4927D11017}
 	EndGlobalSection
 EndGlobal
