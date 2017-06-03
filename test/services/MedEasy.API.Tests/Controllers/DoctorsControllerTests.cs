@@ -130,9 +130,9 @@ namespace MedEasy.WebApi.Tests
                 int[] pages = { 0, int.MinValue, int.MaxValue };
 
 
-                foreach (var pageSize in pageSizes)
+                foreach (int pageSize in pageSizes)
                 {
-                    foreach (var page in pages)
+                    foreach (int page in pages)
                     {
                         yield return new object[]
                         {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
     <AssemblyName>MedEasy.Validators.Tests</AssemblyName>
     <PackageId>MedEasy.Validators.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tools\MedEasy.Validators\MedEasy.Validators.csproj" />
-    <ProjectReference Include="..\..\src\Tools\MedEasy.DTO\MedEasy.DTO.csproj" />
-    <ProjectReference Include="..\..\src\Tools\MedEasy.Commands\MedEasy.Commands.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.Commands\MedEasy.Commands.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="FluentAssertions" Version="4.18.0" />
     <PackageReference Include="Microsoft.DotNet.Watcher.Tools" Version="1.0.0-preview2-final" />
-    <PackageReference Include="moq.netcore" Version="4.4.0-beta8" />
+    <PackageReference Include="Moq" Version="4.7.8" />
   </ItemGroup>
 
   <ItemGroup>
