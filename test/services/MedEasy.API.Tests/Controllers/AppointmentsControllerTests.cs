@@ -43,6 +43,7 @@ using MedEasy.Handlers.Core.Appointment.Queries;
 using MedEasy.DTO.Search;
 using MedEasy.DAL.Interfaces;
 using System.Threading;
+using System.Net;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -62,7 +63,7 @@ namespace MedEasy.WebApi.Tests
         private IMapper _mapper;
         private Mock<IRunCreateAppointmentCommand> _iRunCreateAppointmentInfoCommandMock;
         private Mock<IRunDeleteAppointmentInfoByIdCommand> _iRunDeleteAppointmentInfoByIdCommandMock;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IOptionsSnapshot<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IRunPatchAppointmentCommand> _iRunPatchAppointmentCommandMock;
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
 
@@ -97,7 +98,7 @@ namespace MedEasy.WebApi.Tests
             _handlerGetManyAppointmentInfoQueryMock = new Mock<IHandleGetManyAppointmentInfosQuery>(Strict);
             _iRunCreateAppointmentInfoCommandMock = new Mock<IRunCreateAppointmentCommand>(Strict);
             _iRunDeleteAppointmentInfoByIdCommandMock = new Mock<IRunDeleteAppointmentInfoByIdCommand>(Strict);
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
             _iRunPatchAppointmentCommandMock = new Mock<IRunPatchAppointmentCommand>(Strict);
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
 
@@ -580,7 +581,16 @@ namespace MedEasy.WebApi.Tests
             }
         }
 
-
+        /// <summary>
+        /// Unit tests for <see cref="AppointmentsController.Search(SearchAppointmentInfo, CancellationToken)"/>
+        /// </summary>
+        /// <param name="entries"><see cref="Appointment"/>s in the repository.</param>
+        /// <param name="searchRequest">Search request.</param>
+        /// <param name="firstPageLinkExpectation"></param>
+        /// <param name="previousPageLinkExpectation"></param>
+        /// <param name="nextPageLinkExpectation"></param>
+        /// <param name="lastPageLinkExpectation"></param>
+        /// <returns></returns>
         [Theory]
         [MemberData(nameof(SearchCases))]
         public async Task Search(IEnumerable<AppointmentInfo> entries, SearchAppointmentInfo searchRequest,
@@ -726,6 +736,41 @@ namespace MedEasy.WebApi.Tests
 
             //Assert
             _iRunDeleteAppointmentInfoByIdCommandMock.Verify();
+        }
+
+        /// <summary>
+        /// Tests <see cref="AppointmentsController.Post(CreateAppointmentInfo, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
+        ///  The response should be <c>HTTP/1.1 409 Conflicted</c> when the new <see cref="Appointment"/> overlaps an existing one 
+        ///  and <see cref="MedEasyApiOptions.AllowOverlaping"/> is <c>false</c>.
+        /// </remarks>
+        /// <returns></returns>
+        public void Post_Appointment_That_Overlaps_An_Existing_Appointment_Returns_Conflicted_Result()
+        {
+            // Arrange
+            Guid doctorId = Guid.NewGuid();
+
+            CommandConflictException<Guid> exceptionThrown = new CommandConflictException<Guid>(Guid.NewGuid());
+            _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<ICreateAppointmentCommand>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exceptionThrown);
+
+
+            // Act
+            CreateAppointmentInfo newAppointment = new CreateAppointmentInfo
+            {
+                DoctorId = doctorId,
+                StartDate = 2.February(2017).AddHours(14).AddMinutes(30),
+                Duration = 30
+            };
+
+
+            Func<Task> action = async () => await _controller.Post(newAppointment);
+
+            // Assert
+            action.ShouldThrowExactly<CommandConflictException<Guid>>().Which.Should()
+                .BeSameAs(exceptionThrown);
+
         }
     }
 }

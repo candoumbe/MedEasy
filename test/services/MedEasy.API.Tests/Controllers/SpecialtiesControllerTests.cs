@@ -53,7 +53,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IRunCreateSpecialtyCommand> _iRunCreateSpecialtyInfoCommandMock;
         private Mock<IRunDeleteSpecialtyByIdCommand> _iRunDeleteSpecialtyInfoByIdCommandMock;
         private Mock<IHandleFindDoctorsBySpecialtyIdQuery> _iHandleFindDoctorsBySpecialtyIdQueryMock;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IOptionsSnapshot<MedEasyApiOptions>> _apiOptionsMock;
 
         public SpecialtiesControllerTests(ITestOutputHelper outputHelper)
         {
@@ -82,7 +82,7 @@ namespace MedEasy.WebApi.Tests
             _iHandleFindDoctorsBySpecialtyIdQueryMock = new Mock<IHandleFindDoctorsBySpecialtyIdQuery>(Strict);
             _iRunCreateSpecialtyInfoCommandMock = new Mock<IRunCreateSpecialtyCommand>(Strict);
             _iRunDeleteSpecialtyInfoByIdCommandMock = new Mock<IRunDeleteSpecialtyByIdCommand>(Strict);
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
 
             _controller = new SpecialtiesController(
                 _loggerMock.Object, 

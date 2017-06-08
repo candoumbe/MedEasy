@@ -34,7 +34,7 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         /// <param name="getContentByIdHandler"></param>
         public DocumentsController(
-            ILogger<DocumentsController> logger, IOptions<MedEasyApiOptions> apiOptions,
+            ILogger<DocumentsController> logger, IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleGetOneDocumentMetadataInfoByIdQuery getByIdHandler,
             IHandleGetManyDocumentsQuery getManyQueryHandler,
             IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, 

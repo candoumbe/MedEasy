@@ -14,7 +14,11 @@ namespace MedEasy.Validators.Exceptions
         /// </summary>
         public IEnumerable<ErrorInfo> Errors { get; }
 
-        public ValidationException(IEnumerable<ErrorInfo> errors)
+        /// <summary>
+        /// Builds a new <see cref="ValidationException"/> instance.
+        /// </summary>
+        /// <param name="errors"><see cref="ErrorInfo"/>s  that cause the exception to be thrown</param>
+        protected ValidationException(IEnumerable<ErrorInfo> errors)
         {
             Errors = errors ?? Enumerable.Empty<ErrorInfo>();
         }

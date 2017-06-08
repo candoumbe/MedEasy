@@ -31,7 +31,7 @@ namespace MedEasy.API.Tests.Controllers
     {
         private ITestOutputHelper _outputHelper;
         private DocumentsController _controller;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IOptionsSnapshot<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<ILogger<DocumentsController>> _logger;
         private Mock<IHandleGetOneDocumentMetadataInfoByIdQuery> _iHandleGetOneDocumentMetadataInfoByIdQueryMock;
         private Mock<IHandleGetManyDocumentsQuery> _iHandleGetManyDocumentMetadataInfoQueryMock;
@@ -43,7 +43,7 @@ namespace MedEasy.API.Tests.Controllers
         {
             _outputHelper = outputHelper;
             
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
             _logger = new Mock<ILogger<DocumentsController>>(Strict);
 
             _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);

@@ -35,6 +35,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
             _mapperMock.Setup(mock => mock.Map<AppointmentInfo>(It.IsNotNull<Objects.Appointment>()))
                 .Returns((Objects.Appointment source) => AutoMapperConfig.Build().CreateMapper().Map<AppointmentInfo>(source));
 
+
             _handler = new RunCreateAppointmentCommand(_unitOfWorkFactory, _mapperMock.Object);
         }
 
@@ -82,6 +83,9 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
             result.Duration.Should().Be(data.Duration);
 
         }
+
+
+
 
 
         /// <summary>

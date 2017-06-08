@@ -58,9 +58,9 @@ namespace MedEasy.API.Controllers
         private readonly IHandleSearchQuery _iHandleSearchQuery;
 
         /// <summary>
-        /// Builds a new <see cref="AppointmentsController"/> instance
+        /// Builds a new <see cref="AppointmentsController"/> instance.
         /// </summary>
-        /// <param name="apiOptions">Options of the API</param>
+        /// <param name="apiOptions">Options of the API.</param>
         /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
         /// <param name="iHandleSearchQuery">Handler of GET /api/Appointments/search queries.</param>
         /// <param name="getManyAppointmentQueryHandler">Handler of GET many resources</param>
@@ -73,7 +73,7 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         public AppointmentsController(ILogger<AppointmentsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, 
-            IOptions<MedEasyApiOptions> apiOptions,
+            IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleGetAppointmentInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyAppointmentInfosQuery getManyAppointmentQueryHandler,

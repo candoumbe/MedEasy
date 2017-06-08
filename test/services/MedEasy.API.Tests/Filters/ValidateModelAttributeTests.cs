@@ -63,7 +63,7 @@ namespace MedEasy.API.Tests.Filters
                new Mock<ActionDescriptor>().Object,
                modelState);
 
-            var actionExecutingContext = new ActionExecutingContext(
+            ActionExecutingContext actionExecutingContext = new ActionExecutingContext(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
@@ -78,7 +78,9 @@ namespace MedEasy.API.Tests.Filters
             // Assert
             actionExecutingContext.Result.Should()
                 .NotBeNull().And
-                .BeAssignableTo<BadRequestObjectResult>();
+                .BeAssignableTo<BadRequestObjectResult>().Which
+                    .Value.Should()
+                    .NotBeNull();
         }
     }
 }

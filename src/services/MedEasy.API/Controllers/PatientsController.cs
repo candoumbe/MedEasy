@@ -91,7 +91,7 @@ namespace MedEasy.API.Controllers
         /// <param name="iHandleGetOneDocumentInfoByPatientIdAndDocumentId">Runner for CREATE document resource commands.</param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor,
-            IOptions<MedEasyApiOptions> apiOptions,
+            IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleSearchQuery iHandleSearchQuery,
             IHandleGetOnePatientInfoByIdQuery getByIdQueryHandler,

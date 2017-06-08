@@ -62,7 +62,7 @@ namespace MedEasy.API.Controllers
         /// <exception cref="ArgumentNullException">if any arguments is <c>null</c></exception>
         protected RestCRUDControllerBase(
             ILogger logger,
-            IOptions<MedEasyApiOptions> apiOptions,
+            IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
             IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
             TRunCreateCommand iRunCreateCommand, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelperFactory, actionContextAccessor )

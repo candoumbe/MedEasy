@@ -59,7 +59,7 @@ namespace MedEasy.WebApi.Tests
         private IMapper _mapper;
         private Mock<IRunCreateDoctorCommand> _iRunCreateDoctorInfoCommandMock;
         private Mock<IRunDeleteDoctorInfoByIdCommand> _iRunDeleteDoctorInfoByIdCommandMock;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IOptionsSnapshot<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IRunPatchDoctorCommand> _iRunPatchDoctorCommandMock;
         private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
 
@@ -88,7 +88,7 @@ namespace MedEasy.WebApi.Tests
             _handlerGetManyDoctorInfoQueryMock = new Mock<IHandleGetManyDoctorInfosQuery>(Strict);
             _iRunCreateDoctorInfoCommandMock = new Mock<IRunCreateDoctorCommand>(Strict);
             _iRunDeleteDoctorInfoByIdCommandMock = new Mock<IRunDeleteDoctorInfoByIdCommand>(Strict);
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
             _iRunPatchDoctorCommandMock = new Mock<IRunPatchDoctorCommand>(Strict);
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
 

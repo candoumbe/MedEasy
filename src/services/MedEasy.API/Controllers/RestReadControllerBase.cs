@@ -31,7 +31,7 @@ namespace MedEasy.API.Controllers
     {
 
         /// <summary>
-        /// Handler for "I want one resource" queries
+        /// Handler for "I want one resource" queries.
         /// </summary>
         protected IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> GetByIdQueryHandler { get; }
 
@@ -43,7 +43,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Options associated with the API
         /// </summary>
-        protected IOptions<MedEasyApiOptions> ApiOptions { get; }
+        protected IOptionsSnapshot<MedEasyApiOptions> ApiOptions { get; }
 
         /// <summary>
         /// Factory to create <see cref="IUrlHelper"/> instances
@@ -67,7 +67,7 @@ namespace MedEasy.API.Controllers
         /// <exception cref="ArgumentNullException">if either <paramref name="logger"/> or <paramref name="getByIdHandler"/> is <code>null</code></exception>
         protected RestReadControllerBase(
             ILogger logger,
-            IOptions<MedEasyApiOptions> apiOptions,
+            IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
             IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
             IUrlHelperFactory urlHelperFactory,

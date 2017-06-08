@@ -72,7 +72,7 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         public DoctorsController(ILogger<DoctorsController> logger, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, 
-            IOptions<MedEasyApiOptions> apiOptions,
+            IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleGetDoctorInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyDoctorInfosQuery getManyDoctorQueryHandler,

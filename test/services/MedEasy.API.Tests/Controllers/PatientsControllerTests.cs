@@ -64,7 +64,7 @@ namespace MedEasy.WebApi.Tests
         private Mock<IHandleGetManyPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
         private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;
         private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
+        private Mock<IOptionsSnapshot<MedEasyApiOptions>> _apiOptionsMock;
         private Mock<IPhysiologicalMeasureService> _physiologicalMeasureFacadeMock;
         private Mock<IPrescriptionService> _prescriptionServiceMock;
         private Mock<IRunPatchPatientCommand> _iRunPatchPatientCommandMock;
@@ -100,7 +100,7 @@ namespace MedEasy.WebApi.Tests
             _iRunDeletePatientInfoByIdCommandMock = new Mock<IRunDeletePatientByIdCommand>(Strict);
             _physiologicalMeasureFacadeMock = new Mock<IPhysiologicalMeasureService>(Strict);
 
-            _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
+            _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
             _prescriptionServiceMock = new Mock<IPrescriptionService>(Strict);
             _mapper = AutoMapperConfig.Build().CreateMapper();
 

@@ -53,18 +53,20 @@ namespace MedEasy.API.Tests.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
-            exceptionContext.Exception = new CommandNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            {
+                Exception = new CommandNotValidException<Guid>(Guid.NewGuid(), exceptionErrors)
+            };
             await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
 
 
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
             exceptionContext.Result.Should()
-                .BeAssignableTo<BadRequestResult>();
+                .BeAssignableTo<BadRequestObjectResult>();
 
            
-            exceptionContext.ModelState.Should()
+            exceptionContext.ModelState?.Should()
                 .NotBeNull().And
                 .Contain(x => x.Key == "prop1").And
                 .Contain(x => x.Key == "prop2");
@@ -123,7 +125,7 @@ namespace MedEasy.API.Tests.Filters
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
             exceptionContext.Result.Should()
-                .BeAssignableTo<BadRequestResult>();
+                .BeAssignableTo<BadRequestObjectResult>();
 
 
             exceptionContext.ModelState.Should()
@@ -132,6 +134,38 @@ namespace MedEasy.API.Tests.Filters
                 .Contain(x => x.Key == "prop2");
         }
 
-        
+        [Fact]
+        public async Task ShouldReturnsConflictWhenHandlingCommandConflictException()
+        {
+            // Arrange
+            ActionContext actionContext = new ActionContext(
+               new Mock<HttpContext>().Object,
+               new Mock<RouteData>().Object,
+               new Mock<ActionDescriptor>().Object,
+               new ModelStateDictionary());
+
+            // Act
+
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            {
+                Exception = new CommandConflictException<Guid>(Guid.NewGuid())
+            };
+            await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
+
+
+            // Assert
+            exceptionContext.ExceptionHandled.Should().BeTrue();
+            exceptionContext.Result.Should()
+                .BeAssignableTo<StatusCodeResult>().Which
+                .StatusCode.Should()
+                    .Be(409);
+
+
+            exceptionContext.ModelState.Should().BeNullOrEmpty();
+        }
+
+
+
+
     }
 }

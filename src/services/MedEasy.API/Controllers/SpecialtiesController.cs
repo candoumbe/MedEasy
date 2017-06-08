@@ -60,7 +60,7 @@ namespace MedEasy.API.Controllers
         /// <param name="actionContextAccessor"></param>
         /// <param name="apiOptions">Options accessor</param>
         public SpecialtiesController(ILogger<SpecialtiesController> logger, IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor, IOptions<MedEasyApiOptions> apiOptions,
+            IActionContextAccessor actionContextAccessor, IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleGetSpecialtyInfoByIdQuery getByIdQueryHandler,
             IHandleGetManySpecialtyInfosQuery getManySpecialtyQueryHandler,
             IRunCreateSpecialtyCommand iRunCreateSpecialtyCommand,
