@@ -41,11 +41,10 @@ namespace MedEasy.WebApi.Tests
 {
     public class SpecialtiesControllerTests : IDisposable
     {
-        private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
+        private Mock<IUrlHelper> _urlHelperMock;
         private Mock<ILogger<SpecialtiesController>> _loggerMock;
         private SpecialtiesController _controller;
         private ITestOutputHelper _outputHelper;
-        private IActionContextAccessor _actionContextAccessor;
         private Mock<IHandleGetSpecialtyInfoByIdQuery> _iHandleGetOneSpecialtyInfoByIdQueryMock;
         private Mock<IHandleGetManySpecialtyInfosQuery> _iHandlerGetManySpecialtyInfoQueryMock;
         private EFUnitOfWorkFactory _factory;
@@ -59,18 +58,10 @@ namespace MedEasy.WebApi.Tests
         {
             _outputHelper = outputHelper;
             _loggerMock = new Mock<ILogger<SpecialtiesController>>(Strict);
-            _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock = new Mock<IUrlHelper>(Strict);
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}")
                 .Verifiable();
-
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
 
             DbContextOptionsBuilder<MedEasyContext> dbOptions = new DbContextOptionsBuilder<MedEasyContext>();
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
@@ -85,9 +76,8 @@ namespace MedEasy.WebApi.Tests
             _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
 
             _controller = new SpecialtiesController(
-                _loggerMock.Object, 
-                _urlHelperFactoryMock.Object, 
-                _actionContextAccessor,
+                _loggerMock.Object,
+                _urlHelperMock.Object,
                 _apiOptionsMock.Object,
                 _iHandleGetOneSpecialtyInfoByIdQueryMock.Object,
                 _iHandlerGetManySpecialtyInfoQueryMock.Object,
@@ -255,7 +245,7 @@ namespace MedEasy.WebApi.Tests
         public async Task Get()
         {
             //Arrange
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
             Guid resourceId = Guid.NewGuid();
@@ -295,7 +285,7 @@ namespace MedEasy.WebApi.Tests
             resource.Name.Should().Be("Specialty");
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock.Verify();
-            _urlHelperFactoryMock.Verify();
+            _urlHelperMock.Verify();
 
         }
 
@@ -507,10 +497,9 @@ namespace MedEasy.WebApi.Tests
         public void Dispose()
         {
             _loggerMock = null;
-            _urlHelperFactoryMock = null;
+            _urlHelperMock = null;
             _controller = null;
             _outputHelper = null;
-            _actionContextAccessor = null;
             _apiOptionsMock = null;
 
             _iHandleGetOneSpecialtyInfoByIdQueryMock = null;

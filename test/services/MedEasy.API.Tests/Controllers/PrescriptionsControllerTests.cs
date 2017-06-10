@@ -32,7 +32,6 @@ namespace MedEasy.API.Tests.Controllers
 {
     public class PrescriptionsControllerTests : IDisposable
     {
-        private IActionContextAccessor _actionContextAccessor;
         private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
         private PrescriptionsController _controller;
         private IUnitOfWorkFactory _factory;
@@ -40,7 +39,7 @@ namespace MedEasy.API.Tests.Controllers
         private IMapper _mapper;
         private ITestOutputHelper _outputHelper;
         private Mock<IPrescriptionService> _prescriptionServiceMock;
-        private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
+        private Mock<IUrlHelper> _urlHelperMock;
 
         public PrescriptionsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -48,17 +47,9 @@ namespace MedEasy.API.Tests.Controllers
             _prescriptionServiceMock = new Mock<IPrescriptionService>(Strict);
 
             _loggerMock = new Mock<ILogger<PrescriptionsController>>(Strict);
-            _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock = new Mock<IUrlHelper>(Strict);
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
-
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
 
             DbContextOptionsBuilder<MedEasyContext> dbOptions = new DbContextOptionsBuilder<MedEasyContext>();
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
@@ -68,7 +59,7 @@ namespace MedEasy.API.Tests.Controllers
             _apiOptionsMock = new Mock<IOptions<MedEasyApiOptions>>(Strict);
 
 
-            _controller = new PrescriptionsController(_loggerMock.Object, _apiOptionsMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor, _prescriptionServiceMock.Object);
+            _controller = new PrescriptionsController(_loggerMock.Object, _apiOptionsMock.Object, _urlHelperMock.Object, _prescriptionServiceMock.Object);
         }
 
         public void Dispose()
@@ -76,7 +67,6 @@ namespace MedEasy.API.Tests.Controllers
             _outputHelper = null;
             _prescriptionServiceMock = null;
             _loggerMock = null;
-            _actionContextAccessor = null;
             _factory = null;
             _mapper = null;
             _apiOptionsMock = null;
@@ -95,9 +85,6 @@ namespace MedEasy.API.Tests.Controllers
             Guid prescriptionId = Guid.NewGuid();
             Guid patientId = Guid.NewGuid();
             //Arrange
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
-                .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
-
             _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PrescriptionHeaderInfo { Id = prescriptionId, PatientId = patientId, DeliveryDate = DateTimeOffset.UtcNow })
                 .Verifiable();
@@ -136,7 +123,7 @@ namespace MedEasy.API.Tests.Controllers
             resource.PatientId.Should().Be(patientId);
 
             _prescriptionServiceMock.Verify();
-            _urlHelperFactoryMock.Verify();
+            _urlHelperMock.Verify();
 
         }
 

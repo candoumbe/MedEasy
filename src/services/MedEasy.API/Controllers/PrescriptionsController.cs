@@ -21,22 +21,19 @@ namespace MedEasy.API.Controllers
     public class PrescriptionsController
     {
         private readonly IPrescriptionService _prescriptionService;
-        private readonly IUrlHelperFactory _urlHelperFactory;
-        private readonly IActionContextAccessor _actionContextAccessor;
-
+        private readonly IUrlHelper _urlHelper;
+        
         /// <summary>
         /// Builds a new <see cref="PrescriptionsController"/> instance
         /// </summary>
         /// <param name="logger">logger that will be used to log action flow</param>
         /// <param name="apiOptions">API options</param>
         /// <param name="prescriptionService">service to handle specific</param>
-        /// <param name="actionContextAccessor">Gives access to the current <see cref="ActionContext"/></param>
-        /// <param name="urlHelperFactory">Factory to builds urls</param>
-        public PrescriptionsController(ILogger<PrescriptionsController> logger, IOptions<MedEasyApiOptions> apiOptions, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, IPrescriptionService prescriptionService)
+        /// <param name="urlHelper">Helper to build urls</param>
+        public PrescriptionsController(ILogger<PrescriptionsController> logger, IOptions<MedEasyApiOptions> apiOptions, IUrlHelper urlHelper, IPrescriptionService prescriptionService)
         {
             _prescriptionService = prescriptionService;
-            _urlHelperFactory = urlHelperFactory;
-            _actionContextAccessor = actionContextAccessor;
+            _urlHelper = urlHelper;
         }
 
         /// <summary>
@@ -62,20 +59,19 @@ namespace MedEasy.API.Controllers
             PrescriptionHeaderInfo prescriptionHeaderInfo = await _prescriptionService.GetOnePrescriptionAsync(id, cancellationToken);
             if (prescriptionHeaderInfo != null)
             {
-                IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
                 IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
                 {
                     Resource = prescriptionHeaderInfo,
                     Links = new[] {
                         new Link
                         {
-                            Href = urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
+                            Href = _urlHelper.Action(nameof(Get), EndpointName, new { prescriptionHeaderInfo.Id }),
                             Relation = "self"
                         },
                         new Link
                         {
                             Relation = nameof(Prescription.Items),
-                            Href = urlHelper.Action(nameof(PrescriptionsController.Details), EndpointName , new { prescriptionHeaderInfo.Id })
+                            Href = _urlHelper.Action(nameof(PrescriptionsController.Details), EndpointName , new { prescriptionHeaderInfo.Id })
                         }
                     }
                 };
@@ -109,7 +105,6 @@ namespace MedEasy.API.Controllers
         {
             IEnumerable<PrescriptionItemInfo> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id, cancellationToken);
 
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             IBrowsableResource<IEnumerable<PrescriptionItemInfo>> browsableResource = new BrowsableResource<IEnumerable<PrescriptionItemInfo>>
             {
                 Resource = items,
@@ -117,7 +112,7 @@ namespace MedEasy.API.Controllers
                         new Link
                         {
                             Relation = "self",
-                            Href = urlHelper.Action(nameof(Details), EndpointName, new { id })
+                            Href = _urlHelper.Action(nameof(Details), EndpointName, new { id })
                         }
                     }
             };

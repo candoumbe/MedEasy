@@ -24,6 +24,8 @@ using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using MedEasy.Handlers.Search;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace MedEasy.API
 {
@@ -96,6 +98,14 @@ namespace MedEasy.API
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped(builder =>
+            {
+
+                IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
+                IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
+
+                return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
+            });
 
 
 

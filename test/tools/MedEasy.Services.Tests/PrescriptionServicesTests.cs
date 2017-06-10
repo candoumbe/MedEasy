@@ -255,9 +255,7 @@ namespace MedEasy.Services.Tests
             Func<Task> action = async () => await _service.GetItemsByPrescriptionIdAsync(prescriptionId);
 
             // Assert
-            action.ShouldThrow<NotFoundException>()
-                .Which.Message.Should()
-                .Be($"Prescription <{prescriptionId}> not found");
+            action.ShouldNotThrow();
         }
 
         

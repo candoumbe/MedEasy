@@ -36,9 +36,8 @@ namespace MedEasy.API.Tests.Controllers
         private Mock<IHandleGetOneDocumentMetadataInfoByIdQuery> _iHandleGetOneDocumentMetadataInfoByIdQueryMock;
         private Mock<IHandleGetManyDocumentsQuery> _iHandleGetManyDocumentMetadataInfoQueryMock;
         private Mock<IHandleGetOneDocumentInfoByIdQuery> _iHandleGetOneDocumentInfoByIdQueryMock;
-        private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
-        private ActionContextAccessor _actionContextAccessor;
-
+        private Mock<IUrlHelper> _urlHelperMock;
+        
         public DocumentsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -46,31 +45,21 @@ namespace MedEasy.API.Tests.Controllers
             _apiOptionsMock = new Mock<IOptionsSnapshot<MedEasyApiOptions>>(Strict);
             _logger = new Mock<ILogger<DocumentsController>>(Strict);
 
-            _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock = new Mock<IUrlHelper>(Strict);
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
-
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
-
-
+            
             _iHandleGetOneDocumentMetadataInfoByIdQueryMock = new Mock<IHandleGetOneDocumentMetadataInfoByIdQuery>(Strict);
             _iHandleGetManyDocumentMetadataInfoQueryMock = new Mock<IHandleGetManyDocumentsQuery>(Strict);
             _iHandleGetOneDocumentInfoByIdQueryMock = new Mock<IHandleGetOneDocumentInfoByIdQuery>(Strict);
 
 
             _controller = new DocumentsController(
-                _logger.Object, 
-                _apiOptionsMock.Object, 
-                _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Object, 
+                _logger.Object,
+                _apiOptionsMock.Object,
+                _iHandleGetOneDocumentMetadataInfoByIdQueryMock.Object,
                 _iHandleGetManyDocumentMetadataInfoQueryMock.Object,
-                _urlHelperFactoryMock.Object,
-                _actionContextAccessor,
+                _urlHelperMock.Object,
                 _iHandleGetOneDocumentInfoByIdQueryMock.Object);
            
         }
@@ -82,7 +71,7 @@ namespace MedEasy.API.Tests.Controllers
             _controller = null;
             _apiOptionsMock = null;
             _logger = null;
-            _urlHelperFactoryMock = null;
+            _urlHelperMock = null;
 
             _iHandleGetManyDocumentMetadataInfoQueryMock = null;
             _iHandleGetOneDocumentMetadataInfoByIdQueryMock = null;

@@ -49,8 +49,6 @@ namespace MedEasy.API.Controllers
 
        
 
-        private readonly IUrlHelperFactory _urlHelperFactory;
-        private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IRunCreateAppointmentCommand _iRunCreateAppointmentCommand;
         private readonly IRunDeleteAppointmentInfoByIdCommand _iRunDeleteAppointmentByIdCommand;
         private readonly IMapper _mapper;
@@ -68,21 +66,18 @@ namespace MedEasy.API.Controllers
         /// <param name="iRunDeleteAppointmentByIdCommand">Runner of DELETE resource command</param>
         /// <param name="iRunPatchAppointmentCommand">Runner of PATCH resource command</param>
         /// <param name="logger">logger</param>
-        /// <param name="urlHelperFactory">Factory used to build <see cref="IUrlHelper"/> instances.</param>
+        /// <param name="urlHelper">Helper to build URLs.</param>
         /// <param name="mapper">Instance of <see cref="IMapper"/> allowing to map from one type to an other</param>
-        /// <param name="actionContextAccessor"></param>
-        public AppointmentsController(ILogger<AppointmentsController> logger, IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor, 
+        public AppointmentsController(ILogger<AppointmentsController> logger, IUrlHelper urlHelper,
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleGetAppointmentInfoByIdQuery getByIdQueryHandler,
             IHandleGetManyAppointmentInfosQuery getManyAppointmentQueryHandler,
             IRunCreateAppointmentCommand iRunCreateAppointmentCommand,
             IRunDeleteAppointmentInfoByIdCommand iRunDeleteAppointmentByIdCommand,
-            IRunPatchAppointmentCommand iRunPatchAppointmentCommand, IHandleSearchQuery iHandleSearchQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyAppointmentQueryHandler, iRunCreateAppointmentCommand, urlHelperFactory, actionContextAccessor)
+            IRunPatchAppointmentCommand iRunPatchAppointmentCommand,
+            IHandleSearchQuery iHandleSearchQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyAppointmentQueryHandler, iRunCreateAppointmentCommand, urlHelper)
         { 
-            _urlHelperFactory = urlHelperFactory;
-            _actionContextAccessor = actionContextAccessor;
             _iRunCreateAppointmentCommand = iRunCreateAppointmentCommand;
             _iRunDeleteAppointmentByIdCommand = iRunDeleteAppointmentByIdCommand;
             _mapper = mapper;
@@ -114,19 +109,16 @@ namespace MedEasy.API.Controllers
              
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-
-
-            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new {PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new {PageSize = query.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
                     : null;
 
             string nextPageUrl = query.Page < result.PageCount
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
                     : null;
             string lastPageUrl = result.PageCount > 0
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
                     : null;
 
 
@@ -169,8 +161,7 @@ namespace MedEasy.API.Controllers
         public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
             AppointmentInfo output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info), cancellationToken);
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-
+            
             IBrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
             {
                 Resource = output,
@@ -335,18 +326,16 @@ namespace MedEasy.API.Controllers
             int count = pageOfResult.Entries.Count();
             bool hasPreviousPage = count > 0 && search.Page > 1;
 
-            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-
-            string firstPageUrl = urlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = 1, search.PageSize, search.Sort });
+            string firstPageUrl = UrlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = 1, search.PageSize, search.Sort });
             string previousPageUrl = hasPreviousPage
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = search.Page - 1, search.PageSize, search.Sort })
+                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = search.Page - 1, search.PageSize, search.Sort })
                     : null;
 
             string nextPageUrl = search.Page < pageOfResult.PageCount
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = search.Page + 1, search.PageSize, search.Sort })
+                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = search.Page + 1, search.PageSize, search.Sort })
                     : null;
             string lastPageUrl = pageOfResult.PageCount > 1
-                    ? urlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
+                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
             IGenericPagedGetResponse<AppointmentInfo> reponse = new GenericPagedGetResponse<AppointmentInfo>(

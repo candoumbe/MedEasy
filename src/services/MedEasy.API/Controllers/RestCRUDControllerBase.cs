@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using MedEasy.Queries;
 using MedEasy.DTO;
 using MedEasy.Commands;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Queries;
@@ -47,15 +45,14 @@ namespace MedEasy.API.Controllers
 
     {
         private readonly TRunCreateCommand _iRunCreateCommand;
-        
+
 
         /// <summary>
         /// Builds a new <see cref="RestCRUDControllerBase{TKey, TEntity, TResource, TGetByIdQuery, TGetManyQuery, TCommandId, TPost, TCreateCommand, TRunCreateCommand}"/> instance
         /// </summary>
         /// <param name="logger">logger to use</param>
         /// <param name="apiOptions">Options of the api</param>
-        /// <param name="urlHelperFactory">factory to create <see cref="IUrlHelper"/> instance</param>
-        /// <param name="actionContextAccessor">Gives access to the current <see cref="ActionContext"/> instance</param>
+        /// <param name="urlHelper">Helper to biuld URLs.</param>
         /// <param name="getOneResourceByIdHandler"><see cref="IHandleQueryAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
         /// <param name="getManyResourcesHandler"><see cref="IHandleQueryAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
         /// <param name="iRunCreateCommand"><see cref="IRunCommandAsync{TKey, TInput, TCreateCommand}"/> implementation to use when dealing with a "POST" resource</param>
@@ -65,11 +62,9 @@ namespace MedEasy.API.Controllers
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
             IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
-            TRunCreateCommand iRunCreateCommand, IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelperFactory, actionContextAccessor )
+            TRunCreateCommand iRunCreateCommand, IUrlHelper urlHelper) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelper)
         {
             _iRunCreateCommand = iRunCreateCommand;
-
-
         }
 
 
@@ -84,13 +79,12 @@ namespace MedEasy.API.Controllers
         public async ValueTask<TResource> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
         {
             TResource resource = await _iRunCreateCommand.RunAsync(createCommand);
-            IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
             resource.Meta = new Link
             {
-                Href = urlHelper.Action(nameof(Get), new  { resource.Id }),
+                Href = UrlHelper.Action(nameof(Get), new { resource.Id }),
                 Relation = "self",
             };
-            
+
             return resource;
 
         }

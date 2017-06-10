@@ -46,22 +46,17 @@ namespace MedEasy.API.Controllers
         protected IOptionsSnapshot<MedEasyApiOptions> ApiOptions { get; }
 
         /// <summary>
-        /// Factory to create <see cref="IUrlHelper"/> instances
+        /// Helper to build URLs throughout the controler
         /// </summary>
-        protected IUrlHelperFactory UrlHelperFactory { get; }
+        protected IUrlHelper UrlHelper { get; }
 
-        /// <summary>
-        /// Accessor for <see cref="ActionContext"/>
-        /// </summary>
-        protected IActionContextAccessor ActionContextAccessor { get; }
-
+       
         /// <summary>
         /// Builds a new <see cref="RestReadControllerBase{TKey, TResource}"/> instance
         /// </summary>
         /// <param name="logger">logger to use</param>
         /// <param name="apiOptions">Options of the API</param>
-        /// <param name="actionContextAccessor">Accessor to the <see cref="ActionContext"/></param>
-        /// <param name="urlHelperFactory">actory for creating <see cref="IUrlHelper"/> instances</param>
+        /// <param name="urlHelper">actory for creating <see cref="IUrlHelper"/> instances</param>
         /// <param name="getByIdHandler">handler to use to lookup for a single resource</param>
         /// <param name="getManyQueryHandler">handler to use to lookup for many resources</param>
         /// <exception cref="ArgumentNullException">if either <paramref name="logger"/> or <paramref name="getByIdHandler"/> is <code>null</code></exception>
@@ -70,13 +65,11 @@ namespace MedEasy.API.Controllers
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
             IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
-            IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor) : base(logger)
+            IUrlHelper urlHelper) : base(logger)
         {
             GetByIdQueryHandler = getByIdHandler ?? throw new ArgumentNullException(nameof(getByIdHandler), "Handler cannot be null");
             GetManyQueryHandler = getManyQueryHandler ?? throw new ArgumentNullException(nameof(getManyQueryHandler), "GET many queryHandler cannot be null");
-            UrlHelperFactory = urlHelperFactory ?? throw new ArgumentNullException(nameof(urlHelperFactory), $"{nameof(urlHelperFactory)} cannot be null");
-            ActionContextAccessor = actionContextAccessor ?? throw new ArgumentNullException(nameof(actionContextAccessor), $"{nameof(actionContextAccessor)} cannot be null");
+            UrlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper), $"{nameof(urlHelper)} cannot be null");
             ApiOptions = apiOptions;
         }
 
@@ -97,16 +90,15 @@ namespace MedEasy.API.Controllers
             }
             else
             {
-                IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
                 IEnumerable<Link> links = new List<Link>
                 {
                     new Link
                     {
                         Relation = "self",
-                        Href = urlHelper.Action(nameof(Get), ControllerName, new {resource.Id })
+                        Href = UrlHelper.Action(nameof(Get), ControllerName, new {resource.Id })
                     }
                 };
-                IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(resource, urlHelper);
+                IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(resource);
 
                 Debug.Assert(additionalLinks != null, "Implementation cannot return null");
                 
@@ -125,9 +117,8 @@ namespace MedEasy.API.Controllers
         /// Builds links that can be used to get resource related to the resource retrieved by calling <see cref="Get(TKey, CancellationToken)"/>
         /// </summary>
         /// <param name="resource">The resource to build links for</param>
-        /// <param name="urlHelper"><see cref="IUrlHelper"/> that can be used to generate additional links.</param>
         /// <returns></returns>
-        protected virtual IEnumerable<Link> BuildAdditionalLinksForResource(TResource resource, IUrlHelper urlHelper) => Enumerable.Empty<Link>();
+        protected virtual IEnumerable<Link> BuildAdditionalLinksForResource(TResource resource) => Enumerable.Empty<Link>();
 
         /// <summary>
         /// Name of the controller

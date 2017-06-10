@@ -52,7 +52,7 @@ namespace MedEasy.WebApi.Tests
     /// </summary>
     public class AppointmentsControllerTests : IDisposable
     {
-        private Mock<IUrlHelperFactory> _urlHelperFactoryMock;
+        private Mock<IUrlHelper> _urlHelperMock;
         private Mock<ILogger<AppointmentsController>> _loggerMock;
         private AppointmentsController _controller;
         private ITestOutputHelper _outputHelper;
@@ -77,8 +77,8 @@ namespace MedEasy.WebApi.Tests
         {
             _outputHelper = outputHelper;
             _loggerMock = new Mock<ILogger<AppointmentsController>>(Strict);
-            _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(Strict);
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock = new Mock<IUrlHelper>(Strict);
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
             _actionContextAccessor = new ActionContextAccessor()
@@ -104,8 +104,7 @@ namespace MedEasy.WebApi.Tests
 
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
-            _controller = new AppointmentsController(_loggerMock.Object, _urlHelperFactoryMock.Object, _actionContextAccessor, _apiOptionsMock.Object, _mapper,
-                _handleGetOneAppointmentInfoByIdQueryMock.Object,
+            _controller = new AppointmentsController(_loggerMock.Object, _urlHelperMock.Object, _apiOptionsMock.Object, _mapper, _handleGetOneAppointmentInfoByIdQueryMock.Object,
                 _handlerGetManyAppointmentInfoQueryMock.Object,
                 _iRunCreateAppointmentInfoCommandMock.Object,
                 _iRunDeleteAppointmentInfoByIdCommandMock.Object,
@@ -117,7 +116,7 @@ namespace MedEasy.WebApi.Tests
         public void Dispose()
         {
             _loggerMock = null;
-            _urlHelperFactoryMock = null;
+            _urlHelperMock = null;
             _controller = null;
             _outputHelper = null;
             _actionContextAccessor = null;
@@ -299,7 +298,7 @@ namespace MedEasy.WebApi.Tests
                 Duration = 1.Hours().TotalSeconds
             };
 
-            _urlHelperFactoryMock.Setup(mock => mock.GetUrlHelper(It.IsAny<ActionContext>()).Action(It.IsAny<UrlActionContext>()))
+            _urlHelperMock.Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
                 .Returns((UrlActionContext urlContext) => $"api/{urlContext.Controller}/{urlContext.Action}?{(urlContext.Values == null ? string.Empty : $"{urlContext.Values?.ToQueryString()}")}");
 
 
@@ -343,7 +342,7 @@ namespace MedEasy.WebApi.Tests
 
 
             _handleGetOneAppointmentInfoByIdQueryMock.Verify();
-            _urlHelperFactoryMock.Verify();
+            _urlHelperMock.Verify();
 
         }
 

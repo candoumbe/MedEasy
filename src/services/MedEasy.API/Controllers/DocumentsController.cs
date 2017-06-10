@@ -30,16 +30,15 @@ namespace MedEasy.API.Controllers
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="getByIdHandler">Gets one document by its <see cref="DocumentMetadataInfo.DocumentId"/></param>
         /// <param name="getManyQueryHandler"></param>
-        /// <param name="urlHelperFactory"></param>
-        /// <param name="actionContextAccessor"></param>
+        /// <param name="urlHelper"></param>
         /// <param name="getContentByIdHandler"></param>
+        /// 
         public DocumentsController(
             ILogger<DocumentsController> logger, IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleGetOneDocumentMetadataInfoByIdQuery getByIdHandler,
             IHandleGetManyDocumentsQuery getManyQueryHandler,
-            IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor, 
-            IHandleGetOneDocumentInfoByIdQuery getContentByIdHandler
-             ) : base(logger, apiOptions, getByIdHandler, getManyQueryHandler, urlHelperFactory, actionContextAccessor)
+            IUrlHelper urlHelper, IHandleGetOneDocumentInfoByIdQuery getContentByIdHandler
+             ) : base(logger, apiOptions, getByIdHandler, getManyQueryHandler, urlHelper)
         {
             GetDocumentContentByIdHandler = getContentByIdHandler;
         }
@@ -80,18 +79,17 @@ namespace MedEasy.API.Controllers
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pageConfig.Page > 1;
 
-            IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
-
-            string firstPageUrl = urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = 1 });
+            
+            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
                     : null;
 
             string nextPageUrl = pageConfig.Page < result.PageCount
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page + 1 })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page + 1 })
                     : null;
             string lastPageUrl = result.PageCount > 0
-                    ? urlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = result.PageCount })
+                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = result.PageCount })
                     : null;
 
 
@@ -127,11 +125,10 @@ namespace MedEasy.API.Controllers
             }
             else
             {
-                IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
                 IBrowsableResource<DocumentMetadataInfo> browsableResource = new BrowsableResource<DocumentMetadataInfo>
                 {
                     Resource = resource,
-                    Links = BuildAdditionalLinksForResource(resource, urlHelper)
+                    Links = BuildAdditionalLinksForResource(resource)
                 };
                 actionResult = new OkObjectResult(browsableResource);
             }
@@ -156,14 +153,13 @@ namespace MedEasy.API.Controllers
             IActionResult actionResult;
             if (resource != null)
             {
-                IUrlHelper urlHelper = UrlHelperFactory.GetUrlHelper(ActionContextAccessor.ActionContext);
                 IBrowsableResource<DocumentInfo> browsableResource = new BrowsableResource<DocumentInfo>
                 {
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link { Relation = "self", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id }) },
-                        new Link { Relation = "metadata", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id }) }
+                        new Link { Relation = "self", Href = UrlHelper.Action(nameof(File), EndpointName, new { resource.Id }) },
+                        new Link { Relation = "metadata", Href = UrlHelper.Action(nameof(Get), EndpointName, new { resource.Id }) }
                     }
                 };
                 actionResult = new OkObjectResult(browsableResource);
@@ -180,13 +176,12 @@ namespace MedEasy.API.Controllers
         /// Inherited
         /// </summary>
         /// <param name="resource"></param>
-        /// <param name="urlHelper"></param>
         /// <returns></returns>
-        protected override IEnumerable<Link> BuildAdditionalLinksForResource(DocumentMetadataInfo resource, IUrlHelper urlHelper) 
+        protected override IEnumerable<Link> BuildAdditionalLinksForResource(DocumentMetadataInfo resource) 
             => new[]
             {
-                new Link { Relation = "self", Href = urlHelper.Action(nameof(Get), EndpointName, new { resource.Id })},
-                new Link { Relation = "file", Href = urlHelper.Action(nameof(File), EndpointName, new { resource.Id })}
+                new Link { Relation = "self", Href = UrlHelper.Action(nameof(Get), EndpointName, new { resource.Id })},
+                new Link { Relation = "file", Href = UrlHelper.Action(nameof(File), EndpointName, new { resource.Id })}
             };
     }
 }

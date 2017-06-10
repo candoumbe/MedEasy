@@ -16,8 +16,8 @@ namespace MedEasy.Services
     public class PrescriptionService : IPrescriptionService
     {
         private IUnitOfWorkFactory UowFactory { get; }
-        private readonly ILogger<PrescriptionService> _logger;
-        private readonly IMapper _mapper;
+        private ILogger<PrescriptionService> Logger { get; }
+        private IMapper Mapper { get; }
 
         /// <summary>
         /// Builds a new <see cref="PrescriptionService"/> instance.
@@ -27,8 +27,8 @@ namespace MedEasy.Services
         public PrescriptionService(IUnitOfWorkFactory uowFactory, ILogger<PrescriptionService> logger, IMapper mapper)
         {
             UowFactory = uowFactory;
-            _logger = logger;
-            _mapper = mapper;
+            Logger = logger;
+            Mapper = mapper;
         }
 
         public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription, CancellationToken cancellationToken = default(CancellationToken))
@@ -57,7 +57,7 @@ namespace MedEasy.Services
                     throw new NotFoundException($"Prescriptor <{newPrescription.PrescriptorId}> not found");
                 }
 
-                Prescription prescription = _mapper.Map<CreatePrescriptionInfo, Prescription>(newPrescription);
+                Prescription prescription = Mapper.Map<CreatePrescriptionInfo, Prescription>(newPrescription);
                 prescription.PatientId = patient.Id;
                 prescription.PrescriptorId = prescriptor.Id;
                 prescription = uow.Repository<Prescription>().Create(prescription);
@@ -65,7 +65,7 @@ namespace MedEasy.Services
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 
-                PrescriptionHeaderInfo output = _mapper.Map<Prescription, PrescriptionHeaderInfo>(prescription);
+                PrescriptionHeaderInfo output = Mapper.Map<Prescription, PrescriptionHeaderInfo>(prescription);
                 output.PatientId = patientId;
 
                 return output;
@@ -82,13 +82,14 @@ namespace MedEasy.Services
 
             using (IUnitOfWork uow = UowFactory.New())
             {
-                Prescription p = await uow.Repository<Prescription>().SingleOrDefaultAsync(
-                    x => x.UUID == id, 
-                    new[] {
-                        IncludeClause<Prescription>.Create(x => x.Patient),
-                        IncludeClause<Prescription>.Create(x => x.Prescriptor) },
-                    cancellationToken);
-                return _mapper.Map<PrescriptionHeaderInfo>(p);
+                Prescription p = await uow.Repository<Prescription>()
+                    .SingleOrDefaultAsync(
+                        x => x.UUID == id, 
+                        new[] {
+                            IncludeClause<Prescription>.Create(x => x.Patient),
+                            IncludeClause<Prescription>.Create(x => x.Prescriptor) },
+                        cancellationToken);
+                return Mapper.Map<PrescriptionHeaderInfo>(p);
             }
         }
 
@@ -121,9 +122,10 @@ namespace MedEasy.Services
                     x => x.UUID == prescriptionId,
                     new[] {
                         IncludeClause<Prescription>.Create(x => x.Patient),
-                        IncludeClause<Prescription>.Create(x => x.Prescriptor) });
+                        IncludeClause<Prescription>.Create(x => x.Prescriptor) },
+                    cancellationToken);
 
-                PrescriptionHeaderInfo header = _mapper.Map<PrescriptionHeaderInfo>(p);
+                PrescriptionHeaderInfo header = Mapper.Map<PrescriptionHeaderInfo>(p);
 
                 return header?.PatientId == patientId 
                     ? header
@@ -136,14 +138,15 @@ namespace MedEasy.Services
             using (IUnitOfWork uow = UowFactory.New())
             {
                 Prescription prescription = await uow.Repository<Prescription>()
-                    .SingleOrDefaultAsync(x => x.UUID == id, new[] { IncludeClause<Prescription>.Create(x => x.Items) });
+                    .SingleOrDefaultAsync(
+                        x => x.UUID == id, new[] { IncludeClause<Prescription>.Create(x => x.Items) }, cancellationToken);
 
-                if (prescription == null)
+                IEnumerable<PrescriptionItemInfo> results = null;
+                if (prescription != null)
                 {
-                    throw new NotFoundException($"Prescription <{id}> not found");
+                    results = Mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(prescription.Items);
                 }
 
-                IEnumerable<PrescriptionItemInfo> results = _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(prescription.Items);
                 return results;
             }
         }
