@@ -102,7 +102,7 @@ namespace MedEasy.Services
             {
                 if (!await uow.Repository<Patient>().AnyAsync(x => x.UUID == command.Data.PatientId, cancellationToken).ConfigureAwait(false))
                 {
-                    throw new NotFoundException($"Patient <{command.Data.PatientId}> not found");
+                    throw new QueryNotFoundException($"Patient <{command.Data.PatientId}> not found");
                 }
 
                 CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure> input = command.Data;

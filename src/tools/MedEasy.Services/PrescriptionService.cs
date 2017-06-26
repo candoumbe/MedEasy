@@ -53,14 +53,14 @@ namespace MedEasy.Services
                 Prescription prescription = Mapper.Map<CreatePrescriptionInfo, Prescription>(newPrescription);
                 prescription.PatientId = patient.Match(
                        some: x => x.Id,
-                       none: () => throw new NotFoundException($"Patient <{newPrescription.PrescriptorId}> not found"));
+                       none: () => throw new QueryNotFoundException($"Patient <{newPrescription.PrescriptorId}> not found"));
 
                 var prescriptor = await uow.Repository<Doctor>()
                     .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == newPrescription.PrescriptorId);
 
                 prescription.PrescriptorId = prescriptor.Match(
                        some: x => x.Id,
-                       none: () => throw new NotFoundException($"Prescriptor <{newPrescription.PrescriptorId}> not found"));
+                       none: () => throw new QueryNotFoundException($"Prescriptor <{newPrescription.PrescriptorId}> not found"));
                 prescription = uow.Repository<Prescription>().Create(prescription);
 
                 await uow.SaveChangesAsync()

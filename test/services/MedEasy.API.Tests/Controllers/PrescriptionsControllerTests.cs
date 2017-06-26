@@ -221,7 +221,7 @@ namespace MedEasy.API.Tests.Controllers
         {
 
             // Arrange
-            Exception expectedException = new NotFoundException($"No prescription found");
+            Exception expectedException = new QueryNotFoundException($"No prescription found");
             _prescriptionServiceMock.Setup(mock => mock.GetItemsByPrescriptionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .Throws(expectedException);
 
@@ -230,7 +230,7 @@ namespace MedEasy.API.Tests.Controllers
 
 
             // Assert
-            action.ShouldThrow<NotFoundException>()
+            action.ShouldThrow<QueryNotFoundException>()
                 .Which.Message.Should()
                 .Be(expectedException.Message);
 

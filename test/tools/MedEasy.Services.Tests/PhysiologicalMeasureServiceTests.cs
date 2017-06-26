@@ -176,7 +176,7 @@ namespace MedEasy.Services.Tests
             Func<Task> action = async () => await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
 
             // Assert
-            action.ShouldThrow<NotFoundException>()
+            action.ShouldThrow<QueryNotFoundException>()
                 .Which
                 .Message.Should()
                     .BeEquivalentTo($"Patient <{input.PatientId}> not found");

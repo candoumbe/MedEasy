@@ -43,7 +43,7 @@ namespace MedEasy.Handlers.Tests.Exceptions
         }
 
         [Fact]
-        public void InheritValidationException() => typeof(ValidationException).IsAssignableFrom(typeof(QueryNotValidException<>))
+        public void InheritVQueryException() => typeof(QueryException).IsAssignableFrom(typeof(QueryNotValidException<>))
             .Should().BeTrue();
 
     }

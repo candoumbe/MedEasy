@@ -9,6 +9,7 @@ using System.Reflection;
 using MedEasy.Validators;
 using MedEasy.Validators.Exceptions;
 using MedEasy.Handlers.Core.Exceptions;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace MedEasy.API.Filters
 {
@@ -37,77 +38,80 @@ namespace MedEasy.API.Filters
 
             Exception exception = context.Exception;
             Type exceptionType = exception.GetType();
-            Type commandExceptionType = typeof(CommandException);
-            if (commandExceptionType.IsAssignableFrom(exceptionType))
+
+            switch (exception)
             {
-                IEnumerable<ErrorInfo> errors = null;
-                IEnumerable<PropertyInfo> properties = null;
-                Type commandNotValidExceptionType = typeof(CommandNotValidException<>);
+                case CommandException ce:
+                    IEnumerable<ErrorInfo> errors = null;
+                    IEnumerable<PropertyInfo> properties = null;
+                    Type commandNotValidExceptionType = typeof(CommandNotValidException<>);
 
-                if (exceptionType.IsAssignableToGenericType(commandNotValidExceptionType))
-                {
-                    commandNotValidExceptionType = commandNotValidExceptionType.MakeGenericType(exceptionType.GetGenericArguments()[0]);
-                    properties = commandNotValidExceptionType.GetProperties();
-                    PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(CommandException.Errors));
-                    PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
-                    Guid commandId = (Guid)piCommandId.GetValue(exception);
-                    errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
-                    _logger.LogError($"Command '{commandId}' is not valid");
-
-                    context.Result = new BadRequestObjectResult(errors);
-                }
-                else
-                {
-                    Type commandConflictException = typeof(CommandConflictException<>);
-                    if (exceptionType.IsAssignableToGenericType(commandConflictException))
+                    if (exceptionType.IsAssignableToGenericType(commandNotValidExceptionType))
                     {
-                        commandConflictException = commandConflictException.MakeGenericType(exceptionType.GetGenericArguments()[0]);
-                        properties = commandConflictException.GetProperties();
-                        PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(ValidationException.Errors));
-                        PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandConflictException<int>.CommandId));
+                        commandNotValidExceptionType = commandNotValidExceptionType.MakeGenericType(exceptionType.GetGenericArguments()[0]);
+                        properties = commandNotValidExceptionType.GetProperties();
+                        PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(CommandException.Errors));
+                        PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
                         Guid commandId = (Guid)piCommandId.GetValue(exception);
                         errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
-                        _logger.LogError($"Command '{commandId}' conflict");
+                        _logger.LogError($"Command '{commandId}' is not valid");
 
-                        context.Result = new StatusCodeResult(409);
+                        context.ExceptionHandled = true;
+                        context.Result = new BadRequestObjectResult(errors);
                     }
                     else
                     {
-                        Type queryNotValidExceptionType = typeof(QueryNotValidException<>);
-                        if (exceptionType.IsAssignableToGenericType(queryNotValidExceptionType))
+                        Type commandConflictException = typeof(CommandConflictException<>);
+                        if (exceptionType.IsAssignableToGenericType(commandConflictException))
                         {
-                            queryNotValidExceptionType = queryNotValidExceptionType.MakeGenericType(exceptionType.GetGenericArguments()[0]);
-                            properties = queryNotValidExceptionType.GetProperties();
+                            commandConflictException = commandConflictException.MakeGenericType(exceptionType.GetGenericArguments()[0]);
+                            properties = commandConflictException.GetProperties();
                             PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(ValidationException.Errors));
-                            PropertyInfo piQueryId = properties.Single(x => x.CanRead && x.Name == nameof(QueryNotValidException<int>.QueryId));
-                            Guid queryId = (Guid)piQueryId.GetValue(exception);
+                            PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandConflictException<int>.CommandId));
+                            Guid commandId = (Guid)piCommandId.GetValue(exception);
                             errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
+                            _logger.LogError($"Command '{commandId}' conflict");
 
-                            _logger.LogError($"Query '{queryId}' is not valid");
-
-                            context.Result = new BadRequestObjectResult(errors); 
+                            context.ExceptionHandled = true;
+                            context.Result = new StatusCodeResult(Status409Conflict);
                         }
-
+                        else
+                        {
+                            _logger.LogError($"Command exception");
+                            context.ExceptionHandled = true;
+                            context.Result = new ObjectResult(new {ce.Message, ce.Errors }) { StatusCode = Status500InternalServerError };
+                        }
                     }
 
+                    foreach (ErrorInfo error in errors)
+                    {
+                        context.ModelState.TryAddModelError(error.Key, error.Description);
+                    }
+                    break;
+                case QueryException qe:
 
-                }
-                foreach (ErrorInfo error in errors)
-                {
-                    context.ModelState.TryAddModelError(error.Key, error.Description);
-                }
+                    if (qe is QueryNotFoundException qnfe)
+                    {
+                        context.Result = new NotFoundObjectResult(qnfe.Message);
+                    }
+                    else
+                    {
+                        context.Result = new BadRequestObjectResult(new { qe.Message, qe.Errors });
+                    }
 
-                context.ExceptionHandled = true;
-            }
-            else if (context.Exception is NotFoundException)
-            {
-                context.ExceptionHandled = true;
-                context.Result = new NotFoundObjectResult(context.Exception.Message);
+                    context.ExceptionHandled = true;
+                    foreach (ErrorInfo error in qe.Errors)
+                    {
+                        context.ModelState.TryAddModelError(error.Key, error.Description);
+                    }
+                    break;
+                default:
+                    context.ExceptionHandled = true;
+                    context.Result = new ObjectResult(exception.Message) { StatusCode = Status500InternalServerError };
+                    break;
             }
 
             await base.OnExceptionAsync(context);
-
-
 
         }
     }

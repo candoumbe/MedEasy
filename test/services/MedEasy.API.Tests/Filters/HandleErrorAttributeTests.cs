@@ -87,8 +87,10 @@ namespace MedEasy.API.Tests.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
-            exceptionContext.Exception = new NotFoundException("exception message");
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            {
+                Exception = new QueryNotFoundException("exception message")
+            };
             await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
 
 
@@ -97,9 +99,9 @@ namespace MedEasy.API.Tests.Filters
             exceptionContext.Result.Should()
                 .BeOfType<NotFoundObjectResult>().Which
                     .Value.Should()
-                        .NotBeNull();
+                        .BeOfType<string>();
         }
-
+        
 
 
         [Fact]
@@ -117,8 +119,10 @@ namespace MedEasy.API.Tests.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
-            exceptionContext.Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            {
+                Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors)
+            };
             await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
 
 

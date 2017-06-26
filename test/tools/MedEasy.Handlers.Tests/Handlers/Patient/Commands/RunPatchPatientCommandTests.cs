@@ -216,10 +216,10 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 
 
         /// <summary>
-        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="NotFoundException"/>
+        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
         /// </summary>
         /// <remarks>
-        /// <see cref="NotFoundException"/> should be thrown when there's no <see cref="Objects.Patient"/> with <c><see cref="Objects.Patient.Id"/> <see cref="ChangeMainDoctorIdInfo.PatientId"/> </c>.
+        /// <see cref="QueryNotFoundException"/> should be thrown when there's no <see cref="Objects.Patient"/> with <c><see cref="Objects.Patient.Id"/> <see cref="ChangeMainDoctorIdInfo.PatientId"/> </c>.
         /// </remarks>
         [Fact]
         public async Task ShouldThrowNotFoundExceptionIfPatientNotFound()
@@ -256,10 +256,10 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 
 
         /// <summary>
-        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="NotFoundException"/>
+        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
         /// </summary>
         /// <remarks>
-        /// <see cref="NotFoundException"/> should be thrown when <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> is not <c>null</c> and there's no <see cref="Objects.Doctor"/> with <c><see cref="Objects.Doctor.Id"/> == <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> </c>.
+        /// <see cref="QueryNotFoundException"/> should be thrown when <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> is not <c>null</c> and there's no <see cref="Objects.Doctor"/> with <c><see cref="Objects.Doctor.Id"/> == <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> </c>.
         /// </remarks>
         [Fact]
         public async Task ShouldThrowNotFoundExceptionIfDoctorNotFound()

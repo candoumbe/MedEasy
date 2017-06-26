@@ -8,13 +8,13 @@ namespace MedEasy.Handlers.Core.Exceptions
     /// <remarks>
     /// This type of exception should be thrown when creating a resource that point to a resource that doesn't exist and that relation is mandatory.
     /// </remarks>
-    public class NotFoundException : Exception
+    public class QueryNotFoundException : QueryException
     {
         /// <summary>
-        /// Builds a new <see cref="NotFoundException"/> instance
+        /// Builds a new <see cref="QueryNotFoundException"/> instance
         /// </summary>
         /// <param name="message">Message of the exception</param>
-        public NotFoundException(string message) : base(message)
+        public QueryNotFoundException(string message) : base(message)
         {
 
         }
