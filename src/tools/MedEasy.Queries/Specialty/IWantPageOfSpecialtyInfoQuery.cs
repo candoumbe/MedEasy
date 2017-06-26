@@ -8,7 +8,7 @@ namespace MedEasy.Queries.Specialty
     /// <summary>
     /// Request many <see cref="SpecialtyInfo"/>s
     /// </summary>
-    public interface IWantManySpecialtyInfoQuery : IWantManyResources<Guid, SpecialtyInfo>
+    public interface IWantPageOfSpecialtyInfoQuery : IWantPageOfResources<Guid, SpecialtyInfo>
     {
     }
 }

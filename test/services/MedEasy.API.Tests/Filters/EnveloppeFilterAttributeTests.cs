@@ -26,7 +26,7 @@ namespace MedEasy.API.Tests.Filters
     {
         private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
-        private Mock<IHandleGetManyPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
+        private Mock<IHandleGetPageOfPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
         private EFUnitOfWorkFactory _factory;
         private IMapper _mapper;
         private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;

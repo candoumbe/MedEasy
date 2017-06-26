@@ -26,9 +26,9 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private HandleGetManyDoctorInfoQuery _handler;
+        private HandleGetPageOfDoctorInfosQuery _handler;
         
-        private Mock<ILogger<HandleGetManyDoctorInfoQuery>> _loggerMock;
+        private Mock<ILogger<HandleGetPageOfDoctorInfosQuery>> _loggerMock;
         private IMapper _mapper;
 
         public HandleGetManyDoctorInfosQueryTests(ITestOutputHelper outputHelper)
@@ -39,10 +39,10 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
 
-            _loggerMock = new Mock<ILogger<HandleGetManyDoctorInfoQuery>>(Strict);
+            _loggerMock = new Mock<ILogger<HandleGetPageOfDoctorInfosQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _handler = new HandleGetManyDoctorInfoQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetPageOfDoctorInfosQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -103,15 +103,14 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Doctor>()
                 .ReadPageAsync(It.IsAny<Expression<Func<Objects.Doctor, DoctorInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<DoctorInfo>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(PagedResult<DoctorInfo>.Default);
+                .Returns(new ValueTask<IPagedResult<DoctorInfo>>(PagedResult<DoctorInfo>.Default));
 
             // Act
-            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<DoctorInfo>(new PaginationConfiguration()));
+            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new GenericGetPageOfResourcesQuery<DoctorInfo>(new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();
             output.Entries.Should()
-                .NotBeNull().And
                 .BeEmpty();
 
             output.Total.Should().Be(0);

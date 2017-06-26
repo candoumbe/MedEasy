@@ -12,6 +12,7 @@ using System.Linq;
 using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -35,7 +36,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<IPagedResult<DocumentMetadataInfo>> HandleAsync(IWantDocumentsByPatientIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IPagedResult<DocumentMetadataInfo>>> HandleAsync(IWantPageOfDocumentsByPatientIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start looking for documents metadata : {query}");
             if (query == null)
@@ -48,17 +49,29 @@ namespace MedEasy.Handlers.Patient.Queries
                 _logger.LogTrace($"Start querying {query}");
                 GetDocumentsByPatientIdInfo input = query.Data;
                 Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
-                IPagedResult<DocumentMetadataInfo> results = await uow.Repository<DocumentMetadata>()
-                    .WhereAsync(
-                        selector,
-                        (DocumentMetadataInfo x) => x.PatientId == input.PatientId,
-                        new[] { OrderClause<DocumentMetadataInfo>.Create(x => x.UpdatedDate, Descending)}, 
-                        input.PageConfiguration.PageSize, input.PageConfiguration.Page,
-                        cancellationToken);
 
-                _logger.LogTrace($"Nb of results : {results.Entries.Count()}");
-                _logger.LogInformation($"Handling query {query.Id} successfully");
-                return results;
+                Option<IPagedResult<DocumentMetadataInfo>> option;
+                if (await uow.Repository<Objects.Patient>().AnyAsync(x => x.UUID == input.PatientId).ConfigureAwait(false))
+                {
+                    IPagedResult<DocumentMetadataInfo> results = await uow.Repository<DocumentMetadata>()
+                        .WhereAsync(
+                            selector,
+                            (DocumentMetadataInfo x) => x.PatientId == input.PatientId,
+                            new[] { OrderClause<DocumentMetadataInfo>.Create(x => x.UpdatedDate, Descending) },
+                            input.PageConfiguration.PageSize, input.PageConfiguration.Page,
+                            cancellationToken);
+
+                    _logger.LogTrace($"Nb of results : {results.Entries.Count()}");
+
+                    option = results.Some();
+                }
+                else
+                {
+                    option = Option.None<IPagedResult<DocumentMetadataInfo>>();
+                }
+
+                _logger.LogInformation($"Query <{query.Id}> handled successfully");
+                return option;
             }
         }
     }

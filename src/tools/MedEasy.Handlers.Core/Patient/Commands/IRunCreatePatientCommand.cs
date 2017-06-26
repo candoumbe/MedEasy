@@ -1,11 +1,13 @@
 ﻿using MedEasy.Commands.Patient;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Commands;
+using MedEasy.Handlers.Core.Exceptions;
+using Optional;
 using System;
 
 namespace MedEasy.Handlers.Core.Patient.Commands
 {
-    public interface IRunCreatePatientCommand : IRunCommandAsync<Guid, CreatePatientInfo, PatientInfo, ICreatePatientCommand>
+    public interface IRunCreatePatientCommand : IRunCommandAsync<Guid, CreatePatientInfo, Option<PatientInfo, CommandException>, ICreatePatientCommand>
     {
 
     }

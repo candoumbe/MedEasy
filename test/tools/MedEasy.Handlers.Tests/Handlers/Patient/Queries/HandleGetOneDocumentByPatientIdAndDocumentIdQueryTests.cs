@@ -24,6 +24,7 @@ using MedEasy.API.Stores;
 using System.Linq;
 using static Newtonsoft.Json.JsonConvert;
 using Newtonsoft.Json;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -115,7 +116,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                     {
                         Enumerable.Empty<Objects.Patient>(),
                         new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
-                        ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
+                        ((Expression<Func<Option<DocumentMetadataInfo>, bool>>)(x => !x.HasValue))
                     };
                 }
                 {
@@ -128,7 +129,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                             new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne", UUID = patientId }
                         },
                     new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
-                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
+                    ((Expression<Func<Option<DocumentMetadataInfo>, bool>>)(x => !x.HasValue))
                     };
                 }
 
@@ -164,11 +165,11 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                         }
                     },
                     new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
-                    ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x != null && x.Id == documentId && x.PatientId == patientId
-                        && x.MimeType == "application/pdf"
-                        && x.Title == "Secret weapon"
-                        && x.Size == 512
-                    ))
+                    ((Expression<Func<Option<DocumentMetadataInfo>, bool>>)(x => x.HasValue && x.Exists( doc => doc.Id == documentId && doc.PatientId == patientId
+                        && doc.MimeType == "application/pdf"
+                        && doc.Title == "Secret weapon"
+                        && doc.Size == 512
+                    )))
                     };
                 }
                 {
@@ -201,7 +202,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                             }
                         },
                         new WantOneDocumentByPatientIdAndDocumentIdQuery(patientId, documentId),
-                        ((Expression<Func<DocumentMetadataInfo, bool>>)(x => x == null))
+                        ((Expression<Func<Option<DocumentMetadataInfo>, bool>>)(x => !x.HasValue))
                     };
                 }
 
@@ -210,7 +211,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
         [Theory]
         [MemberData(nameof(GetOneDocumentByPatientIdAndDocumentIdCases))]
-        public async Task GetOneDocumentByPatientIdAndDocumentId(IEnumerable<Objects.Patient> patients, IWantOneDocumentByPatientIdAndDocumentIdQuery query, Expression<Func<DocumentMetadataInfo, bool>> resultExpectation)
+        public async Task GetOneDocumentByPatientIdAndDocumentId(IEnumerable<Objects.Patient> patients, IWantOneDocumentByPatientIdAndDocumentIdQuery query, Expression<Func<Option<DocumentMetadataInfo>, bool>> resultExpectation)
         {
             // Arrange
             using (IUnitOfWork uow = _unitOfWorkFactory.New())
@@ -219,17 +220,15 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 await uow.SaveChangesAsync();
             }
             _outputHelper.WriteLine($"Patients  : {SerializeObject(patients, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
+            
             // Act
-            DocumentMetadataInfo documentMetadataInfo = await _handler.HandleAsync(query);
+            Option<DocumentMetadataInfo> documentMetadataInfo = await _handler.HandleAsync(query);
 
             // Assert
             _loggerMock.Verify();
-
-            documentMetadataInfo?.Should().Match(resultExpectation);
+            documentMetadataInfo.Should().Match(resultExpectation);
 
         }
-
-
 
         public void Dispose()
         {

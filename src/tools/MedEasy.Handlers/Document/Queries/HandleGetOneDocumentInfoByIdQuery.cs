@@ -17,6 +17,7 @@ using MedEasy.Validators;
 using System.Collections.Generic;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Document.Queries
 {
@@ -48,7 +49,7 @@ namespace MedEasy.Handlers.Document.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public async Task<DocumentInfo> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<DocumentInfo>> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {
@@ -78,7 +79,7 @@ namespace MedEasy.Handlers.Document.Queries
                 Guid data = query.Data;
 
                 Expression<Func<Objects.Document, DocumentInfo>> selector = ExpressionBuilder.CreateMapExpression<Objects.Document, DocumentInfo>();
-                DocumentInfo output = await uow.Repository<Objects.Document>()
+                Option<DocumentInfo> output = await uow.Repository<Objects.Document>()
                     .SingleOrDefaultAsync(selector, x => x.DocumentMetadata.UUID == data, cancellationToken);
 
                 Logger.LogInformation($"Query {query.Id} processed successfully");

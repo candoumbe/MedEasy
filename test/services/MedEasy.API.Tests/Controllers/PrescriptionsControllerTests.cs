@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +87,7 @@ namespace MedEasy.API.Tests.Controllers
             Guid patientId = Guid.NewGuid();
             //Arrange
             _prescriptionServiceMock.Setup(mock => mock.GetOnePrescriptionAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PrescriptionHeaderInfo { Id = prescriptionId, PatientId = patientId, DeliveryDate = DateTimeOffset.UtcNow })
+                .ReturnsAsync(new PrescriptionHeaderInfo { Id = prescriptionId, PatientId = patientId, DeliveryDate = DateTimeOffset.UtcNow }.Some())
                 .Verifiable();
 
             //Act
@@ -197,7 +198,7 @@ namespace MedEasy.API.Tests.Controllers
                     IEnumerable<PrescriptionItem> items = prescriptions
                         .Single(x => x.UUID == prescriptionId).Items;
 
-                    return _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(items);
+                    return _mapper.Map<IEnumerable<PrescriptionItem>, IEnumerable<PrescriptionItemInfo>>(items).Some();
 
                 }));
 

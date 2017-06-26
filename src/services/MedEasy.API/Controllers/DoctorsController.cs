@@ -26,6 +26,9 @@ using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
 using MedEasy.DTO.Search;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
+using Microsoft.AspNetCore.Http;
 
 namespace MedEasy.API.Controllers
 {
@@ -69,7 +72,7 @@ namespace MedEasy.API.Controllers
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleGetDoctorInfoByIdQuery getByIdQueryHandler,
-            IHandleGetManyDoctorInfosQuery getManyDoctorQueryHandler,
+            IHandleGetPageOfDoctorInfosQuery getManyDoctorQueryHandler,
             IRunCreateDoctorCommand iRunCreateDoctorCommand,
             IRunDeleteDoctorInfoByIdCommand iRunDeleteDoctorByIdCommand,
             IRunPatchDoctorCommand iRunPatchDoctorCommand,
@@ -151,14 +154,31 @@ namespace MedEasy.API.Controllers
         /// <param name="info">data used to create the resource</param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns>the created resource</returns>
+        /// <response code="404">if <see cref="DoctorInfo.SpecialtyId"/> is not empty but does not represent a specialty id.</response>
         [HttpPost]
         [ProducesResponseType(typeof(DoctorInfo), 201)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DoctorInfo output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
-            
-            return new CreatedAtActionResult(nameof(Get), ControllerName, new { id = output.Id }, output);
+            Option<DoctorInfo, CommandException> output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
+
+            return output.Match(
+                some: x => new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, x),
+                none: exception =>
+               {
+                   IActionResult result;
+                   switch (exception)
+                   {
+                       case CommandEntityNotFoundException cenf:
+                           result = new NotFoundResult();
+                           break;
+                       default:
+                           result = new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                           break;
+                   }
+
+                   return result;
+               });
         }
 
         

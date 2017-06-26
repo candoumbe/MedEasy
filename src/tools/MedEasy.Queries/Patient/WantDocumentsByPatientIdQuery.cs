@@ -7,7 +7,7 @@ namespace MedEasy.Queries.Patient
     /// <summary>
     /// Immutable class to query many <see cref="DocumentMetadataInfo"/>s by specifying its <see cref="PatientInfo.Id"/>
     /// </summary>
-    public sealed class WantDocumentsByPatientIdQuery : IWantDocumentsByPatientIdQuery
+    public sealed class WantDocumentsByPatientIdQuery : IWantPageOfDocumentsByPatientIdQuery
     {
         public Guid Id { get; }
 

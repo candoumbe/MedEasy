@@ -7,7 +7,7 @@ using MedEasy.Handlers.Core.Queries;
 
 namespace MedEasy.Handlers.Core.Document.Queries
 {
-    public interface IHandleGetManyDocumentsQuery : IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<DocumentMetadataInfo>, IWantManyResources<Guid, DocumentMetadataInfo>>
+    public interface IHandleGetPageOfDocumentsQuery : IHandleQueryPageAsync<Guid, PaginationConfiguration, DocumentMetadataInfo, IWantPageOfResources<Guid, DocumentMetadataInfo>>
     {
     }
 }

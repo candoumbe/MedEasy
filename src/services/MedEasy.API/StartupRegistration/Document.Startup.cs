@@ -17,7 +17,7 @@ namespace MedEasy.API.StartupRegistration
         {
 
             services.AddScoped<IHandleGetOneDocumentMetadataInfoByIdQuery, HandleGetOneDocumentMetadataInfoByIdQuery>();
-            services.AddScoped<IHandleGetManyDocumentsQuery, HandleGetManyDocumentMetadataInfosQuery>();
+            services.AddScoped<IHandleGetPageOfDocumentsQuery, HandleGetPageOfDocumentMetadataInfosQuery>();
             services.AddScoped<IHandleGetOneDocumentInfoByIdQuery, HandleGetOneDocumentInfoByIdQuery>();
 
         }

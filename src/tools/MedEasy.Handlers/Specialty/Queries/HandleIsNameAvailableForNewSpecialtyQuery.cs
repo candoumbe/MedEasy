@@ -29,9 +29,8 @@ namespace MedEasy.Handlers.Specialty.Queries
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public  async Task<bool> HandleAsync(IIsNameAvailableForNewSpecialtyQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public  async ValueTask<bool> HandleAsync(IIsNameAvailableForNewSpecialtyQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
-
             _logger.LogInformation($"Entering {nameof(HandleIsNameAvailableForNewSpecialtyQuery)}.{nameof(HandleAsync)}({nameof(query)}):'{query}'");
 
             string name = query.Data?.Trim().ToUpper() ?? string.Empty;

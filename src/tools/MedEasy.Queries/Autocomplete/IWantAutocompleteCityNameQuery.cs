@@ -6,7 +6,7 @@ namespace MedEasy.Queries.Autocomplete
     /// <summary>
     /// Interface for queries that requests list of city names given a string
     /// </summary>
-    public interface IWantAutocompleteCityNameQuery : IQuery<Guid, string, IEnumerable<string>>
+    public interface IWantAutocompleteCityNameQuery : IWantManyResources<Guid, string, string>
     {
     }
 }

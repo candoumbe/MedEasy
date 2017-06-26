@@ -158,7 +158,7 @@ namespace MedEasy.API.Tests.Filters
             exceptionContext.Result.Should()
                 .BeAssignableTo<StatusCodeResult>().Which
                 .StatusCode.Should()
-                    .Be(409);
+                    .Be(StatusCodes.Status409Conflict);
 
 
             exceptionContext.ModelState.Should().BeNullOrEmpty();

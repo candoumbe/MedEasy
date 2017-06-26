@@ -3,16 +3,17 @@ using Microsoft.Extensions.Logging;
 using System;
 using MedEasy.DTO;
 using AutoMapper.QueryableExtensions;
-using MedEasy.Queries;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Appointment.Queries;
+using MedEasy.Queries.Appointment;
+using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Appointment.Queries
 {
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneAppointmentInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetManyAppointmentInfoQuery : GenericGetManyQueryHandler<Guid, Objects.Appointment, int, AppointmentInfo, IWantManyResources<Guid, AppointmentInfo>>, IHandleGetManyAppointmentInfosQuery
+    public class HandleGetManyAppointmentInfoQuery : PagedResourcesQueryHandlerBase<Guid, Objects.Appointment, AppointmentInfo, IWantPageOfResources<Guid, AppointmentInfo>>, IHandleGetPageOfAppointmentInfosQuery
     {
 
         /// <summary>
@@ -21,7 +22,7 @@ namespace MedEasy.Handlers.Appointment.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Appointment"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Appointment"/> instances to <see cref="AppointmentInfo"/> instances</param>
-        public HandleGetManyAppointmentInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyAppointmentInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
+        public HandleGetManyAppointmentInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyAppointmentInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
         {
         }
     }

@@ -18,23 +18,7 @@ namespace MedEasy.Commands
         where TResource : class
     {
     }
-
-    /// <summary>
-    /// Command to partially update a resource.
-    /// </summary>
-    /// <remarks>
-    /// This command embed a set of <see cref="PatchOperation"/> that must be applied atomically.
-    /// </remarks>
-    /// <typeparam name="TResourceId">type of the identifier of the resource to patch</typeparam>
-    /// <typeparam name="TData">type of the data the command carries</typeparam>
-    public interface IPatchCommand<TResourceId, TResource, TData> : IPatchCommand<Guid, TResourceId, TResource, TData>
-        where TData : IPatchInfo<TResourceId, TResource>
-        where TResource : class
-    {
-
-    }
-
-
+    
     /// <summary>
     /// Command to partially update a resource.
     /// </summary>

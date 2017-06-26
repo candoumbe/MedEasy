@@ -37,8 +37,8 @@ namespace MedEasy.API.Filters
 
             Exception exception = context.Exception;
             Type exceptionType = exception.GetType();
-            Type validationExceptionType = typeof(ValidationException);
-            if (validationExceptionType.IsAssignableFrom(exceptionType))
+            Type commandExceptionType = typeof(CommandException);
+            if (commandExceptionType.IsAssignableFrom(exceptionType))
             {
                 IEnumerable<ErrorInfo> errors = null;
                 IEnumerable<PropertyInfo> properties = null;
@@ -48,7 +48,7 @@ namespace MedEasy.API.Filters
                 {
                     commandNotValidExceptionType = commandNotValidExceptionType.MakeGenericType(exceptionType.GetGenericArguments()[0]);
                     properties = commandNotValidExceptionType.GetProperties();
-                    PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(ValidationException.Errors));
+                    PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(CommandException.Errors));
                     PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
                     Guid commandId = (Guid)piCommandId.GetValue(exception);
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);

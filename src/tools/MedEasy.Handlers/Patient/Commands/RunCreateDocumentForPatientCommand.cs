@@ -15,6 +15,7 @@ using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Commands;
 using AutoMapper;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -38,8 +39,8 @@ namespace MedEasy.Handlers.Patient.Commands
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
         /// <see cref="CommandRunnerBase{TKey, TInput, TOutput, TCommand}"/>
         public RunCreateDocumentForPatientCommand(IValidate<ICreateDocumentForPatientCommand> validator, ILogger<RunCreateDocumentForPatientCommand> logger, IUnitOfWorkFactory factory,
-            IMapper mapper) 
-            : base (validator)
+            IMapper mapper)
+            : base(validator)
         {
             _logger = logger;
             _factory = factory;
@@ -47,8 +48,10 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<DocumentMetadataInfo> RunAsync(ICreateDocumentForPatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<DocumentMetadataInfo, CommandException>> RunAsync(ICreateDocumentForPatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
+            Option<DocumentMetadataInfo, CommandException> result;
+
             _logger.LogInformation($"Start running command : {command}");
 
             IEnumerable<Task<ErrorInfo>> errorTasks = Validator.Validate(command);
@@ -64,47 +67,59 @@ namespace MedEasy.Handlers.Patient.Commands
                     _logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
 #endif
-
-                throw new CommandNotValidException<Guid>(command.Id, errors);
+                result = Option.None<DocumentMetadataInfo, CommandException>(new CommandNotValidException<Guid>(command.Id, errors));
             }
-
-            using (IUnitOfWork uow = _factory.New())
+            else
             {
-                CreateDocumentForPatientInfo data = command.Data;
-                var patient = await uow.Repository<Objects.Patient>()
-                    .SingleOrDefaultAsync(
-                        x => new {x.Id}, 
-                        x => x.UUID == data.PatientId, cancellationToken);
-                if (patient == null)
+                using (IUnitOfWork uow = _factory.New())
                 {
-                    throw new NotFoundException($"Patient <{data.PatientId}> not found");
-                }
+                    CreateDocumentForPatientInfo data = command.Data;
+                    var patient = await uow.Repository<Objects.Patient>()
+                        .SingleOrDefaultAsync(
+                            x => new { x.Id },
+                            x => x.UUID == data.PatientId, cancellationToken);
+                    int? patientId = null;
+                    patient.MatchSome(x => patientId = x.Id);
 
-                CreateDocumentInfo document = data.Document;
-                DocumentMetadata documentMetadata = new DocumentMetadata
-                {
-                    PatientId = patient.Id,
-                    MimeType = document.MimeType,
-                    Title = document.Title,
-                    Size = document.Content.Length,
-                    Document = new Objects.Document
+                    if (!patientId.HasValue)
                     {
-                        Content = data.Document.Content,
-                        UUID = Guid.NewGuid()
-                    },
-                    UUID = Guid.NewGuid()
-                };
+                        result = Option.None<DocumentMetadataInfo, CommandException>(new CommandEntityNotFoundException($"Patient <{data.PatientId}> not found"));
+                    }
+                    else
+                    {
+                        CreateDocumentInfo document = data.Document;
+                        DocumentMetadata documentMetadata = new DocumentMetadata
+                        {
+                            PatientId = patientId.Value,
+                            MimeType = document.MimeType,
+                            Title = document.Title,
+                            Size = document.Content.Length,
+                            Document = new Objects.Document
+                            {
+                                Content = data.Document.Content,
+                                UUID = Guid.NewGuid()
+                            },
+                            UUID = Guid.NewGuid()
+                        };
 
-                documentMetadata = uow.Repository<DocumentMetadata>().Create(documentMetadata);
-                await uow.SaveChangesAsync(cancellationToken);
+                        documentMetadata = uow.Repository<DocumentMetadata>().Create(documentMetadata);
 
-                DocumentMetadataInfo result = _mapper.Map<DocumentMetadata, DocumentMetadataInfo>(documentMetadata);
-                result.PatientId = data.PatientId;
-                _logger.LogTrace($"Command's result : {result}");
-                _logger.LogInformation($"Command <{command.Id}> runned successfully");
+                        await uow.SaveChangesAsync(cancellationToken);
 
-                return result;
+                        DocumentMetadataInfo documentMetadataInfo = _mapper.Map<DocumentMetadata, DocumentMetadataInfo>(documentMetadata);
+                        documentMetadataInfo.PatientId = data.PatientId;
+
+                        result = Option.Some<DocumentMetadataInfo, CommandException>(documentMetadataInfo);
+
+                        _logger.LogTrace($"Command's result : {documentMetadataInfo}");
+                        _logger.LogInformation($"Command <{command.Id}> runned successfully");
+
+                    }
+
+
+                }
             }
+            return result;
         }
     }
 }

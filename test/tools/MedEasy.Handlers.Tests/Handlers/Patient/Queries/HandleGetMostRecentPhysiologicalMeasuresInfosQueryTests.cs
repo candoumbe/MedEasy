@@ -19,6 +19,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.Objects;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -102,15 +103,15 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public async Task QueryAnEmptyDatabase()
         {
             //Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Temperature>()
-                .WhereAsync(It.IsAny<Expression<Func<Temperature, TemperatureInfo>>>(),  It.IsAny<Expression<Func<Temperature, bool>>>(), It.IsAny<IEnumerable<OrderClause<TemperatureInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(PagedResult<TemperatureInfo>.Default);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
+                .AnyAsync(It.IsAny<Expression<Func<Objects.Patient, bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<bool>(false));
 
             // Act
-            IEnumerable<TemperatureInfo> output = await _handler.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo() { PatientId = Guid.NewGuid(), Count = 15 }));
+            Option<IEnumerable<TemperatureInfo>> output = await _handler.HandleAsync(new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo() { PatientId = Guid.NewGuid(), Count = 15 }));
 
             //Assert
-            output.Should().BeEmpty();
+            output.Should().Be(Option.None<IEnumerable<TemperatureInfo>>());
 
             _loggerMock.VerifyAll();
             _unitOfWorkFactoryMock.Verify();

@@ -3,6 +3,8 @@ using System;
 using System.Threading.Tasks;
 using MedEasy.Commands;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -16,7 +18,7 @@ namespace MedEasy.Handlers.Core.Commands
     /// <typeparam name="TInput">Type of data commands carry</typeparam>
     /// <typeparam name="TOutput">Type of commands' output</typeparam>
     /// <typeparam name="TCommand">Type of command instances the current instance handle</typeparam>
-    public abstract class CommandRunnerBase<TKey, TInput, TOutput, TCommand> : IRunCommandAsync<TKey, TInput, TOutput, TCommand>
+    public abstract class CommandRunnerBase<TKey, TInput, TOutput, TCommand> : IRunCommandAsync<TKey, TInput, Option<TOutput, CommandException>, TCommand>
         where TCommand : ICommand<TKey, TInput>
         where TKey : IEquatable<TKey>
     {
@@ -34,7 +36,7 @@ namespace MedEasy.Handlers.Core.Commands
             Validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
-        public abstract Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
     }
 
     /// <summary>

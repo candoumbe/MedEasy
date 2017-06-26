@@ -24,7 +24,7 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IValidate<IDeleteSpecialtyByIdCommand>>(x => Validator<IDeleteSpecialtyByIdCommand>.Default);
 
             services.AddScoped<IHandleGetSpecialtyInfoByIdQuery, HandleGetSpecialtyInfoByIdQuery>();
-            services.AddScoped<IHandleGetManySpecialtyInfosQuery, HandleGetManySpecialtyInfoQuery>();
+            services.AddScoped<IHandleGetPageOfSpecialtyInfosQuery, HandleGetPageOfSpecialtyInfoQuery>();
             services.AddScoped<IHandleIsNameAvailableForNewSpecialtyQuery, HandleIsNameAvailableForNewSpecialtyQuery>();
             services.AddScoped<IHandleFindDoctorsBySpecialtyIdQuery, HandleFindDoctorsBySpecialtyIdQuery>();
 

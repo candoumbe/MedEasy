@@ -27,6 +27,8 @@ using MedEasy.Validators;
 using MedEasy.Handlers.Core.Appointment.Queries;
 using MedEasy.Queries.Search;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.API.Controllers
 {
@@ -34,7 +36,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="AppointmentInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
-    public class AppointmentsController : RestCRUDControllerBase<Guid, Appointment, AppointmentInfo, IWantOneAppointmentInfoByIdQuery, IWantManyAppointmentInfoQuery, Guid, CreateAppointmentInfo, ICreateAppointmentCommand, IRunCreateAppointmentCommand>
+    public class AppointmentsController : RestCRUDControllerBase<Guid, Appointment, AppointmentInfo, IWantOneAppointmentInfoByIdQuery, IWantPageOfAppointmentInfosQuery, Guid, CreateAppointmentInfo, ICreateAppointmentCommand, IRunCreateAppointmentCommand>
     {
         /// <summary>
         /// Name of the endpoint
@@ -47,7 +49,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         protected override string ControllerName => EndpointName;
 
-       
+
 
         private readonly IRunCreateAppointmentCommand _iRunCreateAppointmentCommand;
         private readonly IRunDeleteAppointmentInfoByIdCommand _iRunDeleteAppointmentByIdCommand;
@@ -61,7 +63,7 @@ namespace MedEasy.API.Controllers
         /// <param name="apiOptions">Options of the API.</param>
         /// <param name="getByIdQueryHandler">Handler of GET one resource</param>
         /// <param name="iHandleSearchQuery">Handler of GET /api/Appointments/search queries.</param>
-        /// <param name="getManyAppointmentQueryHandler">Handler of GET many resources</param>
+        /// <param name="getPageOfAppointmentQueryHandler">Handler of GET many resources</param>
         /// <param name="iRunCreateAppointmentCommand">Runner of CREATE resource command</param>
         /// <param name="iRunDeleteAppointmentByIdCommand">Runner of DELETE resource command</param>
         /// <param name="iRunPatchAppointmentCommand">Runner of PATCH resource command</param>
@@ -72,12 +74,12 @@ namespace MedEasy.API.Controllers
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IMapper mapper,
             IHandleGetAppointmentInfoByIdQuery getByIdQueryHandler,
-            IHandleGetManyAppointmentInfosQuery getManyAppointmentQueryHandler,
+            IHandleGetPageOfAppointmentInfosQuery getPageOfAppointmentQueryHandler,
             IRunCreateAppointmentCommand iRunCreateAppointmentCommand,
             IRunDeleteAppointmentInfoByIdCommand iRunDeleteAppointmentByIdCommand,
             IRunPatchAppointmentCommand iRunPatchAppointmentCommand,
-            IHandleSearchQuery iHandleSearchQuery) : base(logger, apiOptions, getByIdQueryHandler, getManyAppointmentQueryHandler, iRunCreateAppointmentCommand, urlHelper)
-        { 
+            IHandleSearchQuery iHandleSearchQuery) : base(logger, apiOptions, getByIdQueryHandler, getPageOfAppointmentQueryHandler, iRunCreateAppointmentCommand, urlHelper)
+        {
             _iRunCreateAppointmentCommand = iRunCreateAppointmentCommand;
             _iRunDeleteAppointmentByIdCommand = iRunDeleteAppointmentByIdCommand;
             _mapper = mapper;
@@ -104,12 +106,12 @@ namespace MedEasy.API.Controllers
             }
 
             IPagedResult<AppointmentInfo> result = await GetAll(query);
-            
+
             int count = result.Entries.Count();
-             
+
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new {PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
                     ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
                     : null;
@@ -129,7 +131,7 @@ namespace MedEasy.API.Controllers
                 nextPageUrl,
                 lastPageUrl,
                 result.Total);
-            
+
 
             return new OkObjectResult(response);
         }
@@ -155,27 +157,54 @@ namespace MedEasy.API.Controllers
         /// <param name="cancellationToken">notifies lower level to abort processing the request</param>
         /// <returns>the created resource</returns>
         /// <response code="409">the new appointment overlaps an existing one and </response>
+        /// <response code="404">Patient and/or doctor do(es)n't exist</response>
         [HttpPost]
         [ProducesResponseType(typeof(AppointmentInfo), 201)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            AppointmentInfo output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info), cancellationToken);
-            
-            IBrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
-            {
-                Resource = output,
-                Links = new[]
-                {
-                    new Link { Relation = nameof(Appointment.Doctor),   },
-                    new Link { Relation = nameof(Appointment.Patient)  },
-                }
-            };
+            Option<AppointmentInfo, CommandException> output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info), cancellationToken);
 
-            return new CreatedAtActionResult(nameof(Get), ControllerName, new { id = output.Id }, browsableResource);
+            return output.Match(
+                some: x =>
+               {
+                   IBrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
+                   {
+                       Resource = x,
+                       Links = new[]
+                        {
+                            new Link { Relation = nameof(Appointment.Doctor),   },
+                            new Link { Relation = nameof(Appointment.Patient)  },
+                        }
+                   };
+
+                   return new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, browsableResource);
+               },
+
+                none: exception =>
+               {
+                   IActionResult result;
+                   switch (exception)
+                   {
+                       case CommandNotValidException<Guid> notValidException:
+                           result = new BadRequestObjectResult(notValidException.Errors);
+                           break;
+                       case CommandEntityNotFoundException cenf:
+                       result = new NotFoundObjectResult(cenf.Message);
+                           break;
+                       default:
+                           result = new StatusCodeResult(500);
+                           break;
+                   }
+
+                   return result;
+               }
+
+                );
+
         }
 
-        
+
         /// <summary>
         /// Updates the specified resource
         /// </summary>
@@ -241,7 +270,7 @@ namespace MedEasy.API.Controllers
                 Id = id,
                 PatchDocument = _mapper.Map<JsonPatchDocument<Appointment>>(changes)
             };
-            
+
             await _iRunPatchAppointmentCommand.RunAsync(new PatchCommand<Guid, Appointment>(data), cancellationToken);
 
             return new NoContentResult();
@@ -286,7 +315,7 @@ namespace MedEasy.API.Controllers
             IList<IDataFilter> filters = new List<IDataFilter>();
             if (search.From.HasValue)
             {
-                filters.Add(new DataFilter { Field = nameof(Appointment.StartDate), Operator = GreaterThanOrEqual, Value = search.From  });
+                filters.Add(new DataFilter { Field = nameof(Appointment.StartDate), Operator = GreaterThanOrEqual, Value = search.From });
             }
 
             if (search.To.HasValue)
@@ -319,7 +348,7 @@ namespace MedEasy.API.Controllers
                             return sort;
                         })
             };
-            
+
             IPagedResult<AppointmentInfo> pageOfResult = await _iHandleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo), cancellationToken);
 
             search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);

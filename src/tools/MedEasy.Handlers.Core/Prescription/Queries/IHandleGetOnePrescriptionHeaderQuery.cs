@@ -8,7 +8,7 @@ namespace MedEasy.Handlers.Core.Prescription.Queries
     /// <summary>
     /// Base interface for handlers of one <see cref="PrescriptionHeaderInfo"/>
     /// </summary>
-    public interface IHandleGetOnePrescriptionHeaderQuery : IHandleQueryAsync<Guid, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>>
+    public interface IHandleGetOnePrescriptionHeaderQuery : IHandleQueryOneAsync<Guid, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>>
     {
     }
 }

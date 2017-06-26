@@ -30,8 +30,6 @@ namespace MedEasy.Handlers.Core.Commands
         /// <param name="command">The command to run</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Data resulting of the execution of the command</returns>
-        /// <exception cref="CommandNotValidException{TKey}">if <paramref name="command"/> is not valid</exception>
-        /// <exception cref="ArgumentNullException">if <paramref name="command"/>is null</exception>
         Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
 
         

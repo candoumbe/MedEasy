@@ -1,15 +1,16 @@
-﻿using System.Threading.Tasks;
+﻿using AutoMapper.QueryableExtensions;
+using MedEasy.Commands;
+using MedEasy.DAL.Interfaces;
+using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
-using MedEasy.DAL.Interfaces;
+using Optional;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using static MedEasy.Validators.ErrorLevel;
-using MedEasy.Handlers.Core.Exceptions;
-using MedEasy.Commands;
-using System;
-using AutoMapper.QueryableExtensions;
 using System.Threading;
+using System.Threading.Tasks;
+using static MedEasy.Validators.ErrorLevel;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -74,17 +75,20 @@ namespace MedEasy.Handlers.Core.Commands
         ///     - if <paramref name="command"/> validation fails,
         /// </exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/> is <c>null</c></exception>
-        public override async Task<TOutput> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
             }
 
+            Option<TOutput, CommandException> result;
+
             Logger.LogInformation($"Start processing command : {command.Id}");
             Logger.LogTrace("Validating command");
             IEnumerable<Task<ErrorInfo>> errorsTasks = Validator.Validate(command);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks).ConfigureAwait(false);
+            IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks)
+                .ConfigureAwait(false);
             if (errors.Any(item => item.Severity == Error))
             {
                 Logger.LogTrace("validation failed", errors);
@@ -94,27 +98,39 @@ namespace MedEasy.Handlers.Core.Commands
                     Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
                 }
 #endif
-                throw new CommandNotValidException<TCommandId>(command.Id, errors);
-
+                result = Option.None<TOutput, CommandException>( new CommandNotValidException<TCommandId>(command.Id, errors));
             }
-            Logger.LogTrace("Command validation succeeded");
-
-            using (IUnitOfWork uow = UowFactory.New())
+            else
             {
-                TData data = command.Data;
-                await OnCreatingAsync(command.Id, data);
-                TEntity entity = ExpressionBuilder.CreateMapExpression<TData, TEntity>().Compile().Invoke(data);
+                Logger.LogTrace("Command validation succeeded");
 
-                uow.Repository<TEntity>().Create(entity);
-                await uow.SaveChangesAsync();
+                using (IUnitOfWork uow = UowFactory.New())
+                {
+                    try
+                    {
+                        TData data = command.Data;
+                        await OnCreatingAsync(command.Id, data);
+                        TEntity entity = ExpressionBuilder.CreateMapExpression<TData, TEntity>().Compile().Invoke(data);
 
-                TOutput output = ExpressionBuilder.CreateMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
-                await OnCreatedAsync(output);
-                Logger.LogInformation($"Command {command.Id} processed successfully");
+                        uow.Repository<TEntity>().Create(entity);
+                        await uow.SaveChangesAsync();
+
+                        TOutput output = ExpressionBuilder.CreateMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
+                        await OnCreatedAsync(output);
+                        Logger.LogInformation($"Command {command.Id} processed successfully");
 
 
-                return output;
+                        result = output.Some<TOutput, CommandException>();
+                    }
+                    catch (CommandException ex)
+                    {
+
+                        result = Option.None<TOutput, CommandException>(ex);
+                    }
+                }
             }
+
+            return result;
         }
     }
 }

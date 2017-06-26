@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
-using System.Linq.Expressions;
-using MedEasy.DAL.Repositories;
-using static MedEasy.DAL.Repositories.SortDirection;
-using System.Linq;
-using MedEasy.Queries.Document;
 using MedEasy.Handlers.Core.Document.Queries;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;

@@ -8,7 +8,6 @@ using MedEasy.Objects;
 using MedEasy.Validators;
 using MedEasy.DAL.Interfaces;
 using Microsoft.Extensions.Logging;
-using AutoMapper.QueryableExtensions;
 using MedEasy.Commands;
 using System.Linq;
 using MedEasy.Handlers.Core.Exceptions;
@@ -17,6 +16,8 @@ using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using AutoMapper;
 using System.Threading;
+using Optional;
+using MedEasy.Queries.Patient;
 
 namespace MedEasy.Services
 {
@@ -53,7 +54,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="query">specifies which patient to get its most recent measures for</param>
         /// <returns><see cref="IEnumerable{TPhysiologicalMeasureInfo}"/>holding the most recent <see cref="TPhysiologicalMeasureInfo"/></returns>
-        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {
@@ -117,7 +118,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async Task<TPhysiologicalMesureInfo> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<TPhysiologicalMesureInfo>> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMesureInfo : PhysiologicalMeasurementInfo
         {
@@ -126,14 +127,20 @@ namespace MedEasy.Services
                 throw new ArgumentNullException(nameof(query));
             }
             _logger.LogInformation($"Start querying one measure : {query}");
+
             using (IUnitOfWork uow = _uowFactory.New())
             {
                 Expression<Func<TPhysiologicalMeasure, TPhysiologicalMesureInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMesureInfo>();
-                TPhysiologicalMesureInfo measure = await uow.Repository<TPhysiologicalMeasure>()
+                Option<TPhysiologicalMesureInfo> measure = await uow.Repository<TPhysiologicalMeasure>()
                     .SingleOrDefaultAsync(selector, x => x.Patient.UUID == query.Data.PatientId && x.UUID == query.Data.MeasureId)
                     .ConfigureAwait(false);
 
-                _logger.LogInformation($"Measure {(measure == null ? "not " : string.Empty)}found");
+                measure.Match(
+                    some: (_) => _logger.LogInformation($"Measure found"),
+                    none: () => _logger.LogInformation($"Measure not found")
+                    );
+
+
                 return measure;
             }
         }

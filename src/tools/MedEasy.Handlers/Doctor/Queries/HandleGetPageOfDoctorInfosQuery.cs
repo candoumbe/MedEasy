@@ -12,7 +12,7 @@ namespace MedEasy.Handlers.Doctor.Queries
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneDoctorInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetManyDoctorInfoQuery : GenericGetManyQueryHandler<Guid, Objects.Doctor, int, DoctorInfo, IWantManyResources<Guid, DoctorInfo>>, IHandleGetManyDoctorInfosQuery
+    public class HandleGetPageOfDoctorInfosQuery : PagedResourcesQueryHandlerBase<Guid, Objects.Doctor, DoctorInfo, IWantPageOfResources<Guid, DoctorInfo>>, IHandleGetPageOfDoctorInfosQuery
     {
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace MedEasy.Handlers.Doctor.Queries
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Doctor"/> instances</param>
         /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Doctor"/> instances to <see cref="DoctorInfo"/> instances</param>
-        public HandleGetManyDoctorInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyDoctorInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
+        public HandleGetPageOfDoctorInfosQuery(IUnitOfWorkFactory factory, ILogger<HandleGetPageOfDoctorInfosQuery> logger, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
         {
         }
     }

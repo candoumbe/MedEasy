@@ -22,7 +22,7 @@ namespace MedEasy.API.StartupRegistration
         {
 
             services.AddScoped<IHandleGetAppointmentInfoByIdQuery, HandleGetAppointmentInfoByIdQuery>();
-            services.AddScoped<IHandleGetManyAppointmentInfosQuery, HandleGetManyAppointmentInfoQuery>();
+            services.AddScoped<IHandleGetPageOfAppointmentInfosQuery, HandleGetManyAppointmentInfoQuery>();
             
             services.AddScoped<IRunCreateAppointmentCommand, RunCreateAppointmentCommand>();
             services.AddScoped<IRunDeleteAppointmentInfoByIdCommand, RunDeleteAppointmentByIdCommand>();

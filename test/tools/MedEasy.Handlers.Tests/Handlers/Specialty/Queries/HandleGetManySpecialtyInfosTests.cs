@@ -27,9 +27,9 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactory;
-        private HandleGetManySpecialtyInfoQuery _handler;
+        private HandleGetPageOfSpecialtyInfoQuery _handler;
         
-        private Mock<ILogger<HandleGetManySpecialtyInfoQuery>> _loggerMock;
+        private Mock<ILogger<HandleGetPageOfSpecialtyInfoQuery>> _loggerMock;
         private IMapper _mapper;
 
         public HandleGetManySpecialtyInfosQueryTests(ITestOutputHelper outputHelper)
@@ -42,10 +42,10 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
             
 
-            _loggerMock = new Mock<ILogger<HandleGetManySpecialtyInfoQuery>>(Strict);
+            _loggerMock = new Mock<ILogger<HandleGetPageOfSpecialtyInfoQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _handler = new HandleGetManySpecialtyInfoQuery(_unitOfWorkFactory, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetPageOfSpecialtyInfoQuery(_unitOfWorkFactory, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -58,6 +58,27 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                     null,
                     null,
                     null
+                };
+
+                yield return new object[]
+                {
+                    Mock.Of<ILogger<HandleGetSpecialtyInfoByIdQuery>>(),
+                    null,
+                    null
+                };
+
+                yield return new object[]
+                {
+                    null,
+                    Mock.Of<IUnitOfWorkFactory>(),
+                    null
+                };
+
+                yield return new object[]
+                {
+                    null,
+                    null,
+                    Mock.Of<IExpressionBuilder>()
                 };
 
             }
@@ -74,6 +95,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
+
             Action action = () => new HandleGetSpecialtyInfoByIdQuery(factory, logger, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
@@ -103,9 +125,11 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
         [Fact]
         public async Task QueryAnEmptyDatabase()
         {
+            // Arrange
+
 
             // Act
-            IPagedResult<SpecialtyInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<SpecialtyInfo>(new PaginationConfiguration()));
+            IPagedResult<SpecialtyInfo> output = await _handler.HandleAsync(new GenericGetPageOfResourcesQuery<SpecialtyInfo>(new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();

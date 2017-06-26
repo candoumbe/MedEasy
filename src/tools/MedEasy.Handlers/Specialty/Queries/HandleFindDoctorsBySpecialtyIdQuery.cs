@@ -10,6 +10,7 @@ using MedEasy.RestObjects;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Specialty.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {
@@ -20,7 +21,7 @@ namespace MedEasy.Handlers.Specialty.Queries
     {
         private IUnitOfWorkFactory UowFactory { get; }
         private ILogger<HandleFindDoctorsBySpecialtyIdQuery> Logger { get; }
-        
+
         /// <summary>
         /// Builds a new <see cref="HandleFindDoctorsBySpecialtyIdQuery"/> instance
         /// </summary>
@@ -37,7 +38,7 @@ namespace MedEasy.Handlers.Specialty.Queries
 
         }
 
-        public async Task<IPagedResult<DoctorInfo>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IPagedResult<DoctorInfo>>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             Logger.LogInformation($"Starting {nameof(IFindDoctorsBySpecialtyIdQuery)}  query handling");
             if (query == null)
@@ -46,41 +47,35 @@ namespace MedEasy.Handlers.Specialty.Queries
                 throw new ArgumentNullException(nameof(query));
             }
             PaginationConfiguration getQuery = query.Data?.GetQuery ?? new PaginationConfiguration();
-            
             using (IUnitOfWork uow = UowFactory.New())
             {
-                //IPagedResult<DoctorInfo> pageOfResult = await uow.Repository<Objects.Doctor>()
-                //    .WhereAsync(
-                //        x => new DoctorInfo
-                //        {
-                //            Firstname = x.Firstname,
-                //            Lastname = x.Lastname,
-                //            Id = x.UUID,
-                //            SpecialtyId = x.Specialty != null ? x.Specialty.UUID : (Guid?)null,
-                //            UpdatedDate = x.UpdatedDate
-                //        },  
-                //        (DoctorInfo x) => x.SpecialtyId == query.Data.SpecialtyId,
-                //        Enumerable.Empty<OrderClause<DoctorInfo>>(), 
-                //        getQuery.PageSize, getQuery.Page);
 
-                //return pageOfResult;
-
-                IPagedResult<Objects.Doctor> pageOfResult = await uow.Repository<Objects.Doctor>()
-                    .WhereAsync(x => x.Specialty.UUID == query.Data.SpecialtyId,
-                        Enumerable.Empty<OrderClause<Objects.Doctor>>(),
-                        getQuery.PageSize, getQuery.Page);
-
-
-                // TODO Move the selector into the query 
-                return new PagedResult<DoctorInfo>(pageOfResult.Entries.Select(x => new DoctorInfo
+                Option<IPagedResult<DoctorInfo>> result = default(Option<IPagedResult<DoctorInfo>>);
+                if (await uow.Repository<Objects.Specialty>().AnyAsync(x => x.UUID == query.Data.SpecialtyId).ConfigureAwait(false))
                 {
-                    Firstname = x.Firstname,
-                    Lastname = x.Lastname,
-                    Id = x.UUID,
-                    SpecialtyId = x.Specialty != null ? x.Specialty.UUID : (Guid?)null,
-                    UpdatedDate = x.UpdatedDate
-                }), pageOfResult.Total, pageOfResult.PageSize);
+                    IPagedResult<Objects.Doctor> pageOfResult = await uow.Repository<Objects.Doctor>()
+                        .WhereAsync(x => x.Specialty.UUID == query.Data.SpecialtyId,
+                            Enumerable.Empty<OrderClause<Objects.Doctor>>(),
+                            getQuery.PageSize, getQuery.Page);
+                    
+                    // TODO Move the selector into the query 
+                    result = Option.Some<IPagedResult<DoctorInfo>>(new PagedResult<DoctorInfo>(pageOfResult.Entries.Select(x => new DoctorInfo
+                    {
+                        Firstname = x.Firstname,
+                        Lastname = x.Lastname,
+                        Id = x.UUID,
+                        SpecialtyId = x.Specialty != null ? x.Specialty.UUID : (Guid?)null,
+                        UpdatedDate = x.UpdatedDate
+                    }), pageOfResult.Total, pageOfResult.PageSize));
 
+                }
+                else
+                {
+                    result = Option.None<IPagedResult<DoctorInfo>>();
+                }
+
+
+                return result;
             }
         }
     }

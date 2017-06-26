@@ -13,6 +13,8 @@ using static MedEasy.DAL.Repositories.SortDirection;
 using System.Linq;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using MedEasy.Queries.Patient;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -38,7 +40,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<IEnumerable<TPhysiologicalMeasureInfo>> HandleAsync(IQuery<Guid, GetMostRecentPhysiologicalMeasuresInfo, IEnumerable<TPhysiologicalMeasureInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> HandleAsync(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start handling most recents measures : {query}");
             if (query == null)
@@ -51,16 +53,28 @@ namespace MedEasy.Handlers.Patient.Queries
                 _logger.LogTrace($"Start querying most recents measures {query}");
                 GetMostRecentPhysiologicalMeasuresInfo input = query.Data;
                 Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
-                IPagedResult<TPhysiologicalMeasureInfo> mostRecentsMeasures = await uow.Repository<TPhysiologicalMeasure>()
-                    .WhereAsync(
-                        selector,
-                        (TPhysiologicalMeasure x) => x.Patient.UUID == input.PatientId,
-                        new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, Descending)}, 
-                        1, input.Count.GetValueOrDefault(15));
 
-                _logger.LogTrace($"Nb of results : {mostRecentsMeasures.Entries.Count()}");
-                _logger.LogInformation($"Handling query {query.Id} successfully");
-                return mostRecentsMeasures.Entries;
+                Option<IEnumerable<TPhysiologicalMeasureInfo>> result;
+                if (await uow.Repository<Objects.Patient>().AnyAsync(x => x.UUID == input.PatientId))
+                {
+                    IPagedResult<TPhysiologicalMeasureInfo> mostRecentsMeasures = await uow.Repository<TPhysiologicalMeasure>()
+                                       .WhereAsync(
+                                           selector,
+                                           (TPhysiologicalMeasure x) => x.Patient.UUID == input.PatientId,
+                                           new[] { OrderClause<TPhysiologicalMeasureInfo>.Create(x => x.DateOfMeasure, Descending) },
+                                           1, input.Count.GetValueOrDefault(15));
+
+                    result = mostRecentsMeasures.Entries.Some();
+                    _logger.LogTrace($"Nb of results : {mostRecentsMeasures.Entries.Count()}");
+                }
+                else
+                {
+                    result = Option.None<IEnumerable<TPhysiologicalMeasureInfo>>();
+                }
+
+
+                _logger.LogInformation($"Handling query <{query.Id}> successfully");
+                return result;
             }
         }
     }

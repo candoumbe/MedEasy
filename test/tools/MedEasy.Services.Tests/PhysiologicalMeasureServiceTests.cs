@@ -23,6 +23,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Newtonsoft.Json.JsonConvert;
 using static Moq.MockBehavior;
+using Optional;
 
 namespace MedEasy.Services.Tests
 {
@@ -108,7 +109,7 @@ namespace MedEasy.Services.Tests
                 yield return new object[] {
                     Enumerable.Empty<BloodPressure>(),
                     new GetOnePhysiologicalMeasureInfo { PatientId = Guid.NewGuid(), MeasureId = Guid.NewGuid() },
-                    ((Expression<Func<BloodPressureInfo, bool>>)(x => x == null))
+                    ((Expression<Func<Option<BloodPressureInfo>, bool>>)(x => !x.HasValue))
                 };
 
                 {
@@ -120,7 +121,7 @@ namespace MedEasy.Services.Tests
                             new BloodPressure { Id = 20, PatientId = 2, SystolicPressure = 120, DiastolicPressure = 80 }
                         },
                         new GetOnePhysiologicalMeasureInfo { PatientId = p.UUID, MeasureId = measureId },
-                        ((Expression<Func<BloodPressureInfo, bool>>)(x => x.PatientId == p.UUID && x.Id == measureId && x.SystolicPressure == 120 && x.DiastolicPressure == 90))
+                        ((Expression<Func<Option<BloodPressureInfo>, bool>>)(x => x.HasValue && x.Exists (bp => bp.PatientId == p.UUID && bp.Id == measureId && bp.SystolicPressure == 120 && bp.DiastolicPressure == 90)))
                     };
                 }
             }
@@ -133,7 +134,7 @@ namespace MedEasy.Services.Tests
                 yield return new object[] {
                     Enumerable.Empty<BodyWeight>(),
                     new GetOnePhysiologicalMeasureInfo { PatientId = Guid.NewGuid(), MeasureId = Guid.NewGuid() },
-                    ((Expression<Func<BodyWeightInfo, bool>>)(x => x == null))
+                    ((Expression<Func<Option<BodyWeightInfo>, bool>>)(x => !x.HasValue))
                 };
 
                 {
@@ -144,11 +145,11 @@ namespace MedEasy.Services.Tests
                     Guid measureId = Guid.NewGuid();
                     yield return new object[] {
                         new [] {
-                            new BodyWeight { Id = 10, PatientId = 1, Value = 93,  Patient = patient },
+                            new BodyWeight { Id = 10, PatientId = 1, Value = 93,  Patient = patient, UUID = measureId },
                             new BodyWeight { Id = 20, PatientId = 2, Value = 80 }
                         },
                         new GetOnePhysiologicalMeasureInfo { PatientId = patient.UUID, MeasureId = measureId },
-                        ((Expression<Func<BodyWeightInfo, bool>>)(x => x.PatientId == patient.UUID && x.Id == measureId && x.Value == 93))
+                        ((Expression<Func<Option<BodyWeightInfo>, bool>>)(x => x.HasValue && x.Exists(bw => bw.PatientId == patient.UUID && bw.Id == measureId && bw.Value == 93)))
                     };
                 }
             }
@@ -248,7 +249,9 @@ namespace MedEasy.Services.Tests
             IEnumerable<BloodPressureInfo> measures = await _physiologicalMeasureService.GetMostRecentMeasuresAsync<BloodPressure, BloodPressureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<BloodPressureInfo>(query));
 
             // Assert
-            measures.Should().NotBeNull().And.Match(resultExpectation);
+            measures.Should()
+                .NotBeNull().And
+                .Match(resultExpectation);
             _loggerMock.VerifyAll();
         }
 
@@ -266,7 +269,7 @@ namespace MedEasy.Services.Tests
 
         [Theory]
         [MemberData(nameof(GetOneBloodPressureAsyncCases))]
-        public async Task GetOneBloodPressureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BloodPressureInfo, bool>> resultExpectation)
+        public async Task GetOneBloodPressureAsync(IEnumerable<BloodPressure> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<Option<BloodPressureInfo>, bool>> resultExpectation)
         {
             // Arrange
             using (IUnitOfWork uow = _unitOfWorkFactory.New())
@@ -276,7 +279,7 @@ namespace MedEasy.Services.Tests
                 await uow.SaveChangesAsync();
             }
             // Act
-            BloodPressureInfo measure = await _physiologicalMeasureService
+            Option<BloodPressureInfo> measure = await _physiologicalMeasureService
                 .GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(query.PatientId, query.MeasureId));
 
             // Assert
@@ -287,7 +290,7 @@ namespace MedEasy.Services.Tests
 
         [Theory]
         [MemberData(nameof(GetOneBodyWeightAsyncCases))]
-        public async Task GetOneBodyWeightAsync(IEnumerable<BodyWeight> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<BodyWeightInfo, bool>> resultExpectation)
+        public async Task GetOneBodyWeightAsync(IEnumerable<BodyWeight> measuresBdd, GetOnePhysiologicalMeasureInfo query, Expression<Func<Option<BodyWeightInfo>, bool>> resultExpectation)
         {
             // Arrange
             using (IUnitOfWork uow = _unitOfWorkFactory.New())
@@ -303,10 +306,10 @@ namespace MedEasy.Services.Tests
 
 
             // Act
-            BodyWeightInfo measure = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(query.PatientId, query.MeasureId));
+            Option<BodyWeightInfo> measure = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(query.PatientId, query.MeasureId));
 
             // Assert
-            measure?.Should().Match(resultExpectation);
+            measure.Should().Match(resultExpectation);
             _loggerMock.VerifyAll();
         }
 

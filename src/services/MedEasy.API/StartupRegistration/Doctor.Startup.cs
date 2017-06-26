@@ -22,7 +22,7 @@ namespace MedEasy.API.StartupRegistration
         {
 
             services.AddScoped<IHandleGetDoctorInfoByIdQuery, HandleGetDoctorInfoByIdQuery>();
-            services.AddScoped<IHandleGetManyDoctorInfosQuery, HandleGetManyDoctorInfoQuery>();
+            services.AddScoped<IHandleGetPageOfDoctorInfosQuery, HandleGetPageOfDoctorInfosQuery>();
             
             services.AddScoped<IRunCreateDoctorCommand, RunCreateDoctorCommand>();
             services.AddScoped<IRunDeleteDoctorInfoByIdCommand, RunDeleteDoctorByIdCommand>();

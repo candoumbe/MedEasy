@@ -8,9 +8,9 @@ namespace MedEasy.Queries
     /// <summary>
     /// Base class for creating queries that request many resources
     /// </summary>
-    /// <typeparam name="TResource">Type of the resource to get</typeparam>
+    /// <typeparam name="TResource">Type of resources to get</typeparam>
     [JsonObject]
-    public class GenericGetManyResourcesQuery<TResource> : IWantManyResources<Guid, TResource>
+    public class GenericGetPageOfResourcesQuery<TResource> : IWantPageOfResources<Guid, TResource>
     {
         /// <summary>
         /// Query's identifier
@@ -20,10 +20,10 @@ namespace MedEasy.Queries
         public PaginationConfiguration Data { get; }
 
         /// <summary>
-        /// Builds a new <see cref="GenericGetManyResourcesQuery{TResource}"/> instance.
+        /// Builds a new <see cref="GenericGetPageOfResourcesQuery{TResource}"/> instance.
         /// </summary>
         /// <param name="queryConfig"></param>
-        public GenericGetManyResourcesQuery(PaginationConfiguration queryConfig)
+        public GenericGetPageOfResourcesQuery(PaginationConfiguration queryConfig)
         {
             Id = Guid.NewGuid();
             Data = queryConfig;

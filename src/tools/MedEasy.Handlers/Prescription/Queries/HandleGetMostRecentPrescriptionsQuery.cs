@@ -35,7 +35,7 @@ namespace MedEasy.Handlers.Prescription.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<IEnumerable<PrescriptionHeaderInfo>> HandleAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<IEnumerable<PrescriptionHeaderInfo>> HandleAsync(IQuery<Guid, GetMostRecentPrescriptionsInfo, IEnumerable<PrescriptionHeaderInfo>> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start handling most recents measures : {query}");
             if (query == null)

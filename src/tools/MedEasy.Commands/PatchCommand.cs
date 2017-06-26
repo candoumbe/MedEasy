@@ -13,7 +13,7 @@ namespace MedEasy.Commands
     /// <see cref="CommandBase{TKey, TData}"/>
     /// <seealso cref="IPatchCommand{TResourceId, TData}"/>
     [JsonObject]
-    public class PatchCommand<TResourceId, TResource, TData> : CommandBase<Guid, TData>, IPatchCommand<TResourceId, TResource, TData>
+    public class PatchCommand<TResourceId, TResource, TData> : CommandBase<Guid, TData>, IPatchCommand<Guid, TResourceId, TResource, TData>
         where TData : IPatchInfo<TResourceId, TResource>
         where TResource : class
     {

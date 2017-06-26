@@ -17,6 +17,7 @@ using MedEasy.DTO;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Specialty.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
@@ -101,13 +102,13 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>()
                 .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Specialty, SpecialtyInfo>>>(), It.IsAny<Expression<Func<Objects.Specialty, bool>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((SpecialtyInfo)null);
+                .Returns(new ValueTask<Option<SpecialtyInfo>>(Option.None<SpecialtyInfo>()));
 
             // Act
-            SpecialtyInfo output = await _handler.HandleAsync(new WantOneSpecialtyInfoByIdQuery(Guid.NewGuid()));
+            Option<SpecialtyInfo> output = await _handler.HandleAsync(new WantOneSpecialtyInfoByIdQuery(Guid.NewGuid()));
 
             //Assert
-            output.Should().BeNull();
+            output.Should().Be(Option.None<SpecialtyInfo>());
         }
         
 

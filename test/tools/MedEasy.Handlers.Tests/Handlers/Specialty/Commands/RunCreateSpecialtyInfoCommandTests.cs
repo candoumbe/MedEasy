@@ -15,6 +15,7 @@ using static Moq.MockBehavior;
 using FluentAssertions;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Exceptions;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Handlers
 {
@@ -41,10 +42,10 @@ namespace MedEasy.Handlers.Tests.Handlers
         }
 
 
-       
+
 
         [Fact]
-        public void ShouldThrowCommandNotValidExceptionIfAnyValidationErrorFound()
+        public async Task ShouldThrowCommandNotValidExceptionIfAnyValidationErrorFound()
         {
             // Arrange
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateSpecialtyCommand>()))
@@ -56,21 +57,24 @@ namespace MedEasy.Handlers.Tests.Handlers
 
             // Act
             ICreateSpecialtyCommand cmd = new CreateSpecialtyCommand(new CreateSpecialtyInfo { });
-            Func<Task> action = async () => await _runner.RunAsync(cmd);
+            Option<SpecialtyInfo, CommandException> result = await _runner.RunAsync(cmd);
 
 
-            CommandNotValidException<Guid> exception = action.ShouldThrow<CommandNotValidException<Guid>>().Which;
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+            {
+                exception.Should().BeOfType<CommandNotValidException<Guid>>().Which
+                    .CommandId.Should().Be(cmd.Id);
+                exception.Message.Should().NotBeNull();
+                exception.Errors.Should()
+                    .NotBeNullOrEmpty().And
+                    .HaveCount(1).And
+                    .ContainSingle(x => x.Severity == Error && x.Key == "ErrorCode");
 
-            exception.CommandId.Should().Be(cmd.Id);
-            exception.Message.Should().NotBeNullOrWhiteSpace();
-            exception.Errors.Should()
-                .NotBeNullOrEmpty().And
-                .HaveCount(1).And
-                .ContainSingle(x => x.Severity == Error && x.Key == "ErrorCode");
-
-            _loggerMock.Verify(mock => mock.Log(It.Is<LogLevel>(level => level == LogLevel.Debug), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(exception.Errors.Count()));
+                _loggerMock.Verify(mock => mock.Log(It.Is<LogLevel>(level => level == LogLevel.Debug), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(exception.Errors.Count()));
+            });
             _loggerMock.Verify(mock => mock.Log(It.Is<LogLevel>(level => level == LogLevel.Information), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.Once);
-            
+
 
         }
 

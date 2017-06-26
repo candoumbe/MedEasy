@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using MedEasy.DAL.Repositories;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +14,7 @@ using System;
 using MedEasy.Queries.Document;
 using MedEasy.Handlers.Core.Document.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.API.Controllers
 {
@@ -36,7 +36,7 @@ namespace MedEasy.API.Controllers
         public DocumentsController(
             ILogger<DocumentsController> logger, IOptionsSnapshot<MedEasyApiOptions> apiOptions,
             IHandleGetOneDocumentMetadataInfoByIdQuery getByIdHandler,
-            IHandleGetManyDocumentsQuery getManyQueryHandler,
+            IHandleGetPageOfDocumentsQuery getManyQueryHandler,
             IUrlHelper urlHelper, IHandleGetOneDocumentInfoByIdQuery getContentByIdHandler
              ) : base(logger, apiOptions, getByIdHandler, getManyQueryHandler, urlHelper)
         {
@@ -55,7 +55,7 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Gets a document by its id.
         /// </summary>
-        public IHandleQueryAsync<Guid, Guid, DocumentInfo, IWantOneResource<Guid, Guid, DocumentInfo>> GetDocumentContentByIdHandler { get; }
+        public IHandleQueryOneAsync<Guid, Guid, DocumentInfo, IWantOneResource<Guid, Guid, DocumentInfo>> GetDocumentContentByIdHandler { get; }
 
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace MedEasy.API.Controllers
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pageConfig.Page > 1;
 
-            
+
             string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
                     ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
@@ -117,24 +117,19 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
         public override async Task<IActionResult> Get([FromQuery]Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DocumentMetadataInfo resource = await GetByIdQueryHandler.HandleAsync(new WantOneDocumentMetadataInfoByIdQuery(id), cancellationToken);
-            IActionResult actionResult;
-            if (resource == null)
-            {
-                actionResult = new NotFoundResult();
-            }
-            else
-            {
-                IBrowsableResource<DocumentMetadataInfo> browsableResource = new BrowsableResource<DocumentMetadataInfo>
+            Option<DocumentMetadataInfo> resource = await GetByIdQueryHandler.HandleAsync(new WantOneDocumentMetadataInfoByIdQuery(id), cancellationToken);
+
+            return resource.Match<IActionResult>(
+                none: () => new NotFoundResult(),
+                some: x =>
                 {
-                    Resource = resource,
-                    Links = BuildAdditionalLinksForResource(resource)
-                };
-                actionResult = new OkObjectResult(browsableResource);
-            }
-
-            return actionResult;
-
+                    IBrowsableResource<DocumentMetadataInfo> browsableResource = new BrowsableResource<DocumentMetadataInfo>
+                    {
+                        Resource = x,
+                        Links = BuildAdditionalLinksForResource(x)
+                    };
+                    return new OkObjectResult(browsableResource);
+                });
         }
 
         /// <summary>
@@ -149,35 +144,32 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(DocumentInfo), 200)]
         public async Task<IActionResult> File(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DocumentInfo resource = await GetDocumentContentByIdHandler.HandleAsync(new GenericGetOneResourceByIdQuery<Guid, DocumentInfo>(id), cancellationToken);
-            IActionResult actionResult;
-            if (resource != null)
-            {
-                IBrowsableResource<DocumentInfo> browsableResource = new BrowsableResource<DocumentInfo>
-                {
-                    Resource = resource,
-                    Links = new[]
-                    {
-                        new Link { Relation = "self", Href = UrlHelper.Action(nameof(File), EndpointName, new { resource.Id }) },
-                        new Link { Relation = "metadata", Href = UrlHelper.Action(nameof(Get), EndpointName, new { resource.Id }) }
-                    }
-                };
-                actionResult = new OkObjectResult(browsableResource);
-            }
-            else
-            {
-                actionResult = new NotFoundResult();
-            }
+            Option<DocumentInfo> resource = await GetDocumentContentByIdHandler.HandleAsync(new GenericGetOneResourceByIdQuery<Guid, DocumentInfo>(id), cancellationToken);
 
-            return actionResult;
+            return resource.Match<IActionResult>(
+                some: x =>
+                {
+                    IBrowsableResource<DocumentInfo> browsableResource = new BrowsableResource<DocumentInfo>
+                    {
+                        Resource = x,
+                        Links = new[]
+                        {
+                        new Link { Relation = "self", Href = UrlHelper.Action(nameof(File), EndpointName, new { x.Id }) },
+                        new Link { Relation = "metadata", Href = UrlHelper.Action(nameof(Get), EndpointName, new { x.Id }) }
+                    }
+                    };
+                    return new OkObjectResult(browsableResource);
+                },
+                none: () => new NotFoundResult());
         }
+
 
         /// <summary>
         /// Inherited
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        protected override IEnumerable<Link> BuildAdditionalLinksForResource(DocumentMetadataInfo resource) 
+        protected override IEnumerable<Link> BuildAdditionalLinksForResource(DocumentMetadataInfo resource)
             => new[]
             {
                 new Link { Relation = "self", Href = UrlHelper.Action(nameof(Get), EndpointName, new { resource.Id })},
@@ -185,3 +177,4 @@ namespace MedEasy.API.Controllers
             };
     }
 }
+

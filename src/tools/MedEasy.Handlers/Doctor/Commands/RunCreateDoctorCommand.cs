@@ -8,6 +8,8 @@ using MedEasy.Commands.Doctor;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
+using Microsoft.CodeAnalysis;
+using Optional;
 
 namespace MedEasy.Handlers.Doctor.Commands
 {
@@ -28,13 +30,14 @@ namespace MedEasy.Handlers.Doctor.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<DoctorInfo> RunAsync(ICreateDoctorCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<DoctorInfo, CommandException>> RunAsync(ICreateDoctorCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
             }
 
+            Option<DoctorInfo, CommandException> result = default(Option<DoctorInfo, CommandException>);
             CreateDoctorInfo info = command.Data;
             Debug.Assert(!string.IsNullOrWhiteSpace(info.Lastname));
 
@@ -43,33 +46,37 @@ namespace MedEasy.Handlers.Doctor.Commands
                 DateTimeOffset now = DateTimeOffset.UtcNow;
 
                 int? specialtyId = null;
+
                 if (info.SpecialtyId.HasValue)
                 {
-                    var specialty = await uow.Repository<Objects.Specialty>().SingleOrDefaultAsync(x => new { x.Id  } , x => x.UUID == info.SpecialtyId);
-                    if (specialty == null)
+                    var specialty = await uow.Repository<Objects.Specialty>()
+                        .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == info.SpecialtyId);
+
+                    specialty.MatchSome(x => specialtyId = x.Id);
+
+                    if (specialtyId.HasValue)
                     {
-                        throw new NotFoundException($"{nameof(Objects.Specialty)} <{info.SpecialtyId}> not found");
+                        Objects.Doctor itemToCreate = new Objects.Doctor()
+                        {
+                            Firstname = info.Firstname?.Trim()?.ToTitleCase(),
+                            Lastname = info.Lastname?.ToUpper(),
+                            SpecialtyId = specialtyId,
+                            UpdatedDate = now,
+                            CreatedDate = now
+                        };
+
+                        uow.Repository<Objects.Doctor>().Create(itemToCreate);
+                        await uow.SaveChangesAsync(cancellationToken);
+
+                        result = _mapper.Map<DoctorInfo>(itemToCreate).Some<DoctorInfo, CommandException>();
                     }
                     else
                     {
-                        specialtyId = specialty.Id;
+                        result = Option.None<DoctorInfo, CommandException>(new CommandEntityNotFoundException($"Specialty <{info.SpecialtyId}> not found"));
                     }
-
                 }
 
-                Objects.Doctor itemToCreate = new Objects.Doctor()
-                {
-                    Firstname = info.Firstname?.Trim()?.ToTitleCase(),
-                    Lastname = info.Lastname?.ToUpper(),
-                    SpecialtyId = specialtyId,
-                    UpdatedDate = now,
-                    CreatedDate = now
-                };
-
-                uow.Repository<Objects.Doctor>().Create(itemToCreate);
-                await uow.SaveChangesAsync(cancellationToken);
-
-                return _mapper.Map<DoctorInfo>(itemToCreate); 
+                return result;
 
             }
         }

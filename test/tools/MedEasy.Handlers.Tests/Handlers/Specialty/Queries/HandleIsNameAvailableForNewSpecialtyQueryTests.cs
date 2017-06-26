@@ -155,7 +155,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             // Arrange
 
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Specialty>().AnyAsync(It.IsAny<Expression<Func<Objects.Specialty, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns((Expression<Func<Objects.Specialty, bool>> filter, CancellationToken cancellationToken) => Task.Run(() => specialtiesInStore.Any(filter.Compile())));
+                .Returns((Expression<Func<Objects.Specialty, bool>> filter, CancellationToken cancellationToken) => new ValueTask<bool>(specialtiesInStore.Any(filter.Compile())));
 
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()));

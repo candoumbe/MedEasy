@@ -6,7 +6,7 @@ namespace MedEasy.Queries.Appointment
     /// <summary>
     /// Immutable class to query many <see cref="DTO.AppointmentInfo"/> by specifying its <see cref="DTO.AppointmentInfo.Id"/>
     /// </summary>
-    public class WantManyAppointmentInfosQuery : IWantManyAppointmentInfoQuery
+    public class WantManyAppointmentInfosQuery : IWantPageOfAppointmentInfosQuery
     {
         public Guid Id { get; }
 

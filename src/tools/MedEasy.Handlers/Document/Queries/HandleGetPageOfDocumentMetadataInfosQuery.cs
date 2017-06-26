@@ -11,17 +11,17 @@ using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Document.Queries
 {
-    public class HandleGetManyDocumentMetadataInfosQuery : GenericGetManyQueryHandler<Guid, DocumentMetadata, int, DocumentMetadataInfo, IWantManyResources<Guid, DocumentMetadataInfo>>,  IHandleGetManyDocumentsQuery
+    public class HandleGetPageOfDocumentMetadataInfosQuery : PagedResourcesQueryHandlerBase<Guid, DocumentMetadata, DocumentMetadataInfo, IWantPageOfResources<Guid, DocumentMetadataInfo>>,  IHandleGetPageOfDocumentsQuery
     {
         
         /// <summary>
-        /// Builds a new <see cref="HandleGetManyDocumentMetadataInfosQuery"/> instance.
+        /// Builds a new <see cref="HandleGetPageOfDocumentMetadataInfosQuery"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
         /// <param name="logger"></param>
         /// <param name="expressionBuilder"></param>
-        public HandleGetManyDocumentMetadataInfosQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetManyDocumentMetadataInfosQuery> logger, IExpressionBuilder expressionBuilder)
-            : base(logger, uowFactory, expressionBuilder)
+        public HandleGetPageOfDocumentMetadataInfosQuery(IUnitOfWorkFactory uowFactory, ILogger<HandleGetPageOfDocumentMetadataInfosQuery> logger, IExpressionBuilder expressionBuilder)
+            : base(uowFactory, expressionBuilder)
         {
         }
 

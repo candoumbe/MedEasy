@@ -18,6 +18,8 @@ using MedEasy.DTO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.BLL.Tests.Commands.Patient
 {
@@ -147,17 +149,23 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 
             // Act
 
-            PatientInfo output = await _handler.RunAsync(new CreatePatientCommand(input));
+            Option<PatientInfo, CommandException> output = await _handler.RunAsync(new CreatePatientCommand(input));
 
             // Assert
-            output.Should().NotBeNull();
-            output.Firstname.Should().Be(input.Firstname?.ToTitleCase());
-            output.Lastname.Should().Be(input.Lastname?.ToUpper());
-            output.BirthDate.Should().Be(input.BirthDate);
-            output.BirthPlace.Should().Be(input.BirthPlace?.ToTitleCase());
-            output.MainDoctorId.ShouldBeEquivalentTo(input.MainDoctorId);
+            output.HasValue.Should().BeTrue();
 
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()), Times.Once);
+            output.MatchSome(x =>
+            {
+
+                x.Should().NotBeNull();
+                x.Firstname.Should().Be(input.Firstname?.ToTitleCase());
+                x.Lastname.Should().Be(input.Lastname?.ToUpper());
+                x.BirthDate.Should().Be(input.BirthDate);
+                x.BirthPlace.Should().Be(input.BirthPlace?.ToTitleCase());
+                x.MainDoctorId.ShouldBeEquivalentTo(input.MainDoctorId);
+                _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()), Times.Once);
+            });
+
         }
 
 

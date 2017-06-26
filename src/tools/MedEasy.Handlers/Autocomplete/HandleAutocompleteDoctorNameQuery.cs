@@ -30,7 +30,7 @@ namespace MedEasy.Handlers.Doctor.Queries
         }
 
 
-        public async Task<IEnumerable<DoctorAutocompleteInfo>> HandleAsync(IAutocompleteDoctorNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<IEnumerable<DoctorAutocompleteInfo>> HandleAsync(IAutocompleteDoctorNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             
             if (query == null)

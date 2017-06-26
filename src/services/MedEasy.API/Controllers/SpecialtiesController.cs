@@ -5,18 +5,18 @@ using MedEasy.DTO;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MedEasy.DAL.Repositories;
 using System.Linq;
 using MedEasy.Queries.Specialty;
 using MedEasy.Commands.Specialty;
-using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using MedEasy.Handlers.Core.Specialty.Commands;
 using MedEasy.Handlers.Core.Specialty.Queries;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
+using Microsoft.AspNetCore.Http;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,7 +26,7 @@ namespace MedEasy.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="SpecialtyInfo"/> resources
     /// </summary>
     [Route("api/[controller]")]
-    public class SpecialtiesController : RestCRUDControllerBase<Guid, Specialty, SpecialtyInfo, IWantOneSpecialtyInfoByIdQuery, IWantManySpecialtyInfoQuery, Guid, CreateSpecialtyInfo, ICreateSpecialtyCommand, IRunCreateSpecialtyCommand>
+    public class SpecialtiesController : RestCRUDControllerBase<Guid, Specialty, SpecialtyInfo, IWantOneSpecialtyInfoByIdQuery, IWantPageOfSpecialtyInfoQuery, Guid, CreateSpecialtyInfo, ICreateSpecialtyCommand, IRunCreateSpecialtyCommand>
     {
         /// <summary>
         /// Name of the endpoint
@@ -56,7 +56,7 @@ namespace MedEasy.API.Controllers
         /// <param name="apiOptions">Options accessor</param>
         public SpecialtiesController(ILogger<SpecialtiesController> logger, IUrlHelper urlHelper,
             IOptionsSnapshot<MedEasyApiOptions> apiOptions, IHandleGetSpecialtyInfoByIdQuery getByIdQueryHandler,
-            IHandleGetManySpecialtyInfosQuery getManySpecialtyQueryHandler,
+            IHandleGetPageOfSpecialtyInfosQuery getManySpecialtyQueryHandler,
             IRunCreateSpecialtyCommand iRunCreateSpecialtyCommand,
             IRunDeleteSpecialtyByIdCommand iRunDeleteSpecialtyByIdCommand,
             IHandleFindDoctorsBySpecialtyIdQuery iFindDoctorsBySpecialtyIdQueryHandler) : base(logger, apiOptions, getByIdQueryHandler, getManySpecialtyQueryHandler, iRunCreateSpecialtyCommand, urlHelper)
@@ -131,8 +131,35 @@ namespace MedEasy.API.Controllers
         [ProducesResponseType(typeof(SpecialtyInfo), 201)]
         public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
-            SpecialtyInfo output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info), cancellationToken);
-            return new CreatedAtActionResult(nameof(Get), EndpointName, new { output.Id}, output);
+            Option<SpecialtyInfo, CommandException> output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info), cancellationToken);
+
+            return output.Match(
+                some: specialty =>
+                {
+                    IBrowsableResource<SpecialtyInfo> browsableResource = new BrowsableResource<SpecialtyInfo>
+                    {
+                        Resource = specialty,
+                        Links = BuildAdditionalLinksForResource(specialty)
+                    };
+                    return new CreatedAtActionResult(nameof(Get), EndpointName, new { specialty.Id }, browsableResource);
+
+                },
+                none: exception =>
+                {
+                    IActionResult result;
+                    switch (exception)
+                    {
+                        case CommandEntityNotFoundException cenf:
+                            result = new BadRequestObjectResult(cenf.Message);
+                            break;
+                        default:
+                            result = new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                            break;
+                    }
+
+                    return result;
+
+                });
         }
 
 
@@ -182,31 +209,44 @@ namespace MedEasy.API.Controllers
                 query = new PaginationConfiguration
                 {
                     Page = 1,
-                    PageSize = ApiOptions.Value.DefaulLimit
+                    PageSize = ApiOptions.Value.DefaultPageSize
                 };
             }
 
             query.PageSize = Math.Min(ApiOptions.Value.MaxPageSize, query.PageSize);
 
-            IPagedResult<DoctorInfo> pageResult = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(id, query));
-            Debug.Assert(pageResult != null);
+            Option<IPagedResult<DoctorInfo>> result = await _iFindDoctorsBySpecialtyIdQueryHandler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(id, query));
 
-            IGenericPagedGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
-                pageResult.Entries,
-                first: UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
-                previous: pageResult.PageCount > 1 && query.Page > 1
-                    ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })
-                    : null,
-                next: query.Page < pageResult.PageCount
-                    ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page + 1 })
-                    : null,
-                last: pageResult.PageCount > 1 
-                    ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = pageResult.PageCount })
-                    : null
-                );
-
-            return new OkObjectResult(pagedResponse);
-
+            return result.Match<IActionResult>(
+                some: page =>
+                {
+                    IGenericPagedGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
+                        page.Entries,
+                        first: UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
+                        previous: page.PageCount > 1 && query.Page > 1
+                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })
+                            : null,
+                        next: query.Page < page.PageCount
+                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page + 1 })
+                            : null,
+                        last: page.PageCount > 1
+                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = page.PageCount })
+                            : null
+                        );
+                    return new OkObjectResult(pagedResponse);
+                },
+                none: () => new NotFoundResult());
         }
+
+
+        protected override IEnumerable<Link> BuildAdditionalLinksForResource(SpecialtyInfo resource) =>
+            new[]
+            {
+                new Link {
+                    Method = "GET",
+                    Relation = nameof(SpecialtiesController.Doctors),
+                    Href = UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { resource.Id })
+                }
+            };
     }
 }

@@ -21,6 +21,8 @@ using System.Linq.Expressions;
 using MedEasy.Objects;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
+using MedEasy.Handlers.Core.Exceptions;
+using Optional;
 
 namespace MedEasy.BLL.Tests.Commands.Patient
 {
@@ -138,19 +140,27 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             
             // Act
             CreateDocumentForPatientCommand cmd = new CreateDocumentForPatientCommand(input);
-            DocumentMetadataInfo output = await _handler.RunAsync(cmd);
+            Option<DocumentMetadataInfo, CommandException> output = await _handler.RunAsync(cmd);
 
             // Assert
-            output.Should().NotBeNull();
-            output.MimeType.Should().Be(input.Document.MimeType);
-            output.Title.Should().Be(input.Document.Title);
-            output.Size.Should().Be(input.Document.Content.Length);
-            output.PatientId.Should().Be(input.PatientId);
-            output.Id.Should().NotBeEmpty();
+            output.HasValue.Should()
+                .BeTrue();
 
-            _validatorMock.Verify(mock => mock.Validate(It.Is<ICreateDocumentForPatientCommand>(x => x.Id == cmd.Id)), Times.Once);
-            _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
-            _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
+            output.MatchSome(createdResource => {
+
+                createdResource.Should().NotBeNull();
+                createdResource.MimeType.Should().Be(input.Document.MimeType);
+                createdResource.Title.Should().Be(input.Document.Title);
+                createdResource.Size.Should().Be(input.Document.Content.Length);
+                createdResource.PatientId.Should().Be(input.PatientId);
+                createdResource.Id.Should().NotBeEmpty();
+
+                _validatorMock.Verify(mock => mock.Validate(It.Is<ICreateDocumentForPatientCommand>(x => x.Id == cmd.Id)), Times.Once);
+                _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
+                _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
+
+            });
+
         }
 
 

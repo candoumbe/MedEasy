@@ -118,7 +118,7 @@ namespace MedEasy.Handlers.Tests.Handlers
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
                 It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
-                    => Task.Run(() =>
+                    =>
                     {
                         
                         IEnumerable<PatientInfo> results = patients.Select(selector.Compile())
@@ -129,8 +129,8 @@ namespace MedEasy.Handlers.Tests.Handlers
                         int total = patients.Select(selector.Compile())
                             .Count(filter.Compile());
 
-                        return (IPagedResult<PatientInfo>)new PagedResult<PatientInfo>(results, total, pageSize);
-                    }));
+                        return new ValueTask<IPagedResult<PatientInfo>>((IPagedResult<PatientInfo>)new PagedResult<PatientInfo>(results, total, pageSize));
+                    });
 
             // Act
             SearchQuery<PatientInfo> searchQuery = new SearchQuery<PatientInfo>(search);

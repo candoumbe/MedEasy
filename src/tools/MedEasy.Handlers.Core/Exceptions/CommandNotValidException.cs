@@ -9,7 +9,7 @@ namespace MedEasy.Handlers.Core.Exceptions
     /// Exception thrown when a command is not valid
     /// </summary>
     /// <typeparam name="TCommandId">Type of the id of the command that the exception will be thrown on validation failure</typeparam>
-    public class CommandNotValidException<TCommandId> : ValidationException
+    public class CommandNotValidException<TCommandId> : CommandException
     {
         /// <summary>
         /// Command that causes the exception to be thrown
@@ -23,7 +23,7 @@ namespace MedEasy.Handlers.Core.Exceptions
         /// <param name="commandId"><see cref="ICommmand.Id"/> that cause the exception to be thrown</param>
         /// <param name="errors">errors that causes the exception to be thrown</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="commandId"/> is equals to default value of <see cref="TCommandId"/></exception>
-        public CommandNotValidException(TCommandId commandId, IEnumerable<ErrorInfo> errors) : base(errors)
+        public CommandNotValidException(TCommandId commandId, IEnumerable<ErrorInfo> errors) : base(string.Empty, errors)
         {
             if (Equals(default(TCommandId), commandId))
             {

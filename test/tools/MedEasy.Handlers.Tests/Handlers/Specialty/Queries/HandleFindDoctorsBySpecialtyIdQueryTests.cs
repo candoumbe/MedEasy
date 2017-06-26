@@ -22,6 +22,7 @@ using MedEasy.Handlers.Core.Specialty.Queries;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using System.Reflection;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Specialty.Queries
 {
@@ -85,10 +86,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                     },
                     Guid.NewGuid(),
                     new PaginationConfiguration(),
-                    1,
-                    1,
-                    0,
-                    ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 0))
+                    ((Action<Option<IPagedResult<DoctorInfo>>>) (items => items.HasValue.Should().BeFalse()))
 
                 };
                 
@@ -106,10 +104,17 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
                         },
                         specialtyId,
                         new PaginationConfiguration {Page = 1, PageSize = 1 },
-                        1,
-                        1,
-                        2,
-                        ((Expression<Func<IEnumerable<DoctorInfo>, bool>>) (items => items.Count() == 1 && items.Once(x => x.Id == doctorId)))
+                        ((Action<Option<IPagedResult<DoctorInfo>>>) (items => {
+                            items.HasValue.Should().BeTrue();
+                            items.MatchSome(
+                                pageOfResult =>
+                                {
+                                    pageOfResult.Should()
+                                        .NotBeNull();
+                                    pageOfResult.Entries.Should().HaveCount(1).And
+                                        .Contain(x => x.Id == doctorId);
+                                });
+                        }))
                     };
                 }
             }
@@ -158,17 +163,10 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             
 
             // Act
-            IPagedResult<DoctorInfo> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(Guid.NewGuid(), new PaginationConfiguration()));
+            Option<IPagedResult<DoctorInfo>> output = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(Guid.NewGuid(), new PaginationConfiguration()));
 
             //Assert
-            output.Should().NotBeNull();
-            output.Entries.Should()
-                .NotBeNull().And
-                .BeEmpty();
-
-            output.Total.Should().Be(0);
-            output.PageCount.Should().Be(0);
-            output.PageSize.Should().Be(PaginationConfiguration.DefaultPageSize);
+            output.HasValue.Should().BeFalse();
             
 
         }
@@ -176,8 +174,7 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
 
         [Theory]
         [MemberData(nameof(FindDoctorsBySpecialtyIdCases))]
-        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, Guid specialtyId, PaginationConfiguration getQuery, int expectedPageSize,
-            int expectedPage, int expectedTotal, Expression<Func<IEnumerable<DoctorInfo>, bool>> itemsExpectation)
+        public async Task FindDoctorsBySpecialtyId(IEnumerable<Objects.Doctor> doctors, Guid specialtyId, PaginationConfiguration getQuery, Action<Option<IPagedResult<DoctorInfo>>> assertions)
         {
 
             _outputHelper.WriteLine($"{nameof(doctors)} : {SerializeObject(doctors)}");
@@ -193,16 +190,10 @@ namespace MedEasy.Handlers.Tests.Specialty.Queries
             }
 
             // Act
-            IPagedResult<DoctorInfo> pageOfResult = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, getQuery));
+            Option<IPagedResult<DoctorInfo>> pageOfResult = await _handler.HandleAsync(new FindDoctorsBySpecialtyIdQuery(specialtyId, getQuery));
 
             // Assert
-            pageOfResult.Should().NotBeNull();
-            pageOfResult.Entries.Should()
-                .NotBeNull().And
-                .Match(itemsExpectation);
-
-            pageOfResult.Total.Should().Be(expectedTotal);
-            
+            assertions(pageOfResult);
 
         }
 

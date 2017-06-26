@@ -12,6 +12,7 @@ using System.Linq;
 using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
@@ -35,7 +36,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<DocumentMetadataInfo> HandleAsync(IWantOneDocumentByPatientIdAndDocumentIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<DocumentMetadataInfo>> HandleAsync(IWantOneDocumentByPatientIdAndDocumentIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             _logger.LogInformation($"Start looking for documents metadata : {query}");
             if (query == null)
@@ -48,12 +49,18 @@ namespace MedEasy.Handlers.Patient.Queries
                 _logger.LogTrace($"Start querying {query}");
                 GetOneDocumentInfoByPatientIdAndDocumentIdInfo input = query.Data;
                 Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
-                DocumentMetadataInfo result = await uow.Repository<DocumentMetadata>()
+
+                Option<DocumentMetadataInfo> result = await uow.Repository<DocumentMetadata>()
                     .SingleOrDefaultAsync(
                         selector,
-                        x => x.Patient.UUID == input.PatientId && x.UUID == input.DocumentMetadataId);
+                        x => x.Patient.UUID == input.PatientId && x.UUID == input.DocumentMetadataId,
+                        cancellationToken);
 
-                _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}>{(result == null ? " not" : string.Empty)} found");
+                result.Match(
+                    some: x => _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}> found"),
+                    none: () => _logger.LogTrace($"Document <{input.DocumentMetadataId}> for patient <{input.PatientId}> not found")
+                    );
+
                 _logger.LogInformation($"Handling query {query.Id} successfully");
                 return result;
             }

@@ -103,10 +103,10 @@ namespace MedEasy.Handlers.Tests.Appointment.Queries
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Appointment>()
                 .ReadPageAsync(It.IsAny<Expression<Func<Objects.Appointment, AppointmentInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<IEnumerable<OrderClause<AppointmentInfo>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(PagedResult<AppointmentInfo>.Default);
+                .Returns(new ValueTask<IPagedResult<AppointmentInfo>>(PagedResult<AppointmentInfo>.Default));
 
             // Act
-            IPagedResult<AppointmentInfo> output = await _handler.HandleAsync(new GenericGetManyResourcesQuery<AppointmentInfo>(new PaginationConfiguration()));
+            IPagedResult<AppointmentInfo> output = await _handler.HandleAsync(new GenericGetPageOfResourcesQuery<AppointmentInfo>(new PaginationConfiguration()));
 
             //Assert
             output.Should().NotBeNull();

@@ -9,6 +9,7 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Specialty.Commands;
 using MedEasy.Handlers.Core.Exceptions;
+using Optional;
 
 namespace MedEasy.Handlers.Specialty.Commands
 {

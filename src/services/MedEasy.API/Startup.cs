@@ -112,7 +112,7 @@ namespace MedEasy.API
             services.AddOptions();
             services.Configure<MedEasyApiOptions>((options) =>
             {
-                options.DefaulLimit = Configuration.GetValue("APIOptions:DefaultPageSize", 30);
+                options.DefaultPageSize = Configuration.GetValue("APIOptions:DefaultPageSize", 30);
                 options.MaxPageSize = Configuration.GetValue("APIOptions:MaxPageSize", 100);
             });
             // Add framework services.

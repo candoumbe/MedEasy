@@ -8,7 +8,7 @@
         /// <summary>
         /// DefaultPageSize
         /// </summary>
-        public int DefaulLimit { get; set; }
+        public int DefaultPageSize { get; set; }
 
         /// <summary>
         /// Number of items a page of result can contain at most

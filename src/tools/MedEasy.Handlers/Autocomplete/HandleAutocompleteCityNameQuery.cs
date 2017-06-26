@@ -22,7 +22,7 @@ namespace MedEasy.Handlers.Autocomplete
         }
 
 
-        public async Task<IEnumerable<string>> HandleAsync(IWantAutocompleteCityNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<IEnumerable<string>> HandleAsync(IWantAutocompleteCityNameQuery query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {

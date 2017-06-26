@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using MedEasy.Handlers.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
@@ -32,7 +33,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         private Mock<ILogger<RunPatchPatientCommand>> _loggerMock;
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        
+
 
         public RunPatchPatientCommandTests(ITestOutputHelper outputHelper)
         {
@@ -47,7 +48,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
             _commandValidatorMock = new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>(Strict);
-            
+
             _commandRunner = new RunPatchPatientCommand(_uowFactory, _loggerMock.Object, _commandValidatorMock.Object);
         }
 
@@ -68,7 +69,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             get
             {
                 yield return new object[] { null, new Mock<ILogger<RunPatchPatientCommand>>().Object, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object};
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
                 yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, new Mock<ILogger<RunPatchPatientCommand>>().Object, null };
             }
         }
@@ -111,7 +112,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                             Id = patientId,
                             PatchDocument = patchDocument
                         },
-                        ((Expression<Func<Objects.Patient, bool>>)( x => x.UUID == patientId && x.MainDoctorId == 2 ))
+                        ((Expression<Func<Option<Nothing, CommandException>, bool>>)(x => x.HasValue))
                     };
                 }
                 {
@@ -132,7 +133,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                             Id = patientId,
                             PatchDocument = patchDocument
                         },
-                        ((Expression<Func<Objects.Patient, bool>>)( x => x.UUID == patientId && x.MainDoctorId == null ))
+                        ((Expression<Func<Option<Nothing, CommandException>, bool>>)(x => x.HasValue))
                     };
                 }
             }
@@ -147,7 +148,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// <param name="patientExpectation">Expectation on the output of the command</param>
         [Theory]
         [MemberData(nameof(PatchPatientCases))]
-        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, IPatchInfo<Guid, Objects.Patient> changes, Expression<Func<Objects.Patient, bool>> patientExpectation)
+        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, IPatchInfo<Guid, Objects.Patient> changes, Expression<Func<Option<Nothing, CommandException>, bool>> patientExpectation)
         {
             _outputHelper.WriteLine($"Current patient store state : {SerializeObject(patients)}");
             _outputHelper.WriteLine($"Current doctor store state : {SerializeObject(doctors)}");
@@ -167,12 +168,14 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             // Act
-            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();            
+            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
             IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(changes);
-            await _commandRunner.RunAsync(command);
+            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
             // Assert
-            _commandValidatorMock.Verify(mock => mock.Validate(command), Once);
+            result.HasValue.Should().BeTrue();
+            result.Should().Match(patientExpectation);
+            
         }
 
         /// <summary>
@@ -180,7 +183,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// when the validator returns <see cref="ErrorInfo"/>s with <see cref="ErrorInfo.Severity"/> equals to <see cref="Error"/>
         /// </summary>
         [Fact]
-        public void ShouldThrowCommandNotValidExceptionWhenCommandValidationFails()
+        public async Task ShouldThrowCommandNotValidExceptionWhenCommandValidationFails()
         {
             // Arrange
             _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
@@ -197,15 +200,16 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 PatchDocument = new JsonPatchDocument<Objects.Patient>()
             };
             IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(patchInfo);
-            Func<Task> action = async () => await _commandRunner.RunAsync(command);
+            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
             // Assert
-            CommandNotValidException<Guid> exception = action.ShouldThrow<CommandNotValidException<Guid>>().Which;
-
-            exception.CommandId.Should().Be(command.Id);
-            exception.Errors.Should()
-                .NotBeNullOrEmpty().And
-                .Contain(x => x.Key == nameof(Objects.Patient.Id));
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+            {
+                exception.Should().BeOfType<CommandEntityNotFoundException>().Which
+                    .Errors.Should()
+                    .NotBeNull();
+            });
 
 
         }
@@ -218,13 +222,13 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// <see cref="NotFoundException"/> should be thrown when there's no <see cref="Objects.Patient"/> with <c><see cref="Objects.Patient.Id"/> <see cref="ChangeMainDoctorIdInfo.PatientId"/> </c>.
         /// </remarks>
         [Fact]
-        public void ShouldThrowNotFoundExceptionIfPatientNotFound()
+        public async Task ShouldThrowNotFoundExceptionIfPatientNotFound()
         {
             // Arrange
             _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
-           
+
             // Act
             JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
             patchDocument.Replace(x => x.Firstname, "Bruce");
@@ -235,14 +239,19 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 PatchDocument = patchDocument
             };
             IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(commandData);
-            Func<Task> action = async () => await _commandRunner.RunAsync(command);
+            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
 
             // Assert
-            action.ShouldThrow<NotFoundException>().Which
-                .Message.Should()
-                    .NotBeNullOrWhiteSpace().And
-                    .ContainEquivalentOf("patient");
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+            {
+                exception.Should().BeOfType<CommandEntityNotFoundException>().Which
+                    .Message.Should()
+                        .NotBeNullOrWhiteSpace().And
+                        .ContainEquivalentOf($"<{command.Data.Id}> not found");
+
+            });
         }
 
 
@@ -253,7 +262,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// <see cref="NotFoundException"/> should be thrown when <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> is not <c>null</c> and there's no <see cref="Objects.Doctor"/> with <c><see cref="Objects.Doctor.Id"/> == <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> </c>.
         /// </remarks>
         [Fact]
-        public void ShouldThrowNotFoundExceptionIfDoctorNotFound()
+        public async Task ShouldThrowNotFoundExceptionIfDoctorNotFound()
         {
             // Arrange
             _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
@@ -267,15 +276,16 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 Id = Guid.NewGuid(),
                 PatchDocument = patchDocument
             };
-            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(data) ;
-            Func<Task> action = async () => await _commandRunner.RunAsync(command);
+            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(data);
+            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
 
             // Assert
-            action.ShouldThrow<NotFoundException>().Which
-                .Message.Should()
-                    .BeEquivalentTo("Doctor <3> not found");
-            
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+                exception.Should().BeOfType<CommandEntityNotFoundException>().Which
+                    .Message.Should().NotBeNullOrWhiteSpace());
+
         }
     }
 }

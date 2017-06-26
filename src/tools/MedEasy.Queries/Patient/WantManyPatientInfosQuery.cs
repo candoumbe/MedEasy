@@ -6,7 +6,7 @@ namespace MedEasy.Queries.Patient
     /// <summary>
     /// Immutable class to query many <see cref="DTO.PatientInfo"/> by specifying its <see cref="DTO.PatientInfo.Id"/>
     /// </summary>
-    public class WantManyPatientInfosQuery : IWantManyPatientInfoQuery
+    public class WantManyPatientInfosQuery : IWantPageOfPatientInfoQuery
     {
         public Guid Id { get; }
 

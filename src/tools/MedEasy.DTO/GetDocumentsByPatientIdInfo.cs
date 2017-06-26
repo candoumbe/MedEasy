@@ -12,7 +12,7 @@ namespace MedEasy.DTO
     public class GetDocumentsByPatientIdInfo
     {
         /// <summary>
-        /// Id of the patient to get its <see cref="DocumentMetadataInfo"/>s for
+        /// Id of the patient to get its <see cref="DocumentMetadataInfo"/>s for.
         /// </summary>
         public Guid PatientId { get; set; }
 

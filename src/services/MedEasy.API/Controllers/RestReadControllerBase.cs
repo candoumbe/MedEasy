@@ -6,14 +6,13 @@ using MedEasy.RestObjects;
 using MedEasy.DAL.Repositories;
 using MedEasy.Queries;
 using MedEasy.DTO;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using MedEasy.Handlers.Core.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.API.Controllers
 {
@@ -33,12 +32,12 @@ namespace MedEasy.API.Controllers
         /// <summary>
         /// Handler for "I want one resource" queries.
         /// </summary>
-        protected IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> GetByIdQueryHandler { get; }
+        protected IHandleQueryOneAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> GetByIdQueryHandler { get; }
 
         /// <summary>
         /// Handler for "I want several resources" queries
         /// </summary>
-        protected IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> GetManyQueryHandler { get; }
+        protected IHandleQueryPageAsync<Guid, PaginationConfiguration, TResource, IWantPageOfResources<Guid, TResource>> GetManyQueryHandler { get; }
 
         /// <summary>
         /// Options associated with the API
@@ -50,7 +49,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         protected IUrlHelper UrlHelper { get; }
 
-       
+
         /// <summary>
         /// Builds a new <see cref="RestReadControllerBase{TKey, TResource}"/> instance
         /// </summary>
@@ -58,17 +57,17 @@ namespace MedEasy.API.Controllers
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="urlHelper">actory for creating <see cref="IUrlHelper"/> instances</param>
         /// <param name="getByIdHandler">handler to use to lookup for a single resource</param>
-        /// <param name="getManyQueryHandler">handler to use to lookup for many resources</param>
+        /// <param name="getPageQueryHandler">handler to use to lookup for a page of resources</param>
         /// <exception cref="ArgumentNullException">if either <paramref name="logger"/> or <paramref name="getByIdHandler"/> is <code>null</code></exception>
         protected RestReadControllerBase(
             ILogger logger,
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
-            IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
-            IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyQueryHandler,
+            IHandleQueryOneAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getByIdHandler,
+            IHandleQueryPageAsync<Guid, PaginationConfiguration, TResource, IWantPageOfResources<Guid, TResource>> getPageQueryHandler,
             IUrlHelper urlHelper) : base(logger)
         {
             GetByIdQueryHandler = getByIdHandler ?? throw new ArgumentNullException(nameof(getByIdHandler), "Handler cannot be null");
-            GetManyQueryHandler = getManyQueryHandler ?? throw new ArgumentNullException(nameof(getManyQueryHandler), "GET many queryHandler cannot be null");
+            GetManyQueryHandler = getPageQueryHandler ?? throw new ArgumentNullException(nameof(getPageQueryHandler), "GET many queryHandler cannot be null");
             UrlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper), $"{nameof(urlHelper)} cannot be null");
             ApiOptions = apiOptions;
         }
@@ -82,33 +81,30 @@ namespace MedEasy.API.Controllers
         /// <returns><see cref="Task{TEntityInfo}"/></returns>
         public async virtual Task<IActionResult> Get(TKey id, CancellationToken cancellationToken = default(CancellationToken))
         {
-            TResource resource = await GetByIdQueryHandler.HandleAsync(new GenericGetOneResourceByIdQuery<TKey, TResource>(id), cancellationToken);
-            IActionResult actionResult;
-            if (resource == null)
-            {
-                actionResult = new NotFoundResult();
-            }
-            else
-            {
-                IEnumerable<Link> links = new List<Link>
-                {
-                    new Link
-                    {
-                        Relation = "self",
-                        Href = UrlHelper.Action(nameof(Get), ControllerName, new {resource.Id })
-                    }
-                };
-                IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(resource);
+            Option<TResource> resource = await GetByIdQueryHandler.HandleAsync(new GenericGetOneResourceByIdQuery<TKey, TResource>(id), cancellationToken);
 
-                Debug.Assert(additionalLinks != null, "Implementation cannot return null");
-                
-                actionResult = new OkObjectResult(new BrowsableResource<TResource>
-                {
-                    Resource = resource,
-                    Links = links.Concat(additionalLinks)
-                });
-            }
-            return actionResult;
+            return resource.Match<IActionResult>(
+            none: () => new NotFoundResult(),
+            some: x =>
+               {
+                   IEnumerable<Link> links = new List<Link>
+                   {
+                        new Link
+                        {
+                            Relation = "self",
+                            Href = UrlHelper.Action(nameof(Get), ControllerName, new {x.Id })
+                        }
+                   };
+                   IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(x);
+
+                   Debug.Assert(additionalLinks != null, "Implementation cannot return null");
+
+                   return new OkObjectResult(new BrowsableResource<TResource>
+                   {
+                       Resource = x,
+                       Links = links.Concat(additionalLinks)
+                   });
+               });
 
 
         }
@@ -139,13 +135,13 @@ namespace MedEasy.API.Controllers
                 query = new PaginationConfiguration
                 {
                     Page = 1,
-                    PageSize = ApiOptions.Value.DefaulLimit
+                    PageSize = ApiOptions.Value.DefaultPageSize
                 };
             }
 
             query.PageSize = Math.Min(query.PageSize, ApiOptions.Value.MaxPageSize);
 
-            return await GetManyQueryHandler.HandleAsync(new GenericGetManyResourcesQuery<TResource>(query), cancellationToken);
+            return await GetManyQueryHandler.HandleAsync(new GenericGetPageOfResourcesQuery<TResource>(query), cancellationToken);
         }
     }
 }

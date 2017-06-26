@@ -6,7 +6,7 @@ using System;
 namespace MedEasy.Handlers.Core.Appointment.Queries
 {
 
-    public interface IHandleGetAppointmentInfoByIdQuery : IHandleQueryAsync<Guid, Guid, AppointmentInfo, IWantOneResource<Guid, Guid, AppointmentInfo>>
+    public interface IHandleGetAppointmentInfoByIdQuery : IHandleQueryOneAsync<Guid, Guid, AppointmentInfo, IWantOneResource<Guid, Guid, AppointmentInfo>>
     {
     }
 }

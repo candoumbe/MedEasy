@@ -1,5 +1,4 @@
-﻿using MedEasy.DAL.Repositories;
-using MedEasy.Objects;
+﻿using MedEasy.Objects;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,8 @@ using Microsoft.Extensions.Options;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Queries;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.API.Controllers
 {
@@ -37,11 +38,11 @@ namespace MedEasy.API.Controllers
         where TResource : class, IResource<TKey>
         where TKey : IEquatable<TKey>
         where TGetByIdQuery : IWantOneResource<Guid, TKey, TResource>
-        where TGetManyQuery : IWantManyResources<Guid, TResource>
+        where TGetManyQuery : IWantPageOfResources<Guid, TResource>
         where TEntity : IEntity<int>
         where TCommandId : IEquatable<TCommandId>
         where TCreateCommand : ICommand<TCommandId, TPost>
-        where TRunCreateCommand : IRunCommandAsync<TCommandId, TPost, TResource, TCreateCommand>
+        where TRunCreateCommand : IRunCommandAsync<TCommandId, TPost, Option<TResource, CommandException>, TCreateCommand>
 
     {
         private readonly TRunCreateCommand _iRunCreateCommand;
@@ -53,15 +54,15 @@ namespace MedEasy.API.Controllers
         /// <param name="logger">logger to use</param>
         /// <param name="apiOptions">Options of the api</param>
         /// <param name="urlHelper">Helper to biuld URLs.</param>
-        /// <param name="getOneResourceByIdHandler"><see cref="IHandleQueryAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
-        /// <param name="getManyResourcesHandler"><see cref="IHandleQueryAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
+        /// <param name="getOneResourceByIdHandler"><see cref="IHandleQueryOneAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
+        /// <param name="getManyResourcesHandler"><see cref="IHandleQueryPageAsync{TKey, TData, TResult, TQuery}"/> implementation to use when dealing with a "GET" one resource</param>
         /// <param name="iRunCreateCommand"><see cref="IRunCommandAsync{TKey, TInput, TCreateCommand}"/> implementation to use when dealing with a "POST" resource</param>
         /// <exception cref="ArgumentNullException">if any arguments is <c>null</c></exception>
         protected RestCRUDControllerBase(
             ILogger logger,
             IOptionsSnapshot<MedEasyApiOptions> apiOptions,
-            IHandleQueryAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
-            IHandleQueryAsync<Guid, PaginationConfiguration, IPagedResult<TResource>, IWantManyResources<Guid, TResource>> getManyResourcesHandler,
+            IHandleQueryOneAsync<Guid, TKey, TResource, IWantOneResource<Guid, TKey, TResource>> getOneResourceByIdHandler,
+            IHandleQueryPageAsync<Guid, PaginationConfiguration, TResource, IWantPageOfResources<Guid, TResource>> getManyResourcesHandler,
             TRunCreateCommand iRunCreateCommand, IUrlHelper urlHelper) : base(logger, apiOptions, getOneResourceByIdHandler, getManyResourcesHandler, urlHelper)
         {
             _iRunCreateCommand = iRunCreateCommand;
@@ -76,14 +77,14 @@ namespace MedEasy.API.Controllers
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         [NonAction]
-        public async ValueTask<TResource> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<TResource, CommandException>> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
         {
-            TResource resource = await _iRunCreateCommand.RunAsync(createCommand);
-            resource.Meta = new Link
-            {
-                Href = UrlHelper.Action(nameof(Get), new { resource.Id }),
-                Relation = "self",
-            };
+            Option<TResource, CommandException> resource = await _iRunCreateCommand.RunAsync(createCommand);
+            resource.MatchSome(x => x.Meta = new Link
+                {
+                    Href = UrlHelper.Action(nameof(Get), new { x.Id }),
+                    Relation = "self",
+                });
 
             return resource;
 

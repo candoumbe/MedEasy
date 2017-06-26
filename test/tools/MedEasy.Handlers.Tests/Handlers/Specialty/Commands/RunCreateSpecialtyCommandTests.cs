@@ -22,6 +22,7 @@ using MedEasy.Handlers.Core.Specialty.Commands;
 using MedEasy.Handlers.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
+using Optional;
 
 namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 {
@@ -31,7 +32,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
         private Mock<IValidate<ICreateSpecialtyCommand>> _validatorMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private RunCreateSpecialtyCommand _runner;
-        
+
         private Mock<ILogger<RunCreateSpecialtyCommand>> _loggerMock;
         private IMapper _mapper;
 
@@ -50,7 +51,6 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             _runner = new RunCreateSpecialtyCommand(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactory, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
-
 
         public static IEnumerable<object[]> ConstructorCases
         {
@@ -90,24 +90,28 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateSpecialtyCommand>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>())
                 .Verifiable();
-            
+
             //Act
             CreateSpecialtyInfo input = new CreateSpecialtyInfo
             {
                 Name = "médecine générale"
             };
             CreateSpecialtyCommand command = new CreateSpecialtyCommand(input);
-            
+
             _outputHelper.WriteLine($"Command : {command}");
-            SpecialtyInfo output = await _runner.RunAsync(command);
+            Option<SpecialtyInfo, CommandException> output = await _runner.RunAsync(command);
 
 
             //Assert
-            output.Should().NotBeNull();
-            output.Id.Should().NotBeEmpty();
-            output.Name.Should().Be(input.Name.ToTitleCase());
-            
-            _validatorMock.VerifyAll();
+            output.HasValue.Should().BeTrue();
+
+            output.MatchSome(x =>
+            {
+                x.Id.Should().NotBeEmpty();
+                x.Name.Should().Be(input.Name.ToTitleCase());
+
+                _validatorMock.VerifyAll();
+            });
 
         }
 
@@ -116,7 +120,7 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void CreateAResourceWithANameThatIsNotAvailableShouldFail()
+        public async Task CreateAResourceWithANameThatIsNotAvailableShouldFail()
         {
             //Arrange
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateSpecialtyCommand>()))
@@ -126,18 +130,24 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             //Act
             ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "NameThatAlreadyExists" });
-            Func<Task> action = async () => await _runner.RunAsync(command);
+            Option<SpecialtyInfo, CommandException> result = await _runner.RunAsync(command);
 
-            CommandNotValidException<Guid> exception = action.ShouldThrow<CommandNotValidException<Guid>>()
-                .Which;
-            
-            exception.CommandId.Should().Be(command.Id);
-            exception.Errors.Should().ContainSingle();
-            exception.Errors.Single().Key.Should().Be("ErrDuplicate");
-            exception.Errors.Single().Description.Should().Match("*already exists");
-            exception.Errors.Single().Severity.Should().Be(Error);
+            // Assert
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+            {
+                exception.Should()
+                    .BeAssignableTo<CommandNotValidException<Guid>>().Which
+                        .CommandId.Should().Be(command.Id);
+                exception.Errors.Should().ContainSingle();
+                exception.Errors.Single().Key.Should().Be("ErrDuplicate");
+                exception.Errors.Single().Description.Should().Match("*already exists");
+                exception.Errors.Single().Severity.Should().Be(Error);
+                _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
+            });
 
-            _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
+
+
 
         }
 
@@ -181,27 +191,27 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
         [Theory]
         [MemberData(nameof(HandlingInvalidCommands))]
-        public void ShouldThrowCommandNotValidException(IValidate<ICreateSpecialtyCommand> validator, ICreateSpecialtyCommand command)
+        public async Task ShouldThrowCommandNotValidException(IValidate<ICreateSpecialtyCommand> validator, ICreateSpecialtyCommand command)
         {
             _outputHelper.WriteLine($"Command : {command}");
             _outputHelper.WriteLine($"Validator : {validator}");
 
-            Func<Task> action = async () =>
-            {
-                Mock<ILogger<RunCreateSpecialtyCommand>> loggerMock = new Mock<ILogger<RunCreateSpecialtyCommand>>();
-                Mock<IUnitOfWorkFactory> factoryMock = new Mock<IUnitOfWorkFactory>();
-                Mock<IExpressionBuilder> expressionBuilderMock = new Mock<IExpressionBuilder>();
-                IRunCreateSpecialtyCommand handler = new RunCreateSpecialtyCommand(validator,
-                    loggerMock.Object,
-                    factoryMock.Object,
-                    expressionBuilderMock.Object);
+            Mock<ILogger<RunCreateSpecialtyCommand>> loggerMock = new Mock<ILogger<RunCreateSpecialtyCommand>>();
+            Mock<IUnitOfWorkFactory> factoryMock = new Mock<IUnitOfWorkFactory>();
+            Mock<IExpressionBuilder> expressionBuilderMock = new Mock<IExpressionBuilder>();
+            IRunCreateSpecialtyCommand handler = new RunCreateSpecialtyCommand(validator,
+                loggerMock.Object,
+                factoryMock.Object,
+                expressionBuilderMock.Object);
 
-                await handler.RunAsync(command);
-            };
+            Option<SpecialtyInfo, CommandException> result = await handler.RunAsync(command);
 
-            action.ShouldThrow<CommandNotValidException<Guid>>()
-                .And.Errors.Should().NotBeNullOrEmpty()
-                .And.NotContainNulls();
+
+            result.MatchNone(exception => exception.Should()
+                .BeOfType<CommandNotValidException<Guid>>().Which
+                    .Errors.Should()
+                    .NotBeNullOrEmpty().And
+                    .NotContainNulls());
         }
 
         [Fact]
@@ -222,15 +232,18 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
 
             //Act
             ICreateSpecialtyCommand command = new CreateSpecialtyCommand(new CreateSpecialtyInfo { Name = "Médecine générale" });
-            Func<Task> action = async () => await _runner.RunAsync(command);
+            Option<SpecialtyInfo, CommandException> result = await _runner.RunAsync(command);
 
             //Assert
-            CommandNotValidException<Guid> exceptionThrown = action.ShouldThrow<CommandNotValidException<Guid>>().Which;
+            result.HasValue.Should()
+                .BeFalse();
 
-            exceptionThrown.Errors.Should()
-                .NotBeNullOrEmpty().And
-                .ContainSingle().And
-                .Contain(x => "ErrDuplicate".Equals(x.Key, StringComparison.OrdinalIgnoreCase) && x.Severity == Error);
+            result.MatchNone(exception => exception.Should()
+                .BeOfType<CommandNotValidException<Guid>>().Which
+                    .Errors.Should()
+                        .NotBeNullOrEmpty().And
+                        .ContainSingle().And
+                        .Contain(x => "ErrDuplicate".Equals(x.Key, StringComparison.OrdinalIgnoreCase) && x.Severity == Error));
 
             _validatorMock.Verify();
 

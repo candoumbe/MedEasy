@@ -14,6 +14,7 @@ using static Moq.MockBehavior;
 using Xunit;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Mapping;
+using Optional;
 
 namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
 {
@@ -73,14 +74,18 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
 
             // Act 
             CreateAppointmentCommand cmd = new CreateAppointmentCommand(data);
-            AppointmentInfo result = await _handler.RunAsync(cmd);
+            Option<AppointmentInfo, CommandException> result = await _handler.RunAsync(cmd);
 
             // Assert
-            result.Id.Should().NotBeEmpty();
-            result.PatientId.Should().Be(data.PatientId);
-            result.DoctorId.Should().Be(data.DoctorId);
-            result.StartDate.Should().Be(data.StartDate);
-            result.Duration.Should().Be(data.Duration);
+            result.HasValue.Should().BeTrue();
+            result.MatchSome(x =>
+            {
+                x.Id.Should().NotBeEmpty();
+                x.PatientId.Should().Be(data.PatientId);
+                x.DoctorId.Should().Be(data.DoctorId);
+                x.StartDate.Should().Be(data.StartDate);
+                x.Duration.Should().Be(data.Duration);
+            });
 
         }
 
@@ -117,15 +122,15 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
 
             // Act 
             CreateAppointmentCommand cmd = new CreateAppointmentCommand(data);
-            Func<Task> action = async () => await _handler.RunAsync(cmd);
+            Option<AppointmentInfo, CommandException> result = await _handler.RunAsync(cmd);
 
             // Assert
-            NotFoundException exception = action
-                .ShouldThrow<NotFoundException>()
-                .Which;
-
-            exception.Message.Should().BeEquivalentTo($"{nameof(Objects.Doctor)} <{data.DoctorId}> not found");
-
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception => exception.Should()
+                .BeOfType<CommandEntityNotFoundException>().Which
+                .Message.Should()
+                .MatchEquivalentOf($"{nameof(Objects.Doctor)} <{data.DoctorId}> not found"));
+            
         }
 
         /// <summary>
@@ -149,22 +154,26 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
             CreateAppointmentInfo data = new CreateAppointmentInfo
             {
                 DoctorId = doctorUUID,
-                PatientId =  Guid.NewGuid(),
+                PatientId = Guid.NewGuid(),
                 StartDate = 1.February(2010),
                 Duration = 15
             };
 
             // Act 
             CreateAppointmentCommand cmd = new CreateAppointmentCommand(data);
-            Func<Task> action = async () => await _handler.RunAsync(cmd);
+            Option<AppointmentInfo, CommandException> result = await _handler.RunAsync(cmd);
 
             // Assert
-            NotFoundException exception = action
-                .ShouldThrow<NotFoundException>()
-                .Which;
+            result.HasValue.Should().BeFalse();
+            result.MatchNone(exception =>
+            {
+                exception.Should()
+                    .BeOfType<CommandEntityNotFoundException>().Which
+                    .Message.Should()
+                    .BeEquivalentTo($"{nameof(Objects.Patient)} <{data.PatientId}> not found");
 
-            exception.Message.Should()
-                .BeEquivalentTo($"{nameof(Objects.Patient)} <{data.PatientId}> not found");
+            });
+
 
         }
     }

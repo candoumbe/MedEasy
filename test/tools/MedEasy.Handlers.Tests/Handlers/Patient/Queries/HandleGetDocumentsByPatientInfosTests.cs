@@ -20,15 +20,17 @@ using MedEasy.RestObjects;
 using MedEasy.Objects;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
-    public class HandleGetDocumentsByPatientIdQueryTests: IDisposable
+    public class HandleGetDocumentsByPatientIdQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
         private HandleGetDocumentsByPatientIdQuery _handler;
-        
+
         private Mock<ILogger<HandleGetDocumentsByPatientIdQuery>> _loggerMock;
         private IMapper _mapper;
 
@@ -62,7 +64,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         }
 
 
-        
+
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
@@ -72,7 +74,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _outputHelper.WriteLine($"Logger : {logger}");
             _outputHelper.WriteLine($"Unit of work factory : {factory}");
             _outputHelper.WriteLine($"expression builder : {expressionBuilder}");
-            Action action = () => new HandleGetDocumentsByPatientIdQuery( factory, logger,expressionBuilder);
+            Action action = () => new HandleGetDocumentsByPatientIdQuery(factory, logger, expressionBuilder);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
@@ -102,31 +104,22 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public async Task QueryAnEmptyDatabase()
         {
             //Arrange
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<DocumentMetadata>()
-                .WhereAsync(
-                    It.IsAny<Expression<Func<DocumentMetadata, DocumentMetadataInfo>>>(),
-                    It.IsAny<Expression<Func<DocumentMetadataInfo, bool>>>(), 
-                    It.IsAny<IEnumerable<OrderClause<DocumentMetadataInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(PagedResult<DocumentMetadataInfo>.Default);
+            _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
+                .AnyAsync(It.IsAny<Expression<Func<Objects.Patient, bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<bool>(false));
 
             // Act
-            IPagedResult<DocumentMetadataInfo> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(Guid.NewGuid(), new PaginationConfiguration { Page = 1, PageSize = 3 }));
+            Option<IPagedResult<DocumentMetadataInfo>> output = await _handler.HandleAsync(new WantDocumentsByPatientIdQuery(Guid.NewGuid(), new PaginationConfiguration { Page = 1, PageSize = 3 }));
 
             //Assert
-            output.Should().NotBeNull();
-            output.Entries.Should().BeEmpty();
-            output.Total.Should().Be(0);
-
+            output.HasValue.Should().BeFalse();
             _unitOfWorkFactoryMock.Verify();
         }
-        
-
-
 
         public void Dispose()
         {
             _outputHelper = null;
-           _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactoryMock = null;
             _handler = null;
             _mapper = null;
         }

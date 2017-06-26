@@ -10,13 +10,14 @@ using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Queries
 {
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneResource{TQueryId, TData, TResult}"/> interface implementations
     /// </summary
-    public class HandleGetOnePhysiologicalMeasurementInfoQuery<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo> : QueryHandlerBase<Guid, TPhysiologicalMeasurementEntity, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo, IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo>>, IHandleGetOnePhysiologicalMeasureQuery<TPhysiologicalMeasurementInfo>
+    public class HandleGetOnePhysiologicalMeasurementInfoQuery<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo> : OneResourceQueryHandlerBase<Guid, TPhysiologicalMeasurementEntity, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo, IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo>>, IHandleGetOnePhysiologicalMeasureQuery<TPhysiologicalMeasurementInfo>
         where TPhysiologicalMeasurementEntity : PhysiologicalMeasurement
         where TPhysiologicalMeasurementInfo : PhysiologicalMeasurementInfo
     {
@@ -33,7 +34,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder;
         }
 
-        public override async Task<TPhysiologicalMeasurementInfo> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public override async ValueTask<Option<TPhysiologicalMeasurementInfo>> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (query == null)
             {
@@ -44,8 +45,11 @@ namespace MedEasy.Handlers.Patient.Queries
             {
                 Expression<Func<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>();
 
-                TPhysiologicalMeasurementInfo result = await uow.Repository<TPhysiologicalMeasurementEntity>()
-                    .SingleOrDefaultAsync(selector, x => x.Patient.UUID == query.Data.PatientId && x.UUID == query.Data.MeasureId);
+                Option<TPhysiologicalMeasurementInfo> result = await uow.Repository<TPhysiologicalMeasurementEntity>()
+                    .SingleOrDefaultAsync(
+                        selector, 
+                        x => x.Patient.UUID == query.Data.PatientId && x.UUID == query.Data.MeasureId, 
+                        cancellationToken);
 
 
                 return result;

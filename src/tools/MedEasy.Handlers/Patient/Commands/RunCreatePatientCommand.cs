@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Patient.Commands;
 using System.Threading;
+using MedEasy.Handlers.Core.Exceptions;
+using Optional;
 
 namespace MedEasy.Handlers.Patient.Commands
 {
@@ -35,10 +37,10 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<PatientInfo> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<PatientInfo, CommandException>> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
-            PatientInfo patientInfo = await base.RunAsync(command, cancellationToken);
-            patientInfo.MainDoctorId = command.Data.MainDoctorId;
+            Option<PatientInfo, CommandException> patientInfo = await base.RunAsync(command, cancellationToken);
+            patientInfo.MatchSome(x => x.MainDoctorId = command.Data.MainDoctorId);
             return patientInfo;
         }
 

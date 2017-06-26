@@ -7,6 +7,7 @@ using MedEasy.DTO;
 using System.Threading.Tasks;
 using AutoMapper;
 using System.Threading;
+using Optional;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
@@ -32,7 +33,7 @@ namespace MedEasy.Handlers.Appointment.Commands
         }
 
 
-        public async Task<AppointmentInfo> RunAsync(ICreateAppointmentCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<AppointmentInfo, CommandException>> RunAsync(ICreateAppointmentCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
@@ -43,46 +44,55 @@ namespace MedEasy.Handlers.Appointment.Commands
 
             using (IUnitOfWork uow = UowFactory.New())
             {
+
+                Option<AppointmentInfo, CommandException> result = default(Option<AppointmentInfo, CommandException>);
                 var doctor = await uow.Repository<Objects.Doctor>()
                     .SingleOrDefaultAsync(x => new { x.Id, x.UUID },
                         (Objects.Doctor x) => x.UUID == info.DoctorId);
 
-                if (doctor == null)
+                if (!doctor.HasValue)
                 {
-                    throw new NotFoundException($"{nameof(Objects.Doctor)} <{info.DoctorId}> not found");
+                    result = Option.None<AppointmentInfo, CommandException>(new CommandEntityNotFoundException($"{nameof(Objects.Doctor)} <{info.DoctorId}> not found"));
                 }
-
                 var patient = await uow.Repository<Objects.Patient>()
                     .SingleOrDefaultAsync(
                         x => new { x.Id, x.UUID },
                         (Objects.Patient x) => x.UUID == info.PatientId);
-
-                if (patient == null)
+                
+                if (!patient.HasValue)
                 {
-                    throw new NotFoundException($"{nameof(Objects.Patient)} <{info.PatientId}> not found");
+                    result = Option.None<AppointmentInfo, CommandException>(new CommandEntityNotFoundException($"{nameof(Objects.Patient)} <{info.PatientId}> not found"));
                 }
-
-
-                DateTimeOffset now = DateTimeOffset.UtcNow;
-                Objects.Appointment itemToCreate = new Objects.Appointment()
+                
+                foreach (var doctorId in doctor)
                 {
-                    StartDate = info.StartDate,
-                    Duration = info.Duration,
-                    PatientId = patient.Id,
-                    DoctorId = doctor.Id,
-                    UpdatedDate = now,
-                    CreatedDate = now,
-                    UUID = Guid.NewGuid()
-                };
+                    foreach (var patientId in patient)
+                    {
+                        DateTimeOffset now = DateTimeOffset.UtcNow;
+                        Objects.Appointment itemToCreate = new Objects.Appointment()
+                        {
+                            StartDate = info.StartDate,
+                            Duration = info.Duration,
+                            PatientId = patientId.Id,
+                            DoctorId = doctorId.Id,
+                            UpdatedDate = now,
+                            CreatedDate = now,
+                            UUID = Guid.NewGuid()
+                        };
 
-                uow.Repository<Objects.Appointment>().Create(itemToCreate);
-                await uow.SaveChangesAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                        uow.Repository<Objects.Appointment>().Create(itemToCreate);
+                        await uow.SaveChangesAsync(cancellationToken)
+                            .ConfigureAwait(false);
 
-                AppointmentInfo output = Mapper.Map<AppointmentInfo>(itemToCreate);
-                output.PatientId = info.PatientId;
-                output.DoctorId = info.DoctorId;
-                return output;
+                        AppointmentInfo output = Mapper.Map<AppointmentInfo>(itemToCreate);
+                        output.PatientId = info.PatientId;
+                        output.DoctorId = info.DoctorId;
+
+                        result = Option.Some<AppointmentInfo, CommandException>(output);
+                    }
+
+                }
+                return result;
             }
         }
     }

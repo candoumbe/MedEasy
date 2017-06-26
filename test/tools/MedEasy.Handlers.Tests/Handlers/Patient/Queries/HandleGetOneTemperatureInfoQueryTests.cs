@@ -13,6 +13,7 @@ using MedEasy.Queries.Patient;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -108,14 +109,15 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             //Arrange
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Temperature>()
                 .SingleOrDefaultAsync(It.IsAny<Expression<Func<Temperature, TemperatureInfo>>>(), It.IsAny<Expression<Func<Temperature, bool>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((TemperatureInfo)null)
+                .Returns(new ValueTask<Option<TemperatureInfo>>(Option.None<TemperatureInfo>()))
                 .Verifiable();
 
             // Act
-            TemperatureInfo output = await _handler.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(Guid.NewGuid(), Guid.NewGuid()));
+            Option<TemperatureInfo> output = await _handler.HandleAsync(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(Guid.NewGuid(), Guid.NewGuid()));
 
             //Assert
-            output.Should().BeNull();
+            output.Should()
+                .Be(Option.None<TemperatureInfo>());
 
             _validatorMock.VerifyAll();
             _unitOfWorkFactoryMock.VerifyAll();

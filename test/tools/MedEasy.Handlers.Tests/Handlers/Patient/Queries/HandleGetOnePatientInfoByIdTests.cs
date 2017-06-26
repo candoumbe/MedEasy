@@ -12,6 +12,7 @@ using MedEasy.Queries.Patient;
 using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,7 +107,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         }
 
         [Fact]
-        public async Task UnknownIdShouldReturnNull()
+        public async Task UnknownIdShouldReturnOptionNone()
         {
             //Arrange
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
@@ -114,14 +115,14 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
                 .Verifiable();
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
                 .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<Expression<Func<Objects.Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((PatientInfo)null)
+                .Returns(new ValueTask<Option<PatientInfo>>(Option.None<PatientInfo>()))
                 .Verifiable();
 
             // Act
-            PatientInfo output = await _handler.HandleAsync(new WantOnePatientInfoByIdQuery(Guid.NewGuid()));
+            Option<PatientInfo> output = await _handler.HandleAsync(new WantOnePatientInfoByIdQuery(Guid.NewGuid()));
 
             //Assert
-            output.Should().BeNull();
+            output.Should().Be(Option.None<PatientInfo>());
 
             _validatorMock.VerifyAll();
             _unitOfWorkFactoryMock.VerifyAll();

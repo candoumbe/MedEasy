@@ -9,8 +9,6 @@ namespace MedEasy.BLL.Tests.Commands.Appointment
     public class DeleteAppointmentCommandTests : IDisposable
     {
 
-        private Mock<ILogger<DeleteAppointmentByIdCommand>> _loggerMock;
-
         private ITestOutputHelper _outputHelper;
         
 
@@ -30,7 +28,7 @@ namespace MedEasy.BLL.Tests.Commands.Appointment
         public void Dispose()
         {
             _outputHelper = null;
-            _loggerMock = null;
+            
         }
     }
 }

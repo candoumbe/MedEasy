@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using Newtonsoft.Json;
 using static Newtonsoft.Json.JsonConvert;
+using Optional;
 
 namespace MedEasy.Services.Tests
 {
@@ -237,25 +238,25 @@ namespace MedEasy.Services.Tests
             }
 
             // Act
-            PrescriptionHeaderInfo output = await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);
+            Option<PrescriptionHeaderInfo> output = await _service.GetOnePrescriptionByPatientIdAsync(patientId, prescriptionId);
 
             // Assert
-            output.Should().Match(resultExpectation);
+            output.ValueOr((PrescriptionHeaderInfo) null).Should().Match(resultExpectation);
 
         }
 
         [Fact]
-        public void GetDetailsByPrescriptionIdThrowsNotFoundExceptionWhenPrescriptionIdNotFound()
+        public async Task GetDetailsByPrescriptionIdThrowsNotFoundExceptionWhenPrescriptionIdNotFound()
         {
 
             // Arrange
 
             // Act
             Guid prescriptionId = Guid.NewGuid();
-            Func<Task> action = async () => await _service.GetItemsByPrescriptionIdAsync(prescriptionId);
+            Option<IEnumerable<PrescriptionItemInfo>> result = await _service.GetItemsByPrescriptionIdAsync(prescriptionId);
 
             // Assert
-            action.ShouldNotThrow();
+            result.HasValue.Should().BeFalse();
         }
 
         
@@ -275,10 +276,10 @@ namespace MedEasy.Services.Tests
             _outputHelper.WriteLine($"Prescriptions : {SerializeObject(prescriptionsBdd, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })}");
 
             // Act
-            PrescriptionHeaderInfo output = await _service.GetOnePrescriptionAsync(id);
+            Option<PrescriptionHeaderInfo> output = await _service.GetOnePrescriptionAsync(id);
 
             // Assert
-            output.Should().Match(resultExpectation);
+            output.ValueOr((PrescriptionHeaderInfo)null).Should().Match(resultExpectation);
 
         }
 

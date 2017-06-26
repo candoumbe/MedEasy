@@ -43,7 +43,7 @@ namespace MedEasy.Handlers.Tests.Exceptions
         }
 
         [Fact]
-        public void InheritValidationException() => typeof(ValidationException).IsAssignableFrom(typeof(CommandNotValidException<>))
+        public void InheritCommandException() => typeof(CommandException).IsAssignableFrom(typeof(CommandNotValidException<>))
             .Should().BeTrue();
 
     }

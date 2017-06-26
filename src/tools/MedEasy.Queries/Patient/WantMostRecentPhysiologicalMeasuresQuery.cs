@@ -21,12 +21,8 @@ namespace MedEasy.Queries.Patient
         /// <param name="measureId">unique id of the measure to retrieve</param>
         public WantMostRecentPhysiologicalMeasuresQuery(GetMostRecentPhysiologicalMeasuresInfo input)
         {
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
+            Data = input ?? throw new ArgumentNullException(nameof(input));
             Id = Guid.NewGuid();
-            Data = input;
         }
 
         

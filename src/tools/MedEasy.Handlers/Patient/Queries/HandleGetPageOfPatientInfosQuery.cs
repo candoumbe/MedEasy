@@ -10,18 +10,17 @@ using MedEasy.Handlers.Core.Patient.Queries;
 namespace MedEasy.Handlers.Patient.Queries
 {
     /// <summary>
-    /// An instance of this class can be used to handle <see cref="IWantOnePatientInfoByIdQuery"/> interface implementations
+    /// An instance of this class can be used to handle <see cref="IWantPageOfResources{Guid, PatientInfo}"/> interface implementations
     /// </summary
-    public class HandleGetManyPatientInfoQuery : GenericGetManyQueryHandler<Guid, Objects.Patient, int, PatientInfo, IWantManyResources<Guid, PatientInfo>>, IHandleGetManyPatientInfosQuery
+    public class HandleGetPageOfPatientInfoQuery : PagedResourcesQueryHandlerBase<Guid, Objects.Patient, PatientInfo, IWantPageOfResources<Guid, PatientInfo>>, IHandleGetPageOfPatientInfosQuery
     {
 
         /// <summary>
         /// Builds a new <see cref="HandleGetPatientInfoByIdQuery"/> instance
         /// </summary>
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Patient"/> instances</param>
-        /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Patient"/> instances to <see cref="PatientInfo"/> instances</param>
-        public HandleGetManyPatientInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetManyPatientInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(logger, factory, expressionBuilder)
+        public HandleGetPageOfPatientInfoQuery(IUnitOfWorkFactory factory, ILogger<HandleGetPageOfPatientInfoQuery> logger, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
         {
         }
     }
