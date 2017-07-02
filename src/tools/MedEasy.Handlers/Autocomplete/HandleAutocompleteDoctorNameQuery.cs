@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Queries.Autocomplete;
@@ -42,7 +43,7 @@ namespace MedEasy.Handlers.Doctor.Queries
             {
                 IEnumerable<DoctorAutocompleteInfo> results = (await uow.Repository<Objects.Doctor>()
                     .WhereAsync(
-                        _mapper.ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Doctor, DoctorAutocompleteInfo>(),
+                        _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Objects.Doctor, DoctorAutocompleteInfo>(),
                         item => (item.Firstname != null && item.Firstname.Contains(query.Data)) || (item.Lastname != null && item.Lastname.Contains(query.Data)),
                         orderBy: new[]
                         {

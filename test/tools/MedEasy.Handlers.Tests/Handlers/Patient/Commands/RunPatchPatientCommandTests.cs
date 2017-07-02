@@ -30,7 +30,6 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
     {
         private RunPatchPatientCommand _commandRunner;
         private Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>> _commandValidatorMock;
-        private Mock<ILogger<RunPatchPatientCommand>> _loggerMock;
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
 
@@ -43,20 +42,16 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             DbContextOptionsBuilder<MedEasyContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MedEasyContext>()
                 .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory(dbContextOptionsBuilder.Options);
-
-            _loggerMock = new Mock<ILogger<RunPatchPatientCommand>>(Strict);
-            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
-
+            
             _commandValidatorMock = new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>(Strict);
 
-            _commandRunner = new RunPatchPatientCommand(_uowFactory, _loggerMock.Object, _commandValidatorMock.Object);
+            _commandRunner = new RunPatchPatientCommand(_uowFactory, _commandValidatorMock.Object);
         }
 
         public void Dispose()
         {
             _outputHelper = null;
 
-            _loggerMock = null;
             _uowFactory = null;
             _commandValidatorMock = null;
 
@@ -68,18 +63,18 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         {
             get
             {
-                yield return new object[] { null, new Mock<ILogger<RunPatchPatientCommand>>().Object, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, new Mock<ILogger<RunPatchPatientCommand>>().Object, null };
+                yield return new object[] { null, null };
+                yield return new object[] { null, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorInvalidCases))]
-        public void CtorShouldThrowArgumentNullException(IUnitOfWorkFactory uowFactory, ILogger<RunPatchPatientCommand> logger, IValidate<IPatchCommand<Guid, Objects.Patient>> validator)
+        public void CtorShouldThrowArgumentNullException(IUnitOfWorkFactory uowFactory, IValidate<IPatchCommand<Guid, Objects.Patient>> validator)
         {
             // Act
-            Action action = () => new RunPatchPatientCommand(uowFactory, logger, validator);
+            Action action = () => new RunPatchPatientCommand(uowFactory, validator);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().Which

@@ -14,38 +14,38 @@ namespace MedEasy.DTO
         /// <summary>
         /// Patient's firstname
         /// </summary>
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(Firstname))]
         [Required]
         public string Firstname { get; set; }
 
         /// <summary>
         /// Patient's lastname
         /// </summary>
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(Lastname))]
         [Required]
         public string Lastname { get; set; }
 
         /// <summary>
         /// Patient's birthdate
         /// </summary>
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(BirthDate))]
         public DateTime? BirthDate { get; set; }
 
         /// <summary>
         /// Patient's birthplace
         /// </summary>
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(BirthPlace))]
         [Required(AllowEmptyStrings = true)]
         public string BirthPlace { get; set; }
 
         /// <summary>
         /// Id of the patient's main doctor
         /// </summary>
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(MainDoctorId))]
         public Guid? MainDoctorId { get; set; }
 
 
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(Fullname))]
         public string Fullname { get; set; }
         
     }

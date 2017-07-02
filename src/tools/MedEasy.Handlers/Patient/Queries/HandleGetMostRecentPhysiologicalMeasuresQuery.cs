@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
-using MedEasy.Queries;
 using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
 using System.Linq.Expressions;
@@ -52,7 +51,7 @@ namespace MedEasy.Handlers.Patient.Queries
             {
                 _logger.LogTrace($"Start querying most recents measures {query}");
                 GetMostRecentPhysiologicalMeasuresInfo input = query.Data;
-                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
+                Expression<Func<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>> selector = _expressionBuilder.GetMapExpression<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>();
 
                 Option<IEnumerable<TPhysiologicalMeasureInfo>> result;
                 if (await uow.Repository<Objects.Patient>().AnyAsync(x => x.UUID == input.PatientId))

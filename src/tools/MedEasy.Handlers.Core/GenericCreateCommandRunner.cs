@@ -110,12 +110,12 @@ namespace MedEasy.Handlers.Core.Commands
                     {
                         TData data = command.Data;
                         await OnCreatingAsync(command.Id, data);
-                        TEntity entity = ExpressionBuilder.CreateMapExpression<TData, TEntity>().Compile().Invoke(data);
+                        TEntity entity = ExpressionBuilder.GetMapExpression<TData, TEntity>().Compile().Invoke(data);
 
                         uow.Repository<TEntity>().Create(entity);
                         await uow.SaveChangesAsync();
 
-                        TOutput output = ExpressionBuilder.CreateMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
+                        TOutput output = ExpressionBuilder.GetMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
                         await OnCreatedAsync(output);
                         Logger.LogInformation($"Command {command.Id} processed successfully");
 

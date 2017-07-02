@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using MedEasy.RestObjects;
-using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Specialty.Queries;
 using System.Threading;
 using Optional;

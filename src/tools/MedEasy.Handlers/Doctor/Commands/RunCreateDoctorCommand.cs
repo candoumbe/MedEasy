@@ -8,7 +8,6 @@ using MedEasy.Commands.Doctor;
 using MedEasy.Handlers.Core.Doctor.Commands;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Optional;
 
 namespace MedEasy.Handlers.Doctor.Commands

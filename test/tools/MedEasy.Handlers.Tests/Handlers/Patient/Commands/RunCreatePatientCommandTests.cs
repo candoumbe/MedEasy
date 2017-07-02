@@ -27,7 +27,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
     {
         private Mock<ILogger<RunCreatePatientCommand>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private Mock<IMapper> _mapperMock;
         private RunCreatePatientCommand _handler;
         private Mock<IValidate<ICreatePatientCommand>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
@@ -55,7 +54,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             _unitOfWorkFactoryMock = null;
             _loggerMock = null;
-            _mapperMock = null;
             _outputHelper = null;
             _handler = null;
 
@@ -137,15 +135,14 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()))
                 .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<CreatePatientInfo, Objects.Patient>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
-                    AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<CreatePatientInfo, Objects.Patient>(parameters, membersToExpand));
+            _expressionBuilderMock.Setup(mock => mock.GetMapExpression(typeof(CreatePatientInfo), typeof(Objects.Patient), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+               .Returns((Type source, Type dest, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
+                        .ExpressionBuilder.GetMapExpression(typeof(CreatePatientInfo), typeof(Objects.Patient), parameters, membersToExpand));
 
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Patient, PatientInfo>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-               .Returns((IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
+            _expressionBuilderMock.Setup(mock => mock.GetMapExpression(typeof(Objects.Patient), typeof(PatientInfo), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+               .Returns((Type source, Type dest, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) =>
                     AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
-                        .ExpressionBuilder.CreateMapExpression<Objects.Patient, PatientInfo>(parameters, membersToExpand));
+                        .ExpressionBuilder.GetMapExpression(typeof(Objects.Patient), typeof(PatientInfo), parameters, membersToExpand));
 
             // Act
 

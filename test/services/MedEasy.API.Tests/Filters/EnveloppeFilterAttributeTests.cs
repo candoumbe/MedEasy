@@ -6,12 +6,15 @@ using MedEasy.API.Stores;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Patient.Commands;
 using MedEasy.Handlers.Core.Patient.Queries;
+using MedEasy.Handlers.Core.Search.Queries;
 using MedEasy.RestObjects;
+using MedEasy.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
@@ -22,23 +25,39 @@ using Xunit.Abstractions;
 
 namespace MedEasy.API.Tests.Filters
 {
-    public class EnveloppeFilterAttributeTests
+    public class EnveloppeFilterAttributeTests : IDisposable
     {
-        private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
-        private Mock<IHandleGetPageOfPatientInfosQuery> _iHandleGetManyPatientInfoQueryMock;
-        private EFUnitOfWorkFactory _factory;
-        private IMapper _mapper;
-        private Mock<IRunCreatePatientCommand> _iRunCreatePatientInfoCommandMock;
-        private Mock<IRunDeletePatientByIdCommand> _iRunDeletePatientInfoByIdCommandMock;
-        private Mock<IOptions<MedEasyApiOptions>> _apiOptionsMock;
-        private Mock<IHandleGetOnePhysiologicalMeasureQuery<TemperatureInfo>> _iHandleGetOnePatientTemperatureMock;
-        private Mock<IHandleGetOnePhysiologicalMeasureQuery<BloodPressureInfo>> _iHandleGetOnePatientBloodPressureMock;
-        
+        private PatientsController _controller;
 
         public EnveloppeFilterAttributeTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
+
+
+            _controller = new PatientsController(
+                Mock.Of<ILogger<PatientsController>>(),
+                Mock.Of<IUrlHelper>(),
+                Mock.Of<IOptionsSnapshot<MedEasyApiOptions>>(),
+                Mock.Of<IMapper>(),
+                Mock.Of<IHandleSearchQuery>(),
+                Mock.Of<IHandleGetOnePatientInfoByIdQuery>(),
+                Mock.Of<IHandleGetPageOfPatientInfosQuery>(),
+                Mock.Of<IRunCreatePatientCommand>(),
+                Mock.Of<IRunDeletePatientByIdCommand>(),
+                Mock.Of<IPhysiologicalMeasureService>(),
+                Mock.Of<IPrescriptionService>(),
+                Mock.Of<IHandleGetDocumentsByPatientIdQuery>(),
+                Mock.Of<IRunPatchPatientCommand>(),
+                Mock.Of<IRunCreateDocumentForPatientCommand>(),
+                Mock.Of<IHandleGetOneDocumentInfoByPatientIdAndDocumentId>()
+            );
+        }
+
+        public void Dispose()
+        {
+            _outputHelper = null;
+            _controller = null;
         }
 
         [Fact]

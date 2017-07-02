@@ -4,7 +4,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <AssemblyName>MedEasy.Services</AssemblyName>
     <PackageId>MedEasy.Services</PackageId>
-    <PackageTargetFallback>$(PackageTargetFallback);portable-net451+win8</PackageTargetFallback>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;portable-net451+win8</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -16,6 +16,9 @@
     <ProjectReference Include="..\MedEasy.Objects\MedEasy.Objects.csproj" />
     <ProjectReference Include="..\MedEasy.Queries\MedEasy.Queries.csproj" />
     <ProjectReference Include="..\MedEasy.DAL\MedEasy.DAL.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.1.1" />
   </ItemGroup>
 
 </Project>

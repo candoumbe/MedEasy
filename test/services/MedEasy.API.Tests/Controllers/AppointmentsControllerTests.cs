@@ -18,7 +18,6 @@ using MedEasy.RestObjects;
 using MedEasy.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -43,9 +42,7 @@ using MedEasy.Handlers.Core.Appointment.Queries;
 using MedEasy.DTO.Search;
 using MedEasy.DAL.Interfaces;
 using System.Threading;
-using System.Net;
 using Optional;
-using MedEasy.Queries.Appointment;
 
 namespace MedEasy.WebApi.Tests
 {

@@ -4,8 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Migrations
 {
+    /// <summary>
+    /// Adds<see cref="Objects.BodyWeight"/>
+    /// </summary>
     public partial class Added_BodyWeight : Migration
     {
+        /// <summary>
+        /// Upgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -108,7 +115,10 @@ namespace MedEasy.API.Migrations
                 table: "BodyWeight",
                 column: "PatientId");
         }
-
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -256,7 +256,7 @@ namespace MedEasy.API.Controllers
             await _iRunPatchDoctorCommand.RunAsync(new PatchCommand<Guid, Doctor>(data), cancellationToken);
 
 
-            return new OkResult();
+            return new NoContentResult();
         }
 
 

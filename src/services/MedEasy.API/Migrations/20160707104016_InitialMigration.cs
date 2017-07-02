@@ -4,8 +4,16 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Migrations
 {
+    /// <summary>
+    /// Initial database state
+    /// </summary>
     public partial class InitialMigration : Migration
     {
+
+        /// <summary>
+        /// Upgrade the database version
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -135,6 +143,10 @@ namespace MedEasy.API.Migrations
                 column: "MainDoctorId");
         }
 
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

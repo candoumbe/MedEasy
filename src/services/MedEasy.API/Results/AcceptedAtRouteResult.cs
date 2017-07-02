@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 /// <summary>
 /// An <see cref="ActionResult"/> which returns an Accepted (202) response with a Location header.
@@ -13,7 +14,7 @@ public class AcceptedAtRouteResult : CreatedAtRouteResult
     /// <param name="value"></param>
     public AcceptedAtRouteResult(string routeName, object routeValues, object value) : base(routeName, routeValues, value)
     {
-        StatusCode = 202;
+        StatusCode = Status202Accepted;
     }
 
 }

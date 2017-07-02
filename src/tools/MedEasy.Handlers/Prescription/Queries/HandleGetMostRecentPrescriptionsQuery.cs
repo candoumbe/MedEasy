@@ -47,13 +47,14 @@ namespace MedEasy.Handlers.Prescription.Queries
             {
                 _logger.LogTrace($"Start querying most recents measures {query}");
                 GetMostRecentPrescriptionsInfo input = query.Data;
-                Expression<Func<Objects.Prescription, PrescriptionHeaderInfo>> selector = _expressionBuilder.CreateMapExpression<Objects.Prescription, PrescriptionHeaderInfo>();
+                Expression<Func<Objects.Prescription, PrescriptionHeaderInfo>> selector = _expressionBuilder.GetMapExpression<Objects.Prescription, PrescriptionHeaderInfo>();
                 IPagedResult<PrescriptionHeaderInfo> items = await uow.Repository<Objects.Prescription>()
                     .ReadPageAsync(
                         selector, 
                         input.Count.GetValueOrDefault(15), 1,
                         new[] { OrderClause<PrescriptionHeaderInfo>.Create(x => x.DeliveryDate, Descending)},
-                        cancellationToken);
+                        cancellationToken)
+                    .ConfigureAwait(false);
 
                 _logger.LogTrace($"Nb of results : {items.Entries.Count()}");
                 _logger.LogInformation($"Handling query {query.Id} successfully");

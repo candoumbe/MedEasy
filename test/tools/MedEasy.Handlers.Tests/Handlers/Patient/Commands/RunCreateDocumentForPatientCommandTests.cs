@@ -30,7 +30,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
     {
         private Mock<ILogger<RunCreateDocumentForPatientCommand>> _loggerMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
-        private Mock<IMapper> _mapperMock;
         private RunCreateDocumentForPatientCommand _handler;
         private Mock<IValidate<ICreateDocumentForPatientCommand>> _validatorMock;
         private IMapper _mapper;
@@ -50,6 +49,7 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _outputHelper = output;
+
             _handler = new RunCreateDocumentForPatientCommand(_validatorMock.Object, _loggerMock.Object,
                 _unitOfWorkFactory,
                _mapper);
@@ -59,7 +59,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             _unitOfWorkFactory = null;
             _loggerMock = null;
-            _mapperMock = null;
             _outputHelper = null;
             _handler = null;
 

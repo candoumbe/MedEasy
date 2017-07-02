@@ -1,31 +1,27 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using MedEasy.API.Filters;
+using MedEasy.API.StartupRegistration;
+using MedEasy.API.Stores;
+using MedEasy.API.Swagger;
+using MedEasy.DAL.Interfaces;
+using MedEasy.Handlers.Core.Search.Queries;
+using MedEasy.Handlers.Search;
+using MedEasy.Mapping;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MedEasy.DAL.Interfaces;
-using MedEasy.API.Stores;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using MedEasy.Mapping;
-using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
-using MedEasy.API.StartupRegistration;
-using MedEasy.API.Filters;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Http;
-using MedEasy.Data.Converters;
-using MedEasy.Handlers;
-using MedEasy.Handlers.Core.Search.Queries;
-using Microsoft.AspNetCore.ResponseCompression;
-using MedEasy.API.Swagger;
 using Swashbuckle.AspNetCore.Swagger;
+using System.IO;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using MedEasy.Handlers.Search;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace MedEasy.API
 {
@@ -162,7 +158,11 @@ namespace MedEasy.API
                 });
             }
         }
-
+        /// <summary>
+        /// Configures the request pipeline
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {

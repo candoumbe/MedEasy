@@ -13,6 +13,10 @@ namespace MedEasy.API.Migrations
     /// </remarks>
     public partial class ChangeBirthDate_From_DateTimeOffset_To_DateTime : Migration
     {
+        /// <summary>
+        /// Upgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(name : "IX_Patient_BirthDate", table: "Patient");
@@ -60,7 +64,10 @@ namespace MedEasy.API.Migrations
                 column: "UUID",
                 unique: true);
         }
-
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

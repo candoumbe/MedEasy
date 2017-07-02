@@ -25,7 +25,7 @@ namespace MedEasy.Commands.Tests.Patient
 
             // Assert
 
-            action.ShouldThrow<ArgumentNullException>("the command's parameter cannot be null").Which
+            action.ShouldThrow<ArgumentException>("the command's parameter cannot be null").Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace("it's usefull to debug quickly");
         }

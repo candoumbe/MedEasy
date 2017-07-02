@@ -4,18 +4,9 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using Microsoft.Extensions.Logging;
-using MedEasy.Objects;
 using System.Linq.Expressions;
-using MedEasy.DAL.Repositories;
-using static MedEasy.DAL.Repositories.SortDirection;
-using System.Linq;
-using MedEasy.Queries.Document;
 using MedEasy.Handlers.Core.Document.Queries;
-using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
-using MedEasy.Validators;
-using System.Collections.Generic;
-using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
 using Optional;
 
@@ -78,7 +69,7 @@ namespace MedEasy.Handlers.Document.Queries
             {
                 Guid data = query.Data;
 
-                Expression<Func<Objects.Document, DocumentInfo>> selector = ExpressionBuilder.CreateMapExpression<Objects.Document, DocumentInfo>();
+                Expression<Func<Objects.Document, DocumentInfo>> selector = ExpressionBuilder.GetMapExpression<Objects.Document, DocumentInfo>();
                 Option<DocumentInfo> output = await uow.Repository<Objects.Document>()
                     .SingleOrDefaultAsync(selector, x => x.DocumentMetadata.UUID == data, cancellationToken);
 

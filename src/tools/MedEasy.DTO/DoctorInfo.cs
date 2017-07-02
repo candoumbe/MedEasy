@@ -9,14 +9,14 @@ namespace MedEasy.DTO
     {
         
 
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(Firstname))]
         public string Firstname { get; set; }
 
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(Lastname))]
         public string Lastname { get; set; }
         
 
-        [JsonProperty]
+        [JsonProperty(PropertyName = nameof(SpecialtyId))]
         public Guid? SpecialtyId { get; set; }
     }
 

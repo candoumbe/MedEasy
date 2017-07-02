@@ -4,8 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Migrations
 {
+    /// <summary>
+    /// Adds Documents entity
+    /// </summary>
     public partial class Added_Documents_Entities : Migration
     {
+        /// <summary>
+        /// Upgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -73,6 +80,10 @@ namespace MedEasy.API.Migrations
                 column: "Title");
         }
 
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -49,7 +49,7 @@ namespace MedEasy.Handlers.Search
                 int pageSize = searchQuery.Data.PageSize;
                 IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sorts
                     .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
-                Expression<Func<TEntity, TResult>> selector = _expressionBuilder.CreateMapExpression<TEntity, TResult>();
+                Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
                 IPagedResult<TResult> result = await uow.Repository<TEntity>()
                     .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);

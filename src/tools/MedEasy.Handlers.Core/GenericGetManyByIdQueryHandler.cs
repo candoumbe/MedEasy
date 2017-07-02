@@ -93,7 +93,7 @@ namespace MedEasy.Handlers.Core.Queries
             {
                 Guid data = query.Data;
 
-                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.CreateMapExpression<TEntity, TResult>();
+                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResult>();
                 IEnumerable<TResult> output = await uow.Repository<TEntity>()
                     .WhereAsync(selector, x => Equals(x.UUID, data), cancellationToken: cancellationToken);
 

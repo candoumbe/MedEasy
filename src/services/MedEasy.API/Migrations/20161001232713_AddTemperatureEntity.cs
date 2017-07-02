@@ -9,6 +9,10 @@ namespace MedEasy.API.Migrations
     /// </summary>
     public partial class AddTemperatureEntity : Migration
     {
+        /// <summary>
+        /// Upgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -51,7 +55,10 @@ namespace MedEasy.API.Migrations
                 table: "Temperature",
                 column: "PatientId");
         }
-
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

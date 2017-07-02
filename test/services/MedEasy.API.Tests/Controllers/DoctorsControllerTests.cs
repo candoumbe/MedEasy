@@ -16,11 +16,8 @@ using MedEasy.Queries;
 using MedEasy.Queries.Search;
 using MedEasy.RestObjects;
 using MedEasy.Validators;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -410,11 +407,11 @@ namespace MedEasy.WebApi.Tests
             {
                 {
                     JsonPatchDocument<DoctorInfo> patchDocument = new JsonPatchDocument<DoctorInfo>();
-                    patchDocument.Replace(x => x.Firstname, "Bruce");
+                    patchDocument = patchDocument.Replace(x => x.Firstname, "Bruce");
                     yield return new object[]
                     {
-                        new Doctor { Id = 1, },
-                        patchDocument.Operations,
+                        new Doctor { Id = 1 },
+                        patchDocument,
                         ((Expression<Func<Doctor, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce"))
                     };
                 }
@@ -423,8 +420,10 @@ namespace MedEasy.WebApi.Tests
 
         [Theory]
         [MemberData(nameof(PatchCases))]
-        public async Task Patch(Doctor source, IEnumerable<Operation<DoctorInfo>> operations, Expression<Func<Doctor, bool>> patchResultExpectation)
+        public async Task Patch(Doctor source, JsonPatchDocument<DoctorInfo> patchDocument, Expression<Func<Doctor, bool>> patchResultExpectation)
         {
+            _outputHelper.WriteLine("Patch document : {0}", SerializeObject(patchDocument));
+            _outputHelper.WriteLine("source : {0}", SerializeObject(source));
 
             // Arrange
             _iRunPatchDoctorCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IPatchCommand<Guid, Doctor>>(), It.IsAny<CancellationToken>()))
@@ -438,14 +437,12 @@ namespace MedEasy.WebApi.Tests
 
 
             // Act
-            JsonPatchDocument<DoctorInfo> patchDocument = new JsonPatchDocument<DoctorInfo>();
-            patchDocument.Operations.AddRange(operations);
             IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument);
 
             // Assert
             actionResult.Should()
                 .NotBeNull().And
-                .BeAssignableTo<OkResult>();
+                .BeAssignableTo<NoContentResult>();
 
             _iRunPatchDoctorCommandMock.Verify();
 

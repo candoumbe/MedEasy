@@ -93,7 +93,7 @@ namespace MedEasy.Handlers.Core.Queries
 
             using (IUnitOfWork uow = UowFactory.New())
             {
-                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.CreateMapExpression<TEntity, TResult>();
+                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResult>();
                 IEnumerable<TResult> entities = await uow.Repository<TEntity>()
                     .WhereAsync(selector, query.Data, cancellationToken);
 

@@ -238,7 +238,11 @@ namespace MedEasy.API.Controllers
                 none: () => new NotFoundResult());
         }
 
-
+        /// <summary>
+        /// Builds additional likc
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <returns></returns>
         protected override IEnumerable<Link> BuildAdditionalLinksForResource(SpecialtyInfo resource) =>
             new[]
             {

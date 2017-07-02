@@ -1,7 +1,6 @@
 ﻿using System;
 using MedEasy.DAL.Interfaces;
 using System.Threading.Tasks;
-using System.Diagnostics;
 using MedEasy.Commands.Appointment;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Appointment.Commands;

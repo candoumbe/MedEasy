@@ -43,7 +43,7 @@ namespace MedEasy.Handlers.Patient.Queries
 
             using (IUnitOfWork uow = UowFactory.New())
             {
-                Expression<Func<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> selector = _expressionBuilder.CreateMapExpression<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>();
+                Expression<Func<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>> selector = _expressionBuilder.GetMapExpression<TPhysiologicalMeasurementEntity, TPhysiologicalMeasurementInfo>();
 
                 Option<TPhysiologicalMeasurementInfo> result = await uow.Repository<TPhysiologicalMeasurementEntity>()
                     .SingleOrDefaultAsync(

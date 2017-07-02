@@ -1,5 +1,4 @@
 ﻿using MedEasy.DAL.Interfaces;
-using Microsoft.Extensions.Logging;
 using System;
 using MedEasy.DTO;
 using AutoMapper.QueryableExtensions;

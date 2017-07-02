@@ -57,7 +57,7 @@ namespace MedEasy.Handlers.Core.Queries
             {
                 PaginationConfiguration data = query.Data;
 
-                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.CreateMapExpression<TEntity, TResult>();
+                Expression<Func<TEntity, TResult>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResult>();
                 IPagedResult<TResult> output = await uow.Repository<TEntity>()
                     .ReadPageAsync(selector, data.PageSize, data.Page, cancellationToken: cancellationToken);
 

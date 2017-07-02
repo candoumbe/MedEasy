@@ -48,7 +48,7 @@ namespace MedEasy.Handlers.Patient.Queries
             {
                 _logger.LogTrace($"Start querying {query}");
                 GetDocumentsByPatientIdInfo input = query.Data;
-                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
+                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.GetMapExpression<DocumentMetadata, DocumentMetadataInfo>();
 
                 Option<IPagedResult<DocumentMetadataInfo>> option;
                 if (await uow.Repository<Objects.Patient>().AnyAsync(x => x.UUID == input.PatientId).ConfigureAwait(false))

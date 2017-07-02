@@ -5,7 +5,6 @@ using MedEasy.DTO;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Appointment.Queries;
-using MedEasy.Queries.Appointment;
 using MedEasy.Queries;
 
 namespace MedEasy.Handlers.Appointment.Queries

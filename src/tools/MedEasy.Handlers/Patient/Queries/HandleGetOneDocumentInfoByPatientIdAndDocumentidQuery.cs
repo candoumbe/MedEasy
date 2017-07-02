@@ -6,9 +6,6 @@ using MedEasy.DTO;
 using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
 using System.Linq.Expressions;
-using MedEasy.DAL.Repositories;
-using static MedEasy.DAL.Repositories.SortDirection;
-using System.Linq;
 using MedEasy.Queries.Patient;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
@@ -48,7 +45,7 @@ namespace MedEasy.Handlers.Patient.Queries
             {
                 _logger.LogTrace($"Start querying {query}");
                 GetOneDocumentInfoByPatientIdAndDocumentIdInfo input = query.Data;
-                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.CreateMapExpression<DocumentMetadata, DocumentMetadataInfo>();
+                Expression<Func<DocumentMetadata, DocumentMetadataInfo>> selector = _expressionBuilder.GetMapExpression<DocumentMetadata, DocumentMetadataInfo>();
 
                 Option<DocumentMetadataInfo> result = await uow.Repository<DocumentMetadata>()
                     .SingleOrDefaultAsync(

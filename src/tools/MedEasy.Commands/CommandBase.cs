@@ -44,7 +44,7 @@ namespace MedEasy.Commands
             }
             if (Equals(data, default(TData)))
             {
-                throw new ArgumentNullException(nameof(data), $"{nameof(data)} cannot be null");
+                throw new ArgumentOutOfRangeException(nameof(data), $"{nameof(data)} cannot be default");
             }
 
             Id = id;

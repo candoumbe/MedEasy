@@ -13,6 +13,10 @@ namespace MedEasy.API.Migrations
     /// </summary>
     public partial class Added_UUID_Property : Migration
     {
+        /// <summary>
+        /// Uupgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             IEnumerable<string> entities = new[]
@@ -76,7 +80,10 @@ namespace MedEasy.API.Migrations
 
             }
         }
-
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(

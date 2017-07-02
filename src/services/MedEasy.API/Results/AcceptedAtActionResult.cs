@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using static Microsoft.AspNetCore.Http.StatusCodes;
+using Microsoft.AspNetCore.Mvc;
 
 
 /// <summary>
@@ -15,5 +16,6 @@ public class AcceptedAtActionResult : CreatedAtActionResult
     /// <param name="value">Content of the result</param>
     public AcceptedAtActionResult(string actionName, string controllerName, object routeValues, object value) : base(actionName, controllerName, routeValues, value)
     {
+        StatusCode = Status202Accepted;
     }
 }

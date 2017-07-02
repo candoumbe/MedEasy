@@ -6,7 +6,6 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Specialty.Queries;
-using MedEasy.RestObjects;
 
 namespace MedEasy.Handlers.Specialty.Queries
 {

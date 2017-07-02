@@ -5,8 +5,15 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MedEasy.API.Migrations
 {
+    /// <summary>
+    /// Adds Appointment entity
+    /// </summary>
     public partial class Added_Appointment_Entity : Migration
     {
+        /// <summary>
+        /// Upgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -58,7 +65,10 @@ namespace MedEasy.API.Migrations
                 column: "UUID",
                 unique: true);
         }
-
+        /// <summary>
+        /// Downgrades the database
+        /// </summary>
+        /// <param name="migrationBuilder"></param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

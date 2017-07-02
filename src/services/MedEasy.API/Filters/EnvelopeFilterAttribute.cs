@@ -16,7 +16,7 @@ namespace MedEasy.API.Filters
     /// <remarks>
     /// The filter is activated on actions that returns <see cref="IBrowsableResource{T}"/>  
     /// </remarks>
-    public class EnvelopeFilterAttribute : ResultFilterAttribute, IResultFilter
+    public class EnvelopeFilterAttribute : ResultFilterAttribute
     {
 
         private static Func<Link, string> BuildLinkHeader => location => location == null

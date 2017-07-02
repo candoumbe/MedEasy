@@ -112,8 +112,8 @@ namespace MedEasy.Handlers.Tests.Handlers
             _outputHelper.WriteLine($"search : {search}");
 
             // Arrange
-            _expressionBuilderMock.Setup(mock => mock.CreateMapExpression<Objects.Patient, PatientInfo>(It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
-                .Returns(AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.CreateMapExpression<Objects.Patient, PatientInfo>());
+            _expressionBuilderMock.Setup(mock => mock.GetMapExpression(typeof(Objects.Patient), typeof(PatientInfo), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+                .Returns((Type source, Type dest, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder.GetMapExpression(typeof(Objects.Patient), typeof(PatientInfo), parameters, membersToExpand));
 
             _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
                 It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))

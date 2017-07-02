@@ -30,6 +30,7 @@ using MedEasy.DTO.Search;
 using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.API.Results;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -280,7 +281,7 @@ namespace MedEasy.API.Controllers
         /// <see cref="IPhysiologicalMeasureService.AddNewMeasureAsync{TPhysiologicalMeasure, TPhysiologicalMeasureInfo}(ICommand{Guid, CreatePhysiologicalMeasureInfo{TPhysiologicalMeasure}}, CancellationToken)"/>
         /// <response code="201">if the creation succeed</response>
         /// <response code="400"><paramref name="newTemperature"/> is not valid or <paramref name="id"/> is negoative or zero</response>.
-        /// <response code="40'">patient not found.</response>.
+        /// <response code="404">patient not found.</response>.
         [HttpPost("{id}/[action]")]
         [ProducesResponseType(typeof(TemperatureInfo), 201)]
         [ProducesResponseType(typeof(ModelStateDictionary), 400)]
@@ -296,11 +297,26 @@ namespace MedEasy.API.Controllers
                 }
             };
 
-            TemperatureInfo output = await _physiologicalMeasureService
-                .AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(input))
-                .ConfigureAwait(false);
+            Option<TemperatureInfo, CommandException> output = await _physiologicalMeasureService
+                .AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(input));
 
-            return new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = output.PatientId, temperatureId = output.Id }, output);
+            return output.Match(
+                some : temperature => new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = temperature.PatientId, temperatureId = temperature.Id }, temperature),
+                none : exception => {
+                    IActionResult actionResult;
+                    switch (exception)
+                    {
+                        case CommandEntityNotFoundException cenf:
+                            actionResult = new NotFoundResult();
+                            break;
+                        default:
+                            actionResult = new InternalServerErrorResult();
+                            break;
+                    }
+
+                    return actionResult;
+
+                });
         }
 
         /// <summary>
@@ -329,10 +345,26 @@ namespace MedEasy.API.Controllers
                     DiastolicPressure = newBloodPressure.DiastolicPressure
                 }
             };
-            BloodPressureInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(info))
-                .ConfigureAwait(false);
+            Option<BloodPressureInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(info));
 
-            return new CreatedAtActionResult(nameof(BloodPressures), EndpointName, new { id = output.PatientId, bloodPressureId = output.Id }, output);
+            return output.Match(
+                some : bp => new CreatedAtActionResult(nameof(BloodPressures), EndpointName, new { id = bp.PatientId, bloodPressureId = bp.Id }, bp),
+                none : exception => {
+                    IActionResult actionResult;
+                    switch (exception)
+                    {
+                        case CommandEntityNotFoundException cenf:
+                            actionResult = new NotFoundResult();
+                            break;
+                        default:
+                            actionResult = new InternalServerErrorResult();
+                            break;
+                    }
+
+
+                    return actionResult;
+
+                });
         }
 
         /// <summary>
@@ -363,10 +395,11 @@ namespace MedEasy.API.Controllers
                     return new OkObjectResult(new BrowsableResource<TemperatureInfo>
                     {
                         Resource = x,
-                        Links = new[] {
-                        new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "remove", Method = "DELETE" },
-                        new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "direct-link", Method = "GET" }
-                    }
+                        Links = new[] 
+                        {
+                            new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "remove", Method = "DELETE" },
+                            new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "direct-link", Method = "GET" }
+                        }
                     });
                 },
 
@@ -380,6 +413,7 @@ namespace MedEasy.API.Controllers
         /// <param name="bloodPressureId">id of the <see cref="BloodPressureInfo"/> to get</param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
+        /// <reponse code="404">Patient not found</reponse>
         [HttpGet("{id}/[action]/{bloodPressureId}")]
         [HttpHead("{id}/[action]/{bloodPressureId}")]
         [ProducesResponseType(typeof(BloodPressureInfo), 200)]
@@ -389,7 +423,6 @@ namespace MedEasy.API.Controllers
                 .GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId), cancellationToken);
 
             return output.Match<IActionResult>(
-
                 some: x =>
                 {
                     x.Meta = new Link
@@ -402,7 +435,7 @@ namespace MedEasy.API.Controllers
                         Resource = x
                     });
                 },
-            none: () => new NotFoundResult());
+                none: () => new NotFoundResult());
         }
 
         /// <summary>
@@ -414,11 +447,18 @@ namespace MedEasy.API.Controllers
         /// <param name="id">id of the patient to get most recent measures from</param>
         /// <param name="count">Number of result to get at most</param>
         /// <returns>Array of <see cref="BloodPressureInfo"/></returns>
+        /// <reponse code="404">Patient not found</reponse>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
         [ProducesResponseType(typeof(IEnumerable<BloodPressureInfo>), 200)]
-        public async Task<IEnumerable<BloodPressureInfo>> MostRecentBloodPressures(Guid id, [FromQuery] int? count)
-            => await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+        public async Task<IActionResult> MostRecentBloodPressures(Guid id, [FromQuery] int? count)
+        {
+            Option<IEnumerable<BloodPressureInfo>> output = await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+
+            return output.Match<IActionResult>(
+                some: items => new OkObjectResult(items),
+                none: () => new NotFoundResult());
+        }
 
         /// <summary>
         /// Get the last <see cref="TemperatureInfo"/> measures.
@@ -431,8 +471,14 @@ namespace MedEasy.API.Controllers
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
-        public async Task<IEnumerable<TemperatureInfo>> MostRecentTemperatures(Guid id, [FromQuery]int? count)
-            => await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+        public async Task<IActionResult> MostRecentTemperatures(Guid id, [FromQuery]int? count)
+        {
+            Option<IEnumerable<TemperatureInfo>> output = await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
+
+            return output.Match<IActionResult>(
+                some: items => new OkObjectResult(items),
+                none: () => new NotFoundResult());
+        }
 
 
 
@@ -669,7 +715,7 @@ namespace MedEasy.API.Controllers
         /// <typeparam name="TPhysiologicalMeasureInfo"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        private async Task<IEnumerable<TPhysiologicalMeasureInfo>> MostRecentMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(GetMostRecentPhysiologicalMeasuresInfo query)
+        private async Task<Option<IEnumerable<TPhysiologicalMeasureInfo>>> MostRecentMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(GetMostRecentPhysiologicalMeasuresInfo query)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
             => await _physiologicalMeasureService.GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(new WantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo>(query));
@@ -813,8 +859,22 @@ namespace MedEasy.API.Controllers
                     Value = newBodyWeight.Value
                 }
             };
-            BodyWeightInfo output = await _physiologicalMeasureService.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(new AddNewPhysiologicalMeasureCommand<BodyWeight, BodyWeightInfo>(input));
-            return new CreatedAtActionResult(nameof(BodyWeights), EndpointName, new { id = output.PatientId, bodyWeightId = output.Id }, output);
+            Option<BodyWeightInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(new AddNewPhysiologicalMeasureCommand<BodyWeight, BodyWeightInfo>(input));
+            return output.Match(
+                some: bw => new CreatedAtActionResult(nameof(BodyWeights), EndpointName, new { id = bw.PatientId, bodyWeightId = bw.Id }, bw),
+                none: exception => {
+                    IActionResult actionResult;
+                    switch (exception)
+                    {
+                        case CommandEntityNotFoundException cenf:
+                            actionResult = new NotFoundResult();
+                            break;
+                        default:
+                            actionResult = new InternalServerErrorResult();
+                            break;
+                    }
+                    return actionResult;
+                });
         }
 
         /// <summary>

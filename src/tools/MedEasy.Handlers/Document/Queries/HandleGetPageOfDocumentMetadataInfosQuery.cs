@@ -4,7 +4,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using Microsoft.Extensions.Logging;
 using MedEasy.Objects;
-using MedEasy.Queries.Document;
 using MedEasy.Handlers.Core.Document.Queries;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
