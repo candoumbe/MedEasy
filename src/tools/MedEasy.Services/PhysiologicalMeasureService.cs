@@ -95,7 +95,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>> command, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default(CancellationToken))
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {

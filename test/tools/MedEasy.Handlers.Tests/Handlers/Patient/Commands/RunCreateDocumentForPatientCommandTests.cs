@@ -9,16 +9,12 @@ using AutoMapper;
 using FluentAssertions;
 using MedEasy.Validators;
 using MedEasy.Commands.Patient;
-using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Patient.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
 using System.Threading.Tasks;
 using MedEasy.DTO;
 using System.Linq;
-using System.Reflection;
-using System.Linq.Expressions;
-using MedEasy.Objects;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using MedEasy.Handlers.Core.Exceptions;
@@ -28,10 +24,8 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 {
     public class RunCreateDocumentForPatientCommandTests : IDisposable
     {
-        private Mock<ILogger<RunCreateDocumentForPatientCommand>> _loggerMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private RunCreateDocumentForPatientCommand _handler;
-        private Mock<IValidate<ICreateDocumentForPatientCommand>> _validatorMock;
         private IMapper _mapper;
         private ITestOutputHelper _outputHelper;
 
@@ -42,23 +36,17 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                 .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _unitOfWorkFactory = new EFUnitOfWorkFactory(builder.Options);
             
-            _loggerMock = new Mock<ILogger<RunCreateDocumentForPatientCommand>>(Strict);
-            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
-
-            _validatorMock = new Mock<IValidate<ICreateDocumentForPatientCommand>>(Strict);
+            
             _mapper = AutoMapperConfig.Build().CreateMapper();
 
             _outputHelper = output;
 
-            _handler = new RunCreateDocumentForPatientCommand(_validatorMock.Object, _loggerMock.Object,
-                _unitOfWorkFactory,
-               _mapper);
+            _handler = new RunCreateDocumentForPatientCommand(_unitOfWorkFactory, _mapper);
         }
 
         public void Dispose()
         {
             _unitOfWorkFactory = null;
-            _loggerMock = null;
             _outputHelper = null;
             _handler = null;
 
@@ -69,100 +57,55 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             get
             {
+
                 yield return new object[]
                 {
-                    null,
-                    null,
                     null,
                     null
                 };
 
-            }
-        }
-
-        public static IEnumerable<object> ValidCreateDocumentForPatientCases
-        {
-            get
-            {
-                Guid patientId = Guid.NewGuid();
-                yield return new object[] {
-                    new [] {
-                        new Objects.Patient { Id = 1, Firstname = "Bruce", Lastname = "Wayne", UUID = patientId }
-                    },
-                    new CreateDocumentForPatientInfo
-                    {
-                        PatientId = patientId,
-                        Document = new CreateDocumentInfo
-                        {
-                            Title = "Doc 1",
-                            MimeType = "application/pdf",
-                            Content = new byte[] {1, 2, 3, 4, 5}
-                        }
-                    }
+                yield return new object[]
+                {
+                    Mock.Of<IUnitOfWorkFactory>(),
+                    null
                 };
 
+                yield return new object[]
+                {
+                    null,
+                    Mock.Of<IMapper>()
+                };
 
             }
         }
-
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<ICreateDocumentForPatientCommand> validator, ILogger<RunCreateDocumentForPatientCommand> logger,
-            IUnitOfWorkFactory factory, IMapper mapper)
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IUnitOfWorkFactory factory, IMapper mapper)
         {
-            Action action = () => new RunCreateDocumentForPatientCommand(validator, logger, factory, mapper);
+
+            _outputHelper.WriteLine($"{nameof(factory)} == null : {factory == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} == null : {mapper == null}");
+
+            Action action = () => new RunCreateDocumentForPatientCommand(factory, mapper);
 
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }
 
-        [Theory]
-        [MemberData(nameof(ValidCreateDocumentForPatientCases))]
-        public async Task ShouldCreateResource(IEnumerable<Objects.Patient> patients, CreateDocumentForPatientInfo input)
+
+        [Fact]
+        public void Throws_ArgumentNullException_When_Command_To_Run_Is_Null()
         {
-            _outputHelper.WriteLine($"input : {input}");
-
-            // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                uow.Repository<Objects.Patient>().Create(patients);
-
-                await uow.SaveChangesAsync();
-            }
-
-            
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
-
-            
             // Act
-            CreateDocumentForPatientCommand cmd = new CreateDocumentForPatientCommand(input);
-            Option<DocumentMetadataInfo, CommandException> output = await _handler.RunAsync(cmd);
+            Func<Task> action = async () => await _handler.RunAsync(null);
 
             // Assert
-            output.HasValue.Should()
-                .BeTrue();
-
-            output.MatchSome(createdResource => {
-
-                createdResource.Should().NotBeNull();
-                createdResource.MimeType.Should().Be(input.Document.MimeType);
-                createdResource.Title.Should().Be(input.Document.Title);
-                createdResource.Size.Should().Be(input.Document.Content.Length);
-                createdResource.PatientId.Should().Be(input.PatientId);
-                createdResource.Id.Should().NotBeEmpty();
-
-                _validatorMock.Verify(mock => mock.Validate(It.Is<ICreateDocumentForPatientCommand>(x => x.Id == cmd.Id)), Times.Once);
-                _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreateDocumentForPatientCommand>()), Times.Once);
-                _loggerMock.Verify(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()), Times.AtLeast(2));
-
-            });
-
+            action.ShouldThrow<ArgumentNullException>().Which
+                .ParamName.Should()
+                .NotBeNullOrWhiteSpace();
         }
-
-
     }
 
 }

@@ -25,10 +25,8 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 {
     public class RunCreatePatientCommandTests : IDisposable
     {
-        private Mock<ILogger<RunCreatePatientCommand>> _loggerMock;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
         private RunCreatePatientCommand _handler;
-        private Mock<IValidate<ICreatePatientCommand>> _validatorMock;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         private ITestOutputHelper _outputHelper;
 
@@ -38,22 +36,15 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
 
-            _loggerMock = new Mock<ILogger<RunCreatePatientCommand>>(Strict);
-            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
-
-            _validatorMock = new Mock<IValidate<ICreatePatientCommand>>(Strict);
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
             _outputHelper = output;
-            _handler = new RunCreatePatientCommand(_validatorMock.Object, _loggerMock.Object,
-                _unitOfWorkFactoryMock.Object,
-               _expressionBuilderMock.Object);
+            _handler = new RunCreatePatientCommand(_unitOfWorkFactoryMock.Object, _expressionBuilderMock.Object);
         }
 
         public void Dispose()
         {
             _unitOfWorkFactoryMock = null;
-            _loggerMock = null;
             _outputHelper = null;
             _handler = null;
 
@@ -64,14 +55,12 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             get
             {
-                yield return new object[]
-                {
-                    null,
-                    null,
-                    null,
-                    null
-                };
+                IEnumerable<object> factories = new[] { null, Mock.Of<IUnitOfWorkFactory>() };
+                IEnumerable<object> expressionBuilders = new[] { null, Mock.Of<IExpressionBuilder>() };
 
+                return factories.CrossJoin(expressionBuilders)
+                    .Where(tuple => tuple.Item1 == null || tuple.Item2 == null)
+                    .Select(tuple => new[] { tuple.Item1, tuple.Item2 });
             }
         }
 
@@ -111,11 +100,15 @@ namespace MedEasy.BLL.Tests.Commands.Patient
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<ICreatePatientCommand> validator, ILogger<RunCreatePatientCommand> logger,
-            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
-            Action action = () => new RunCreatePatientCommand(validator, logger, factory, expressionBuilder);
+            _outputHelper.WriteLine($"{nameof(factory)} == null : {factory == null}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} == null : {expressionBuilder == null}");
 
+            // Act
+            Action action = () => new RunCreatePatientCommand(factory, expressionBuilder);
+
+            // Assert
             action.ShouldThrow<ArgumentNullException>().And
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
@@ -131,9 +124,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().Create(It.IsAny<Objects.Patient>()))
                 .Returns((Objects.Patient patient) => patient);
             _unitOfWorkFactoryMock.Setup(mock => mock.New().SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
 
             _expressionBuilderMock.Setup(mock => mock.GetMapExpression(typeof(CreatePatientInfo), typeof(Objects.Patient), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
                .Returns((Type source, Type dest, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider
@@ -160,7 +150,6 @@ namespace MedEasy.BLL.Tests.Commands.Patient
                 x.BirthDate.Should().Be(input.BirthDate);
                 x.BirthPlace.Should().Be(input.BirthPlace?.ToTitleCase());
                 x.MainDoctorId.ShouldBeEquivalentTo(input.MainDoctorId);
-                _validatorMock.Verify(mock => mock.Validate(It.IsAny<ICreatePatientCommand>()), Times.Once);
             });
 
         }

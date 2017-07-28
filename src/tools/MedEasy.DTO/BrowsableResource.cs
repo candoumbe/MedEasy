@@ -19,7 +19,9 @@ namespace MedEasy.DTO
         /// Location of the resource. Can be cached for further operations
         /// </summary>
         [JsonProperty]
-        public IEnumerable<Link> Links { get
+        public IEnumerable<Link> Links
+        {
+            get
             {
                 return _links ?? Enumerable.Empty<Link>();
             }

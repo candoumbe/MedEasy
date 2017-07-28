@@ -12,10 +12,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.Commands\MedEasy.Commands.csproj" />
+    <ProjectReference Include="..\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\MedEasy.DTO\MedEasy.DTO.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="7.1.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />

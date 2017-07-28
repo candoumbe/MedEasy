@@ -93,11 +93,10 @@ namespace MedEasy.API.Controllers
         /// <param name="id">id of the resource to get details.</param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
-        /// <response code="200">if the resource exists</response>
         /// <response code="404">if no prescription with <paramref name="id"/> found</response>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
-        [ProducesResponseType(typeof(IEnumerable<PrescriptionItemInfo>), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<IEnumerable<PrescriptionItemInfo>>), 200)]
         public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<IEnumerable<PrescriptionItemInfo>> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id, cancellationToken);

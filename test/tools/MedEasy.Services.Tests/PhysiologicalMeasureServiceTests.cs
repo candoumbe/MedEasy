@@ -179,9 +179,6 @@ namespace MedEasy.Services.Tests
         public async Task AddNewBloodPressureResource_Throws_NotFoundException_If_Patient_Not_Found()
         {
             // Arrange
-
-
-            // Act
             CreatePhysiologicalMeasureInfo<BloodPressure> input = new CreatePhysiologicalMeasureInfo<BloodPressure>
             {
                 PatientId = Guid.NewGuid(),
@@ -193,7 +190,10 @@ namespace MedEasy.Services.Tests
                 }
             };
 
-            Option<BloodPressureInfo, CommandException> result = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
+
+            // Act
+            ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>, BloodPressureInfo> cmd = new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input);
+            Option<BloodPressureInfo, CommandException> result = await _physiologicalMeasureService.AddNewMeasureAsync(cmd);
 
             // Assert
             result.HasValue.Should().BeFalse();
@@ -231,7 +231,7 @@ namespace MedEasy.Services.Tests
                     DiastolicPressure = 80
                 }
             };
-            Option<BloodPressureInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
+            Option<BloodPressureInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(input));
 
             // Assert
             output.HasValue.Should().BeTrue();

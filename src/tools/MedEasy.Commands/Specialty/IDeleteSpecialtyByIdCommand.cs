@@ -3,7 +3,7 @@ using MedEasy.Commands;
 
 namespace MedEasy.Commands.Specialty
 {
-    public interface IDeleteSpecialtyByIdCommand : IDeleteByCommand<Guid, Guid>
+    public interface IDeleteSpecialtyByIdCommand : ICommand<Guid, Guid>
     {
     }
 }

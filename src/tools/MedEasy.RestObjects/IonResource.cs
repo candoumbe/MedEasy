@@ -8,7 +8,7 @@ namespace MedEasy.RestObjects
     /// <summary>
     /// A ION resource
     /// </summary>
-    public class IonResource : IIonResource
+    public class IonResource
     {
         /// <summary>
         /// Metadata information about the resource

@@ -1,11 +1,11 @@
-﻿import { EndpointList, EndpointListProps } from "./../EndpointList"
-
+﻿import { EndpointPageOfData, EndpointPageOfDataProps } from "./../EndpointPageOfData"
+import { BrowsableResource } from "./../../restObjects/BrowsableResource"
 /**
  * Properties of the {PatientList} component.
  */
 
 interface PatientListState {
-    patients: Array<MedEasy.DTO.Patient>;
+    patients: Array<BrowsableResource<MedEasy.DTO.Patient>>;
     page: number;
     loading: boolean;
 }
@@ -15,9 +15,9 @@ interface PatientListState {
  * Displays a list of patients.
  * 
  */
-export class PatientList extends EndpointList<MedEasy.DTO.Patient> {
+export class PatientList extends EndpointPageOfData<BrowsableResource<MedEasy.DTO.Patient>> {
 
-    public constructor(props: EndpointListProps<MedEasy.DTO.Patient>) {
+    public constructor(props: EndpointPageOfDataProps<BrowsableResource<MedEasy.DTO.Patient>>) {
         super(props);
     }
 }

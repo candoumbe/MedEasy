@@ -14,19 +14,16 @@ using System.Linq;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using MedEasy.Objects;
 using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.Handlers.Core.Commands
 {
     /// <summary>
     /// Extends this class to create patch commands' runner.
     /// </summary>
-    /// <typeparam name="TCommandId">Type of the command identifier</typeparam>
     /// <typeparam name="TEntityId">Type of data command will carry</typeparam>
     /// <typeparam name="TEntity">Type of result the execution of the command will output</typeparam>
-    /// <typeparam name="TCommand">Type of commands to run</typeparam>
-    public abstract class GenericPatchCommandRunner<TCommandId, TResourceId, TEntityId,  TEntity, TCommand> : CommandRunnerBase<TCommandId, IPatchInfo<TResourceId, TEntity>, Nothing, TCommand>
-        where TCommandId : IEquatable<TCommandId>
-        where TCommand : IPatchCommand<TCommandId, TResourceId, TEntity, IPatchInfo<TResourceId, TEntity>>
+    public abstract class GenericPatchCommandRunner<TResourceId, TEntityId, TEntity> : CommandRunnerBase<Guid, IPatchInfo<TResourceId, TEntity>, Nothing, IPatchCommand<TResourceId, TEntity>>
         where TEntity : class, IEntity<TEntityId>
     {
         protected IUnitOfWorkFactory UowFactory { get; }
@@ -36,15 +33,14 @@ namespace MedEasy.Handlers.Core.Commands
         /// <summary>
         /// Builds a new <see cref="GenericPatchCommandRunner{TCommandId, TInput, TOutput, TCommand}"/> instance.
         /// </summary>
-        /// <param name="validator">Validate the command</param>
         /// <param name="uowFactory">Factory to build <see cref="IUnitOfWork"/> instances.</param>
-        /// <exception cref="ArgumentNullException">if either <paramref name="uowFactory"/> or <paramref name="validator"/> is <c>null</c>.</exception>
-        protected GenericPatchCommandRunner(IValidate<TCommand> validator, IUnitOfWorkFactory uowFactory) : base(validator)
+        /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/> is <c>null</c>.</exception>
+        protected GenericPatchCommandRunner(IUnitOfWorkFactory uowFactory) : base()
         {
             UowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
         }
 
-        public override async Task<Option<Nothing, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<Nothing, CommandException>> RunAsync(IPatchCommand<TResourceId, TEntity> command, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (IUnitOfWork uow = UowFactory.New())
             {

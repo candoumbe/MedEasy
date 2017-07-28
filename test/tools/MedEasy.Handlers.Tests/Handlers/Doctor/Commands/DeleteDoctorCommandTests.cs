@@ -26,29 +26,8 @@ namespace MedEasy.BLL.Tests.Commands.Doctor
                 yield return new object[] { null };
             }
         }
-
-        /// <summary>
-        /// Tests that building an instance of <see cref="DeleteDoctorByIdCommand"/> with <see cref="Guid.Empty"/>
-        /// is not valid
-        /// </summary>
-        [Fact]
-        public void Ctor_With_Empty_Guid_Throws_Exception()
-        {
-            Action action = () => new DeleteDoctorByIdCommand(Guid.Empty);
-
-
-            action.ShouldThrow<ArgumentOutOfRangeException>().Which
-                .ParamName.Should()
-                .NotBeNullOrWhiteSpace();
-        }
-
-
         
-
-
-
-
-       
+        
         public void Dispose()
         {
             _outputHelper = null;

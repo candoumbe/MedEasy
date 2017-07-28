@@ -8,7 +8,7 @@ namespace MedEasy.Commands.Patient
     /// Command to create a new <see cref="DocumentMetadataInfo"/> resource for a <see cref="PatientInfo"/>.
     /// </summary>
     [JsonObject]
-    public class CreateDocumentForPatientCommand : CommandBase<Guid, CreateDocumentForPatientInfo>, ICreateDocumentForPatientCommand
+    public class CreateDocumentForPatientCommand : CommandBase<Guid, CreateDocumentForPatientInfo, DocumentMetadataInfo>, ICreateDocumentForPatientCommand
     {
         /// <summary>
         /// Builds a new <see cref="CreatePatientCommand"/> instance.

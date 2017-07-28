@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IO;
 using static Newtonsoft.Json.DateFormatHandling;
@@ -128,6 +129,7 @@ namespace MedEasy.API
                 options.SerializerSettings.DateTimeZoneHandling = Utc;
                 options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
             });
 

@@ -41,6 +41,7 @@ using MedEasy.DTO.Search;
 using MedEasy.DAL.Interfaces;
 using System.Threading;
 using Optional;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -230,9 +231,9 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<DoctorInfo>>();
+                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>>();
 
-            IGenericPagedGetResponse<DoctorInfo> response = (IGenericPagedGetResponse<DoctorInfo>)value;
+            IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> response = (IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>)value;
 
             response.Count.Should()
                     .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<DoctorInfo>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>.Count)}"" property indicates the number of elements");
@@ -354,11 +355,23 @@ namespace MedEasy.WebApi.Tests
                     .NotBe(Guid.Empty);
 
 
-            
-            DoctorInfo createdResource = (DoctorInfo)((CreatedAtActionResult)actionResult).Value;
+            BrowsableResource<DoctorInfo> browsableResource = createdActionResult.Value.Should()
+                .NotBeNull().And
+                .BeOfType<BrowsableResource<DoctorInfo>>().Which;
 
-            createdResource.Should()
+            browsableResource.Should()
                 .NotBeNull();
+
+            browsableResource.Links.Should()
+                .NotBeNull().And
+                .NotContainNulls();
+
+
+            browsableResource.Resource.Should()
+                .NotBeNull();
+
+            DoctorInfo createdResource = browsableResource.Resource;
+
             createdResource.Firstname.Should()
                 .Be(info.Firstname);
             createdResource.Lastname.Should()
@@ -590,16 +603,19 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            IGenericPagedGetResponse<DoctorInfo> content = actionResult.Should()
+            IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<IGenericPagedGetResponse<DoctorInfo>>().Which;
+                        .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>>().Which;
 
 
             content.Items.Should()
-                .NotBeNull();
+                .NotBeNull().And
+                .NotContainNulls().And
+                .NotContain(x => x.Resource ==  null).And
+                .NotContain(x => x.Links == null);
 
             content.Links.Should().NotBeNull();
             PagedRestResponseLink links = content.Links;
@@ -677,8 +693,7 @@ namespace MedEasy.WebApi.Tests
             _iRunDeleteDoctorInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteDoctorByIdCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
-
-
+            
             //Act
             Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
 
@@ -690,17 +705,18 @@ namespace MedEasy.WebApi.Tests
         [Fact]
         public async Task DeleteMustRelyOnDeleteCommandHandler()
         {
-
             //Arrange
             _iRunDeleteDoctorInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteDoctorByIdCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Nothing.Value)
+                .ReturnsAsync(Nothing.Value.Some<Nothing, CommandException>())
                 .Verifiable();
 
 
             //Act
-            await _controller.Delete(Guid.NewGuid());
+            IActionResult actionResult = await _controller.Delete(Guid.NewGuid());
 
             //Assert
+
+            actionResult.Should().BeOfType<NoContentResult>();
             _iRunDeleteDoctorInfoByIdCommandMock.Verify();
         }
 

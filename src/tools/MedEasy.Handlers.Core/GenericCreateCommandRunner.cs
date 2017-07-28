@@ -23,47 +23,26 @@ namespace MedEasy.Handlers.Core.Commands
     /// <typeparam name="TOutput">Type of the TCommand outputs</typeparam>
     /// <typeparam name="TCommand">Type of the commmand</typeparam>
     public abstract class GenericCreateCommandRunner<TCommandId, TEntity, TData, TOutput, TCommand> : CommandRunnerBase<TCommandId, TData, TOutput, TCommand>
-        where TCommand : ICommand<TCommandId, TData>
         where TEntity : class
         where TCommandId : IEquatable<TCommandId>
+        where TCommand : ICommand<TCommandId, TData, TOutput>
     {
 
         /// <summary>
         /// Builds a new <see cref="GenericCreateCommandRunner{TKey, TEntity, TData, TOutput, TCommand}"/> instance
         /// </summary>
-        /// <param name="validator">Validator to use to validate commands in <see cref="HandleAsync(TCommand)"/></param>
-        /// <param name="logger">Logger</param>
+        /// <param name="expressionBuilder">Buiulder expression to map <see cref="TEntity"/> instance to <see cref="TOutput"/> </param>
         /// <param name="uowFactory">Factory to build instances of <see cref="IUnitOfWork"/></param>
-        /// <param name="dataToEntityMapper">Function to convert commands data to entity</param>
-        /// <param name="entityToOutputMapper">Function to convert entity to command</param>
-        public GenericCreateCommandRunner(IValidate<TCommand> validator, 
-            ILogger<GenericCreateCommandRunner<TCommandId, TEntity, TData, TOutput, TCommand>> logger, 
-            IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder
-            ) : base (validator)
+        public GenericCreateCommandRunner(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
         {
-            UowFactory = uowFactory;
-            Logger = logger;
-            ExpressionBuilder = expressionBuilder;
+            UowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            ExpressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public IUnitOfWorkFactory UowFactory { get; }
+        protected IUnitOfWorkFactory UowFactory { get; }
 
-        public ILogger<GenericCreateCommandRunner<TCommandId, TEntity, TData, TOutput, TCommand>> Logger { get; }
+        protected IExpressionBuilder ExpressionBuilder { get; }
 
-        public IExpressionBuilder ExpressionBuilder { get; }
-
-        /// <summary>
-        /// Hook to customize the input before 
-        /// </summary>
-        /// <param name="input">The input that contains</param>
-        /// <returns></returns>
-        public virtual Task OnCreatingAsync(TCommandId id, TData input) => Task.CompletedTask;
-
-        /// <summary>
-        /// Hook to customize the output of the command
-        /// </summary>
-        /// <param name="input"></param>
-        public virtual Task OnCreatedAsync(TOutput output) => Task.CompletedTask;
 
         /// <summary>
         /// Process the command.
@@ -82,55 +61,29 @@ namespace MedEasy.Handlers.Core.Commands
                 throw new ArgumentNullException(nameof(command));
             }
 
-            Option<TOutput, CommandException> result;
-
-            Logger.LogInformation($"Start processing command : {command.Id}");
-            Logger.LogTrace("Validating command");
-            IEnumerable<Task<ErrorInfo>> errorsTasks = Validator.Validate(command);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks)
-                .ConfigureAwait(false);
-            if (errors.Any(item => item.Severity == Error))
+            using (IUnitOfWork uow = UowFactory.New())
             {
-                Logger.LogTrace("validation failed", errors);
-#if DEBUG || TRACE
-                foreach (ErrorInfo error in errors)
+                Option<TOutput, CommandException> result = default(Option<TOutput, CommandException>);
+                try
                 {
-                    Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
-                }
-#endif
-                result = Option.None<TOutput, CommandException>( new CommandNotValidException<TCommandId>(command.Id, errors));
-            }
-            else
-            {
-                Logger.LogTrace("Command validation succeeded");
+                    TData data = command.Data;
+                    TEntity entity = ExpressionBuilder.GetMapExpression<TData, TEntity>().Compile().Invoke(data);
 
-                using (IUnitOfWork uow = UowFactory.New())
+                    uow.Repository<TEntity>().Create(entity);
+                    await uow.SaveChangesAsync();
+
+                    TOutput output = ExpressionBuilder.GetMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
+                    result = output.Some<TOutput, CommandException>();
+                }
+                catch (CommandException ex)
                 {
-                    try
-                    {
-                        TData data = command.Data;
-                        await OnCreatingAsync(command.Id, data);
-                        TEntity entity = ExpressionBuilder.GetMapExpression<TData, TEntity>().Compile().Invoke(data);
 
-                        uow.Repository<TEntity>().Create(entity);
-                        await uow.SaveChangesAsync();
-
-                        TOutput output = ExpressionBuilder.GetMapExpression<TEntity, TOutput>().Compile().Invoke(entity);
-                        await OnCreatedAsync(output);
-                        Logger.LogInformation($"Command {command.Id} processed successfully");
-
-
-                        result = output.Some<TOutput, CommandException>();
-                    }
-                    catch (CommandException ex)
-                    {
-
-                        result = Option.None<TOutput, CommandException>(ex);
-                    }
+                    result = Option.None<TOutput, CommandException>(ex);
                 }
+
+                return result;
             }
 
-            return result;
         }
     }
 }

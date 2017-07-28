@@ -27,7 +27,7 @@ namespace MedEasy.Handlers.Prescription.Commands
         /// <see cref="GenericCreateCommandRunner{TKey, TEntity, TData, TOutput, TCommand}"/>
         public RunCreatePrescriptionCommand(IValidate<ICreatePrescriptionCommand> validator, ILogger<RunCreatePrescriptionCommand> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder) 
-            : base (validator, logger, factory, expressionBuilder)
+            : base(factory, expressionBuilder)
         {
 
         }

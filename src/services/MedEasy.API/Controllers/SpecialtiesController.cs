@@ -17,6 +17,7 @@ using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
 using Microsoft.AspNetCore.Http;
+using MedEasy.API.Results;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -71,7 +72,7 @@ namespace MedEasy.API.Controllers
         /// Gets all the entries in the repository
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<SpecialtyInfo>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
             IPagedResult<SpecialtyInfo> result = await GetAll(query);
@@ -92,9 +93,11 @@ namespace MedEasy.API.Controllers
                     ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
                     : null;
 
+            IEnumerable<BrowsableResource<SpecialtyInfo>> resources = result.Entries
+                .Select(x => new BrowsableResource<SpecialtyInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
 
-            IGenericPagedGetResponse<SpecialtyInfo> response = new GenericPagedGetResponse<SpecialtyInfo>(
-                result.Entries,
+            IGenericPagedGetResponse<BrowsableResource<SpecialtyInfo>> response = new GenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>(
+                resources,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -115,7 +118,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource not found</response>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(SpecialtyInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<SpecialtyInfo>), 200)]
         public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id, cancellationToken);
 
 
@@ -128,7 +131,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource not found</response>
         /// <returns>the created resource</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(SpecialtyInfo), 201)]
+        [ProducesResponseType(typeof(BrowsableResource<SpecialtyInfo>), 201)]
         public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<SpecialtyInfo, CommandException> output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info), cancellationToken);
@@ -153,7 +156,7 @@ namespace MedEasy.API.Controllers
                             result = new BadRequestObjectResult(cenf.Message);
                             break;
                         default:
-                            result = new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                            result = new InternalServerErrorResult();
                             break;
                     }
 
@@ -201,7 +204,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200"></response>
         /// <response code="404">Specialty not found</response>
         [HttpGet("{id}/Doctors")]
-        [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DoctorInfo>>), 200)]
         public async Task<IActionResult> Doctors(Guid id, [FromQuery] PaginationConfiguration query)
         {
             if (query == null)
@@ -220,8 +223,19 @@ namespace MedEasy.API.Controllers
             return result.Match<IActionResult>(
                 some: page =>
                 {
-                    IGenericPagedGetResponse<DoctorInfo> pagedResponse = new GenericPagedGetResponse<DoctorInfo>(
-                        page.Entries,
+
+                    IEnumerable<BrowsableResource<DoctorInfo>> resources = page.Entries
+                        .Select(x => new BrowsableResource<DoctorInfo>
+                        {
+                            Resource = x,
+                            Links = new[]
+                            {
+                                new Link { Relation = "self", Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new {x.Id})}
+                            }
+                        });
+
+                    IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
+                        resources,
                         first: UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
                         previous: page.PageCount > 1 && query.Page > 1
                             ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })

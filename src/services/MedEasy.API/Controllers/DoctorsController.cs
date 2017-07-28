@@ -94,7 +94,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DoctorInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -121,9 +121,11 @@ namespace MedEasy.API.Controllers
                     ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
                     : null;
 
+            IEnumerable<BrowsableResource<DoctorInfo>> resources = result.Entries
+                .Select(x => new BrowsableResource<DoctorInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
 
-            IGenericPagedGetResponse<DoctorInfo> response = new GenericPagedGetResponse<DoctorInfo>(
-                result.Entries,
+            IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> response = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
+                resources,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -163,7 +165,7 @@ namespace MedEasy.API.Controllers
             Option<DoctorInfo, CommandException> output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
 
             return output.Match(
-                some: x => new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, x),
+                some: x => new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, new BrowsableResource<DoctorInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) }),
                 none: exception =>
                {
                    IActionResult result;
@@ -351,8 +353,12 @@ namespace MedEasy.API.Controllers
                     ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
-            IGenericPagedGetResponse<DoctorInfo> reponse = new GenericPagedGetResponse<DoctorInfo>(
-                pageOfResult.Entries,
+            IEnumerable<BrowsableResource<DoctorInfo>> resources = pageOfResult.Entries
+                .Select(x => new BrowsableResource<DoctorInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
+
+
+            IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
+                resources,
                 first: firstPageUrl,
                 previous: previousPageUrl,
                 next: nextPageUrl,

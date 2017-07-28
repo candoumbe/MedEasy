@@ -41,8 +41,8 @@ namespace MedEasy.API.Controllers
         where TGetManyQuery : IWantPageOfResources<Guid, TResource>
         where TEntity : IEntity<int>
         where TCommandId : IEquatable<TCommandId>
-        where TCreateCommand : ICommand<TCommandId, TPost>
-        where TRunCreateCommand : IRunCommandAsync<TCommandId, TPost, Option<TResource, CommandException>, TCreateCommand>
+        where TCreateCommand : ICommand<TCommandId, TPost, TResource>
+        where TRunCreateCommand : IRunCommandAsync<TCommandId, TPost, TResource, TCreateCommand>
 
     {
         private readonly TRunCreateCommand _iRunCreateCommand;
@@ -80,12 +80,7 @@ namespace MedEasy.API.Controllers
         public async ValueTask<Option<TResource, CommandException>> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<TResource, CommandException> resource = await _iRunCreateCommand.RunAsync(createCommand);
-            resource.MatchSome(x => x.Meta = new Link
-                {
-                    Href = UrlHelper.Action(nameof(Get), new { x.Id }),
-                    Relation = "self",
-                });
-
+            
             return resource;
 
         }

@@ -2,7 +2,7 @@
 
 namespace MedEasy.Commands.Prescription
 {
-    public interface IDeletePrescriptionByIdCommand : ICommand<Guid, int>
+    public interface IDeletePrescriptionByIdCommand : ICommand<Guid, Guid>
     {
     }
 }

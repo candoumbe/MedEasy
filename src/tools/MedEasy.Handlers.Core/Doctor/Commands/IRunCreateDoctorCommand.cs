@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Doctor.Commands
 {
-    public interface IRunCreateDoctorCommand : IRunCommandAsync<Guid, CreateDoctorInfo, Option<DoctorInfo, CommandException>, ICreateDoctorCommand>
+    public interface IRunCreateDoctorCommand : IRunCommandAsync<Guid, CreateDoctorInfo, DoctorInfo, ICreateDoctorCommand>
     {
 
     }

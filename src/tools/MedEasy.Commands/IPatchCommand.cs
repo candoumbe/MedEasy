@@ -1,5 +1,6 @@
 ﻿using System;
 using MedEasy.DTO;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.Commands
 {
@@ -9,12 +10,13 @@ namespace MedEasy.Commands
     /// <remarks>
     /// This command embed a set of <see cref="PatchOperation"/> that must be applied atomically.
     /// </remarks>
-    /// <typeparam name="TKey">type of the command key</typeparam>
+    /// <typeparam name="TCommandId">type of the command key</typeparam>
     /// <typeparam name="TResourceId">type of the identifier of resource to patch</typeparam>
-    /// <typeparam name="TData">type of the data the command carries</typeparam>
-    public interface IPatchCommand<TKey, TResourceId, TResource, TData> : ICommand<TKey, TData>
-        where TKey : IEquatable<TKey>
-        where TData : IPatchInfo<TResourceId, TResource>
+    /// <typeparam name="TResource">type of the resource resource to patch</typeparam>
+    /// <typeparam name="TCommandData">type of the data the command carries</typeparam>
+    public interface IPatchCommand<TCommandId, TResourceId, TResource, TCommandData> : ICommand<TCommandId, TCommandData, Nothing>
+        where TCommandId : IEquatable<TCommandId>
+        where TCommandData : IPatchInfo<TResourceId, TResource>
         where TResource : class
     {
     }

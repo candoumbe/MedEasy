@@ -3,7 +3,7 @@ using System;
 
 namespace MedEasy.Commands.Appointment
 {
-    public interface ICreateAppointmentCommand : ICommand<Guid, CreateAppointmentInfo>
+    public interface ICreateAppointmentCommand : ICommand<Guid, CreateAppointmentInfo, AppointmentInfo>
     {
     }
 }

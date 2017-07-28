@@ -3,6 +3,6 @@ using MedEasy.DTO;
 
 namespace MedEasy.Commands.Patient
 {
-    public interface ICreateDocumentForPatientCommand : ICommand<Guid, CreateDocumentForPatientInfo>
+    public interface ICreateDocumentForPatientCommand : ICommand<Guid, CreateDocumentForPatientInfo, DocumentMetadataInfo>
     {    }
 }

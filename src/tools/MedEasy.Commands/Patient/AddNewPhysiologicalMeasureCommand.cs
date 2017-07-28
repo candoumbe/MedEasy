@@ -12,19 +12,20 @@ namespace MedEasy.Commands
     /// </summary>
     /// <typeparam name="TKey">Type of the command identifier</typeparam>
     /// <typeparam name="TData">Type of data the command will carry</typeparam>
+    /// <typeparam name="TOutput">Type of the result of the execution of the command</typeparam>
     [JsonObject]
-    public class AddNewPhysiologicalMeasureCommand<TKey, TData, TOutput> : CommandBase<TKey, CreatePhysiologicalMeasureInfo<TData>>, IAddNewPhysiologicalMeasureCommand<TKey, TData>
-        where TKey : IEquatable<TKey>
+    public class AddNewPhysiologicalMeasureCommand<TCommandId, TData, TOutput> : CommandBase<TCommandId, CreatePhysiologicalMeasureInfo<TData>, TOutput>, IAddNewPhysiologicalMeasureCommand<TCommandId, TData, TOutput>
+        where TCommandId : IEquatable<TCommandId>
         where TData : PhysiologicalMeasurement
     {
 
         /// <summary>
-        /// Builds a new <see cref="AddNewPhysiologicalMeasureCommand{TKey, TData}"/>
+        /// Builds a new <see cref="AddNewPhysiologicalMeasureCommand{TKey, TData, TOutput}"/>
         /// </summary>
         /// <param name="id">id of the command</param>
         /// <param name="data">data the command carries</param>
         /// 
-        public AddNewPhysiologicalMeasureCommand(TKey id, CreatePhysiologicalMeasureInfo<TData> data) : base(id, data)
+        public AddNewPhysiologicalMeasureCommand(TCommandId id, CreatePhysiologicalMeasureInfo<TData> data) : base(id, data)
         {
         }
 

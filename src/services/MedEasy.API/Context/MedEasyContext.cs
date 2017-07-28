@@ -334,7 +334,8 @@ namespace MedEasy.API.Stores
                 .ForEach(UpdateModifiedEntry);
 
 
-            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>

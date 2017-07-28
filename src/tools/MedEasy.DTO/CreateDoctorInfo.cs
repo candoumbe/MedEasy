@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.DTO
 {
@@ -28,6 +28,9 @@ namespace MedEasy.DTO
         /// </summary>
         [JsonProperty]
         public Guid? SpecialtyId { get; set; }
+
+
+        public override string ToString() => SerializeObject(this);
     }
 
 }

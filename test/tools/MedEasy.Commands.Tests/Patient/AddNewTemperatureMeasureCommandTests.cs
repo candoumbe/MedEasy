@@ -16,22 +16,6 @@ namespace MedEasy.Commands.Tests.Patient
             _outputHelper = outputHelper;
         }
 
-
-        [Fact]
-        public void ShouldThrowArgumentNullExceptionIfCommandToRunIsNull()
-        {
-            // Act 
-            Action action = () => new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(null);
-
-            // Assert
-
-            action.ShouldThrow<ArgumentException>("the command's parameter cannot be null").Which
-                .ParamName.Should()
-                    .NotBeNullOrWhiteSpace("it's usefull to debug quickly");
-        }
-
-
-
         public void Dispose()
         {
             _outputHelper = null;

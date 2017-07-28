@@ -32,7 +32,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="command">command that holds data to create the resource</param>
         /// <returns>The created resource</returns>
-        ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>> query, CancellationToken cancellationToken = default(CancellationToken))
+        ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo;
         

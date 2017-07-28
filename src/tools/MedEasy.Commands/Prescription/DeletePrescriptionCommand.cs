@@ -8,16 +8,16 @@ namespace MedEasy.Commands.Prescription
     {
         public Guid Id => Guid.NewGuid();
 
-        public int Data { get; }
+        public Guid Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="DeletePrescriptionByIdCommand"/>
         /// </summary>
         /// <param name="id">id of the prescription to delete</param>
-        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="id"/> is lower or equal to 0</exception>
-        public DeletePrescriptionByIdCommand(int id)
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="id"/> <see cref="Guid.Empty"/></exception>
+        public DeletePrescriptionByIdCommand(Guid id)
         {
-            if (id <= 0)
+            if (Guid.Empty == id)
             {
                 throw new ArgumentOutOfRangeException(nameof(id));
             }

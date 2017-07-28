@@ -13,25 +13,27 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
-using static Moq.Times;
 using static MedEasy.Validators.ErrorLevel;
 using static Newtonsoft.Json.JsonConvert;
 using MedEasy.Commands;
-using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using MedEasy.Handlers.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using Optional;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
+
+    [Collection("Unit tests")]
     public class RunPatchPatientCommandTests : IDisposable
     {
         private RunPatchPatientCommand _commandRunner;
-        private Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>> _commandValidatorMock;
+        private Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>> _commandValidatorMock;
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
+        private Mock<ILogger<RunPatchPatientCommand>> _loggerMock;
 
 
         public RunPatchPatientCommandTests(ITestOutputHelper outputHelper)
@@ -42,10 +44,11 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             DbContextOptionsBuilder<MedEasyContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MedEasyContext>()
                 .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory(dbContextOptionsBuilder.Options);
-            
-            _commandValidatorMock = new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>(Strict);
 
-            _commandRunner = new RunPatchPatientCommand(_uowFactory, _commandValidatorMock.Object);
+            _commandValidatorMock = new Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>>(Strict);
+            _loggerMock = new Mock<ILogger<RunPatchPatientCommand>>(Strict);
+
+            _commandRunner = new RunPatchPatientCommand(_uowFactory);
         }
 
         public void Dispose()
@@ -56,6 +59,8 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             _commandValidatorMock = null;
 
             _commandRunner = null;
+
+            _loggerMock = null;
         }
 
 
@@ -63,21 +68,20 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         {
             get
             {
-                yield return new object[] { null, null };
-                yield return new object[] { null, new Mock<IValidate<IPatchCommand<Guid, Objects.Patient>>>().Object };
-                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null };
+                yield return new object[] { null, null, null };
+                yield return new object[] { null, null, new Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>>().Object };
+                yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, null };
             }
         }
 
-        [Theory]
-        [MemberData(nameof(CtorInvalidCases))]
-        public void CtorShouldThrowArgumentNullException(IUnitOfWorkFactory uowFactory, IValidate<IPatchCommand<Guid, Objects.Patient>> validator)
+        [Fact]
+        public void CtorShouldThrowArgumentNullException()
         {
             // Act
-            Action action = () => new RunPatchPatientCommand(uowFactory, validator);
+            Action action = () => new RunPatchPatientCommand(null);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.ShouldThrow<ArgumentNullException>("parameter is null").Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }

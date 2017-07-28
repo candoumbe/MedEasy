@@ -23,30 +23,14 @@ namespace MedEasy.Handlers.Specialty.Commands
         /// <summary>
         /// Builds a new <see cref="RunCreateSpecialtyCommand"/> instance.
         /// </summary>
-        /// <param name="validator">Validator of <see cref="ICreateSpecialtyCommand"/> instances.</param>
-        /// <param name="logger"></param>
         /// <param name="factory"></param>
         /// <param name="expressionBuilder"></param>
-        public RunCreateSpecialtyCommand(IValidate<ICreateSpecialtyCommand> validator, ILogger<RunCreateSpecialtyCommand> logger, IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder) : base(validator, logger, factory, expressionBuilder)
+        /// 
+        /// 
+        public RunCreateSpecialtyCommand(IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
         {
         }
-
-        /// <inherithed />
-        public override async Task OnCreatingAsync(Guid commandId, CreateSpecialtyInfo input)
-        {
-            input.Name = input.Name.ToTitleCase();
-
-            using (IUnitOfWork uow = UowFactory.New())
-            {
-                if (await uow.Repository<Objects.Specialty>()
-                    .AnyAsync(x => x.Name.ToLower() == input.Name.ToLower())
-                    .ConfigureAwait(false))
-                {
-                    throw new CommandNotValidException<Guid>(commandId, new[] { new ErrorInfo("ErrDuplicate", "A specialty with this code already exists", ErrorLevel.Error) });
-                }
-
-            }
-        }
+        
 
     }
 }

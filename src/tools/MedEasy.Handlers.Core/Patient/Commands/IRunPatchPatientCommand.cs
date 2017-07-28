@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Patient.Commands
 {
-    public interface IRunPatchPatientCommand : IRunCommandAsync<Guid, IPatchInfo<Guid, Objects.Patient>, Option<Nothing, CommandException>, IPatchCommand<Guid, Objects.Patient>>
+    public interface IRunPatchPatientCommand : IRunCommandAsync<Guid, IPatchInfo<Guid, Objects.Patient>, IPatchCommand<Guid, Objects.Patient>>
     {
 
     }

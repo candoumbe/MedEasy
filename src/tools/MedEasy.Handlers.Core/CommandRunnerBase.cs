@@ -5,6 +5,7 @@ using MedEasy.Commands;
 using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -14,28 +15,15 @@ namespace MedEasy.Handlers.Core.Commands
     /// <remarks>
     ///     Commands processed by <see cref="CommandRunnerBase{TKey, TInput, TOutput, TCommand}"/> outputs <see cref="TOutput"/> instances
     /// </remarks>
-    /// <typeparam name="TKey">Type of the identifiar of the command</typeparam>
-    /// <typeparam name="TInput">Type of data commands carry</typeparam>
-    /// <typeparam name="TOutput">Type of commands' output</typeparam>
-    /// <typeparam name="TCommand">Type of command instances the current instance handle</typeparam>
-    public abstract class CommandRunnerBase<TKey, TInput, TOutput, TCommand> : IRunCommandAsync<TKey, TInput, Option<TOutput, CommandException>, TCommand>
-        where TCommand : ICommand<TKey, TInput>
-        where TKey : IEquatable<TKey>
+    /// <typeparam name="TCommandId">Type of the identifiar of the command</typeparam>
+    /// <typeparam name="TCommandData">Type of data commands carry</typeparam>
+    /// <typeparam name="TOutput">Type of  output</typeparam>
+    public abstract class CommandRunnerBase<TCommandId, TCommandData, TOutput, TCommand> : IRunCommandAsync<TCommandId, TCommandData, TOutput, TCommand>
+        where TCommandId : IEquatable<TCommandId>
+        where TCommand : ICommand<TCommandId, TCommandData, TOutput>
     {
-        /// <summary>
-        /// Validator that will validate the command
-        /// </summary>
-        public IValidate<TCommand> Validator { get; }
 
-        /// <summary>
-        /// Builds a new <see cref="CommandRunnerBase{TKey, TInput, TOutput, TCommand}"/>
-        /// </summary>
-        /// <param name="validator">validator that will be used to validate <see cref="HandleAsync(TCommand)"/> parameter</param>
-        protected CommandRunnerBase(IValidate<TCommand> validator)
-        {
-            Validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        }
-
+        
         public abstract Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
     }
 
@@ -44,23 +32,10 @@ namespace MedEasy.Handlers.Core.Commands
     /// </summary>
     /// <typeparam name="TKey">Type of the command identifier</typeparam>
     /// <typeparam name="TInput">Type of data the command carries</typeparam>
-    /// <typeparam name="TCommand">Type of the commmand</typeparam>
-    public abstract class CommandRunnerBase<TKey, TInput, TCommand> : IRunCommandAsync<TKey, TInput, TCommand>
-        where TCommand : ICommand<TKey, TInput>
-        where TKey : IEquatable<TKey>
+    public abstract class CommandRunnerBase<TCommandId, TInput, TCommand> : CommandRunnerBase<TCommandId, TInput, Nothing, TCommand>
+        where TCommandId : IEquatable<TCommandId>
+        where TCommand : ICommand<TCommandId, TInput, Nothing>
+
     {
-
-        public IValidate<TCommand> Validator { get; }
-
-        /// <summary>
-        /// Builds a new <see cref="CommandRunnerBase{TKey, TInput, TOutput, TCommand}"/>
-        /// </summary>
-        /// <param name="validator">validator that will be used to validate <see cref="HandleAsync(TCommand)"/> parameter</param>
-        protected CommandRunnerBase(IValidate<TCommand> validator)
-        {
-            Validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        }
-
-        public abstract Task<Nothing> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

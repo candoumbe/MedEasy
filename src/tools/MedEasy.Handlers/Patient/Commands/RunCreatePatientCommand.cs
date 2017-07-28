@@ -25,13 +25,10 @@ namespace MedEasy.Handlers.Patient.Commands
         /// </summary>
         /// <param name="factory"> Factory that can build<see cref="IUnitOfWorkFactory"/></param>
         /// <param name="expressionBuilder">Builder that can provide expressions to convert from one type to an other</param>
-        /// <param name="validator">Validator to use to validate commands before processing them</param>
-        /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
         /// <see cref="GenericCreateCommandRunner{TKey, TEntity, TData, TOutput, TCommand}"/>
-        public RunCreatePatientCommand(IValidate<ICreatePatientCommand> validator, ILogger<RunCreatePatientCommand> logger, IUnitOfWorkFactory factory,
-            IExpressionBuilder expressionBuilder)
-            : base(validator, logger, factory, expressionBuilder)
+        public RunCreatePatientCommand(IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
+            : base(factory, expressionBuilder)
         {
 
         }
@@ -39,17 +36,12 @@ namespace MedEasy.Handlers.Patient.Commands
 
         public override async Task<Option<PatientInfo, CommandException>> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
+            command.Data.Firstname = command.Data.Firstname.ToTitleCase();
+            command.Data.Lastname = command.Data.Lastname.ToUpper();
+
             Option<PatientInfo, CommandException> patientInfo = await base.RunAsync(command, cancellationToken);
             patientInfo.MatchSome(x => x.MainDoctorId = command.Data.MainDoctorId);
             return patientInfo;
-        }
-
-        public override Task OnCreatingAsync(Guid id, CreatePatientInfo input)
-        {
-            input.Firstname = input.Firstname?.ToTitleCase();
-            input.Lastname = input.Lastname?.ToUpper();
-
-            return base.OnCreatingAsync(id, input);
         }
     }
 }

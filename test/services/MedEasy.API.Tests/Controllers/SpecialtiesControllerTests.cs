@@ -6,6 +6,7 @@ using MedEasy.API.Controllers;
 using MedEasy.API.Stores;
 using MedEasy.Commands;
 using MedEasy.Commands.Specialty;
+using MedEasy.CQRS.Core;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
@@ -18,9 +19,7 @@ using MedEasy.Queries;
 using MedEasy.Queries.Specialty;
 using MedEasy.RestObjects;
 using MedEasy.Validators;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -205,14 +204,18 @@ namespace MedEasy.WebApi.Tests
 
             object value = okObjectResult.Value;
 
-            okObjectResult.Value.Should()
-                    .NotBeNull()
-                    .And.BeAssignableTo<IGenericPagedGetResponse<SpecialtyInfo>>();
+            IGenericPagedGetResponse<BrowsableResource<SpecialtyInfo>> response = okObjectResult.Value.Should()
+                    .NotBeNull().And
+                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>>().Which;
 
-            IGenericPagedGetResponse<SpecialtyInfo> response = (IGenericPagedGetResponse<SpecialtyInfo>)value;
-
+            response.Items.Should()
+                .NotBeNull().And
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null);
+        
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<SpecialtyInfo>)}.{nameof(IGenericPagedGetResponse<SpecialtyInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<SpecialtyInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -474,7 +477,7 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
             _iRunDeleteSpecialtyInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteSpecialtyByIdCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Nothing.Value)
+                .ReturnsAsync(Nothing.Value.Some<Nothing, CommandException>())
                 .Verifiable();
 
 

@@ -127,7 +127,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">items of the page</response>
         /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or zero</response>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] int page, [FromQuery] int pageSize)
         {
 
@@ -154,11 +154,11 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            await result.Entries.ForEachAsync((x) => Task.FromResult(x.Meta = new Link { Href = UrlHelper.Action(nameof(Get), new { x.Id }) }));
+            IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
+                .Select(x => new BrowsableResource<PatientInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
 
-
-            IGenericPagedGetResponse<PatientInfo> response = new GenericPagedGetResponse<PatientInfo>(
-                result.Entries,
+            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
+                resources,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -278,7 +278,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="id">id of the patient the new measure will be attached to</param>
         /// <param name="newTemperature">input to create the new resource</param>
-        /// <see cref="IPhysiologicalMeasureService.AddNewMeasureAsync{TPhysiologicalMeasure, TPhysiologicalMeasureInfo}(ICommand{Guid, CreatePhysiologicalMeasureInfo{TPhysiologicalMeasure}}, CancellationToken)"/>
+        /// <see cref="IPhysiologicalMeasureService.AddNewMeasureAsync{TPhysiologicalMeasure, TPhysiologicalMeasureInfo}(ICommand{Guid, CreatePhysiologicalMeasureInfo{TPhysiologicalMeasure}, TPhysiologicalMeasureInfo}, CancellationToken)"/>
         /// <response code="201">if the creation succeed</response>
         /// <response code="400"><paramref name="newTemperature"/> is not valid or <paramref name="id"/> is negoative or zero</response>.
         /// <response code="404">patient not found.</response>.
@@ -298,11 +298,12 @@ namespace MedEasy.API.Controllers
             };
 
             Option<TemperatureInfo, CommandException> output = await _physiologicalMeasureService
-                .AddNewMeasureAsync<Temperature, TemperatureInfo>(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(input));
+                .AddNewMeasureAsync(new AddNewPhysiologicalMeasureCommand<Temperature, TemperatureInfo>(input));
 
             return output.Match(
-                some : temperature => new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = temperature.PatientId, temperatureId = temperature.Id }, temperature),
-                none : exception => {
+                some: temperature => new CreatedAtActionResult(nameof(Temperatures), EndpointName, new { id = temperature.PatientId, temperatureId = temperature.Id }, temperature),
+                none: exception =>
+                {
                     IActionResult actionResult;
                     switch (exception)
                     {
@@ -332,7 +333,7 @@ namespace MedEasy.API.Controllers
         /// <response code="201">the resource creation succeed</response>
         /// <response code="400"><paramref name="newBloodPressure"/> is not valid or <paramref name="id"/> is negative or zero</response>
         [HttpPost("{id}/[action]")]
-        [ProducesResponseType(typeof(BloodPressureInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
         public async Task<IActionResult> BloodPressures(Guid id, [FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default(CancellationToken))
         {
             CreatePhysiologicalMeasureInfo<BloodPressure> info = new CreatePhysiologicalMeasureInfo<BloodPressure>
@@ -345,11 +346,12 @@ namespace MedEasy.API.Controllers
                     DiastolicPressure = newBloodPressure.DiastolicPressure
                 }
             };
-            Option<BloodPressureInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(info));
+            Option<BloodPressureInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync(new AddNewPhysiologicalMeasureCommand<BloodPressure, BloodPressureInfo>(info));
 
             return output.Match(
-                some : bp => new CreatedAtActionResult(nameof(BloodPressures), EndpointName, new { id = bp.PatientId, bloodPressureId = bp.Id }, bp),
-                none : exception => {
+                some: bp => new CreatedAtActionResult(nameof(BloodPressures), EndpointName, new { id = bp.PatientId, bloodPressureId = bp.Id }, bp),
+                none: exception =>
+                {
                     IActionResult actionResult;
                     switch (exception)
                     {
@@ -376,7 +378,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet("{id}/[action]/{temperatureId}")]
         [HttpHead("{id}/[action]/{temperatureId}")]
-        [ProducesResponseType(typeof(TemperatureInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<TemperatureInfo>), 200)]
         [ProducesResponseType(typeof(ModelStateDictionary), 400)]
         public async Task<IActionResult> Temperatures(Guid id, Guid temperatureId, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -385,18 +387,18 @@ namespace MedEasy.API.Controllers
             return output.Match<IActionResult>(
                 some: x =>
                 {
-                    x.Meta = new Link
-                    {
-                        Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
-                        Relation = "self",
-                        Method = "GET"
-                    };
-
                     return new OkObjectResult(new BrowsableResource<TemperatureInfo>
                     {
                         Resource = x,
-                        Links = new[] 
+                        Links = new[]
                         {
+                            new Link{ Href = UrlHelper.Action(nameof(Get), EndpointName, new { id } ), Method = "GET", Relation = "patient" },
+                            new Link
+                            {
+                                Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                Relation = "self",
+                                Method = "GET"
+                            },
                             new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "remove", Method = "DELETE" },
                             new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "direct-link", Method = "GET" }
                         }
@@ -416,25 +418,25 @@ namespace MedEasy.API.Controllers
         /// <reponse code="404">Patient not found</reponse>
         [HttpGet("{id}/[action]/{bloodPressureId}")]
         [HttpHead("{id}/[action]/{bloodPressureId}")]
-        [ProducesResponseType(typeof(BloodPressureInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
         public async Task<IActionResult> BloodPressures(Guid id, Guid bloodPressureId, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<BloodPressureInfo> output = await _physiologicalMeasureService
                 .GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId), cancellationToken);
 
             return output.Match<IActionResult>(
-                some: x =>
+                some: x => new OkObjectResult(new BrowsableResource<BloodPressureInfo>
                 {
-                    x.Meta = new Link
-                    {
-                        Href = UrlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
-                        Relation = "self"
-                    };
-                    return new OkObjectResult(new BrowsableResource<BloodPressureInfo>
-                    {
-                        Resource = x
-                    });
-                },
+                    Resource = x,
+                    Links = new[]
+                        {
+                            new Link
+                            {
+                                Href = UrlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                Relation = "self"
+                            }
+                        }
+                }),
                 none: () => new NotFoundResult());
         }
 
@@ -450,13 +452,25 @@ namespace MedEasy.API.Controllers
         /// <reponse code="404">Patient not found</reponse>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
-        [ProducesResponseType(typeof(IEnumerable<BloodPressureInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<BloodPressureInfo>>), 200)]
         public async Task<IActionResult> MostRecentBloodPressures(Guid id, [FromQuery] int? count)
         {
             Option<IEnumerable<BloodPressureInfo>> output = await MostRecentMeasureAsync<BloodPressure, BloodPressureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
 
             return output.Match<IActionResult>(
-                some: items => new OkObjectResult(items),
+                some: items => new OkObjectResult(
+                    items.Select(x => new BrowsableResource<BloodPressureInfo>
+                    {
+                        Resource = x,
+                        Links = new[]
+                            {
+                                new Link
+                                {
+                                    Href = UrlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                    Relation = "self"
+                                }
+                            }
+                    })),
                 none: () => new NotFoundResult());
         }
 
@@ -471,12 +485,26 @@ namespace MedEasy.API.Controllers
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<TemperatureInfo>>), 200)]
         public async Task<IActionResult> MostRecentTemperatures(Guid id, [FromQuery]int? count)
         {
             Option<IEnumerable<TemperatureInfo>> output = await MostRecentMeasureAsync<Temperature, TemperatureInfo>(new GetMostRecentPhysiologicalMeasuresInfo { PatientId = id, Count = count });
 
             return output.Match<IActionResult>(
-                some: items => new OkObjectResult(items),
+                some: items => new OkObjectResult(
+                    items.Select(x => new BrowsableResource<TemperatureInfo>
+                    {
+                        Resource = x,
+                        Links = new[]
+                            {
+                                new Link
+                                {
+                                    Href = UrlHelper.Action(nameof(TemperatureInfo), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                    Relation = "self"
+                                }
+                            }
+                    })
+                    .AsEnumerable()),
                 none: () => new NotFoundResult());
         }
 
@@ -486,6 +514,7 @@ namespace MedEasy.API.Controllers
         /// Search patients resource based on some criteria.
         /// </summary>
         /// <param name="search">Search criteria</param>
+        /// <param name="cancellationToken">Notfies to cancel the search operation</param>
         /// <remarks>
         /// All criteria are combined as a AND.
         /// 
@@ -510,9 +539,9 @@ namespace MedEasy.API.Controllers
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
-        [ProducesResponseType(typeof(IEnumerable<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search)
+        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default(CancellationToken))
         {
 
 
@@ -560,7 +589,7 @@ namespace MedEasy.API.Controllers
             };
 
 
-            IPagedResult<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo));
+            IPagedResult<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo), cancellationToken);
 
             search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
             int count = pageOfResult.Entries.Count();
@@ -578,11 +607,11 @@ namespace MedEasy.API.Controllers
                     ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
-            await pageOfResult.Entries.ForEachAsync((x) => Task.FromResult(x.Meta = new Link { Href = UrlHelper.Action(nameof(Get), new { x.Id }) }));
+            IEnumerable<BrowsableResource<PatientInfo>> resources = pageOfResult.Entries
+                .Select(x => new BrowsableResource<PatientInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
 
-
-            IGenericPagedGetResponse<PatientInfo> reponse = new GenericPagedGetResponse<PatientInfo>(
-                pageOfResult.Entries,
+            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
+                resources,
                 first: firstPageUrl,
                 previous: previousPageUrl,
                 next: nextPageUrl,
@@ -646,24 +675,24 @@ namespace MedEasy.API.Controllers
         /// <response code="404"><paramref name="id"/> does not identify a <see cref="PatientInfo"/> resource or <paramref name="bodyWeightId"/></response> 
         [HttpGet("{id}/[action]/{bodyWeightId}")]
         [HttpHead("{id}/[action]/{bodyWeightId}")]
-        [ProducesResponseType(typeof(BodyWeightInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<BodyWeightInfo>), 200)]
         public async Task<IActionResult> BodyWeights(Guid id, Guid bodyWeightId, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<BodyWeightInfo> output = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(id, bodyWeightId));
 
             return output.Match<IActionResult>(
-                some: x =>
-                   {
-                       x.Meta = new Link
-                       {
-                           Href = UrlHelper.Action(nameof(BodyWeights), EndpointName, new { id = x.PatientId, bodyWeightId = x.Id }),
-                           Relation = "self"
-                       };
-                       return new OkObjectResult(new BrowsableResource<BodyWeightInfo>
-                       {
-                           Resource = x
-                       });
-                   },
+                some: x => new OkObjectResult(new BrowsableResource<BodyWeightInfo>
+                {
+                    Resource = x,
+                    Links = new[]
+                           {
+                               new Link
+                               {
+                                   Href = UrlHelper.Action(nameof(BodyWeights), EndpointName, new { id = x.PatientId, bodyWeightId = x.Id }),
+                                   Relation = "self"
+                               }
+                           }
+                }),
                 none: () => new NotFoundResult());
         }
 
@@ -744,7 +773,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">no patient with the <paramref name="id"/> found</response>
         [HttpGet("{id}/[action]/{prescriptionId}")]
         [HttpHead("{id}/[action]/{prescriptionId}")]
-        [ProducesResponseType(typeof(PrescriptionHeaderInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<PrescriptionHeaderInfo>), 200)]
         public async Task<IActionResult> Prescriptions(Guid id, Guid prescriptionId, CancellationToken cancellationToken = default(CancellationToken))
         {
             Option<PrescriptionHeaderInfo> output = await _prescriptionService.GetOnePrescriptionByPatientIdAsync(id, prescriptionId, cancellationToken);
@@ -752,11 +781,6 @@ namespace MedEasy.API.Controllers
             return output.Match<IActionResult>(
                 some: x =>
                    {
-                       x.Meta = new Link
-                       {
-                           Relation = "self",
-                           Href = UrlHelper.Action(nameof(Prescriptions), EndpointName, new { id = x.PatientId, prescriptionId = x.Id })
-                       };
                        IBrowsableResource<PrescriptionHeaderInfo> browsableResource = new BrowsableResource<PrescriptionHeaderInfo>
                        {
                            Links = new[]
@@ -765,7 +789,12 @@ namespace MedEasy.API.Controllers
                                 {
                                     Relation = nameof(Prescription.Items),
                                     Href = UrlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName , new { x.Id })
-                                }
+                                },
+                               new Link
+                               {
+                                   Relation = "self",
+                                   Href = UrlHelper.Action(nameof(Prescriptions), EndpointName, new { id = x.PatientId, prescriptionId = x.Id })
+                               }
                            },
                            Resource = x
                        };
@@ -844,7 +873,7 @@ namespace MedEasy.API.Controllers
         /// <param name="id">id of the patient the measure will be created for</param>
         /// <param name="newBodyWeight">measure to add</param>
         /// <response code="201">the resource created successfully</response>
-        /// <response code="400"><paramref name="newBodyWeight"/> is not valid or <paramref name="id"/> is negative or zero</response>
+        /// <response code="400"><paramref name="newBodyWeight"/> or <paramref name="id"/> are not valid.</response>
         [HttpPost("{id}/[action]")]
         [ProducesResponseType(typeof(BodyWeightInfo), 200)]
         public async Task<IActionResult> BodyWeights(Guid id, [FromBody] CreateBodyWeightInfo newBodyWeight)
@@ -862,7 +891,8 @@ namespace MedEasy.API.Controllers
             Option<BodyWeightInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(new AddNewPhysiologicalMeasureCommand<BodyWeight, BodyWeightInfo>(input));
             return output.Match(
                 some: bw => new CreatedAtActionResult(nameof(BodyWeights), EndpointName, new { id = bw.PatientId, bodyWeightId = bw.Id }, bw),
-                none: exception => {
+                none: exception =>
+                {
                     IActionResult actionResult;
                     switch (exception)
                     {
@@ -930,7 +960,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">The documents' metadata.</response>
         /// <response code="404">if no patient found.</response>
         [HttpGet("{id}/[action]")]
-        [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DocumentMetadataInfo>>), 200)]
         public async Task<IActionResult> Documents(Guid id, [FromQuery]int page, [FromQuery]int pageSize, CancellationToken cancellationToken = default(CancellationToken))
         {
             PaginationConfiguration query = new PaginationConfiguration
@@ -943,12 +973,11 @@ namespace MedEasy.API.Controllers
 
 
 
-            return await result.Match(
-                some: x =>
-                  Task.Run<IActionResult>(async () =>
-                   {
+            return result.Match<IActionResult>(
+                some: pageOfResult =>
 
-                       int count = x.Entries.Count();
+                   {
+                       int count = pageOfResult.Entries.Count();
                        bool hasPreviousPage = count > 0 && query.Page > 1;
 
                        string firstPageUrl = UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = 1, id });
@@ -956,27 +985,27 @@ namespace MedEasy.API.Controllers
                                ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1, id, })
                                : null;
 
-                       string nextPageUrl = query.Page < x.PageCount
+                       string nextPageUrl = query.Page < pageOfResult.PageCount
                                ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1, id })
                                : null;
-                       string lastPageUrl = x.PageCount > 0
-                               ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = x.PageCount, id })
+                       string lastPageUrl = pageOfResult.PageCount > 0
+                               ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = pageOfResult.PageCount, id })
                                : null;
 
-                       await x.Entries.ForEachAsync((item) => Task.Run(() => item.Meta = new Link { Href = UrlHelper.Action(nameof(Get), new { item.Id }) }));
+                       IEnumerable<BrowsableResource<DocumentMetadataInfo>> resources = pageOfResult.Entries
+                            .Select(x => new BrowsableResource<DocumentMetadataInfo> { Resource = x });
 
-
-                       IGenericPagedGetResponse<DocumentMetadataInfo> response = new GenericPagedGetResponse<DocumentMetadataInfo>(
-                           x.Entries,
+                       IGenericPagedGetResponse<BrowsableResource<DocumentMetadataInfo>> response = new GenericPagedGetResponse<BrowsableResource<DocumentMetadataInfo>>(
+                           resources,
                            firstPageUrl,
                            previousPageUrl,
                            nextPageUrl,
                            lastPageUrl,
-                           x.Total);
+                           pageOfResult.Total);
 
                        return new OkObjectResult(response);
-                   }),
-                none: () => new ValueTask<IActionResult>(new NotFoundResult()).AsTask());
+                   },
+                none: () => new NotFoundResult());
         }
 
 

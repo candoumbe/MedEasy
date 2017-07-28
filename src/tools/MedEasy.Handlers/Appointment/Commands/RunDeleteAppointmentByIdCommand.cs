@@ -5,15 +5,21 @@ using MedEasy.Commands.Appointment;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Appointment.Commands;
 using System.Threading;
+using Optional;
+using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.Handlers.Appointment.Commands
 {
     /// <summary>
-    /// Process <see cref="IRunDeleteAppointmentByIdCommand"/> instances
+    /// Process <see cref="IRunDeleteAppointmentByIdCommand"/> instances.
     /// </summary>
     public class RunDeleteAppointmentByIdCommand : IRunDeleteAppointmentInfoByIdCommand
     {
-
+        /// <summary>
+        /// Builds a new <see cref="RunDeleteAppointmentByIdCommand"/> instance.
+        /// </summary>
+        /// <param name="factory">Factory</param>
         public RunDeleteAppointmentByIdCommand(IUnitOfWorkFactory factory)
         {
             UowFactory = factory;
@@ -21,7 +27,7 @@ namespace MedEasy.Handlers.Appointment.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<Nothing> RunAsync(IDeleteAppointmentByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<Nothing, CommandException>> RunAsync(IDeleteAppointmentByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null)
             {
@@ -36,7 +42,7 @@ namespace MedEasy.Handlers.Appointment.Commands
                 await uow.SaveChangesAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                return Nothing.Value;
+                return Nothing.Value.Some<Nothing, CommandException>();
             }
 
             

@@ -23,7 +23,7 @@ namespace MedEasy.Handlers.Specialty.Commands
         /// <param name="logger">Logger used to track</param>
         /// <param name="factory"></param>
         /// <see cref="GenericDeleteByIdCommandRunner{TKey, TEntity, TData, TCommand}"/>
-        public RunDeleteSpecialtyByIdCommand(IValidate<IDeleteSpecialtyByIdCommand> validator, ILogger<RunDeleteSpecialtyByIdCommand> logger, IUnitOfWorkFactory factory) : base(validator, logger, factory)
+        public RunDeleteSpecialtyByIdCommand(IValidate<IDeleteSpecialtyByIdCommand> validator, ILogger<RunDeleteSpecialtyByIdCommand> logger, IUnitOfWorkFactory factory) : base(factory)
         {
         }
     }

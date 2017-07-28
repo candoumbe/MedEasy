@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\MedEasy.DTO\MedEasy.DTO.csproj" />
     <ProjectReference Include="..\MedEasy.Objects\MedEasy.Objects.csproj" />
   </ItemGroup>

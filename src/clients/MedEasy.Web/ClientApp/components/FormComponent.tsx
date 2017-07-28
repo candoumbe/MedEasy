@@ -54,7 +54,7 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
 
         let { data } = this.state;
         this.setState({ ongoing: true });
-        fetch(form.meta.href, { method: form.meta.method, body: JSON.stringify(data) })
+        let response = fetch(form.meta.href, { method: form.meta.method, body: JSON.stringify(data) })
             .then(async response => {
                 let result;
                 if (!response.ok) {

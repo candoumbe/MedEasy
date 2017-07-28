@@ -13,6 +13,7 @@ using MedEasy.Services;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Core.Patient.Commands;
+using MedEasy.Handlers.Core.Commands;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -48,10 +49,10 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IPhysiologicalMeasureService, PhysiologicalMeasureService>();
             services.AddScoped<IPrescriptionService, PrescriptionService>();
 
-
             services.AddScoped<IRunCreateDocumentForPatientCommand, RunCreateDocumentForPatientCommand>();
             services.AddScoped<IHandleGetDocumentsByPatientIdQuery, HandleGetDocumentsByPatientIdQuery>();
             services.AddScoped<IHandleGetOneDocumentInfoByPatientIdAndDocumentId, HandleGetOneDocumentInfoByPatientIdAndDocumentidQuery>();
+            
             
         }
     }

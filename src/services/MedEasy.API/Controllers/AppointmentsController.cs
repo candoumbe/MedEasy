@@ -1,34 +1,33 @@
-﻿using System;
-using System.Threading.Tasks;
-using MedEasy.Objects;
-using MedEasy.DTO;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using MedEasy.DAL.Repositories;
-using System.Linq;
-using MedEasy.Commands.Appointment;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.JsonPatch;
+﻿using AutoMapper;
+using MedEasy.API.Results;
 using MedEasy.Commands;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using MedEasy.Commands.Appointment;
+using MedEasy.DAL.Repositories;
 using MedEasy.Data;
+using MedEasy.DTO;
+using MedEasy.DTO.Search;
+using MedEasy.Handlers.Core.Appointment.Commands;
+using MedEasy.Handlers.Core.Appointment.Queries;
+using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.Handlers.Core.Search.Queries;
+using MedEasy.Objects;
+using MedEasy.Queries.Appointment;
+using MedEasy.Queries.Search;
+using MedEasy.RestObjects;
+using MedEasy.Validators;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Optional;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using static MedEasy.Data.DataFilterLogic;
 using static MedEasy.Data.DataFilterOperator;
-using MedEasy.DTO.Search;
-using MedEasy.Queries.Appointment;
-using MedEasy.Handlers.Core.Appointment.Commands;
-using AutoMapper;
-using MedEasy.Handlers.Core.Search.Queries;
-using MedEasy.Validators;
-using MedEasy.Handlers.Core.Appointment.Queries;
-using MedEasy.Queries.Search;
-using System.Threading;
-using Optional;
-using MedEasy.Handlers.Core.Exceptions;
 
 namespace MedEasy.API.Controllers
 {
@@ -96,7 +95,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<AppointmentInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<AppointmentInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
@@ -124,8 +123,25 @@ namespace MedEasy.API.Controllers
                     : null;
 
 
-            IGenericPagedGetResponse<AppointmentInfo> response = new GenericPagedGetResponse<AppointmentInfo>(
-                result.Entries,
+            IEnumerable<BrowsableResource<AppointmentInfo>> resources = result.Entries
+                .Select(x => new BrowsableResource<AppointmentInfo>
+                {
+                    Resource = x,
+                    Links = new[]
+                    {
+                        new Link { Relation = "self", Href = UrlHelper.Action(nameof(Get), new { x.Id })},
+                        new Link { Relation = nameof(Appointment.Doctor), Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new {id  = x.DoctorId})},
+                        new Link { Relation = nameof(Appointment.Patient), Href = UrlHelper.Action(nameof(PatientsController.Get), PatientsController.EndpointName, new {id = x.PatientId})},
+                    }
+                })
+            #region DEBUG
+                .ToArray()
+            #endregion
+                ;
+
+
+            IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
+                resources,
                 firstPageUrl,
                 previousPageUrl,
                 nextPageUrl,
@@ -145,7 +161,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(AppointmentInfo), 200)]
+        [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), 200)]
         public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id);
 
 
@@ -159,7 +175,7 @@ namespace MedEasy.API.Controllers
         /// <response code="409">the new appointment overlaps an existing one and </response>
         /// <response code="404">Patient and/or doctor do(es)n't exist</response>
         [HttpPost]
-        [ProducesResponseType(typeof(AppointmentInfo), 201)]
+        [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), 201)]
         [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
         public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -182,25 +198,23 @@ namespace MedEasy.API.Controllers
                },
 
                 none: exception =>
-               {
-                   IActionResult result;
-                   switch (exception)
-                   {
-                       case CommandNotValidException<Guid> notValidException:
-                           result = new BadRequestObjectResult(notValidException.Errors);
-                           break;
-                       case CommandEntityNotFoundException cenf:
-                       result = new NotFoundObjectResult(cenf.Message);
-                           break;
-                       default:
-                           result = new StatusCodeResult(500);
-                           break;
-                   }
+                {
+                    IActionResult result;
+                    switch (exception)
+                    {
+                        case CommandNotValidException<Guid> notValidException:
+                            result = new BadRequestObjectResult(notValidException.Errors);
+                            break;
+                        case CommandEntityNotFoundException cenf:
+                            result = new NotFoundObjectResult(cenf.Message);
+                            break;
+                        default:
+                            result = new InternalServerErrorResult();
+                            break;
+                    }
 
-                   return result;
-               }
-
-                );
+                    return result;
+                });
 
         }
 
@@ -306,7 +320,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
-        [ProducesResponseType(typeof(IEnumerable<AppointmentInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<AppointmentInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -367,8 +381,18 @@ namespace MedEasy.API.Controllers
                     ? UrlHelper.Action(nameof(Search), ControllerName, new { search.From, search.To, search.DoctorId, search.PatientId, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
-            IGenericPagedGetResponse<AppointmentInfo> reponse = new GenericPagedGetResponse<AppointmentInfo>(
-                pageOfResult.Entries,
+            IEnumerable<BrowsableResource<AppointmentInfo>> results = pageOfResult.Entries
+                .Select(x => new BrowsableResource<AppointmentInfo>
+                {
+                    Resource = x,
+                    Links = new List<Link>(BuildAdditionalLinksForResource(x))
+                    {
+                        new Link { Relation = "self", Href = UrlHelper.Action(nameof(Get), new { x.Id }) }
+                    }
+                });
+
+            IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
+                results,
                 first: firstPageUrl,
                 previous: previousPageUrl,
                 next: nextPageUrl,
@@ -378,6 +402,18 @@ namespace MedEasy.API.Controllers
             return new OkObjectResult(reponse);
 
         }
+
+        /// <summary>
+        /// Builds additional links for a <see cref="AppointmentInfo"/> resource
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <returns></returns>
+        protected override IEnumerable<Link> BuildAdditionalLinksForResource(AppointmentInfo resource) =>
+            new[]
+            {
+                new Link { Relation = "doctor", Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new {id  = resource.DoctorId})},
+                new Link { Relation = "patient", Href = UrlHelper.Action(nameof(PatientsController.Get), PatientsController.EndpointName, new {id = resource.PatientId})},
+            };
 
     }
 }

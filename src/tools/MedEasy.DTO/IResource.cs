@@ -16,11 +16,6 @@ namespace MedEasy.DTO
         T Id { get; }
 
         /// <summary>
-        /// Metadata associated with the current resource.
-        /// </summary>
-        Link Meta { get; set; }
-
-        /// <summary>
         /// Last time the resource was updated
         /// </summary>
         DateTimeOffset? UpdatedDate { get; }

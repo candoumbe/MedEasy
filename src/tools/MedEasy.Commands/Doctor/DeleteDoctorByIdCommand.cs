@@ -13,7 +13,7 @@ namespace MedEasy.Commands.Doctor
         /// <summary>
         /// Builds a new <see cref="DeleteDoctorByIdCommand"/> with a default validator
         /// </summary>
-        /// <param name="id">id of the resource to delete</param>
+        /// <param name="id">id of the <see cref="DTO.DoctorInfo"/> resource to delete</param>
         public DeleteDoctorByIdCommand(Guid id) : base(Guid.NewGuid(), id)
         {}
 

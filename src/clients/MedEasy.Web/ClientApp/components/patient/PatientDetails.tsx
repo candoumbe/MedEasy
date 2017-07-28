@@ -5,54 +5,52 @@ import { Form } from "./../../restObjects/Form"
 import { Endpoint } from "./../../restObjects/Endpoint"
 import { LoadingComponent } from "./../LoadingComponent";
 import * as LinQ from "linq";
-
-/** State of the component */
-interface PatientDetailsState {
-    patient?: MedEasy.DTO.Patient;
-}
+import { BrowsableResource } from "./../../restObjects/BrowsableResource";
+import { MeasuresRecap } from "./../../components/measures/MeasuresRecap";
 
 interface PatientDetailsComponentProps {
-    /** endpoint where to get */
-    endpoint: string,
-
+    /** endpoint where to get patient details from */
+    endpoint: string
 }
 
-export class PatientDetails extends React.Component<PatientDetailsComponentProps, PatientDetailsState> {
+/**
+ * Displays a patient details
+ * @see Patient
+ */
+export class PatientDetails extends React.Component<PatientDetailsComponentProps, null | BrowsableResource<MedEasy.DTO.Patient>> {
 
     public constructor(props: PatientDetailsComponentProps) {
         super(props);
-        
+
         this.loadContent();
     }
 
 
     private loadContent(): void {
         fetch(this.props.endpoint)
-            .then((response) => response.json() as Promise<MedEasy.DTO.Patient>)
-            .then((patient) => {
-                this.setState({ patient: patient });
+            .then((response) => response.json() as Promise<BrowsableResource<MedEasy.DTO.Patient>>)
+            .then((item) => {
+                this.setState(() => item);
             })
     }
 
 
     public render(): JSX.Element | null {
-        let component: JSX.Element | null = this.state
-            ? <div className="panel">
-                <div className="panel-heading"></div>
-                <div className="panel-body">
-                    <span className="Firstname"></span>
+        let browsablePatient : BrowsableResource<MedEasy.DTO.Patient> | null = this.state;
+        let component: JSX.Element | null = browsablePatient
+            ?
+            <div>
+                <div className="page-header">
+                    <h1>{browsablePatient.resource.fullname} <small>{browsablePatient.resource.birthDate ? "né le " + browsablePatient.resource.birthDate : ""}</small></h1>
                 </div>
-            </div>
-            :
 
-            <div className="panel">
-                <div className="panel-body">
-                    Aucune ligne sélectionné
-                </div>
-            </div>
-            ;
+                <MeasuresRecap endpoint={this.props.endpoint} />
 
-        
+
+            </div>
+            : <LoadingComponent />;
+
+
 
 
         return component;

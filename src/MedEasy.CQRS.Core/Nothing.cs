@@ -1,8 +1,8 @@
-﻿namespace MedEasy.Commands
-{
-    using System;
-    using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
+namespace MedEasy.CQRS.Core
+{
     /// <summary>
     /// Represents a void type, since <see cref="System.Void"/> is not a valid return type in C#.
     /// </summary>
@@ -75,7 +75,9 @@
         /// </summary>
         /// <param name="first">The first object.</param>
         /// <param name="second">The second object.</param>
+        /// <returns>
         /// <c>true</c> if the <paramref name="first"/> object is equal to the <paramref name="second" /> object; otherwise, <c>false</c>.
+        /// </returns>
         public static bool operator ==(Nothing first, Nothing second)
         {
             return true;
@@ -86,7 +88,9 @@
         /// </summary>
         /// <param name="first">The first object.</param>
         /// <param name="second">The second object.</param>
+        /// <returns>
         /// <c>true</c> if the <paramref name="first"/> object is not equal to the <paramref name="second" /> object; otherwise, <c>false</c>.
+        /// </returns>
         public static bool operator !=(Nothing first, Nothing second)
         {
             return false;

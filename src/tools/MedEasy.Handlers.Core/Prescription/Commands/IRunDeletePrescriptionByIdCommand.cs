@@ -4,7 +4,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Prescription.Commands
 {
-    public interface IRunDeletePrescriptionByIdCommand : IRunCommandAsync<Guid, int, IDeletePrescriptionByIdCommand>
+    public interface IRunDeletePrescriptionByIdCommand : IRunCommandAsync<Guid, Guid, IDeletePrescriptionByIdCommand>
     {
 
     }

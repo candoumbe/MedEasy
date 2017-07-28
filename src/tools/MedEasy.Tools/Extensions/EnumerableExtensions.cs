@@ -171,6 +171,33 @@ namespace System.Collections.Generic
             return items.Count(predicate.Compile()) <= count;
         }
 
+        /// <summary>
+        /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
+        /// </summary>
+        /// <typeparam name="TFirst">Type of element in <paramref name="first"/> collection.</typeparam>
+        /// <typeparam name="TSecond">Type of element in <paramref name="second"/> collection.</typeparam>
+        /// <param name="first">the first collection of the cross join</param>
+        /// <param name="second">the second collection</param>
+        /// <returns></returns>
+        public static IEnumerable<(TFirst, TSecond)> CrossJoin<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second) 
+            => CrossJoin(first, second, (t1, t2) => (t1, t2));
+
+
+        /// <summary>
+        /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
+        /// </summary>
+        /// <typeparam name="TFirst">Type of element in <paramref name="first"/> collection.</typeparam>
+        /// <typeparam name="TSecond">Type of element in <paramref name="second"/> collection.</typeparam>
+        /// <typeparam name="TResult">Type of element of the result collection.</typeparam>
+        /// <param name="first">the first collection of the cross join</param>
+        /// <param name="second">the second collection</param>
+        /// <param name="selector">projection to perform on each</param>
+        /// <returns></returns>
+        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector)
+        {
+            return first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
+        }
+
 
 
         /// <summary>

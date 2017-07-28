@@ -51,9 +51,11 @@ using MedEasy.DAL.Interfaces;
 using System.Threading;
 using Optional;
 using MedEasy.Queries.Prescriptions;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.WebApi.Tests
 {
+    [Collection("Patient")]
     public class PatientsControllerTests : IDisposable
     {
         private Mock<IUrlHelper> _urlHelperMock;
@@ -387,9 +389,9 @@ namespace MedEasy.WebApi.Tests
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<PatientInfo>>();
+                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<PatientInfo>>>();
 
-            IGenericPagedGetResponse<PatientInfo> response = (IGenericPagedGetResponse<PatientInfo>)value;
+            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = (IGenericPagedGetResponse<BrowsableResource<PatientInfo>>)value;
 
 
             response.Items.Should()
@@ -400,7 +402,7 @@ namespace MedEasy.WebApi.Tests
                 response.Items.Should()
                     .NotContainNulls();
 
-                response.Items.Select(x => x.Meta).Should()
+                response.Items.Select(x => x.Links).Should()
                     .NotContainNulls();
             }
 
@@ -586,16 +588,19 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            IGenericPagedGetResponse<PatientInfo> content = actionResult.Should()
+            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<IGenericPagedGetResponse<PatientInfo>>().Which;
+                        .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<PatientInfo>>>().Which;
 
 
             content.Items.Should()
-                .NotBeNull();
+                .NotBeNull().And
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null);
 
             content.Links.Should().NotBeNull();
             PagedRestResponseLink links = content.Links;
@@ -907,9 +912,10 @@ namespace MedEasy.WebApi.Tests
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Relation == nameof(Prescription.Items));
+                .Contain(x => x.Relation == nameof(Prescription.Items)).And
+                .Contain(x => x.Relation == "self");
 
-            Link self = resource.Meta;
+            Link self = links.Single(x => x.Relation == "self");
             self.Href.Should().Be($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Prescriptions)}?id={expectedOutput.PatientId}&prescriptionId={expectedOutput.Id}");
 
             Link locationItems = links.Single(x => x.Relation == nameof(Prescription.Items));
@@ -1001,7 +1007,7 @@ namespace MedEasy.WebApi.Tests
 
             //Arrange
             _iRunDeletePatientInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeletePatientByIdCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Nothing.Value)
+                .ReturnsAsync(Nothing.Value.Some<Nothing, CommandException>())
                 .Verifiable();
 
 
@@ -1024,15 +1030,12 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should().BeAssignableTo<BadRequestResult>();
         }
 
-
-
-
         [Fact]
         public async Task AddTemperatureMeasure()
         {
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<Temperature, TemperatureInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>>>(), It.IsAny<CancellationToken>()))
-                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<TemperatureInfo, CommandException>>(new TemperatureInfo
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>, TemperatureInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<Temperature>, TemperatureInfo> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<TemperatureInfo, CommandException>>(new TemperatureInfo
                 {
                     Id = Guid.NewGuid(),
                     DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
@@ -1088,8 +1091,8 @@ namespace MedEasy.WebApi.Tests
             };
 
             // Arrange
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BloodPressure, BloodPressureInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>>>(), It.IsAny<CancellationToken>()))
-                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<BloodPressureInfo, CommandException>>(new BloodPressureInfo
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>, BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BloodPressure>, BloodPressureInfo> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<BloodPressureInfo, CommandException>>(new BloodPressureInfo
                 {
                     Id = Guid.NewGuid(),
                     DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
@@ -1142,8 +1145,8 @@ namespace MedEasy.WebApi.Tests
 
             // Arrange
             Guid measureId = Guid.NewGuid();
-            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>>>(), It.IsAny<CancellationToken>()))
-                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<BodyWeightInfo, CommandException>>(new BodyWeightInfo
+            _physiologicalMeasureFacadeMock.Setup(mock => mock.AddNewMeasureAsync(It.IsAny<ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>, BodyWeightInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns((ICommand<Guid, CreatePhysiologicalMeasureInfo<BodyWeight>, BodyWeightInfo> localCmd, CancellationToken cancellationToken) => new ValueTask<Option<BodyWeightInfo, CommandException>>(new BodyWeightInfo
                 {
                     Id = measureId,
                     DateOfMeasure = localCmd.Data.Measure.DateOfMeasure,
@@ -1220,10 +1223,17 @@ namespace MedEasy.WebApi.Tests
 
             // Assert
             _physiologicalMeasureFacadeMock.VerifyAll();
-            actionResult.Should()
+            IEnumerable<BrowsableResource<BloodPressureInfo>> browsableResources = actionResult.Should()
                 .BeAssignableTo<OkObjectResult>().Which
                 .Value.Should()
-                    .BeAssignableTo<IEnumerable<BloodPressureInfo>>().And
+                    .BeAssignableTo<IEnumerable<BrowsableResource<BloodPressureInfo>>>().Which;
+
+            browsableResources.Should()
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null);
+
+            browsableResources.Select(x => x.Resource).Should()
                     .Match(resultExpectation);
 
         }
@@ -1268,8 +1278,12 @@ namespace MedEasy.WebApi.Tests
             actionResult.Should()
                  .BeAssignableTo<OkObjectResult>().Which
                  .Value.Should()
-                     .BeAssignableTo<IEnumerable<TemperatureInfo>>().And
-                     .Match(resultExpectation);
+                     .BeAssignableTo<IEnumerable<BrowsableResource<TemperatureInfo>>>().Which.Should()
+                        .NotContainNulls().And
+                        .NotContain(x => x.Resource == null).And
+                        .NotContain(x => x.Links == null).And.Subject
+                        .Select(x => x.Resource).Should()
+                            .Match(resultExpectation);
         }
 
         /// <summary>
@@ -1619,11 +1633,17 @@ namespace MedEasy.WebApi.Tests
 
             object value = okObjectResult.Value;
 
-            IGenericPagedGetResponse<DocumentMetadataInfo> pageOfResult = okObjectResult.Value.Should()
+            IGenericPagedGetResponse<BrowsableResource<DocumentMetadataInfo>> pageOfResult = okObjectResult.Value.Should()
                     .NotBeNull()
-                    .And.BeAssignableTo<IGenericPagedGetResponse<DocumentMetadataInfo>>().Which;
+                    .And.BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<DocumentMetadataInfo>>>().Which;
 
-            pageOfResult.Items.Should().Match(pageOfResultExpectation);
+            pageOfResult.Items.Should()
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null);
+
+            pageOfResult.Items.Select(x => x.Resource).Should()
+                .Match(pageOfResultExpectation);
 
             pageOfResult?.Links?.First?.Should().Match(firstPageUrlExpectation);
             pageOfResult?.Links?.Previous?.Should().Match(previousPageUrlExpectation);

@@ -5,7 +5,7 @@ using System;
 namespace MedEasy.Commands.Patient
 {
 
-    public interface IAddNewPhysiologicalMeasureCommand<TKey, TData> : ICommand<TKey, CreatePhysiologicalMeasureInfo<TData>>
+    public interface IAddNewPhysiologicalMeasureCommand<TKey, TData, TOutput> : ICommand<TKey, CreatePhysiologicalMeasureInfo<TData>, TOutput>
         where TKey : IEquatable<TKey>
         where TData : PhysiologicalMeasurement
     {

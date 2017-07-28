@@ -9,6 +9,9 @@ import { PageRestResponseLink } from "./PagedRestResponseLink"
  */
 export class PageOfResult<T> {
 
+    
+    public static readonly empty = new PageOfResult([], new PageRestResponseLink("#", "#"), 0);
+    
     /**
      * Navigation links
      */

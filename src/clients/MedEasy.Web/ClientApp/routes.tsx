@@ -6,10 +6,11 @@ import { Home } from './components/Home';
 import { FetchData } from './components/FetchData';
 import { PatientMainPage } from './components/Patient/PatientMainPage';
 import { PatientCreatePage } from './components/Patient/PatientCreatePage';
+import { PatientDetails } from './components/Patient/PatientDetails';
 import { Counter } from './components/Counter';
 import { Endpoint } from './restObjects/Endpoint';
 
-const apiUrl = "http://localhost:5000/";
+const apiUrl = "http://localhost:5000/api";
 
 const routes =
     <Switch>
@@ -17,10 +18,11 @@ const routes =
         <Route exact path='/counter' render={() => <Layout body={<Counter />} />} />
         <Route exact path='/fetchdata' render={() => <Layout body={<FetchData />} />} />
 
-        <Route exact path='/patients' render={() => <Layout body={<PatientMainPage />} />} />
-        <Route exact path="/patients/new" render={() => <Layout body={<PatientCreatePage endpoint={apiUrl}  />} />} />
-        <Route exact path='/patients' render={() => <Layout body={<PatientMainPage />} />} />
+        <Route exact path='/patients' render={() => <Layout body={<PatientMainPage endpoint={apiUrl}/>} />} />
         <Route exact path="/patients/new" render={() => <Layout body={<PatientCreatePage endpoint={apiUrl} />} />} />
+        <Route exact path="/patients/:id" render={(props) => <Layout body={<PatientDetails endpoint={apiUrl + "/patients/" + props.match.params.id} />}  />} />
+
+       
 
     </Switch >;
 

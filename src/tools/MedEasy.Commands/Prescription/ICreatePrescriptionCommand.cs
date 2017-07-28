@@ -3,6 +3,6 @@ using MedEasy.DTO;
 
 namespace MedEasy.Commands.Prescription
 {
-    public interface ICreatePrescriptionCommand : ICommand<Guid, CreatePrescriptionInfo>
+    public interface ICreatePrescriptionCommand : ICommand<Guid, CreatePrescriptionInfo, PrescriptionInfo>
     {    }
 }

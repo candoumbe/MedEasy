@@ -43,6 +43,7 @@ using MedEasy.DTO.Search;
 using MedEasy.DAL.Interfaces;
 using System.Threading;
 using Optional;
+using MedEasy.CQRS.Core;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -248,14 +249,29 @@ namespace MedEasy.WebApi.Tests
 
             object value = okObjectResult.Value;
 
-            okObjectResult.Value.Should()
+            IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<AppointmentInfo>>();
+                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>>>().Which;
 
-            IGenericPagedGetResponse<AppointmentInfo> response = (IGenericPagedGetResponse<AppointmentInfo>)value;
+            response.Items.Should()
+                .NotBeNull().And
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null).And
+                .NotContain(x => !x.Links.Any()).And
+                .NotContain(x => x.Links.Any(link => link == null));
+
+            if (response.Items.Any())
+            {
+                response.Items.Should()
+                    .OnlyContain(x => x.Links.Once(link => link.Relation == nameof(Doctor)), $"resource should provide navigation link to {nameof(DoctorInfo)} resource.").And
+                    .OnlyContain(x => x.Links.Once(link => link.Relation == "self"), $"resource should provide direct link").And
+                    .OnlyContain(x => x.Links.Once(link => link.Relation == nameof(Patient)), $"resource should provide navigation link to {nameof(PatientInfo)} resource.");
+                    
+            }
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<AppointmentInfo>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -309,28 +325,36 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Get(expectedAppointementInfo.Id);
 
             //Assert
-            actionResult.Should()
+            IBrowsableResource<AppointmentInfo> result = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                    .BeAssignableTo<IBrowsableResource<AppointmentInfo>>().Which
-                    .Links.Should()
-                        .NotBeNull();
+                    .BeAssignableTo<IBrowsableResource<AppointmentInfo>>().Which;
 
-            IBrowsableResource<AppointmentInfo> result = (IBrowsableResource<AppointmentInfo>)((OkObjectResult)actionResult).Value;
             IEnumerable<Link> links = result.Links;
 
             links.Should()
                 .NotBeNull().And
-                .Contain(x => x.Relation.Contains("self"));
+                .NotContainNulls().And
+                .ContainSingle(x => x.Relation == "self").And
+                .ContainSingle(x => x.Relation == "patient").And
+                .ContainSingle(x => x.Relation == "doctor");
 
-            Link location = links.Single(x => x.Relation.Contains("self"));
-
-            location.Href.Should()
+            Link selfLink = links.Single(x => x.Relation == "self");
+            selfLink.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{AppointmentsController.EndpointName}/{nameof(AppointmentsController.Get)}?{nameof(AppointmentInfo.Id)}={expectedAppointementInfo.Id}");
-            location.Relation?.Should()
-                .BeEquivalentTo("self");
+            
+            Link doctorLink = links.Single(x => x.Relation == "doctor");
+            doctorLink.Href.Should()
+                .NotBeNullOrWhiteSpace().And
+                .BeEquivalentTo($"api/{DoctorsController.EndpointName}/{nameof(DoctorsController.Get)}?{nameof(DoctorInfo.Id)}={expectedAppointementInfo.DoctorId}");
+
+            Link patientLink = links.Single(x => x.Relation == "patient");
+            patientLink.Href.Should()
+                .NotBeNullOrWhiteSpace().And
+                .BeEquivalentTo($"api/{PatientsController.EndpointName}/{nameof(PatientsController.Get)}?{nameof(PatientInfo.Id)}={expectedAppointementInfo.PatientId}");
+
 
             AppointmentInfo resource = result.Resource;
             resource.Should().NotBeNull();
@@ -625,16 +649,31 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            IGenericPagedGetResponse<AppointmentInfo> content = actionResult.Should()
+            IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<IGenericPagedGetResponse<AppointmentInfo>>().Which;
+                        .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<AppointmentInfo>>>().Which;
 
+            content.Should()
+                .NotBeNull();
 
             content.Items.Should()
-                .NotBeNull();
+                .NotBeNull().And
+                .NotContainNulls().And
+                .NotContain(x => x.Resource == null).And
+                .NotContain(x => x.Links == null).And
+                .NotContain(x => !x.Links.Any());
+
+            if (content.Items.Any())
+            {
+                content.Items.Should()
+                   .OnlyContain(x => x.Links.Once(link => link.Relation == "doctor"), $"resource should provide navigation link to {nameof(DoctorInfo)} resource.").And
+                   .OnlyContain(x => x.Links.Once(link => link.Relation == "self"), $"resource should provide direct link").And
+                   .OnlyContain(x => x.Links.Once(link => link.Relation == "patient"), $"resource should provide navigation link to {nameof(PatientInfo)} resource.");
+
+            }
 
             content.Links.Should().NotBeNull();
             PagedRestResponseLink links = content.Links;
@@ -728,13 +767,14 @@ namespace MedEasy.WebApi.Tests
         {
             //Arrange
             _iRunDeleteAppointmentInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<IDeleteAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Nothing.Value)
+                .ReturnsAsync(Option.Some<Nothing, CommandException>(Nothing.Value))
                 .Verifiable();
 
             //Act
-            await _controller.Delete(Guid.NewGuid());
+            IActionResult actionResult = await _controller.Delete(Guid.NewGuid());
 
             //Assert
+            actionResult.Should().BeOfType<NoContentResult>();
             _iRunDeleteAppointmentInfoByIdCommandMock.Verify();
         }
 
@@ -746,14 +786,14 @@ namespace MedEasy.WebApi.Tests
         ///  and <see cref="MedEasyApiOptions.AllowOverlaping"/> is <c>false</c>.
         /// </remarks>
         /// <returns></returns>
-        public void Post_Appointment_That_Overlaps_An_Existing_Appointment_Returns_Conflicted_Result()
+        public async Task Post_Appointment_That_Overlaps_An_Existing_Appointment_Returns_Conflicted_Result()
         {
             // Arrange
             Guid doctorId = Guid.NewGuid();
 
             CommandConflictException<Guid> exceptionThrown = new CommandConflictException<Guid>(Guid.NewGuid());
             _iRunCreateAppointmentInfoCommandMock.Setup(mock => mock.RunAsync(It.IsNotNull<ICreateAppointmentCommand>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(exceptionThrown);
+                .ReturnsAsync(Option.None<AppointmentInfo, CommandException>(exceptionThrown));
 
 
             // Act
@@ -765,11 +805,12 @@ namespace MedEasy.WebApi.Tests
             };
 
 
-            Func<Task> action = async () => await _controller.Post(newAppointment);
+            IActionResult actionResult = await _controller.Post(newAppointment);
 
             // Assert
-            action.ShouldThrowExactly<CommandConflictException<Guid>>().Which.Should()
-                .BeSameAs(exceptionThrown);
+            actionResult.Should()
+                .BeAssignableTo<StatusCodeResult>().Which
+                .StatusCode.Should().Be(StatusCodes.Status409Conflict);
 
         }
     }

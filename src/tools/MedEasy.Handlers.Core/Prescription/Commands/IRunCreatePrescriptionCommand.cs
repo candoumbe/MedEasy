@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Prescription.Commands
 {
-    public interface IRunCreatePrescriptionCommand : IRunCommandAsync<Guid, CreatePrescriptionInfo, Option<PrescriptionInfo, CommandException>, ICreatePrescriptionCommand>
+    public interface IRunCreatePrescriptionCommand : IRunCommandAsync<Guid, CreatePrescriptionInfo, PrescriptionInfo, ICreatePrescriptionCommand>
     {
 
     }
