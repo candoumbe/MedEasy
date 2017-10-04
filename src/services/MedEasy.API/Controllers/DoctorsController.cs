@@ -29,6 +29,7 @@ using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
 using Microsoft.AspNetCore.Http;
+using FluentValidation.Results;
 
 namespace MedEasy.API.Controllers
 {
@@ -95,8 +96,8 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DoctorInfo>>), 200)]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -146,7 +147,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DoctorInfo), 200)]
-        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id, cancellationToken);
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default) => await base.Get(id, cancellationToken);
 
 
 
@@ -159,8 +160,8 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if <see cref="DoctorInfo.SpecialtyId"/> is not empty but does not represent a specialty id.</response>
         [HttpPost]
         [ProducesResponseType(typeof(DoctorInfo), 201)]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Post([FromBody] CreateDoctorInfo info, CancellationToken cancellationToken = default)
         {
             Option<DoctorInfo, CommandException> output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
 
@@ -207,7 +208,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             await _iRunDeleteDoctorByIdCommand.RunAsync(new DeleteDoctorByIdCommand(id), cancellationToken);
             return new NoContentResult();
@@ -244,11 +245,11 @@ namespace MedEasy.API.Controllers
         /// <param name="changes">set of changes to apply to the resource</param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="200">The resource was successfully patched </response>
-        /// <response code="400">Changes are not valid</response>
-        /// <response code="404">Resource to "PATCH" not found</response>
+        /// <response code="400">Invalid set of changes.</response>
+        /// <response code="404">Resource to "PATCH" not found.</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<DoctorInfo> changes, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<DoctorInfo> changes, CancellationToken cancellationToken = default)
         {
             PatchInfo<Guid, Doctor> data = new PatchInfo<Guid, Doctor>
             {
@@ -290,7 +291,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
-        [ProducesResponseType(typeof(IEnumerable<DoctorInfo>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DoctorInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery] SearchDoctorInfo search)
         {

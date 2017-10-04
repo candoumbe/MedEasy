@@ -88,11 +88,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Appointment.Commands
             });
 
         }
-
-
-
-
-
+        
         /// <summary>
         /// Tests <see cref="RunCreateAppointmentCommand.RunAsync(ICreateAppointmentCommand)"/> throws <see cref="QueryNotFoundException"/>
         /// if <see cref="CreateAppointmentCommand"/> refers to a <see cref="DoctorInfo"/> that doesn't exist.

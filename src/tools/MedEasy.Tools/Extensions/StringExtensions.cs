@@ -49,8 +49,19 @@ namespace System
         /// <param name="pattern">the pattern to test <paramref name="input"/> against</param>
         /// <param name="ignoreCase"><c>true</c> to ignore case</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="input"/> or <paramref name="pattern"/> is <c>null</c>.</exception>
         public static bool Like(this string input, string pattern, bool ignoreCase = true)
         {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            if (pattern == null)
+            {
+                throw new ArgumentNullException(nameof(pattern));
+            }
+
             RegexOptions regexOptions = RegexOptions.Singleline;
             if (ignoreCase)
             {

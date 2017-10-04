@@ -5,6 +5,7 @@ using static Newtonsoft.Json.DefaultValueHandling;
 using static Newtonsoft.Json.Required;
 using MedEasy.Data.Converters;
 using System;
+using System.Collections.Generic;
 
 namespace MedEasy.Data
 {
@@ -24,12 +25,49 @@ namespace MedEasy.Data
         /// <summary>
         /// Name of the json property that holds the operator
         /// </summary>
-        public const string OperatorJsonPropertyName = "operator";
+        public const string OperatorJsonPropertyName = "op";
 
         /// <summary>
         /// Name of the json property that holds the value
         /// </summary>
         public const string ValueJsonPropertyName = "value";
+
+
+        /// <summary>
+        /// <see cref="DataFilterOperator"/>s that required <see cref="Value"/> to be set value to a non null value
+        /// </summary>
+        private static readonly IEnumerable<DataFilterOperator> _unaryOperators = new[]{
+            DataFilterOperator.IsEmpty,
+            DataFilterOperator.IsNotEmpty,
+            DataFilterOperator.IsNotNull,
+            DataFilterOperator.IsNull
+            };
+
+        /// <summary>
+        /// <see cref="DataFilterOperator"/>s that required <see cref="Value"/> to be null.
+        /// </summary>
+        public static IEnumerable<DataFilterOperator> UnaryOperators => _unaryOperators;
+
+
+        /// <summary>
+        /// Builds a new <see cref="DataFilter"/> instance.
+        /// </summary>
+        /// <param name="field">name of the field</param>
+        /// <param name="operator"><see cref="DataFilter"/> to apply</param>
+        /// <param name="value">value of the filter</param>
+        public DataFilter(string field, DataFilterOperator @operator, object value = null)
+        {
+            Field = field;
+            if (@operator == DataFilterOperator.EqualTo && value == null)
+            {
+                Operator = DataFilterOperator.IsNull;
+            }
+            else
+            {
+                Operator = @operator;
+                Value = value;
+            }
+        }
 
         /// <summary>
         /// Generates the <see cref="JSchema"/> for the specified <see cref="DataFilterOperator"/>.
@@ -42,8 +80,6 @@ namespace MedEasy.Data
             switch (op)
             {
                 case DataFilterOperator.Contains:
-                case DataFilterOperator.IsEmpty:
-                case DataFilterOperator.IsNotEmpty:
                 case DataFilterOperator.StartsWith:
                 case DataFilterOperator.EndsWith:
                     schema = new JSchema
@@ -58,6 +94,8 @@ namespace MedEasy.Data
                         Required = { FieldJsonPropertyName, OperatorJsonPropertyName }
                     };
                     break;
+                case DataFilterOperator.IsEmpty:
+                case DataFilterOperator.IsNotEmpty:
                 case DataFilterOperator.IsNotNull:
                 case DataFilterOperator.IsNull:
                     schema = new JSchema
@@ -66,10 +104,10 @@ namespace MedEasy.Data
                         Properties =
                         {
                             [FieldJsonPropertyName] = new JSchema { Type = JSchemaType.String },
-                            [OperatorJsonPropertyName] = new JSchema { Type = JSchemaType.String },
-                            [ValueJsonPropertyName] = new JSchema { Type = JSchemaType.None }
+                            [OperatorJsonPropertyName] = new JSchema { Type = JSchemaType.String }
                         },
                         Required = { FieldJsonPropertyName, OperatorJsonPropertyName }
+                        
                     };
                     break;
                 default:
@@ -80,13 +118,16 @@ namespace MedEasy.Data
                         {
                             [FieldJsonPropertyName] = new JSchema { Type = JSchemaType.String,  },
                             [OperatorJsonPropertyName] = new JSchema { Type = JSchemaType.String },
-                            [ValueJsonPropertyName] = new JSchema { Type = JSchemaType.String | JSchemaType.Number | JSchemaType.Integer | JSchemaType.Boolean }
+                            [ValueJsonPropertyName] = new JSchema {
+                                Not = new JSchema() { Type = JSchemaType.Null }
+                            }
                         },
-                        Required = { FieldJsonPropertyName, OperatorJsonPropertyName }
+                        Required = { FieldJsonPropertyName, OperatorJsonPropertyName, ValueJsonPropertyName }
                     };
                     break;
 
             }
+            schema.AllowAdditionalProperties = false;
 
             return schema;
 
@@ -96,14 +137,14 @@ namespace MedEasy.Data
         /// Name of the field to filter
         /// </summary>
         [JsonProperty(FieldJsonPropertyName, Required = Always)]
-        public string Field { get; set; }
+        public string Field { get; }
 
         /// <summary>
         /// Operator to apply to the filter
         /// </summary>
         [JsonProperty(OperatorJsonPropertyName, Required = Always)]
-        [JsonConverter(typeof(DataFilterOperatorConverter))]
-        public DataFilterOperator Operator { get; set; }
+        //[JsonConverter(typeof(DataFilterOperatorConverter))]
+        public DataFilterOperator Operator { get; }
 
         /// <summary>
         /// Value of the filter
@@ -112,7 +153,7 @@ namespace MedEasy.Data
             Required = AllowNull,
             DefaultValueHandling = IgnoreAndPopulate,
             NullValueHandling = NullValueHandling.Ignore)]
-        public object Value { get; set; }
+        public object Value { get; }
 
         public virtual string ToJson()
 #if DEBUG

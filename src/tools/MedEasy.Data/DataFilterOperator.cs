@@ -2,6 +2,9 @@
 
 namespace MedEasy.Data
 {
+    /// <summary>
+    /// Operators that can be used when building <see cref="DataFilter"/> instances.
+    /// </summary>
     public enum DataFilterOperator
     {
         /// <summary>

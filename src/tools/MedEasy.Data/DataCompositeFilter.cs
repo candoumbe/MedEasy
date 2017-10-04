@@ -34,7 +34,8 @@ namespace MedEasy.Data
                 [FiltersJsonPropertyName] = new JSchema { Type = JSchemaType.Array, MinimumItems = 2 },
                 [LogicJsonPropertyName] = new JSchema { Type = JSchemaType.String, Default = "and"}
             },
-            Required = { FiltersJsonPropertyName }
+            Required = { FiltersJsonPropertyName },
+            AllowAdditionalProperties = false
         };
 
         /// <summary>

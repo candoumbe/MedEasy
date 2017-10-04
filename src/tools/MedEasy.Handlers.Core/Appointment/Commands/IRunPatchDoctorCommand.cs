@@ -7,7 +7,7 @@ using System;
 
 namespace MedEasy.Handlers.Core.Appointment.Commands
 {
-    public interface IRunPatchAppointmentCommand : IRunCommandAsync<Guid, IPatchInfo<Guid, Objects.Appointment>, IPatchCommand<Guid, Objects.Appointment>>
+    public interface IRunPatchAppointmentCommand : IRunCommandAsync<Guid, PatchInfo<Guid, Objects.Appointment>, IPatchCommand<Guid, Objects.Appointment>>
     {
 
     }

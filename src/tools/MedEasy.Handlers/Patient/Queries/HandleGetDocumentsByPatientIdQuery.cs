@@ -36,7 +36,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async ValueTask<Option<IPagedResult<DocumentMetadataInfo>>> HandleAsync(IWantPageOfDocumentsByPatientIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IPagedResult<DocumentMetadataInfo>>> HandleAsync(IWantPageOfDocumentsByPatientIdQuery query, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Start looking for documents metadata : {query}");
             if (query == null)

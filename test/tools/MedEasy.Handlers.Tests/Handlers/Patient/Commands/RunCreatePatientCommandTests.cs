@@ -21,7 +21,7 @@ using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
 
-namespace MedEasy.BLL.Tests.Commands.Patient
+namespace MedEasy.Handlers.Tests.Commands.Patient
 {
     public class RunCreatePatientCommandTests : IDisposable
     {

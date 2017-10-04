@@ -5,6 +5,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Queries;
 using System.Threading;
 using Optional;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -22,7 +23,7 @@ namespace MedEasy.Handlers.Core.Queries
     public abstract class OneResourceQueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery, TQueryValidator> : OneResourceQueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery>
         where TQuery : IWantOneResource<TKey, TData, TOutput>
         where TKey : IEquatable<TKey>
-        where TQueryValidator : class, IValidate<TQuery>
+        where TQueryValidator : class, IValidator<TQuery>
     {
         /// <summary>
         /// Query validator
@@ -76,7 +77,7 @@ namespace MedEasy.Handlers.Core.Queries
 
         }
 
-        public abstract ValueTask<Option<TOutput>> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract ValueTask<Option<TOutput>> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
     }
 
 

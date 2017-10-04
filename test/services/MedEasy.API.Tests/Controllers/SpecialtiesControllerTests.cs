@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using FluentValidation.Results;
 using GenFu;
 using MedEasy.API;
 using MedEasy.API.Controllers;
@@ -36,6 +37,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static System.StringComparison;
+using static FluentValidation.Severity;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -380,7 +382,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new CommandNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrDuplicateName", "A specialty with the same name already exists", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -407,7 +409,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -430,7 +432,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -454,7 +456,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange

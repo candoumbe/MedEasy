@@ -7,6 +7,7 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Handlers.Core.Prescription.Queries;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Prescription.Queries
 {
@@ -14,7 +15,7 @@ namespace MedEasy.Handlers.Prescription.Queries
     /// <summary>
     /// An instance of this class execute <see cref="IWantOnePrescriptionInfoByIdQuery"/> queries
     /// </summary>
-    public class HandleGetPrescriptionInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Prescription, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>, IValidate<IWantOneResource<Guid, int, PrescriptionHeaderInfo>>>, IHandleGetOnePrescriptionHeaderQuery
+    public class HandleGetPrescriptionInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Prescription, int, PrescriptionHeaderInfo, IWantOneResource<Guid, int, PrescriptionHeaderInfo>, IValidator<IWantOneResource<Guid, int, PrescriptionHeaderInfo>>>, IHandleGetOnePrescriptionHeaderQuery
     {
         /// <summary>
         /// Builds a new <see cref="HandleGetPrescriptionInfoByIdQuery"/> instance
@@ -24,7 +25,7 @@ namespace MedEasy.Handlers.Prescription.Queries
         /// <param name="validator">Validator to use to validate commands before processing them</param>
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
-        public HandleGetPrescriptionInfoByIdQuery(IValidate<IWantOneResource<Guid, int, PrescriptionHeaderInfo>> validator, ILogger<HandleGetPrescriptionInfoByIdQuery> logger, IUnitOfWorkFactory factory,
+        public HandleGetPrescriptionInfoByIdQuery(IValidator<IWantOneResource<Guid, int, PrescriptionHeaderInfo>> validator, ILogger<HandleGetPrescriptionInfoByIdQuery> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder) : base(validator, logger, factory, expressionBuilder)
         {
 

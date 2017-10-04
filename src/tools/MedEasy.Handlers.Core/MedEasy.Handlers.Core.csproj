@@ -8,7 +8,9 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
 
 
   <ItemGroup>
@@ -18,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.Commands\MedEasy.Commands.csproj" />
+    <ProjectReference Include="..\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\MedEasy.DTO\MedEasy.DTO.csproj" />
     <ProjectReference Include="..\MedEasy.Queries\MedEasy.Queries.csproj" />

@@ -7,13 +7,14 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Appointment.Queries;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Appointment.Queries
 {
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneAppointmentInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetAppointmentInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Appointment, Guid, AppointmentInfo, IWantOneResource<Guid, Guid, AppointmentInfo>, IValidate<IWantOneResource<Guid, Guid, AppointmentInfo>>>, IHandleGetAppointmentInfoByIdQuery
+    public class HandleGetAppointmentInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Appointment, Guid, AppointmentInfo, IWantOneResource<Guid, Guid, AppointmentInfo>, IValidator<IWantOneResource<Guid, Guid, AppointmentInfo>>>, IHandleGetAppointmentInfoByIdQuery
     {
 
         /// <summary>

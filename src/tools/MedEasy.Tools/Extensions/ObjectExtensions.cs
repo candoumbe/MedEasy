@@ -19,8 +19,8 @@ namespace System
         {
             // Don't serialize a null object, simply return the default for that object
             T clone = (T)(ReferenceEquals(source, null)
-                ? default(T)
-                : JsonConvert.DeserializeObject(JsonConvert.SerializeObject(source)));
+                ? default
+                : JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source)));
 
             return clone;
         }
@@ -37,10 +37,6 @@ namespace System
 
             if (obj != null)
             {
-
-                Type objType = obj.GetType();
-                TypeInfo objTypeInfo = objType.GetTypeInfo();
-
                 if (obj is IEnumerable)
                 {
                     dictionary = new Dictionary<string, object>();
@@ -57,10 +53,10 @@ namespace System
                             {
                                 dictionary.Add($"{count}", current);
                             }
-                            else
-                            {
-                                dictionary.Add($"{count}", ParseAnonymousObject(current));
-                            }
+                            //else 
+                            //{
+                            //    dictionary.Add($"{count}", ParseAnonymousObject(current));
+                            //}
                             count++;
                         }
                     }
@@ -71,7 +67,7 @@ namespace System
                 {
                     IEnumerable<PropertyInfo> properties = obj.GetType()
                             .GetRuntimeProperties()
-                            .Where(pi => pi.CanRead && pi.GetValue(obj) != null);
+                            .Where(pi => pi.CanRead && !pi.GetMethod.IsStatic && pi.GetValue(obj) != null);
 
                     dictionary = properties.ToDictionary(
                         pi => pi.Name,

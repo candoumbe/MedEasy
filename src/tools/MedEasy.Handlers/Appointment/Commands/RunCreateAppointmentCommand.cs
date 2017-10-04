@@ -33,7 +33,7 @@ namespace MedEasy.Handlers.Appointment.Commands
         }
 
 
-        public async Task<Option<AppointmentInfo, CommandException>> RunAsync(ICreateAppointmentCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<AppointmentInfo, CommandException>> RunAsync(ICreateAppointmentCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {
@@ -45,7 +45,7 @@ namespace MedEasy.Handlers.Appointment.Commands
             using (IUnitOfWork uow = UowFactory.New())
             {
 
-                Option<AppointmentInfo, CommandException> result = default(Option<AppointmentInfo, CommandException>);
+                Option<AppointmentInfo, CommandException> result = default;
                 var doctor = await uow.Repository<Objects.Doctor>()
                     .SingleOrDefaultAsync(x => new { x.Id, x.UUID },
                         (Objects.Doctor x) => x.UUID == info.DoctorId);
@@ -72,7 +72,7 @@ namespace MedEasy.Handlers.Appointment.Commands
                         Objects.Appointment itemToCreate = new Objects.Appointment()
                         {
                             StartDate = info.StartDate,
-                            Duration = info.Duration,
+                            EndDate = info.StartDate.AddMinutes(info.Duration),
                             PatientId = patientId.Id,
                             DoctorId = doctorId.Id,
                             UpdatedDate = now,
@@ -87,7 +87,7 @@ namespace MedEasy.Handlers.Appointment.Commands
                         AppointmentInfo output = Mapper.Map<AppointmentInfo>(itemToCreate);
                         output.PatientId = info.PatientId;
                         output.DoctorId = info.DoctorId;
-
+                        output.Duration = info.Duration;
                         result = Option.Some<AppointmentInfo, CommandException>(output);
                     }
 

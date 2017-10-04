@@ -1,21 +1,13 @@
 ﻿using AutoMapper.QueryableExtensions;
-using MedEasy.Commands.Specialty;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Specialty.Commands;
-using MedEasy.Validators;
-using Microsoft.Extensions.Logging;
 using Moq;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static MedEasy.Validators.ErrorLevel;
 using static Moq.MockBehavior;
 using FluentAssertions;
-using MedEasy.DTO;
-using MedEasy.Handlers.Core.Exceptions;
-using Optional;
 
 namespace MedEasy.Handlers.Tests.Handlers
 {

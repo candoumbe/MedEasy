@@ -63,7 +63,10 @@ namespace MedEasy.Tools.Tests
                 yield return new object[]
                 {
                     new {limit = new [] {0, 1, 2, 3}},
-                    "limit[0]=0&limit[1]=1&limit[2]=2&limit[3]=3"
+                    $"{Uri.EscapeDataString("limit[0]")}=0" +
+                    $"&{Uri.EscapeDataString("limit[1]")}=1" +
+                    $"&{Uri.EscapeDataString("limit[2]")}=2" +
+                    $"&{Uri.EscapeDataString("limit[3]")}=3"
                 };
 
                 yield return new object[]
@@ -74,7 +77,9 @@ namespace MedEasy.Tools.Tests
                             filter = new { field = "Firstname", op = "eq", value = "Bruce" }
                         }
                     },
-                    "search[filter][field]=Firstname&search[filter][op]=eq&search[filter][value]=Bruce"
+                    $"{Uri.EscapeDataString("search[filter][field]")}=Firstname" +
+                    $"&{Uri.EscapeDataString("search[filter][op]")}=eq" +
+                    $"&{Uri.EscapeDataString("search[filter][value]")}=Bruce"
                 };
 
                 yield return new object[]
@@ -85,7 +90,22 @@ namespace MedEasy.Tools.Tests
                             filter = new { field = "Firstname", op = "eq", value = "Bru&ce" }
                         }
                     },
-                    "search[filter][field]=Firstname&search[filter][op]=eq&search[filter][value]=Bru%26ce"
+                    $"{Uri.EscapeDataString("search[filter][field]")}=Firstname" +
+                    $"&{Uri.EscapeDataString("search[filter][op]")}=eq" +
+                    $"&{Uri.EscapeDataString("search[filter][value]")}={Uri.EscapeDataString("Bru&ce")}"
+                };
+
+                yield return new object[]
+                {
+                    new {
+                        search = new
+                        {
+                            filter = new { field = "Firstname", op = "eq", value = "Bru&ce" }
+                        }
+                    },
+                    $"{Uri.EscapeDataString("search[filter][field]")}=Firstname" +
+                    $"&{Uri.EscapeDataString("search[filter][op]")}=eq" +
+                    $"&{Uri.EscapeDataString("search[filter][value]")}={Uri.EscapeDataString("Bru&ce")}"
                 };
             }
         }
@@ -157,12 +177,7 @@ namespace MedEasy.Tools.Tests
                     {
                         Page = 1,
                         PageSize = 30,
-                        Filter = new DataFilter
-                        {
-                            Field = "Firstname",
-                            Operator = EqualTo,
-                            Value = "Bruce"
-                        }
+                        Filter = new DataFilter(field :"Firstname", @operator : EqualTo, value: "Bruce")
                     },
                     ((Expression<Func<IDictionary<string, object>, bool>>)(x =>
                         x != null

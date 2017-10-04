@@ -14,7 +14,7 @@ namespace MedEasy.Data.Converters
     public class DataFilterConverter : JsonConverter
     {
 
-        private static IImmutableDictionary<string, DataFilterOperator> Operators = new Dictionary<string, DataFilterOperator>
+        private static IImmutableDictionary<string, DataFilterOperator> _operators = new Dictionary<string, DataFilterOperator>
         {
             ["contains"] = DataFilterOperator.Contains,
             ["endswith"] = DataFilterOperator.EndsWith,
@@ -48,12 +48,16 @@ namespace MedEasy.Data.Converters
                     if (properties.Any(prop => prop.Name == DataFilter.FieldJsonPropertyName)
                          && properties.Any(prop => prop.Name == DataFilter.OperatorJsonPropertyName))
                     {
-                        filter = new DataFilter()
+
+                        string field = token[DataFilter.FieldJsonPropertyName].Value<string>();
+                        DataFilterOperator @operator = _operators[token[DataFilter.OperatorJsonPropertyName].Value<string>()];
+                        object value = null;
+                        if (!DataFilter.UnaryOperators.Contains(@operator))
                         {
-                            Field = token[DataFilter.FieldJsonPropertyName].Value<string>(),
-                            Operator = Operators[token[DataFilter.OperatorJsonPropertyName].Value<string>()],
-                            Value = token[DataFilter.ValueJsonPropertyName]?.Value<string>()
-                        };
+                            value = token[DataFilter.ValueJsonPropertyName]?.Value<string>();
+                        }
+                        filter = new DataFilter(field, @operator, value);
+                        
                     }
                 }
             }
@@ -67,24 +71,20 @@ namespace MedEasy.Data.Converters
 
             writer.WriteStartObject();
 
+            // Field
             writer.WritePropertyName(DataFilter.FieldJsonPropertyName);
             writer.WriteValue(kf.Field);
 
+            // operator
             writer.WritePropertyName(DataFilter.OperatorJsonPropertyName);
-            KeyValuePair<string, DataFilterOperator> kv = Operators.SingleOrDefault(item => item.Value == kf.Operator);
-            writer.WriteValue(Equals(default(KeyValuePair<string, DataFilterOperator>), kv)
-                ? Operators.Single(item => item.Value == DataFilterOperator.EqualTo).Key
-                : kv.Key);
+            KeyValuePair<string, DataFilterOperator> kv = _operators.Single(item => item.Value == kf.Operator);
+            writer.WriteValue(kv.Key);
 
-
-            writer.WritePropertyName(DataFilter.ValueJsonPropertyName);
-            if (kf.Value != null)
+            // value (only if the operator is not an unary operator)
+            if (!DataFilter.UnaryOperators.Contains(kf.Operator))
             {
+                writer.WritePropertyName(DataFilter.ValueJsonPropertyName);
                 writer.WriteValue(kf.Value);
-            }
-            else
-            {
-                writer.WriteNull();
             }
 
             writer.WriteEnd();

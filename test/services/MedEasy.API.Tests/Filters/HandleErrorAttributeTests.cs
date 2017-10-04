@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Routing;
 using Moq;
 using System;
 using System.Collections.Generic;
-using static MedEasy.Validators.ErrorLevel;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using static Moq.MockBehavior;
 using Xunit;
 using MedEasy.Handlers.Core.Exceptions;
+using FluentValidation.Results;
+using static FluentValidation.Severity;
 
 namespace MedEasy.API.Tests.Filters
 {
@@ -49,9 +50,9 @@ namespace MedEasy.API.Tests.Filters
                new ModelStateDictionary());
 
             // Act
-            IEnumerable<ErrorInfo> exceptionErrors = new[] {
-                new ErrorInfo("prop1", "error 1", Error),
-                new ErrorInfo("prop2", "warning 2", Warning)
+            IEnumerable<ValidationFailure> exceptionErrors = new[] {
+                new ValidationFailure("prop1", "error 1") { Severity = Error } ,
+                new ValidationFailure("prop2", "warning 2") { Severity =  Warning }
             };
             ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
             {
@@ -83,9 +84,9 @@ namespace MedEasy.API.Tests.Filters
                new ModelStateDictionary());
 
             // Act
-            IEnumerable<ErrorInfo> exceptionErrors = new[] {
-                new ErrorInfo("prop1", "error 1", Error),
-                new ErrorInfo("prop2", "warning 2", Warning)
+            IEnumerable<ValidationFailure> exceptionErrors = new[] {
+                new ValidationFailure("prop1", "error 1") { Severity = Error } ,
+                new ValidationFailure("prop2", "warning 2") { Severity =  Warning }
             };
             ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
             {
@@ -115,9 +116,9 @@ namespace MedEasy.API.Tests.Filters
                new ModelStateDictionary());
 
             // Act
-            IEnumerable<ErrorInfo> exceptionErrors = new[] {
-                new ErrorInfo("prop1", "error 1", Error),
-                new ErrorInfo("prop2", "warning 2", Warning)
+            IEnumerable<ValidationFailure> exceptionErrors = new[] {
+                 new ValidationFailure("prop1", "error 1") { Severity = Error } ,
+                new ValidationFailure("prop2", "warning 2") { Severity =  Warning }
             };
             ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
             {

@@ -54,7 +54,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         [Produces(typeof(PrescriptionHeaderInfo))]
-        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
         {
             Option<PrescriptionHeaderInfo> prescriptionHeaderInfo = await _prescriptionService.GetOnePrescriptionAsync(id, cancellationToken);
 
@@ -97,7 +97,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}/[action]")]
         [HttpHead("{id}/[action]")]
         [ProducesResponseType(typeof(BrowsableResource<IEnumerable<PrescriptionItemInfo>>), 200)]
-        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken = default)
         {
             Option<IEnumerable<PrescriptionItemInfo>> items = await _prescriptionService.GetItemsByPrescriptionIdAsync(id, cancellationToken);
 

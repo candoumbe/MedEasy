@@ -18,7 +18,7 @@ namespace MedEasy.Objects
         /// <summary>
         /// How long the <see cref="Appointment"/> last in minutes
         /// </summary>
-        public double Duration { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
         /// <summary>
         /// <see cref="Objects.Doctor"/> of the <see cref="Appointment"/>

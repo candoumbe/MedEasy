@@ -10,6 +10,7 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,14 +26,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\tools\MedEasy.Commands\MedEasy.Commands.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Doctor\" />
-  </ItemGroup>
-
+  
 </Project>

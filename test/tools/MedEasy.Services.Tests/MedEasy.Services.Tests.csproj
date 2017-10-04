@@ -10,7 +10,9 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
   <Choose>
     <When Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
       <PropertyGroup>

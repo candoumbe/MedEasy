@@ -67,13 +67,13 @@ namespace MedEasy.Commands
         /// <exception cref="ArgumentNullException">if <paramref name="data"/> is <c>null</c></exception>
         protected CommandBase(TCommandId id, TCommandData data)
         {
-            if (Equals(id, default(TCommandId)))
+            if (Equals(id, default))
             {
                 throw new ArgumentException(nameof(id), $"{nameof(id)} cannot be set to the default value of {typeof(TCommandId).FullName}");
             }
 
             Id = id;
-            Data = data ;
+            Data = data.DeepClone() ;
         }
 
 

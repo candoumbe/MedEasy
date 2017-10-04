@@ -39,7 +39,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> HandleAsync(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> HandleAsync(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Start handling most recents measures : {query}");
             if (query == null)

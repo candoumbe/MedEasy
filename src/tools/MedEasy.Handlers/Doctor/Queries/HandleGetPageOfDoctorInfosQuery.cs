@@ -19,9 +19,9 @@ namespace MedEasy.Handlers.Doctor.Queries
         /// Builds a new <see cref="HandleGetDoctorInfoByIdQuery"/> instance
         /// </summary>
         /// <param name="factory">factory to use to retrieve <see cref="Objects.Doctor"/> instances</param>
-        /// <param name="logger">a logger</param>
         /// <param name="expressionBuilder">Builder for <see cref="System.Linq.Expressions.Expression{TDelegate}"/>that can map <see cref="Objects.Doctor"/> instances to <see cref="DoctorInfo"/> instances</param>
-        public HandleGetPageOfDoctorInfosQuery(IUnitOfWorkFactory factory, ILogger<HandleGetPageOfDoctorInfosQuery> logger, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
+        /// <exception cref="ArgumentNullException">if <paramref name="factory"/> or <paramref name="expressionBuilder"/> is <c>null</c>.</exception>
+        public HandleGetPageOfDoctorInfosQuery(IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder) : base(factory, expressionBuilder)
         {
         }
     }

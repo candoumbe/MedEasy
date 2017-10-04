@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Queries;
 using System.Threading;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -44,7 +45,7 @@ namespace MedEasy.Handlers.Core.Queries
         /// <param name="query">The query to process</param>
         /// <param name="cancellationToken">Notifies to cancel query execution</param>
         /// <returns></returns>
-        public abstract ValueTask<TOutput> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract ValueTask<TOutput> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -61,7 +62,7 @@ namespace MedEasy.Handlers.Core.Queries
     public abstract class QueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery, TQueryValidator> : QueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery>
         where TQuery : IQuery<TKey, TData, TOutput>
         where TKey : IEquatable<TKey>
-        where TQueryValidator : class, IValidate<TQuery>
+        where TQueryValidator : class, IValidator<TQuery>
     {
         /// <summary>
         /// Query validator

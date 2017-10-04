@@ -13,7 +13,8 @@ using MedEasy.Services;
 using MedEasy.Commands;
 using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Core.Patient.Commands;
-using MedEasy.Handlers.Core.Commands;
+using MedEasy.Validators.Patient.Commands;
+using FluentValidation;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -27,12 +28,12 @@ namespace MedEasy.API.StartupRegistration
         /// </summary>
         public static void AddPatientsControllerDependencies(this IServiceCollection services)
         {
-            services.AddScoped<IValidate<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
-            services.AddScoped<IValidate<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
-            services.AddScoped<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(x => Validator<IWantOneResource<Guid, Guid, PatientInfo>>.Default);
-            services.AddScoped<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(x => Validator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>.Default);
-            services.AddScoped<IValidate<IPatchCommand<Guid, Patient>>, ValidatePatchPatientCommand>();
-            services.AddScoped<IValidate<ICreateDocumentForPatientCommand>>(x => Validator<ICreateDocumentForPatientCommand>.Default);
+            services.AddScoped<IValidator<ICreatePatientCommand>>(x => Validator<ICreatePatientCommand>.Default);
+            services.AddScoped<IValidator<IDeletePatientByIdCommand>>(x => Validator<IDeletePatientByIdCommand>.Default);
+            services.AddScoped<IValidator<IWantOneResource<Guid, Guid, PatientInfo>>>(x => Validator<IWantOneResource<Guid, Guid, PatientInfo>>.Default);
+            services.AddScoped<IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(x => Validator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>.Default);
+            services.AddScoped<IValidator<IPatchCommand<Guid, PatientInfo>>, PatchPatientCommandValidator>();
+            services.AddScoped<IValidator<ICreateDocumentForPatientCommand>>(x => Validator<ICreateDocumentForPatientCommand>.Default);
 
 
             services.AddScoped<IHandleGetOnePatientInfoByIdQuery, HandleGetPatientInfoByIdQuery>();

@@ -27,7 +27,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// Converter for a datetime
         /// </summary>
-        private static Func<DateTime, string> FnDateTimeToQueryString = x => x.ToString("x");
+        private static Func<DateTime, string> _fnDateTimeToQueryString = x => x.ToString("x");
 
         /// <summary>
         /// Converts a dictionary to a "URL" friendly representation
@@ -51,27 +51,22 @@ namespace System.Collections.Generic
                     }
 
                     sb
-                        .Append(kv.Key)
+                        .Append(Uri.EscapeDataString(kv.Key))
                         .Append("=");
 
                     // DateTime/DateTimeOffset should be encoded in ISO format
-                    if ( value is DateTime? || value is DateTimeOffset?)
+                    switch (value)
                     {
-                        if (value is DateTime?)
-                        {
-                            sb.Append(((DateTime?)value).Value.ToString("s"));
-                        }
-                        else
-                        {
-                            sb.Append(((DateTimeOffset?)value).Value.ToString("s"));
-                        }
+                        case DateTime date:
+                            sb.Append(date.ToString("s"));
+                            break;
+                        case DateTimeOffset date:
+                            sb.Append(date.ToString("s"));
+                            break;
+                        default:
+                            sb.Append(Uri.EscapeDataString(kv.Value.ToString()));
+                            break;
                     }
-                    else
-                    {
-                        sb.Append(Uri.EscapeDataString(kv.Value.ToString()));
-                    }
-
-                    
                 }
                 else if (value is IDictionary<string, object>)
                 {
@@ -105,9 +100,9 @@ namespace System.Collections.Generic
                                 {
                                     sb.Append("&");
                                 }
-                                sb.Append($"{kv.Key}[{itemPosition}]")
+                                sb.Append($"{Uri.EscapeDataString($"{kv.Key}[{itemPosition}]")}")
                                    .Append("=")
-                                   .Append(kv.Value.ToString());
+                                   .Append(Uri.EscapeDataString(kv.Value.ToString()));
 
                                 itemPosition++;
                             }

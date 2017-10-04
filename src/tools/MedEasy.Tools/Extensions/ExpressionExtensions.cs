@@ -2,6 +2,9 @@
 
 namespace System.Linq.Expressions
 {
+    /// <summary>
+    /// Extensions method
+    /// </summary>
     public static class ExpressionExtensions
     {
 
@@ -26,6 +29,7 @@ namespace System.Linq.Expressions
         /// <param name="first">the first expression</param>
         /// <param name="second">An expressions</param>
         /// <returns>The combined expression</returns>
+        /// <exception cref="ArgumentNullException">if either <paramref name="first"/> or <paramref name="second"/> is <c>null</c>.</exception>
         public static Expression<Func<T1, T3>> Combine<T1, T2, T3>(this Expression<Func<T1, T2>> first, Expression<Func<T2, T3>> second)
         {
             if (first == null)

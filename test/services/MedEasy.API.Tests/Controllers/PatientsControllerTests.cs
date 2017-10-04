@@ -52,6 +52,8 @@ using System.Threading;
 using Optional;
 using MedEasy.Queries.Prescriptions;
 using MedEasy.CQRS.Core;
+using FluentValidation.Results;
+using static FluentValidation.Severity;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -830,7 +832,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new CommandNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrDuplicateCode", "A specialty with the same code already exists", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -937,7 +939,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -950,7 +952,8 @@ namespace MedEasy.WebApi.Tests
             Func<Task> action = async () => await _controller.Get(Guid.NewGuid());
 
             //Assert
-            action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should().Be(exceptionFromTheHandler);
+            action.ShouldThrow<QueryNotValidException<Guid>>().Which.Should()
+                .Be(exceptionFromTheHandler);
             _iHandleGetOnePatientInfoByIdQueryMock.Verify();
 
         }
@@ -960,7 +963,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -984,7 +987,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange

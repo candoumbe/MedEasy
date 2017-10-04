@@ -20,6 +20,7 @@ using MedEasy.RestObjects;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Patient.Queries;
 using System.Threading;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
@@ -67,7 +68,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidator<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
@@ -88,7 +89,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             Func<Task> action = async () =>
             {
                 IHandleGetOnePatientInfoByIdQuery handler = new HandleGetPatientInfoByIdQuery(
-                    Mock.Of<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(),
+                    Mock.Of<IValidator<IWantOneResource<Guid, Guid, PatientInfo>>>(),
                     Mock.Of<ILogger<HandleGetPatientInfoByIdQuery>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     Mock.Of<IExpressionBuilder>());

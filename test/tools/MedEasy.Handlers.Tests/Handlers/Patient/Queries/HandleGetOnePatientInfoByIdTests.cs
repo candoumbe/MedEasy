@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Exceptions;
@@ -13,6 +15,7 @@ using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Optional;
+using Queries.Core.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,20 +24,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static MedEasy.Validators.ErrorLevel;
 using static Moq.MockBehavior;
 
 namespace MedEasy.Handlers.Tests.Patient.Queries
 {
-    public class HandleGetOnePatientInfoByIdQueryTests: IDisposable
+    public class HandleGetOnePatientInfoByIdQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
         private HandleGetPatientInfoByIdQuery _handler;
-        
+
         private Mock<ILogger<HandleGetPatientInfoByIdQuery>> _loggerMock;
         private IMapper _mapper;
-        private Mock<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>> _validatorMock;
+        private Mock<IValidator<IWantOneResource<Guid, Guid, PatientInfo>>> _validatorMock;
 
         public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper)
         {
@@ -47,9 +49,9 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _loggerMock = new Mock<ILogger<HandleGetPatientInfoByIdQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _validatorMock = new Mock<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(Strict);
+            _validatorMock = new Mock<IValidator<IWantOneResource<Guid, Guid, PatientInfo>>>(Strict);
 
-            _handler = new HandleGetPatientInfoByIdQuery(_validatorMock.Object, _loggerMock.Object,  _unitOfWorkFactoryMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetPatientInfoByIdQuery(_validatorMock.Object, _loggerMock.Object, _unitOfWorkFactoryMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -69,11 +71,11 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         }
 
 
-        
+
 
         [Theory]
         [MemberData(nameof(ConstructorCases))]
-        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidate<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
+        public void ConstructorWithInvalidArgumentsThrowsArgumentNullException(IValidator<IWantOneResource<Guid, Guid, PatientInfo>> validator, ILogger<HandleGetPatientInfoByIdQuery> logger,
            IUnitOfWorkFactory factory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"Logger : {logger}");
@@ -93,7 +95,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             Func<Task> action = async () =>
             {
                 IHandleGetOnePatientInfoByIdQuery handler = new HandleGetPatientInfoByIdQuery(
-                    Mock.Of<IValidate<IWantOneResource<Guid, Guid, PatientInfo>>>(),
+                    Mock.Of<IValidator<IWantOneResource<Guid, Guid, PatientInfo>>>(),
                     Mock.Of<ILogger<HandleGetPatientInfoByIdQuery>>(),
                     Mock.Of<IUnitOfWorkFactory>(),
                     Mock.Of<IExpressionBuilder>());
@@ -110,8 +112,8 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public async Task UnknownIdShouldReturnOptionNone()
         {
             //Arrange
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>())
+            _validatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult())
                 .Verifiable();
             _unitOfWorkFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>()
                 .SingleOrDefaultAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(), It.IsAny<Expression<Func<Objects.Patient, bool>>>(), It.IsAny<CancellationToken>()))
@@ -133,12 +135,16 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public void ShouldThrowQueryNotValidExceptionIfValidationFails()
         {
             //Arrange
-            _validatorMock.Setup(mock => mock.Validate(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>()))
-                .Returns((IWantOneResource<Guid, Guid, PatientInfo> q) => new[] { Task.FromResult(new ErrorInfo("ErrCode", "A description", Error)) });
+            _validatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IWantOneResource<Guid, Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IWantOneResource<Guid, Guid, PatientInfo> q, CancellationToken cancellationToken) =>
+                        new ValidationResult(new[]
+                        {
+                            new  ValidationFailure("PropName", "Error description")
+                        }));
 
             // Act
             IWantOneResource<Guid, Guid, PatientInfo> query = new WantOnePatientInfoByIdQuery(Guid.NewGuid());
-            Func<Task> action = async () =>  await _handler.HandleAsync(query);
+            Func<Task> action = async () => await _handler.HandleAsync(query);
 
             //Assert
             action.ShouldThrow<QueryNotValidException<Guid>>().Which
@@ -153,7 +159,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         public void Dispose()
         {
             _outputHelper = null;
-           _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactoryMock = null;
             _handler = null;
             _mapper = null;
             _validatorMock = null;

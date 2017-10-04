@@ -7,6 +7,7 @@ using MedEasy.Handlers.Core.Appointment.Commands;
 using MedEasy.Validators;
 using MedEasy.Commands;
 using System;
+using FluentValidation;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -28,7 +29,7 @@ namespace MedEasy.API.StartupRegistration
             services.AddScoped<IRunDeleteAppointmentInfoByIdCommand, RunDeleteAppointmentByIdCommand>();
             services.AddScoped<IRunPatchAppointmentCommand, RunPatchAppointmentCommand>();
 
-            services.AddScoped<IValidate<IPatchCommand<Guid, Objects.Appointment>>>(x => Validator<IPatchCommand<Guid, Objects.Appointment>>.Default);
+            services.AddScoped<IValidator<IPatchCommand<Guid, Objects.Appointment>>>(x => Validator<IPatchCommand<Guid, Objects.Appointment>>.Default);
         }
 
     }

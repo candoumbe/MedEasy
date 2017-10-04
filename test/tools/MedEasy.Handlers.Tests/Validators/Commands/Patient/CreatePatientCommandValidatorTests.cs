@@ -4,12 +4,17 @@ using System.Linq.Expressions;
 using FluentAssertions;
 using Xunit;
 using System.Linq;
-using static MedEasy.Validators.ErrorLevel;
 using Xunit.Abstractions;
 using MedEasy.Validators.Patient;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
 using System.Threading.Tasks;
+using FluentValidation.Results;
+using FluentValidation;
+using Moq;
+using static FluentValidation.Severity;
+using static Moq.MockBehavior;
+using System.Threading;
 
 namespace MedEasy.Validators.Tests
 {
@@ -18,165 +23,61 @@ namespace MedEasy.Validators.Tests
     public class CreatePatientCommandValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
+        private Mock<IValidator<CreatePatientInfo>> _createPatientInfoValidatorMock;
+        private CreatePatientCommandValidator _validator;
 
         public CreatePatientCommandValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
+
+            _createPatientInfoValidatorMock = new Mock<IValidator<CreatePatientInfo>>(Strict);
+
+            _validator = new CreatePatientCommandValidator(_createPatientInfoValidatorMock.Object);
+            
         }
 
-        public static IEnumerable<object[]> InvalidCases
-        {
-            get
-            {
-                yield return new object[]
-                {
-                    null,
-                    null,
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors =>
-                            errors.Count() == 1 &&
-                            errors.Once(errorItem => string.Empty.Equals(errorItem.Key) && errorItem.Severity == Error))),
-                    $"because {nameof(ICreatePatientCommand)} is null"
-                };
-
-
-                //
-                yield return new object[]
-                {
-                    null,
-                    1.January(2012),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors => 
-                            errors.Count() == 1 && 
-                            errors.Once(errorItem => string.Empty.Equals(errorItem.Key) && errorItem.Severity == Error))),
-                    $"because {nameof(ICreatePatientCommand)} is null"
-                };
-
-                
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo()),
-                    1.January(2012),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors => errors.Count() == 2 && 
-                            errors.Once(item => nameof(CreatePatientInfo.Firstname).Equals(item.Key) && item.Severity == Warning) &&
-                            errors.Once(item => nameof(CreatePatientInfo.Lastname).Equals(item.Key) && item.Severity == Error))),
-                    $"new {nameof(CreatePatientCommand)}(new {nameof(CreatePatientInfo)}()) is not valid"
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTime.MaxValue }),
-                    1.January(2012),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors => errors.Count() == 3 && errors.Once(item => nameof(CreatePatientInfo.BirthDate).Equals(item.Key) && item.Severity == Warning))),
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Firstname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Lastname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {1.January(2012)}" 
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { BirthDate = DateTime.MaxValue }),
-                    1.January(2012),
-
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>)
-                        (errors => errors.Count() == 3 && errors.Once(item => nameof(CreatePatientInfo.BirthDate).Equals(item.Key) && item.Severity == Warning))),
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Firstname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.Lastname)} is not set,"  +
-                    $"{Environment.NewLine}{nameof(ICreatePatientCommand)}.{nameof(ICreatePatientCommand.Data)}.{nameof(CreatePatientInfo.BirthDate)} is after {1.January(2012)}"
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo {
-                        Firstname = "Bruce",
-                        BirthDate = 1.January(2012),
-                    }),
-                    1.January(2012),
-                    ((Expression<Func<IEnumerable<ErrorInfo>, bool>>) (errors =>
-                        errors.Count() == 1 &&
-                        errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.Key) && errorItem.Severity == Error ))),
-                    $"because {nameof(CreatePatientInfo.BirthDate)} is equal to {1.January(2012)}"
-                };
-                
-            }
-        }
-
-
-        public static IEnumerable<object[]> ValidCreatePatientCommandCases
-        {
-            get
-            {
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { Lastname = "Wayne" }),
-                    null,
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne" }),
-                    null,
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = 1.January(1960) }),
-                    null,
-                };
-
-                yield return new object[]
-                {
-                    new CreatePatientCommand(new CreatePatientInfo { Firstname = "Bruce", Lastname = "Wayne", BirthDate = 1.January(1960) }),
-                    DateTime.MaxValue,
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(ValidCreatePatientCommandCases))]
-        public async Task ValidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate)
-            => await Validate(command, maxBirthDate, errors => !errors.Any(errorItem => errorItem.Severity == Error));
-
-
-        [Theory]
-        [MemberData(nameof(InvalidCases))]
-        public async Task InvalidCreatePatientInfoTests(ICreatePatientCommand command, DateTime? maxBirthDate,
-            Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation,
-            string because = "")
-            => await Validate(command, maxBirthDate, errorsExpectation, because);
-        
 
         /// <summary>
-        /// 
+        /// Tests that 
+        /// <code>
+        ///     new <see cref="CreatePatientCommand /> new <see cref="CreatePatientInfo"/>();
+        /// </code>
+        /// validation fails when the <see cref="CreatePatientInfo"/> validation fails. 
         /// </summary>
-        /// <param name="command">The command to validate</param>
-        /// <param name="maxBirthDateAllowed">Defines the date beyond which the <see cref="CreatePatientInfo.BirthDate"/> will be considered invalid</param>
-        /// <param name="errorsExpectation"></param>
-        /// <param name="because"></param>
-        private async Task Validate(ICreatePatientCommand command, DateTime? maxBirthDateAllowed,
-            Expression<Func<IEnumerable<ErrorInfo>, bool>> errorsExpectation,
-            string because = "")
+        /// <returns></returns>
+        [Fact]
+        public async Task Should_Fail_When_Data_Validation_Fails()
         {
+            // Arrange
+            _createPatientInfoValidatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult(
+                    new[]
+                    {
+                        new ValidationFailure(nameof(CreatePatientInfo.Firstname), $"{nameof(CreatePatientInfo.Firstname)} cannot be null") { Severity = Error, },
+                        new ValidationFailure(nameof(CreatePatientInfo.Lastname), $"{nameof(CreatePatientInfo.Lastname)} cannot be null") { Severity = Error}
+                    })
+                );
 
-            _outputHelper.WriteLine($"{nameof(command)} : {command}");
-            _outputHelper.WriteLine($"{nameof(maxBirthDateAllowed)} : {maxBirthDateAllowed}");
-            _outputHelper.WriteLine($"{nameof(errorsExpectation)} : {errorsExpectation}");
-            
-            //Act
-            IValidate<ICreatePatientCommand> validator = new CreatePatientCommandValidator(maxBirthDateAllowed);
-            IEnumerable<Task<ErrorInfo>> errorsTasks = validator.Validate(command);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks);
-            
-            //Assert
-            errors.Should().Match(errorsExpectation, because);
+            // Act
+            ICreatePatientCommand cmd = new CreatePatientCommand(new CreatePatientInfo());
+            ValidationResult vr = await _validator.ValidateAsync(cmd);
+
+            // Assert
+            vr.IsValid.Should().BeFalse();
+            vr.Errors.Should()
+                .HaveCount(2).And
+                .Contain(error => error.PropertyName == nameof(cmd.Data.Firstname) && error.Severity == Error).And
+                .Contain(error => error.PropertyName == nameof(cmd.Data.Lastname) && error.Severity == Error);
+
+
         }
 
-
+        
         public void Dispose()
         {
             _outputHelper = null;
+            _createPatientInfoValidatorMock = null;
+            _validator = null;
         }
 
 

@@ -10,7 +10,6 @@ using FluentAssertions;
 using MedEasy.Commands.Specialty;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
-using static MedEasy.Validators.ErrorLevel;
 using System.Threading.Tasks;
 using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.DAL.Interfaces;
@@ -24,7 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using Optional;
 
-namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
+namespace MedEasy.Handlers.Tests.Handlers.Commands.Specialty
 {
     public class HandleCreateSpecialtyCommandTests : IDisposable
     {
@@ -99,7 +98,30 @@ namespace MedEasy.BLL.Tests.Handlers.Commands.Specialty
                 .NotBeNullOrWhiteSpace();
         }
 
-        
+        [Fact]
+        public async Task ShouldCreateTheResource()
+        {
+            // Arrange
+            CreateSpecialtyInfo info = new CreateSpecialtyInfo
+            {
+                Name = "Médecine générale"
+            };
+
+            // Act
+            CreateSpecialtyCommand cmd = new CreateSpecialtyCommand(info);
+            Option<SpecialtyInfo, CommandException> result = await _runner.RunAsync(cmd)
+                .ConfigureAwait(false);
+
+            // Assert
+            result.HasValue.Should().BeTrue();
+            result.MatchSome(createdResource =>
+            {
+                createdResource.Name.Should().Be(info.Name);
+            });
+            
+
+        }
+
         public void Dispose()
         {
             _outputHelper = null;

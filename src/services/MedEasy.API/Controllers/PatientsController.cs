@@ -31,6 +31,7 @@ using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.API.Results;
+using FluentValidation.Results;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -179,7 +180,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
-        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
             => await base.Get(id, cancellationToken);
 
         /// <summary>
@@ -191,8 +192,8 @@ namespace MedEasy.API.Controllers
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 201)]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationResult>), 400)]
+        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken cancellationToken = default)
         {
             Option<PatientInfo, CommandException> resource = await _iRunCreatePatientCommand.RunAsync(new CreatePatientCommand(newPatient), cancellationToken);
 
@@ -256,7 +257,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">if the operation succeed</response>
         /// <response code="400">if <paramref name="id"/> is empty.</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
             if (id == Guid.Empty)
@@ -334,7 +335,7 @@ namespace MedEasy.API.Controllers
         /// <response code="400"><paramref name="newBloodPressure"/> is not valid or <paramref name="id"/> is negative or zero</response>
         [HttpPost("{id}/[action]")]
         [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
-        public async Task<IActionResult> BloodPressures(Guid id, [FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> BloodPressures(Guid id, [FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
         {
             CreatePhysiologicalMeasureInfo<BloodPressure> info = new CreatePhysiologicalMeasureInfo<BloodPressure>
             {
@@ -380,7 +381,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}/[action]/{temperatureId}")]
         [ProducesResponseType(typeof(BrowsableResource<TemperatureInfo>), 200)]
         [ProducesResponseType(typeof(ModelStateDictionary), 400)]
-        public async Task<IActionResult> Temperatures(Guid id, Guid temperatureId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Temperatures(Guid id, Guid temperatureId, CancellationToken cancellationToken = default)
         {
             Option<TemperatureInfo> output = await _physiologicalMeasureService.GetOneMeasureAsync<Temperature, TemperatureInfo>(new WantOnePhysiologicalMeasureQuery<TemperatureInfo>(id, temperatureId), cancellationToken);
 
@@ -419,7 +420,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}/[action]/{bloodPressureId}")]
         [HttpHead("{id}/[action]/{bloodPressureId}")]
         [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
-        public async Task<IActionResult> BloodPressures(Guid id, Guid bloodPressureId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> BloodPressures(Guid id, Guid bloodPressureId, CancellationToken cancellationToken = default)
         {
             Option<BloodPressureInfo> output = await _physiologicalMeasureService
                 .GetOneMeasureAsync<BloodPressure, BloodPressureInfo>(new WantOnePhysiologicalMeasureQuery<BloodPressureInfo>(id, bloodPressureId), cancellationToken);
@@ -541,7 +542,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
 
 
@@ -559,7 +560,7 @@ namespace MedEasy.API.Controllers
             if (search.BirthDate.HasValue)
             {
 
-                filters.Add(new DataFilter { Field = nameof(PatientInfo.BirthDate), Operator = DataFilterOperator.EqualTo, Value = search.BirthDate.Value });
+                filters.Add(new DataFilter(field : nameof(PatientInfo.BirthDate), @operator : DataFilterOperator.EqualTo, value : search.BirthDate.Value));
             }
 
             SearchQueryInfo<PatientInfo> searchQueryInfo = new SearchQueryInfo<PatientInfo>
@@ -651,8 +652,8 @@ namespace MedEasy.API.Controllers
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
         {
             PatchInfo<Guid, Patient> data = new PatchInfo<Guid, Patient>
             {
@@ -676,7 +677,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}/[action]/{bodyWeightId}")]
         [HttpHead("{id}/[action]/{bodyWeightId}")]
         [ProducesResponseType(typeof(BrowsableResource<BodyWeightInfo>), 200)]
-        public async Task<IActionResult> BodyWeights(Guid id, Guid bodyWeightId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> BodyWeights(Guid id, Guid bodyWeightId, CancellationToken cancellationToken = default)
         {
             Option<BodyWeightInfo> output = await _physiologicalMeasureService.GetOneMeasureAsync<BodyWeight, BodyWeightInfo>(new WantOnePhysiologicalMeasureQuery<BodyWeightInfo>(id, bodyWeightId));
 
@@ -705,7 +706,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">the operation succeed</response>
         /// <response code="400">if the operation is not allowed</response>
         [HttpDelete("{id}/[action]/{measureId}")]
-        public async Task<IActionResult> BloodPressures(DeletePhysiologicalMeasureInfo input, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> BloodPressures(DeletePhysiologicalMeasureInfo input, CancellationToken cancellationToken = default)
         {
             await DeleteOneMeasureAsync<BloodPressure>(input, cancellationToken);
             return new NoContentResult();
@@ -757,7 +758,7 @@ namespace MedEasy.API.Controllers
         /// <param name="input"></param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
-        private async Task DeleteOneMeasureAsync<TPhysiologicalMeasure>(DeletePhysiologicalMeasureInfo input, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task DeleteOneMeasureAsync<TPhysiologicalMeasure>(DeletePhysiologicalMeasureInfo input, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             => await _physiologicalMeasureService.DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(new DeleteOnePhysiologicalMeasureCommand(input), cancellationToken);
 
@@ -774,7 +775,7 @@ namespace MedEasy.API.Controllers
         [HttpGet("{id}/[action]/{prescriptionId}")]
         [HttpHead("{id}/[action]/{prescriptionId}")]
         [ProducesResponseType(typeof(BrowsableResource<PrescriptionHeaderInfo>), 200)]
-        public async Task<IActionResult> Prescriptions(Guid id, Guid prescriptionId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Prescriptions(Guid id, Guid prescriptionId, CancellationToken cancellationToken = default)
         {
             Option<PrescriptionHeaderInfo> output = await _prescriptionService.GetOnePrescriptionByPatientIdAsync(id, prescriptionId, cancellationToken);
 
@@ -961,7 +962,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if no patient found.</response>
         [HttpGet("{id}/[action]")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<DocumentMetadataInfo>>), 200)]
-        public async Task<IActionResult> Documents(Guid id, [FromQuery]int page, [FromQuery]int pageSize, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Documents(Guid id, [FromQuery]int page, [FromQuery]int pageSize, CancellationToken cancellationToken = default)
         {
             PaginationConfiguration query = new PaginationConfiguration
             {
@@ -1084,7 +1085,7 @@ namespace MedEasy.API.Controllers
         /// <response code="200">The document</response>
         [HttpGet("{id}/[action]/{documentMetadataId}")]
         [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
-        public async Task<IActionResult> Documents(Guid id, Guid documentMetadataId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Documents(Guid id, Guid documentMetadataId, CancellationToken cancellationToken = default)
         {
             Option<DocumentMetadataInfo> resource = await _iHandleGetOneDocumentInfoByPatientIdAndDocumentId
                 .HandleAsync(new WantOneDocumentByPatientIdAndDocumentIdQuery(id, documentMetadataId), cancellationToken);

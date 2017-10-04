@@ -77,7 +77,7 @@ namespace MedEasy.API.Controllers
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <returns></returns>
         [NonAction]
-        public async ValueTask<Option<TResource, CommandException>> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<TResource, CommandException>> Create(TCreateCommand createCommand, CancellationToken cancellationToken = default)
         {
             Option<TResource, CommandException> resource = await _iRunCreateCommand.RunAsync(createCommand);
             

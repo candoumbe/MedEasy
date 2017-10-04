@@ -34,7 +34,7 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<Option<PatientInfo, CommandException>> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<PatientInfo, CommandException>> RunAsync(ICreatePatientCommand command, CancellationToken cancellationToken = default)
         {
             command.Data.Firstname = command.Data.Firstname.ToTitleCase();
             command.Data.Lastname = command.Data.Lastname.ToUpper();

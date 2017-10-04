@@ -16,5 +16,8 @@ namespace MedEasy.Queries.Tests.Patient
         {
             _outputHelper = null;
         }
+
+
+        
     }
 }

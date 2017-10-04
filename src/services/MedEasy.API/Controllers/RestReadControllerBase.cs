@@ -79,7 +79,7 @@ namespace MedEasy.API.Controllers
         /// <param name="cancellationToken"></param>
         /// 
         /// <returns><see cref="Task{TEntityInfo}"/></returns>
-        public async virtual Task<IActionResult> Get(TKey id, CancellationToken cancellationToken = default(CancellationToken))
+        public async virtual Task<IActionResult> Get(TKey id, CancellationToken cancellationToken = default)
         {
             Option<TResource> resource = await GetByIdQueryHandler.HandleAsync(new GenericGetOneResourceByIdQuery<TKey, TResource>(id), cancellationToken);
 
@@ -128,7 +128,7 @@ namespace MedEasy.API.Controllers
         /// <param name="cancellationToken"></param>
         /// <returns><see cref="Task{GenericPagedGetResponse}"/></returns>
         [NonAction]
-        public async ValueTask<IPagedResult<TResource>> GetAll(PaginationConfiguration query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<IPagedResult<TResource>> GetAll(PaginationConfiguration query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {

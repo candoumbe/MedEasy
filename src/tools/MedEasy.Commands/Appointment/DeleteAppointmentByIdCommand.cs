@@ -14,8 +14,14 @@ namespace MedEasy.Commands.Appointment
         /// Builds a new <see cref="DeleteAppointmentByIdCommand"/> with a default validator
         /// </summary>
         /// <param name="id">id of the resource to delete</param>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="id"/> is <see cref="Guid.Empty"/></exception>
         public DeleteAppointmentByIdCommand(Guid id) : base(Guid.NewGuid(), id)
-        {}
+        {
+            if (id == default)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id));
+            }
+        }
 
         
     }

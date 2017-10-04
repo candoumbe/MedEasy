@@ -29,14 +29,14 @@ namespace MedEasy.Handlers.Doctor.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<Option<DoctorInfo, CommandException>> RunAsync(ICreateDoctorCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<DoctorInfo, CommandException>> RunAsync(ICreateDoctorCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
             }
 
-            Option<DoctorInfo, CommandException> result = default(Option<DoctorInfo, CommandException>);
+            Option<DoctorInfo, CommandException> result = default;
             CreateDoctorInfo info = command.Data;
             Debug.Assert(!string.IsNullOrWhiteSpace(info.Lastname));
 

@@ -24,7 +24,7 @@ namespace MedEasy.Handlers.Core.Queries
         /// <param name="query">the query to handle</param>
         /// <param name="cancellationToken"></param>
         /// <returns><see cref="Task{TResult}"/></returns>
-        ValueTask<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken));
+        ValueTask<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
         
     }
 }

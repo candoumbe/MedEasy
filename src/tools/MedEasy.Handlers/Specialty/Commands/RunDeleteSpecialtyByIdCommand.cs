@@ -19,11 +19,10 @@ namespace MedEasy.Handlers.Specialty.Commands
         /// <summary>
         /// Builds a new <see cref="RunDeleteSpecialtyByIdCommand"/> instance
         /// </summary>
-        /// <param name="validator">Validator for commands instances</param>
-        /// <param name="logger">Logger used to track</param>
-        /// <param name="factory"></param>
+        /// <param name="factory">builds <see cref="IUnitOfWork"/> instances.</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="factory"/> is <c>null</c>.</exception>
         /// <see cref="GenericDeleteByIdCommandRunner{TKey, TEntity, TData, TCommand}"/>
-        public RunDeleteSpecialtyByIdCommand(IValidate<IDeleteSpecialtyByIdCommand> validator, ILogger<RunDeleteSpecialtyByIdCommand> logger, IUnitOfWorkFactory factory) : base(factory)
+        public RunDeleteSpecialtyByIdCommand(IUnitOfWorkFactory factory) : base(factory)
         {
         }
     }

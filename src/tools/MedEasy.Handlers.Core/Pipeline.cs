@@ -47,7 +47,7 @@ namespace MedEasy.Handlers.Core
         /// <param name="command"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<Option<TCommandResult, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<Option<TCommandResult, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default) {
 
             await _preprocessors.ForEachAsync(pp => pp.Preprocess(command.Data))
                 .ConfigureAwait(false);

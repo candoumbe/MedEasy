@@ -19,6 +19,6 @@ namespace MedEasy.API.Controllers
         /// <param name="id">id of the resource</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IActionResult> Get(TKey id, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IActionResult> Get(TKey id, CancellationToken cancellationToken = default);
     }
 }

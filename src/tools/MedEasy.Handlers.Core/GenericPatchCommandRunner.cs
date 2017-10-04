@@ -23,7 +23,7 @@ namespace MedEasy.Handlers.Core.Commands
     /// </summary>
     /// <typeparam name="TEntityId">Type of data command will carry</typeparam>
     /// <typeparam name="TEntity">Type of result the execution of the command will output</typeparam>
-    public abstract class GenericPatchCommandRunner<TResourceId, TEntityId, TEntity> : CommandRunnerBase<Guid, IPatchInfo<TResourceId, TEntity>, Nothing, IPatchCommand<TResourceId, TEntity>>
+    public abstract class GenericPatchCommandRunner<TResourceId, TEntityId, TEntity> : CommandRunnerBase<Guid, PatchInfo<TResourceId, TEntity>, Nothing, IPatchCommand<TResourceId, TEntity>>
         where TEntity : class, IEntity<TEntityId>
     {
         protected IUnitOfWorkFactory UowFactory { get; }
@@ -40,7 +40,7 @@ namespace MedEasy.Handlers.Core.Commands
             UowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
         }
 
-        public override async Task<Option<Nothing, CommandException>> RunAsync(IPatchCommand<TResourceId, TEntity> command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<Nothing, CommandException>> RunAsync(IPatchCommand<TResourceId, TEntity> command, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.New())
             {

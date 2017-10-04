@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using FluentAssertions;
+using FluentValidation;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.Handlers.Core.Exceptions;
@@ -33,7 +34,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
         
         private Mock<ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>> _loggerMock;
         private IMapper _mapper;
-        private Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>> _validatorMock;
+        private Mock<IValidator<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>> _validatorMock;
 
         public HandleGetOneTemperatureInfoQueryTests(ITestOutputHelper outputHelper)
         {
@@ -46,7 +47,7 @@ namespace MedEasy.Handlers.Tests.Patient.Queries
             _loggerMock = new Mock<ILogger<HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _validatorMock = new Mock<IValidate<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>>(Strict);
+            _validatorMock = new Mock<IValidator<IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TemperatureInfo>>>(Strict);
 
             _handler = new HandleGetOnePhysiologicalMeasurementInfoQuery<Temperature, TemperatureInfo>( _unitOfWorkFactoryMock.Object, _loggerMock.Object,  _mapper.ConfigurationProvider.ExpressionBuilder);
         }

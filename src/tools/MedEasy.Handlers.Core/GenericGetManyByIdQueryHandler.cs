@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using MedEasy.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using static MedEasy.Validators.ErrorLevel;
+using static FluentValidation.Severity;
 using System;
 using MedEasy.Objects;
 using MedEasy.Queries;
@@ -13,6 +13,8 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
 using Optional;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -31,7 +33,7 @@ namespace MedEasy.Handlers.Core.Queries
     where TQuery : IWantManyResources<TQueryId, Guid, TResult>
     where TEntity : class, IEntity<TEntityId>
     where TQueryId : IEquatable<TQueryId>
-    where TQueryValidator : class, IValidate<TQuery>
+    where TQueryValidator : class, IValidator<TQuery>
     {
 
         protected ILogger<GenericGetManyByIdQueryHandler<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator>> Logger { get; set; }
@@ -64,7 +66,7 @@ namespace MedEasy.Handlers.Core.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public override async ValueTask<IEnumerable<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public override async ValueTask<IEnumerable<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -73,20 +75,20 @@ namespace MedEasy.Handlers.Core.Queries
 
             Logger.LogInformation($"Start executing query : {query.Id}");
             Logger.LogTrace("Validating query");
-            IEnumerable<Task<ErrorInfo>> errorsTasks = Validator.Validate(query);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(errorsTasks).ConfigureAwait(false);
-            if (errors.Any(item => item.Severity == Error))
+            ValidationResult vr= await Validator.ValidateAsync(query, cancellationToken);
+            if (vr.Errors.AtLeastOnce(item => item.Severity == Error))
             {
-                Logger.LogTrace("validation failed", errors);
+                Logger.LogTrace("validation failed", vr.Errors);
 #if DEBUG || TRACE
-                foreach (ErrorInfo error in errors)
+                foreach (ValidationFailure error in vr.Errors)
                 {
-                    Logger.LogDebug($"{error.Key} - {error.Severity} : {error.Description}");
+                    Logger.LogDebug($"{error.PropertyName} - {error.Severity} : {error.ErrorMessage}");
                 }
 #endif
-                throw new QueryNotValidException<TQueryId>(query.Id, errors);
+                throw new QueryNotValidException<TQueryId>(query.Id, vr.Errors);
 
             }
+            
             Logger.LogTrace("Query validation succeeded");
 
             using (IUnitOfWork uow = UowFactory.New())

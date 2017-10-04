@@ -20,7 +20,7 @@ using MedEasy.API.Stores;
 using MedEasy.Handlers.Core.Exceptions;
 using Optional;
 
-namespace MedEasy.BLL.Tests.Commands.Patient
+namespace MedEasy.Handlers.Tests.Commands.Patient
 {
     public class RunCreateDocumentForPatientCommandTests : IDisposable
     {
@@ -57,25 +57,13 @@ namespace MedEasy.BLL.Tests.Commands.Patient
         {
             get
             {
-
-                yield return new object[]
-                {
-                    null,
-                    null
-                };
-
-                yield return new object[]
-                {
-                    Mock.Of<IUnitOfWorkFactory>(),
-                    null
-                };
-
-                yield return new object[]
+                return new[] {null, Mock.Of<IUnitOfWorkFactory>() }.CrossJoin(new object[]
                 {
                     null,
                     Mock.Of<IMapper>()
-                };
-
+                })
+                .Where(item => item.Item1 == null || item.Item2 == null)
+                .Select(item => new[] { item.Item1, item.Item2 });
             }
         }
 

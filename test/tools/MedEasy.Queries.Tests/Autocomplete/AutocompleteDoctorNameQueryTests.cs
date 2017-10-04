@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MedEasy.BLL.Tests.Queries
+namespace MedEasy.Handlers.Tests.Queries
 {
 
     public class HandleAutocompleteDoctorNameQueryTests

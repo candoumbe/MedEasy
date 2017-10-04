@@ -325,7 +325,7 @@ namespace MedEasy.API.Stores
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
         /// </summary>
-        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
 
@@ -341,7 +341,7 @@ namespace MedEasy.API.Stores
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
         /// </summary>
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
 

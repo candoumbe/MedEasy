@@ -12,14 +12,4 @@ namespace MedEasy.Data
         /// <returns></returns>
         string ToJson();
     }
-
-
-    /// <summary>
-    /// Defines the basic shape of a typed filter
-    /// </summary>
-    /// <typeparam name="T">Type the filter will be applied on</typeparam>
-    public interface IDataFilter<T> : IDataFilter
-    {
-
-    }
 }

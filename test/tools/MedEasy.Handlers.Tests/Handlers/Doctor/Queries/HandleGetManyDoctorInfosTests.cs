@@ -19,6 +19,7 @@ using MedEasy.RestObjects;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
 using System.Threading;
+using System.Linq;
 
 namespace MedEasy.Handlers.Tests.Doctor.Queries
 {
@@ -42,7 +43,7 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
             _loggerMock = new Mock<ILogger<HandleGetPageOfDoctorInfosQuery>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
-            _handler = new HandleGetPageOfDoctorInfosQuery(_unitOfWorkFactoryMock.Object, _loggerMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
+            _handler = new HandleGetPageOfDoctorInfosQuery(_unitOfWorkFactoryMock.Object, _mapper.ConfigurationProvider.ExpressionBuilder);
         }
 
 
@@ -50,6 +51,14 @@ namespace MedEasy.Handlers.Tests.Doctor.Queries
         {
             get
             {
+                var args = (from logger in new[] { Mock.Of<ILogger<HandleGetDoctorInfoByIdQuery>>(), null }
+                           from factory in new[] { Mock.Of<ILogger<IUnitOfWorkFactory>>(), null }
+                           from expressionBuilder in new[] { Mock.Of<ILogger<IExpressionBuilder>>(), null }
+                           select new { logger, factory, expressionBuilder });
+
+               
+
+
                 yield return new object[]
                 {
                     null,

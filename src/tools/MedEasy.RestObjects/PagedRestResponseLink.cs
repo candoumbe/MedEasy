@@ -8,10 +8,10 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Builds a new <see cref="PagedRestResponseLink"/> instance
         /// </summary>
-        /// <param name="first"></param>
-        /// <param name="previous"></param>
-        /// <param name="next"></param>
-        /// <param name="last"></param>
+        /// <param name="first">link to the first page</param>
+        /// <param name="previous">link to the next page</param>
+        /// <param name="next">link to the previous page</param>
+        /// <param name="last">link to the last page</param>
         public PagedRestResponseLink(string first, string previous, string next, string last)
         {
             First = first != null 

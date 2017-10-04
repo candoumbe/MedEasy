@@ -2,7 +2,6 @@
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.Handlers.Patient.Commands;
-using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
-using static MedEasy.Validators.ErrorLevel;
+using static FluentValidation.Severity;
 using static Newtonsoft.Json.JsonConvert;
 using MedEasy.Commands;
 using Microsoft.AspNetCore.JsonPatch;
@@ -22,6 +21,9 @@ using Microsoft.EntityFrameworkCore;
 using MedEasy.API.Stores;
 using Optional;
 using MedEasy.CQRS.Core;
+using FluentValidation;
+using FluentValidation.Results;
+using System.Threading;
 
 namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
 {
@@ -30,7 +32,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
     public class RunPatchPatientCommandTests : IDisposable
     {
         private RunPatchPatientCommand _commandRunner;
-        private Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>> _commandValidatorMock;
+        private Mock<IValidator<IPatchCommand<Guid, Objects.Patient, PatchInfo<Guid, Objects.Patient>>>> _commandValidatorMock;
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private Mock<ILogger<RunPatchPatientCommand>> _loggerMock;
@@ -45,7 +47,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory(dbContextOptionsBuilder.Options);
 
-            _commandValidatorMock = new Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>>(Strict);
+            _commandValidatorMock = new Mock<IValidator<IPatchCommand<Guid, Objects.Patient, PatchInfo<Guid, Objects.Patient>>>>(Strict);
             _loggerMock = new Mock<ILogger<RunPatchPatientCommand>>(Strict);
 
             _commandRunner = new RunPatchPatientCommand(_uowFactory);
@@ -69,7 +71,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             get
             {
                 yield return new object[] { null, null, null };
-                yield return new object[] { null, null, new Mock<IValidate<IPatchCommand<Guid, Guid, Objects.Patient, IPatchInfo<Guid, Objects.Patient>>>>().Object };
+                yield return new object[] { null, null, new Mock<IValidator<IPatchCommand<Guid, Objects.Patient, PatchInfo<Guid, Objects.Patient>>>>().Object };
                 yield return new object[] { new Mock<IUnitOfWorkFactory>().Object, null, null };
             }
         }
@@ -147,7 +149,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         /// <param name="patientExpectation">Expectation on the output of the command</param>
         [Theory]
         [MemberData(nameof(PatchPatientCases))]
-        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, IPatchInfo<Guid, Objects.Patient> changes, Expression<Func<Option<Nothing, CommandException>, bool>> patientExpectation)
+        public async Task ShouldPatchTheResource(IEnumerable<Objects.Patient> patients, IEnumerable<Objects.Doctor> doctors, PatchInfo<Guid, Objects.Patient> changes, Expression<Func<Option<Nothing, CommandException>, bool>> patientExpectation)
         {
             _outputHelper.WriteLine($"Current patient store state : {SerializeObject(patients)}");
             _outputHelper.WriteLine($"Current doctor store state : {SerializeObject(doctors)}");
@@ -163,8 +165,8 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
                 await uow.SaveChangesAsync();
             }
 
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+            _commandValidatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IPatchCommand<Guid, Objects.Patient>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
 
             // Act
             JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
@@ -174,7 +176,7 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
             // Assert
             result.HasValue.Should().BeTrue();
             result.Should().Match(patientExpectation);
-            
+
         }
 
         /// <summary>
@@ -185,106 +187,106 @@ namespace MedEasy.Handlers.Tests.Handlers.Patient.Commands
         public async Task ShouldThrowCommandNotValidExceptionWhenCommandValidationFails()
         {
             // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
-                .Returns(new[]
-                {
-                    Task.FromResult(new ErrorInfo(nameof(Objects.Patient.Id), "ID of the resource cannot change", Error))
-                });
+            _commandValidatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IPatchCommand<Guid, Objects.Patient>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult(
+                    new[] {
+                        new ValidationFailure(nameof(Objects.Patient.Id), "ID of the resource cannot change")
+                    }));
 
 
             // Act
-            IPatchInfo<Guid, Objects.Patient> patchInfo = new PatchInfo<Guid, Objects.Patient>
+            PatchInfo<Guid, Objects.Patient> patchInfo = new PatchInfo<Guid, Objects.Patient>
             {
                 Id = Guid.NewGuid(),
                 PatchDocument = new JsonPatchDocument<Objects.Patient>()
             };
-            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(patchInfo);
-            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
+        IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(patchInfo);
+        Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
-            // Assert
-            result.HasValue.Should().BeFalse();
-            result.MatchNone(exception =>
+        // Assert
+        result.HasValue.Should().BeFalse();
+        result.MatchNone(exception =>
             {
                 exception.Should().BeOfType<CommandEntityNotFoundException>().Which
                     .Errors.Should()
                     .NotBeNull();
-            });
+    });
 
 
         }
 
 
-        /// <summary>
-        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
-        /// </summary>
-        /// <remarks>
-        /// <see cref="QueryNotFoundException"/> should be thrown when there's no <see cref="Objects.Patient"/> with <c><see cref="Objects.Patient.Id"/> <see cref="ChangeMainDoctorIdInfo.PatientId"/> </c>.
-        /// </remarks>
-        [Fact]
-        public async Task ShouldThrowNotFoundExceptionIfPatientNotFound()
-        {
-            // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+/// <summary>
+/// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
+/// </summary>
+/// <remarks>
+/// <see cref="QueryNotFoundException"/> should be thrown when there's no <see cref="Objects.Patient"/> with <c><see cref="Objects.Patient.Id"/> <see cref="ChangeMainDoctorIdInfo.PatientId"/> </c>.
+/// </remarks>
+[Fact]
+public async Task ShouldThrowNotFoundExceptionIfPatientNotFound()
+{
+    // Arrange
+    _commandValidatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IPatchCommand<Guid, Objects.Patient>>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new ValidationResult());
 
 
-            // Act
-            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
-            patchDocument.Replace(x => x.Firstname, "Bruce");
+    // Act
+    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+    patchDocument.Replace(x => x.Firstname, "Bruce");
 
-            IPatchInfo<Guid, Objects.Patient> commandData = new PatchInfo<Guid, Objects.Patient>
-            {
-                Id = Guid.NewGuid(),
-                PatchDocument = patchDocument
-            };
-            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(commandData);
-            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
-
-
-            // Assert
-            result.HasValue.Should().BeFalse();
-            result.MatchNone(exception =>
-            {
-                exception.Should().BeOfType<CommandEntityNotFoundException>().Which
-                    .Message.Should()
-                        .NotBeNullOrWhiteSpace().And
-                        .ContainEquivalentOf($"<{command.Data.Id}> not found");
-
-            });
-        }
+    PatchInfo<Guid, Objects.Patient> commandData = new PatchInfo<Guid, Objects.Patient>
+    {
+        Id = Guid.NewGuid(),
+        PatchDocument = patchDocument
+    };
+    IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(commandData);
+    Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
 
 
-        /// <summary>
-        /// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
-        /// </summary>
-        /// <remarks>
-        /// <see cref="QueryNotFoundException"/> should be thrown when <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> is not <c>null</c> and there's no <see cref="Objects.Doctor"/> with <c><see cref="Objects.Doctor.Id"/> == <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> </c>.
-        /// </remarks>
-        [Fact]
-        public async Task ShouldThrowNotFoundExceptionIfDoctorNotFound()
-        {
-            // Arrange
-            _commandValidatorMock.Setup(mock => mock.Validate(It.IsAny<IPatchCommand<Guid, Objects.Patient>>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+    // Assert
+    result.HasValue.Should().BeFalse();
+    result.MatchNone(exception =>
+    {
+        exception.Should().BeOfType<CommandEntityNotFoundException>().Which
+            .Message.Should()
+                .NotBeNullOrWhiteSpace().And
+                .ContainEquivalentOf($"<{command.Data.Id}> not found");
 
-            // Act
-            JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
-            patchDocument.Replace(x => x.MainDoctorId, 3);
-            IPatchInfo<Guid, Objects.Patient> data = new PatchInfo<Guid, Objects.Patient>
-            {
-                Id = Guid.NewGuid(),
-                PatchDocument = patchDocument
-            };
-            IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(data);
-            Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
+    });
+}
 
 
-            // Assert
-            result.HasValue.Should().BeFalse();
-            result.MatchNone(exception =>
-                exception.Should().BeOfType<CommandEntityNotFoundException>().Which
-                    .Message.Should().NotBeNullOrWhiteSpace());
+/// <summary>
+/// Tests that <see cref="RunPatchPatientCommand.RunAsync(IChangeMainDoctorCommand)"/> throws <see cref="QueryNotFoundException"/>
+/// </summary>
+/// <remarks>
+/// <see cref="QueryNotFoundException"/> should be thrown when <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> is not <c>null</c> and there's no <see cref="Objects.Doctor"/> with <c><see cref="Objects.Doctor.Id"/> == <see cref="ChangeMainDoctorIdInfo.NewDoctorId"/> </c>.
+/// </remarks>
+[Fact]
+public async Task ShouldThrowNotFoundExceptionIfDoctorNotFound()
+{
+    // Arrange
+    _commandValidatorMock.Setup(mock => mock.ValidateAsync(It.IsAny<IPatchCommand<Guid, Objects.Patient>>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new ValidationResult());
 
-        }
+    // Act
+    JsonPatchDocument<Objects.Patient> patchDocument = new JsonPatchDocument<Objects.Patient>();
+    patchDocument.Replace(x => x.MainDoctorId, 3);
+    PatchInfo<Guid, Objects.Patient> data = new PatchInfo<Guid, Objects.Patient>
+    {
+        Id = Guid.NewGuid(),
+        PatchDocument = patchDocument
+    };
+    IPatchCommand<Guid, Objects.Patient> command = new PatchCommand<Guid, Objects.Patient>(data);
+    Option<Nothing, CommandException> result = await _commandRunner.RunAsync(command);
+
+
+    // Assert
+    result.HasValue.Should().BeFalse();
+    result.MatchNone(exception =>
+        exception.Should().BeOfType<CommandEntityNotFoundException>().Which
+            .Message.Should().NotBeNullOrWhiteSpace());
+
+}
     }
 }

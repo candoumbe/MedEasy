@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using MedEasy.Validators;
-using MedEasy.Validators.Exceptions;
 using MedEasy.Handlers.Core.Exceptions;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using FluentValidation.Results;
 
 namespace MedEasy.API.Filters
 {
@@ -42,7 +42,7 @@ namespace MedEasy.API.Filters
             switch (exception)
             {
                 case CommandException ce:
-                    IEnumerable<ErrorInfo> errors = null;
+                    IEnumerable<ValidationFailure> errors = null;
                     IEnumerable<PropertyInfo> properties = null;
                     Type commandNotValidExceptionType = typeof(CommandNotValidException<>);
 
@@ -53,7 +53,7 @@ namespace MedEasy.API.Filters
                         PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(CommandException.Errors));
                         PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
                         Guid commandId = (Guid)piCommandId.GetValue(exception);
-                        errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
+                        errors = (IEnumerable<ValidationFailure>)piErrors.GetValue(exception);
                         _logger.LogError($"Command '{commandId}' is not valid");
 
                         context.ExceptionHandled = true;
@@ -66,10 +66,10 @@ namespace MedEasy.API.Filters
                         {
                             commandConflictException = commandConflictException.MakeGenericType(exceptionType.GetGenericArguments()[0]);
                             properties = commandConflictException.GetProperties();
-                            PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(ValidationException.Errors));
+                            PropertyInfo piErrors = properties.Single(x => x.CanRead && x.Name == nameof(CommandConflictException<int>.Errors));
                             PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandConflictException<int>.CommandId));
                             Guid commandId = (Guid)piCommandId.GetValue(exception);
-                            errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
+                            errors = (IEnumerable<ValidationFailure>)piErrors.GetValue(exception);
                             _logger.LogError($"Command '{commandId}' conflict");
 
                             context.ExceptionHandled = true;
@@ -83,9 +83,9 @@ namespace MedEasy.API.Filters
                         }
                     }
 
-                    foreach (ErrorInfo error in errors)
+                    foreach (ValidationFailure error in errors)
                     {
-                        context.ModelState.TryAddModelError(error.Key, error.Description);
+                        context.ModelState.TryAddModelError(error.PropertyName, error.ErrorMessage);
                     }
                     break;
                 case QueryException qe:
@@ -100,9 +100,9 @@ namespace MedEasy.API.Filters
                     }
 
                     context.ExceptionHandled = true;
-                    foreach (ErrorInfo error in qe.Errors)
+                    foreach (ValidationFailure error in qe.Errors)
                     {
-                        context.ModelState.TryAddModelError(error.Key, error.Description);
+                        context.ModelState.TryAddModelError(error.PropertyName, error.ErrorMessage);
                     }
                     break;
                 default:

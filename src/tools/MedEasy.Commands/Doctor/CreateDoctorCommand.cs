@@ -12,8 +12,13 @@ namespace MedEasy.Commands.Doctor
         /// Builds a new <see cref="CreateDoctorCommand"/> instance with default validation
         /// </summary>
         /// <param name="data">data to process</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/> is <c>null</c>.</exception>
         public CreateDoctorCommand(CreateDoctorInfo data) : base(Guid.NewGuid(), data)
-        { 
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
         
     }

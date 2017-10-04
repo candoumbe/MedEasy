@@ -34,7 +34,7 @@ namespace MedEasy.Handlers.Core.Commands
         /// <param name="command">The command to run</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Data resulting of the execution of the command</returns>
-        Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken));
+        Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default);
     }
 
 

@@ -16,9 +16,13 @@ namespace MedEasy.Commands.Specialty
         /// <param name="data">data that will be used to create</param>
         /// <see cref="CommandBase{TKey, TData}"/>
         /// <see cref="ICreateSpecialtyCommand"/>
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/> is <c>null</c>.</exception>
         public CreateSpecialtyCommand(CreateSpecialtyInfo data) : base(Guid.NewGuid(), data)
         {
-            
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
     }
 

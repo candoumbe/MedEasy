@@ -48,6 +48,25 @@ namespace MedEasy.Validators.Tests.Patch
                     )),
                     "Patch document has no operations"
                 };
+
+                {
+                    JsonPatchDocument<PatientInfo> patch = new JsonPatchDocument<PatientInfo>();
+                    patch.Replace(x => x.Lastname, string.Empty);
+                    patch.Replace(x => x.Lastname, string.Empty);
+                    yield return new object[]
+                    {
+                        patch,
+                        ((Expression<Func<ValidationResult, bool>>)(
+                            vr => !vr.IsValid
+                                && vr.Errors.Count == 1
+                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<PatientInfo>.Operations) 
+                                    && x.Severity == Error
+                                    && x.ErrorMessage == $"Multiple operations on the same path."
+                                )
+                        )),
+                        "Patch document has multiple operations for the same path"
+                    };
+                }
             }
         }
 
@@ -56,7 +75,6 @@ namespace MedEasy.Validators.Tests.Patch
         public void ShouldFails(JsonPatchDocument<PatientInfo> patchDocument, Expression<Func<ValidationResult, bool>> expectation, string because)
         {
             _outputHelper.WriteLine($"{nameof(patchDocument)} : {SerializeObject(patchDocument)}");
-
 
             // Act
             ValidationResult vr = _validator.Validate(patchDocument);

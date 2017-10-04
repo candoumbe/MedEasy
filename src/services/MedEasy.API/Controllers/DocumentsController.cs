@@ -67,7 +67,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DocumentMetadataInfo>), 200)]
-        public async Task<IActionResult> Get([FromQuery]int page, [FromQuery]int pageSize, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Get([FromQuery]int page, [FromQuery]int pageSize, CancellationToken cancellationToken = default)
         {
             PaginationConfiguration pageConfig = new PaginationConfiguration
             {
@@ -115,7 +115,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">if no document metadata found.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DocumentMetadataInfo), 200)]
-        public override async Task<IActionResult> Get([FromQuery]Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IActionResult> Get([FromQuery]Guid id, CancellationToken cancellationToken = default)
         {
             Option<DocumentMetadataInfo> resource = await GetByIdQueryHandler.HandleAsync(new WantOneDocumentMetadataInfoByIdQuery(id), cancellationToken);
 
@@ -142,7 +142,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">The resource was not found</response>
         [HttpGet("{id}/[action]")]
         [ProducesResponseType(typeof(DocumentInfo), 200)]
-        public async Task<IActionResult> File(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> File(Guid id, CancellationToken cancellationToken = default)
         {
             Option<DocumentInfo> resource = await GetDocumentContentByIdHandler.HandleAsync(new GenericGetOneResourceByIdQuery<Guid, DocumentInfo>(id), cancellationToken);
 

@@ -7,6 +7,7 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Commands.Prescription;
 using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Prescription.Commands;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Prescription.Commands
 {
@@ -25,7 +26,7 @@ namespace MedEasy.Handlers.Prescription.Commands
         /// <param name="logger">logger</param>
         /// <exception cref="ArgumentNullException"> if any of the parameters is <c>null</c></exception>
         /// <see cref="GenericCreateCommandRunner{TKey, TEntity, TData, TOutput, TCommand}"/>
-        public RunCreatePrescriptionCommand(IValidate<ICreatePrescriptionCommand> validator, ILogger<RunCreatePrescriptionCommand> logger, IUnitOfWorkFactory factory,
+        public RunCreatePrescriptionCommand(IValidator<ICreatePrescriptionCommand> validator, ILogger<RunCreatePrescriptionCommand> logger, IUnitOfWorkFactory factory,
             IExpressionBuilder expressionBuilder) 
             : base(factory, expressionBuilder)
         {

@@ -12,7 +12,7 @@ namespace MedEasy.Commands
     /// <typeparam name="TKey">Type of the command identifier</typeparam>
     /// <typeparam name="TData">Type of data the command will carry</typeparam>
     [JsonObject]
-    public class DeleteOnePhysiologicalMeasureCommand<TKey> : CommandBase<TKey, DeletePhysiologicalMeasureInfo>, IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>
+    public abstract class DeleteOnePhysiologicalMeasureCommand<TKey> : CommandBase<TKey, DeletePhysiologicalMeasureInfo>, IDeleteOnePhysiologicalMeasureCommand<TKey, DeletePhysiologicalMeasureInfo>
         where TKey : IEquatable<TKey>
         
     {
@@ -27,8 +27,13 @@ namespace MedEasy.Commands
         /// <param name="id">id of the command</param>
         /// <param name="data">data the command carries</param>
         /// <see cref="CommandBase{TKey, TData}"/>
-        public DeleteOnePhysiologicalMeasureCommand(TKey id, DeletePhysiologicalMeasureInfo data) : base(id, data)
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/> is null</exception>
+        protected DeleteOnePhysiologicalMeasureCommand(TKey id, DeletePhysiologicalMeasureInfo data) : base(id, data)
         {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
 
 

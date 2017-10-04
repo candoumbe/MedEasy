@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 using MedEasy.DTO;
 using MedEasy.Objects;
+using FluentValidation;
 
 namespace MedEasy.Validators
 {
-    public abstract class AddNewPhysiologicalMeasureCommandValidator<TPhysiologicalMeasureInfo> : IValidate<CreatePhysiologicalMeasureInfo<TPhysiologicalMeasureInfo>>
+    public abstract class AddNewPhysiologicalMeasureCommandValidator<TPhysiologicalMeasureInfo> : AbstractValidator<CreatePhysiologicalMeasureInfo<TPhysiologicalMeasureInfo>>
         where TPhysiologicalMeasureInfo : PhysiologicalMeasurement
     {
-        public abstract IEnumerable<Task<ErrorInfo>> Validate(CreatePhysiologicalMeasureInfo<TPhysiologicalMeasureInfo> element);
+
     }
 }

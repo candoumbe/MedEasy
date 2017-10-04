@@ -23,7 +23,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="query">specifies which patient to get its most recent measures for</param>
         /// <returns><see cref="IEnumerable{T}"/>holding the most recent <see cref="TPhysiologicalMeasureInfo"/></returns>
-        ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo;
                 
@@ -32,7 +32,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="command">command that holds data to create the resource</param>
         /// <returns>The created resource</returns>
-        ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo;
         
@@ -41,7 +41,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="query">the query to get the resource</param>
         /// <returns>the resource or <c>null</c>if there's no patient info or the resource doesn't exist</returns>
-        ValueTask<Option<TPhysiologicalMesureInfo>> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        ValueTask<Option<TPhysiologicalMesureInfo>> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMesureInfo : PhysiologicalMeasurementInfo;
 
@@ -51,7 +51,7 @@ namespace MedEasy.Services
         /// <param name="command">specifies the resource to delete</param>
         /// <typeparam name="TPhysiologicalMeasure">Type of the resource to delete</typeparam>
         /// <exception cref="CommandNotValidException{TCommandId}">if <paramref name="command"/> is not valid</exception>
-        Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default(CancellationToken)) 
+        Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default) 
             where TPhysiologicalMeasure : PhysiologicalMeasurement;
     }
 }

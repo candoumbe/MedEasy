@@ -2,15 +2,10 @@
 using MedEasy.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Core.Exceptions;
-using MedEasy.Validators;
-using Microsoft.Extensions.Logging;
 using Optional;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.Validators.ErrorLevel;
 
 namespace MedEasy.Handlers.Core.Commands
 {
@@ -54,7 +49,7 @@ namespace MedEasy.Handlers.Core.Commands
         ///     - if <paramref name="command"/> validation fails,
         /// </exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/> is <c>null</c></exception>
-        public override async Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {
@@ -63,7 +58,7 @@ namespace MedEasy.Handlers.Core.Commands
 
             using (IUnitOfWork uow = UowFactory.New())
             {
-                Option<TOutput, CommandException> result = default(Option<TOutput, CommandException>);
+                Option<TOutput, CommandException> result = default;
                 try
                 {
                     TData data = command.Data;

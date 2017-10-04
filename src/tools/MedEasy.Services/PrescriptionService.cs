@@ -33,7 +33,7 @@ namespace MedEasy.Services
             Mapper = mapper;
         }
 
-        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<PrescriptionHeaderInfo> CreatePrescriptionForPatientAsync(Guid patientId, CreatePrescriptionInfo newPrescription, CancellationToken cancellationToken = default)
         {
             if (patientId == Guid.Empty)
             {
@@ -73,12 +73,12 @@ namespace MedEasy.Services
             }
         }
 
-        public Task<Option<IEnumerable<PrescriptionHeaderInfo>>> GetMostRecentPrescriptionsAsync(IWantMostRecentPrescriptionsQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<Option<IEnumerable<PrescriptionHeaderInfo>>> GetMostRecentPrescriptionsAsync(IWantMostRecentPrescriptionsQuery query, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Option<PrescriptionHeaderInfo>> GetOnePrescriptionAsync(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<PrescriptionHeaderInfo>> GetOnePrescriptionAsync(Guid id, CancellationToken cancellationToken = default)
         {
 
             using (IUnitOfWork uow = UowFactory.New())
@@ -109,7 +109,7 @@ namespace MedEasy.Services
         /// <exception cref="ArgumentOutOfRangeException">
         ///     if either <paramref name="patientId"/> or <paramref name="prescriptionId"/> is <see cref="Guid.Empty"/>
         /// </exception>
-        public async Task<Option<PrescriptionHeaderInfo>> GetOnePrescriptionByPatientIdAsync(Guid patientId, Guid prescriptionId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<PrescriptionHeaderInfo>> GetOnePrescriptionByPatientIdAsync(Guid patientId, Guid prescriptionId, CancellationToken cancellationToken = default)
         {
             if (patientId == Guid.Empty)
             {
@@ -137,7 +137,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async Task<Option<IEnumerable<PrescriptionItemInfo>>> GetItemsByPrescriptionIdAsync(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<IEnumerable<PrescriptionItemInfo>>> GetItemsByPrescriptionIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.New())
             {

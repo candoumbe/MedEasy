@@ -51,7 +51,7 @@ namespace MedEasy.Queries.Tests.Patient
             WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo> instance = new WantMostRecentPhysiologicalMeasuresQuery<TemperatureInfo>(input);
 
             // Assert
-            instance.Id.Should().NotBeEmpty("id will be used for logging");
+            instance.Id.Should().NotBeEmpty("id must be set (it will be used for logging)");
             instance.Data.Should().NotBeNull();
             instance.Data.PatientId.Should().Be(input.PatientId);
             instance.Data.Count.Should().Be(input.Count);

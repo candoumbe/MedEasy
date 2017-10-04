@@ -10,10 +10,19 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\MedEasy.API\MedEasy.API.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.Handlers\MedEasy.Handlers.csproj" />
+    <ProjectReference Include="..\..\..\src\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
   </ItemGroup>
 
   <ItemGroup>

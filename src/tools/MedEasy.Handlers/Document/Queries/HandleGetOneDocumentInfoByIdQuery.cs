@@ -40,7 +40,7 @@ namespace MedEasy.Handlers.Document.Queries
         /// <returns>The result of the command execution</returns>
         /// <exception cref="QueryNotValidException{TQueryId}">if  <paramref name="query"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="query"/> is <c>null</c></exception>
-        public async ValueTask<Option<DocumentInfo>> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<DocumentInfo>> HandleAsync(IWantOneResource<Guid, Guid, DocumentInfo> query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {

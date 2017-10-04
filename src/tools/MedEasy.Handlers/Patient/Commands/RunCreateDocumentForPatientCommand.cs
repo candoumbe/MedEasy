@@ -42,7 +42,7 @@ namespace MedEasy.Handlers.Patient.Commands
         }
 
 
-        public override async Task<Option<DocumentMetadataInfo, CommandException>> RunAsync(ICreateDocumentForPatientCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<DocumentMetadataInfo, CommandException>> RunAsync(ICreateDocumentForPatientCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {

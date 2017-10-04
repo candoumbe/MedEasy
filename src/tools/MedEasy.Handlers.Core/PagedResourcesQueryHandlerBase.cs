@@ -1,16 +1,11 @@
-﻿using MedEasy.Validators;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Queries;
 using System.Threading;
-using System.Collections.Generic;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
-using System.Linq;
-using MedEasy.Handlers.Core.Exceptions;
 using System.Linq.Expressions;
-using static MedEasy.Validators.ErrorLevel;
 using AutoMapper.QueryableExtensions;
 
 namespace MedEasy.Handlers.Core.Queries
@@ -46,7 +41,7 @@ namespace MedEasy.Handlers.Core.Queries
         }
 
     
-        public override async ValueTask<IPagedResult<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public override async ValueTask<IPagedResult<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {

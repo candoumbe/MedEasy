@@ -1,10 +1,5 @@
 ﻿using System.Threading.Tasks;
-using MedEasy.Validators;
-using Microsoft.Extensions.Logging;
 using MedEasy.DAL.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using static MedEasy.Validators.ErrorLevel;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Commands;
 using System;
@@ -72,7 +67,7 @@ namespace MedEasy.Handlers.Core.Commands
         /// <returns>The result of command's execution</returns>
         /// <exception cref="CommandNotValidException{TCommandId}">if  <paramref name="command"/> validation fails</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="command"/> is <c>null</c></exception>
-        public override async Task<Option<Nothing, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Option<Nothing, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {

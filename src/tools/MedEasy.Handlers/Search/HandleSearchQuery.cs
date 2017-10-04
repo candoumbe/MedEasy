@@ -36,7 +36,7 @@ namespace MedEasy.Handlers.Search
             _logger = logger;
         }
 
-        public async Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default(CancellationToken)) where TEntity : class
+        public async Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
             using (IUnitOfWork uow = _uowFactory.New())
             {

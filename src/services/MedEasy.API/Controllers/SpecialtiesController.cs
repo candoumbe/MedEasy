@@ -119,7 +119,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<SpecialtyInfo>), 200)]
-        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id, cancellationToken);
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default) => await base.Get(id, cancellationToken);
 
 
 
@@ -132,7 +132,7 @@ namespace MedEasy.API.Controllers
         /// <returns>the created resource</returns>
         [HttpPost]
         [ProducesResponseType(typeof(BrowsableResource<SpecialtyInfo>), 201)]
-        public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Post([FromBody] CreateSpecialtyInfo info, CancellationToken cancellationToken = default)
         {
             Option<SpecialtyInfo, CommandException> output = await _iRunCreateSpecialtyCommand.RunAsync(new CreateSpecialtyCommand(info), cancellationToken);
 
@@ -189,7 +189,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         /// <response code="404">Resource not found</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             await _iRunDeleteSpecialtyByIdCommand.RunAsync(new DeleteSpecialtyByIdCommand(id), cancellationToken);
             return new NoContentResult();

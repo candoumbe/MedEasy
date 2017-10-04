@@ -15,7 +15,6 @@ using MedEasy.Objects;
 using MedEasy.Queries;
 using MedEasy.Queries.Search;
 using MedEasy.RestObjects;
-using MedEasy.Validators;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -42,6 +41,8 @@ using MedEasy.DAL.Interfaces;
 using System.Threading;
 using Optional;
 using MedEasy.CQRS.Core;
+using FluentValidation.Results;
+using static FluentValidation.Severity;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -198,7 +199,7 @@ namespace MedEasy.WebApi.Tests
             }
 
             _handlerGetManyDoctorInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantPageOfResources<Guid, DoctorInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (IWantPageOfResources<Guid, DoctorInfo> getQuery, CancellationToken cancellationToken) => 
+                .Returns(async (IWantPageOfResources<Guid, DoctorInfo> getQuery, CancellationToken cancellationToken) =>
                 {
 
 
@@ -214,7 +215,7 @@ namespace MedEasy.WebApi.Tests
                 });
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
-            
+
             // Act
             IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page });
 
@@ -321,7 +322,7 @@ namespace MedEasy.WebApi.Tests
             //Arrange
             _iRunCreateDoctorInfoCommandMock.Setup(mock => mock.RunAsync(It.IsAny<ICreateDoctorCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((ICreateDoctorCommand cmd, CancellationToken cancellationToken) =>
-                
+
                     new ValueTask<Option<DoctorInfo, CommandException>>(new DoctorInfo
                     {
                         Id = Guid.NewGuid(),
@@ -389,7 +390,8 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new CommandNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrRequiredField", $"{nameof(CreateDoctorInfo.Lastname)}", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
+
                 });
 
             //Arrange
@@ -614,7 +616,7 @@ namespace MedEasy.WebApi.Tests
             content.Items.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
-                .NotContain(x => x.Resource ==  null).And
+                .NotContain(x => x.Resource == null).And
                 .NotContain(x => x.Links == null);
 
             content.Links.Should().NotBeNull();
@@ -635,7 +637,8 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
+
                 });
 
             //Arrange
@@ -660,7 +663,8 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
+
                 });
 
             //Arrange
@@ -686,14 +690,14 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
             _iRunDeleteDoctorInfoByIdCommandMock.Setup(mock => mock.RunAsync(It.IsAny<IDeleteDoctorByIdCommand>(), It.IsAny<CancellationToken>()))
                 .Throws(exceptionFromTheHandler)
                 .Verifiable();
-            
+
             //Act
             Func<Task> action = async () => await _controller.Delete(Guid.NewGuid());
 

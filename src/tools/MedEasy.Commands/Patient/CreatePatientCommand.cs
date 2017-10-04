@@ -19,7 +19,10 @@ namespace MedEasy.Commands.Patient
         /// <see cref="CreatePatientInfo"/>
         public CreatePatientCommand(CreatePatientInfo data) : base(Guid.NewGuid(), data)
         {
-            
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
     }
 

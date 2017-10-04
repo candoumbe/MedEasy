@@ -133,19 +133,19 @@ namespace MedEasy.Data
         /// <summary>
         /// Builds a <see cref="IDataFilter{T}"/> from <paramref name="queryString"/>
         /// </summary>
-        /// <typeparam name="T">Type of the </typeparam>
+        /// <typeparam name="T">Type of element to filter</typeparam>
         /// <param name="input"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="queryString"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="queryString"/> is not a valid query string.</exception>
         public static IDataFilter ToFilter<T>(this string queryString)
         {
-            IDataFilter filter = new DataFilter();
             if (queryString == null)
             {
                 throw new ArgumentNullException(nameof(queryString));
             }
 
+            IDataFilter filter = new DataFilter(field : null, @operator : default, value : null);
             Uri fakeuri = new UriBuilder
             {
                 Host = "localhost",
@@ -158,12 +158,14 @@ namespace MedEasy.Data
                 string[] queryStringParts = queryString.Split(new[] { "&" }, RemoveEmptyEntries);
                 if (queryStringParts.Length == 1)
                 {
-                    string[] keyValueParts = queryStringParts[0].Split(new[] { "=" }, RemoveEmptyEntries);
+                    string[] keyValueParts = queryStringParts[0].Split(new[] { "=" }, RemoveEmptyEntries)
+                        .Select(x => Uri.UnescapeDataString(x))
+                        .ToArray();
                     if (keyValueParts.Length == 2)
                     {
                         string keyPart = keyValueParts[0];
                         string valuePart = keyValueParts[1]
-                            .Replace("!!", string.Empty)
+                            .Replace("!!", "!")
                             .Replace("**", "*");
 
                         PropertyInfo pi = typeof(T).GetProperties()
@@ -172,17 +174,17 @@ namespace MedEasy.Data
                         if (pi != null)
                         {
                             TypeConverter tc = TypeDescriptor.GetConverter(pi.PropertyType);
+                            
                             if (valuePart.StartsWith("!"))
                             {
                                 string localValue = valuePart.Replace("!", string.Empty);
                                 object value = tc.ConvertFrom(valuePart);
-                                filter = new DataFilter { Field = keyPart, Operator = NotEqualTo, Value = localValue };
+                                filter = new DataFilter (field : keyPart, @operator : NotEqualTo, value : localValue);
                             }
-                            else if (valuePart.Like("*,*"))
+                            else if (valuePart.Like("* *"))
                             {
-                                string[] localValues = valuePart.Split(new[] { ',' }, RemoveEmptyEntries);
+                                string[] localValues = valuePart.Split(new[] { ' ' }, RemoveEmptyEntries);
 
-                                
                                 IList<IDataFilter> filters = new List<IDataFilter>();
 
                                 foreach (string localValue in localValues)
@@ -194,7 +196,6 @@ namespace MedEasy.Data
                                     Logic = DataFilterLogic.Or,
                                     Filters = filters
                                 };
-
                             }
                             else if (valuePart.Contains("*") || valuePart.Contains("?"))
                             {
@@ -203,46 +204,24 @@ namespace MedEasy.Data
                                     string[] values = valuePart.Split(new[] { "*" }, RemoveEmptyEntries);
                                     if (values.Length == 1)
                                     {
-                                        filter = new DataFilter
-                                        {
-                                            Field = keyPart,
-                                            Operator = valuePart.StartsWith("*")
+                                        filter = new DataFilter(
+                                            field :keyPart,
+                                            @operator : valuePart.StartsWith("*")
                                                 ? EndsWith
                                                 : StartsWith,
-                                            Value = tc.ConvertFrom(values[0])
-                                        };
-                                        
+                                            value : tc.ConvertFrom(values[0])
+                                        );   
                                     }
-
                                 }
-
                             }
                             else
                             {
                                 object value = tc.ConvertFrom(valuePart);
-                                filter = new DataFilter { Field = keyPart, Operator = EqualTo, Value = value };
-
-                            }
-
-                            
+                                filter = new DataFilter (field : keyPart, @operator : EqualTo, value: value);
+                            }       
                         }
-                    }
-                    
+                    }   
                 }
-                else
-                {
-                    filter = new DataCompositeFilter
-                    {
-                        Logic = DataFilterLogic.And
-                    };
-
-                    IList<IDataFilter> filters = new List<IDataFilter>();
-                    foreach (string part in queryStringParts)
-                    {
-                        filters.Add(ToFilter<T>(part));
-                    }
-                }
-
             }
 
             return filter;

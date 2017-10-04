@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,10 +10,9 @@ namespace MedEasy.Validators
     /// Static class
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class Validator<T> : IValidate<T>
+    public sealed class Validator<T> : AbstractValidator<T>
     {
-        public IEnumerable<Task<ErrorInfo>> Validate(T element) => Enumerable.Empty<Task<ErrorInfo>>();
-
+       
         private Validator()
         {}
 

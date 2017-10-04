@@ -6,6 +6,7 @@ using MedEasy.Commands.Specialty;
 using MedEasy.Validators;
 using MedEasy.Handlers.Core.Specialty.Queries;
 using MedEasy.Handlers.Core.Specialty.Commands;
+using FluentValidation;
 
 namespace MedEasy.API.StartupRegistration
 {
@@ -20,8 +21,8 @@ namespace MedEasy.API.StartupRegistration
         public static void AddSpecialtiesControllerDependencies(this IServiceCollection services)
         {
 
-            services.AddScoped<IValidate<ICreateSpecialtyCommand>>(x => Validator<ICreateSpecialtyCommand>.Default);
-            services.AddScoped<IValidate<IDeleteSpecialtyByIdCommand>>(x => Validator<IDeleteSpecialtyByIdCommand>.Default);
+            services.AddScoped<IValidator<ICreateSpecialtyCommand>>(x => Validator<ICreateSpecialtyCommand>.Default);
+            services.AddScoped<IValidator<IDeleteSpecialtyByIdCommand>>(x => Validator<IDeleteSpecialtyByIdCommand>.Default);
 
             services.AddScoped<IHandleGetSpecialtyInfoByIdQuery, HandleGetSpecialtyInfoByIdQuery>();
             services.AddScoped<IHandleGetPageOfSpecialtyInfosQuery, HandleGetPageOfSpecialtyInfoQuery>();

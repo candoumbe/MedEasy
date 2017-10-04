@@ -1,12 +1,7 @@
-﻿using MedEasy.Commands.Patient;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using static MedEasy.Validators.ErrorLevel;
-using MedEasy.DTO;
-using System;
+﻿using System;
 using MedEasy.Objects;
+using FluentValidation;
 #if DEBUG
-using System.Diagnostics;
 #endif
 
 namespace MedEasy.Validators
@@ -14,12 +9,13 @@ namespace MedEasy.Validators
 
     public class AddNewTemperatureMeasureCommandValidator : AddNewPhysiologicalMeasureCommandValidator<Temperature>
     {
-        public override IEnumerable<Task<ErrorInfo>> Validate(CreatePhysiologicalMeasureInfo<Temperature> input)
-        { 
-#if DEBUG
-            Debug.Assert(input != null);
-#endif
-            yield break;
+        /// <summary>
+        /// Builds a new <see cref="AddNewTemperatureMeasureCommandValidator"/> instance.
+        /// </summary>
+        public AddNewTemperatureMeasureCommandValidator()
+        {
+            RuleFor(x => x.PatientId)
+                .NotEqual(Guid.Empty);
         }
     }
 }

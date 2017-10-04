@@ -46,10 +46,10 @@ namespace MedEasy.Data.Tests.Converters
         {
             get
             {
-                foreach (KeyValuePair<string, DataFilterOperator> item in Operators)
+                foreach (KeyValuePair<string, DataFilterOperator> item in Operators.Where(op => op.Value != IsNull && op.Value != IsNotNull && op.Value != IsEmpty && op.Value != IsNotEmpty)  )
                 {
                     yield return new object[]{
-                        $"{{field :'Firstname', operator :'{item.Key}', value : 'Bruce'}}",
+                        $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'{item.Key}', {DataFilter.ValueJsonPropertyName} : 'Bruce'}}",
                         typeof(DataFilter),
                         ((Expression<Func<object, bool>>) ((result) => result is DataFilter
                             && "Firstname" == ((DataFilter)result).Field
@@ -60,7 +60,17 @@ namespace MedEasy.Data.Tests.Converters
                 }
 
                 yield return new object[]{
-                        $"{{field :'Firstname', operator :'isnull', value : null}}",
+                        $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnull'}}",
+                        typeof(DataFilter),
+                        ((Expression<Func<object, bool>>) ((result) => result is DataFilter
+                            && "Firstname" == ((DataFilter)result).Field
+                            && Operators["isnull"] == ((DataFilter)result).Operator
+                            && ((DataFilter)result).Value == null))
+                    };
+
+
+                yield return new object[]{
+                        $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnull', {DataFilter.ValueJsonPropertyName} : 6}}",
                         typeof(DataFilter),
                         ((Expression<Func<object, bool>>) ((result) => result is DataFilter
                             && "Firstname" == ((DataFilter)result).Field
@@ -69,7 +79,7 @@ namespace MedEasy.Data.Tests.Converters
                     };
 
                 yield return new object[]{
-                        $"{{field :'Firstname', operator :'isnull'}}",
+                        $"{{{DataFilter.FieldJsonPropertyName}:'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnull', value : null}}",
                         typeof(DataFilter),
                         ((Expression<Func<object, bool>>) ((result) => result is DataFilter
                             && "Firstname" == ((DataFilter)result).Field
@@ -78,7 +88,16 @@ namespace MedEasy.Data.Tests.Converters
                     };
 
                 yield return new object[]{
-                        $"{{field :'Firstname', operator :'isnotnull', value : null}}",
+                        $"{{{DataFilter.FieldJsonPropertyName}:'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnull', value : null}}",
+                        typeof(DataFilter),
+                        ((Expression<Func<object, bool>>) ((result) => result is DataFilter
+                            && "Firstname" == ((DataFilter)result).Field
+                            && Operators["isnull"] == ((DataFilter)result).Operator
+                            && ((DataFilter)result).Value == null))
+                    };
+
+                yield return new object[]{
+                        $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnotnull', value : null}}",
                         typeof(DataFilter),
                         ((Expression<Func<object, bool>>) ((result) => result is DataFilter
                             && "Firstname" == ((DataFilter)result).Field
@@ -87,7 +106,7 @@ namespace MedEasy.Data.Tests.Converters
                     };
 
                 yield return new object[]{
-                        $"{{field :'Firstname', operator :'isnotnull'}}",
+                        $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnotnull'}}",
                         typeof(DataFilter),
                         ((Expression<Func<object, bool>>) ((result) => result is DataFilter
                             && "Firstname" == ((DataFilter)result).Field
@@ -107,10 +126,11 @@ namespace MedEasy.Data.Tests.Converters
         {
             get
             {
-                foreach (KeyValuePair<string, DataFilterOperator> item in Operators)
+                
+                foreach (KeyValuePair<string, DataFilterOperator> item in Operators.Where(kv => !DataFilter.UnaryOperators.Any(op => op  == kv.Value)))
                 {
                     yield return new object[]{
-                        new DataFilter { Field = "Firstname", Operator = item.Value, Value = "Bruce" },
+                        new DataFilter(field : "Firstname", @operator : item.Value, value : "Bruce"),
                         ((Expression<Func<string, bool>>) ((json) => json != null
                             && JToken.Parse(json).Type == JTokenType.Object
                             && JObject.Parse(json).Properties().Count() == 3
@@ -121,6 +141,20 @@ namespace MedEasy.Data.Tests.Converters
 
                     };
                 }
+
+                foreach (KeyValuePair<string, DataFilterOperator> item in Operators.Where(kv => DataFilter.UnaryOperators.Any(op => op == kv.Value)))
+                {
+                    yield return new object[]{
+                        new DataFilter(field : "Firstname", @operator : item.Value),
+                        ((Expression<Func<string, bool>>) ((json) => json != null
+                            && JToken.Parse(json).Type == JTokenType.Object
+                            && JObject.Parse(json).Properties().Count() == 2
+                            && "Firstname".Equals(JObject.Parse(json)[DataFilter.FieldJsonPropertyName].Value<string>())
+                            && item.Key.Equals(JObject.Parse(json)[DataFilter.OperatorJsonPropertyName].Value<string>())))
+
+                    };
+                }
+
             }
         }
 
@@ -136,7 +170,7 @@ namespace MedEasy.Data.Tests.Converters
         [MemberData(nameof(DeserializeCases))]
         public void Deserialize(string json, Type targetType, Expression<Func<object, bool>> expectation)
         {
-            _outputHelper.WriteLine($"Deserializing {json}");
+            _outputHelper.WriteLine($"{nameof(json)} : {json}");
 
             object result = JsonConvert.DeserializeObject(json, targetType);
 
@@ -162,6 +196,9 @@ namespace MedEasy.Data.Tests.Converters
             result.Should()
                 .Match(expectation);
         }
+
+
+        
 
 
         public void Dispose()

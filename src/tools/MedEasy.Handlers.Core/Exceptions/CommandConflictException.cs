@@ -1,5 +1,4 @@
 ﻿using MedEasy.Validators;
-using MedEasy.Validators.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace MedEasy.Handlers.Core.Exceptions
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="commandId"/> is equals to default value of <see cref="TCommandId"/></exception>
         public CommandConflictException(TCommandId commandId) : base(string.Empty)
         {
-            if (Equals(default(TCommandId), commandId))
+            if (Equals(default, commandId))
             {
                 throw new ArgumentOutOfRangeException(nameof(commandId), $"{nameof(commandId)} must not be default value");
             }

@@ -15,7 +15,6 @@ using MedEasy.Objects;
 using MedEasy.Queries;
 using MedEasy.Queries.Search;
 using MedEasy.RestObjects;
-using MedEasy.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +43,8 @@ using MedEasy.DAL.Interfaces;
 using System.Threading;
 using Optional;
 using MedEasy.CQRS.Core;
+using FluentValidation.Results;
+using static FluentValidation.Severity;
 
 namespace MedEasy.WebApi.Tests
 {
@@ -219,7 +220,7 @@ namespace MedEasy.WebApi.Tests
             }
 
             _handlerGetManyAppointmentInfoQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IWantPageOfResources<Guid, AppointmentInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (IWantPageOfResources<Guid,AppointmentInfo> getQuery, CancellationToken cancellationToken) =>
+                .Returns(async (IWantPageOfResources<Guid, AppointmentInfo> getQuery, CancellationToken cancellationToken) =>
                 {
 
 
@@ -267,7 +268,7 @@ namespace MedEasy.WebApi.Tests
                     .OnlyContain(x => x.Links.Once(link => link.Relation == nameof(Doctor)), $"resource should provide navigation link to {nameof(DoctorInfo)} resource.").And
                     .OnlyContain(x => x.Links.Once(link => link.Relation == "self"), $"resource should provide direct link").And
                     .OnlyContain(x => x.Links.Once(link => link.Relation == nameof(Patient)), $"resource should provide navigation link to {nameof(PatientInfo)} resource.");
-                    
+
             }
 
             response.Count.Should()
@@ -290,7 +291,7 @@ namespace MedEasy.WebApi.Tests
                 .Returns(new ValueTask<Option<AppointmentInfo>>(Option.None<AppointmentInfo>()));
 
             //Act
-            IActionResult actionResult = await _controller.Get(Guid.NewGuid(), default(CancellationToken));
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid(), default);
 
             //Assert
             actionResult.Should()
@@ -344,7 +345,7 @@ namespace MedEasy.WebApi.Tests
             selfLink.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"api/{AppointmentsController.EndpointName}/{nameof(AppointmentsController.Get)}?{nameof(AppointmentInfo.Id)}={expectedAppointementInfo.Id}");
-            
+
             Link doctorLink = links.Single(x => x.Relation == "doctor");
             doctorLink.Href.Should()
                 .NotBeNullOrWhiteSpace().And
@@ -450,7 +451,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new CommandNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrRequiredField", $"{nameof(CreateAppointmentInfo.StartDate)}", ErrorLevel.Error)
+                    new ValidationFailure ($"{nameof(CreateAppointmentInfo.StartDate)}", "Value required") { Severity = Error, ErrorCode = "ErrRequiredField" }
                 });
 
             //Arrange
@@ -693,7 +694,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName","Error description") { Severity = Error }
                 });
 
             //Arrange
@@ -718,7 +719,7 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
                 });
 
             //Arrange
@@ -745,7 +746,8 @@ namespace MedEasy.WebApi.Tests
         {
             Exception exceptionFromTheHandler = new QueryNotValidException<Guid>(Guid.NewGuid(), new[]
                 {
-                    new ErrorInfo ("ErrCode", "A description", ErrorLevel.Error)
+                    new ValidationFailure("PropName", "A description") { Severity = Error }
+
                 });
 
             //Arrange

@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using MedEasy.Commands;
 using System.Linq;
 using MedEasy.Handlers.Core.Exceptions;
-using static MedEasy.Validators.ErrorLevel;
+using static FluentValidation.Severity;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using AutoMapper;
@@ -19,6 +19,8 @@ using AutoMapper.QueryableExtensions;
 using System.Threading;
 using Optional;
 using MedEasy.Queries.Patient;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace MedEasy.Services
 {
@@ -29,7 +31,7 @@ namespace MedEasy.Services
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly ILogger<PhysiologicalMeasureService> _logger;
-        private readonly IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> _deleteOnePhysiologicalMeasureCommandValidator;
+        private readonly IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> _deleteOnePhysiologicalMeasureCommandValidator;
         private readonly IMapper _mapper;
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace MedEasy.Services
         public PhysiologicalMeasureService(
             IUnitOfWorkFactory uowFactory,
             ILogger<PhysiologicalMeasureService> logger,
-            IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> deleteOnePhysiologicalMeasureCommandValidator,
+            IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> deleteOnePhysiologicalMeasureCommandValidator,
             IMapper mapper
             )
         {
@@ -55,7 +57,7 @@ namespace MedEasy.Services
         /// </summary>
         /// <param name="query">specifies which patient to get its most recent measures for</param>
         /// <returns><see cref="IEnumerable{TPhysiologicalMeasureInfo}"/>holding the most recent <see cref="TPhysiologicalMeasureInfo"/></returns>
-        public async ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IEnumerable<TPhysiologicalMeasureInfo>>> GetMostRecentMeasuresAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(IWantMostRecentPhysiologicalMeasuresQuery<TPhysiologicalMeasureInfo> query, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {
@@ -95,7 +97,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<TPhysiologicalMeasureInfo, CommandException>> AddNewMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMeasureInfo>(ICommand<Guid, CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure>, TPhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMeasureInfo : PhysiologicalMeasurementInfo
         {
@@ -135,7 +137,7 @@ namespace MedEasy.Services
             }
         }
 
-        public async ValueTask<Option<TPhysiologicalMesureInfo>> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<TPhysiologicalMesureInfo>> GetOneMeasureAsync<TPhysiologicalMeasure, TPhysiologicalMesureInfo>(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMesureInfo> query, CancellationToken cancellationToken = default)
             where TPhysiologicalMeasure : PhysiologicalMeasurement
             where TPhysiologicalMesureInfo : PhysiologicalMeasurementInfo
         {
@@ -162,26 +164,25 @@ namespace MedEasy.Services
             }
         }
 
-        public async Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default(CancellationToken)) where TPhysiologicalMeasure : PhysiologicalMeasurement
+        public async Task DeleteOnePhysiologicalMeasureAsync<TPhysiologicalMeasure>(IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo> command, CancellationToken cancellationToken = default) where TPhysiologicalMeasure : PhysiologicalMeasurement
         {
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
             }
             _logger.LogInformation($"Start running delete one measure id : {command}");
-            IEnumerable<Task<ErrorInfo>> validationTasks = _deleteOnePhysiologicalMeasureCommandValidator.Validate(command);
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationTasks);
-
-            if (errors.Any(x => x.Severity == Error))
+            ValidationResult vr = await _deleteOnePhysiologicalMeasureCommandValidator.ValidateAsync(command);
+            
+            if (vr.Errors.AtLeastOnce(x => x.Severity == Error))
             {
                 _logger.LogDebug("Command's validation failed");
 #if TRACE || DEBUG
-                foreach (ErrorInfo error in errors)
+                foreach (ValidationFailure error in vr.Errors)
                 {
-                    _logger.LogTrace($"Validation error : {error.Key} : {error.Description}");
+                    _logger.LogTrace($"{error.PropertyName} : {error.ErrorMessage}");
                 }
 #endif
-                throw new CommandNotValidException<Guid>(command.Id, errors);
+                throw new CommandNotValidException<Guid>(command.Id, vr.Errors);
             }
 
             using (IUnitOfWork uow = _uowFactory.New())

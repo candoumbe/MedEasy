@@ -1,4 +1,5 @@
-﻿using MedEasy.Validators;
+﻿using FluentValidation.Results;
+using MedEasy.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace MedEasy.Handlers.Core.Exceptions
         /// 
         /// </summary>
         /// <param name="message">The message associated with the exception</param>
-        public CommandEntityNotFoundException(string message) : this(message, Enumerable.Empty<ErrorInfo>())
+        public CommandEntityNotFoundException(string message) : this(message, Enumerable.Empty<ValidationFailure>())
         { }
         
         
@@ -30,7 +31,7 @@ namespace MedEasy.Handlers.Core.Exceptions
         /// Builds a new <see cref="CommandEntityNotFoundException"/> instance.
         /// </summary>
         /// <param name="message">Message associated with the exception</param>
-        public CommandEntityNotFoundException(string message, IEnumerable<ErrorInfo> errors) : base(message, errors)
+        public CommandEntityNotFoundException(string message, IEnumerable<ValidationFailure> errors) : base(message, errors)
         {
 
         }

@@ -24,6 +24,9 @@ using Xunit.Abstractions;
 using static Newtonsoft.Json.JsonConvert;
 using static Moq.MockBehavior;
 using Optional;
+using FluentValidation;
+using FluentValidation.Results;
+using System.Threading;
 
 namespace MedEasy.Services.Tests
 {
@@ -31,7 +34,7 @@ namespace MedEasy.Services.Tests
     {
         private ITestOutputHelper _outputHelper;
         private PhysiologicalMeasureService _physiologicalMeasureService;
-        private Mock<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>> _iValidateDeleteOnePhysiologicalMeasureCommandMock;
+        private Mock<IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>> _iValidateDeleteOnePhysiologicalMeasureCommandMock;
         private Mock<ILogger<PhysiologicalMeasureService>> _loggerMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private IMapper _mapper;
@@ -42,7 +45,7 @@ namespace MedEasy.Services.Tests
             _outputHelper = outputHelper;
 
 
-            _iValidateDeleteOnePhysiologicalMeasureCommandMock = new Mock<IValidate<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(Strict);
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock = new Mock<IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>(Strict);
 
             _loggerMock = new Mock<ILogger<PhysiologicalMeasureService>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
@@ -353,8 +356,8 @@ namespace MedEasy.Services.Tests
         public async Task DeleteOneBloodPressureResource()
         {
             // Arrange
-            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Setup(mock => mock.Validate(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>()))
-                .Returns(Enumerable.Empty<Task<ErrorInfo>>());
+            _iValidateDeleteOnePhysiologicalMeasureCommandMock.Setup(mock => mock.ValidateAsync(It.IsAny<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
 
 
             // Act
@@ -363,6 +366,43 @@ namespace MedEasy.Services.Tests
             // Assert
             _iValidateDeleteOnePhysiologicalMeasureCommandMock.Verify();
             _loggerMock.VerifyAll();
+
+        }
+
+
+        public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionWhenParameterIsNullCases
+        {
+            get
+            {
+                return from uow in new[] { null, Mock.Of<IUnitOfWorkFactory>() }
+                       from logger in new[] { null, Mock.Of<ILogger<PhysiologicalMeasureService>>() }
+                       from validator in new[] { null, Mock.Of<IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>>>() }
+                       from mapper in new[] { null, Mock.Of<IMapper>() }
+                       where uow == null || logger == null || validator == null || mapper == null
+                       select new object[] { uow, logger, validator, mapper };
+
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CtorThrowsArgumentNullExceptionWhenParameterIsNullCases))]
+        public void CtorThrowsArgumentNullExceptionWhenParameterIsNull(IUnitOfWorkFactory uowFactory,
+            ILogger<PhysiologicalMeasureService> logger, IValidator<IDeleteOnePhysiologicalMeasureCommand<Guid, DeletePhysiologicalMeasureInfo>> validator, IMapper mapper)
+        {
+
+            _outputHelper.WriteLine($"{nameof(uowFactory)} == null : {uowFactory == null}");
+            _outputHelper.WriteLine($"{nameof(logger)} == null : {logger == null}");
+            _outputHelper.WriteLine($"{nameof(validator)} == null : {validator == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} == null : {mapper == null}");
+
+            // Act
+            Action action = () => new PhysiologicalMeasureService(uowFactory, logger, validator, mapper);
+
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>().Which
+                .ParamName.Should()
+                .NotBeNullOrWhiteSpace();
 
         }
 

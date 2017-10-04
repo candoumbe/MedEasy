@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 using MedEasy.Commands.Appointment;
 
-namespace MedEasy.BLL.Tests.Commands.Appointment
+namespace MedEasy.Handlers.Tests.Commands.Appointment
 {
     public class DeleteAppointmentCommandTests : IDisposable
     {

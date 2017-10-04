@@ -27,6 +27,10 @@ namespace MedEasy.Commands
         /// 
         public AddNewPhysiologicalMeasureCommand(TCommandId id, CreatePhysiologicalMeasureInfo<TData> data) : base(id, data)
         {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
 
 
@@ -45,6 +49,10 @@ namespace MedEasy.Commands
         where TOutput : PhysiologicalMeasurementInfo
 
     {
+        /// <summary>
+        /// Builds a new <see cref="AddNewPhysiologicalMeasureCommand{TData, TOutput}"/> instance
+        /// </summary>
+        /// <param name="data">data the command carries</param>
         public AddNewPhysiologicalMeasureCommand(CreatePhysiologicalMeasureInfo<TData> data) : base(Guid.NewGuid(), data)
         {
 

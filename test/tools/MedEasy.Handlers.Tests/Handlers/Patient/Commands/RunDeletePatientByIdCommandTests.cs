@@ -66,6 +66,7 @@ namespace MedEasy.Handlers.Tests.Commands.Patient
             Option<Nothing, CommandException> result = await _handler.RunAsync(new DeletePatientByIdCommand(Guid.NewGuid()));
 
             // Assert
+            result.HasValue.Should().BeTrue();
             _unitOfWorkFactoryMock.Verify();
             
         }

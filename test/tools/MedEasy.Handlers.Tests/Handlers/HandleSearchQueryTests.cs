@@ -66,13 +66,13 @@ namespace MedEasy.Handlers.Tests.Handlers
                     Enumerable.Empty<Objects.Patient>(),
                     new SearchQueryInfo<PatientInfo>
                     {
-                        Filter = new DataFilter { Field = nameof(PatientInfo.Firstname), Operator = EqualTo, Value = "Bruce" },
+                        Filter = new DataFilter (field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce" ),
                         Page = 1,
                         PageSize = 3
                     },
-                    ((Expression<Func<IPagedResult<PatientInfo>, bool>>)(x => x != null && 
-                        !x.Entries.Any() && 
-                        x.PageCount == 0 && 
+                    ((Expression<Func<IPagedResult<PatientInfo>, bool>>)(x => x != null &&
+                        !x.Entries.Any() &&
+                        x.PageCount == 0 &&
                         x.PageSize == 3))
                 };
 
@@ -90,7 +90,7 @@ namespace MedEasy.Handlers.Tests.Handlers
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
-                            Filter = new DataFilter { Field = nameof(PatientInfo.Lastname), Operator = Contains, Value = "y" },
+                            Filter = new DataFilter (field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y" ),
                             Page = 3,
                             PageSize = 1
                         },
@@ -107,7 +107,7 @@ namespace MedEasy.Handlers.Tests.Handlers
 
         [Theory]
         [MemberData(nameof(SearchPatientCases))]
-        public async Task SearchPatientInfos(IEnumerable<Objects.Patient> patients, SearchQueryInfo<PatientInfo> search, Expression<Func<IPagedResult<PatientInfo>, bool>> resultExpectation )
+        public async Task SearchPatientInfos(IEnumerable<Objects.Patient> patients, SearchQueryInfo<PatientInfo> search, Expression<Func<IPagedResult<PatientInfo>, bool>> resultExpectation)
         {
             _outputHelper.WriteLine($"search : {search}");
 
@@ -120,7 +120,7 @@ namespace MedEasy.Handlers.Tests.Handlers
                 .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
                     =>
                     {
-                        
+
                         IEnumerable<PatientInfo> results = patients.Select(selector.Compile())
                             .Where(filter.Compile())
                             .Skip(pageSize * (page - 1))
@@ -139,6 +139,6 @@ namespace MedEasy.Handlers.Tests.Handlers
             // Assert
             pageOfResult.Should()
                 .Match(resultExpectation);
-        }        
+        }
     }
 }

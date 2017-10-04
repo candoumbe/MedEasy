@@ -18,9 +18,9 @@ namespace MedEasy.Handlers.Doctor.Commands
         /// Builds a new <see cref="RunPatchDoctorCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
-        /// <param name="logger">Logger.</param>
-        /// <param name="validator">Validator for commands that will be run by <see cref="RunAsync(IPatchDoctorCommand)"/>.</param>
-        public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory, ILogger<RunPatchDoctorCommand> logger, IValidate<IPatchCommand<Guid, Guid, Objects.Doctor, IPatchInfo<Guid, Objects.Doctor>>> validator)
+        /// 
+        /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/> is <c>null</c>.</exception>
+        public RunPatchDoctorCommand(IUnitOfWorkFactory uowFactory)
             : base(uowFactory)
         {
         }

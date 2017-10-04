@@ -37,7 +37,7 @@ namespace MedEasy.Handlers.Specialty.Queries
 
         }
 
-        public async ValueTask<Option<IPagedResult<DoctorInfo>>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken = default(CancellationToken))
+        public async ValueTask<Option<IPagedResult<DoctorInfo>>> HandleAsync(IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken = default)
         {
             Logger.LogInformation($"Starting {nameof(IFindDoctorsBySpecialtyIdQuery)}  query handling");
             if (query == null)
@@ -49,7 +49,7 @@ namespace MedEasy.Handlers.Specialty.Queries
             using (IUnitOfWork uow = UowFactory.New())
             {
 
-                Option<IPagedResult<DoctorInfo>> result = default(Option<IPagedResult<DoctorInfo>>);
+                Option<IPagedResult<DoctorInfo>> result = default;
                 if (await uow.Repository<Objects.Specialty>().AnyAsync(x => x.UUID == query.Data.SpecialtyId).ConfigureAwait(false))
                 {
                     IPagedResult<Objects.Doctor> pageOfResult = await uow.Repository<Objects.Doctor>()

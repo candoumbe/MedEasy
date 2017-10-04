@@ -18,7 +18,7 @@ namespace MedEasy.Data.Tests
     {
 
         private readonly ITestOutputHelper _output;
-        private static IImmutableDictionary<string, DataFilterOperator> Operators = new Dictionary<string, DataFilterOperator>
+        private static IImmutableDictionary<string, DataFilterOperator> _operators = new Dictionary<string, DataFilterOperator>
         {
             ["contains"] = Contains,
             ["endswith"] = EndsWith,
@@ -45,7 +45,7 @@ namespace MedEasy.Data.Tests
             {
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = EqualTo,  Value = "Batman"},
+                    new DataFilter (field : "Firstname", @operator  : EqualTo,  value : "Batman"),
                     ((Expression<Func<string, bool>>)(json =>
                         "Firstname".Equals((string) JObject.Parse(json)[DataFilter.FieldJsonPropertyName]) &&
                         "eq".Equals((string) JObject.Parse(json)[DataFilter.OperatorJsonPropertyName]) &&
@@ -62,7 +62,7 @@ namespace MedEasy.Data.Tests
         {
             get
             {
-                foreach (KeyValuePair<string, DataFilterOperator> item in Operators)
+                foreach (KeyValuePair<string, DataFilterOperator> item in _operators)
                 {
                     yield return new object[]
                     {
@@ -85,8 +85,8 @@ namespace MedEasy.Data.Tests
                 yield return new object[] {
                     new IDataFilter[]
                     {
-                        new DataFilter { Field = "Firstname", Operator = EqualTo, Value = "Bruce" },
-                        new DataFilter { Field = "Lastname", Operator = EqualTo, Value = "Wayne" }
+                        new DataFilter (field : "Firstname", @operator : EqualTo, value : "Bruce"),
+                        new DataFilter (field : "Lastname", @operator : EqualTo, value : "Wayne" )
                     },
                     ((Expression<Func<string, bool>>)(json =>
                         JToken.Parse(json).Type == JTokenType.Array
@@ -119,9 +119,8 @@ namespace MedEasy.Data.Tests
                     new DataCompositeFilter  {
                         Logic = Or,
                         Filters = new [] {
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Batman" },
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Robin" },
-
+                            new DataFilter (field : "Nickname", @operator : EqualTo, value : "Batman"),
+                            new DataFilter (field : "Nickname", @operator : EqualTo, value : "Robin")
                         }
                     },
                     ((Expression<Func<string, bool>>)(json =>
@@ -144,8 +143,8 @@ namespace MedEasy.Data.Tests
                 {
                     new DataCompositeFilter  {
                         Filters = new [] {
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Batman" },
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Robin" },
+                            new DataFilter (field : "Nickname", @operator : EqualTo, value : "Batman"),
+                            new DataFilter (field : "Nickname", @operator : EqualTo, value : "Robin")
 
                         }
                     },
@@ -175,31 +174,43 @@ namespace MedEasy.Data.Tests
             {
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = EqualTo, Value = "Bruce" },
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} :'batman' }}",
+                    EqualTo,
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = EqualTo, Value = null },
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : null }}",
+                    EqualTo,
                     false
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = EqualTo },
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq' }}",
+                    EqualTo,
                     false
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = Contains, Value = "Br"},
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'contains', {DataFilter.ValueJsonPropertyName} : 'br' }}",
+                    Contains,
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "Firstname", Operator = Contains, Value = 6},
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'contains', {DataFilter.ValueJsonPropertyName} : 6 }}",
+                    Contains,
+                    false
+                };
+
+                yield return new object[]
+                {
+                    $"{{{DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'isnull', {DataFilter.ValueJsonPropertyName} : 6 }}",
+                    IsNull,
                     false
                 };
             }
@@ -212,37 +223,49 @@ namespace MedEasy.Data.Tests
             {
                 yield return new object[]
                 {
-                    new DataCompositeFilter  {
-                        Logic = Or,
-                        Filters = new [] {
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Batman" },
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Robin" },
-                        }
-                    },
+                    "{" +
+                        $"{DataCompositeFilter.LogicJsonPropertyName} : 'or'," +
+                        $"{DataCompositeFilter.FiltersJsonPropertyName}: [" +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'batman' }}," +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'robin' }}" +
+                        "]" +
+                    "}",
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataCompositeFilter  {
-                        Filters = new [] {
-                            new DataFilter { Field = "Firstname", Operator = EqualTo,  Value = "Bruce" },
-                            new DataFilter { Field = "Lastname", Operator = EqualTo,  Value = "Wayne" },
-                        }
-                    },
+                    "{" +
+                        $"{DataCompositeFilter.LogicJsonPropertyName} : 'and'," +
+                        $"{DataCompositeFilter.FiltersJsonPropertyName}: [" +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'batman' }}," +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'robin' }}" +
+                        "]" +
+                    "}",
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataCompositeFilter  {
-                        Logic = Or,
-                        Filters = new [] {
-                            new DataFilter { Field = "Nickname", Operator = EqualTo,  Value = "Robin" },
-                        }
-                    },
+                    "{" +
+                        $"{DataCompositeFilter.FiltersJsonPropertyName}: [" +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'batman' }}," +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'robin' }}" +
+                        "]" +
+                    "}",
+                    true
+                };
+
+                yield return new object[]
+                {
+                    "{" +
+                        $"{DataCompositeFilter.FiltersJsonPropertyName}: [" +
+                            $"{{ {DataFilter.FieldJsonPropertyName} : 'nickname', {DataFilter.OperatorJsonPropertyName} : 'eq', {DataFilter.ValueJsonPropertyName} : 'robin' }}" +
+                        "]" +
+                    "}",
                     false
                 };
+
             }
         }
 
@@ -282,9 +305,21 @@ namespace MedEasy.Data.Tests
 
         [Theory]
         [MemberData(nameof(DataFilterSchemaTestCases))]
-        public void DataFilterSchema(DataFilter filter, bool expectedValidity)
-            => Schema(filter, expectedValidity);
+        public void DataFilterSchema(string json, DataFilterOperator @operator, bool expectedValidity)
+        {
+            _output.WriteLine($"{nameof(json)} : {json}");
+            _output.WriteLine($"{nameof(DataFilterOperator)} : {@operator}");
 
+
+            // Arrange
+            JSchema schema = DataFilter.Schema(@operator);
+
+            // Act
+            bool isValid = JObject.Parse(json).IsValid(schema);
+
+            // Arrange
+            isValid.Should().Be(expectedValidity);
+        }
 
         public static IEnumerable<object> DataFilterEquatableCases
         {
@@ -292,34 +327,36 @@ namespace MedEasy.Data.Tests
             {
                 yield return new object[]
                 {
-                    new DataFilter(),
-                    new DataFilter(),
+                    new DataFilter("property", EqualTo, "value"),
+                    new DataFilter("property", EqualTo, "value"),
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "firstname", Operator = EqualTo, Value = "bruce"},
-                    new DataFilter { Field = "firstname", Operator = EqualTo, Value = "bruce"},
+                    new DataFilter("property", EqualTo, null),
+                    new DataFilter("property", IsNull),
                     true
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "firstname", Operator = EqualTo, Value = "bruce"},
-                    new DataFilter { Field = "firstname", Operator = NotEqualTo, Value = "bruce"},
+                    new DataFilter("property", EqualTo, "value"),
+                    new DataFilter("property", NotEqualTo, "value"),
                     false
                 };
 
                 yield return new object[]
                 {
-                    new DataFilter { Field = "firstname", Operator = EqualTo, Value = "bruce"},
-                    new DataFilter { Field = "Firstname", Operator = EqualTo, Value = "bruce"},
+                    new DataFilter("Property", EqualTo, "value"),
+                    new DataFilter("property", EqualTo, "value"),
                     false
                 };
 
+
+
                 {
-                    DataFilter first = new DataFilter { Field = "prop", Operator = NotEqualTo, Value = true };
+                    DataFilter first = new DataFilter("Property", EqualTo, "value");
                     yield return new object[]
                     {
                         first,
@@ -340,7 +377,7 @@ namespace MedEasy.Data.Tests
 
             // Act
             bool result = first.Equals(second);
-            
+
             // Assert
             result.Should().Be(expectedResult);
         }
@@ -348,24 +385,18 @@ namespace MedEasy.Data.Tests
 
         [Theory]
         [MemberData(nameof(DataCompositeFilterSchemaTestCases))]
-        public void DataCompositeFilterSchema(DataCompositeFilter filter, bool expectedValidity)
-            => Schema(filter, expectedValidity);
-
-
-        private void Schema(IDataFilter filter, bool expectedValidity)
+        public void DataCompositeFilterSchema(string json, bool expectedValidity)
         {
-            JSchema schema = filter is DataFilter
-                ? DataFilter.Schema((filter as DataFilter).Operator)
-                : DataCompositeFilter.Schema;
+            _output.WriteLine($"{nameof(json)} : {json}");
 
-            _output.WriteLine($"Testing :{filter} {Environment.NewLine} against {Environment.NewLine} {schema}");
+            // Arrange
+            JSchema schema = DataCompositeFilter.Schema;
 
-            JObject.Parse(filter.ToJson())
-                  .IsValid(schema)
-                  .Should().Be(expectedValidity);
+            // Act
+            bool isValid = JObject.Parse(json).IsValid(schema);
+
+            // Assert
+            isValid.Should().Be(expectedValidity);
         }
-
-
-
     }
 }

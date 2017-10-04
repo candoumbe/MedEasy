@@ -16,8 +16,9 @@ using static Moq.MockBehavior;
 using MedEasy.Objects;
 using System.Threading;
 using static Moq.Times;
+using MedEasy.Validators.Doctor.DTO;
 
-namespace MedEasy.Validators.Tests
+namespace MedEasy.Validators.Tests.Doctor.DTO
 {
 
     // This project can output the Class library as a NuGet Package.
@@ -126,7 +127,7 @@ namespace MedEasy.Validators.Tests
             vr.IsValid.Should().BeFalse();
             vr.Errors.Should()
                 .HaveCount(1).And
-                .Contain(x => x.PropertyName == nameof(CreateDoctorInfo.SpecialtyId));
+                .Contain(x => x.PropertyName == nameof(CreateDoctorInfo.SpecialtyId)  && x.Severity == Error);
 
             _uowFactoryMock.Verify(mock => mock.New().Repository<Specialty>().AnyAsync(It.IsAny<Expression<Func<Specialty, bool>>>(), It.IsAny<CancellationToken>()), Never);
         }

@@ -34,7 +34,7 @@ namespace MedEasy.Handlers.Patient.Queries
             _expressionBuilder = expressionBuilder;
         }
 
-        public override async ValueTask<Option<TPhysiologicalMeasurementInfo>> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query, CancellationToken cancellationToken = default(CancellationToken))
+        public override async ValueTask<Option<TPhysiologicalMeasurementInfo>> HandleAsync(IWantOneResource<Guid, GetOnePhysiologicalMeasureInfo, TPhysiologicalMeasurementInfo> query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {

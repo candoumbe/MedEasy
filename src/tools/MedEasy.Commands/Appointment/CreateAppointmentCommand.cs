@@ -15,7 +15,11 @@ namespace MedEasy.Commands.Appointment
         /// </summary>
         /// <param name="data">data to process</param>
         public CreateAppointmentCommand(CreateAppointmentInfo data) : base(Guid.NewGuid(), data)
-        { 
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
         }
         
     }

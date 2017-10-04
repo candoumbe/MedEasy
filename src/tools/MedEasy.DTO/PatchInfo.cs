@@ -9,7 +9,7 @@ namespace MedEasy.DTO
     /// Embeds a set of change to apply to a resource
     /// </summary>
     /// <typeparam name="TResourceId"></typeparam>
-    public class PatchInfo<TResourceId, TResource> : IPatchInfo<TResourceId, TResource> where TResource : class
+    public class PatchInfo<TResourceId, TResource> where TResource : class
     {
         /// <summary>
         /// Id of the resource to apply change on

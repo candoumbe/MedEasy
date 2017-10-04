@@ -7,13 +7,14 @@ using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Queries;
 using MedEasy.Queries;
 using MedEasy.Handlers.Core.Doctor.Queries;
+using FluentValidation;
 
 namespace MedEasy.Handlers.Doctor.Queries
 {
     /// <summary>
     /// An instance of this class can be used to handle <see cref="IWantOneDoctorInfoByIdQuery"/> interface implementations
     /// </summary
-    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, Guid, DoctorInfo, IWantOneResource<Guid, Guid, DoctorInfo>, IValidate<IWantOneResource<Guid, Guid, DoctorInfo>>>, IHandleGetDoctorInfoByIdQuery
+    public class HandleGetDoctorInfoByIdQuery : GenericGetOneByIdQueryHandler<Guid, Objects.Doctor, Guid, DoctorInfo, IWantOneResource<Guid, Guid, DoctorInfo>, IValidator<IWantOneResource<Guid, Guid, DoctorInfo>>>, IHandleGetDoctorInfoByIdQuery
     {
 
         /// <summary>

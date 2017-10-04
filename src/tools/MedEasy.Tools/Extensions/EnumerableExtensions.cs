@@ -15,6 +15,7 @@ namespace System.Collections.Generic
         /// <typeparam name="TElement">type of the element groupêd</typeparam>
         /// <param name="groups"></param>
         /// <returns>a dictionary</returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="groups"/> is <c>null</c>.</exception>
         public static IDictionary<TKey, IEnumerable<TElement>> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> groups)
         {
             if (groups == null)
@@ -85,14 +86,8 @@ namespace System.Collections.Generic
         /// <param name="items">Collection to test</param>
         /// <param name="predicate">predicate to use</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
-        public static bool AtLeastOnce<T>(this IEnumerable<T> items)
-        {
-            if (items == null)
-            {
-                throw new ArgumentNullException(nameof(items));
-            }
-            return items.Any();
-        }
+        /// <exception cref="ArgumentNullException">if <paramref name="items"/>  <c>null</c></exception>
+        public static bool AtLeastOnce<T>(this IEnumerable<T> items) => AtLeast(items, x => true, 1);
 
 
         /// <summary>
@@ -106,6 +101,8 @@ namespace System.Collections.Generic
         /// <param name="predicate">the predicate</param>
         /// <param name="count">the number of occurrence</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains <paramref name="count"/> elements or more that match <paramref name="predicate"/></returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="items"/> or <paramref name="predicate"/> are null</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is negative </exception>
         public static bool AtLeast<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -117,7 +114,24 @@ namespace System.Collections.Generic
             {
                 throw new ArgumentNullException(nameof(predicate));
             }
-            return items.Count(predicate.Compile()) >= count;
+
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value");
+            }
+
+            bool result;
+
+            if (count == 0)
+            {
+                result = items != null;
+            }
+            else
+            {
+                result = items.Count(predicate.Compile()) >= count;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -129,6 +143,7 @@ namespace System.Collections.Generic
         /// <param name="count">number of elements in <paramref name="items"/> that must match</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains <strong>exactly</strong> <paramref name="count"/> elements that match <paramref name="predicate"/> and <c>false</c> otherwise</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="items"/> or <paramref name="predicate"/> are null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="count"/> is negative.</exception>
         public static bool Exactly<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -141,6 +156,10 @@ namespace System.Collections.Generic
                 throw new ArgumentNullException(nameof(predicate));
             }
 
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a vlid value");
+            }
 
             return items.Count(predicate.Compile()) == count;
         }
@@ -157,6 +176,8 @@ namespace System.Collections.Generic
         /// <param name="predicate">Filter that <paramref name="count"/> elements should match.</param>
         /// <param name="count">Number of elements that match <paramref name="predicate"/></param>
         /// <returns><c>true</c> if there are 0 to <paramref name="count"/> elements that matches <paramref name="predicate"/> and <c>false</c> otherwise.</returns>
+        /// <exception cref="ArgumentNullException">if either <paramref name="items"/> or <paramref name="predicate"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is negative </exception>
         public static bool AtMost<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate, int count)
         {
             if (items == null)
@@ -168,7 +189,14 @@ namespace System.Collections.Generic
             {
                 throw new ArgumentNullException(nameof(predicate));
             }
-            return items.Count(predicate.Compile()) <= count;
+
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value.");
+            }
+
+            return  (count == 0 && items == Enumerable.Empty<T>()) || items.Count(predicate.Compile()) <= count;
+            
         }
 
         /// <summary>
@@ -179,7 +207,7 @@ namespace System.Collections.Generic
         /// <param name="first">the first collection of the cross join</param>
         /// <param name="second">the second collection</param>
         /// <returns></returns>
-        public static IEnumerable<(TFirst, TSecond)> CrossJoin<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second) 
+        public static IEnumerable<(TFirst, TSecond)> CrossJoin<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second)
             => CrossJoin(first, second, (t1, t2) => (t1, t2));
 
 
@@ -196,6 +224,42 @@ namespace System.Collections.Generic
         public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector)
         {
             return first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
+        }
+
+
+        /// <summary>
+        /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
+        /// </summary>
+        /// <typeparam name="TFirst">Type of element in <paramref name="first"/> collection.</typeparam>
+        /// <typeparam name="TSecond">Type of element in <paramref name="second"/> collection.</typeparam>
+        /// <typeparam name="TThird">Type of element in <paramref name="third"/> collection.</typeparam>
+        /// <typeparam name="TResult">Type of element of the result collection.</typeparam>
+        /// <param name="first">the first collection of the cross join</param>
+        /// <param name="second">the second collection</param>
+        /// <param name="third">the third collection</param>
+        /// <returns>The cartesian product of <paramref name="first"/>.<paramref name="second"/>.<paramref name="third"/>></returns>
+        public static IEnumerable<(TFirst, TSecond, TThird)> CrossJoin<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third)
+        {
+            return CrossJoin(first, second, third, (x, y, z) => (x, y, z));
+        }
+
+        /// <summary>
+        /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
+        /// </summary>
+        /// <typeparam name="TFirst">Type of element in <paramref name="first"/> collection.</typeparam>
+        /// <typeparam name="TSecond">Type of element in <paramref name="second"/> collection.</typeparam>
+        /// <typeparam name="TThird">Type of element in <paramref name="third"/> collection.</typeparam>
+        /// <typeparam name="TResult">Type of element of the result collection.</typeparam>
+        /// <param name="first">the first collection of the cross join</param>
+        /// <param name="second">the second collection</param>
+        /// <param name="third">the third collection</param>
+        /// <param name="selector">projection to perform</param>
+        /// <returns></returns>
+        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> selector)
+        {
+            return first.SelectMany(x => second.SelectMany(y => third, (y, z) => selector(x, y, z)));
+
+
         }
 
 
@@ -227,7 +291,8 @@ namespace System.Collections.Generic
                     exceptions.Add(exc);
                 }
             }
-            if (exceptions != null)
+
+            if (exceptions?.Any() ?? false)
             {
                 throw new AggregateException(exceptions);
             }

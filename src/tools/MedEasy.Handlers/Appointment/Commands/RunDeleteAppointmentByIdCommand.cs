@@ -27,7 +27,7 @@ namespace MedEasy.Handlers.Appointment.Commands
 
         private IUnitOfWorkFactory UowFactory { get; }
 
-        public async Task<Option<Nothing, CommandException>> RunAsync(IDeleteAppointmentByIdCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Option<Nothing, CommandException>> RunAsync(IDeleteAppointmentByIdCommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
             {

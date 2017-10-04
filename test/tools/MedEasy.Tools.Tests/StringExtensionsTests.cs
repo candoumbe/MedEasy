@@ -4,6 +4,8 @@ using System;
 using FluentAssertions;
 using Xunit.Abstractions;
 using MedEasy.Tools.Extensions;
+using System;
+using System.Linq.Expressions;
 
 namespace MedEasy.Tools.Tests
 {
@@ -11,6 +13,13 @@ namespace MedEasy.Tools.Tests
     public class StringExtensionsTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
+
+        internal class SuperHero
+        {
+            public string Firstname { get; set; }
+
+            public string Lastname { get; set; }
+        }
 
         public StringExtensionsTests(ITestOutputHelper outputHelper)
         {
@@ -55,19 +64,37 @@ namespace MedEasy.Tools.Tests
 
 
             // Act
-            input?.Like(pattern, ignoreCase).Should().Be(expectedResult);
+            bool result = input.Like(pattern, ignoreCase);
+                
+            // Assert
+            result.Should().Be(expectedResult);
         }
 
         [Fact]
         public void ToLowerKebabCase_Throws_ArgumentNullException()
         {
+            // Act
             Action act = () => StringExtensions.ToLowerKebabCase(null);
 
-
+            // Assert
             act.ShouldThrow<ArgumentNullException>().Which
                 .ParamName.ShouldBeEquivalentTo("input");
         }
 
+
+        [Theory]
+        [InlineData(null, "test")]
+        [InlineData("test", null)]
+        public void LikeThrowsArgumentNullException(string input, string pattern)
+        {
+            // Act
+            Action action = () => input.Like(pattern);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>().Which
+                .ParamName.Should()
+                .NotBeNullOrWhiteSpace();
+        }
 
 
 
@@ -87,6 +114,19 @@ namespace MedEasy.Tools.Tests
         {
             Guid guid = Guid.NewGuid();
             guid.Encode().Decode().Should().Be(guid);
+        }
+
+        [Fact]
+        public void ToLambdaThrowsArgumentNullExceptionWhenSourceIsNull()
+        {
+            // Act
+            Action action = () => StringExtensions.ToLambda<SuperHero>(null);
+
+            // Assert
+            action.ShouldThrow<ArgumentNullException>().Which
+                .ParamName.Should()
+                .NotBeNullOrWhiteSpace();
+
         }
     }
 

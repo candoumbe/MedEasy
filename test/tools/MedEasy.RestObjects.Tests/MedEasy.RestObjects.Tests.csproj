@@ -11,7 +11,9 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />

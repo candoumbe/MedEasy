@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation.Results;
 using MedEasy.API.Results;
 using MedEasy.Commands;
 using MedEasy.Commands.Appointment;
@@ -96,7 +97,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<AppointmentInfo>>), 200)]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration query)
         {
             if (query == null)
@@ -162,7 +163,7 @@ namespace MedEasy.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), 200)]
-        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default(CancellationToken)) => await base.Get(id);
+        public async override Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default) => await base.Get(id);
 
 
 
@@ -176,8 +177,8 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Patient and/or doctor do(es)n't exist</response>
         [HttpPost]
         [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), 201)]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Post([FromBody] CreateAppointmentInfo info, CancellationToken cancellationToken = default)
         {
             Option<AppointmentInfo, CommandException> output = await _iRunCreateAppointmentCommand.RunAsync(new CreateAppointmentCommand(info), cancellationToken);
 
@@ -242,7 +243,7 @@ namespace MedEasy.API.Controllers
         /// <response code="204">if the deletion succeed</response>
         /// <response code="400">if the resource cannot be deleted</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             await _iRunDeleteAppointmentByIdCommand.RunAsync(new DeleteAppointmentByIdCommand(id), cancellationToken);
             return new NoContentResult();
@@ -276,8 +277,8 @@ namespace MedEasy.API.Controllers
         /// <response code="400">Changes are not valid</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(IEnumerable<ErrorInfo>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AppointmentInfo> changes, CancellationToken cancellationToken = default(CancellationToken))
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AppointmentInfo> changes, CancellationToken cancellationToken = default)
         {
             PatchInfo<Guid, Appointment> data = new PatchInfo<Guid, Appointment>
             {
@@ -322,19 +323,19 @@ namespace MedEasy.API.Controllers
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<AppointmentInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken cancellationToken = default)
         {
 
 
             IList<IDataFilter> filters = new List<IDataFilter>();
             if (search.From.HasValue)
             {
-                filters.Add(new DataFilter { Field = nameof(Appointment.StartDate), Operator = GreaterThanOrEqual, Value = search.From });
+                filters.Add(new DataFilter(field : nameof(Appointment.StartDate), @operator : GreaterThanOrEqual, value : search.From));
             }
 
             if (search.To.HasValue)
             {
-                filters.Add(new DataFilter { Field = nameof(Appointment.StartDate), Operator = LessThanOrEqualTo, Value = search.To });
+                filters.Add(new DataFilter(field : nameof(Appointment.StartDate), @operator : LessThanOrEqualTo, value : search.To ));
             }
 
             SearchQueryInfo<AppointmentInfo> searchQueryInfo = new SearchQueryInfo<AppointmentInfo>

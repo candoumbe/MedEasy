@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
+using FluentValidation.Results;
 using MedEasy.Handlers.Core.Exceptions;
-using MedEasy.Validators;
-using MedEasy.Validators.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,18 +17,18 @@ namespace MedEasy.Handlers.Tests.Exceptions
             {
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<string>(null, Enumerable.Empty<ErrorInfo>())))
+                    ((Action)(() => new QueryNotValidException<string>(null, Enumerable.Empty<ValidationFailure>())))
                 };
 
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<int>(0, Enumerable.Empty<ErrorInfo>())))
+                    ((Action)(() => new QueryNotValidException<int>(0, Enumerable.Empty<ValidationFailure>())))
                 };
 
 
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ErrorInfo>())))
+                    ((Action)(() => new QueryNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ValidationFailure>())))
                 };
             }
         }

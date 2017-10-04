@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentValidation.Results;
 using MedEasy.Commands.Patient;
 using MedEasy.DTO;
 using MedEasy.Objects;
@@ -6,10 +7,12 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static MedEasy.Validators.ErrorLevel;
+using static FluentValidation.Severity;
+
 
 
 namespace MedEasy.Validators.Tests
@@ -17,7 +20,7 @@ namespace MedEasy.Validators.Tests
     public class AddNewTemperatureMeasureValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private AddNewTemperatureMeasureCommandValidator _validator;
+        private AddNewPhysiologicalMeasureCommandValidator<Temperature> _validator;
 
         public AddNewTemperatureMeasureValidatorTests(ITestOutputHelper outputHelper)
         {
@@ -25,56 +28,59 @@ namespace MedEasy.Validators.Tests
             _validator = new AddNewTemperatureMeasureCommandValidator();
         }
 
+        public void Dispose()
+        {
+            _outputHelper = null;
+            _validator = null;
+        }
 
-        public static IEnumerable<object> CommandsValidCases
+        public static IEnumerable<object> CommandsInvalidCases
         {
             get
             {
                 yield return new object[]
                 {
                     new CreatePhysiologicalMeasureInfo<Temperature> {
+                        PatientId = Guid.Empty,
                         Measure = new Temperature {Value = int.MinValue, DateOfMeasure = DateTimeOffset.UtcNow }
                     },
-                    $"because {nameof(Temperature.Value)} == int.MinValue"
+                    ((Expression<Func<ValidationResult, bool>>)(vr =>
+                        !vr.IsValid &&
+                        vr.Errors.Count == 1 &&
+                        vr.Errors[0].PropertyName == nameof(CreatePhysiologicalMeasureInfo<Temperature>.PatientId) && vr.Errors[0].Severity == Error
+                    )),
+                    $"{nameof(CreatePhysiologicalMeasureInfo<Temperature>.PatientId)} == Guid.Empty"
                 };
 
+                
                 yield return new object[]
                 {
                     new CreatePhysiologicalMeasureInfo<Temperature> {
-                        Measure = new Temperature {Value = 0, DateOfMeasure = DateTimeOffset.UtcNow }
-                    },
-                    $"because {nameof(Temperature.Value)} == 0"
-                };
-                yield return new object[]
-                {
-                    new CreatePhysiologicalMeasureInfo<Temperature> {
+                        PatientId =  Guid.NewGuid(),
                         Measure = new Temperature {Value = int.MaxValue, DateOfMeasure = DateTimeOffset.UtcNow }
                     },
-                    $"because {nameof(Temperature.Value)} == int.MinValue"
+
+                    ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
+                    $"because {nameof(Temperature.Value)} == int.MaxValue"
                 };
             }
         }
 
 
         [Theory]
-        [MemberData(nameof(CommandsValidCases))]
-        public async Task ValidateShouldReturnsErrors(CreatePhysiologicalMeasureInfo<Temperature> input, string reason)
+        [MemberData(nameof(CommandsInvalidCases))]
+        public async Task Should_Fails(CreatePhysiologicalMeasureInfo<Temperature> input, Expression<Func<ValidationResult, bool>> expectation, string because)
         {
-            _outputHelper.WriteLine($"Validation of {input}");
+            _outputHelper.WriteLine($"{nameof(input)} : {input}");
 
+            // Act
+            ValidationResult vr = await _validator.ValidateAsync(input);
 
-            IEnumerable<Task<ErrorInfo>> validationsResults = _validator.Validate(input);
-
-            IEnumerable<ErrorInfo> errors = await Task.WhenAll(validationsResults);
-            errors.Should().BeEmpty();
+            // Assert
+            vr.Should().Match(expectation, because);
+            
             
         }
 
-
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _validator = null;
-        }
     }
 }
