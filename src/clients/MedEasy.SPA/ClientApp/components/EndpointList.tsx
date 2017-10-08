@@ -44,6 +44,8 @@ interface EndpointListState<TResource extends BrowsableResource<MedEasy.DTO.Reso
     results: Array<TResource>;
     count?: number;
     loading: boolean;
+    /** Indicates if the component should display a modal form to add a new resource */
+    creating: boolean | undefined
 }
 
 
@@ -64,15 +66,18 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
     public constructor(props: EndpointListProps<TResource>) {
         super(props);
         this.state = {
-            results: [], loading: true, count: this.props.count || EndpointList.DEFAULT_COUNT
+            results: [],
+            loading: true,
+            count: this.props.count || EndpointList.DEFAULT_COUNT,
+            creating : false
         };
 
-       
-       
+
+
     }
 
 
-    public componentDidMount() : void{
+    public componentDidMount(): void {
         this.loadData(this.state.count || EndpointList.DEFAULT_COUNT);
     }
 
@@ -81,21 +86,25 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
      */
     private async loadData(count: number): Promise<void> {
         //this.setState({ items: [], page: this.state.page, pageSize: this.state.pageSize, loading: true })
-        let response : Response = await fetch(`${this.props.urls.read}?count=${count}`);
-        
+        let response: Response = await fetch(`${this.props.urls.read}?count=${count}`);
+
         if (response.ok) {
-            let results = await ( response.json() as Promise<Array<TResource>>);
-            let newState: EndpointListState<TResource> = { results: results, count: count, loading: false };
-            console.debug("New state", newState);
+            let results = await (response.json() as Promise<Array<TResource>>);
+            let newState: EndpointListState<TResource> = {
+                results: results,
+                count: count,
+                loading: false,
+                creating: false
+            };
             this.setState(newState);
         } else {
-            this.setState({  })
+            this.setState({})
         }
     }
 
     private async deleteItem(id: string): Promise<void> {
         if (this.props.urls.delete) {
-            let response: Response = await fetch(`${this.props.urls.delete}/${id}`, { method : "DELETE" });
+            let response: Response = await fetch(`${this.props.urls.delete}/${id}`, { method: "DELETE" });
             if (response.ok) {
                 await this.loadData(this.state.count || EndpointList.DEFAULT_COUNT);
             }
@@ -110,11 +119,12 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
 
     }
 
+
     private renderTr(item: TResource, index: number) {
         let { columns, urls } = this.props;
 
         let cells: Array<JSX.Element> = [];
-        
+
         for (const [key, value] of columns) {
             let val = value(item);
             cells.push(<td key={`${key}-${index}`}>{val}</td>);
@@ -176,31 +186,34 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
 
 
         return (
-            <div id={containerId} name={containerId} ref={containerId}>
-                <h1>{resourceName.plural}</h1>
-                <div className="row">
-                    {this.props.urls.create
-                        ? (
-                            <div className="row">
-                                <button className='btn btn-success' onClick={async (event) => await this.addItem()}>
-                                    <span className='glyphicon glyphicon-plus' aria-hidden='true'></span>&nbsp;Add
-                                </button>
-                            </div>
-                        )
-                        : null
-                    }
+            <div>
+                
+                <div id={containerId} name={containerId} ref={containerId}>
+                    <h1>{resourceName.plural}</h1>
                     <div className="row">
-                        <table className="table-condensed table" id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
-                            <thead>
-                                <tr>
-                                    {headers}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tbodyContent}
-                            </tbody>
+                        {this.props.urls.create
+                            ? (
+                                <div className="row">
+                                    <button className='btn btn-success' onClick={async (event) => await this.addItem()}>
+                                        <span className='glyphicon glyphicon-plus' aria-hidden='true'></span>&nbsp;Add
+                                </button>
+                                </div>
+                            )
+                            : null
+                        }
+                        <div className="row">
+                            <table className="table-condensed table" id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
+                                <thead>
+                                    <tr>
+                                        {headers}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {tbodyContent}
+                                </tbody>
 
-                        </table>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

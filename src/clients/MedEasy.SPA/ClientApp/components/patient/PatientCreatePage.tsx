@@ -37,12 +37,7 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
         this.state = { loading: true };
         this.loadFormContents();
     }
-
-
-    private handleChangeEvent(event: React.FormEvent<HTMLInputElement>, propertyName: string) {
-        let target = event.target;
-
-    }
+     
 
     private async loadFormContents(): Promise<void> {
         let response: Response = await fetch(this.props.endpoint);
@@ -52,11 +47,11 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
             .singleOrDefault((x) => x.name.toLowerCase() === "patients");
 
         if (patientsEndpoint) {
-            let createForm: Form | undefined = LinQ.from(patientsEndpoint.forms)
+            let form: Form | undefined = LinQ.from(patientsEndpoint.forms)
                 .singleOrDefault((x) => x.meta && x.meta.relation === "create-form");
 
-            if (createForm) {
-                this.setState({ form: createForm, loading: false })
+            if (form) {
+                this.setState({ form: form, loading: false })
             }
         }
 

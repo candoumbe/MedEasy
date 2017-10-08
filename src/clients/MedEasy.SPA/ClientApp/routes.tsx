@@ -7,7 +7,7 @@ import { Counter } from './components/Counter';
 import { PatientMainPage } from './components/patient/PatientMainPage';
 import { PatientDetails } from './components/patient/PatientDetails';
 import { PatientCreatePage } from './components/patient/PatientCreatePage';
-import { NotFoundComponent } from './components/NotFondComponent';
+import { NotFoundComponent } from './components/NotFoundComponent';
 
 const apiRoot = 'http://localhost:5000';
 export const routes = <Layout>
@@ -15,8 +15,9 @@ export const routes = <Layout>
     <Route path='/counter' component={Counter} />
     <Route path='/fetchdata' component={FetchData} />
     <Switch>
-        <Route exact path={'/patients/new'} render={(props: any) => < PatientCreatePage endpoint={`${apiRoot}`} />} />
-        <Route exact path='/patients/:id' render={({ match }) => <PatientDetails endpoint={`${apiRoot}/api/patients/${match.params.id}`} />} />
+        <Route path={'/patients/new'} render={(props: any) => < PatientCreatePage endpoint={`${apiRoot}`} />} />
+        <Route path='/patients/details/:id' render={({ match }) => <PatientDetails endpoint={`${apiRoot}/api/patients/${match.params.id}`} />} />
+        <Route path='/patients/edit/:id' render={({ match }) => <PatientDetails endpoint={`${apiRoot}/api/patients/${match.params.id}`} />} />
         <Route exact path='/patients' render={(props: any) => <PatientMainPage endpoint={`${apiRoot}/api`} />} />
         <Route render ={() => <NotFoundComponent  />} />
     </Switch>

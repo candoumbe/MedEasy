@@ -8,6 +8,7 @@ import { LoadingComponent } from "./../LoadingComponent";
 import * as LinQ from "linq";
 import { BrowsableResource } from "./../../restObjects/BrowsableResource";
 import { MeasuresRecap } from "./../../components/measures/MeasuresRecap";
+import { NotFoundComponent } from "./../NotFoundComponent";
 
 interface PatientDetailsComponentProps {
     /** endpoint where to get patient details from */
@@ -40,7 +41,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
             this.setState({  patient: item, loading : false });
         } else {
             if (response.status === 404) {
-
+                this.setState({ loading: false });
             }
         }
     }
@@ -65,7 +66,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
 
 
                 </div>
-                : <div>>Resource not found</div>;
+                : <NotFoundComponent />;
         }
         return component;
     }

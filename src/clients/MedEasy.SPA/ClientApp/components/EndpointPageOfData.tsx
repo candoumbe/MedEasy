@@ -66,7 +66,7 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
         this.state = {
             pageOfResult: PageOfResult.empty, page: 1, pageSize: props.pageSize, loading: true
         };
-        this.loadData(1).then(() => console.log("loaded"));
+        this.loadData(1);
     }
 
     /**
@@ -200,8 +200,9 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                 <nav aria-label="Pagination">
                     <ul className="pager">
                         <li>
-                            <button className="btn btn-default"
+                            <button className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
                                 title={first.title}
+                                disabled={this.state.page === 1}
                                 rel={first.relation}
                                 aria-label="1"
                                 onClick={() => this.loadData(1)}>
@@ -216,8 +217,8 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                                     </button>
                                 })}
                             <button
-                                className="btn btn-default"
-                                disabled={lastPageNumber > 1}
+                                className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
+                                disabled={lastPageNumber <= 1}
                                 title={last.title}
                                 aria-label={lastPageNumber}
                                 onClick={() => this.loadData(lastPageNumber)}>

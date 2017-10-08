@@ -1,5 +1,5 @@
 {
-  "name": "MedEasy_SPA",
+  "name": "medeasy_spa",
   "private": true,
   "version": "0.0.0",
   "devDependencies": {
@@ -21,13 +21,14 @@
     "isomorphic-fetch": "2.2.1",
     "jquery": "3.2.1",
     "json-loader": "0.5.4",
+    "linq": "3.0.9",
     "react": "15.6.1",
+    "react-bootstrap": "0.31.3",
     "react-dom": "15.6.1",
     "react-hot-loader": "3.0.0-beta.7",
     "react-router-dom": "4.1.1",
     "style-loader": "0.18.2",
     "typescript": "2.4.1",
-    "linq": "3.0.9",
     "url-loader": "0.5.9",
     "webpack": "2.5.1",
     "webpack-hot-middleware": "2.18.2"

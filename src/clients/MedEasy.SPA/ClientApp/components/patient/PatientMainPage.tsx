@@ -25,7 +25,7 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
                 canCreate={true}
                 id={(item) => item.resource.id}
                 columns={new Map<string,(item : BrowsableResource<MedEasy.DTO.Patient>) => any>([
-                    ["Fullname", (item) => <Link to={`/patients/${item.resource.id}`} rel="details">{item.resource.fullname}</Link>],
+                    ["Fullname", (item) => <Link to={`/patients/details/${item.resource.id}`} rel="details">{item.resource.fullname}</Link>],
                     ["Birth Place", (item) => item.resource.birthPlace],
                     ["Birth Date", (item) => item.resource.birthDate ? item.resource.birthDate : ""],
                     ["", (item) => (
@@ -36,7 +36,7 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
                             <button className='btn btn-success'>
                                 <span className="glyphicon glyphicon-pencil"></span>
                             </button>
-                            <Link to={`/patients/${item.resource.id}`} className='btn btn-default'>
+                            <Link to={`/patients/details/${item.resource.id}`} className='btn btn-default'>
                                 <span className="glyphicon glyphicon-eye-open"></span>
                             </Link>
                         </div>

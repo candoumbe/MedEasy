@@ -5,6 +5,8 @@ import { FormFieldType } from "./../restObjects/FormFieldType";
 import { FormFieldComponent } from "./FormFieldComponent";
 import * as ReactRouter from "react-router";
 import * as LinQ from "linq";
+import Button from "react-bootstrap/lib/Button";
+
 
 interface FormComponentProps {
     form: Form
@@ -70,7 +72,6 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
                 }
             });
         } else {
-
             let patient = await (response.json() as Promise<MedEasy.DTO.Patient>);
             this.setState({ resource: patient });
         }
@@ -93,11 +94,8 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
             component = <ReactRouter.Redirect to={`/patients/${this.state.resource.id}`} push={true} />
         } else {
             component =
-
                 <form role="form" onSubmit={this.handleSubmit}>
-                
                 {
-
                     // Renders the form fields
                     form.items.map((f) => <FormFieldComponent
                         key={f.name}
@@ -112,7 +110,7 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
                         }} />)
                 }
 
-                <nav>
+                <nav className='center-block'>
                     <button type="submit" className="btn btn-primary btn-xs-12 btn-sm-6" disabled={!this.isValid()}>
                         <span className="glyphicon glyphicon-save"></span>&nbsp;Create
                     </button>
