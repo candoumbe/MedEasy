@@ -1,6 +1,6 @@
 ﻿import * as React from "react";
 
-export class NotFoundComponent extends React.PureComponent<any, void>{
+export class NotFoundComponent extends React.PureComponent<any, any>{
 
 
 

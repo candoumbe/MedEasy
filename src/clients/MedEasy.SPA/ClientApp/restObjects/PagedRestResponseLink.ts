@@ -1,6 +1,6 @@
 ﻿import { Link } from "./Link";
 
-export class PageRestResponseLink implements MedEasy.RestObjects.IPagedRestResponseLink {
+export class PageRestResponseLink{
 
     public readonly first: Link;
     public readonly last: Link;

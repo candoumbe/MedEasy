@@ -1,16 +1,18 @@
 {
-  "name": "MedEasySPA",
-  "version": "1.0.0",
+  "name": "MedEasy_SPA",
+  "version": "0.0.0",
   "dependencies": {
     "@types/history": {
       "version": "4.6.0",
       "from": "@types/history@4.6.0",
-      "resolved": "https://registry.npmjs.org/@types/history/-/history-4.6.0.tgz"
+      "resolved": "https://registry.npmjs.org/@types/history/-/history-4.6.0.tgz",
+      "dev": true
     },
     "@types/react": {
       "version": "15.0.35",
-      "from": "https://registry.npmjs.org/@types/react/-/react-15.0.35.tgz",
-      "resolved": "https://registry.npmjs.org/@types/react/-/react-15.0.35.tgz"
+      "from": "@types/react@15.0.35",
+      "resolved": "https://registry.npmjs.org/@types/react/-/react-15.0.35.tgz",
+      "dev": true
     },
     "@types/react-dom": {
       "version": "15.5.1",
@@ -26,13 +28,15 @@
     },
     "@types/react-router": {
       "version": "4.0.12",
-      "from": "https://registry.npmjs.org/@types/react-router/-/react-router-4.0.12.tgz",
-      "resolved": "https://registry.npmjs.org/@types/react-router/-/react-router-4.0.12.tgz"
+      "from": "@types/react-router@4.0.12",
+      "resolved": "https://registry.npmjs.org/@types/react-router/-/react-router-4.0.12.tgz",
+      "dev": true
     },
     "@types/react-router-dom": {
       "version": "4.0.5",
-      "from": "https://registry.npmjs.org/@types/react-router-dom/-/react-router-dom-4.0.5.tgz",
-      "resolved": "https://registry.npmjs.org/@types/react-router-dom/-/react-router-dom-4.0.5.tgz"
+      "from": "@types/react-router-dom@4.0.5",
+      "resolved": "https://registry.npmjs.org/@types/react-router-dom/-/react-router-dom-4.0.5.tgz",
+      "dev": true
     },
     "@types/webpack-env": {
       "version": "1.13.0",
@@ -1580,12 +1584,6 @@
       "version": "1.0.0",
       "from": "lcid@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/lcid/-/lcid-1.0.0.tgz",
-      "dev": true
-    },
-    "linq": {
-      "version": "3.0.8",
-      "from": "linq@>=3.0.8-0 <4.0.0-0",
-      "resolved": "https://registry.npmjs.org/linq/-/linq-3.0.8.tgz",
       "dev": true
     },
     "load-json-file": {

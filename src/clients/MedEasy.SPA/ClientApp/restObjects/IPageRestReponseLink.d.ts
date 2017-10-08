@@ -1,10 +1,10 @@
 ﻿declare namespace MedEasy.RestObjects {
 
     export interface IPagedRestResponseLink {
-        First?: ILink,
-        Previous?: ILink
-        Next?: ILink;
-        Last?: ILink;
+        first?: ILink,
+        previous?: ILink
+        next?: ILink;
+        last?: ILink;
 
     }
 }

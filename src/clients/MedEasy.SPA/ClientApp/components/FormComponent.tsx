@@ -47,45 +47,39 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
         })
     }
 
-    public handleSubmit: React.EventHandler<React.FormEvent<HTMLFormElement>> = (event) => {
+    public handleSubmit: React.EventHandler<React.FormEvent<HTMLFormElement>> = async (event) => {
         event.preventDefault();
 
         const form = this.props.form;
 
         let { data } = this.state;
         this.setState({ ongoing: true });
-        let response = fetch(form.meta.href, { method: form.meta.method, body: JSON.stringify(data) })
-            .then(async response => {
-                let result;
-                if (!response.ok) {
-                    if (response.status === 400) {
-                        let errors = await (response.json() as Promise<Array<MedEasy.DTO.ErrorInfo>>)
-                        this.setState((prevState, props) => {
-                            return {
-                                ongoing: false,
-                                errors: errors
-                            }
-                        });
-                    }
-
-
-                } else {
-                    response.json() as Promise<MedEasy.DTO.Patient>
+        let response: Response = await fetch(
+            form.meta.href,
+            {
+                headers: {"content-type" : "application/json"},
+                method: form.meta.method,
+                body: JSON.stringify(data)
+            });
+        if (!response.ok) {
+            let errors = await (response.json() as Promise<Array<MedEasy.DTO.ErrorInfo>>)
+            this.setState((prevState, props) => {
+                return {
+                    ongoing: false,
+                    errors: errors
                 }
-                this.setState({ ongoing: false });
+            });
+        } else {
 
-                return response.json() as Promise<MedEasy.DTO.Patient>
-            })
-            .then(patient => {
-                this.setState({ resource: patient });
-            })
-
-
-    }
+            let patient = await (response.json() as Promise<MedEasy.DTO.Patient>);
+            this.setState({ resource: patient });
+        }
+    };
 
 
     private isValid(): boolean {
         return this.state.data && LinQ.from(this.props.form.items)
+            .where(x => x.required)
             .all(item => Boolean(this.state.data[item.name]));
     }
 
@@ -95,17 +89,31 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
 
         let component: JSX.Element;
 
-        if (this.state.resource) {  
+        if (this.state.resource) {
             component = <ReactRouter.Redirect to={`/patients/${this.state.resource.id}`} push={true} />
         } else {
-            component = <form role="form" onSubmit={this.handleSubmit}>
+            component =
+
+                <form role="form" onSubmit={this.handleSubmit}>
+                
                 {
+
                     // Renders the form fields
-                    form.items.map((f) => <FormFieldComponent key={f.name} field={f} />)
+                    form.items.map((f) => <FormFieldComponent
+                        key={f.name}
+                        field={f}
+                        onChange={(value) => {
+                            this.setState((prevState, props) => {
+                                let newState = Object.assign({}, prevState);
+                                newState[f.name] = value;
+                                return newState;
+                            })
+                            this.state.data[f.name] = value;
+                        }} />)
                 }
 
                 <nav>
-                    <button type="submit" className="btn btn-primary btn-xs-12 btn-sm-6" disabled={Boolean(this.state.errors) || this.state.ongoing}>
+                    <button type="submit" className="btn btn-primary btn-xs-12 btn-sm-6" disabled={!this.isValid()}>
                         <span className="glyphicon glyphicon-save"></span>&nbsp;Create
                     </button>
                     <button type="button" className="btn btn-default btn-xs-12 btn-sm-6">

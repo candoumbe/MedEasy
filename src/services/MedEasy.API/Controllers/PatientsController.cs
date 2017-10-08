@@ -241,10 +241,7 @@ namespace MedEasy.API.Controllers
         /// <response code="404">Resource not found</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(PatientInfo), 200)]
-        public Task<IActionResult> Put(Guid id, [FromBody] CreatePatientInfo info)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<IActionResult> Put(Guid id, [FromBody] CreatePatientInfo info) => throw new NotImplementedException();
 
         // DELETE api/patients/5
 

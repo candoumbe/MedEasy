@@ -184,7 +184,7 @@ namespace MedEasy.API.Controllers
                });
         }
 
-        
+
         /// <summary>
         /// Updates the specified resource
         /// </summary>
@@ -193,10 +193,7 @@ namespace MedEasy.API.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [Produces(typeof(DoctorInfo))]
-        public Task<IActionResult> Put(Guid id, [FromBody] DoctorInfo info)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<IActionResult> Put(Guid id, [FromBody] DoctorInfo info) => throw new NotImplementedException();
 
         // DELETE api/specialties/5
 

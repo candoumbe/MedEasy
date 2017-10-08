@@ -5,19 +5,43 @@ import { FormFieldType } from "./../restObjects/FormFieldType";
 
 interface FormFieldComponentProps {
     field: FormField;
+    /**
+     * 
+     */
+    onChange: (value: any) => void;
+    /**
+     *
+     */
+    onChanging?: (oldValue: any, newValue: any) => boolean;
 }
 
-export class FormFieldComponent extends React.Component<FormFieldComponentProps, any>{
+interface FormFieldComponentState {
+    value : any
+}
 
-    
+export class FormFieldComponent extends React.Component<FormFieldComponentProps, FormFieldComponentState>{
+
+    /**
+     * Builds a new FormFieldComponent instance
+     * @param {FormFieldComponentProps} props
+     */
     public constructor(props: FormFieldComponentProps) {
         super(props);
-        let currentVal 
+        let currentVal;
         this.state = undefined;
         this.handleChange = (event) => {
-            this.setState((prevState, props) => {
-                return event.currentTarget.value; 
-            });
+            if(this.props.onChanging)
+            {
+                let newValue: any = event.currentTarget.value;
+                if (this.props.onChanging(this.state ? this.state.value : undefined, newValue )) {
+                  this.setState({ value: newValue });
+                }
+            } else {
+                  this.setState({ value: event.currentTarget.value });
+                  if (this.props.onChange) {
+                      this.props.onChange(event.currentTarget.value);
+                  }
+            }
         };
     }
 
@@ -43,7 +67,7 @@ export class FormFieldComponent extends React.Component<FormFieldComponentProps,
             maxLength: f.maxLength,
             title: f.description,
             placeholder: f.placeholder,
-            value: this.state,
+            value: this.state && this.state.value ? this.state.value : '',
             required: f.required,
             pattern: f.pattern
         };

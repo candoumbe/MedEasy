@@ -1,6 +1,6 @@
 ﻿declare namespace MedEasy.DTO {
     export interface Resource<TKey> {
-        /** Id*/
+        /** Id of the resource */
         id: TKey
     }
 }

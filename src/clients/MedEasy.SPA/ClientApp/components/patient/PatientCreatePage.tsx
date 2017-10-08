@@ -23,7 +23,7 @@ interface PatientCreatePageState {
 interface PatientCreateComponentProps {
     /** endpoint where to get forms descriptions from */
     endpoint: string,
-    
+
 }
 
 export class PatientCreatePage extends React.Component<PatientCreateComponentProps, PatientCreatePageState> {
@@ -39,28 +39,27 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
     }
 
 
-    private handleChangeEvent(event: React.FormEvent<HTMLInputElement>, propertyName : string){
+    private handleChangeEvent(event: React.FormEvent<HTMLInputElement>, propertyName: string) {
         let target = event.target;
-        
+
     }
 
-    private loadFormContents(): void {
-        fetch(this.props.endpoint)
-            .then((response) => response.json() as Promise<Array<Endpoint>>)
-            .then((endpoints) => {
+    private async loadFormContents(): Promise<void> {
+        let response: Response = await fetch(this.props.endpoint);
+        let endpoints: Array<Endpoint> = await (response.json() as Promise<Array<Endpoint>>);
 
-                let patientsEndpoint: Endpoint | undefined = LinQ.from(endpoints)
-                    .singleOrDefault((x) => x.name.toLowerCase() === "patients");
+        let patientsEndpoint: Endpoint | undefined = LinQ.from(endpoints)
+            .singleOrDefault((x) => x.name.toLowerCase() === "patients");
 
-                if (patientsEndpoint) {
-                    let createForm: Form | undefined = LinQ.from(patientsEndpoint.forms)
-                        .singleOrDefault((x) => x.meta && x.meta.relation === "create-form");
+        if (patientsEndpoint) {
+            let createForm: Form | undefined = LinQ.from(patientsEndpoint.forms)
+                .singleOrDefault((x) => x.meta && x.meta.relation === "create-form");
 
-                    if (createForm) {
-                        this.setState({ form: createForm, loading: false })
-                    }
-                }
-            })
+            if (createForm) {
+                this.setState({ form: createForm, loading: false })
+            }
+        }
+
     }
 
 
@@ -68,26 +67,7 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
         let content = this.state.form
             ? <FormComponent form={this.state.form} />
             : <LoadingComponent />;
-        return (
-            <form>
-                <h1>Nouveau</h1>
-                <div className="form-group">
-                    <label htmlFor="firstname" className="control-label"></label>
-                    <input className="form-control col-md-6 col-sd-12"
-                        onChange={(event) => {
-                            this.setState((prevState, props) => {
 
-                                let { formState } = prevState;
-
-                                return {
-                                    form: prevState.form,
-                                    formState: prevState.formState,
-                                    loading: prevState.loading
-                                }
-                            }); 
-                    }} />
-                </div>
-            </form>
-        );
+        return content;
     }
 }

@@ -5,10 +5,13 @@ interface LoadingComponentProps {
     text?: string | React.ReactHTMLElement<any>;
 }
 
+/**
+ * Display a
+ */
 export class LoadingComponent extends React.PureComponent<LoadingComponentProps, {}>{
 
     /**
-     * Builds a new {LoadingComponent}
+     * Builds a new {LoadingComponent} instance.
      * @param {LoadingComponentProps} props properties
      */
     public constructor(props: LoadingComponentProps) {

@@ -189,7 +189,7 @@ namespace MedEasy.WebApi.Tests
 
                 {
                     IEnumerable<Patient> items = A.ListOf<Patient>(400);
-                    items.ForEach(item => item.Id = default(int));
+                    items.ForEach(item => item.Id = default);
                     yield return new object[]
                     {
                         items,
@@ -203,7 +203,7 @@ namespace MedEasy.WebApi.Tests
                 }
                 {
                     IEnumerable<Patient> items = A.ListOf<Patient>(400);
-                    items.ForEach(item => item.Id = default(int));
+                    items.ForEach(item => item.Id = default);
 
                     yield return new object[]
                     {

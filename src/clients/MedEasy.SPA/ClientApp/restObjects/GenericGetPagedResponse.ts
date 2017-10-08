@@ -3,7 +3,7 @@
 /**
  * A page of result
  */
-export class GenericGetPagedResponse<T> implements MedEasy.RestObjects.IGenericGetPagedResponse<T> {
+export class GenericGetPagedResponse<T> {
 
         /**
          * Builds a new GenericGetPagedResponse<T> instance

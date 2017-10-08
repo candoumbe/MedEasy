@@ -66,6 +66,8 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
         this.state = {
             results: [], loading: true, count: this.props.count || EndpointList.DEFAULT_COUNT
         };
+
+       
        
     }
 
@@ -80,7 +82,7 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
     private async loadData(count: number): Promise<void> {
         //this.setState({ items: [], page: this.state.page, pageSize: this.state.pageSize, loading: true })
         let response : Response = await fetch(`${this.props.urls.read}?count=${count}`);
-
+        
         if (response.ok) {
             let results = await ( response.json() as Promise<Array<TResource>>);
             let newState: EndpointListState<TResource> = { results: results, count: count, loading: false };
@@ -112,6 +114,7 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
         let { columns, urls } = this.props;
 
         let cells: Array<JSX.Element> = [];
+        
         for (const [key, value] of columns) {
             let val = value(item);
             cells.push(<td key={`${key}-${index}`}>{val}</td>);

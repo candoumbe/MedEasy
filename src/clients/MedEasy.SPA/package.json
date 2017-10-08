@@ -1,10 +1,10 @@
 {
-  "name": "MedEasySPA",
+  "name": "MedEasy_SPA",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "devDependencies": {
     "@types/history": "4.6.0",
-    "@types/react": "^15.0.35",
+    "@types/react": "15.0.35",
     "@types/react-dom": "15.5.1",
     "@types/react-hot-loader": "3.0.3",
     "@types/react-router": "4.0.12",
@@ -27,14 +27,9 @@
     "react-router-dom": "4.1.1",
     "style-loader": "0.18.2",
     "typescript": "2.4.1",
+    "linq": "3.0.9",
     "url-loader": "0.5.9",
     "webpack": "2.5.1",
-    "webpack-hot-middleware": "2.18.2",
-    "linq": "^3.0.8"
-  },
-  "dependencies": {
-    "@types/react": "https://registry.npmjs.org/@types/react/-/react-15.0.35.tgz",
-    "@types/react-router": "https://registry.npmjs.org/@types/react-router/-/react-router-4.0.12.tgz",
-    "@types/react-router-dom": "https://registry.npmjs.org/@types/react-router-dom/-/react-router-dom-4.0.5.tgz"
+    "webpack-hot-middleware": "2.18.2"
   }
 }
