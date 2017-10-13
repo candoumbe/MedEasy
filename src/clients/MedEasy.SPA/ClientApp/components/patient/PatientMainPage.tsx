@@ -17,7 +17,30 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
     /**
      * Renders the component
      */
-    public render() {
+    public render(): JSX.Element | null {
+
+        //let dataSource = new  RemoteDataSource<BrowsableResource<MedEasy.DTO.Patient>>(
+        //    {
+        //        create: {
+        //            url: this.props.endpoint,
+        //            type: HttpVerb.GET,
+        //            contentType : "application/json"
+        //        }
+        //    },
+        //    {
+        //        model: {
+        //            id: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.id,
+        //            fields: [
+        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.id },
+        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.firstname },
+        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.lastname },
+        //            ]
+        //        }
+        //    }
+            
+
+        //);
+
         return (
             <PatientList
 
@@ -44,6 +67,7 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
                 ])}
                 resourceName={{ plural: "patients", singular: "patient" }}
                 pageSize={30} />
+            
         );
     }
 }

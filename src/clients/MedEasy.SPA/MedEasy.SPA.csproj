@@ -18,7 +18,6 @@
   <ItemGroup>
     <Folder Include="ClientApp\dto\" />
     <Folder Include="ClientApp\restObjects\" />
-    <Folder Include="ClientApp\System\" />
   </ItemGroup>
 
   <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('wwwroot\dist') ">
