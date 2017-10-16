@@ -63,7 +63,7 @@ namespace MedEasy.Web.Tests.Controllers
                 
             };
 
-            _controller.ViewDataDictionary = new 
+            //_controller.ViewDataDictionary = new 
             
             // Act
             IActionResult actionResult = await _controller.List(1, 10);

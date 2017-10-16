@@ -89,7 +89,9 @@ namespace System
                 }
 
             }
-            return dictionary;
+            return dictionary
+                .OrderBy(x => x.Key)
+                .ToDictionary(x=> x.Key, x => x.Value);
         }
 
 

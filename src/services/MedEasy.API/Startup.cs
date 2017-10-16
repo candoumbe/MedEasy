@@ -97,7 +97,6 @@ namespace MedEasy.API
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped(builder =>
             {
-
                 IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
                 IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
 
@@ -201,7 +200,11 @@ namespace MedEasy.API
             {
                 MedEasyApiOptions apiOptions = Configuration.Get<MedEasyApiOptions>();
                 routeBuilder.MapRoute("default", "api/{controller=root}/{action=index}");
-                routeBuilder.MapRoute("defaultGetById", "api/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "api/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "api/{controller}/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "api/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "api/{controller}/{id}/{action}/");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "api/{controller}/search/");
             });
 
             app.UseWelcomePage();

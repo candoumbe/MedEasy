@@ -110,16 +110,16 @@ namespace MedEasy.API.Controllers
              
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new {PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = query.Page - 1 })
                     : null;
 
             string nextPageUrl = query.Page < result.PageCount
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = query.Page + 1 })
                     : null;
             string lastPageUrl = result.PageCount > 0
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName,  query.PageSize, Page = result.PageCount })
                     : null;
 
             IEnumerable<BrowsableResource<DoctorInfo>> resources = result.Entries
@@ -339,16 +339,16 @@ namespace MedEasy.API.Controllers
             int count = pageOfResult.Entries.Count();
             bool hasPreviousPage = count > 0 && search.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = 1, search.PageSize, search.Sort });
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = ControllerName, search.Firstname, search.Lastname, Page = 1, search.PageSize, search.Sort });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page - 1, search.PageSize, search.Sort })
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = ControllerName, search.Firstname, search.Lastname, Page = search.Page - 1, search.PageSize, search.Sort })
                     : null;
 
             string nextPageUrl = search.Page < pageOfResult.PageCount
-                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = search.Page + 1, search.PageSize, search.Sort })
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = ControllerName, search.Firstname, search.Lastname, Page = search.Page + 1, search.PageSize, search.Sort })
                     : null;
             string lastPageUrl = pageOfResult.PageCount > 1
-                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = ControllerName, search.Firstname, search.Lastname, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
                     : null;
 
             IEnumerable<BrowsableResource<DoctorInfo>> resources = pageOfResult.Entries

@@ -125,6 +125,8 @@ namespace MedEasy.API.Tests.Controllers
             {
                 endpoints.Should()
                     .Contain(x => x.Name == "documentation");
+
+                Endpoint endpointProduction = endpoints.Single(x => x.Name == "documentation");
             }
 
             

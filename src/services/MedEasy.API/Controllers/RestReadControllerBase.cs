@@ -92,7 +92,8 @@ namespace MedEasy.API.Controllers
                         new Link
                         {
                             Relation = "self",
-                            Href = UrlHelper.Action(nameof(Get), ControllerName, new {x.Id })
+                            Method = "GET",
+                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { Controller = ControllerName, x.Id })
                         }
                    };
                    IEnumerable<Link> additionalLinks = BuildAdditionalLinksForResource(x);

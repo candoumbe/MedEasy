@@ -80,17 +80,17 @@ namespace MedEasy.API.Controllers
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && query.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = 1 });
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = query.Page - 1 })
                     : null;
 
             string nextPageUrl = query.Page < result.PageCount
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = query.Page + 1 })
                     : null;
 
             string lastPageUrl = result.PageCount > 0
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = query.PageSize, Page = result.PageCount })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = ControllerName, query.PageSize, Page = result.PageCount })
                     : null;
 
             IEnumerable<BrowsableResource<SpecialtyInfo>> resources = result.Entries
@@ -263,7 +263,7 @@ namespace MedEasy.API.Controllers
                 new Link {
                     Method = "GET",
                     Relation = nameof(SpecialtiesController.Doctors),
-                    Href = UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { resource.Id })
+                    Href = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = DoctorsController.EndpointName, resource.Id })
                 }
             };
     }

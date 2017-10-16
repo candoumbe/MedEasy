@@ -61,6 +61,12 @@ namespace MedEasy.Tools.Tests
                  };
 
                 yield return new object[]
+                 {
+                    new { c = 1, b=3 , a = 2},
+                    "a=2&b=3&c=1"
+                 };
+
+                yield return new object[]
                 {
                     new {limit = new [] {0, 1, 2, 3}},
                     $"{Uri.EscapeDataString("limit[0]")}=0" +

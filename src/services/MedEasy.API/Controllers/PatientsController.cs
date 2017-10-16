@@ -120,6 +120,7 @@ namespace MedEasy.API.Controllers
         /// </summary>
         /// <param name="page">index of the page of resources to get</param>
         /// <param name="pageSize">number of resources to return </param>
+        /// <param name="cancellationToken">Notifies to cancel the execution of the request</param>
         /// <remarks>
         /// Resources are returned as pages. The <paramref name="pageSize"/> value is used has a hint by the server
         /// and there's no garanty that the size of page of result will be equal to the <paramref name="pageSize"/> set in the query.
@@ -129,7 +130,7 @@ namespace MedEasy.API.Controllers
         /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or zero</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<PatientInfo>>), 200)]
-        public async Task<IActionResult> Get([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<IActionResult> Get([FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken = default)
         {
 
             PaginationConfiguration pageConfig = new PaginationConfiguration
@@ -137,26 +138,37 @@ namespace MedEasy.API.Controllers
                 Page = page,
                 PageSize = pageSize
             };
-            IPagedResult<PatientInfo> result = await GetAll(pageConfig);
+            IPagedResult<PatientInfo> result = await GetAll(pageConfig, cancellationToken);
 
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pageConfig.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = 1 });
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { Controller = ControllerName, PageSize = pageConfig.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { Controller = ControllerName, PageSize = pageConfig.PageSize, Page = pageConfig.Page - 1 })
                     : null;
 
             string nextPageUrl = pageConfig.Page < result.PageCount
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = pageConfig.Page + 1 })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { Controller = ControllerName, PageSize = pageConfig.PageSize, Page = pageConfig.Page + 1 })
                     : null;
             string lastPageUrl = result.PageCount > 0
-                    ? UrlHelper.Action(nameof(Get), ControllerName, new { PageSize = pageConfig.PageSize, Page = result.PageCount })
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { Controller = ControllerName, PageSize = pageConfig.PageSize, Page = result.PageCount })
                     : null;
 
 
             IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
-                .Select(x => new BrowsableResource<PatientInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
+                .Select(x => new BrowsableResource<PatientInfo>
+                {
+                    Resource = x,
+                    Links = new[]
+                    {
+                        new Link
+                        {
+                            Relation = "self",
+                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { Controller = ControllerName,x.Id })
+                        }
+                    }
+                });
 
             IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                 resources,
@@ -464,7 +476,7 @@ namespace MedEasy.API.Controllers
                             {
                                 new Link
                                 {
-                                    Href = UrlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                    Href = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(MostRecentBloodPressures), controller = EndpointName, id = x.PatientId, temperatureId = x.Id }),
                                     Relation = "self"
                                 }
                             }
@@ -497,7 +509,7 @@ namespace MedEasy.API.Controllers
                             {
                                 new Link
                                 {
-                                    Href = UrlHelper.Action(nameof(TemperatureInfo), EndpointName, new { id = x.PatientId, temperatureId = x.Id }),
+                                    Href = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(MostRecentTemperatures), controller = EndpointName,  id = x.PatientId, temperatureId = x.Id }),
                                     Relation = "self"
                                 }
                             }
@@ -557,7 +569,7 @@ namespace MedEasy.API.Controllers
             if (search.BirthDate.HasValue)
             {
 
-                filters.Add(new DataFilter(field : nameof(PatientInfo.BirthDate), @operator : DataFilterOperator.EqualTo, value : search.BirthDate.Value));
+                filters.Add(new DataFilter(field: nameof(PatientInfo.BirthDate), @operator: DataFilterOperator.EqualTo, value: search.BirthDate.Value));
             }
 
             SearchQueryInfo<PatientInfo> searchQueryInfo = new SearchQueryInfo<PatientInfo>
@@ -593,9 +605,9 @@ namespace MedEasy.API.Controllers
             int count = pageOfResult.Entries.Count();
             bool hasPreviousPage = count > 0 && search.Page > 1;
 
-            string firstPageUrl = UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = 1, search.PageSize, search.Sort });
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = ControllerName, search.Firstname, search.Lastname, search.BirthDate, Page = 1, search.PageSize, search.Sort });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Action(nameof(Search), ControllerName, new { search.Firstname, search.Lastname, search.BirthDate, Page = search.Page - 1, search.PageSize, search.Sort })
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = ControllerName, search.Firstname, search.Lastname, search.BirthDate, Page = search.Page - 1, search.PageSize, search.Sort })
                     : null;
 
             string nextPageUrl = search.Page < pageOfResult.PageCount
@@ -606,7 +618,18 @@ namespace MedEasy.API.Controllers
                     : null;
 
             IEnumerable<BrowsableResource<PatientInfo>> resources = pageOfResult.Entries
-                .Select(x => new BrowsableResource<PatientInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
+                .Select(x => new BrowsableResource<PatientInfo>
+                {
+                    Resource = x,
+                    Links = new[]
+                    {
+                        new Link
+                        {
+                            Relation = "self",
+                            Href = UrlHelper.Action(nameof(Get), ControllerName, new { x.Id })
+                        }
+                    }
+                });
 
             IGenericPagedGetResponse<BrowsableResource<PatientInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                 resources,
@@ -784,14 +807,9 @@ namespace MedEasy.API.Controllers
                            Links = new[]
                            {
                                new Link
-                                {
-                                    Relation = nameof(Prescription.Items),
-                                    Href = UrlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName , new { x.Id })
-                                },
-                               new Link
                                {
                                    Relation = "self",
-                                   Href = UrlHelper.Action(nameof(Prescriptions), EndpointName, new { id = x.PatientId, prescriptionId = x.Id })
+                                   Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = PrescriptionsController.EndpointName, x.Id })
                                }
                            },
                            Resource = x
@@ -822,8 +840,9 @@ namespace MedEasy.API.Controllers
                 Resource = createdPrescription,
                 Links = new[]
                 {
-                    new Link {
-                        Href = UrlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {createdPrescription.Id}),
+                    new Link
+                    {
+                        Href = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new {Controller = PrescriptionsController.EndpointName, action=nameof(PrescriptionsController.Details), createdPrescription.Id}),
                         Method = "GET",
                         Relation = nameof(Prescription.Items),
                         Title = "Content"
@@ -886,7 +905,7 @@ namespace MedEasy.API.Controllers
                     Value = newBodyWeight.Value
                 }
             };
-            Option<BodyWeightInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync<BodyWeight, BodyWeightInfo>(new AddNewPhysiologicalMeasureCommand<BodyWeight, BodyWeightInfo>(input));
+            Option<BodyWeightInfo, CommandException> output = await _physiologicalMeasureService.AddNewMeasureAsync(new AddNewPhysiologicalMeasureCommand<BodyWeight, BodyWeightInfo>(input));
             return output.Match(
                 some: bw => new CreatedAtActionResult(nameof(BodyWeights), EndpointName, new { id = bw.PatientId, bodyWeightId = bw.Id }, bw),
                 none: exception =>
@@ -916,28 +935,26 @@ namespace MedEasy.API.Controllers
                 {
                     new Link {
                         Relation = "main-doctor",
-                        Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new { id = resource.MainDoctorId })
+                        Method = "GET",
+                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {Controller = DoctorsController.EndpointName, id = resource.MainDoctorId})
                     },
                     new Link
                     {
                         Relation = "delete",
                         Method = "DELETE",
-                        Href = UrlHelper.Action(nameof(PatientsController.Delete), EndpointName, new { id = resource.Id })
+                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {Controller = EndpointName, resource.Id })
                     },
                     new Link
                     {
-                        Relation = nameof(Documents).ToLower(),
-                        Href = UrlHelper.Action(nameof(PatientsController.Documents), EndpointName, new { id = resource.Id })
+                        Relation = nameof(Documents).ToLower()
                     },
                     new Link
                     {
-                        Relation = nameof(PatientsController.MostRecentTemperatures).ToLowerKebabCase(),
-                        Href = UrlHelper.Action(nameof(PatientsController.MostRecentTemperatures), EndpointName, new { id = resource.Id })
+                        Relation = nameof(PatientsController.MostRecentTemperatures).ToLowerKebabCase()
                     },
                     new Link
                     {
-                        Relation = nameof(PatientsController.MostRecentBloodPressures).ToLowerKebabCase(),
-                        Href = UrlHelper.Action(nameof(PatientsController.MostRecentBloodPressures), EndpointName, new { id = resource.Id })
+                        Relation = nameof(PatientsController.MostRecentBloodPressures).ToLowerKebabCase()
                     }
                 }
                 : Enumerable.Empty<Link>();
@@ -978,16 +995,16 @@ namespace MedEasy.API.Controllers
                        int count = pageOfResult.Entries.Count();
                        bool hasPreviousPage = count > 0 && query.Page > 1;
 
-                       string firstPageUrl = UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = 1, id });
+                       string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(Documents), controller = ControllerName, PageSize = query.PageSize, Page = 1, id });
                        string previousPageUrl = hasPreviousPage
-                               ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page - 1, id, })
+                               ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(Documents), controller = ControllerName, PageSize = query.PageSize, Page = query.Page - 1, id, })
                                : null;
 
                        string nextPageUrl = query.Page < pageOfResult.PageCount
-                               ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = query.Page + 1, id })
+                               ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(Documents), controller = ControllerName, PageSize = query.PageSize, Page = query.Page + 1, id })
                                : null;
                        string lastPageUrl = pageOfResult.PageCount > 0
-                               ? UrlHelper.Action(nameof(Documents), ControllerName, new { PageSize = query.PageSize, Page = pageOfResult.PageCount, id })
+                               ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(Documents), controller = ControllerName, PageSize = query.PageSize, Page = pageOfResult.PageCount, id })
                                : null;
 
                        IEnumerable<BrowsableResource<DocumentMetadataInfo>> resources = pageOfResult.Entries
@@ -1095,8 +1112,15 @@ namespace MedEasy.API.Controllers
                    Resource = x,
                    Links = new[]
                    {
-                        new Link { Relation = "file", Href = UrlHelper.Action(nameof(DocumentsController.File), DocumentsController.EndpointName, new { x.Id }) },
-                        new Link { Relation = "direct-link", Href = UrlHelper.Action(nameof(DocumentsController.Get), DocumentsController.EndpointName, new { x.Id }) }
+                        new Link
+                        {
+                            Relation = "file",
+                            Href = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(DocumentsController.File),  controller = DocumentsController.EndpointName, x.Id })
+                        },
+                        new Link {
+                            Relation = "direct-link",
+                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = DocumentsController.EndpointName, x.Id })
+                        }
                    }
                };
 
