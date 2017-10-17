@@ -144,7 +144,7 @@ namespace MedEasy.API.Controllers
                         Resource = specialty,
                         Links = BuildAdditionalLinksForResource(specialty)
                     };
-                    return new CreatedAtActionResult(nameof(Get), EndpointName, new { specialty.Id }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, specialty.Id }, browsableResource);
 
                 },
                 none: exception =>
@@ -223,28 +223,31 @@ namespace MedEasy.API.Controllers
             return result.Match<IActionResult>(
                 some: page =>
                 {
-
                     IEnumerable<BrowsableResource<DoctorInfo>> resources = page.Entries
                         .Select(x => new BrowsableResource<DoctorInfo>
                         {
                             Resource = x,
                             Links = new[]
                             {
-                                new Link { Relation = "self", Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new {x.Id})}
+                                new Link
+                                {
+                                    Relation = LinkRelation.Self,
+                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = DoctorsController.EndpointName, x.Id})
+                                }
                             }
                         });
 
                     IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> pagedResponse = new GenericPagedGetResponse<BrowsableResource<DoctorInfo>>(
                         resources,
-                        first: UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = 1 }),
+                        first: UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, action = nameof(Doctors),  query.PageSize, Page = 1 }),
                         previous: page.PageCount > 1 && query.Page > 1
-                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page - 1 })
+                            ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, action = nameof(Doctors), query.PageSize, Page = query.Page - 1 })
                             : null,
                         next: query.Page < page.PageCount
-                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = query.Page + 1 })
+                            ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, action = nameof(Doctors), query.PageSize, Page = query.Page + 1 })
                             : null,
                         last: page.PageCount > 1
-                            ? UrlHelper.Action(nameof(SpecialtiesController.Doctors), EndpointName, new { id, query.PageSize, Page = page.PageCount })
+                            ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, action = nameof(Doctors), query.PageSize, Page = page.PageCount })
                             : null
                         );
                     return new OkObjectResult(pagedResponse);

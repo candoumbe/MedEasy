@@ -773,9 +773,24 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Post(info);
 
             //Assert
-            CreatedAtActionResult createdActionResult = actionResult.Should()
+            CreatedAtRouteResult createdActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<CreatedAtActionResult>().Which;
+                .BeOfType<CreatedAtRouteResult>().Which;
+
+
+            createdActionResult.RouteName.Should().Be(RouteNames.DefaultGetOneByIdApi);
+            createdActionResult.RouteValues.Should()
+                .HaveCount(2).And
+                .ContainKey("id").And
+                .ContainKey("controller");
+
+            createdActionResult.RouteValues["id"].Should()
+                .BeOfType<Guid>().Which.Should()
+                .NotBeEmpty();
+            createdActionResult.RouteValues["controller"].Should()
+                .BeOfType<string>().Which.Should()
+                .Be(PatientsController.EndpointName);
+
 
             IBrowsableResource<PatientInfo> browsableResource = createdActionResult.Value.Should()
                 .NotBeNull().And

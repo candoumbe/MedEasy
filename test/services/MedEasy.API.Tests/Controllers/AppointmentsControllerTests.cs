@@ -402,29 +402,29 @@ namespace MedEasy.WebApi.Tests
             IActionResult actionResult = await _controller.Post(info, CancellationToken.None);
 
             //Assert
-            CreatedAtActionResult createdActionResult = actionResult.Should()
+            CreatedAtRouteResult createdActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<CreatedAtActionResult>().Which;
+                .BeOfType<CreatedAtRouteResult>().Which;
 
-            createdActionResult.ActionName.Should().Be(nameof(AppointmentsController.Get));
-            createdActionResult.ControllerName.Should().Be(AppointmentsController.EndpointName);
+            createdActionResult.RouteName.Should()
+                .Be(RouteNames.DefaultGetOneByIdApi);
             createdActionResult.RouteValues.Should()
-                .HaveCount(1).And
-                .ContainKey("id");
+                .HaveCount(2).And
+                .ContainKey("id").And
+                .ContainKey("controller");
 
             createdActionResult.RouteValues["id"].Should().Be(appointmentId);
+            createdActionResult.RouteValues["controller"].Should().Be(AppointmentsController.EndpointName);
 
 
-            createdActionResult.Value.Should()
+            IBrowsableResource<AppointmentInfo> browsableResource = createdActionResult.Value.Should()
                 .NotBeNull().And
-                .BeAssignableTo<IBrowsableResource<AppointmentInfo>>();
+                .BeAssignableTo<IBrowsableResource<AppointmentInfo>>().Which;
 
-            IBrowsableResource<AppointmentInfo> browsableResource = (IBrowsableResource<AppointmentInfo>)((CreatedAtActionResult)actionResult).Value;
             browsableResource.Links.Should()
                 .NotContainNulls().And
                 .Contain(x => x.Relation == nameof(Appointment.Doctor)).And
                 .Contain(x => x.Relation == nameof(Appointment.Patient));
-
 
             AppointmentInfo createdResource = browsableResource.Resource;
 

@@ -196,7 +196,7 @@ namespace MedEasy.API.Controllers
                         }
                    };
 
-                   return new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, browsableResource);
+                   return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, id = x.Id }, browsableResource);
                },
 
                 none: exception =>

@@ -166,7 +166,7 @@ namespace MedEasy.API.Controllers
             Option<DoctorInfo, CommandException> output = await _iRunCreateDoctorCommand.RunAsync(new CreateDoctorCommand(info), cancellationToken);
 
             return output.Match(
-                some: x => new CreatedAtActionResult(nameof(Get), ControllerName, new { id = x.Id }, new BrowsableResource<DoctorInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) }),
+                some: x => new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, x.Id }, new BrowsableResource<DoctorInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) }),
                 none: exception =>
                {
                    IActionResult result;

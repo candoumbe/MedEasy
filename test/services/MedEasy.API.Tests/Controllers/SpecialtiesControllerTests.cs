@@ -319,14 +319,26 @@ namespace MedEasy.WebApi.Tests
             //Assert
 
 
-            CreatedAtActionResult createdAtActionResult = actionResult.Should()
+            CreatedAtRouteResult createdAtActionResult = actionResult.Should()
                 .NotBeNull().And
-                .BeOfType<CreatedAtActionResult>().Which;
+                .BeOfType<CreatedAtRouteResult>().Which;
 
-            createdAtActionResult.ActionName.Should().Be(nameof(SpecialtiesController.Get));
-            createdAtActionResult.ControllerName.Should().Be(SpecialtiesController.EndpointName);
-            createdAtActionResult.RouteValues.Should().NotBeNull();
-            //createdAtActionResult.RouteValues.ToQueryString().Should().MatchRegex(@"[iI]d=[1-9]\d*");
+
+
+            createdAtActionResult.RouteName.Should()
+                .BeEquivalentTo(RouteNames.DefaultGetOneByIdApi);
+            createdAtActionResult.RouteValues.Should()
+                .HaveCount(2).And
+                .ContainKey("id").And
+                .ContainKey("controller");
+
+            createdAtActionResult.RouteValues["id"].Should()
+                    .BeOfType<Guid>().Which.Should()
+                    .NotBeEmpty();
+            createdAtActionResult.RouteValues["controller"].Should()
+                    .BeOfType<string>().Which.Should()
+                    .BeEquivalentTo(SpecialtiesController.EndpointName);
+
 
             IBrowsableResource<SpecialtyInfo> createdResource = createdAtActionResult.Value.Should()
                 .BeAssignableTo<IBrowsableResource<SpecialtyInfo>>().Which;
@@ -353,7 +365,7 @@ namespace MedEasy.WebApi.Tests
         }
 
         [Fact]
-        public async Task FindDoctorsBySpecialtyIdShouldReturnEmptyResultWhenSpecialtyNotFound()
+        public async Task FindDoctorsBySpecialtyIdShouldReturnNotFoundWhenSpecialtyNotFound()
         {
             // Arrange
             _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>(), It.IsAny<CancellationToken>()))
@@ -373,6 +385,117 @@ namespace MedEasy.WebApi.Tests
             _iHandleFindDoctorsBySpecialtyIdQueryMock.Verify();
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
             //_urlHelperFactoryMock.VerifyAll();
+
+        }
+
+        public static IEnumerable<object[]> FindDoctorsBySpecialtyIdCases
+        {
+            get
+            {
+                {
+                    Guid specialtyId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                    Enumerable.Empty<DoctorInfo>(),
+                    (specialtyId, page : 1, pageSize : 30),
+                    (
+                        first : ((Expression<Func<Link, bool>>)(first => first.Href != null
+                            && first.Relation == LinkRelation.First
+                            && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=1&pageSize=30".Equals(first.Href, OrdinalIgnoreCase))),
+                        previous : ((Expression<Func<Link, bool>>)(previous => previous.Href == null)),
+                        next : ((Expression<Func<Link, bool>>)(next => next.Href == null)),
+                        last : ((Expression<Func<Link, bool>>)(last => last.Href == null))
+                    )
+                    };
+                }
+                {
+                    Guid specialtyId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        new []
+                        {
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = "Harley", Lastname = "Quinzel" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = "Hugo", Lastname = "Strange" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = string.Empty, Lastname = "Manhattan" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = string.Empty, Lastname = "Fate" }
+                        },
+                        (specialtyId, page : 1, pageSize : 2),
+                        (
+                            first : ((Expression<Func<Link, bool>>)(first => first.Href != null
+                                && first.Relation == LinkRelation.First
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=1&pageSize=2".Equals(first.Href, OrdinalIgnoreCase))),
+                            previous : ((Expression<Func<Link, bool>>)(previous => previous.Href == null)),
+                            next : ((Expression<Func<Link, bool>>)(next => next.Href != null
+                                && next.Relation == LinkRelation.Next
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=2&pageSize=2".Equals(next.Href, OrdinalIgnoreCase))),
+                            last : ((Expression<Func<Link, bool>>)(last => last.Href != null
+                                && last.Relation == LinkRelation.Last
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=2&pageSize=2".Equals(last.Href, OrdinalIgnoreCase)))
+                        )
+                    };
+                }
+
+                {
+                    Guid specialtyId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        new []
+                        {
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = "Harley", Lastname = "Quinzel" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = "Hugo", Lastname = "Strange" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = string.Empty, Lastname = "Manhattan" },
+                            new DoctorInfo { Id = Guid.NewGuid(), Firstname = string.Empty, Lastname = "Fate" }
+                        },
+                        (specialtyId, page : 2, pageSize : 2),
+                        (
+                            first : ((Expression<Func<Link, bool>>)(first => first.Href != null
+                                && first.Relation == LinkRelation.First
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=1&pageSize=2".Equals(first.Href, OrdinalIgnoreCase))),
+                            previous : ((Expression<Func<Link, bool>>)(previous => previous.Href != null
+                                && previous.Relation == LinkRelation.Previous
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=1&pageSize=2".Equals(previous.Href, OrdinalIgnoreCase))),
+                            next : ((Expression<Func<Link, bool>>)(next => next.Href == null)),
+                            last : ((Expression<Func<Link, bool>>)(last => last.Href != null
+                                && last.Relation == LinkRelation.Last
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?action={nameof(SpecialtiesController.Doctors)}&controller={SpecialtiesController.EndpointName}&id={specialtyId}&page=2&pageSize=2".Equals(last.Href, OrdinalIgnoreCase)))
+                        )
+                    };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(FindDoctorsBySpecialtyIdCases))]
+        public async Task FindDoctorsBySpecialtyId(IEnumerable<DoctorInfo> doctors, (Guid specialtyId, int page, int pageSize) request, (Expression<Func<Link, bool>> first, Expression<Func<Link, bool>> previous, Expression<Func<Link, bool>> next , Expression<Func<Link, bool>> last) pageLinksExpectation)
+        {
+            // Arrange
+            _iHandleFindDoctorsBySpecialtyIdQueryMock.Setup(mock => mock.HandleAsync(It.IsAny<IFindDoctorsBySpecialtyIdQuery>(), It.IsAny<CancellationToken>()))
+                .Returns((IFindDoctorsBySpecialtyIdQuery query, CancellationToken cancellationToken) => 
+                    new ValueTask<Option<IPagedResult<DoctorInfo>>>(Option.Some((IPagedResult<DoctorInfo>)new PagedResult<DoctorInfo>(doctors, doctors.Count(), request.pageSize))))
+                .Verifiable();
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MedEasyApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+
+            // Act
+            IActionResult actionResult = await _controller.Doctors(request.specialtyId, new PaginationConfiguration { Page = request.page, PageSize = request.pageSize });
+
+            // Assert 
+            IGenericPagedGetResponse<BrowsableResource<DoctorInfo>> pageResult = actionResult.Should()
+                .NotBeNull().And
+                .BeOfType<OkObjectResult>().Which
+                .Value.Should()
+                .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<DoctorInfo>>>().Which;
+
+            PagedRestResponseLink links = pageResult.Links;
+            pageResult.Links.First.Should()
+                .NotBeNull().And
+                .Match(pageLinksExpectation.first);
+            pageResult.Links.Previous?.Should().Match(pageLinksExpectation.previous);
+            pageResult.Links.Next?.Should().Match(pageLinksExpectation.next);
+            pageResult.Links.Last?.Should().Match(pageLinksExpectation.last);
+
+
+            _iHandleFindDoctorsBySpecialtyIdQueryMock.Verify();
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
 
         }
 

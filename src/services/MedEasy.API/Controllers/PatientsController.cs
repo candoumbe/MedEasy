@@ -217,7 +217,7 @@ namespace MedEasy.API.Controllers
                        Resource = patient,
                        Links = BuildAdditionalLinksForResource(patient)
                    };
-                   return new CreatedAtActionResult(nameof(Get), EndpointName, new { patient.Id }, browsableResource);
+                   return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, patient.Id }, browsableResource);
 
                },
                 none: exception =>
