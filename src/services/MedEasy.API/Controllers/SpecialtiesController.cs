@@ -182,7 +182,7 @@ namespace MedEasy.API.Controllers
         // DELETE api/specialties/5
 
         /// <summary>
-        /// Delete the <see cref="SpecialtyInfo"/> by its 
+        /// Delete the <see cref="SpecialtyInfo"/> by its id
         /// </summary>
         /// <param name="id">identifier of the resource to delete</param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>

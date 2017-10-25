@@ -126,6 +126,11 @@ namespace MedEasy.Tools.Tests
         }
 
 
+        public void ToQueryStringTemplate(object input, string expectedString)
+        {
+
+        }
+
         public static IEnumerable<object> ParseAnonymousObjectCases
         {
             get
