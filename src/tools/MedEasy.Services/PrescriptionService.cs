@@ -73,10 +73,7 @@ namespace MedEasy.Services
             }
         }
 
-        public Task<Option<IEnumerable<PrescriptionHeaderInfo>>> GetMostRecentPrescriptionsAsync(IWantMostRecentPrescriptionsQuery query, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<Option<IEnumerable<PrescriptionHeaderInfo>>> GetMostRecentPrescriptionsAsync(IWantMostRecentPrescriptionsQuery query, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public async Task<Option<PrescriptionHeaderInfo>> GetOnePrescriptionAsync(Guid id, CancellationToken cancellationToken = default)
         {

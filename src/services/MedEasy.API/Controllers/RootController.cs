@@ -183,7 +183,9 @@ namespace MedEasy.API.Controllers
                     Link = new Link
                     {
                         Href = _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = "swagger" }),
-                        Relation = "documentation"
+                        Method = "GET",
+                        Relation = "documentation",
+                        Title = "API's documentation"
                     }
                 });
             }

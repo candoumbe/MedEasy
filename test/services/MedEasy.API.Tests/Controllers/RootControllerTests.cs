@@ -62,6 +62,8 @@ namespace MedEasy.API.Tests.Controllers
 
         [Theory]
         [InlineData("Development")]
+        [InlineData("Production")]
+        [InlineData("Production")]
         public void Endpoints(string environmentName)
         {
             // Arrange
@@ -158,12 +160,44 @@ namespace MedEasy.API.Tests.Controllers
                 .Contain(x => x.Name == nameof(SearchDoctorInfo.Page)).And
                 .Contain(x => x.Name == nameof(SearchDoctorInfo.PageSize));
 
+            // Specialty resource endpoint
+            Endpoint specialtiesEndpoint = endpoints.Single(x => x.Name == SpecialtiesController.EndpointName);
+            specialtiesEndpoint.Link.Should()
+                .NotBeNull();
+            specialtiesEndpoint.Link.Relation.Should().Be(LinkRelation.Collection);
+            specialtiesEndpoint.Link.Href.Should().NotBeNullOrWhiteSpace();
+
+            specialtiesEndpoint.Forms.Should()
+                .NotBeNullOrEmpty().And
+                .NotContainNulls().And
+                .NotContain(x => x.Meta == null).And
+                .Contain(x => LinkRelation.CreateForm == x.Meta.Relation);
+
+            Form specialtiesCreateForm = specialtiesEndpoint.Forms.Single(x => LinkRelation.CreateForm == x.Meta.Relation);
+            specialtiesCreateForm.Meta.Method.Should()
+                .Be("POST");
+            specialtiesCreateForm.Meta.Href.Should()
+                .NotBeNullOrWhiteSpace();
+            specialtiesCreateForm.Items.Should()
+                .NotContainNulls().And
+                .Contain(x => x.Name == nameof(CreateSpecialtyInfo.Name));
+
+            
             if (environmentName != "Production")
             {
                 endpoints.Should()
                     .Contain(x => x.Name == "documentation");
 
-                Endpoint endpointProduction = endpoints.Single(x => x.Name == "documentation");
+                Endpoint endpointDocumentation = endpoints.Single(x => x.Name == "documentation");
+                endpointDocumentation.Link.Should()
+                    .NotBeNull();
+                endpointDocumentation.Link.Method.Should()
+                    .Be("GET");
+                endpointDocumentation.Link.Relation.Should()
+                    .Be("documentation");
+                endpointDocumentation.Link.Title.Should()
+                    .BeEquivalentTo     ("API's Documentation");
+
             }
 
             

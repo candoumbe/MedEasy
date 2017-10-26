@@ -11,7 +11,7 @@ using static MedEasy.Data.DataFilterOperator;
 namespace MedEasy.Tools.Tests
 {
     /// <summary>
-    /// Extensions methods for <see cref="Object"/> type.
+    /// Extensions methods for <see cref="object"/> type.
     /// </summary>
     public class ObjectExtensionsTests : IDisposable
     {
@@ -27,10 +27,7 @@ namespace MedEasy.Tools.Tests
         }
 
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-        }
+        public void Dispose() => _outputHelper = null;
 
 
         public static IEnumerable<object[]> ToQueryStringCases
@@ -125,12 +122,7 @@ namespace MedEasy.Tools.Tests
             ObjectExtensions.ToQueryString(input)?.Should().Be(expectedString);
         }
 
-
-        public void ToQueryStringTemplate(object input, string expectedString)
-        {
-
-        }
-
+       
         public static IEnumerable<object> ParseAnonymousObjectCases
         {
             get
