@@ -3,7 +3,7 @@ using FluentAssertions;
 using MedEasy.API.Stores;
 using MedEasy.Commands.Appointment;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Handlers.Appointment.Commands;
 using Microsoft.EntityFrameworkCore;
 using Moq;

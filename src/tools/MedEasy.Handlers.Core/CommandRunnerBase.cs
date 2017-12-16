@@ -1,11 +1,10 @@
-﻿using MedEasy.Validators;
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using MedEasy.Commands;
 using System.Threading;
 using Optional;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.CQRS.Core;
+using MedEasy.CQRS.Core.Commands;
 
 namespace MedEasy.Handlers.Core.Commands
 {

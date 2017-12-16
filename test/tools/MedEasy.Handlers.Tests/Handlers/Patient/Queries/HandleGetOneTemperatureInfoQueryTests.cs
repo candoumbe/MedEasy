@@ -3,7 +3,7 @@ using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using FluentValidation;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Handlers.Core.Patient.Queries;
 using MedEasy.Handlers.Patient.Queries;

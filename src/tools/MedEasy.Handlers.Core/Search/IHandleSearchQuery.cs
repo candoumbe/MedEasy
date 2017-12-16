@@ -1,5 +1,5 @@
-﻿using MedEasy.DAL.Repositories;
-using MedEasy.Queries.Search;
+﻿using MedEasy.CQRS.Core.Queries;
+using MedEasy.DAL.Repositories;
 using System.Threading;
 using System.Threading.Tasks;
 

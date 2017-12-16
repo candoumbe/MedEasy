@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using MedEasy.Handlers.Specialty.Commands;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Linq;
 using MedEasy.Mapping;
 using System.Linq.Expressions;

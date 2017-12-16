@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Specialty.Queries;
 using MedEasy.Queries.Specialty;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Linq.Expressions;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;

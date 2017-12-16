@@ -13,7 +13,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
 using MedEasy.Handlers.Appointment.Queries;
 using MedEasy.Queries.Appointment;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Linq.Expressions;
 using MedEasy.Handlers.Core.Appointment.Queries;
 using System.Threading;

@@ -1,9 +1,8 @@
-﻿using MedEasy.Validators;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Queries;
 using System.Threading;
+using MedEasy.CQRS.Core.Queries;
 using FluentValidation;
 
 namespace MedEasy.Handlers.Core.Queries

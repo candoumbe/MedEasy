@@ -46,11 +46,9 @@ namespace MedEasy.Handlers.Tests.Exceptions
 
         [Theory]
         [MemberData(nameof(CtorThatThrowsArgumentExceptionCases))]
-        public void CtorShouldThrowArgumentOutOfRangeExceptionWhenCommandIdIsDefaultValue(Action ctorAction)
-        {
+        public void CtorShouldThrowArgumentOutOfRangeExceptionWhenCommandIdIsDefaultValue(Action ctorAction) => 
             ctorAction.ShouldThrow<ArgumentOutOfRangeException>().Which
                  .ParamName.Should().NotBeNullOrWhiteSpace();
-        }
 
         [Fact]
         public void InheritCommandException() => typeof(CommandException).IsAssignableFrom(typeof(CommandNotValidException<>))

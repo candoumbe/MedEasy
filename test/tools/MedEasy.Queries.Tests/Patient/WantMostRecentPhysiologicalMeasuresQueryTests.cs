@@ -3,7 +3,7 @@ using System;
 using Xunit;
 using Xunit.Abstractions;
 using MedEasy.Queries.Patient;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Linq.Expressions;
 
 namespace MedEasy.Queries.Tests.Patient

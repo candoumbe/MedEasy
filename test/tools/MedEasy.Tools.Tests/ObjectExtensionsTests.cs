@@ -123,7 +123,7 @@ namespace MedEasy.Tools.Tests
         }
 
        
-        public static IEnumerable<object> ParseAnonymousObjectCases
+        public static IEnumerable<object[]> ParseAnonymousObjectCases
         {
             get
             {

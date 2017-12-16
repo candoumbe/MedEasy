@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace MedEasy.DTO.Extensions.Tests
+namespace MedEasy.RestObjects.Extensions.Tests
 {
     public class TypeExtensionsTests
     {

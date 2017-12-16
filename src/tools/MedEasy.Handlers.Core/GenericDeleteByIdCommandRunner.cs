@@ -1,12 +1,11 @@
 ﻿using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Core.Exceptions;
-using MedEasy.Commands;
 using System;
-using MedEasy.Objects;
 using System.Threading;
 using Optional;
 using MedEasy.CQRS.Core;
+using MedEasy.CQRS.Core.Commands;
 
 namespace MedEasy.Handlers.Core.Commands
 {

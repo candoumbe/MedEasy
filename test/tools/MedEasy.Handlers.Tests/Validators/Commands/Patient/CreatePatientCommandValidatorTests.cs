@@ -7,7 +7,7 @@ using System.Linq;
 using Xunit.Abstractions;
 using MedEasy.Validators.Patient;
 using MedEasy.Commands.Patient;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using FluentValidation;

@@ -1,5 +1,5 @@
-﻿using MedEasy.Commands;
-using MedEasy.CQRS.Core;
+﻿using MedEasy.CQRS.Core;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.Handlers.Core.Exceptions;
 using Optional;
 using System;
@@ -32,7 +32,7 @@ namespace MedEasy.Handlers.Core.Commands
         /// An optional <paramref name="cancellationToken"/> can be passed to abort processing the command
         /// </remarks>
         /// <param name="command">The command to run</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">Notifies to cancel the execution of <paramref name="command"/></param>
         /// <returns>Data resulting of the execution of the command</returns>
         Task<Option<TOutput, CommandException>> RunAsync(TCommand command, CancellationToken cancellationToken = default);
     }

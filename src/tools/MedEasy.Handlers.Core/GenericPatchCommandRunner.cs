@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MedEasy.Validators;
 using MedEasy.DAL.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Optional;
 using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.JsonPatch;
-using MedEasy.Commands;
-using MedEasy.DTO;
-using System.Linq;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-using MedEasy.Objects;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.CQRS.Core;
 

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="1.0.0" />
+    <PackageReference Include="Optional" Version="3.2.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="7.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.Data\MedEasy.Data.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
+    <ProjectReference Include="..\Patients.DTO\Patients.DTO.csproj" />
+    <ProjectReference Include="..\Patients.Objects\Patients.Objects.csproj" />
+    <ProjectReference Include="..\Patients.Validators\Patients.Validators.csproj" />
+  </ItemGroup>
+
+</Project>

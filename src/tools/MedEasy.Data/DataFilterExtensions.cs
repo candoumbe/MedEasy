@@ -55,7 +55,7 @@ namespace MedEasy.Data
                     Expression body;
                     memberType = (property.Member as PropertyInfo)?.PropertyType;
                     ConstantExpression constantExpression = Constant(df.Value, memberType);
-                    
+
                     switch (df.Operator)
                     {
                         case NotEqualTo:
@@ -145,7 +145,7 @@ namespace MedEasy.Data
                 throw new ArgumentNullException(nameof(queryString));
             }
 
-            IDataFilter filter = new DataFilter(field : null, @operator : default, value : null);
+            IDataFilter filter = new DataFilter(field: null, @operator: default, value: null);
             Uri fakeuri = new UriBuilder
             {
                 Host = "localhost",
@@ -174,12 +174,12 @@ namespace MedEasy.Data
                         if (pi != null)
                         {
                             TypeConverter tc = TypeDescriptor.GetConverter(pi.PropertyType);
-                            
+
                             if (valuePart.StartsWith("!"))
                             {
                                 string localValue = valuePart.Replace("!", string.Empty);
                                 object value = tc.ConvertFrom(valuePart);
-                                filter = new DataFilter (field : keyPart, @operator : NotEqualTo, value : localValue);
+                                filter = new DataFilter(field: keyPart, @operator: NotEqualTo, value: localValue);
                             }
                             else if (valuePart.Like("* *"))
                             {
@@ -205,22 +205,42 @@ namespace MedEasy.Data
                                     if (values.Length == 1)
                                     {
                                         filter = new DataFilter(
-                                            field :keyPart,
-                                            @operator : valuePart.StartsWith("*")
+                                            field: keyPart,
+                                            @operator: valuePart.StartsWith("*")
                                                 ? EndsWith
                                                 : StartsWith,
-                                            value : tc.ConvertFrom(values[0])
-                                        );   
+                                            value: tc.ConvertFrom(values[0])
+                                        );
                                     }
+                                }
+                            }
+                            else if (valuePart.Like("*-*"))
+                            {
+                                string[] values = valuePart.Split(new[] { '-' }, RemoveEmptyEntries);
+                                if (values.Length == 2)
+                                {
+                                    filter = new DataCompositeFilter
+                                    {
+                                        Logic = DataFilterLogic.And,
+                                        Filters = new[]
+                                        {
+                                            new DataFilter(field : keyPart, @operator : DataFilterOperator.GreaterThanOrEqual, value : tc.ConvertFrom(values[0])),
+                                            new DataFilter(field : keyPart, @operator : LessThanOrEqualTo, value : tc.ConvertFrom(values[1])),
+                                        }
+                                    };
+                                }
+                                else
+                                {
+                                    filter = new DataFilter(field: keyPart, @operator: DataFilterOperator.GreaterThanOrEqual, value: tc.ConvertFrom(values[0]));
                                 }
                             }
                             else
                             {
                                 object value = tc.ConvertFrom(valuePart);
-                                filter = new DataFilter (field : keyPart, @operator : EqualTo, value: value);
-                            }       
+                                filter = new DataFilter(field: keyPart, @operator: EqualTo, value: value);
+                            }
                         }
-                    }   
+                    }
                 }
             }
 

@@ -1,10 +1,8 @@
-﻿using MedEasy.Commands;
-using MedEasy.Handlers.Core.Commands;
+﻿using MedEasy.Handlers.Core.Commands;
 using MedEasy.Handlers.Core.Exceptions;
 using Optional;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

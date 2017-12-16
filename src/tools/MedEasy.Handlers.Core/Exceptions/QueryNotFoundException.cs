@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MedEasy.Handlers.Core.Exceptions
+﻿namespace MedEasy.Handlers.Core.Exceptions
 {
     /// <summary>
     /// Exception to throw when a resource/data is not found.

@@ -18,9 +18,9 @@ namespace System
         public static T DeepClone<T>(this T source)
         {
             // Don't serialize a null object, simply return the default for that object
-            T clone = (T)(ReferenceEquals(source, null)
+            T clone = ReferenceEquals(source, null)
                 ? default
-                : JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source)));
+                : JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source));
 
             return clone;
         }
@@ -37,10 +37,10 @@ namespace System
 
             if (obj != null)
             {
-                if (obj is IEnumerable)
+                if (obj is IEnumerable enumerable)
                 {
                     dictionary = new Dictionary<string, object>();
-                    IEnumerator enumerator = (obj as IEnumerable).GetEnumerator();
+                    IEnumerator enumerator = enumerable.GetEnumerator();
                     int count = 0;
                     while (enumerator.MoveNext())
                     {

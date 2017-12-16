@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using FluentAssertions;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Objects;
 using System.Linq.Expressions;
 using Xunit;

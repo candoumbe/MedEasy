@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Queries;
 using System.Threading;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;

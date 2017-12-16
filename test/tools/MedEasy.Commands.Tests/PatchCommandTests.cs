@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;

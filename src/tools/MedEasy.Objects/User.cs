@@ -12,12 +12,4 @@
         public bool EmailConfirmed { get; set; }
 
     }
-
-    
-
-
-    public class UserClaim : AuditableEntity<int,UserClaim>
-    {
-        
-    }
 }

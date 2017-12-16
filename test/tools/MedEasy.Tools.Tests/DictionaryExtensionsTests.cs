@@ -28,7 +28,7 @@ namespace MedEasy.Tools.Tests
             _outputHelper = null;
         }
 
-        public static IEnumerable<object> ToQueryStringCases
+        public static IEnumerable<object[]> ToQueryStringCases
         {
             get
             {

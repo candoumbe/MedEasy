@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using MedEasy.Commands.Patient;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -1,6 +1,6 @@
-﻿using MedEasy.Queries;
-using Optional;
+﻿using Optional;
 using System;
+using MedEasy.CQRS.Core.Queries;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -14,7 +14,7 @@ namespace MedEasy.Handlers.Core.Queries
     public interface IHandleQueryOneAsync<TKey, TData, TResult, 
         TQuery>  : IHandleQueryAsync<TKey, TData, Option<TResult>, TQuery>
         where TKey : IEquatable<TKey>
-        where TQuery : IWantOneResource<TKey, TData, TResult>
+        where TQuery : IWantOne<TKey, TData, TResult>
     {
     }
 }

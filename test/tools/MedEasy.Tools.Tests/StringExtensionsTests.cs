@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using Xunit;
-using System;
-using FluentAssertions;
-using Xunit.Abstractions;
+﻿using FluentAssertions;
 using MedEasy.Tools.Extensions;
 using System;
-using System.Linq.Expressions;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace MedEasy.Tools.Tests
 {
@@ -56,6 +53,10 @@ namespace MedEasy.Tools.Tests
         [InlineData("Bruce", "*,*", false, false)]
         [InlineData("Bruce,Dick", "*,*", true, true)]
         [InlineData("Bruce,Dick", "*,*", false, true)]
+        [InlineData("100-", "*-", false, true)]
+        [InlineData("100-", "*-*", false, true)]
+        [InlineData("100-200", "*-*", false, true)]
+        [InlineData("100-200", "*-", false, false)]
         public void Like(string input, string pattern, bool ignoreCase, bool expectedResult)
         {
             _outputHelper.WriteLine($"input : '{input}'");

@@ -1,10 +1,9 @@
-﻿using MedEasy.Validators;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Queries;
 using System.Threading;
 using Optional;
+using MedEasy.CQRS.Core.Queries;
 using FluentValidation;
 
 namespace MedEasy.Handlers.Core.Queries
@@ -21,7 +20,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <typeparam name="TData">Type of data the query carries</typeparam>
     /// <typeparam name="TEntity">Type of the entity store will be handled against</typeparam>
     public abstract class OneResourceQueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery, TQueryValidator> : OneResourceQueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery>
-        where TQuery : IWantOneResource<TKey, TData, TOutput>
+        where TQuery : IWantOne<TKey, TData, TOutput>
         where TKey : IEquatable<TKey>
         where TQueryValidator : class, IValidator<TQuery>
     {
@@ -59,7 +58,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <typeparam name="TData">Type of data the query carries</typeparam>
     /// <typeparam name="TEntity">Type of the entity store will be handled against</typeparam>
     public abstract class OneResourceQueryHandlerBase<TKey, TEntity, TData, TOutput, TQuery> : IHandleQueryOneAsync<TKey, TData, TOutput, TQuery>
-        where TQuery : IWantOneResource<TKey, TData, TOutput>
+        where TQuery : IWantOne<TKey, TData, TOutput>
         where TKey : IEquatable<TKey>
     {
         

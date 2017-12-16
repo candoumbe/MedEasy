@@ -4,6 +4,7 @@
     <TargetFramework>netstandard1.1</TargetFramework>
     <AssemblyName>MedEasy.RestObjects</AssemblyName>
     <PackageId>MedEasy.RestObjects</PackageId>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -12,8 +13,14 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.3.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Handlers.Patient.Commands;
 using Microsoft.Extensions.Logging;
 using Moq;

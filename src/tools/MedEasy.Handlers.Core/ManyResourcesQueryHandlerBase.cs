@@ -1,19 +1,18 @@
 ﻿using System.Threading.Tasks;
-using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
-using static FluentValidation.Severity;
 using System;
-using MedEasy.Objects;
 using System.Linq.Expressions;
-using MedEasy.Queries;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
 using MedEasy.DAL.Interfaces;
+using MedEasy.CQRS.Core.Queries;
+using MedEasy.Objects;
 using FluentValidation;
 using FluentValidation.Results;
+using static FluentValidation.Severity;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -27,7 +26,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <typeparam name="TQuery">Type of the query</typeparam>
     /// <typeparam name="TQueryValidator">Type of the query validator</typeparam>
     public abstract class ManyResourcesQueryHandlerBase<TQueryId, TEntity, TEntityId, TResult, TQuery, TQueryValidator> : QueryHandlerBase<TQueryId, TEntity, Expression<Func<TEntity, bool>>, IEnumerable<TResult>, TQuery>
-        where TQuery : IWantManyResources<TQueryId, Expression<Func<TEntity, bool>>, TResult>
+        where TQuery : IWantMany<TQueryId, Expression<Func<TEntity, bool>>, TResult>
         where TEntity : class, IEntity<TEntityId>
         where TQueryId : IEquatable<TQueryId>
         where TQueryValidator : class, IValidator<TQuery>

@@ -10,7 +10,7 @@ namespace MedEasy.DTO.Search
     /// Represents a request for a search on resources of type.
     /// </summary>
     /// <typeparam name="T">Type of resource the search query will be applied on</typeparam>
-    public class SearchQueryInfo<T> : ISearchQueryInfo<T>
+    public class SearchQueryInfo<T> 
     {
 
         /// <summary>

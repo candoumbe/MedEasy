@@ -4,11 +4,11 @@ namespace MedEasy.Objects
 {
     public interface IAuditableEntity
     {
-        DateTimeOffset? CreatedDate { get; set; }
+        DateTimeOffset CreatedDate { get; set; }
 
         string CreatedBy { get; set; }
 
-        DateTimeOffset? UpdatedDate { get; set; }
+        DateTimeOffset UpdatedDate { get; set; }
 
         string UpdatedBy { get; set; }
     }

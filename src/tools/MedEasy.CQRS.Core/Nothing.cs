@@ -78,10 +78,7 @@ namespace MedEasy.CQRS.Core
         /// <returns>
         /// <c>true</c> if the <paramref name="first"/> object is equal to the <paramref name="second" /> object; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator ==(Nothing first, Nothing second)
-        {
-            return true;
-        }
+        public static bool operator ==(Nothing first, Nothing second) => true;
 
         /// <summary>
         /// Determines whether the <paramref name="first"/> object is not equal to the <paramref name="second"/> object.
@@ -91,10 +88,7 @@ namespace MedEasy.CQRS.Core
         /// <returns>
         /// <c>true</c> if the <paramref name="first"/> object is not equal to the <paramref name="second" /> object; otherwise, <c>false</c>.
         /// </returns>
-        public static bool operator !=(Nothing first, Nothing second)
-        {
-            return false;
-        }
+        public static bool operator !=(Nothing first, Nothing second) => false;
 
         /// <summary>
         /// Returns a <see cref="string" /> that represents this instance.

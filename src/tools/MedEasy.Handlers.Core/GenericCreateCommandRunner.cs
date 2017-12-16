@@ -1,5 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
-using MedEasy.Commands;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Handlers.Core.Exceptions;
 using Optional;

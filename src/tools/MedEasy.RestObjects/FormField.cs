@@ -61,6 +61,16 @@ namespace MedEasy.RestObjects
         /// </summary>
         public int? MinLength { get; set; }
 
+        /// <summary>
+        /// Indicates that <see cref="Value"/>value must be greater than or equal to the specified <see cref="Min"/> value
+        /// </summary>
+        public int? Min { get; set; }
+
+        /// <summary>
+        /// Indicates that <see cref="Value"/>value must be less than or equal to the specified <see cref="Max"/> value
+        /// </summary>
+        public int? Max { get; set; }
+
 
         /// <summary>
         /// Indicates whether or not the field value is considered sensitive information 

@@ -1,11 +1,7 @@
-﻿using MedEasy.DAL.Repositories;
-using MedEasy.Queries;
+﻿using MedEasy.CQRS.Core.Queries;
+using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
-using Optional;
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -19,7 +15,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <typeparam name="TQuery">Type of queries this instance can handle</typeparam>
     public interface IHandleQueryPageAsync<TKey, TData, TResult, TQuery> : IHandleQueryAsync<TKey, TData, IPagedResult<TResult>, TQuery>
         where TKey : IEquatable<TKey>
-        where TQuery : IWantPageOfResources<TKey, TData, TResult>
+        where TQuery : IWantPage<TKey, TData, TResult>
     {
     }
 
@@ -32,7 +28,7 @@ namespace MedEasy.Handlers.Core.Queries
     public interface IHandleQueryPageAsync<TKey, TResult, TQuery> : IHandleQueryPageAsync<TKey, PaginationConfiguration, TResult, TQuery>
 
         where TKey : IEquatable<TKey>
-        where TQuery : IWantPageOfResources<TKey, PaginationConfiguration, TResult>
+        where TQuery : IWantPage<TKey, PaginationConfiguration, TResult>
     {
     }
 }

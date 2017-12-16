@@ -45,7 +45,7 @@ namespace MedEasy.Data.Tests
         }
 
 
-        public static IEnumerable<object> EqualToTestCases
+        public static IEnumerable<object[]> EqualToTestCases
         {
             get
             {
@@ -132,7 +132,7 @@ namespace MedEasy.Data.Tests
         public void BuildEqual(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-        public static IEnumerable<object> IsNullTestCases
+        public static IEnumerable<object[]> IsNullTestCases
         {
             get
             {
@@ -160,7 +160,7 @@ namespace MedEasy.Data.Tests
         public void BuildIsNull(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-        public static IEnumerable<object> IsEmptyTestCases
+        public static IEnumerable<object[]> IsEmptyTestCases
         {
             get
             {
@@ -230,7 +230,8 @@ namespace MedEasy.Data.Tests
             => Build(superheroes, filter, expression);
 
 
-        public static IEnumerable<object> IsNotEmptyTestCases
+
+        public static IEnumerable<object[]> IsNotEmptyTestCases
         {
             get
             {
@@ -279,7 +280,7 @@ namespace MedEasy.Data.Tests
         public void BuildIsNotEmpty(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-                public static IEnumerable<object> StartsWithCases
+        public static IEnumerable<object[]> StartsWithCases
         {
             get
             {
@@ -304,7 +305,7 @@ namespace MedEasy.Data.Tests
         public void BuildStartsWith(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-        public static IEnumerable<object> EndsWithCases
+        public static IEnumerable<object[]> EndsWithCases
         {
             get
             {
@@ -328,7 +329,7 @@ namespace MedEasy.Data.Tests
         public void BuildEndsWith(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-        public static IEnumerable<object> ContainsCases
+        public static IEnumerable<object[]> ContainsCases
         {
             get
             {
@@ -353,7 +354,7 @@ namespace MedEasy.Data.Tests
             => Build(superheroes, filter, expression);
 
 
-        public static IEnumerable<object> LessThanTestCases
+        public static IEnumerable<object[]> LessThanTestCases
         {
             get
             {
@@ -377,7 +378,7 @@ namespace MedEasy.Data.Tests
         public void BuildLessThan(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
 
-        public static IEnumerable<object> NotEqualToTestCases
+        public static IEnumerable<object[]> NotEqualToTestCases
         {
             get
             {
@@ -482,7 +483,7 @@ namespace MedEasy.Data.Tests
         }
 
 
-        public static IEnumerable<object> QueryStringToFilterCases
+        public static IEnumerable<object[]> QueryStringToFilterCases
         {
             get
             {
@@ -567,7 +568,32 @@ namespace MedEasy.Data.Tests
                             Equals(((DataFilter)x).Value, "Bru")
                         ))
                 };
-                
+
+                yield return new object[]
+                {
+                    "Height=100-",
+                    ((Expression<Func<IDataFilter, bool>>)(x => x is DataFilter &&
+                        ((DataFilter)x).Field == "Height" &&
+                        ((DataFilter)x).Operator == GreaterThanOrEqual &&
+                            Equals(((DataFilter)x).Value, 100)
+                        ))
+                };
+
+                yield return new object[]
+                {
+                    "Height=100-200",
+                    ((Expression<Func<IDataFilter, bool>>)(x => x is DataCompositeFilter &&
+                        ((DataCompositeFilter)x).Logic == And &&
+                        ((DataCompositeFilter)x).Filters.Count() == 2 &&
+                            ((DataCompositeFilter)x).Filters.Once( filter => filter is DataFilter &&
+                                ((DataFilter)filter).Field == "Height" && ((DataFilter)filter).Operator == GreaterThanOrEqual && Equals(((DataFilter)filter).Value, 100))
+                            &&
+                            ((DataCompositeFilter)x).Filters.Once( filter => filter is DataFilter &&
+                                ((DataFilter)filter).Field == "Height" && ((DataFilter)filter).Operator == LessThanOrEqualTo && Equals(((DataFilter)filter).Value, 200))
+
+                        ))
+                };
+
             }
         }
 
@@ -639,7 +665,7 @@ namespace MedEasy.Data.Tests
         {
 
             // Arrange
-            IEnumerable<SuperHero> superHeroes = new []
+            IEnumerable<SuperHero> superHeroes = new[]
             {
                 new SuperHero { Firstname = "Bruce", Lastname = "Wayne" },
                 new SuperHero { Firstname = "Dick", Lastname = "Grayson" },

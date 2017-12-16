@@ -4,7 +4,7 @@ using MedEasy.API.Stores;
 using MedEasy.Commands;
 using MedEasy.Commands.Patient;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Handlers.Core.Exceptions;
 using MedEasy.Mapping;
 using MedEasy.Objects;

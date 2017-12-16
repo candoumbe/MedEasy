@@ -168,7 +168,7 @@ namespace MedEasy.Data.Tests
         }
 
 
-        public static IEnumerable<object> DataFilterSchemaTestCases
+        public static IEnumerable<object[]> DataFilterSchemaTestCases
         {
             get
             {
@@ -217,7 +217,7 @@ namespace MedEasy.Data.Tests
         }
 
 
-        public static IEnumerable<object> DataCompositeFilterSchemaTestCases
+        public static IEnumerable<object[]> DataCompositeFilterSchemaTestCases
         {
             get
             {
@@ -294,6 +294,8 @@ namespace MedEasy.Data.Tests
         public void CollectionOfFiltersToJson(IEnumerable<IDataFilter> filters, Expression<Func<string, bool>> jsonExpectation)
         {
             string json = SerializeObject(filters);
+
+            json.Should().Match(jsonExpectation);
         }
 
         private void ToJson(IDataFilter filter, Expression<Func<string, bool>> jsonMatcher)
@@ -321,7 +323,7 @@ namespace MedEasy.Data.Tests
             isValid.Should().Be(expectedValidity);
         }
 
-        public static IEnumerable<object> DataFilterEquatableCases
+        public static IEnumerable<object[]> DataFilterEquatableCases
         {
             get
             {

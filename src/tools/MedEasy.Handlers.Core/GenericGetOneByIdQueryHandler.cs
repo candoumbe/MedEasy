@@ -1,20 +1,18 @@
-﻿using System.Threading.Tasks;
-using MedEasy.Validators;
-using Microsoft.Extensions.Logging;
-using MedEasy.DAL.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using static FluentValidation.Severity;
-using System;
-using MedEasy.Objects;
-using MedEasy.Queries;
-using System.Linq.Expressions;
-using AutoMapper.QueryableExtensions;
-using MedEasy.Handlers.Core.Exceptions;
-using System.Threading;
-using Optional;
+﻿using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using FluentValidation.Results;
+using MedEasy.CQRS.Core.Queries;
+using MedEasy.DAL.Interfaces;
+using MedEasy.Handlers.Core.Exceptions;
+using MedEasy.Objects;
+using Microsoft.Extensions.Logging;
+using Optional;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+using static FluentValidation.Severity;
 
 namespace MedEasy.Handlers.Core.Queries
 {
@@ -29,7 +27,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <
     /// <typeparam name="TQueryValidator">Type of the validator of the <typeparamref name="TQuery"/> query</typeparam>
     public abstract class GenericGetOneByIdQueryHandler<TQueryId, TEntity, TData, TResult, TQuery, TQueryValidator> : OneResourceQueryHandlerBase<TQueryId, TEntity, TData, TResult, TQuery, TQueryValidator>
-    where TQuery : IWantOneResource<TQueryId, TData, TResult>
+    where TQuery : IWantOne<TQueryId, TData, TResult>
     where TEntity : class, IEntity<int>
     where TQueryId : IEquatable<TQueryId>
     where TQueryValidator : class, IValidator<TQuery>
@@ -113,7 +111,7 @@ namespace MedEasy.Handlers.Core.Queries
     /// <typeparam name="TResult">Type of the query execution résult</typeparam>
     /// <typeparam name="TQuery">Type of the query</typeparam>
     public abstract class GenericGetOneByIdQueryHandler<TQueryId, TEntity, TResult, TQuery> : GenericGetOneByIdQueryHandler<TQueryId, TEntity, Guid, TResult, TQuery, IValidator<TQuery>>
-        where TQuery : IWantOneResource<TQueryId, Guid, TResult>
+        where TQuery : IWantOne<TQueryId, Guid, TResult>
         where TEntity : class, IEntity<int>
         where TQueryId : IEquatable<TQueryId>
     {

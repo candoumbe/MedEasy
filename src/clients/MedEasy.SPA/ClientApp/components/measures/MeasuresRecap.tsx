@@ -6,7 +6,8 @@ import { BodyWeights } from "./../../components/measures/BodyWeigths";
 
 interface MeasuresRecapProps {
     /** endpoint where to get data from */
-    endpoint: string
+    endpoint: string,
+    resourceName : string
 }
 
 interface MeasuresRecapState {
@@ -29,7 +30,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
             <BloodPressures
                 urls={
                     {
-                        read: `${this.props.endpoint}/mostRecentBloodPressures`,
+                        read: `${this.props.endpoint}/most_recent_bloodpressures`,
                         create: `${this.props.endpoint}/bloodPressures`,
                         delete: `${this.props.endpoint}/bloodPressures`
                     }

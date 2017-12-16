@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using MedEasy.Objects;
 using System;
 using Xunit;

@@ -14,7 +14,7 @@ using MedEasy.Handlers.Patient.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Mapping;
 using System.Threading.Tasks;
-using MedEasy.DTO;
+using MedEasy.RestObjects;
 using System.Linq;
 using System.Reflection;
 using System.Threading;

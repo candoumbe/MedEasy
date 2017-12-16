@@ -70,7 +70,7 @@ namespace System
             pattern = pattern.Replace("?", ".")
                 .Replace("*", ".*");
             
-            return Regex.IsMatch(input, pattern, regexOptions);
+            return Regex.IsMatch(input, $"{pattern}$", regexOptions);
         }
 
 

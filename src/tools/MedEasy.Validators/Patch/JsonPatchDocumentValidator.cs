@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.JsonPatch.Operations;
 using System.Collections.Generic;
 using System.Linq;
 using static FluentValidation.CascadeMode;
+using static FluentValidation.Severity;
 
 namespace MedEasy.Validators.Patch
 {
@@ -24,15 +25,30 @@ namespace MedEasy.Validators.Patch
 
             RuleFor(x => x.Operations)
                 .NotNull()
-                .Must(operations => operations.AtLeastOnce()).WithMessage("{PropertyName} must have at least one item.")
-                .Must(operations =>
-                 {
-                     IDictionary<string, IEnumerable<Operation<TModel>>> operationGroups = operations
-                        .GroupBy(op => op.path)
-                        .ToDictionary();
+                .NotEmpty().WithMessage("{PropertyName} must have at least one item.");
 
-                     return !operationGroups.Any(x => x.Value.Count() > 1);
-                 }).WithMessage("Multiple operations on the same path.");
+            When(
+                x => x.Operations.Any(),
+                () =>
+                {
+#if NETSTANDARD2_0
+                    RuleFor(x => x.Operations)
+                                    .Must(operations => operations.AtLeastOnce(x => x.OperationType == OperationType.Test))
+                                    .WithSeverity(Warning)
+                                    .WithMessage(@"No ""test"" operation provided."); 
+#endif
+
+                    RuleFor(x => x.Operations)
+                        .Must(operations =>
+                        {
+                            IDictionary<string, IEnumerable<Operation<TModel>>> operationGroups = operations
+                               .GroupBy(op => op.path)
+                               .ToDictionary();
+
+                            return !operationGroups.Any(x => x.Value.Count() > 1);
+                        }).WithMessage("Multiple operations on the same path.");
+                }
+            );
                 
         }
     }

@@ -1,20 +1,12 @@
 ﻿using System.Threading.Tasks;
-using MedEasy.Validators;
 using Microsoft.Extensions.Logging;
 using MedEasy.DAL.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
-using static FluentValidation.Severity;
 using System;
-using MedEasy.Objects;
-using MedEasy.Queries;
 using System.Linq.Expressions;
 using AutoMapper.QueryableExtensions;
 using MedEasy.Handlers.Core.Exceptions;
 using System.Threading;
-using Optional;
-using FluentValidation;
-using FluentValidation.Results;
 
 namespace MedEasy.Handlers.Core.Queries
 {

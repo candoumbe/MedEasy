@@ -3,6 +3,8 @@ using FluentAssertions;
 using System.Collections.Generic;
 using System;
 using System.Linq.Expressions;
+using MedEasy.RestObjects;
+using System.Linq;
 
 namespace MedEasy.Tools.Tests
 {
@@ -45,7 +47,7 @@ namespace MedEasy.Tools.Tests
         public class Bar : IFoo<int> { }
 
 
-        public static IEnumerable<object> IsAnonymousCases
+        public static IEnumerable<object[]> IsAnonymousCases
         {
             get
             {
@@ -73,5 +75,6 @@ namespace MedEasy.Tools.Tests
         [MemberData(nameof(IsAnonymousCases))]
         public void IsAnonymous(Type t, bool expectedResult)
             => t.IsAnonymousType().Should().Be(expectedResult);
+
     }
 }
