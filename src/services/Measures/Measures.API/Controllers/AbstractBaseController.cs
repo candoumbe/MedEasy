@@ -1,7 +1,4 @@
 ﻿using AutoMapper.QueryableExtensions;
-using Measures.API.Routing;
-using Measures.DTO;
-using Measures.Objects;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -9,16 +6,14 @@ using MedEasy.DTO.Search;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MedEasy.Measures.API.Controllers
+namespace Measures.API.Controllers
 {
     /// <summary>
     /// Base class for all controllers of the application
@@ -75,19 +70,21 @@ namespace MedEasy.Measures.API.Controllers
         /// <param name="search"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<IPagedResult<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
+        protected async Task<Page<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.New())
             {
                 Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (x => true);
                 Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
-                IPagedResult<TResource> resources = await uow.Repository<TEntity>()
+                Page<TResource> resources = await uow.Repository<TEntity>()
                     .WhereAsync(
                         selector,
                         filter ,
-                        search.Sorts.Select(sort => OrderClause<TResource>.Create(sort.Expression, sort.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending)),
-                        search.Page,
+                        search.Sorts.Select(sort => OrderClause<TResource>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending 
+                            ? MedEasy.DAL.Repositories.SortDirection.Ascending 
+                            : MedEasy.DAL.Repositories.SortDirection.Descending)),
                         search.PageSize,
+                        search.Page,
                         cancellationToken);
                                 
                 return resources;

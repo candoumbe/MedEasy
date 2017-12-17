@@ -16,7 +16,7 @@ namespace MedEasy.CQRS.Core.Handlers.Search.Queries
         /// <typeparam name="TEntity">Type of the resource to perform query on</typeparam>
         /// <typeparam name="TResult">Type of the result to perform query on</typeparam>
         /// <param name="searchQuery">The search criteria</param>
-        /// <returns><see cref="IPagedResult{T}"/> which holds the result of the search.</returns>
-        Task<IPagedResult<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class;
+        /// <returns><see cref="Page{T}"/> which holds the result of the search.</returns>
+        Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class;
     }
 }

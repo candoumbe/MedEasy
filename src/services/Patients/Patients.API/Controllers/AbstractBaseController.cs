@@ -70,13 +70,13 @@ namespace Patients.API.Controllers
         /// <param name="search"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<IPagedResult<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
+        protected async Task<Page<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.New())
             {
                 Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (x => true);
                 Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
-                IPagedResult<TResource> resources = await uow.Repository<TEntity>()
+                Page<TResource> resources = await uow.Repository<TEntity>()
                     .WhereAsync(
                         selector,
                         filter ,

@@ -6,7 +6,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
-using MedEasy.Measures.API.Controllers;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,8 +18,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.JsonPatch;
-using FluentValidation.Results;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -88,7 +85,7 @@ namespace Measures.API.Controllers
             {
                 pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
                 Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                IPagedResult<PatientInfo> result = await uow.Repository<Patient>()
+                Page<PatientInfo> result = await uow.Repository<Patient>()
                     .ReadPageAsync(
                         selector,
                         pagination.PageSize,
@@ -104,11 +101,11 @@ namespace Measures.API.Controllers
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                         : null;
 
-                string nextPageUrl = pagination.Page < result.PageCount
+                string nextPageUrl = pagination.Page < result.Count
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                         : null;
-                string lastPageUrl = result.PageCount > 0
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.PageCount })
+                string lastPageUrl = result.Count > 0
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : null;
 
 
@@ -279,7 +276,7 @@ namespace Measures.API.Controllers
                             return sort;
                         })
             };
-            IPagedResult<PatientInfo> resources = await Search(searchQuery, cancellationToken);
+            Page<PatientInfo> resources = await Search(searchQuery, cancellationToken);
 
             GenericPagedGetResponse<BrowsableResource<PatientInfo>> page = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                     items: resources.Entries.Select(x => new BrowsableResource<PatientInfo>
@@ -317,7 +314,7 @@ namespace Measures.API.Controllers
                             search.PageSize
                         })
                         : null,
-                    next: resources.PageCount > search.Page
+                    next: resources.Count > search.Page
                         ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
@@ -336,7 +333,7 @@ namespace Measures.API.Controllers
                         search.Lastname,
                         search.BirthDate,
                         search.Sort,
-                        page = Math.Max(resources.PageCount, 1),
+                        page = Math.Max(resources.Count, 1),
                         search.PageSize
                     })
                 );
@@ -646,7 +643,7 @@ namespace Measures.API.Controllers
         //    };
 
 
-        //    IPagedResult<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo), cancellationToken);
+        //    Page<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Patient, PatientInfo>(new SearchQuery<PatientInfo>(searchQueryInfo), cancellationToken);
 
         //    search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
         //    int count = pageOfResult.Entries.Count();
@@ -1026,7 +1023,7 @@ namespace Measures.API.Controllers
         //        PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pageSize)
         //    };
 
-        //    Option<IPagedResult<DocumentMetadataInfo>> result = await _iHandleGetDocumentByPatientIdQuery.HandleAsync(new WantDocumentsByPatientIdQuery(id, query), cancellationToken);
+        //    Option<Page<DocumentMetadataInfo>> result = await _iHandleGetDocumentByPatientIdQuery.HandleAsync(new WantDocumentsByPatientIdQuery(id, query), cancellationToken);
 
 
 

@@ -1,5 +1,5 @@
-﻿using MedEasy.CQRS.Core.Queries;
-using MedEasy.Handlers.Core.Queries;
+﻿using MedEasy.CQRS.Core.Handlers.Queries;
+using MedEasy.CQRS.Core.Queries;
 using MedEasy.RestObjects;
 using Patients.DTO;
 using System;

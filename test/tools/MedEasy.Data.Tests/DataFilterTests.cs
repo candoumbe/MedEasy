@@ -94,14 +94,14 @@ namespace MedEasy.Data.Tests
 
 
                         && JArray.Parse(json)[0].Type == JTokenType.Object
-                        && JArray.Parse(json)[1].IsValid(DataFilter.Schema(EqualTo))
+                        && JArray.Parse(json)[0].IsValid(DataFilter.Schema(EqualTo))
                         && JArray.Parse(json)[0][DataFilter.FieldJsonPropertyName].Value<string>() == "Firstname"
                         && JArray.Parse(json)[0][DataFilter.OperatorJsonPropertyName].Value<string>() == "eq"
                         && JArray.Parse(json)[0][DataFilter.ValueJsonPropertyName].Value<string>() == "Bruce"
 
                         && JArray.Parse(json)[1].Type == JTokenType.Object
                         && JArray.Parse(json)[1].IsValid(DataFilter.Schema(EqualTo))
-                        && JArray.Parse(json)[1][DataFilter.FieldJsonPropertyName].Value<string>() == "Firstname"
+                        && JArray.Parse(json)[1][DataFilter.FieldJsonPropertyName].Value<string>() == "Lastname"
                         && JArray.Parse(json)[1][DataFilter.OperatorJsonPropertyName].Value<string>() == "eq"
                         && JArray.Parse(json)[1][DataFilter.ValueJsonPropertyName].Value<string>() == "Wayne"
                     ))
@@ -293,8 +293,12 @@ namespace MedEasy.Data.Tests
         [MemberData(nameof(CollectionOfDataFiltersCases))]
         public void CollectionOfFiltersToJson(IEnumerable<IDataFilter> filters, Expression<Func<string, bool>> jsonExpectation)
         {
+            // Act
             string json = SerializeObject(filters);
 
+            _output.WriteLine($"result of the serialization : {json}");
+
+            // Assert
             json.Should().Match(jsonExpectation);
         }
 

@@ -15,6 +15,18 @@
     <ProjectReference Include="..\..\..\src\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.0.0" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="1.1.2" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
@@ -23,6 +35,7 @@
     <PackageReference Include="FluentAssertions" Version="4.19.2" />
     <PackageReference Include="Moq" Version="4.7.63" />
   </ItemGroup>
+
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="1.0.1" />

@@ -28,7 +28,7 @@ using FluentValidation.AspNetCore;
 using Measures.API.StartupRegistration;
 using Measures.Validators;
 
-namespace MedEasy.Measures.API
+namespace Measures.API
 {
     /// <summary>
     /// Startup class

@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.API\Measures.API.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\measures\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.DTO\Measures.DTO.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Objects\Measures.Objects.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Objects\Measures.Objects.csproj" />

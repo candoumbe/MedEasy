@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.1;netstandard2.0</TargetFrameworks>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
   </PropertyGroup>
 
   <Choose>
@@ -12,9 +11,12 @@
       </ItemGroup>
     </When>
     <Otherwise>
+      <PropertyGroup>
+        <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
+      </PropertyGroup>
       <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="1.1.2" />
-      </ItemGroup>    
+      </ItemGroup>
     </Otherwise>
   </Choose>
 

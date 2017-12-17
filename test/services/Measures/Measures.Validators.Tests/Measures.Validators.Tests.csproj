@@ -15,9 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\services\measures\Measures.DTO\Measures.DTO.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\measures\Measures.Validators\Measures.Validators.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\measures\Measures.Objects\Measures.Objects.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Validators\Measures.Validators.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Objects\Measures.Objects.csproj" />
     <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
   </ItemGroup>
 

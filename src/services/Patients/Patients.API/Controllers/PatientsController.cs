@@ -69,7 +69,7 @@ namespace Patients.API.Controllers
             {
                 pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
                 Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                IPagedResult<PatientInfo> result = await uow.Repository<Patient>()
+                Page<PatientInfo> result = await uow.Repository<Patient>()
                     .ReadPageAsync(
                         selector,
                         pagination.PageSize,
@@ -85,11 +85,11 @@ namespace Patients.API.Controllers
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                         : null;
 
-                string nextPageUrl = pagination.Page < result.PageCount
+                string nextPageUrl = pagination.Page < result.Count
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                         : null;
-                string lastPageUrl = result.PageCount > 0
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.PageCount })
+                string lastPageUrl = result.Count > 0
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : null;
 
 
@@ -390,7 +390,7 @@ namespace Patients.API.Controllers
                         })
             };
 
-            IPagedResult<PatientInfo> resources = await Search(searchQuery, cancellationToken);
+            Page<PatientInfo> resources = await Search(searchQuery, cancellationToken);
 
             GenericPagedGetResponse<BrowsableResource<PatientInfo>> page = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                     items: resources.Entries.Select(x => new BrowsableResource<PatientInfo>
@@ -428,7 +428,7 @@ namespace Patients.API.Controllers
                             search.PageSize
                         })
                         : null,
-                    next: resources.PageCount > search.Page
+                    next: resources.Count > search.Page
                         ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
@@ -447,7 +447,7 @@ namespace Patients.API.Controllers
                         search.Lastname,
                         search.BirthDate,
                         search.Sort,
-                        page = Math.Max(resources.PageCount, 1),
+                        page = Math.Max(resources.Count, 1),
                         search.PageSize
                     })
                 );

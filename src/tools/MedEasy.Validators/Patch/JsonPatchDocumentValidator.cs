@@ -32,6 +32,7 @@ namespace MedEasy.Validators.Patch
                 () =>
                 {
 #if NETSTANDARD2_0
+                    
                     RuleFor(x => x.Operations)
                                     .Must(operations => operations.AtLeastOnce(x => x.OperationType == OperationType.Test))
                                     .WithSeverity(Warning)
@@ -45,8 +46,19 @@ namespace MedEasy.Validators.Patch
                                .GroupBy(op => op.path)
                                .ToDictionary();
 
-                            return !operationGroups.Any(x => x.Value.Count() > 1);
-                        }).WithMessage("Multiple operations on the same path.");
+                            return !operationGroups.Any(x => x.Value.Count() > 1 && x.Value.Distinct().Count() == 1);
+                        })
+                        .WithMessage("Multiple operations on the same path with same value.")
+                        .WithSeverity(Warning)
+                        .Must(operations =>
+                        {
+                            IDictionary<string, IEnumerable<Operation<TModel>>> operationGroups = operations
+                               .GroupBy(op => op.path)
+                               .ToDictionary();
+
+                            return !operationGroups.Any(x => x.Value.Count() > 1 && x.Value.Distinct().Count() > 1);
+                        }).WithMessage("Multiple operations on the same path with different values.");
+                    ;
                 }
             );
                 

@@ -1,4 +1,4 @@
-﻿using MedEasy.Handlers.Core.Commands;
+﻿using MedEasy.CQRS.Core.Commands;
 using Patients.CQRS.Doctor.Commands;
 using System;
 

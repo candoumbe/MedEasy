@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="7.2.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="Moq" Version="4.7.145" />
     <PackageReference Include="xunit" Version="2.3.1" />
@@ -16,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\services\patients\Patients.Validators\Patients.Validators.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.DTO\Patients.DTO.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.Validators\Patients.Validators.csproj" />
+    <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
   </ItemGroup>
 
 </Project>

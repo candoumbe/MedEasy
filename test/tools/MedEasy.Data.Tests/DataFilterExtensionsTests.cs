@@ -31,6 +31,8 @@ namespace MedEasy.Data.Tests
 
             public int Height { get; set; }
 
+            public DateTimeOffset? LastBattleDate { get; set; }
+
             public Henchman Henchman { get; set; }
         }
 
@@ -123,6 +125,31 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Firstname.Contains("a") && (item.Nickname == "Batman" || item.Nickname == "Superman")))
                 };
 
+
+                yield return new object[]
+                {
+                    new[] {
+                        new SuperHero { Firstname = "Bruce", Lastname = "Wayne", Height = 190, Nickname = "Batman", LastBattleDate = 25.December(2012) },
+                        new SuperHero { Firstname = "Clark", Lastname = "Kent", Height = 190, Nickname = "Superman", LastBattleDate = 13.January(2007)},
+                        new SuperHero { Firstname = "Barry", Lastname = "Allen", Height = 190, Nickname = "Flash", LastBattleDate = 18.April(2014) }
+
+                    },
+                    new DataCompositeFilter {
+                        Logic = And,
+                        Filters = new IDataFilter [] {
+                            new DataFilter(field : nameof(SuperHero.Firstname), @operator : Contains, value : "a"),
+                            new DataCompositeFilter
+                            {
+                                Logic = And,
+                                Filters = new [] {
+                                    new DataFilter(field : nameof(SuperHero.LastBattleDate), @operator : GreaterThan, value : 1.January(2007)),
+                                    new DataFilter(field : nameof(SuperHero.LastBattleDate), @operator : LessThan, value : 31.December(2012))
+                                }
+                            }
+                        }
+                    },
+                    ((Expression<Func<SuperHero, bool>>)(item => item.Firstname.Contains("a") && (1.January(2007) < item.LastBattleDate) && item.LastBattleDate < 31.December(2012)))
+                };
 
             }
 
@@ -601,7 +628,9 @@ namespace MedEasy.Data.Tests
         public void ToFilterThrowsArgumentNullExceptionWhenParameterIsNull()
         {
             // Act
+#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => DataFilterExtensions.ToFilter<SuperHero>(null);
+#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().Which
@@ -614,7 +643,9 @@ namespace MedEasy.Data.Tests
         public void ToExpressionThrowsArgumentNullExceptionWhenParameterIsNull()
         {
             // Act
+#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => DataFilterExtensions.ToExpression<SuperHero>(null);
+#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().Which

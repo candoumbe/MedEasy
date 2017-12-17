@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Measures.API.Context
 {
+    /// <summary>
+    /// Interacts with the underlying repostories.
+    /// </summary>
     public class MeasuresContext : DbContext, IDbContext
     {
         /// <summary>
@@ -38,6 +41,10 @@ namespace Measures.API.Context
         {
         }
 
+        /// <summary>
+        /// <see cref="DbContext.OnModelCreating(ModelBuilder)"/>
+        /// </summary>
+        /// <param name="modelBuilder"></param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -76,7 +83,7 @@ namespace Measures.API.Context
 
             modelBuilder.Entity<BloodPressure>(entity => 
             {
-
+                entity.HasKey(x => x.Id);
                 entity.Property(x => x.Id)
                     .UseSqlServerIdentityColumn()
                     .IsRequired();

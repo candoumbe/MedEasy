@@ -4,8 +4,11 @@ using Measures.DTO;
 using Measures.Objects;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+using MedEasy.Data;
+using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
@@ -15,6 +18,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static MedEasy.Data.DataFilterLogic;
+using static MedEasy.Data.DataFilterOperator;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -24,7 +29,7 @@ namespace Measures.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources
     /// </summary>
     [Route("measures/[controller]")]
-    public class BloodPressuresController
+    public class BloodPressuresController : AbstractBaseController<BloodPressure, BloodPressureInfo, Guid>
     {
         /// <summary>
         /// Name of the endpoint
@@ -32,18 +37,15 @@ namespace Measures.API.Controllers
         public static string EndpointName => nameof(BloodPressuresController).Replace("Controller", string.Empty);
 
         /// <summary>
+        /// Name of the controller
+        /// </summary>
+        protected override string ControllerName => EndpointName;
+
+        /// <summary>
         /// Options of the API
         /// </summary>
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
-
-        private readonly IUrlHelper _urlHelper;
-
-
-        /// <summary>
-        /// Name of the controller without the "Controller" suffix 
-        /// </summary>
-        private readonly IExpressionBuilder _expressionBuilder;
-        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
+        
 
 
         /// <summary>
@@ -58,11 +60,9 @@ namespace Measures.API.Controllers
             IOptionsSnapshot<MeasuresApiOptions> apiOptions,
             IExpressionBuilder expressionBuilder,
             IUnitOfWorkFactory unitOfWorkFactory)
+            : base(logger, unitOfWorkFactory, expressionBuilder, urlHelper)
         {
-            _urlHelper = urlHelper;
             ApiOptions = apiOptions;
-            _expressionBuilder = expressionBuilder;
-            _unitOfWorkFactory = unitOfWorkFactory;
         }
 
 
@@ -83,11 +83,11 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = UowFactory.New())
             {
                 pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-                Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                IPagedResult<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
+                Expression<Func<BloodPressure, BloodPressureInfo>> selector = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
+                Page<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
                     .ReadPageAsync(
                         selector,
                         pagination.PageSize,
@@ -98,16 +98,16 @@ namespace Measures.API.Controllers
                 int count = result.Entries.Count();
                 bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-                string firstPageUrl = _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
                 string previousPageUrl = hasPreviousPage
-                        ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                         : null;
 
-                string nextPageUrl = pagination.Page < result.PageCount
-                        ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                string nextPageUrl = pagination.Page < result.Count
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                         : null;
-                string lastPageUrl = result.PageCount > 0
-                        ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.PageCount })
+                string lastPageUrl = result.Count > 0
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : null;
 
 
@@ -120,7 +120,7 @@ namespace Measures.API.Controllers
                             new Link
                             {
                                 Relation = LinkRelation.Self,
-                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
+                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                             }
                         }
                     });
@@ -161,9 +161,9 @@ namespace Measures.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                using (IUnitOfWork uow = UowFactory.New())
                 {
-                    Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
+                    Expression<Func<BloodPressure, BloodPressureInfo>> selector = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                     Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
                         .SingleOrDefaultAsync(selector, x => x.Id == id);
 
@@ -178,7 +178,15 @@ namespace Measures.API.Controllers
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
-                                        Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { conroller = EndpointName, bloodPressure.Id })
+                                        Method = "GET",
+                                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                                    },
+                                    new Link
+                                    {
+                                        Relation = "delete",
+                                        Method = "DELETE",
+                                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+
                                     }
                                 }
                             };
@@ -276,7 +284,7 @@ namespace Measures.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                using (IUnitOfWork uow = UowFactory.New())
                 {
                     uow.Repository<BloodPressure>().Delete(x => x.UUID == id);
                     await uow.SaveChangesAsync(cancellationToken);
@@ -407,15 +415,15 @@ namespace Measures.API.Controllers
         //                Resource = x,
         //                Links = new[]
         //                {
-        //                    new Link{ Href = _urlHelper.Action(nameof(Get), EndpointName, new { id } ), Method = "GET", Relation = "patient" },
+        //                    new Link{ Href = UrlHelper.Action(nameof(Get), EndpointName, new { id } ), Method = "GET", Relation = "patient" },
         //                    new Link
         //                    {
-        //                        Href = _urlHelper.Action(nameof(Temperatures), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
+        //                        Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
         //                        Relation = "self",
         //                        Method = "GET"
         //                    },
-        //                    new Link { Href = _urlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "remove", Method = "DELETE" },
-        //                    new Link { Href = _urlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "direct-link", Method = "GET" }
+        //                    new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "remove", Method = "DELETE" },
+        //                    new Link { Href = UrlHelper.Action(nameof(Temperatures), EndpointName, new { x.Id }), Relation = "direct-link", Method = "GET" }
         //                }
         //            });
         //        },
@@ -447,7 +455,7 @@ namespace Measures.API.Controllers
         //                {
         //                    new Link
         //                    {
-        //                        Href = _urlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
+        //                        Href = UrlHelper.Action(nameof(BloodPressures), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
         //                        Relation = "self"
         //                    }
         //                }
@@ -481,7 +489,7 @@ namespace Measures.API.Controllers
         //                    {
         //                        new Link
         //                        {
-        //                            Href = _urlHelper.Action(nameof(TemperatureInfo), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
+        //                            Href = UrlHelper.Action(nameof(TemperatureInfo), EndpointName, new { id = x.BloodPressureId, temperatureId = x.Id }),
         //                            Relation = "self"
         //                        }
         //                    }
@@ -492,117 +500,134 @@ namespace Measures.API.Controllers
 
 
 
-        ///// <summary>
-        ///// Search patients resource based on some criteria.
-        ///// </summary>
-        ///// <param name="search">Search criteria</param>
-        ///// <param name="cancellationToken">Notfies to cancel the search operation</param>
-        ///// <remarks>
-        ///// All criteria are combined as a AND.
-        ///// 
-        ///// Advanded search :
-        ///// Several operators that can be used to make an advanced search :
-        ///// '*' : match zero or more characters in a string property.
-        ///// 
-        /////     // GET api/BloodPressures/Search?Firstname=Bruce
-        /////     will match all resources which have exactly 'Bruce' in the Firstname property
-        /////     
-        /////     // GET api/BloodPressures/Search?Firstname=B*e
-        /////     will match match all resources which starts with 'B' and ends with 'e'.
-        ///// 
-        ///// '?' : match exactly one charcter in a string property.
-        ///// 
-        ///// '!' : negate a criteria
-        ///// 
-        /////     // GET api/BloodPressures/Search?Firstname=!Bruce
-        /////     will match all resources where Firstname is not "Bruce"
-        /////     
-        ///// </remarks>
-        ///// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
-        ///// <response code="400">one the search criteria is not valid</response>
-        //[HttpGet("[action]")]
-        //[ProducesResponseType(typeof(IEnumerable<BrowsableResource<BloodPressureInfo>>), 200)]
-        //[ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        //public async Task<IActionResult> Search([FromQuery] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
-        //{
+        /// <summary>
+        /// Search patients resource based on some criteria.
+        /// </summary>
+        /// <param name="search">Search criteria</param>
+        /// <param name="cancellationToken">Notfies to cancel the search operation</param>
+        /// <remarks>
+        /// All criteria are combined as a AND.
+        /// 
+        /// Advanded search :
+        /// Several operators that can be used to make an advanced search :
+        /// '*' : match zero or more characters in a string property.
+        /// 
+        ///     // GET api/BloodPressures/Search?Firstname=Bruce
+        ///     will match all resources which have exactly 'Bruce' in the Firstname property
+        ///     
+        ///     // GET api/BloodPressures/Search?Firstname=B*e
+        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        /// 
+        /// '?' : match exactly one charcter in a string property.
+        /// 
+        /// '!' : negate a criteria
+        /// 
+        ///     // GET api/BloodPressures/Search?Firstname=!Bruce
+        ///     will match all resources where Firstname is not "Bruce"
+        ///     
+        /// </remarks>
+        /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
+        /// <response code="400">one the search criteria is not valid</response>
+        [HttpGet("[action]")]
+        [ProducesResponseType(typeof(IEnumerable<BrowsableResource<BloodPressureInfo>>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
+        public async Task<IActionResult> Search([FromQuery] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
+        {
 
 
-        //    IList<IDataFilter> filters = new List<IDataFilter>();
-        //    if (!string.IsNullOrWhiteSpace(search.Firstname))
-        //    {
-        //        filters.Add($"{nameof(BloodPressureInfo.Firstname)}={search.Firstname}".ToFilter<BloodPressureInfo>());
-        //    }
+            IList<IDataFilter> filters = new List<IDataFilter>();
 
-        //    if (!string.IsNullOrWhiteSpace(search.Lastname))
-        //    {
-        //        filters.Add($"{nameof(BloodPressureInfo.Lastname)}={search.Lastname}".ToFilter<BloodPressureInfo>());
-        //    }
+            if (search.From.HasValue)
+            {
+                filters.Add(new DataCompositeFilter
+                {
+                    Logic = Or,
+                    Filters = new[] {
+                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value),
+                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value)
+                    }
+                });
+            }
+            if (search.To.HasValue)
+            {
+                filters.Add(new DataCompositeFilter
+                {
+                    Logic = Or,
+                    Filters = new[] {
+                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value),
+                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value)
+                    }
+                });
+            }
 
-        //    if (search.BirthDate.HasValue)
-        //    {
-
-        //        filters.Add(new DataFilter(field : nameof(BloodPressureInfo.BirthDate), @operator : DataFilterOperator.EqualTo, value : search.BirthDate.Value));
-        //    }
-
-        //    SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
-        //    {
-        //        Page = search.Page,
-        //        PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
-        //        Filter = filters.Count() == 1
-        //            ? filters.Single()
-        //            : new DataCompositeFilter { Logic = And, Filters = filters },
-        //        Sorts = (search.Sort ?? $"-{nameof(BloodPressureInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-        //                .Select(x =>
-        //                {
-        //                    x = x.Trim();
-        //                    Sort sort;
-        //                    if (x.StartsWith("-"))
-        //                    {
-        //                        x = x.Substring(1);
-        //                        sort = new Sort { Direction = Data.SortDirection.Descending, Expression = x.ToLambda<BloodPressureInfo>() };
-        //                    }
-        //                    else
-        //                    {
-        //                        sort = new Sort { Direction = Data.SortDirection.Ascending, Expression = x.ToLambda<BloodPressureInfo>() };
-        //                    }
-
-        //                    return sort;
-        //                })
-        //    };
+            SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
+            {
+                Page = search.Page,
+                PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
+                Filter = filters.Count() == 1
+                    ? filters.Single()
+                    : new DataCompositeFilter { Logic = And, Filters = filters },
+                Sorts = (search.Sort ?? $"-{nameof(BloodPressureInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x =>
+                        {
+                            x = x.Trim();
+                            Sort sort;
+                            if (x.StartsWith("-"))
+                            {
+                                x = x.Substring(1);
+                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Descending, Expression = x.ToLambda<BloodPressureInfo>() };
+                            }
+                            else
+                            {
+                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Ascending, Expression = x.ToLambda<BloodPressureInfo>() };
+                            }
+                            return sort;
+                        })
+            };
 
 
-        //    IPagedResult<BloodPressureInfo> pageOfResult = await _iHandleSearchQuery.Search<BloodPressure, BloodPressureInfo>(new SearchQuery<BloodPressureInfo>(searchQueryInfo), cancellationToken);
+            Page<BloodPressureInfo> pageOfResult = await Search(searchQueryInfo, cancellationToken);
 
-        //    search.PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize);
-        //    int count = pageOfResult.Entries.Count();
-        //    bool hasPreviousPage = count > 0 && search.Page > 1;
+            int count = pageOfResult.Entries.Count();
+            bool hasPreviousPage = count > 0 && search.Page > 1;
 
-        //    string firstPageUrl = _urlHelper.Action(nameof(Search), EndpointName, new { search.Firstname, search.Lastname, search.BirthDate, Page = 1, search.PageSize, search.Sort });
-        //    string previousPageUrl = hasPreviousPage
-        //            ? _urlHelper.Action(nameof(Search), EndpointName, new { search.Firstname, search.Lastname, search.BirthDate, Page = search.Page - 1, search.PageSize, search.Sort })
-        //            : null;
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort });
+            string previousPageUrl = hasPreviousPage
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort })
+                    : null;
+            string nextPageUrl = search.Page < pageOfResult.Count
+                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort })
+                    : null;
 
-        //    string nextPageUrl = search.Page < pageOfResult.PageCount
-        //            ? _urlHelper.Action(nameof(Search), EndpointName, new { search.Firstname, search.Lastname, search.BirthDate, Page = search.Page + 1, search.PageSize, search.Sort })
-        //            : null;
-        //    string lastPageUrl = pageOfResult.PageCount > 1
-        //            ? _urlHelper.Action(nameof(Search), EndpointName, new { search.Firstname, search.Lastname, search.BirthDate, Page = pageOfResult.PageCount, search.PageSize, search.Sort })
-        //            : null;
+            string lastPageUrl =  UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
 
-        //    IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
-        //        .Select(x => new BrowsableResource<BloodPressureInfo> { Resource = x, Links = BuildAdditionalLinksForResource(x) });
+            IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
+                .Select(
+                    x => new BrowsableResource<BloodPressureInfo>
+                    {
+                        Resource = x,
+                        Links = new[]
+                        {
+                            new Link
+                            {
+                                Relation = LinkRelation.Self,
+                                Method = "GET",
+                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
+                            }
+                        }
+                    });
 
-        //    IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
-        //        resources,
-        //        first: firstPageUrl,
-        //        previous: previousPageUrl,
-        //        next: nextPageUrl,
-        //        last: lastPageUrl,
-        //        count: pageOfResult.Total);
+            IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+                resources,
+                first: firstPageUrl,
+                previous: previousPageUrl,
+                next: nextPageUrl,
+                last: lastPageUrl,
+                count: pageOfResult.Total);
 
-        //    return new OkObjectResult(reponse);
+            return new OkObjectResult(reponse);
 
-        //}
+        }
 
 
         ///// <summary>
@@ -670,7 +695,7 @@ namespace Measures.API.Controllers
         //                   {
         //                       new Link
         //                       {
-        //                           Href = _urlHelper.Action(nameof(BodyWeights), EndpointName, new { id = x.BloodPressureId, bodyWeightId = x.Id }),
+        //                           Href = UrlHelper.Action(nameof(BodyWeights), EndpointName, new { id = x.BloodPressureId, bodyWeightId = x.Id }),
         //                           Relation = "self"
         //                       }
         //                   }
@@ -770,12 +795,12 @@ namespace Measures.API.Controllers
         //                       new Link
         //                        {
         //                            Relation = nameof(Measures.Items),
-        //                            Href = _urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName , new { x.Id })
+        //                            Href = UrlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName , new { x.Id })
         //                        },
         //                       new Link
         //                       {
         //                           Relation = "self",
-        //                           Href = _urlHelper.Action(nameof(Prescriptions), EndpointName, new { id = x.BloodPressureId, prescriptionId = x.Id })
+        //                           Href = UrlHelper.Action(nameof(Prescriptions), EndpointName, new { id = x.BloodPressureId, prescriptionId = x.Id })
         //                       }
         //                   },
         //                   Resource = x
@@ -807,7 +832,7 @@ namespace Measures.API.Controllers
         //        Links = new[]
         //        {
         //            new Link {
-        //                Href = _urlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {createdPrescription.Id}),
+        //                Href = UrlHelper.Action(nameof(PrescriptionsController.Details), PrescriptionsController.EndpointName, new {createdPrescription.Id}),
         //                Method = "GET",
         //                Relation = nameof(Measures.Items),
         //                Title = "Content"
@@ -900,28 +925,28 @@ namespace Measures.API.Controllers
         //        {
         //            new Link {
         //                Relation = "main-doctor",
-        //                Href = _urlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new { id = resource.MainDoctorId })
+        //                Href = UrlHelper.Action(nameof(DoctorsController.Get), DoctorsController.EndpointName, new { id = resource.MainDoctorId })
         //            },
         //            new Link
         //            {
         //                Relation = "delete",
         //                Method = "DELETE",
-        //                Href = _urlHelper.Action(nameof(BloodPressuresController.Delete), EndpointName, new { id = resource.Id })
+        //                Href = UrlHelper.Action(nameof(BloodPressuresController.Delete), EndpointName, new { id = resource.Id })
         //            },
         //            new Link
         //            {
         //                Relation = nameof(Documents).ToLower(),
-        //                Href = _urlHelper.Action(nameof(BloodPressuresController.Documents), EndpointName, new { id = resource.Id })
+        //                Href = UrlHelper.Action(nameof(BloodPressuresController.Documents), EndpointName, new { id = resource.Id })
         //            },
         //            new Link
         //            {
         //                Relation = nameof(BloodPressuresController.MostRecentTemperatures).ToLowerKebabCase(),
-        //                Href = _urlHelper.Action(nameof(BloodPressuresController.MostRecentTemperatures), EndpointName, new { id = resource.Id })
+        //                Href = UrlHelper.Action(nameof(BloodPressuresController.MostRecentTemperatures), EndpointName, new { id = resource.Id })
         //            },
         //            new Link
         //            {
         //                Relation = nameof(BloodPressuresController.MostRecentBloodPressures).ToLowerKebabCase(),
-        //                Href = _urlHelper.Action(nameof(BloodPressuresController.MostRecentBloodPressures), EndpointName, new { id = resource.Id })
+        //                Href = UrlHelper.Action(nameof(BloodPressuresController.MostRecentBloodPressures), EndpointName, new { id = resource.Id })
         //            }
         //        }
         //        : Enumerable.Empty<Link>();
@@ -951,7 +976,7 @@ namespace Measures.API.Controllers
         //        PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pageSize)
         //    };
 
-        //    Option<IPagedResult<DocumentMetadataInfo>> result = await _iHandleGetDocumentByBloodPressureIdQuery.HandleAsync(new WantDocumentsByBloodPressureIdQuery(id, query), cancellationToken);
+        //    Option<Page<DocumentMetadataInfo>> result = await _iHandleGetDocumentByBloodPressureIdQuery.HandleAsync(new WantDocumentsByBloodPressureIdQuery(id, query), cancellationToken);
 
 
 
@@ -962,16 +987,16 @@ namespace Measures.API.Controllers
         //               int count = pageOfResult.Entries.Count();
         //               bool hasPreviousPage = count > 0 && query.Page > 1;
 
-        //               string firstPageUrl = _urlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = 1, id });
+        //               string firstPageUrl = UrlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = 1, id });
         //               string previousPageUrl = hasPreviousPage
-        //                       ? _urlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = query.Page - 1, id, })
+        //                       ? UrlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = query.Page - 1, id, })
         //                       : null;
 
         //               string nextPageUrl = query.Page < pageOfResult.PageCount
-        //                       ? _urlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = query.Page + 1, id })
+        //                       ? UrlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = query.Page + 1, id })
         //                       : null;
         //               string lastPageUrl = pageOfResult.PageCount > 0
-        //                       ? _urlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = pageOfResult.PageCount, id })
+        //                       ? UrlHelper.Action(nameof(Documents), EndpointName, new { PageSize = query.PageSize, Page = pageOfResult.PageCount, id })
         //                       : null;
 
         //               IEnumerable<BrowsableResource<DocumentMetadataInfo>> resources = pageOfResult.Entries
@@ -1079,8 +1104,8 @@ namespace Measures.API.Controllers
         //           Resource = x,
         //           Links = new[]
         //           {
-        //                new Link { Relation = "file", Href = _urlHelper.Action(nameof(DocumentsController.File), DocumentsController.EndpointName, new { x.Id }) },
-        //                new Link { Relation = "direct-link", Href = _urlHelper.Action(nameof(DocumentsController.Get), DocumentsController.EndpointName, new { x.Id }) }
+        //                new Link { Relation = "file", Href = UrlHelper.Action(nameof(DocumentsController.File), DocumentsController.EndpointName, new { x.Id }) },
+        //                new Link { Relation = "direct-link", Href = UrlHelper.Action(nameof(DocumentsController.Get), DocumentsController.EndpointName, new { x.Id }) }
         //           }
         //       };
 

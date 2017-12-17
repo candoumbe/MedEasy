@@ -88,13 +88,13 @@ namespace Measures.API.Controllers
                                 {
                                     Name = nameof(SearchBloodPressureInfo.From),
                                     Description = "Minimum date of measure",
-                                    Type = Date
+                                    Type = FormFieldType.DateTime
                                 },
                                 new FormField
                                 {
                                     Name = nameof(SearchBloodPressureInfo.To),
                                     Description = "Maximum date of measure",
-                                    Type = Date
+                                    Type = FormFieldType.DateTime
 
                                 },
                                 new FormField

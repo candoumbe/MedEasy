@@ -27,7 +27,7 @@ namespace MedEasy.CQRS.Core.Queries
     /// <typeparam name="TQueryId">Type of the command identifier</typeparam>
     /// <typeparam name="TResource">Type of the resource of the query</typeparam>
     /// <typeparam name="TData">Type of data the query will carry.</typeparam>
-    public interface IWantPage<TQueryId, TData, TResource> : IWant<TQueryId, TData, IPagedResult<TResource>>
+    public interface IWantPage<TQueryId, TData, TResource> : IWant<TQueryId, TData, Page<TResource>>
         where TQueryId : IEquatable<TQueryId>
     {
 

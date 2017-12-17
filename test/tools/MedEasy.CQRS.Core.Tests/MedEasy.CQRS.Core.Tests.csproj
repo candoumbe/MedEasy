@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\services\patients\Patients.DTO\Patients.DTO.csproj" />
-    <ProjectReference Include="..\..\..\src\services\patients\Patients.Objects\Patients.Objects.csproj" />
+    <ProjectReference Include="..\..\..\src\services\Patients\Patients.DTO\Patients.DTO.csproj" />
+    <ProjectReference Include="..\..\..\src\services\Patients\Patients.Objects\Patients.Objects.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
   </ItemGroup>
 

@@ -11,9 +11,9 @@ namespace MedEasy.CQRS.Core.Handlers.Queries
     /// </summary>
     /// <typeparam name="TKey">Type of the key that identifies queries that this handler can execute</typeparam>
     /// <typeparam name="TData">Type of the data queries will carry</typeparam>
-    /// <typeparam name="TResult">Type of the result of the execution of the query. Will be wrapped in a <see cref="IPagedResult{TResult}"/></typeparam>
+    /// <typeparam name="TResult">Type of the result of the execution of the query. Will be wrapped in a <see cref="Page{TResult}"/></typeparam>
     /// <typeparam name="TQuery">Type of queries this instance can handle</typeparam>
-    public interface IHandleQueryPageAsync<TKey, TData, TResult, TQuery> : IHandleQueryAsync<TKey, TData, IPagedResult<TResult>, TQuery>
+    public interface IHandleQueryPageAsync<TKey, TData, TResult, TQuery> : IHandleQueryAsync<TKey, TData, Page<TResult>, TQuery>
         where TKey : IEquatable<TKey>
         where TQuery : IWantPage<TKey, TData, TResult>
     {

@@ -286,7 +286,7 @@ namespace MedEasy.WebApi.Tests
             {
                 response.Items.Should()
                     .NotContainNulls().And
-                    .OnlyContain(x => x.Links.Once(link => link.Relation == "self"));
+                    .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self));
             }
 
             response.Count.Should()
@@ -571,17 +571,17 @@ namespace MedEasy.WebApi.Tests
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(BrowsableResource<PatientInfo>)}{nameof(BrowsableResource<PatientInfo>.Links)} cannot contain any element " +
                     $"with null/empty/whitespace {nameof(Link.Href)}s" ).And
-                .ContainSingle(x => x.Relation == "self").And
+                .ContainSingle(x => x.Relation == LinkRelation.Self).And
                 .ContainSingle(x => x.Relation == "delete").And
                 .ContainSingle(x => x.Relation == BloodPressuresController.EndpointName.ToLowerKebabCase());
 
-            Link self = links.Single(x => x.Relation == "self");
+            Link self = links.Single(x => x.Relation == LinkRelation.Self);
             self.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={patientId}");
             self.Relation.Should()
                 .NotBeNullOrWhiteSpace()
-                .And.BeEquivalentTo("self");
+                .And.BeEquivalentTo(LinkRelation.Self);
             self.Method.Should()
                 .Be("GET");
 
