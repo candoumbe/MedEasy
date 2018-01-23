@@ -12,14 +12,29 @@ namespace System.Collections.Generic
         public static IEnumerable<Type> PrimitiveTypes = new[]
         {
             typeof(string),
+
             typeof(int), typeof(int?),
             typeof(long), typeof(long?),
             typeof(short), typeof(short?),
             typeof(decimal), typeof(decimal?),
-            typeof(bool), typeof(bool?),
+            typeof(float), typeof(float?),
+
             typeof(DateTime), typeof(DateTime?),
             typeof(DateTimeOffset), typeof(DateTimeOffset?),
             typeof(Guid), typeof(Guid?),
+            typeof(bool), typeof(bool?)
+
+
+        };
+
+
+        public static IEnumerable<Type> NumericTypes = new[]
+        {
+            typeof(int), typeof(int?),
+            typeof(long), typeof(long?),
+            typeof(short), typeof(short?),
+            typeof(decimal), typeof(decimal?),
+            typeof(float), typeof(float?),
         };
 
 

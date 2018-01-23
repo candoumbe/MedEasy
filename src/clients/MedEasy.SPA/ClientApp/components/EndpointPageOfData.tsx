@@ -64,7 +64,11 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
     public constructor(props: EndpointPageOfDataProps<TResource>) {
         super(props);
         this.state = {
-            pageOfResult: PageOfResult.empty, page: 1, pageSize: props.pageSize, loading: true
+            pageOfResult: PageOfResult.empty,
+            page: 1,
+            pageSize:
+            props.pageSize,
+            loading: true
         };
         this.loadData(1);
     }
@@ -73,7 +77,7 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
      * Loads
      */
     private async loadData(page: number): Promise<void> {
-        //this.setState({ items: [], page: this.state.page, pageSize: this.state.pageSize, loading: true })
+        
         let response: Response = await fetch(`${this.props.endpoint}?page=${page}&pageSize=${this.state.pageSize}`);
         if (response.ok) {
             let pageOfResult: PageOfResult<TResource> = await (response.json() as Promise<PageOfResult<TResource>>);
@@ -215,15 +219,10 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                                         onClick={() => this.loadData(i)}>
                                         <span aria-hidden="true"></span>&nbsp;{i}
                                     </button>
-                                })}
-                            <button
-                                className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
-                                disabled={lastPageNumber <= 1}
-                                title={last.title}
-                                aria-label={lastPageNumber}
-                                onClick={() => this.loadData(lastPageNumber)}>
-                                <span aria-hidden="true">&raquo;</span>
-                            </button>
+                                })
+                            }
+                            
+                            
 
                         </li>
                     </ul>

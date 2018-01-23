@@ -27,6 +27,14 @@ interface PatientDetailsComponentState {
  */
 export class PatientDetails extends React.Component<PatientDetailsComponentProps, PatientDetailsComponentState> {
 
+    private static measures = [
+        { relation: "blood-pressures", resource : "bloodPressures" },
+        { relation: "body-weights", resource : "bodyWeights" },
+        { relation: "temperatures", resource: "temperatures" },
+        { relation: "heartbeats", resource: "heartbeats" },
+        
+    ];
+
     public constructor(props: PatientDetailsComponentProps) {
         super(props);
         this.setState({ loading: true})
@@ -55,16 +63,28 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
             component = <LoadingComponent />
         } else {
             let browsablePatient = this.state.patient;
+            let measures = PatientDetails.measures.filter(measure => browsablePatient.links.some((link) => measure.relation == link.relation));
+            let measuresComponents: Array<JSX.Element> = [];
             this.state.patient
                 ?
                 <div>
                     <div className="page-header">
-                        <h1>{browsablePatient.resource.fullname} <small>{browsablePatient.resource.birthDate ? "né le " + browsablePatient.resource.birthDate : ""}</small></h1>
+                        <h1>{browsablePatient.resource.fullname} <small>{browsablePatient.resource.birthDate ? "né(e) le " + browsablePatient.resource.birthDate : ""}</small></h1>
                     </div>
+                    {
+                        
+                        measures.forEach((measure) => {
+                            switch (measures) {
 
-                    <MeasuresRecap endpoint={this.props.endpoint} />
+                                default:
+                                    break;
+                            }
 
+                            measuresComponents.push(<MeasuresRecap endpoint={this.props.endpoint} resourceName={"bloodPressures"} />);
+                        })
+                    }
 
+                    {measuresComponents}
                 </div>
                 : <NotFoundComponent />;
         }

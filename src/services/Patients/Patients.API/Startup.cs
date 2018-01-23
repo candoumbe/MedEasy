@@ -117,7 +117,13 @@ namespace Patients.API
                     config.DescribeAllEnumsAsStrings();
                 });
             }
+            services.AddRouting(options =>
+            {
+                options.AppendTrailingSlash = true;
+                options.LowercaseUrls = true;
+            });
 
+            services.AddCors();
 
         }
 
@@ -128,7 +134,11 @@ namespace Patients.API
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseCors(builder =>
+                builder.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowAnyOrigin()
+            );
             app.UseMvc();
         }
     }

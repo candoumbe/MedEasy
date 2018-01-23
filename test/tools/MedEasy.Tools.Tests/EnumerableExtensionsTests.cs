@@ -111,13 +111,24 @@ namespace MedEasy.Tools.Tests
         }
 
         [Fact]
-        public void AtLeast()
+        public void AtLeast_With_Predicate()
         {
             // Arrange
             IEnumerable<int> source = Enumerable.Empty<int>();
 
             // Act
             source.AtLeast(x => x == -1, 0).Should().BeTrue("a non null collection always has at least 0 items.");
+        }
+
+        [Fact]
+        public void AtLeast_WithNo_Predicate()
+        {
+            // Arrange
+            IEnumerable<int> source = Enumerable.Empty<int>();
+
+            // Act
+            source.AtLeast(1).Should()
+                .BeFalse("a non null collection always has at least 0 items.");
         }
 
         [Fact]

@@ -64,11 +64,12 @@ namespace System
                         ff.Required = true;
                     }
                 }
-                else if (typeof(int).Equals(pi.PropertyType) || typeof(int?).Equals(pi.PropertyType))
+                else if (NumericTypes.Contains(pi.PropertyType))
                 {
                     ff.Type = FormFieldType.Integer;
-
+                    ff.Min = 0;
                 }
+
                 if (attributes.Any(x => typeof(RequiredAttribute).Equals(x.GetType())))
                 {
                     ff.Required = true;

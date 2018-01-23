@@ -97,7 +97,7 @@ namespace Measures.API.Context
 
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
-
+                
             });
     
 

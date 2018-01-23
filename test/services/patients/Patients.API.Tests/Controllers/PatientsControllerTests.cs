@@ -3,17 +3,16 @@ using FluentAssertions;
 using GenFu;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Optional;
 using Patients.API.Context;
 using Patients.API.Controllers;
 using Patients.API.Routing;
@@ -23,14 +22,11 @@ using Patients.Mapping;
 using Patients.Objects;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static MedEasy.DAL.Repositories.SortDirection;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
@@ -433,12 +429,13 @@ namespace Patients.API.Tests.Controllers
             {
                 {
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-                    patchDocument.Replace(x => x.Firstname, "Bruce");
+                    patchDocument.Add(x => x.Lastname, "Grayson");
+
                     yield return new object[]
                     {
-                        new Patient { Id = 1, UUID = Guid.NewGuid(), Lastname = "Wayne"  },
+                        new Patient { Id = 1, UUID = Guid.NewGuid(), Lastname = "Wayne", BirthDate = 14.June(1960) },
                         patchDocument,
-                        ((Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce" && x.Lastname == "Wayne"))
+                        ((Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Lastname == "Grayson"))
                     };
                 }
             }
@@ -448,21 +445,33 @@ namespace Patients.API.Tests.Controllers
         [MemberData(nameof(PatchCases))]
         public async Task Patch(Patient source, JsonPatchDocument<PatientInfo> patchDocument, Expression<Func<Patient, bool>> patchResultExpectation)
         {
+            _outputHelper.WriteLine($"Patient : {SerializeObject(source)}");
+            _outputHelper.WriteLine($"Patch : {SerializeObject(patchDocument)}");
 
             // Arrange
-            Guid patientId = source.UUID;
+            using (IUnitOfWork uow = _factory.New())
+            {
+                uow.Repository<Patient>().Create(source);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
 
 
             // Act
-            IActionResult actionResult = await _controller.Patch(source.UUID, patchDocument);
+            IActionResult actionResult = await _controller.Patch(source.UUID, patchDocument)
+                .ConfigureAwait(false);
 
             // Assert
             actionResult.Should()
                 .NotBeNull().And
                 .BeAssignableTo<NoContentResult>();
-            
-            source.Should().Match(patchResultExpectation);
 
+            using (IUnitOfWork uow = _factory.New())
+            {
+                Patient sourceAfterPatch = await uow.Repository<Patient>().SingleAsync(x => x.UUID == source.UUID)
+                    .ConfigureAwait(false);
+                sourceAfterPatch.Should().Match(patchResultExpectation);
+            }
         }
 
 
@@ -570,7 +579,7 @@ namespace Patients.API.Tests.Controllers
         {
             //Arrange
             Guid patientId = Guid.NewGuid();
-            
+
             //Act
             CreatePatientInfo info = new CreatePatientInfo
             {

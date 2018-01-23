@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using static FluentValidation.CascadeMode;
 using static FluentValidation.Severity;
 
@@ -46,22 +47,24 @@ namespace MedEasy.Validators.Patch
                                .GroupBy(op => op.path)
                                .ToDictionary();
 
-                            return !operationGroups.Any(x => x.Value.Count() > 1 && x.Value.Distinct().Count() == 1);
+                            return !operationGroups.Any(x => x.Value.AtLeast(2));
                         })
-                        .WithMessage("Multiple operations on the same path with same value.")
-                        .WithSeverity(Warning)
-                        .Must(operations =>
+                        .WithMessage((patch) =>
                         {
-                            IDictionary<string, IEnumerable<Operation<TModel>>> operationGroups = operations
+                            IEnumerable<string> properties = patch.Operations
                                .GroupBy(op => op.path)
-                               .ToDictionary();
+                               .ToDictionary()
+                               .Where(x => x.Value.AtLeast(2))
+                               .Select(x => x.Key)
+                               .OrderBy(x => x);
 
-                            return !operationGroups.Any(x => x.Value.Count() > 1 && x.Value.Distinct().Count() > 1);
-                        }).WithMessage("Multiple operations on the same path with different values.");
+                            return $@"Multiple operations on the same path : {string.Join(", ", properties.Select(x => $@"""{x}"""))}";
+                        })
+                        .WithSeverity(Warning);
                     ;
                 }
             );
-                
+
         }
     }
 }

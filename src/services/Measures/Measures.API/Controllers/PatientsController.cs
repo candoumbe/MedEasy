@@ -69,15 +69,17 @@ namespace Measures.API.Controllers
         /// Gets all the resources of the endpoint
         /// </summary>
         /// <param name="pagination">index of the page of resources to get</param>
+        /// <param name="cancellationToken">Notifies to cancel the execution of the request</param>
         /// <remarks>
         /// Resources are returned as pages. The <paramref name="pagination"/>'s value is used has a hint by the server
-        /// and there's no garanty that the size of page of result will be equal to the <paramref name="pageSize"/> set in the query.
+        /// and there's no garanty that the size of page of result will be equal to the <paramref name="pagination"/>' property <see cref="PaginationConfiguration.PageSize"/> set in the query.
         /// In particular, the number of resources on a page may be caped by the server.
         /// </remarks>
         /// <response code="200">items of the page</response>
-        /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or zero</response>
+        /// <response code="400"><paramref name="pagination"/><see cref="PaginationConfiguration.Page"/> or <paramref name="pagination"/><see cref="PaginationConfiguration.PageSize"/> is negative or zero</response>
         [HttpGet]
         [HttpHead]
+        [HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
@@ -106,7 +108,7 @@ namespace Measures.API.Controllers
                         : null;
                 string lastPageUrl = result.Count > 0
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                        : null;
+                        : firstPageUrl;
 
 
                 IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
@@ -147,6 +149,7 @@ namespace Measures.API.Controllers
         /// <response code="404">Resource not found</response>
         /// <response code="400"><paramref name="id"/> is not a valid <see cref="Guid"/></response>
         [HttpHead("{id}")]
+        [HttpOptions("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
         public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
@@ -234,6 +237,7 @@ namespace Measures.API.Controllers
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
+        [HttpOptions("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
@@ -343,7 +347,7 @@ namespace Measures.API.Controllers
 
         }
 
-        
+
         /// <summary>
         /// Get the last <see cref="TemperatureInfo"/> measures.
         /// </summary>
@@ -356,8 +360,61 @@ namespace Measures.API.Controllers
         /// <returns>Array of <see cref="TemperatureInfo"/></returns>
         [HttpGet("{id}/most-recent-temperatures")]
         [HttpHead("{id}/most-recent-temperatures")]
+        [HttpOptions("{id}/most-recent-temperatures")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<TemperatureInfo>>), 200)]
-        public Task<IActionResult> MostRecentTemperatures(Guid id, int? count, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public async Task<IActionResult> MostRecentTemperatures(Guid id, int? count, CancellationToken cancellationToken = default)
+        {
+            IActionResult actionResult;
+
+
+            if (id == default || (count.HasValue && count.Value <= 0))
+            {
+                actionResult = new BadRequestResult();
+            }
+            else
+            {
+                using (IUnitOfWork uow = UowFactory.New())
+                {
+                    Expression<Func<Temperature, TemperatureInfo>> selector = ExpressionBuilder.GetMapExpression<Temperature, TemperatureInfo>();
+                    Option<IEnumerable<TemperatureInfo>> measures =
+                        await uow.Repository<Patient>().AnyAsync(x => x.UUID == id, cancellationToken).ConfigureAwait(false)
+                        ? Option.Some(await uow.Repository<Temperature>()
+                        .WhereAsync(
+                            selector,
+                            predicate: (TemperatureInfo x) => x.PatientId == id,
+                            orderBy: new[]
+                            {
+                            OrderClause<TemperatureInfo>.Create(att => att.DateOfMeasure, MedEasy.DAL.Repositories.SortDirection.Descending)
+                            },
+                            cancellationToken: cancellationToken)
+                        .ConfigureAwait(false))
+                        : default;
+
+                    actionResult = measures.Match<IActionResult>(
+                        some: (temperatures) =>
+                       {
+
+                           IEnumerable<BrowsableResource<TemperatureInfo>> resources = temperatures.Select(
+                               x => new BrowsableResource<TemperatureInfo>
+                               {
+                                   Resource = x,
+                                   Links = new[]
+                                   {
+                                        new Link{ Method = "GET", Relation = LinkRelation.Self, Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })},
+                                        new Link{ Method = "GET", Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.PatientId })}
+                                   }
+                               });
+
+
+                           return new OkObjectResult(resources);
+                       },
+                        none: () => new NotFoundResult()
+                        );
+                }
+            }
+
+            return actionResult;
+        }
 
 
         ///// <summary>

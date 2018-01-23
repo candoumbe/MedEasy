@@ -1,32 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FluentValidation.AspNetCore;
+using Measures.API.Context;
+using Measures.API.Routing;
+using Measures.API.StartupRegistration;
+using Measures.Mapping;
+using Measures.Validators;
+using MedEasy.DAL.Context;
+using MedEasy.DAL.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IO;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Context;
-using Microsoft.EntityFrameworkCore;
-using Measures.API.Context;
-using Measures.Mapping;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Measures.API;
-using Measures.API.Routing;
-using Microsoft.AspNetCore.Mvc.Formatters;
+using Newtonsoft.Json;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using Newtonsoft.Json.Serialization;
-using FluentValidation.AspNetCore;
-using Measures.API.StartupRegistration;
-using Measures.Validators;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 
 namespace Measures.API
 {
@@ -76,15 +74,14 @@ namespace Measures.API
                 //options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
-
             })
             .AddJsonOptions(options =>
             {
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.DateFormatHandling = IsoDateFormat;
                 options.SerializerSettings.DateTimeZoneHandling = Utc;
-                options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-                options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
             })
@@ -92,6 +89,19 @@ namespace Measures.API
             {
                 options.LocalizationEnabled = true;
                 options.RegisterValidatorsFromAssemblyContaining<CreateBloodPressureInfoValidator>();
+            });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAnyOrigin", builder => 
+                    builder.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin()
+                );
+            });
+            services.Configure<MvcOptions>(options =>
+            {
+                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             });
 
             services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
@@ -148,7 +158,11 @@ namespace Measures.API
                     config.DescribeAllEnumsAsStrings();
                 });
             }
-
+            services.AddRouting(options =>
+            {
+                options.AppendTrailingSlash = true;
+                options.LowercaseUrls = true;
+            });
 
         }
 
@@ -161,14 +175,6 @@ namespace Measures.API
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            app.UseCors(builder =>
-            {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-            });
-
             if (!env.IsDevelopment())
             {
                 app.UseResponseCaching();
@@ -187,7 +193,7 @@ namespace Measures.API
 
             }
 
-
+            app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapRoute("default", "measures/{controller=root}/{action=index}");

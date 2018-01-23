@@ -1,5 +1,6 @@
 ﻿using MedEasy.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace Measures.Objects
 {
@@ -22,6 +23,11 @@ namespace Measures.Objects
         /// Patient's date of birth
         /// </summary>
         public DateTime? BirthDate { get; set; }
+
+        /// <summary>
+        /// Patient's <see cref="Temperature"/>s
+        /// </summary>
+        public IEnumerable<Temperature> Temperatures { get; set; }
 
     }
 }

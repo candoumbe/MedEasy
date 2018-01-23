@@ -6,6 +6,7 @@ using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -307,7 +308,54 @@ namespace Patients.API.Controllers
         /// <response code="404">Resource not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
-        public Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
+        {
+            IActionResult actionResult;
+
+            if (id == default)
+            {
+                actionResult = new BadRequestResult();
+            }
+            else
+            {
+                using (IUnitOfWork uow = UowFactory.New())
+                {
+                    Option<Patient> optionalPatient = await uow.Repository<Patient>().SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
+                        .ConfigureAwait(false);
+                    
+                    actionResult = await optionalPatient.Match(
+                        some: async (patient) =>
+                        {
+                            IActionResult patchActionResult = new NoContentResult();
+                            Func<Operation<PatientInfo>, Operation<Patient>> converter = ExpressionBuilder.GetMapExpression<Operation<PatientInfo>, Operation<Patient>>().Compile();
+                            IEnumerable<Operation<Patient>> operations =
+                                 changes.Operations
+                                 .AsParallel()
+                                 .Select(converter)
+                                 .ToArray();
+
+                            JsonPatchDocument<Patient> patch = new JsonPatchDocument<Patient>();
+                            patch.Operations.AddRange(operations);
+
+                            patch.ApplyTo(patient, (error) => {
+                                patchActionResult = new BadRequestObjectResult(new { message = error.ErrorMessage });
+                            });
+                            
+                            await uow.SaveChangesAsync(cancellationToken)
+                                .ConfigureAwait(false);
+
+                            return patchActionResult;
+
+                        },
+                        none: () => Task.FromResult((IActionResult) new NotFoundResult())
+                    )
+                    .ConfigureAwait(false);
+
+                }
+            }
+
+            return actionResult;
+        }
 
         /// <summary>
         /// Search doctors resource based on some criteria.

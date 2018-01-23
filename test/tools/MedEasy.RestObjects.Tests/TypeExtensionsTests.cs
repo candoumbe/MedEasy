@@ -17,7 +17,6 @@ namespace MedEasy.RestObjects.Tests
         }
         private class CreateHenchman : Person
         {
-
             public string BirthPlace { get; set; }
 
             public int? MinionId { get; set; }

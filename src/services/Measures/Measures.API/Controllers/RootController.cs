@@ -21,6 +21,7 @@ namespace Measures.API.Controllers
     /// </summary>
     [Controller]
     [Route("/")]
+    [Route("/measures")]
     public class RootController
     {
         private readonly IActionContextAccessor _actionContextAccessor;
@@ -59,8 +60,10 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<Endpoint>), 200)]
         public IEnumerable<Endpoint> Index()
         {
+            MeasuresApiOptions apiOptions = ApiOptions.Value;
             int page = 1,
-                pageSize = ApiOptions.Value.DefaultPageSize;
+                pageSize = apiOptions.DefaultPageSize,
+                maxPageSize = apiOptions.MaxPageSize;
             IList<Endpoint> endpoints = new List<Endpoint>() {
                 new Endpoint
                 {
@@ -120,7 +123,43 @@ namespace Measures.API.Controllers
                                 },
 
                             }
-                        }
+                        },
+                        new Form
+                        {
+                            Meta = new Link
+                            {
+                                Method = "POST",
+                                Relation = LinkRelation.CreateForm,
+                                Href = _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = BloodPressuresController.EndpointName})
+                            },
+                            Items = new[]
+                            {
+                                new FormField { Name = nameof(BloodPressureInfo.DateOfMeasure), Type = FormFieldType.DateTime},
+                                new FormField { Name = nameof(BloodPressureInfo.DiastolicPressure), Type = Integer, Min = 0},
+                                new FormField { Name = nameof(BloodPressureInfo.SystolicPressure), Type = Integer, Min = 0},
+                            }
+                        },
+                        typeof(BloodPressureInfo).ToForm(new Link
+                            {
+                                Method = "PATCH",
+                                Relation = LinkRelation.EditForm,
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = BloodPressuresController.EndpointName, id = $"{{{nameof(BloodPressureInfo.Id)}}}"})
+                            })
+                        //new Form
+                        //{
+                        //    Meta = new Link
+                        //    {
+                        //        Method = "PATCH",
+                        //        Relation = LinkRelation.EditForm,
+                        //        Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = BloodPressuresController.EndpointName, id = nameof(BloodPressureInfo.Id)})
+                        //    },
+                        //    Items = new[]
+                        //    {
+                        //        new FormField { Name = nameof(BloodPressureInfo.DateOfMeasure), Type = FormFieldType.DateTime},
+                        //        new FormField { Name = nameof(BloodPressureInfo.DiastolicPressure), Type = Integer, Min = 0},
+                        //        new FormField { Name = nameof(BloodPressureInfo.SystolicPressure), Type = Integer, Min = 0},
+                        //    }
+                        //}
                     }
                 },
 
@@ -144,8 +183,17 @@ namespace Measures.API.Controllers
                                 Relation = LinkRelation.Search,
                                 Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = PatientsController.EndpointName, page, pageSize})
 
+                            },
+                            Items = new[]
+                            {
+                                new FormField { Name = nameof(SearchPatientInfo.BirthDate), Type = Date },
+                                new FormField { Name = nameof(SearchPatientInfo.Firstname)},
+                                new FormField { Name = nameof(SearchPatientInfo.Lastname)},
+                                new FormField { Name = nameof(SearchPatientInfo.Page), Min = 1, Type = Integer},
+                                new FormField { Name = nameof(SearchPatientInfo.PageSize), Min = 1, Max = maxPageSize, Type = Integer},
+                                new FormField { Name = nameof(SearchPatientInfo.Sort), Pattern = SearchPatientInfo.SortPattern},
                             }
-                        }
+                        },
                     }
                 },
 

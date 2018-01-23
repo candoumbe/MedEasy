@@ -10,17 +10,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Appointment.cs" />
-    <Compile Remove="Consultation.cs" />
-    <Compile Remove="Doctor.cs" />
-    <Compile Remove="Document.cs" />
-    <Compile Remove="DocumentMetadata.cs" />
-    <Compile Remove="Heartbeat.cs" />
-    <Compile Remove="Prescription.cs" />
-    <Compile Remove="Specialty.cs" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>

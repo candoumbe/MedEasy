@@ -26,9 +26,11 @@ namespace Patients.API.Context
         private const int _shortTextLength = 50;
 
         /// <summary>
-        /// Collection of <see cref="BloodPressure"/>s
+        /// Collection of <see cref="Patient"/>s
         /// </summary>
         public DbSet<Patient> Patients { get; set; }
+
+
 
         /// <summary>
         /// Builds a new <see cref="PatientsContext"/> instance.
@@ -81,8 +83,7 @@ namespace Patients.API.Context
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
 
-            });
-    
+            });  
 
 
         }

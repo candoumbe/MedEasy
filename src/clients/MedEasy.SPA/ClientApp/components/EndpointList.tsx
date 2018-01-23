@@ -71,9 +71,6 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
             count: this.props.count || EndpointList.DEFAULT_COUNT,
             creating : false
         };
-
-
-
     }
 
 

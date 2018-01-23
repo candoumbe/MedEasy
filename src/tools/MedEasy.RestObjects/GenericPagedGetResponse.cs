@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.RestObjects
 {
@@ -41,5 +42,8 @@ namespace MedEasy.RestObjects
         /// </summary>
         [JsonProperty]
         public int Count { get; }
+
+
+        public override string ToString() => SerializeObject(this);
     }
 }

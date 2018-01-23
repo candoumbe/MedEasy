@@ -30,7 +30,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
             <BloodPressures
                 urls={
                     {
-                        read: `${this.props.endpoint}/most_recent_bloodpressures`,
+                        read: `${this.props.endpoint}/most-recent-bloodpressures`,
                         create: `${this.props.endpoint}/bloodPressures`,
                         delete: `${this.props.endpoint}/bloodPressures`
                     }

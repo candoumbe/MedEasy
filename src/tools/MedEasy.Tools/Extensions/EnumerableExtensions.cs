@@ -80,6 +80,15 @@ namespace System.Collections.Generic
         }
 
         /// <summary>
+        /// Tests if <paramref name="items"/> contains one or more items.
+        /// </summary>
+        /// <typeparam name="T">Type of the </typeparam>
+        /// <param name="items">Collection to test</param>
+        /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="items"/>  <c>null</c></exception>
+        public static bool AtLeastOnce<T>(this IEnumerable<T> items) => AtLeast(items, x => true, 1);
+
+        /// <summary>
         /// Tests if <paramref name="items"/> contains one or more items that verify the specified <paramref name="predicate"/>
         /// </summary>
         /// <typeparam name="T">Type of the </typeparam>
@@ -87,7 +96,7 @@ namespace System.Collections.Generic
         /// <param name="predicate">predicate to use</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
         /// <exception cref="ArgumentNullException">if <paramref name="items"/>  <c>null</c></exception>
-        public static bool AtLeastOnce<T>(this IEnumerable<T> items) => AtLeast(items, x => true, 1);
+        public static bool AtLeast<T>(this IEnumerable<T> items, int count) => AtLeast(items, x => true, count);
 
 
         /// <summary>
@@ -128,6 +137,7 @@ namespace System.Collections.Generic
             }
             else
             {
+                // TODO Replace the following line by a while loop
                 result = items.Count(predicate.Compile()) >= count;
             }
 
@@ -221,10 +231,8 @@ namespace System.Collections.Generic
         /// <param name="second">the second collection</param>
         /// <param name="selector">projection to perform on each</param>
         /// <returns></returns>
-        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector)
-        {
-            return first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
-        }
+        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector) 
+            => first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
 
 
         /// <summary>

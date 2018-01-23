@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Optional" Version="3.2.0" />
+    <PackageReference Include="Optional" Version="4.0.0-rc" />
   </ItemGroup>
 </Project>
