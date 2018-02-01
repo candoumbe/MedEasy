@@ -5,6 +5,17 @@
     /// </summary>
     public static class RouteNames
     {
+
+        /// <summary>
+        /// Name of the route to the root 
+        /// </summary>
+        public const string Default = nameof(Default);
+
+        /// <summary>
+        /// Name of the route to the /status (aka healthcheck) endpoint
+        /// </summary>
+        public const string Status = nameof(Status);
+
         /// <summary>
         /// Name of the route that returns all resources (i.e. "api/{resource}/")
         /// </summary>

@@ -14,6 +14,7 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Links that helps navigated through pages of the result
         /// </summary>
+        [JsonProperty(Required = Required.Always)]
         public PagedRestResponseLink Links { get; }
 
         /// <summary>

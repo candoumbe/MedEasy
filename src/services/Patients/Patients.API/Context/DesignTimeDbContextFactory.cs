@@ -14,7 +14,7 @@ namespace Patients.API.Context
                 .AddJsonFile("appsettings.json")
                 .Build();
             DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
-            string connectionString = configuration.GetConnectionString("Default");
+            string connectionString = configuration.GetConnectionString("Patients");
             builder.UseSqlServer(connectionString);
             return new PatientsContext(builder.Options);
         }

@@ -473,5 +473,18 @@ namespace Measures.API.Tests.Controllers
             actionResult.Should()
                 .BeAssignableTo<BadRequestResult>();
         }
+
+
+        public async Task Post_Create_The_Resource()
+        {
+            // Arrange
+            
+            // Act
+
+
+            // Assert
+
+
+        }
     }
 }

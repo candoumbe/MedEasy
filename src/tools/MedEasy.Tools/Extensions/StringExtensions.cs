@@ -130,7 +130,7 @@ namespace System
 
             if (input == null)
             {
-                throw new ArgumentNullException(nameof(input), $"{input} cannot be null");
+                throw new ArgumentNullException(nameof(input), $"{nameof(input)} cannot be null");
             }
 
             StringBuilder sb = new StringBuilder(input.Length * 2);

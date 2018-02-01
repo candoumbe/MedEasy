@@ -6,6 +6,11 @@
     public static class RouteNames
     {
         /// <summary>
+        /// Name of the route that retuns the root URL.
+        /// </summary>
+        public const string Default = nameof(Default);
+
+        /// <summary>
         /// Name of the route that returns all resources (i.e. "api/{resource}/")
         /// </summary>
         public const string DefaultGetAllApi = nameof(DefaultGetAllApi);

@@ -25,6 +25,7 @@ using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
+using MedEasy.Core.Middlewares;
 
 namespace Measures.API
 {
@@ -36,7 +37,7 @@ namespace Measures.API
         /// <summary>
         /// The root configuration 
         /// </summary>
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// Provides information about 
@@ -47,15 +48,10 @@ namespace Measures.API
         /// Builds a new <see cref="Startup"/> instance.
         /// </summary>
         /// <param name="env">Accessor to the current ost's environment </param>
-        public Startup(IHostingEnvironment env)
+        /// <param name="configuration">configuration provided by the host</param>
+        public Startup(IHostingEnvironment env, IConfiguration configuration)
         {
-
-            IConfigurationBuilder builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            Configuration = configuration;
             HostingEnvironment = env;
         }
 
@@ -140,7 +136,7 @@ namespace Measures.API
                 {
                     config.SwaggerDoc("v1", new Info
                     {
-                        Title = app.ApplicationName,
+                        Title = HostingEnvironment.ApplicationName,
                         Description = "REST API for Measures API",
                         Version = "v1",
                         Contact = new Contact
@@ -153,7 +149,11 @@ namespace Measures.API
                     
                     config.IgnoreObsoleteActions();
                     config.IgnoreObsoleteProperties();
-                    config.IncludeXmlComments(Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml"));
+                    string documentationPath = Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml");
+                    if (File.Exists(documentationPath))
+                    {
+                        config.IncludeXmlComments(documentationPath);
+                    }
                     config.DescribeStringEnumsInCamelCase();
                     config.DescribeAllEnumsAsStrings();
                 });
@@ -175,6 +175,7 @@ namespace Measures.API
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+
             if (!env.IsDevelopment())
             {
                 app.UseResponseCaching();
@@ -193,10 +194,12 @@ namespace Measures.API
 
             }
 
+
+            app.UseHeadMiddleware();
             app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute("default", "measures/{controller=root}/{action=index}");
+                routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "measures/{controller}/{id}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "measures/{controller}/");
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "measures/{controller}/{id}/{action}/{subResourceId}");

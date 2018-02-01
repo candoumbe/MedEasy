@@ -91,7 +91,7 @@ namespace Patients.API.Controllers
                         : null;
                 string lastPageUrl = result.Count > 0
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                        : null;
+                        : firstPageUrl;
 
 
                 IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries

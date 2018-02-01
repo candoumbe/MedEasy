@@ -20,6 +20,8 @@ using static Newtonsoft.Json.DateTimeZoneHandling;
 using Patients.Validators.Patient.DTO;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IO;
+using Patients.API.Routing;
+using Patients.API.Controllers;
 
 namespace Patients.API
 {
@@ -100,7 +102,7 @@ namespace Patients.API
                     config.SwaggerDoc("v1", new Info
                     {
                         Title = app.ApplicationName,
-                        Description = "REST API for Patients/Doctors API",
+                        Description = "REST API for Patients API",
                         Version = "v1",
                         Contact = new Contact
                         {
@@ -123,23 +125,44 @@ namespace Patients.API
                 options.LowercaseUrls = true;
             });
 
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAnyOrigin", builder =>
+                    builder.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin()
+                );
+            });
 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (!env.IsDevelopment())
+            {
+                app.UseResponseCaching();
+                app.UseResponseCompression();
+            }
+            else 
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(opt =>
+                {
+                    opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+                });
             }
-            app.UseCors(builder =>
-                builder.AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowAnyOrigin()
-            );
-            app.UseMvc();
+            app.UseCors("AllowAnyOrigin");
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.MapRoute(RouteNames.Default, $"{{controller=root}}/{{action={nameof(RootController.Index)}}}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "{controller}/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}/");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search/");
+            });
         }
     }
 }

@@ -194,7 +194,7 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
 
                         </table>
                         <div>
-                            <button className="btn btn-defaut" type="button" onClick={() => this.loadData(this.state.page)}>
+                            <button className="btn btn-defaut" title="Refresh" type="button" onClick={() => this.loadData(this.state.page)}>
                                 <span className="glyphicon glyphicon-refresh"></span>
                                 <span className="sr-only">Refresh</span>
                             </button>
@@ -221,7 +221,6 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                                     </button>
                                 })
                             }
-                            
                             
 
                         </li>

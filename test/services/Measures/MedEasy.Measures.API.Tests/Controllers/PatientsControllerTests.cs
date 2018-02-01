@@ -30,7 +30,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 
-namespace MedEasy.WebApi.Tests
+namespace Measures.API.Tests
 {
     [Collection("Patient")]
     public class PatientsControllerTests : IDisposable

@@ -26,7 +26,7 @@ namespace Measures.API.Context
                 .AddJsonFile("appsettings.json")
                 .Build();
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            string connectionString = configuration.GetConnectionString("Default");
+            string connectionString = configuration.GetConnectionString("Measures");
             builder.UseSqlServer(connectionString);
             return new MeasuresContext(builder.Options);
         }
