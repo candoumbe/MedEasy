@@ -569,5 +569,11 @@ namespace Measures.API.Tests.Controllers
 
         }
 
+        [Fact]
+        public async Task Patch_Unknown_Resource_Returns_NotFound()
+        {
+
+        }
+
     }
 }

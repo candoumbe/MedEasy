@@ -6,7 +6,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +15,6 @@ using Moq;
 using Patients.API.Context;
 using Patients.API.Controllers;
 using Patients.API.Routing;
-using Patients.CQRS.Commands;
 using Patients.DTO;
 using Patients.Mapping;
 using Patients.Objects;
@@ -46,7 +44,8 @@ namespace Patients.API.UnitTests.Controllers
         private IExpressionBuilder _expressionBuilder;
         private Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";
-        private Mock<IRunPatchPatientCommand> _runPatchPatientCommand;
+
+
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -70,8 +69,7 @@ namespace Patients.API.UnitTests.Controllers
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
-            _runPatchPatientCommand = new Mock<IRunPatchPatientCommand>(Strict);
-
+            
             _controller = new PatientsController(
                 _loggerMock.Object,
                 _urlHelperMock.Object,

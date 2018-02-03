@@ -16,11 +16,11 @@ namespace MedEasy.Validators
         private Validator()
         {}
 
-        private static readonly Lazy<Validator<T>> lazy = new Lazy<Validator<T>>(() => new Validator<T>());
+        private static readonly Lazy<Validator<T>> _lazy = new Lazy<Validator<T>>(() => new Validator<T>());
 
         /// <summary>
         /// Gets the default validator instance for the specified type
         /// </summary>
-        public static Validator<T> Default => lazy.Value;
+        public static Validator<T> Default => _lazy.Value;
     }
 }

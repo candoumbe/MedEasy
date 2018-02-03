@@ -116,10 +116,7 @@ namespace Patients.API.Context
         /// <see cref="DbContext.SaveChanges()"/>
         /// </summary>
         /// <returns></returns>
-        public override int SaveChanges()
-        {
-            return SaveChanges(true);
-        }
+        public override int SaveChanges() => SaveChanges(true);
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges(bool)"/>

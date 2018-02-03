@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.API\Patients.API.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.CQRS\Patients.CQRS.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.DTO\Patients.DTO.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Patients\Patients.Objects\Patients.Objects.csproj" />
     <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
