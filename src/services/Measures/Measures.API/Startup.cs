@@ -26,6 +26,9 @@ using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using MedEasy.Core.Middlewares;
+using System;
+using MedEasy.Core.Filters;
+using MedEasy.Validators;
 
 namespace Measures.API
 {
@@ -65,12 +68,21 @@ namespace Measures.API
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(FormatFilter));
-                //options.Filters.Add(typeof(ValidateModelAttribute));
+                options.Filters.Add(typeof(ValidateModelAttribute));
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 //options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
             })
+            .AddFluentValidation(options =>
+            {
+                options.LocalizationEnabled = true;
+                options
+                    .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                    .RegisterValidatorsFromAssemblyContaining<CreateBloodPressureInfoValidator>()
+                    ;
+            })
+
             .AddJsonOptions(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -80,16 +92,11 @@ namespace Measures.API
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-            })
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-                options.RegisterValidatorsFromAssemblyContaining<CreateBloodPressureInfoValidator>();
             });
 
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAnyOrigin", builder => 
+                options.AddPolicy("AllowAnyOrigin", builder =>
                     builder.AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowAnyOrigin()
@@ -101,10 +108,19 @@ namespace Measures.API
             });
 
             services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
             {
                 DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-                builder.UseSqlServer(Configuration.GetConnectionString("Measures"));
+                if (HostingEnvironment.IsEnvironment("IntegrationTest"))
+                {
+                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
+                    builder.UseInMemoryDatabase(dbName);
+                }
+                else
+                {
+                    builder.UseSqlServer(Configuration.GetConnectionString("Measures"));
+                }
+                builder.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
 
                 return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
 
@@ -120,7 +136,7 @@ namespace Measures.API
             });
 
 
-            services.AddValidators();
+            //services.AddValidators();
 
             services.AddOptions();
             services.Configure<MeasuresApiOptions>((options) =>
@@ -146,7 +162,7 @@ namespace Measures.API
                             Url = Configuration.GetValue("Swagger:Contact:Url", string.Empty)
                         }
                     });
-                    
+
                     config.IgnoreObsoleteActions();
                     config.IgnoreObsoleteProperties();
                     string documentationPath = Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml");
@@ -175,22 +191,26 @@ namespace Measures.API
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-
-            if (!env.IsDevelopment())
+            if (env.IsProduction() || env.IsStaging())
             {
                 app.UseResponseCaching();
                 app.UseResponseCompression();
             }
             else
             {
+                loggerFactory.AddDebug();
+                loggerFactory.AddConsole();
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
 
-                app.UseSwagger();
-                app.UseSwaggerUI(opt =>
+                if (HostingEnvironment.IsDevelopment())
                 {
-                    opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
-                });
+                    app.UseSwagger();
+                    app.UseSwaggerUI(opt =>
+                    {
+                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+                    }); 
+                }
 
             }
 

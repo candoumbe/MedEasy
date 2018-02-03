@@ -6,15 +6,12 @@ namespace Measures.DTO
     /// <summary>
     /// Base class for data to provide when creating any physiological measure informations
     /// </summary>
-    public class CreatePhysiologicalMeasureInfo<TPhysiologicalMeasure> where TPhysiologicalMeasure : PhysiologicalMeasurement 
+    public abstract class CreatePhysiologicalMeasureInfo 
     {
         /// <summary>
-        /// Id of the patient for which the measure is created
-        /// </summary>
-        public Guid PatientId { get; set; }
-        
-
-        public TPhysiologicalMeasure Measure { get; set; }
+        /// Patient which the measure is created for
+        /// </summary
+        public PatientInfo Patient { get; set; }
 
     }
 }

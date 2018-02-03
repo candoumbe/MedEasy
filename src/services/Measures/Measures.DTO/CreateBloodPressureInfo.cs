@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation.Attributes;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
@@ -6,7 +7,7 @@ namespace Measures.DTO
     /// <summary>
     /// data to provide when creating a new blood pressure info
     /// </summary>
-    public class CreateBloodPressureInfo
+    public class CreateBloodPressureInfo : CreatePhysiologicalMeasureInfo
     {
 
         [DataType(DataType.DateTime)]
@@ -23,7 +24,6 @@ namespace Measures.DTO
         /// </summary>
         public float DiastolicPressure { get; set; }
 
-
-
+        
     }
 }

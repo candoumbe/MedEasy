@@ -164,8 +164,8 @@ namespace Measures.API.Tests
         {
             get
             {
-                int[] pageSizes = { 0, int.MinValue, int.MaxValue };
-                int[] pages = { 0, int.MinValue, int.MaxValue };
+                int[] pageSizes = { 1, 10, 20};
+                int[] pages = { 1, 5, 10 };
 
 
                 foreach (int pageSize in pageSizes)
@@ -175,7 +175,8 @@ namespace Measures.API.Tests
                         yield return new object[]
                         {
                             Enumerable.Empty<Patient>(), // Current store state
-                            pageSize, page, // request
+                            (pageSize, page), // request,
+                            (defaultPageSize : 30, maxPageSize : 200),
                             0,    //expected total
                             (
                                 first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First &&
@@ -201,7 +202,8 @@ namespace Measures.API.Tests
                     yield return new object[]
                     {
                         items,
-                        PaginationConfiguration.DefaultPageSize, 1, // request
+                        (pageSize : PaginationConfiguration.DefaultPageSize, page : 1), // request
+                        (defaultPageSize : 30, maxPageSize : 200),
                         400,    //expected total
                         (
                             first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
@@ -218,7 +220,8 @@ namespace Measures.API.Tests
                     yield return new object[]
                     {
                         items,
-                        10, 1, // request
+                        (pageSize : 10, page : 1), // request
+                        (defaultPageSize : 30, maxPageSize : 200),
                         400,    //expected total
                         (
                             first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
@@ -234,7 +237,8 @@ namespace Measures.API.Tests
                         new [] {
                             new Patient { Id = 1, Firstname = "Bruce",  Lastname = "Wayne" }
                         },
-                        PaginationConfiguration.DefaultPageSize, 1, // request
+                        (pageSize : PaginationConfiguration.DefaultPageSize, page : 1), // request
+                        (defaultPageSize : 30, maxPageSize : 200),
                         1,    //expected total
                         (
                             first : ((Expression<Func<Link, bool>>) (x => x != null
@@ -252,13 +256,14 @@ namespace Measures.API.Tests
         }
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,
+        public async Task GetAll(IEnumerable<Patient> items, (int pageSize, int page) request,
+            (int defaultPageSize, int maxPageSize) pagingOptions,
             int expectedCount,
             (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(PatientsController.Get)}({nameof(PaginationConfiguration)})");
-            _outputHelper.WriteLine($"Page size : {pageSize}");
-            _outputHelper.WriteLine($"Page : {page}");
+            _outputHelper.WriteLine($"Page size : {request.pageSize}");
+            _outputHelper.WriteLine($"Page : {request.page}");
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
@@ -269,10 +274,10 @@ namespace Measures.API.Tests
             }
 
             
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { Page = page, PageSize = pageSize });
+            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { Page = request.page, PageSize = request.pageSize });
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
@@ -472,11 +477,13 @@ namespace Measures.API.Tests
             using (IUnitOfWork uow = _uowFactory.New())
             {
                 uow.Repository<Patient>().Create(entries);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             // Act
-            IActionResult actionResult = await _controller.Search(searchRequest);
+            IActionResult actionResult = await _controller.Search(searchRequest)
+                    .ConfigureAwait(false);
 
             // Assert
             IGenericPagedGetResponse<BrowsableResource<PatientInfo>> content = actionResult.Should()
@@ -737,8 +744,7 @@ namespace Measures.API.Tests
                  .BeAssignableTo<BadRequestResult>();
         }
 
-
-
+        
 
 
     }

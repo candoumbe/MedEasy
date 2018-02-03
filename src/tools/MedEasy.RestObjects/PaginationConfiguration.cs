@@ -12,10 +12,6 @@ namespace MedEasy.RestObjects
     [JsonObject]
     public class PaginationConfiguration
     {
-        private int _pageSize;
-
-        private int _page;
-
         /// <summary>
         /// Size of a page if none provided
         /// </summary>
@@ -43,11 +39,7 @@ namespace MedEasy.RestObjects
         /// <remarks>
         /// Number of items a page can contain at most.
         /// </remarks>
-        public int PageSize
-        {
-            get => _pageSize;
-            set => _pageSize = value < 1 ? 1 : value;
-        }
+        public int PageSize { get; set; }
 
         /// <summary>
         /// Gets/Sets the page of data to retrieve.
@@ -55,11 +47,7 @@ namespace MedEasy.RestObjects
         /// <remarks>
         /// The page is set to <c>1</c> whenever the value is less than 1
         /// </remarks>
-        public int Page
-        {
-            get => _page;
-            set => _page = value < 1 ? 1 : value;
-        }
+        public int Page { get; set; }
 
 
         public override string ToString() => SerializeObject(this);

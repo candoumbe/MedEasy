@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using FluentValidation.Results;
 using Measures.API.Routing;
 using Measures.DTO;
 using Measures.Objects;
@@ -45,7 +46,7 @@ namespace Measures.API.Controllers
         /// Options of the API
         /// </summary>
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
-        
+
 
 
         /// <summary>
@@ -80,6 +81,8 @@ namespace Measures.API.Controllers
         /// <response code="200">items of the page</response>
         /// <response code="400"><paramref name="pagination"/> is not correct.</response>
         [HttpGet]
+        [HttpHead]
+        [HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
@@ -108,7 +111,7 @@ namespace Measures.API.Controllers
                         : null;
                 string lastPageUrl = result.Count > 0
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                        : null;
+                        : firstPageUrl;
 
 
                 IEnumerable<BrowsableResource<BloodPressureInfo>> resources = result.Entries
@@ -148,6 +151,7 @@ namespace Measures.API.Controllers
         /// <response code="200">The resource was found</response>
         /// <response code="404">Resource not found</response>
         /// <response code="400"><paramref name="id"/> is not a valid <see cref="Guid"/></response>
+        [HttpOptions("{id}")]
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
@@ -201,48 +205,50 @@ namespace Measures.API.Controllers
 
         }
 
-        ///// <summary>
-        ///// Creates a new <see cref="BloodPressureInfo"/> resource.
-        ///// </summary>
-        ///// <param name="newBloodPressure">data used to create the resource</param>
-        ///// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
-        ///// <response code="201">the resource was created successfully</response>
-        ///// <response code="400"><paramref name="newBloodPressure"/> is not valid</response>
-        //[HttpPost]
-        //[ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 201)]
-        //[ProducesResponseType(typeof(IEnumerable<ValidationResult>), 400)]
-        //public async Task<IActionResult> Post([FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
-        //{
-        //    Option<BloodPressureInfo, CommandException> resource = await _iRunCreateBloodPressureCommand.RunAsync(new CreateBloodPressureCommand(newBloodPressure), cancellationToken);
+        /// <summary>
+        /// Creates a new <see cref="BloodPressureInfo"/> resource.
+        /// </summary>
+        /// <param name="newBloodPressure">data used to create the resource</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <response code="201">the resource was created successfully</response>
+        /// <response code="400"><paramref name="newBloodPressure"/> is not valid</response>
+        [HttpPost]
+        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 201)]
+        [ProducesResponseType(typeof(IEnumerable<ValidationResult>), 400)]
+        public async Task<IActionResult> Post([FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
+        {
+            using (IUnitOfWork uow = UowFactory.New())
+            {
 
-        //    return resource.Match(
-        //        some: patient =>
-        //       {
-        //           IBrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
-        //           {
-        //               Resource = patient,
-        //               Links = BuildAdditionalLinksForResource(patient)
-        //           };
-        //           return new CreatedAtActionResult(nameof(Get), EndpointName, new { patient.Id }, browsableResource);
+                Expression<Func<CreateBloodPressureInfo, BloodPressure>> mapBloodPressureInfoToEntity = ExpressionBuilder.GetMapExpression<CreateBloodPressureInfo, BloodPressure>();
+                Expression<Func<PatientInfo, Patient>> mapPatientInfoToEntity = ExpressionBuilder.GetMapExpression<PatientInfo, Patient>();
+                BloodPressure newEntity = mapBloodPressureInfoToEntity.Compile().Invoke(newBloodPressure);
 
-        //       },
-        //        none: exception =>
-        //        {
-        //            IActionResult result;
-        //            switch (exception)
-        //            {
-        //                case CommandEntityNotFoundException cenf:
-        //                    result = new BadRequestObjectResult(cenf.Message);
-        //                    break;
-        //                default:
-        //                    result = new StatusCodeResult(StatusCodes.Status500InternalServerError);
-        //                    break;
-        //            }
+                newEntity.Patient.UUID = newEntity.Patient.UUID == default
+                    ? Guid.NewGuid()
+                    : newEntity.Patient.UUID;
 
-        //            return result;
+                uow.Repository<BloodPressure>().Create(newEntity);
+                await uow.SaveChangesAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
-        //        });
-        //}
+                Expression<Func<BloodPressure, BloodPressureInfo>> mapEntityToBloodPressureInfo = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
+                BloodPressureInfo createdResource = mapEntityToBloodPressureInfo.Compile().Invoke(newEntity);
+
+
+                BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+                {
+                    Resource = createdResource,
+                    Links = new[]
+                    {
+                        new Link { Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { id = createdResource.PatientId }) },
+                        new Link { Relation = "delete", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }), Method = "GET"}
+                    }
+
+                };
+                return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }, browsableResource);
+            }
+        }
 
 
         ///// <summary>
@@ -278,7 +284,7 @@ namespace Measures.API.Controllers
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
-            if (id == Guid.Empty)
+            if (id == default)
             {
                 actionResult = new BadRequestResult();
             }
@@ -286,9 +292,16 @@ namespace Measures.API.Controllers
             {
                 using (IUnitOfWork uow = UowFactory.New())
                 {
-                    uow.Repository<BloodPressure>().Delete(x => x.UUID == id);
-                    await uow.SaveChangesAsync(cancellationToken);
-                    actionResult = new NoContentResult();
+                    if (await uow.Repository<BloodPressure>().AnyAsync(x => x.UUID == id))
+                    {
+                        uow.Repository<BloodPressure>().Delete(x => x.UUID == id);
+                        await uow.SaveChangesAsync(cancellationToken);
+                        actionResult = new NoContentResult();
+                    }
+                    else
+                    {
+                        actionResult = new NotFoundResult();
+                    }
                 }
             }
 
@@ -599,7 +612,7 @@ namespace Measures.API.Controllers
                     ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort })
                     : null;
 
-            string lastPageUrl =  UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
+            string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
 
             IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
                 .Select(

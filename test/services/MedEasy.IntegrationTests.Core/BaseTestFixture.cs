@@ -60,9 +60,10 @@ namespace MedEasy.IntegrationTests.Core
             IWebHostBuilder builder = new WebHostBuilder()
                 .UseConfiguration(configuration)
                 .UseEnvironment(env.EnvironmentName)
+                .UseStartup(typeof(TStartup))
                 .ConfigureServices(InitializeServices)
                 .ConfigureServices(services => services.AddSingleton(env))
-                .UseStartup(typeof(TStartup));
+                ;
 
             if (initializeServices != null)
             {

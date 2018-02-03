@@ -107,15 +107,19 @@ namespace Measures.API.Context
         private IEnumerable<EntityEntry> GetModifiedEntities()
             => ChangeTracker.Entries()
                 .AsParallel()
-                .Where(x => x.Entity.GetType().IsAssignableFrom(typeof(IAuditableEntity)) && (x.State == EntityState.Added || x.State == EntityState.Modified));
+                .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType()) 
+                    && (x.State == EntityState.Added || x.State == EntityState.Modified))
+#if DEBUG
+            .ToArray()
+#endif
+            ;
 
 
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
             {
-                IAuditableEntity auditableEntity = (IAuditableEntity)x;
+                IAuditableEntity auditableEntity = (IAuditableEntity)(x.Entity);
                 DateTimeOffset now = DateTimeOffset.UtcNow;
-                auditableEntity.UpdatedDate = now;
                 if (x.State == EntityState.Added)
                 {
                     auditableEntity.CreatedDate = now;
@@ -132,12 +136,7 @@ namespace Measures.API.Context
         /// <see cref="DbContext.SaveChanges()"/>
         /// </summary>
         /// <returns></returns>
-        public override int SaveChanges()
-        {
-            IEnumerable<EntityEntry> entities = GetModifiedEntities();
-            entities.ForEach(UpdateModifiedEntry);
-            return base.SaveChanges();
-        }
+        public override int SaveChanges() => SaveChanges(true);
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges(bool)"/>
@@ -149,7 +148,7 @@ namespace Measures.API.Context
                 .AsParallel()
                 .ForEach(UpdateModifiedEntry);
 
-            return base.SaveChanges(acceptAllChangesOnSuccess);
+            return SaveChanges(acceptAllChangesOnSuccess);
         }
 
         /// <summary>
@@ -171,16 +170,7 @@ namespace Measures.API.Context
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
         /// </summary>
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            IEnumerable<EntityEntry> entities = GetModifiedEntities();
-
-            entities
-                .AsParallel()
-                .ForEach(UpdateModifiedEntry);
-
-
-            return await base.SaveChangesAsync(cancellationToken);
-        }
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => await SaveChangesAsync(true, cancellationToken)
+                .ConfigureAwait(false);
     }
 }

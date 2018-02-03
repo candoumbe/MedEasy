@@ -24,6 +24,7 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static System.StringComparison;
 using static Newtonsoft.Json.JsonConvert;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.Tests.Controllers
 {
@@ -83,8 +84,8 @@ namespace Measures.API.Tests.Controllers
         {
             get
             {
-                int[] pageSizes = { 0, int.MinValue, int.MaxValue };
-                int[] pages = { 0, int.MinValue, int.MaxValue };
+                int[] pageSizes = { 1, 10, 500 };
+                int[] pages = { 1, 10, 500 };
 
 
                 foreach (int pageSize in pageSizes)
@@ -100,7 +101,7 @@ namespace Measures.API.Tests.Controllers
                                 firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                                 previousPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                                 nextPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                                lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null))  // expected link to last page
+                                lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}".Equals(x.Href, OrdinalIgnoreCase)))  // expected link to last page
                             )
                         };
                     }
@@ -211,11 +212,11 @@ namespace Measures.API.Tests.Controllers
             response.Links.Last.Should().Match(pageLinksExpectation.lastPageUrlExpectation);
         }
 
-        public static IEnumerable<object[] > SearchTestCases
+        public static IEnumerable<object[]> SearchTestCases
         {
             get
             {
-                
+
 
                 {
                     IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
@@ -245,7 +246,7 @@ namespace Measures.API.Tests.Controllers
                         )
                     };
                 }
-                
+
                 yield return new object[]
                 {
                     new [] {
@@ -369,17 +370,7 @@ namespace Measures.API.Tests.Controllers
             }
         }
 
-        [Fact]
-        public async Task Delete_UnknonwnId_Returns_NoContent()
-        {
-            // Act
-            IActionResult actionResult = await _controller.Delete(Guid.NewGuid());
-
-            // Assert
-            actionResult.Should()
-                .BeAssignableTo<NoContentResult>();
-        }
-
+        
         [Fact]
         public async Task Delete_InvalidId_Returns_BadRequest()
         {
@@ -443,9 +434,7 @@ namespace Measures.API.Tests.Controllers
                 .Be("DELETE");
             delete.Href.Should()
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(browsableResource.Resource.Id)}={browsableResource.Resource.Id}");
-
-
-
+            
             BloodPressureInfo bloodPressure = browsableResource.Resource;
             bloodPressure.Id.Should().Be(id);
             bloodPressure.SystolicPressure.Should().Be(150);
@@ -475,16 +464,110 @@ namespace Measures.API.Tests.Controllers
         }
 
 
-        public async Task Post_Create_The_Resource()
+        [Fact]
+        public async Task Post_CreateTheResource()
         {
             // Arrange
-            
-            // Act
+            CreateBloodPressureInfo newResource = new CreateBloodPressureInfo
+            {
+                SystolicPressure = 120,
+                DiastolicPressure = 80,
+                DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53),
+                Patient = new PatientInfo
+                {
+                    Firstname = "victor",
+                    Lastname = "zsasz"
+                }
+            };
 
+            // Act
+            IActionResult actionResult = await _controller.Post(newResource);
 
             // Assert
+            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
+                .BeOfType<CreatedAtRouteResult>().Which
+                .Value.Should()
+                    .BeAssignableTo<BrowsableResource<BloodPressureInfo>>().Which;
+
+
+            BloodPressureInfo createdResource = browsableResource.Resource;
+            createdResource.Should()
+                .NotBeNull();
+            createdResource.Id.Should().NotBeEmpty();
+            createdResource.PatientId.Should().NotBeEmpty();
+            createdResource.DateOfMeasure.Should().Be(newResource.DateOfMeasure);
+            createdResource.SystolicPressure.Should().Be(newResource.SystolicPressure);
+            createdResource.DiastolicPressure.Should().Be(newResource.DiastolicPressure);
+
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeEmpty().And
+                .NotContainNulls().And
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(Link.Href)} must be provided for each link of the resource").And
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation), $"{nameof(Link.Relation)} must be provided for each link of the resource").And
+                .Contain(x => x.Relation == "delete").And
+                .Contain(x => x.Relation == "patient");
+
+            Link linkToPatient = links.Single(x => x.Relation == "patient");
+            linkToPatient.Href.Should().Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={createdResource.PatientId}");
+
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                (await uow.Repository<Patient>().AnyAsync(x => x.UUID == createdResource.PatientId)
+                    .ConfigureAwait(false)).Should().BeTrue("Creating a blood pressure with patient data should create the patient");
+            }
+        }
+
+        [Fact]
+        public async Task DeleteResource()
+        {
+            // Arrange
+            BloodPressure measure = new BloodPressure
+            {
+                SystolicPressure = 120,
+                DiastolicPressure = 80,
+                DateOfMeasure = 30.June(2004),
+                Patient = new Patient
+                {
+                    Firstname = "Victor",
+                    Lastname = "Zsaasz",
+                    UUID = Guid.NewGuid(),
+                },
+                UUID = Guid.NewGuid(),
+            };
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<BloodPressure>().Create(measure);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+
+            // Act
+            IActionResult actionResult = await _controller.Delete(measure.UUID)
+                .ConfigureAwait(false);
+
+            // Assert
+            actionResult.Should()
+                .BeAssignableTo<NoContentResult>();
+
+            
+        }
+
+        [Fact]
+        public async Task Delete_Unknown_Resource_Returns_Not_Found()
+        {
+            
+            // Act
+            IActionResult actionResult = await _controller.Delete(Guid.NewGuid())
+                .ConfigureAwait(false);
+
+            // Assert
+            actionResult.Should()
+                .BeAssignableTo<NotFoundResult>();
 
 
         }
+
     }
 }

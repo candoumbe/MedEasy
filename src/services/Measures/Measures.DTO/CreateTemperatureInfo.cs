@@ -6,7 +6,7 @@ namespace Measures.DTO
     /// <summary>
     /// data to provide when creating a new temperature info
     /// </summary>
-    public class CreateTemperatureInfo 
+    public class CreateTemperatureInfo : CreatePhysiologicalMeasureInfo
     {
         [DataType(DataType.DateTime)]
         public DateTimeOffset DateOfMeasure { get; set; }

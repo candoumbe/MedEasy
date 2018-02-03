@@ -111,7 +111,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.API.IntegrationTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.IntegrationTests.Core", "test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj", "{09E692D0-7663-4205-95D5-AC7E5E5D1649}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MedEasy.Core", "src\Core\MedEasy.Core\MedEasy.Core.csproj", "{C08AF059-B0A2-4B25-B35A-02C4095BB664}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Core", "src\Core\MedEasy.Core\MedEasy.Core.csproj", "{C08AF059-B0A2-4B25-B35A-02C4095BB664}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

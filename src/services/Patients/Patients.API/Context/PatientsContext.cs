@@ -118,9 +118,7 @@ namespace Patients.API.Context
         /// <returns></returns>
         public override int SaveChanges()
         {
-            IEnumerable<EntityEntry> entities = GetModifiedEntities();
-            entities.ForEach(UpdateModifiedEntry);
-            return base.SaveChanges();
+            return SaveChanges(true);
         }
 
         /// <summary>

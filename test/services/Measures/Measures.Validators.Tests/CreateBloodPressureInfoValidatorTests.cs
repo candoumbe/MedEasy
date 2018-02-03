@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 using static Newtonsoft.Json.JsonConvert;
 using static FluentValidation.Severity;
 using static Moq.MockBehavior;
+using System.Linq;
 
 namespace Measures.Validators
 {
@@ -53,7 +54,9 @@ namespace Measures.Validators
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
         {
             // Act
+#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new CreateBloodPressureInfoValidator(null);
+#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             action.ShouldThrow<ArgumentNullException>().Which
                 .ParamName.Should()
@@ -68,9 +71,11 @@ namespace Measures.Validators
                 yield return new object[]
                 {
                     new CreateBloodPressureInfo(),
+                    Enumerable.Empty<Patient>(),
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
-                            && vr.Errors.Count == 2
+                            && vr.Errors.Count == 3
+                            && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.Patient).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.SystolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                     )),
@@ -79,14 +84,73 @@ namespace Measures.Validators
 
                 yield return new object[]
                 {
-                    new CreateBloodPressureInfo { SystolicPressure = 80, DiastolicPressure = 120 } ,
+                    new CreateBloodPressureInfo {
+                        SystolicPressure = 80, DiastolicPressure = 120,
+                        Patient = new PatientInfo
+                        {
+                            Lastname = "Freeze"
+                        }
+                    } ,
+                    Enumerable.Empty<Patient>(),
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     )),
-                    $"because no {nameof(CreateBloodPressureInfo)}'s data set."
+                    $"because {nameof(CreateBloodPressureInfo.SystolicPressure)} < {nameof(CreateBloodPressureInfo.DiastolicPressure)}."
                 };
+
+
+
+                yield return new object[]
+                {
+                    new CreateBloodPressureInfo {
+                        SystolicPressure = 120, DiastolicPressure = 80,
+                        Patient = new PatientInfo
+                        {
+                            Id = Guid.NewGuid()
+                        }
+                    } ,
+                    Enumerable.Empty<Patient>(),
+                    ((Expression<Func<ValidationResult, bool>>)
+                        (vr => !vr.IsValid
+                            && vr.Errors.Count == 1
+                            && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Id)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
+                    )),
+                    $"because {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.Patient)} does not exists."
+
+                };
+
+                {
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        new CreateBloodPressureInfo {
+                            SystolicPressure = 120, DiastolicPressure = 80,
+                            Patient = new PatientInfo
+                            {
+                                Id = patientId,
+                                Lastname = "Freeze"
+                            }
+                        } ,
+                        new []{
+                            new Patient
+                            {
+                                UUID = patientId,
+                                Lastname = "Freeze"
+                            }
+                        },
+                        ((Expression<Func<ValidationResult, bool>>)
+                            (vr => !vr.IsValid
+                                && vr.Errors.Count == 1
+                                && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Lastname)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
+                        )),
+                        $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Id)} and other {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.Patient)}'s properties " +
+                        "cannot be set at the same time."
+
+                    };
+                }
+
 
             }
         }
@@ -94,7 +158,7 @@ namespace Measures.Validators
 
         [Theory]
         [MemberData(nameof(ValidateTestCases))]
-        public async Task ValidateTest(CreateBloodPressureInfo info,
+        public async Task ValidateTest(CreateBloodPressureInfo info, IEnumerable<Patient> patients,
             Expression<Func<ValidationResult, bool>> errorMatcher,
             string because = "")
         {
@@ -102,7 +166,7 @@ namespace Measures.Validators
 
             // Arrange
             _uowFactoryMock.Setup(mock => mock.New().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns(new ValueTask<bool>(false));
+                .Returns(new ValueTask<bool>(patients.Any(x => x.UUID == info.Patient?.Id)));
 
             // Act
             ValidationResult vr = await _validator.ValidateAsync(info);
