@@ -8,6 +8,8 @@ using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -96,7 +98,8 @@ namespace Measures.API.Controllers
                         pagination.PageSize,
                         pagination.Page,
                         new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure) },
-                        cancellationToken);
+                        cancellationToken)
+                    .ConfigureAwait(false);
 
                 int count = result.Entries.Count();
                 bool hasPreviousPage = count > 0 && pagination.Page > 1;
@@ -150,7 +153,7 @@ namespace Measures.API.Controllers
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="200">The resource was found</response>
         /// <response code="404">Resource not found</response>
-        /// <response code="400"><paramref name="id"/> is not a valid <see cref="Guid"/></response>
+        /// <response code="406"><paramref name="id"/> is not a valid <see cref="Guid"/></response>
         [HttpOptions("{id}")]
         [HttpHead("{id}")]
         [HttpGet("{id}")]
@@ -169,7 +172,7 @@ namespace Measures.API.Controllers
                 {
                     Expression<Func<BloodPressure, BloodPressureInfo>> selector = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                     Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
-                        .SingleOrDefaultAsync(selector, x => x.Id == id);
+                        .SingleOrDefaultAsync(selector, x => x.Id == id, cancellationToken);
 
                     actionResult = result.Match<IActionResult>(
                         some: bloodPressure =>
@@ -190,7 +193,12 @@ namespace Measures.API.Controllers
                                         Relation = "delete",
                                         Method = "DELETE",
                                         Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
-
+                                    },
+                                    new Link
+                                    {
+                                        Relation = "patient",
+                                        Method = "GET",
+                                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
                                     }
                                 }
                             };
@@ -540,14 +548,13 @@ namespace Measures.API.Controllers
         ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
-        /// <response code="400">one the search criteria is not valid</response>
+        /// <response code="406">one the search criteria is not valid</response>
+        /// <response code="404">requested page is out of result bound</response>
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<BloodPressureInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
-
-
             IList<IDataFilter> filters = new List<IDataFilter>();
 
             if (search.From.HasValue)
@@ -598,91 +605,129 @@ namespace Measures.API.Controllers
                         })
             };
 
+            IActionResult actionResult;
 
-            Page<BloodPressureInfo> pageOfResult = await Search(searchQueryInfo, cancellationToken);
+            Page<BloodPressureInfo> pageOfResult = await Search(searchQueryInfo, cancellationToken)
+                .ConfigureAwait(false);
 
-            int count = pageOfResult.Entries.Count();
-            bool hasPreviousPage = count > 0 && search.Page > 1;
+            if (search.Page <= pageOfResult.Count)
+            {
+                int count = pageOfResult.Entries.Count();
+                bool hasPreviousPage = count > 0 && search.Page > 1;
 
-            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort });
-            string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort })
-                    : null;
-            string nextPageUrl = search.Page < pageOfResult.Count
-                    ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort })
-                    : null;
+                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort });
+                string previousPageUrl = hasPreviousPage
+                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort })
+                        : null;
+                string nextPageUrl = search.Page < pageOfResult.Count
+                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort })
+                        : null;
 
-            string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
+                string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
 
-            IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
-                .Select(
-                    x => new BrowsableResource<BloodPressureInfo>
-                    {
-                        Resource = x,
-                        Links = new[]
+                IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
+                    .Select(
+                        x => new BrowsableResource<BloodPressureInfo>
                         {
+                            Resource = x,
+                            Links = new[]
+                            {
                             new Link
                             {
                                 Relation = LinkRelation.Self,
                                 Method = "GET",
                                 Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
                             }
-                        }
-                    });
+                            }
+                        });
 
-            IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
-                resources,
-                first: firstPageUrl,
-                previous: previousPageUrl,
-                next: nextPageUrl,
-                last: lastPageUrl,
-                count: pageOfResult.Total);
+                IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+                    resources,
+                    first: firstPageUrl,
+                    previous: previousPageUrl,
+                    next: nextPageUrl,
+                    last: lastPageUrl,
+                    count: pageOfResult.Total);
 
-            return new OkObjectResult(reponse);
+                actionResult = new OkObjectResult(reponse);
+            }
+            else
+            {
+                actionResult = new NotFoundResult();
+            }
+
+            return actionResult;
 
         }
 
 
-        ///// <summary>
-        ///// Partially update a patient resource.
-        ///// </summary>
-        ///// <remarks>
-        ///// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
-        ///// Only the declared modifications will be applied to the resource.
-        /////
-        /////     // PATCH api/BloodPressures/3594c436-8595-444d-9e6b-2686c4904725
-        /////     
-        /////     [
-        /////         {
-        /////             "op": "update",
-        /////             "path": "/MainDoctorId",
-        /////             "from": "string",
-        /////             "value": "e1aa24f4-69a8-4d3a-aca9-ec15c6910dc9"
-        /////       }
-        /////     ]
-        ///// 
-        ///// The set of changes to apply will be applied atomically. 
-        ///// 
-        ///// </remarks>
-        ///// <param name="id">id of the resource to update.</param>
-        ///// <param name="changes">set of changes to apply to the resource.</param>
-        ///// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
-        ///// <response code="200">The resource was successfully patched.</response>
-        ///// <response code="400">Changes are not valid for the selected resource.</response>
-        ///// <response code="404">Resource to "PATCH" not found</response>
-        //[HttpPatch("{id}")]
-        //[ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
-        //public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
-        //{
-        //    PatchInfo<Guid, BloodPressure> data = new PatchInfo<Guid, BloodPressure>
-        //    {
-        //        Id = id,
-        //        PatchDocument = _mapper.Map<JsonPatchDocument<BloodPressure>>(changes)
-        //    };
-        //    await _iRunPatchBloodPressureCommmand.RunAsync(new PatchCommand<Guid, BloodPressure>(data), cancellationToken);
+        /// <summary>
+        /// Partially update a blood pressure resource.
+        /// </summary>
+        /// <remarks>
+        /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
+        /// Only the declared modifications will be applied to the resource.
+        ///
+        ///     // PATCH api/BloodPressures/3594c436-8595-444d-9e6b-2686c4904725
+        ///     
+        ///     [
+        ///         {
+        ///             "op": "update",
+        ///             "path": "/PatientId",
+        ///             "from": "string",
+        ///             "value": "e1aa24f4-69a8-4d3a-aca9-ec15c6910dc9"
+        ///       }
+        ///     ]
+        /// 
+        /// The set of changes to apply will be applied atomically. 
+        /// 
+        /// </remarks>
+        /// <param name="id">id of the resource to update.</param>
+        /// <param name="changes">set of changes to apply to the resource.</param>
+        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <response code="204">The resource was successfully patched.</response>
+        /// <response code="400">Changes are not valid for the selected resource.</response>
+        /// <response code="404">Resource to "PATCH" not found, the patient resource was not found</response>
+        [HttpPatch("{id}")]
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
+        {
+            IActionResult actionResult;
 
-        //    return new NoContentResult();
-        //}
+            if (id == default)
+            {
+                actionResult = new BadRequestResult();
+            }
+            else
+            {
+                using (IUnitOfWork uow = UowFactory.New())
+                {
+                    Option<BloodPressure> optionalEntity = await uow.Repository<BloodPressure>()
+                        .SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    actionResult = await optionalEntity.Match<Task<IActionResult>>(
+                        some: async (entity) =>
+                       {
+                           Expression<Func<Operation<BloodPressureInfo>, Operation<BloodPressure>>> converter = ExpressionBuilder.GetMapExpression<Operation<BloodPressureInfo>, Operation<BloodPressure>>();
+                           IEnumerable<Operation<BloodPressure>> entityOperations = changes.Operations.Select( x => converter.Compile().Invoke(x));
+                           JsonPatchDocument<BloodPressure> entityChanges = new JsonPatchDocument<BloodPressure>();
+
+                           entityChanges.Operations.AddRange(entityOperations);
+                           entityChanges.ApplyTo(entity);
+
+                           await uow.SaveChangesAsync(cancellationToken)
+                            .ConfigureAwait(false);
+
+                           return new NoContentResult();
+                       },
+                        none: () => Task.FromResult<IActionResult>(new NotFoundResult())
+                    );
+                }
+            }
+
+            return actionResult;
+        }
 
         ///// <summary>
         ///// Gets one patient's <see cref="BodyWeightInfo"/>.

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using static FluentValidation.CascadeMode;
 using static FluentValidation.Severity;
 

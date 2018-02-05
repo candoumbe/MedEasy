@@ -1,14 +1,18 @@
 ﻿using FluentValidation.AspNetCore;
 using Measures.API.Context;
 using Measures.API.Routing;
-using Measures.API.StartupRegistration;
 using Measures.Mapping;
 using Measures.Validators;
+using MedEasy.Core.Filters;
+using MedEasy.Core.Middlewares;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Validators;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -17,18 +21,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.IO;
-using Newtonsoft.Json;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Cors.Internal;
-using MedEasy.Core.Middlewares;
-using System;
-using MedEasy.Core.Filters;
-using MedEasy.Validators;
 
 namespace Measures.API
 {
@@ -121,6 +120,10 @@ namespace Measures.API
                     builder.UseSqlServer(Configuration.GetConnectionString("Measures"));
                 }
                 builder.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
+                builder.ConfigureWarnings(options =>
+                {
+                    options.Default(WarningBehavior.Log);
+                });
 
                 return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
 

@@ -56,7 +56,8 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
-        [Trait("Category", "IntegrationTests")]
+        [Trait("Category", "Integration")]
+        [Trait("Resource", "Patients")]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
@@ -116,7 +117,7 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
-            ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
+            ((int)response.StatusCode).Should().Be(Status200OK);
             HttpContentHeaders headers = response.Content.Headers;
 
 
@@ -135,6 +136,8 @@ namespace Measures.API.IntegrationTests
         [InlineData("/measures/patients", "GET")]
         [InlineData("/measures/patients", "HEAD")]
         [InlineData("/measures/patients", "OPTIONS")]
+        [Trait("Category", "Integration")]
+        [Trait("Resource", "BloodPressures")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
 

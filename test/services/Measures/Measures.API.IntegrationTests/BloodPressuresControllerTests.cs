@@ -65,6 +65,7 @@ namespace Measures.API.IntegrationTests
 
         [Fact]
         [Trait("Category", "Integration")]
+        [Trait("Resource", "BloodPressures")]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
@@ -156,6 +157,7 @@ namespace Measures.API.IntegrationTests
 
         [Theory]
         [Trait("Category", "Integration")]
+        [Trait("Resource", "BloodPressures")]
         [MemberData(nameof(GetAll_With_Invalid_Pagination_Returns_BadRequestCases))]
         public async Task GetAll_With_Invalid_Pagination_Returns_BadRequest(int page, int pageSize)
         {
@@ -179,6 +181,7 @@ namespace Measures.API.IntegrationTests
         [InlineData(_endpointUrl, "HEAD")]
         [InlineData(_endpointUrl, "OPTIONS")]
         [Trait("Category", "Integration")]
+        [Trait("Resource", "BloodPressures")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
 
@@ -198,6 +201,7 @@ namespace Measures.API.IntegrationTests
 
         [Fact]
         [Trait("Category", "Integration")]
+        [Trait("Resource", "BloodPressures")]
         public async Task Create_Resource()
         {
             // Arrange
@@ -256,14 +260,14 @@ namespace Measures.API.IntegrationTests
             jToken.IsValid(createdResourceSchema).Should()
                 .BeTrue();
 
-            _outputHelper.WriteLine($"Location of the resource : <{response.Headers.Location}>");
             Uri location = response.Headers.Location;
+            _outputHelper.WriteLine($"Location of the resource : <{location}>");
             location.Should().NotBeNull();
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
 
-            RequestBuilder rb = new RequestBuilder(_server, response.Headers.Location.ToString());
+            requestBuilder = new RequestBuilder(_server, response.Headers.Location.ToString());
 
-            HttpResponseMessage checkResponse = await rb.SendAsync(Head)
+            HttpResponseMessage checkResponse = await requestBuilder.SendAsync(Head)
                 .ConfigureAwait(false);
 
             checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
@@ -294,6 +298,7 @@ namespace Measures.API.IntegrationTests
 
         [Theory]
         [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
+        [Trait("Resource", "BloodPressures")]
         public async Task PostInvalidResource_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
         {
 
@@ -312,5 +317,9 @@ namespace Measures.API.IntegrationTests
 
 
         }
+
+        
+        
+
     }
 }
