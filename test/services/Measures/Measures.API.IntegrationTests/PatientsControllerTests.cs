@@ -33,7 +33,7 @@ namespace Measures.API.IntegrationTests
             _outputHelper = outputHelper;
             fixture.Initialize(
                 relativeTargetProjectParentDir : Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
-                environmentName: "Development", 
+                environmentName: "IntegrationTest", 
                 applicationName: "Measures.API",
                 initializeServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
                 {
@@ -56,6 +56,7 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
+        [Trait("Category", "IntegrationTests")]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
