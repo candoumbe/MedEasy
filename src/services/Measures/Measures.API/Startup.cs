@@ -67,7 +67,7 @@ namespace Measures.API
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(FormatFilter));
-                options.Filters.Add(typeof(ValidateModelAttribute));
+                options.Filters.Add(typeof(ValidateModelActionFilter));
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 //options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
@@ -179,7 +179,7 @@ namespace Measures.API
             }
             services.AddRouting(options =>
             {
-                options.AppendTrailingSlash = true;
+                options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
 

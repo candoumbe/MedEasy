@@ -231,7 +231,8 @@ namespace Measures.API.Tests.Controllers
                         new SearchBloodPressureInfo
                         {
                             From = 1.January(2001),
-                            To = 31.January(2001)
+                            To = 31.January(2001),
+                            Page = 1, PageSize = 30
                         }, 
                         (maxPageSize : 200, defaultPageSize : 30),
                         (
@@ -266,13 +267,13 @@ namespace Measures.API.Tests.Controllers
                                 .Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0))
                         }
                     },
-                    new SearchBloodPressureInfo { From = 23.June(2012) }, // request
+                    new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
                     (maxPageSize : 200, pageSize : 30),
                     (
                         count : 1,    
                         items :
                           ((Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>>)(resources =>
-                            resources.All(x =>1.January(2001) <= x.Resource.DateOfMeasure && x.Resource.DateOfMeasure <= 31.January(2001) ))),
+                            resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure ))),
                         links : (
                             firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             previousPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
@@ -287,6 +288,7 @@ namespace Measures.API.Tests.Controllers
         [Theory]
         [MemberData(nameof(SearchTestCases))]
         [Trait("Resource", "Search")]
+        [Trait("Resource", "BloodPressures")]
         [Trait("Category", "Unit test")]
         public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
@@ -323,16 +325,12 @@ namespace Measures.API.Tests.Controllers
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.AtLeastOnce, $"because {nameof(BloodPressuresController)}.{nameof(BloodPressuresController.Search)} must always check that {nameof(SearchBloodPressureInfo.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
 
-            actionResult.Should()
-                    .NotBeNull()
-                    .And.BeOfType<OkObjectResult>();
-            ObjectResult okObjectResult = (OkObjectResult)actionResult;
-
-            object value = okObjectResult.Value;
-
-            IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = okObjectResult.Value.Should()
+            GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = actionResult.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>>().Which;
+                    .BeOfType<OkObjectResult>().Which
+                    .Value.Should()
+                    .NotBeNull().And
+                    .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -349,7 +347,7 @@ namespace Measures.API.Tests.Controllers
             }
 
             response.Count.Should()
-                    .Be(pageExpectation.count, $@"because the ""{nameof(IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);
@@ -419,6 +417,8 @@ namespace Measures.API.Tests.Controllers
         }
 
 
+        
+
         [Fact]
         public async Task Delete_Returns_NoContent()
         {
@@ -438,11 +438,13 @@ namespace Measures.API.Tests.Controllers
                     }
                 });
 
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             // Act
-            IActionResult actionResult = await _controller.Delete(id);
+            IActionResult actionResult = await _controller.Delete(id)
+                .ConfigureAwait(false);
 
             // Assert
             actionResult.Should()
@@ -452,24 +454,13 @@ namespace Measures.API.Tests.Controllers
             using (IUnitOfWork uow = _unitOfWorkFactory.New())
             {
                 bool deleted = !await uow.Repository<BloodPressure>()
-                    .AnyAsync(x => x.UUID == id);
+                    .AnyAsync(x => x.UUID == id)
+                    .ConfigureAwait(false);
 
                 deleted.Should().BeTrue();
             }
         }
-
         
-        [Fact]
-        public async Task Delete_InvalidId_Returns_BadRequest()
-        {
-            // Act
-            IActionResult actionResult = await _controller.Delete(Guid.Empty);
-
-            // Assert
-            actionResult.Should()
-                .BeAssignableTo<BadRequestResult>();
-        }
-
 
         [Fact]
         public async Task Get_Returns_The_Element()
@@ -553,18 +544,7 @@ namespace Measures.API.Tests.Controllers
                 .BeAssignableTo<NotFoundResult>();
         }
 
-        [Fact]
-        public async Task Get_InvalidId_Returns_BadRequest()
-        {
-            // Act
-            IActionResult actionResult = await _controller.Get(Guid.Empty);
-
-            // Assert
-            actionResult.Should()
-                .BeAssignableTo<BadRequestResult>();
-        }
-
-
+        
         [Fact]
         public async Task Post_CreateTheResource()
         {
@@ -670,21 +650,7 @@ namespace Measures.API.Tests.Controllers
 
         }
 
-        [Fact]
-        public async Task Patch_With_Default_Id_Returns_Not_Acceptable()
-        {
-            JsonPatchDocument<BloodPressureInfo> changes = new JsonPatchDocument<BloodPressureInfo>();
-            changes.Replace(x => x.SystolicPressure, 120);
-            
-
-            // Act
-            IActionResult actionResult = await _controller.Patch(Guid.Empty, changes)
-                .ConfigureAwait(false);
-
-            // Assert
-            actionResult.Should()
-                .BeAssignableTo<BadRequestResult>();
-        }
+        
 
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()

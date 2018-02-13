@@ -17,7 +17,7 @@ namespace Measures.Validators
         /// <summary>
         /// Builds a new <see cref="CreateBloodPressureInfoValidator"/> instance. 
         /// </summary>
-        /// <param name="uowFactory">Factory to build <see cref="IUnitOfWork"/> instances.</param>
+        /// <param name="uowFactory">Factory to build <see cref="IUnitOfWork"/>s.</param>
         public CreateBloodPressureInfoValidator(IUnitOfWorkFactory uowFactory)
         {
             _unitOfWorkFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory), $"{nameof(uowFactory)} cannot be null");
