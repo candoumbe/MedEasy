@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MedEasy.Core.Attributes
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
 
