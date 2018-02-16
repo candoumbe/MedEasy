@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Xunit;
 using Xunit.Abstractions;
+using FluentAssertions.Primitives;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 
 namespace Measures.API.IntegrationTests
@@ -103,7 +104,7 @@ namespace Measures.API.IntegrationTests
             ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
             HttpContentHeaders headers = response.Content.Headers;
 
-            headers.ContentType.MediaType.ShouldBeEquivalentTo("application/json");
+            headers.ContentType.MediaType.Should().BeEquivalentTo("application/json");
 
             string json = await response.Content.ReadAsStringAsync();
 
@@ -134,7 +135,7 @@ namespace Measures.API.IntegrationTests
             // Assert
             ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
             HttpContentHeaders headers = response.Content.Headers;
-            headers.ContentType.MediaType.ShouldBeEquivalentTo("application/xml");
+            headers.ContentType.MediaType.Should().BeEquivalentTo("application/xml");
         }
 
 

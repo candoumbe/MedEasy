@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Measures.API.Context
+namespace Measures.Context
 {
     /// <summary>
     /// Interacts with the underlying repostories.

@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
 using GenFu;
-using Measures.API;
-using Measures.API.Context;
 using Measures.API.Controllers;
 using Measures.API.Routing;
+using Measures.Context;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
@@ -29,6 +28,7 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using FluentAssertions.Extensions;
 
 namespace Measures.API.Tests
 {

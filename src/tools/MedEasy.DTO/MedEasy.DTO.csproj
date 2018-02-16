@@ -1,24 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.0.0" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
-      </PropertyGroup>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="1.1.2" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.Data\MedEasy.Data.csproj" />

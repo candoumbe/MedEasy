@@ -2,14 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
     <DocumentationFile>bin\Debug\netcoreapp2.0\Measures.API.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Services\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
@@ -18,7 +16,6 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
-    <PackageReference Include="Optional" Version="4.0.0-rc" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="7.4.0" />
 
   </ItemGroup>
@@ -38,7 +35,9 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
+    <ProjectReference Include="..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\Measures.Mapping\Measures.Mapping.csproj" />
     <ProjectReference Include="..\Measures.Objects\Measures.Objects.csproj" />
     <ProjectReference Include="..\Measures.Validators\Measures.Validators.csproj" />
   </ItemGroup>

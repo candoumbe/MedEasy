@@ -1,35 +1,38 @@
 using FluentAssertions;
-using Measures.API.Context;
+using FluentAssertions.Extensions;
+using Measures.Context;
 using Measures.DTO;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Http.StatusCodes;
+using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.HttpMethods;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace Measures.API.IntegrationTests
 {
-    [Collection("IntegrationTests")]
+    [IntegrationTest]
+    [Feature("Blood pressures")]
+    [Feature("Measures")]
     public class BloodPressuresControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
     {
         private TestServer _server;
@@ -127,8 +130,6 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
-        [Trait("Category", "Integration")]
-        [Trait("Resource", "BloodPressures")]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
@@ -172,8 +173,6 @@ namespace Measures.API.IntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "Integration")]
-        [Trait("Resource", "BloodPressures")]
         [MemberData(nameof(GetAll_With_Invalid_Pagination_Returns_BadRequestCases))]
         public async Task GetAll_With_Invalid_Pagination_Returns_BadRequest(int page, int pageSize)
         {
@@ -220,8 +219,6 @@ namespace Measures.API.IntegrationTests
         [InlineData(_endpointUrl, "GET")]
         [InlineData(_endpointUrl, "HEAD")]
         [InlineData(_endpointUrl, "OPTIONS")]
-        [Trait("Category", "Integration")]
-        [Trait("Resource", "BloodPressures")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
 
@@ -240,8 +237,6 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
-        [Trait("Category", "Integration")]
-        [Trait("Resource", "BloodPressures")]
         public async Task Create_Resource()
         {
             // Arrange
@@ -338,8 +333,6 @@ namespace Measures.API.IntegrationTests
 
         [Theory]
         [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
-        [Trait("Resource", "BloodPressures")]
-        [Trait("Category", "Integration")]
         public async Task PostInvalidResource_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
         {
 
@@ -359,25 +352,8 @@ namespace Measures.API.IntegrationTests
             string content = await response.Content.ReadAsStringAsync()
                .ConfigureAwait(false);
 
-            JSchema errorObjectSchema = new JSchema
-            {
-                Type = JSchemaType.Object,
-                Properties =
-                {
-                    [nameof(ErrorObject.Code).ToLower()] = new JSchema { Type = JSchemaType.String},
-                    [nameof(ErrorObject.Description).ToLower()] = new JSchema { Type = JSchemaType.String},
-                    [nameof(ErrorObject.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
-                },
-                Required =
-                {
-                    nameof(ErrorObject.Code).ToLower(),
-                    nameof(ErrorObject.Description).ToLower(),
-                    nameof(ErrorObject.Errors).ToLower()
-                }
-            };
-
-
-            JToken.Parse(content).IsValid(errorObjectSchema)
+            
+            JToken.Parse(content).IsValid(_errorObjectSchema)
                 .Should().BeTrue("Validation errors");
 
         }
@@ -388,8 +364,6 @@ namespace Measures.API.IntegrationTests
         [InlineData("GET")]
         [InlineData("DELETE")]
         [InlineData("OPTIONS")]
-        [Trait("Resource", "BloodPressures")]
-        [Trait("Category", "Integration")]
         public async Task Get_With_Empty_Id_Returns_Bad_Request(string method)
         {
             _outputHelper.WriteLine($"method : <{method}>");

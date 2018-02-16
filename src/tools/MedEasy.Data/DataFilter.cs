@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
+#if !NETSTANDARD1_0
+using Newtonsoft.Json.Schema; 
+#endif
 using static Newtonsoft.Json.JsonConvert;
 using static Newtonsoft.Json.DefaultValueHandling;
 using static Newtonsoft.Json.Required;
@@ -69,6 +71,7 @@ namespace MedEasy.Data
             }
         }
 
+#if !NETSTANDARD1_0
         /// <summary>
         /// Generates the <see cref="JSchema"/> for the specified <see cref="DataFilterOperator"/>.
         /// </summary>
@@ -107,7 +110,7 @@ namespace MedEasy.Data
                             [OperatorJsonPropertyName] = new JSchema { Type = JSchemaType.String }
                         },
                         Required = { FieldJsonPropertyName, OperatorJsonPropertyName }
-                        
+
                     };
                     break;
                 default:
@@ -131,7 +134,8 @@ namespace MedEasy.Data
 
             return schema;
 
-        }
+        } 
+#endif
 
         /// <summary>
         /// Name of the field to filter

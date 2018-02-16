@@ -1,8 +1,8 @@
 using FluentAssertions;
 using GenFu;
-using Measures.API.Context;
 using Measures.API.Controllers;
 using Measures.API.Routing;
+using Measures.Context;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
@@ -22,6 +22,8 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
+using FluentAssertions.Extensions;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
@@ -31,6 +33,9 @@ namespace Measures.API.Tests.Controllers
     /// <summary>
     /// Unit tests for <see cref="BloodPressuresController"/>
     /// </summary>
+    [UnitTest]
+    [Feature("Blood pressures")]
+    [Feature("Measures")]
     public class BloodPressureControllerTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
@@ -39,7 +44,6 @@ namespace Measures.API.Tests.Controllers
         private Mock<IUrlHelper> _urlHelperMock;
         private Mock<ILogger<BloodPressuresController>> _loggerMock;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
-        private MeasuresContext _dbContext;
         private BloodPressuresController _controller;
         private const string _baseUrl = "http://host/api";
 
@@ -59,8 +63,7 @@ namespace Measures.API.Tests.Controllers
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
             string dbName = $"InMemoryDb_{Guid.NewGuid()}";
             dbContextOptionsBuilder.UseInMemoryDatabase(dbName);
-            _dbContext = new MeasuresContext(dbContextOptionsBuilder.Options);
-
+            
             _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
 
@@ -71,7 +74,6 @@ namespace Measures.API.Tests.Controllers
         {
             _outputHelper = null;
             _unitOfWorkFactory = null;
-            _dbContext = null;
             _urlHelperMock = null;
             _loggerMock = null;
             _apiOptionsMock = null;
@@ -287,9 +289,8 @@ namespace Measures.API.Tests.Controllers
 
         [Theory]
         [MemberData(nameof(SearchTestCases))]
-        [Trait("Resource", "Search")]
+        [Feature("Search")]
         [Trait("Resource", "BloodPressures")]
-        [Trait("Category", "Unit test")]
         public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
@@ -389,7 +390,7 @@ namespace Measures.API.Tests.Controllers
 
         [Theory]
         [MemberData(nameof(OutOfBoundSearchCases))]
-        [Trait("Category", "Unit test")]
+        [UnitTest]
         [Trait("Resource", "BloodPressures")]
         [Trait("Resource", "Search")]
         public async Task Search_With_OutOfBound_PagingConfiguration_Returns_NotFound(
@@ -546,7 +547,7 @@ namespace Measures.API.Tests.Controllers
 
         
         [Fact]
-        public async Task Post_CreateTheResource()
+        public async Task Post_CreateTheResource_With_Patient()
         {
             // Arrange
             CreateBloodPressureInfo newResource = new CreateBloodPressureInfo

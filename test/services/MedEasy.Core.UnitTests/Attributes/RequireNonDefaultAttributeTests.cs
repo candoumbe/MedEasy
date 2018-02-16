@@ -8,10 +8,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Core.UnitTests.Attributes
 {
+    [UnitTest]
+    [Feature("Validation")]
     public class RequireNonDefaultAttributeTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
@@ -31,23 +34,15 @@ namespace MedEasy.Core.UnitTests.Attributes
 
 
         [Fact]
-        [Trait("Category", "Unit test")]
         public void IsProperlySet()
         {
             // Assert
-            _sut.Should()
-                .BeAssignableTo<ValidationAttribute>();
-
-            IEnumerable<CustomAttributeData> attributes = _sut.GetType().GetCustomAttributesData();
-
-            attributes.Should()
-                .HaveCount(1).And
-                .ContainSingle(attr => attr.AttributeType == typeof(AttributeUsageAttribute),$"{nameof(AttributeUsageAttribute)} must be present on the class");
-
-            AttributeUsageAttribute usage = _sut.GetType().GetCustomAttribute<AttributeUsageAttribute>();
-            usage.AllowMultiple.Should().BeFalse("attribute cannot be used multiple times on the same element");
-            usage.ValidOn.Should().Be(AttributeTargets.Parameter | AttributeTargets.Property, "attribute can target both parameters and properties");
-            usage.Inherited.Should().BeFalse("attribute cannot be herited");
+            typeof(RequireNonDefaultAttribute).Should()
+                .BeAssignableTo<ValidationAttribute>().And
+                .BeDecoratedWith<AttributeUsageAttribute>(attr =>
+                    !attr.AllowMultiple 
+                    && attr.ValidOn == (AttributeTargets.Parameter | AttributeTargets.Property) 
+                    && !attr.Inherited);
         }
 
 

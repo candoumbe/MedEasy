@@ -28,6 +28,7 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using FluentAssertions.Extensions;
 
 namespace Patients.API.UnitTests.Controllers
 {

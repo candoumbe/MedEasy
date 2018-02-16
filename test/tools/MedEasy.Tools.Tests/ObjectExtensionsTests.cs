@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 using static Newtonsoft.Json.JsonConvert;
 using MedEasy.Data;
 using static MedEasy.Data.DataFilterOperator;
+using FluentAssertions.Extensions;
 
 namespace MedEasy.Tools.Tests
 {

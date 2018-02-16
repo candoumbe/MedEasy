@@ -58,7 +58,7 @@ namespace Measures.Validators
             Action action = () => new CreateBloodPressureInfoValidator(null);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

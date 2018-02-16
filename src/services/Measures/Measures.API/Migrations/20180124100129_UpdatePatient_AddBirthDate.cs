@@ -12,7 +12,7 @@ namespace Measures.API.Migrations
     public partial class UpdatePatient_AddBirthDate : Migration
     {
         /// <summary>
-        /// Upgrade the <see cref="API.Context.MeasuresContext"/> version
+        /// Upgrade the <see cref="Measures.Context.MeasuresContext"/> version
         /// </summary>
         /// <param name="migrationBuilder"></param>
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -92,7 +92,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => source.Once(predicate);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -154,7 +154,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => source.AtLeastOnce(predicate);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -301,7 +301,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => source.AtLeast(predicate, count);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -315,7 +315,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => new[] { 1, 3, 5}.AtLeast(x => x == 2, count);
 
             // Assert
-            action.ShouldThrow<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
+            action.Should().Throw<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -338,7 +338,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => source.AtMost(predicate, count);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -352,7 +352,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => new[] { 1, 3, 5 }.AtMost(x => x == 2, count);
 
             // Assert
-            action.ShouldThrow<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
+            action.Should().Throw<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -375,7 +375,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => source.Exactly(predicate, count);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -389,7 +389,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => new[] { 1, 3, 5 }.Exactly(x => x == 2, count);
 
             // Assert
-            action.ShouldThrow<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
+            action.Should().Throw<ArgumentOutOfRangeException>($"{count} is not a valid value").Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

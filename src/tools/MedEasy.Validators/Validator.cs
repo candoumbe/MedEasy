@@ -9,7 +9,7 @@ namespace MedEasy.Validators
     /// <summary>
     /// Static class
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of element to validate</typeparam>
     public sealed class Validator<T> : AbstractValidator<T>
     {
        

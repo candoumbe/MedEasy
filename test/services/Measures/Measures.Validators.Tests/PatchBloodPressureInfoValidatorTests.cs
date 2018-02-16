@@ -49,7 +49,7 @@ namespace Measures.Validators.Tests
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
 

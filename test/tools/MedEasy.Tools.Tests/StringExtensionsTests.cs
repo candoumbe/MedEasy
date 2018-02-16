@@ -78,8 +78,9 @@ namespace MedEasy.Tools.Tests
             Action act = () => StringExtensions.ToLowerKebabCase(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().Which
-                .ParamName.ShouldBeEquivalentTo("input");
+            act.Should().Throw<ArgumentNullException>().Which
+                .ParamName.Should()
+                .BeEquivalentTo("input");
         }
 
 
@@ -92,7 +93,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => input.Like(pattern);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -124,7 +125,7 @@ namespace MedEasy.Tools.Tests
             Action action = () => StringExtensions.ToLambda<SuperHero>(null);
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
 

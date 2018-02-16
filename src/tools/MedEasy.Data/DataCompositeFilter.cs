@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
+#if !NETSTANDARD1_0
+using Newtonsoft.Json.Schema; 
+#endif
 using System.Collections.Generic;
 using System.Linq;
 using static Newtonsoft.Json.Required;
@@ -26,6 +28,7 @@ namespace MedEasy.Data
         /// </summary>
         public const string LogicJsonPropertyName = "logic";
 
+#if !NETSTANDARD1_0
         public static JSchema Schema => new JSchema
         {
             Type = JSchemaType.Object,
@@ -36,7 +39,8 @@ namespace MedEasy.Data
             },
             Required = { FiltersJsonPropertyName },
             AllowAdditionalProperties = false
-        };
+        }; 
+#endif
 
         /// <summary>
         /// Collections of filters

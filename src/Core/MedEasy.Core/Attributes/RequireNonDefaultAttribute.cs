@@ -9,6 +9,11 @@ namespace MedEasy.Core.Attributes
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
 
+        public RequireNonDefaultAttribute()
+        {
+
+        }
+
         public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must have a non default value";
 
 

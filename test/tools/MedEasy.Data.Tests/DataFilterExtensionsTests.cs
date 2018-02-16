@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -633,7 +634,7 @@ namespace MedEasy.Data.Tests
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -648,7 +649,7 @@ namespace MedEasy.Data.Tests
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

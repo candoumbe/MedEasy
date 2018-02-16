@@ -210,7 +210,7 @@ namespace MedEasy.Data
                             .Replace("!!", "!")
                             .Replace("**", "*");
 
-                        PropertyInfo pi = typeof(T).GetProperties()
+                        PropertyInfo pi = typeof(T).GetRuntimeProperties()
                             .SingleOrDefault(x => x.CanRead && x.Name == keyPart);
 
                         if (pi != null)
