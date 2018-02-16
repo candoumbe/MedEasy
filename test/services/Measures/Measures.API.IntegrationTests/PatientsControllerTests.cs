@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Measures.API.Context;
+using Measures.Context;
 using Measures.DTO;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
@@ -18,11 +19,12 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.IntegrationTests
 {
-    [Collection("IntegrationTests")]
+    [IntegrationTest]
     public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
     {
         private TestServer _server;
@@ -56,7 +58,6 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
-        [Trait("Category", "Integration")]
         [Trait("Resource", "Patients")]
         public async Task GetAll_With_No_Data()
         {
@@ -136,7 +137,6 @@ namespace Measures.API.IntegrationTests
         [InlineData("/measures/patients", "GET")]
         [InlineData("/measures/patients", "HEAD")]
         [InlineData("/measures/patients", "OPTIONS")]
-        [Trait("Category", "Integration")]
         [Trait("Resource", "BloodPressures")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {

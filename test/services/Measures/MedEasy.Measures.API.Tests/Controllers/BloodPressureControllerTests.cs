@@ -27,6 +27,9 @@ using FluentAssertions.Extensions;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using MediatR;
+using System.Threading;
+using Measures.CQRS.Commands;
 
 namespace Measures.API.Tests.Controllers
 {
@@ -41,6 +44,7 @@ namespace Measures.API.Tests.Controllers
         private ITestOutputHelper _outputHelper;
 
         private IUnitOfWorkFactory _unitOfWorkFactory;
+        private Mock<IMediator> _mediatorMock;
         private Mock<IUrlHelper> _urlHelperMock;
         private Mock<ILogger<BloodPressuresController>> _loggerMock;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
@@ -66,8 +70,10 @@ namespace Measures.API.Tests.Controllers
             
             _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
+            _mediatorMock = new Mock<IMediator>(Strict);
 
-            _controller = new BloodPressuresController(_loggerMock.Object, _urlHelperMock.Object, _apiOptionsMock.Object, AutoMapperConfig.Build().ExpressionBuilder, _unitOfWorkFactory);
+            _controller = new BloodPressuresController(_loggerMock.Object, _urlHelperMock.Object, _apiOptionsMock.Object, AutoMapperConfig.Build().ExpressionBuilder, _unitOfWorkFactory,
+                _mediatorMock.Object);
         }
 
         public void Dispose()
@@ -77,6 +83,7 @@ namespace Measures.API.Tests.Controllers
             _urlHelperMock = null;
             _loggerMock = null;
             _apiOptionsMock = null;
+            _mediatorMock = null;
 
 
         }
@@ -562,10 +569,30 @@ namespace Measures.API.Tests.Controllers
                 }
             };
 
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((CreateBloodPressureInfoCommand cmd, CancellationToken cancellationToken) =>
+                {
+
+                    return Task.FromResult(new BloodPressureInfo
+                    {
+                        DateOfMeasure = cmd.Data.DateOfMeasure,
+                        Id = Guid.NewGuid(),
+                        DiastolicPressure = cmd.Data.DiastolicPressure,
+                        PatientId = Guid.NewGuid(),
+                        SystolicPressure = cmd.Data.SystolicPressure,
+                        UpdatedDate = 23.June(2010)
+                    });
+                })
+                .Verifiable();
+
             // Act
-            IActionResult actionResult = await _controller.Post(newResource);
+            IActionResult actionResult = await _controller.Post(newResource)
+                .ConfigureAwait(false);
 
             // Assert
+            _mediatorMock.Verify();
+
+
             BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
                 .BeOfType<CreatedAtRouteResult>().Which
                 .Value.Should()
@@ -592,12 +619,6 @@ namespace Measures.API.Tests.Controllers
 
             Link linkToPatient = links.Single(x => x.Relation == "patient");
             linkToPatient.Href.Should().Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={createdResource.PatientId}");
-
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                (await uow.Repository<Patient>().AnyAsync(x => x.UUID == createdResource.PatientId)
-                    .ConfigureAwait(false)).Should().BeTrue("Creating a blood pressure with patient data should create the patient");
-            }
         }
 
         [Fact]

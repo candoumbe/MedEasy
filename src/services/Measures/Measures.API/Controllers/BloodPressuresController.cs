@@ -1,6 +1,7 @@
 ﻿using AutoMapper.QueryableExtensions;
 using FluentValidation.Results;
 using Measures.API.Routing;
+using Measures.CQRS.Commands;
 using Measures.DTO;
 using Measures.Objects;
 using MedEasy.Core.Attributes;
@@ -9,6 +10,7 @@ using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +36,8 @@ namespace Measures.API.Controllers
     [Route("measures/[controller]")]
     public class BloodPressuresController : AbstractBaseController<BloodPressure, BloodPressureInfo, Guid>
     {
+        private readonly IMediator _mediator;
+
         /// <summary>
         /// Name of the endpoint
         /// </summary>²
@@ -57,15 +61,18 @@ namespace Measures.API.Controllers
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="expressionBuilder">Builds <see cref="Expression{TDelegate}"/></param>
         /// <param name="unitOfWorkFactory">Factory to build <see cref="IUnitOfWork"/> instance.</param>
+        /// <param name="mediator"></param>
         /// <param name="logger">logger</param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
         public BloodPressuresController(ILogger<BloodPressuresController> logger, IUrlHelper urlHelper,
             IOptionsSnapshot<MeasuresApiOptions> apiOptions,
             IExpressionBuilder expressionBuilder,
-            IUnitOfWorkFactory unitOfWorkFactory)
+            IUnitOfWorkFactory unitOfWorkFactory,
+            IMediator mediator)
             : base(logger, unitOfWorkFactory, expressionBuilder, urlHelper)
         {
             ApiOptions = apiOptions;
+            _mediator = mediator;
         }
 
 
@@ -218,37 +225,21 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Post([FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
+            BloodPressureInfo createdResource = await _mediator.Send(new CreateBloodPressureInfoCommand(newBloodPressure), cancellationToken)
+                .ConfigureAwait(false);
+
+            BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
             {
-
-                Expression<Func<CreateBloodPressureInfo, BloodPressure>> mapBloodPressureInfoToEntity = ExpressionBuilder.GetMapExpression<CreateBloodPressureInfo, BloodPressure>();
-                Expression<Func<PatientInfo, Patient>> mapPatientInfoToEntity = ExpressionBuilder.GetMapExpression<PatientInfo, Patient>();
-                BloodPressure newEntity = mapBloodPressureInfoToEntity.Compile().Invoke(newBloodPressure);
-
-                newEntity.Patient.UUID = newEntity.Patient.UUID == default
-                    ? Guid.NewGuid()
-                    : newEntity.Patient.UUID;
-
-                uow.Repository<BloodPressure>().Create(newEntity);
-                await uow.SaveChangesAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                Expression<Func<BloodPressure, BloodPressureInfo>> mapEntityToBloodPressureInfo = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                BloodPressureInfo createdResource = mapEntityToBloodPressureInfo.Compile().Invoke(newEntity);
-
-
-                BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+                Resource = createdResource,
+                Links = new[]
                 {
-                    Resource = createdResource,
-                    Links = new[]
-                    {
                         new Link { Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { id = createdResource.PatientId }) },
                         new Link { Relation = "delete", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }), Method = "GET"}
                     }
 
-                };
-                return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }, browsableResource);
-            }
+            };
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }, browsableResource);
+
         }
 
 

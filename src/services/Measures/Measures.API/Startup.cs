@@ -2,6 +2,7 @@
 using Measures.API.Context;
 using Measures.API.Routing;
 using Measures.Context;
+using Measures.CQRS.Commands;
 using Measures.Mapping;
 using Measures.Validators;
 using MedEasy.Core.Filters;
@@ -9,6 +10,7 @@ using MedEasy.Core.Middlewares;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -107,6 +109,7 @@ namespace Measures.API
                 options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             });
 
+            services.AddMediatR(typeof(CreateBloodPressureInfoCommand).Assembly);
             services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
             {

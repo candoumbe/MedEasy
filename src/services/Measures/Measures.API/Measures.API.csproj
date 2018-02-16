@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="7.4.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="4.0.0" />
+    
 
   </ItemGroup>
 
@@ -35,6 +37,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
+    <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
     <ProjectReference Include="..\Measures.Mapping\Measures.Mapping.csproj" />
