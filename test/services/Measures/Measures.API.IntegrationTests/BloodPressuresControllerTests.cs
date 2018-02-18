@@ -135,7 +135,7 @@ namespace Measures.API.IntegrationTests
             // Arrange
             RequestBuilder rb = _server.CreateRequest(_endpointUrl)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Accept-Charset", "uf-8");
+                .AddHeader("Accept-Charset", "utf-8");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -221,6 +221,9 @@ namespace Measures.API.IntegrationTests
         [InlineData(_endpointUrl, "OPTIONS")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
+
+            _outputHelper.WriteLine($"URL : <{url}>");
+            _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
             RequestBuilder rb = _server.CreateRequest(url);

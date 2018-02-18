@@ -20,15 +20,15 @@ namespace Measures.CQRS.UnitTests.Handlers
 {
     [UnitTest]
     [Feature("Handlers")]
-    [Feature("Blood pressures")]
-    public class HandleCreateBloodPressureInfoCommandTests : IDisposable
+    [Feature("BloodPressures")]
+    public class HandleDeleteBloodPressureInfoByIdCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<MeasuresContext> _unitOfWorkFactory;
         private IExpressionBuilder _expressionBuilder;
-        private HandleCreateBloodPressureInfoCommand _handler;
+        private HandleDeleteBloodPressureInfoByIdCommand _handler;
 
-        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
+        public HandleDeleteBloodPressureInfoByIdCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
@@ -38,7 +38,7 @@ namespace Measures.CQRS.UnitTests.Handlers
             _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
-            _handler = new HandleCreateBloodPressureInfoCommand(_unitOfWorkFactory, _expressionBuilder);
+            _handler = new HandleDeleteBloodPressureInfoByIdCommand(_unitOfWorkFactory, _expressionBuilder);
         }
 
 
@@ -50,41 +50,41 @@ namespace Measures.CQRS.UnitTests.Handlers
         }
 
         [Fact]
-        public async Task Create_A_New_Resource_With_Patient_Info()
+        public async Task Delete()
         {
             // Arrange
-            CreateBloodPressureInfo newResource = new CreateBloodPressureInfo
+            Guid measureId = Guid.NewGuid();
+            BloodPressure measure = new BloodPressure
             {
+                UUID = measureId,
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53),
-                Patient = new PatientInfo
+                Patient = new Patient
                 {
                     Firstname = "victor",
-                    Lastname = "zsasz"
+                    Lastname = "zsasz",
+                    UUID = Guid.NewGuid()
                 }
             };
 
-            CreateBloodPressureInfoCommand command = new CreateBloodPressureInfoCommand(newResource);
+            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            {
+                uow.Repository<BloodPressure>().Create(measure);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
 
             // Act
-            BloodPressureInfo createdResource = await _handler.Handle(command, default)
+            await _handler.Handle(new DeleteBloodPressureInfoByIdCommand(measureId), default)
                 .ConfigureAwait(false);
 
             // Assert
-            createdResource.Should()
-                .NotBeNull();
-            createdResource.Id.Should().NotBeEmpty();
-            createdResource.PatientId.Should().NotBeEmpty();
-            createdResource.DateOfMeasure.Should().Be(newResource.DateOfMeasure);
-            createdResource.SystolicPressure.Should().Be(newResource.SystolicPressure);
-            createdResource.DiastolicPressure.Should().Be(newResource.DiastolicPressure);
-
             
             using (IUnitOfWork uow = _unitOfWorkFactory.New())
             {
-                (await uow.Repository<Patient>().AnyAsync(x => x.UUID == createdResource.PatientId)
-                    .ConfigureAwait(false)).Should().BeTrue("Creating a blood pressure with patient data should create the patient");
+                (await uow.Repository<BloodPressure>().AnyAsync(x => x.UUID == measureId)
+                    .ConfigureAwait(false)).Should().BeFalse("Measure must be deleted after executing the command");
             }
         }
     }

@@ -72,7 +72,13 @@ namespace MedEasy.Core.Filters
                     errorObject.Errors = errors;
                 }
 
+                
                 BadRequestObjectResult result = new BadRequestObjectResult(errorObject);
+                if (IsPost(context.HttpContext.Request.Method))
+                {
+                    result.StatusCode = Status422UnprocessableEntity;
+                }
+
                 context.Result = result;
             }
         }

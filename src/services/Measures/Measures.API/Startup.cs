@@ -72,7 +72,7 @@ namespace Measures.API
                 options.Filters.Add(typeof(FormatFilter));
                 options.Filters.Add(typeof(ValidateModelActionFilter));
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                //options.Filters.Add(typeof(HandleErrorAttribute));
+                options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
             })

@@ -30,6 +30,9 @@ using static System.StringComparison;
 using MediatR;
 using System.Threading;
 using Measures.CQRS.Commands;
+using MedEasy.CQRS.Core.Commands;
+using AutoMapper.QueryableExtensions;
+using MedEasy.DAL.Repositories;
 
 namespace Measures.API.Tests.Controllers
 {
@@ -44,6 +47,7 @@ namespace Measures.API.Tests.Controllers
         private ITestOutputHelper _outputHelper;
 
         private IUnitOfWorkFactory _unitOfWorkFactory;
+        private static readonly MeasuresApiOptions _apiOptions = new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
         private Mock<IUrlHelper> _urlHelperMock;
         private Mock<ILogger<BloodPressuresController>> _loggerMock;
@@ -67,9 +71,9 @@ namespace Measures.API.Tests.Controllers
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
             string dbName = $"InMemoryDb_{Guid.NewGuid()}";
             dbContextOptionsBuilder.UseInMemoryDatabase(dbName);
-            
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
+            
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _controller = new BloodPressuresController(_loggerMock.Object, _urlHelperMock.Object, _apiOptionsMock.Object, AutoMapperConfig.Build().ExpressionBuilder, _unitOfWorkFactory,
@@ -84,7 +88,6 @@ namespace Measures.API.Tests.Controllers
             _loggerMock = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
-
 
         }
 
@@ -107,10 +110,10 @@ namespace Measures.API.Tests.Controllers
                             pageSize, page, // request
                             0,    //expected total
                             (
-                                firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                                firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                                 previousPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                                 nextPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                                lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}".Equals(x.Href, OrdinalIgnoreCase)))  // expected link to last page
+                                lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase)))  // expected link to last page
                             )
                         };
                     }
@@ -118,7 +121,16 @@ namespace Measures.API.Tests.Controllers
 
                 {
                     IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach(item => item.Id = default);
+                    items.ForEach((item, pos) =>
+                    {
+                        item.Id = default;
+                        item.Patient = new Patient
+                        {
+                            Id = pos,
+                            UUID = Guid.NewGuid()
+                        };
+
+                    });
                     yield return new object[]
                     {
                         items,
@@ -136,7 +148,16 @@ namespace Measures.API.Tests.Controllers
                 }
                 {
                     IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach(item => item.Id = default);
+                    items.ForEach((item, pos) =>
+                    {
+                        item.Id = default;
+                        item.Patient = new Patient
+                        {
+                            Id = pos,
+                            UUID = Guid.NewGuid()
+                        };
+
+                    });
 
                     yield return new object[]
                     {
@@ -155,15 +176,21 @@ namespace Measures.API.Tests.Controllers
                 yield return new object[]
                 {
                     new [] {
-                        new BloodPressure { Id = 1, SystolicPressure = 120, DiastolicPressure = 80 }
+                        new BloodPressure { Id = 1, SystolicPressure = 120, DiastolicPressure = 80, Patient = new Patient
+                        {
+                            Id = 1,
+                            UUID = Guid.NewGuid()
+                        }
+
+                    }
                     },
                     PaginationConfiguration.DefaultPageSize, 1, // request
                     1,    //expected total
                     (
-                        firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                        firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                         previousPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
                         nextPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                        lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))) // expected link to last page
+                        lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))) // expected link to last page
                     )
                 };
             }
@@ -180,20 +207,37 @@ namespace Measures.API.Tests.Controllers
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(_apiOptions);
+
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                uow.Repository<BloodPressure>().Create(items);
-                await uow.SaveChangesAsync();
-            }
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()))
+                .Returns((PageOfBloodPressureInfoQuery query, CancellationToken cancellationToken) =>
+                {
+                    PaginationConfiguration pagination = query.Data;
+                    Func<BloodPressure, BloodPressureInfo> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>().Compile();
+                    _outputHelper.WriteLine($"Selector : {selector}");
+
+                    IEnumerable<BloodPressureInfo> results = items.Select(selector)
+                        .ToArray();
 
 
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 });
+                    results = results.Skip(pagination.PageSize * (pagination.Page == 1 ? 0 : pagination.Page - 1))
+                         .Take(pagination.PageSize)
+                         .ToArray();
+
+                    return Task.FromResult(new Page<BloodPressureInfo>(results, items.Count(), pagination.PageSize));
+
+                });
+
             // Act
-            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page });
+            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page })
+                .ConfigureAwait(false);
 
             // Assert
-            _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(BloodPressuresController)}.{nameof(BloodPressuresController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<PageOfBloodPressureInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
+                "Controller must cap pageSize of the query before sending it to the mediator");
 
             actionResult.Should()
                     .NotBeNull()
@@ -242,12 +286,12 @@ namespace Measures.API.Tests.Controllers
                             From = 1.January(2001),
                             To = 31.January(2001),
                             Page = 1, PageSize = 30
-                        }, 
+                        },
                         (maxPageSize : 200, defaultPageSize : 30),
                         (
                             count : 400,
                             items :
-                            ((Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>>)(resources => 
+                            ((Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>>)(resources =>
                                 resources.All(x =>1.January(2001) <= x.Resource.DateOfMeasure && x.Resource.DateOfMeasure <= 31.January(2001) ))
                             ),
                             links :
@@ -279,7 +323,7 @@ namespace Measures.API.Tests.Controllers
                     new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
                     (maxPageSize : 200, pageSize : 30),
                     (
-                        count : 1,    
+                        count : 1,
                         items :
                           ((Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>>)(resources =>
                             resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure ))),
@@ -301,17 +345,17 @@ namespace Measures.API.Tests.Controllers
         public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
-                int count, 
+                int count,
                 Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>> items,
                 (
                     Expression<Func<Link, bool>> firstPageUrlExpectation,
-                    Expression<Func<Link, bool>> previousPageUrlExpectation, 
-                    Expression<Func<Link, bool>> nextPageUrlExpectation, 
+                    Expression<Func<Link, bool>> previousPageUrlExpectation,
+                    Expression<Func<Link, bool>> nextPageUrlExpectation,
                     Expression<Func<Link, bool>> lastPageUrlExpectation
                 ) links
             ) pageExpectation)
         {
-             _outputHelper.WriteLine($"Testing {nameof(BloodPressuresController.Search)}({nameof(SearchBloodPressureInfo)})");
+            _outputHelper.WriteLine($"Testing {nameof(BloodPressuresController.Search)}({nameof(SearchBloodPressureInfo)})");
             _outputHelper.WriteLine($"Search : {SerializeObject(searchQuery)}");
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
@@ -325,7 +369,7 @@ namespace Measures.API.Tests.Controllers
 
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = apiOptions.defaultPageSize, MaxPageSize = apiOptions.maxPageSize });
-            
+
             // Act
             IActionResult actionResult = await _controller.Search(searchQuery)
                 .ConfigureAwait(false);
@@ -401,7 +445,7 @@ namespace Measures.API.Tests.Controllers
         [Trait("Resource", "BloodPressures")]
         [Trait("Resource", "Search")]
         public async Task Search_With_OutOfBound_PagingConfiguration_Returns_NotFound(
-            SearchBloodPressureInfo query, 
+            SearchBloodPressureInfo query,
             (int maxPageSize, int defaultPageSize) apiOptions,
             IEnumerable<BloodPressure> measures, string reason)
         {
@@ -425,50 +469,28 @@ namespace Measures.API.Tests.Controllers
         }
 
 
-        
+
 
         [Fact]
         public async Task Delete_Returns_NoContent()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                uow.Repository<BloodPressure>().Create(new BloodPressure
-                {
-                    SystolicPressure = 150,
-                    DiastolicPressure = 90,
-                    UUID = id,
-                    Patient = new Patient
-                    {
-                        Firstname = "Bruce",
-                        Lastname = "Wayne"
-                    }
-                });
-
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            IActionResult actionResult = await _controller.Delete(id)
+            Guid idToDelete = Guid.NewGuid();
+            IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
             // Assert
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
 
-
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                bool deleted = !await uow.Repository<BloodPressure>()
-                    .AnyAsync(x => x.UUID == id)
-                    .ConfigureAwait(false);
-
-                deleted.Should().BeTrue();
-            }
+            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeleteBloodPressureInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
         }
-        
+
 
         [Fact]
         public async Task Get_Returns_The_Element()
@@ -552,7 +574,7 @@ namespace Measures.API.Tests.Controllers
                 .BeAssignableTo<NotFoundResult>();
         }
 
-        
+
         [Fact]
         public async Task Post_CreateTheResource_With_Patient()
         {
@@ -599,14 +621,6 @@ namespace Measures.API.Tests.Controllers
                     .BeAssignableTo<BrowsableResource<BloodPressureInfo>>().Which;
 
 
-            BloodPressureInfo createdResource = browsableResource.Resource;
-            createdResource.Should()
-                .NotBeNull();
-            createdResource.Id.Should().NotBeEmpty();
-            createdResource.PatientId.Should().NotBeEmpty();
-            createdResource.DateOfMeasure.Should().Be(newResource.DateOfMeasure);
-            createdResource.SystolicPressure.Should().Be(newResource.SystolicPressure);
-            createdResource.DiastolicPressure.Should().Be(newResource.DiastolicPressure);
 
             IEnumerable<Link> links = browsableResource.Links;
             links.Should()
@@ -618,61 +632,55 @@ namespace Measures.API.Tests.Controllers
                 .Contain(x => x.Relation == "patient");
 
             Link linkToPatient = links.Single(x => x.Relation == "patient");
-            linkToPatient.Href.Should().Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={createdResource.PatientId}");
+            linkToPatient.Href.Should().Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={browsableResource.Resource.PatientId}");
         }
 
         [Fact]
         public async Task DeleteResource()
         {
             // Arrange
-            BloodPressure measure = new BloodPressure
-            {
-                SystolicPressure = 120,
-                DiastolicPressure = 80,
-                DateOfMeasure = 30.June(2004),
-                Patient = new Patient
-                {
-                    Firstname = "Victor",
-                    Lastname = "Zsaasz",
-                    UUID = Guid.NewGuid(),
-                },
-                UUID = Guid.NewGuid(),
-            };
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
-            {
-                uow.Repository<BloodPressure>().Create(measure);
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            IActionResult actionResult = await _controller.Delete(measure.UUID)
+            Guid idToDelete = Guid.NewGuid();
+            IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
             // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeleteBloodPressureInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
+
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
 
-            
+
         }
 
         [Fact]
         public async Task Delete_Unknown_Resource_Returns_Not_Found()
         {
-            
+            // Arrange
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
+
+
             // Act
-            IActionResult actionResult = await _controller.Delete(Guid.NewGuid())
+            Guid idToDelete = Guid.NewGuid();
+            IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
             // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeleteBloodPressureInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeleteBloodPressureInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
+
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
 
 
         }
 
-        
+
 
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()
@@ -736,7 +744,7 @@ namespace Measures.API.Tests.Controllers
                 actualMeasure.DiastolicPressure.Should().Be(90);
                 actualMeasure.SystolicPressure.Should().Be(measure.SystolicPressure);
             }
-           
+
 
         }
 

@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
   </ItemGroup>
 

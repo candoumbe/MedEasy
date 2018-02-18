@@ -205,8 +205,8 @@ namespace System.Collections.Generic
                 throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value.");
             }
 
-            return  (count == 0 && items == Enumerable.Empty<T>()) || items.Count(predicate.Compile()) <= count;
-            
+            return (count == 0 && items == Enumerable.Empty<T>()) || items.Count(predicate.Compile()) <= count;
+
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace System.Collections.Generic
         /// <param name="second">the second collection</param>
         /// <param name="selector">projection to perform on each</param>
         /// <returns></returns>
-        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector) 
+        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector)
             => first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
 
 
@@ -306,6 +306,47 @@ namespace System.Collections.Generic
             }
         }
 
+        /// <summary>
+        /// Synchronously iterates over source an execute the <paramref name="body"/> action
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">
+        /// </param>
+        /// <param name="body">
+        ///     code to be execute the <paramref name="body"/> action on each item of the <paramref name="source" />
+        /// </param>
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T, int> body)
+        {
+            IList<Exception> exceptions = null;
+            int index = 0;
+            IEnumerator<T> enumerator = source.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                try
+                {
+                    body(enumerator.Current, index);
+                }
+                catch (Exception exc)
+                {
+                    if (exceptions == null)
+                    {
+                        exceptions = new List<Exception>();
+                    }
+                    exceptions.Add(exc);
+                }
+                finally
+                {
+                    index++;
+                }
+            }
+
+            if (exceptions?.Any() ?? false)
+            {
+                throw new AggregateException(exceptions);
+            }
+        }
+
+
 #if NETSTANDARD1_1
         /// <summary>
         /// Asynchronously run the 
@@ -334,6 +375,7 @@ namespace System.Collections.Generic
             return t;
         }
 #endif
+
 
     }
 }

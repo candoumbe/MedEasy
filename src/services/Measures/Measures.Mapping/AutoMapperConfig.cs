@@ -20,7 +20,6 @@ namespace Measures.Mapping
         /// <returns></returns>
         public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
         {
-
             cfg.CreateMap<IEntity<int>, Resource<Guid>>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())

@@ -19,11 +19,14 @@ using System.Reflection;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 
 namespace MedEasy.Core.UnitTests.Attributes
 {
+    [UnitTest]
+    [Category("Filters")]
     public class ValidateModelFilterTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
@@ -48,7 +51,6 @@ namespace MedEasy.Core.UnitTests.Attributes
         }
 
         [Fact]
-        [Trait("Category", "Unit test")]
         public void ShouldReturnBadRequesWhenModelStateIsNotValid()
         {
             // Arrange

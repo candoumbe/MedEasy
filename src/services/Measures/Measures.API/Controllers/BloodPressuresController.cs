@@ -1,10 +1,10 @@
 ﻿using AutoMapper.QueryableExtensions;
-using FluentValidation.Results;
 using Measures.API.Routing;
 using Measures.CQRS.Commands;
 using Measures.DTO;
 using Measures.Objects;
 using MedEasy.Core.Attributes;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -14,13 +14,12 @@ using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -95,60 +94,56 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
-            {
-                pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-                Expression<Func<BloodPressure, BloodPressureInfo>> selector = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                Page<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
-                    .ReadPageAsync(
-                        selector,
-                        pagination.PageSize,
-                        pagination.Page,
-                        new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure) },
-                        cancellationToken)
-                    .ConfigureAwait(false);
 
-                int count = result.Entries.Count();
-                bool hasPreviousPage = count > 0 && pagination.Page > 1;
+            pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
+            Page<BloodPressureInfo> result = await _mediator.Send(new PageOfBloodPressureInfoQuery(pagination), cancellationToken)
+                .ConfigureAwait(false);
 
-                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
-                string previousPageUrl = hasPreviousPage
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
-                        : null;
+            Debug.Assert(result != null, $"{nameof(result)} cannot be null");
 
-                string nextPageUrl = pagination.Page < result.Count
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
-                        : null;
-                string lastPageUrl = result.Count > 0
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                        : firstPageUrl;
+            int count = result.Entries.Count();
+            bool hasPreviousPage = count > 0 && pagination.Page > 1;
+
+            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+            string previousPageUrl = hasPreviousPage
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                    : null;
+
+            string nextPageUrl = pagination.Page < result.Count
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                    : null;
+            string lastPageUrl = result.Count > 0
+                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                    : firstPageUrl;
 
 
-                IEnumerable<BrowsableResource<BloodPressureInfo>> resources = result.Entries
-                    .Select(x => new BrowsableResource<BloodPressureInfo>
+            IEnumerable<BrowsableResource<BloodPressureInfo>> resources = result.Entries
+                .Select(x => new BrowsableResource<BloodPressureInfo>
+                {
+                    Resource = x,
+                    Links = new[]
                     {
-                        Resource = x,
-                        Links = new[]
+                        new Link
                         {
-                            new Link
-                            {
-                                Relation = LinkRelation.Self,
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
-                            }
+                            Relation = LinkRelation.Self,
+                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                         }
-                    });
+                    }
+                });
 
-                IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
-                    resources,
-                    firstPageUrl,
-                    previousPageUrl,
-                    nextPageUrl,
-                    lastPageUrl,
-                    result.Total);
+            IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+                resources,
+                firstPageUrl,
+                previousPageUrl,
+                nextPageUrl,
+                lastPageUrl,
+                result.Total);
 
 
-                return new OkObjectResult(response);
-            }
+            return new OkObjectResult(response);
+
+
+            
         }
 
 
@@ -259,23 +254,23 @@ namespace Measures.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
-            {
-                IActionResult actionResult;
-                if (await uow.Repository<BloodPressure>().AnyAsync(x => x.UUID == id, cancellationToken).ConfigureAwait(false))
-                {
-                    uow.Repository<BloodPressure>().Delete(x => x.UUID == id);
-                    await uow.SaveChangesAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    actionResult = new NoContentResult();
-                }
-                else
-                {
-                    actionResult = new NotFoundResult();
-                }
+            DeleteCommandResult result = await _mediator.Send(new DeleteBloodPressureInfoByIdCommand(id), cancellationToken)
+                .ConfigureAwait(false);
 
-                return actionResult;
+            IActionResult actionResult;
+            switch (result)
+            {
+                case DeleteCommandResult.Done:
+                    actionResult = new NoContentResult();
+                    break;
+                case DeleteCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("unexpected delete result");
             }
+
+            return actionResult;
 
 
         }

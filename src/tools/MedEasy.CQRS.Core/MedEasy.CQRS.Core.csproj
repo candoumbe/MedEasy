@@ -6,9 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.1.1" />
     <PackageReference Include="MediatR" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
   </ItemGroup>
 
 </Project>
