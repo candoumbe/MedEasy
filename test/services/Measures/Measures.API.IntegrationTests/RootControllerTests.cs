@@ -6,16 +6,14 @@ using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Xml;
 using Xunit;
 using Xunit.Abstractions;
-using FluentAssertions.Primitives;
 using static Microsoft.AspNetCore.Http.HttpMethods;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.IntegrationTests
 {
@@ -94,14 +92,14 @@ namespace Measures.API.IntegrationTests
 
             RequestBuilder rb = _server.CreateRequest(url)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Accept-Charset", "uf-8");
+                .AddHeader("Accept-Charset", "utf-8");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
                 .ConfigureAwait(false);
 
             // Assert
-            ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
+            ((int)response.StatusCode).Should().Be(Status200OK);
             HttpContentHeaders headers = response.Content.Headers;
 
             headers.ContentType.MediaType.Should().BeEquivalentTo("application/json");
@@ -133,7 +131,7 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
-            ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
+            ((int)response.StatusCode).Should().Be(Status200OK);
             HttpContentHeaders headers = response.Content.Headers;
             headers.ContentType.MediaType.Should().BeEquivalentTo("application/xml");
         }
@@ -157,11 +155,36 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
-            ((int)response.StatusCode).Should().Be(StatusCodes.Status200OK);
+            ((int)response.StatusCode).Should().Be(Status200OK);
 
 
 
 
         }
+
+
+        [Theory]
+        [InlineData("/", "GET")]
+        [InlineData("/", "OPTIONS")]
+        [InlineData("/measures", "GET")]
+        [InlineData("/measures", "OPTIONS")]
+        public async Task ShouldReturnsSuccessCode_When_Posting_With_Method_Overrides(string url, string methodOverride)
+        {
+            _outputHelper.WriteLine($"Url : <{url}>");
+            _outputHelper.WriteLine($"Override Method : <{methodOverride}>");
+
+            // Arrange
+            RequestBuilder rb = _server.CreateRequest(url)
+                .AddHeader("x-http-method-override", methodOverride);
+
+
+            // Act
+            HttpResponseMessage response = await rb.PostAsync()
+                .ConfigureAwait(false);
+
+            // Assert
+            ((int)response.StatusCode).Should().Be(Status200OK);
+        }
+
     }
 }

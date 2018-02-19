@@ -50,13 +50,15 @@ namespace Measures.API.Controllers
         /// </summary>
         /// <remarks>
         /// 
-        ///     API clients should only relies on link's relation to navigate through all resources.
+        ///     API clients should only relies on link's relation to navigate through all resources returned by this API
         ///     
         /// 
         ///     
         /// </remarks>
         /// <response code="200"></response>
         [HttpGet]
+        [HttpOptions]
+        [HttpHead]
         [ProducesResponseType(typeof(IEnumerable<Endpoint>), 200)]
         public IEnumerable<Endpoint> Index()
         {

@@ -198,6 +198,7 @@ namespace Measures.API
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            app.UseHttpMethodOverride();
             if (env.IsProduction() || env.IsStaging())
             {
                 app.UseResponseCaching();
@@ -222,7 +223,6 @@ namespace Measures.API
             }
 
 
-            app.UseHeadMiddleware();
             app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
