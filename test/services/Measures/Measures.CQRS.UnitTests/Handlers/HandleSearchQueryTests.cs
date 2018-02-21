@@ -20,11 +20,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static MedEasy.Data.DataFilterOperator;
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers
 {
+    [UnitTest]
     public class HandleSearchQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

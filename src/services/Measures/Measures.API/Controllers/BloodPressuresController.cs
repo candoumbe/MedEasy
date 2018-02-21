@@ -1,13 +1,17 @@
 ﻿using AutoMapper.QueryableExtensions;
 using Measures.API.Routing;
 using Measures.CQRS.Commands;
+using Measures.CQRS.Queries;
 using Measures.DTO;
 using Measures.Objects;
 using MedEasy.Core.Attributes;
 using MedEasy.CQRS.Core.Commands;
+using MedEasy.CQRS.Core.Commands.Results;
+using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
+using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
@@ -26,6 +30,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static MedEasy.Data.DataFilterLogic;
 using static MedEasy.Data.DataFilterOperator;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.Controllers
 {
@@ -33,7 +38,7 @@ namespace Measures.API.Controllers
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources
     /// </summary>
     [Route("measures/[controller]")]
-    public class BloodPressuresController : AbstractBaseController<BloodPressure, BloodPressureInfo, Guid>
+    public class BloodPressuresController
     {
         private readonly IMediator _mediator;
 
@@ -43,9 +48,9 @@ namespace Measures.API.Controllers
         public static string EndpointName => nameof(BloodPressuresController).Replace("Controller", string.Empty);
 
         /// <summary>
-        /// Name of the controller
+        /// Helper to build URLs
         /// </summary>
-        protected override string ControllerName => EndpointName;
+        public IUrlHelper UrlHelper { get; }
 
         /// <summary>
         /// Options of the API
@@ -58,18 +63,12 @@ namespace Measures.API.Controllers
         /// Builds a new <see cref="BloodPressuresController"/> instance
         /// </summary>
         /// <param name="apiOptions">Options of the API</param>
-        /// <param name="expressionBuilder">Builds <see cref="Expression{TDelegate}"/></param>
-        /// <param name="unitOfWorkFactory">Factory to build <see cref="IUnitOfWork"/> instance.</param>
         /// <param name="mediator"></param>
-        /// <param name="logger">logger</param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
-        public BloodPressuresController(ILogger<BloodPressuresController> logger, IUrlHelper urlHelper,
-            IOptionsSnapshot<MeasuresApiOptions> apiOptions,
-            IExpressionBuilder expressionBuilder,
-            IUnitOfWorkFactory unitOfWorkFactory,
+        public BloodPressuresController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions,
             IMediator mediator)
-            : base(logger, unitOfWorkFactory, expressionBuilder, urlHelper)
         {
+            UrlHelper = urlHelper;
             ApiOptions = apiOptions;
             _mediator = mediator;
         }
@@ -143,7 +142,7 @@ namespace Measures.API.Controllers
             return new OkObjectResult(response);
 
 
-            
+
         }
 
 
@@ -162,50 +161,42 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
         public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
-            {
-                Expression<Func<BloodPressure, BloodPressureInfo>> selector = ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == id, cancellationToken)
+            Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
                     .ConfigureAwait(false);
 
-                IActionResult actionResult = result.Match<IActionResult>(
-                    some: bloodPressure =>
+            IActionResult actionResult = result.Match<IActionResult>(
+                some: bloodPressure =>
+                {
+                    BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
                     {
-                        BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+                        Resource = bloodPressure,
+                        Links = new[]
                         {
-                            Resource = bloodPressure,
-                            Links = new[]
+                            new Link
                             {
-                                                new Link
-                                                {
-                                                    Relation = LinkRelation.Self,
-                                                    Method = "GET",
-                                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
-                                                },
-                                                new Link
-                                                {
-                                                    Relation = "delete",
-                                                    Method = "DELETE",
-                                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
-                                                },
-                                                new Link
-                                                {
-                                                    Relation = "patient",
-                                                    Method = "GET",
-                                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
-                                                }
+                                Relation = LinkRelation.Self,
+                                Method = "GET",
+                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                            },
+                            new Link
+                            {
+                                Relation = "delete",
+                                Method = "DELETE",
+                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                            },
+                            new Link
+                            {
+                                Relation = "patient",
+                                Method = "GET",
+                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
                             }
-                        };
-                        return new OkObjectResult(browsableResource);
-                    },
-                    none: () => new NotFoundResult()
-                );
-                return actionResult;
-            }
-
-
-
+                        }
+                    };
+                    return new OkObjectResult(browsableResource);
+                },
+                none: () => new NotFoundResult()
+            );
+            return actionResult;
         }
 
         /// <summary>
@@ -359,11 +350,10 @@ namespace Measures.API.Controllers
                         })
             };
 
-            IActionResult actionResult;
-
-            Page<BloodPressureInfo> pageOfResult = await Search(searchQueryInfo, cancellationToken)
+            Page<BloodPressureInfo> pageOfResult = await _mediator.Send(new SearchQuery<BloodPressureInfo>(searchQueryInfo), cancellationToken)
                 .ConfigureAwait(false);
 
+            IActionResult actionResult;
             if (search.Page <= pageOfResult.Count)
             {
                 int count = pageOfResult.Entries.Count();
@@ -446,32 +436,43 @@ namespace Measures.API.Controllers
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Patch([RequireNonDefault] Guid id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
+            PatchInfo<Guid, BloodPressureInfo> info = new PatchInfo<Guid, BloodPressureInfo>
             {
-                Option<BloodPressure> optionalEntity = await uow.Repository<BloodPressure>()
-                    .SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
-                    .ConfigureAwait(false);
+                Id = id,
+                PatchDocument = changes
+            };
 
-                return await optionalEntity.Match<Task<IActionResult>>(
-                    some: async (entity) =>
-                    {
-                        Expression<Func<Operation<BloodPressureInfo>, Operation<BloodPressure>>> converter = ExpressionBuilder.GetMapExpression<Operation<BloodPressureInfo>, Operation<BloodPressure>>();
-                        IEnumerable<Operation<BloodPressure>> entityOperations = changes.Operations.Select(x => converter.Compile().Invoke(x));
-                        JsonPatchDocument<BloodPressure> entityChanges = new JsonPatchDocument<BloodPressure>();
+            PatchCommand<Guid, BloodPressureInfo> cmd = new PatchCommand<Guid, BloodPressureInfo>(info);
 
-                        entityChanges.Operations.AddRange(entityOperations);
-                        entityChanges.ApplyTo(entity);
-
-                        await uow.SaveChangesAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
-                        return new NoContentResult();
-                    },
-                    none: () => Task.FromResult<IActionResult>(new NotFoundResult())
-                )
+            ModifyCommandResult result = await _mediator.Send(cmd, cancellationToken)
                 .ConfigureAwait(false);
+
+            IActionResult actionResult;
+            switch (result)
+            {
+                case ModifyCommandResult.Done:
+                    actionResult = new NoContentResult();
+                    break;
+                case ModifyCommandResult.Failed_Unauthorized:
+                    actionResult = new UnauthorizedResult();
+                    break;
+                case ModifyCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                case ModifyCommandResult.Failed_Conflict:
+                    actionResult = new StatusCodeResult(Status409Conflict);
+                    break;
+                default:
+#if DEBUG
+
+                    throw new ArgumentOutOfRangeException();
+#else
+                    actionResult = new StatusCodeResult(Status500InternalServerError);
+                    break;
+#endif
             }
 
+            return actionResult;
 
         }
 

@@ -1,6 +1,5 @@
-﻿using Measures.DTO;
-using MedEasy.CQRS.Core.Commands;
-using MediatR;
+﻿using MedEasy.CQRS.Core.Commands;
+using MedEasy.CQRS.Core.Commands.Results;
 using System;
 
 namespace Measures.CQRS.Commands

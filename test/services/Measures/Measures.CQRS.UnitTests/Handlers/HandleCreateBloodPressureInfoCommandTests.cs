@@ -3,18 +3,23 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using Measures.Context;
 using Measures.CQRS.Commands;
+using Measures.CQRS.Events;
 using Measures.CQRS.Handlers;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers
 {
@@ -24,8 +29,9 @@ namespace Measures.CQRS.UnitTests.Handlers
     public class HandleCreateBloodPressureInfoCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private EFUnitOfWorkFactory<MeasuresContext> _unitOfWorkFactory;
+        private IUnitOfWorkFactory _unitOfWorkFactory;
         private IExpressionBuilder _expressionBuilder;
+        private Mock<IMediator> _mediatorMock;
         private HandleCreateBloodPressureInfoCommand _handler;
 
         public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
@@ -38,7 +44,9 @@ namespace Measures.CQRS.UnitTests.Handlers
             _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
-            _handler = new HandleCreateBloodPressureInfoCommand(_unitOfWorkFactory, _expressionBuilder);
+            _mediatorMock = new Mock<IMediator>(Strict);
+
+            _handler = new HandleCreateBloodPressureInfoCommand(_unitOfWorkFactory, _expressionBuilder, _mediatorMock.Object);
         }
 
 
@@ -53,6 +61,9 @@ namespace Measures.CQRS.UnitTests.Handlers
         public async Task Create_A_New_Resource_With_Patient_Info()
         {
             // Arrange
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
             CreateBloodPressureInfo newResource = new CreateBloodPressureInfo
             {
                 SystolicPressure = 120,
@@ -72,6 +83,10 @@ namespace Measures.CQRS.UnitTests.Handlers
                 .ConfigureAwait(false);
 
             // Assert
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), It.IsAny<CancellationToken>()), Times.Once);
+
+
             createdResource.Should()
                 .NotBeNull();
             createdResource.Id.Should().NotBeEmpty();

@@ -25,7 +25,8 @@ namespace Measures.CQRS.Handlers
         {
         }
 
-        public async Task<Page<TMeasureInfo>> Search(SearchQuery<TMeasureInfo> request, CancellationToken cancellationToken) => await Search<TMeasure, TMeasureInfo>(request, cancellationToken)
-            .ConfigureAwait(false);
+        public async Task<Page<TMeasureInfo>> Search(SearchQuery<TMeasureInfo> request, CancellationToken cancellationToken) => 
+            await Search<TMeasure, TMeasureInfo>(request, cancellationToken)
+                .ConfigureAwait(false);
     }
 }

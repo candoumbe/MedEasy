@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using static Newtonsoft.Json.JsonConvert;
 using System.Linq;
 using System;
+using Newtonsoft.Json;
 
 namespace MedEasy.DTO.Search
 {
@@ -10,6 +11,7 @@ namespace MedEasy.DTO.Search
     /// Represents a request for a search on resources of type.
     /// </summary>
     /// <typeparam name="T">Type of resource the search query will be applied on</typeparam>
+    [JsonObject]
     public class SearchQueryInfo<T> 
     {
 

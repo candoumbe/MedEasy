@@ -5,7 +5,7 @@ using MedEasy.RestObjects;
 
 namespace MedEasy.CQRS.Core.Queries
 {
-    public abstract class PageOfResourcesQuery<TQueryId, TResult> : IWantPageOf<TQueryId, TResult>
+    public abstract class GetPageOfResourcesQuery<TQueryId, TResult> : IWantPageOf<TQueryId, TResult>
         where TQueryId : IEquatable<TQueryId>
     {
         public TQueryId Id { get; }
@@ -13,11 +13,11 @@ namespace MedEasy.CQRS.Core.Queries
         public PaginationConfiguration Data { get; }
 
         /// <summary>
-        /// Builds a new <see cref="PageOfResourcesQuery{TQueryId, TResult}"/> instance
+        /// Builds a new <see cref="GetPageOfResourcesQuery{TQueryId, TResult}"/> instance
         /// </summary>
         /// <param name="id"></param>
         /// <param name="configuration"></param>
-        protected PageOfResourcesQuery(TQueryId id, PaginationConfiguration configuration)
+        protected GetPageOfResourcesQuery(TQueryId id, PaginationConfiguration configuration)
         {
             Id = id;
             Data = configuration;

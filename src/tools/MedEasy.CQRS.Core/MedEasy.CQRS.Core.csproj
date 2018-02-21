@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\MedEasy.Objects\MedEasy.Objects.csproj" />
     <ProjectReference Include="..\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
   </ItemGroup>
 

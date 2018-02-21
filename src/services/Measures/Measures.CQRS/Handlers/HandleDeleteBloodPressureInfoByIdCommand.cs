@@ -1,12 +1,11 @@
 ﻿using AutoMapper.QueryableExtensions;
 using Measures.CQRS.Commands;
-using Measures.DTO;
+using Measures.CQRS.Events;
 using Measures.Objects;
-using MedEasy.CQRS.Core.Commands;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
 using MediatR;
 using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,16 +18,22 @@ namespace Measures.CQRS.Handlers
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
+        private readonly IMediator _mediator;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreateBloodPressureInfoCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
         /// <param name="expressionBuilder"></param>
-        public HandleDeleteBloodPressureInfoByIdCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
+        /// <param name="mediator">Mediator</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/>, <paramref name="expressionBuilder"/> or 
+        /// <paramref name="mediator"/> is <c>null</c>.
+        /// </exception>
+        public HandleDeleteBloodPressureInfoByIdCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
-            _uowFactory = uowFactory;
-            _expressionBuilder = expressionBuilder;
+            _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
+            _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
 
@@ -41,6 +46,9 @@ namespace Measures.CQRS.Handlers
                 {
                     uow.Repository<BloodPressure>().Delete(x => x.UUID == cmd.Data);
                     await uow.SaveChangesAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await _mediator.Publish(new BloodPressureDeleted(cmd.Data), cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else

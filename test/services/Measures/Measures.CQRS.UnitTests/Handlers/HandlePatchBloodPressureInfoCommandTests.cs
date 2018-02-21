@@ -1,25 +1,25 @@
-﻿using AutoMapper.QueryableExtensions;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Measures.Context;
-using Measures.CQRS.Commands;
 using Measures.CQRS.Events;
-using Measures.CQRS.Handlers;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
+using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using MedEasy.DTO;
 using MediatR;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -30,31 +30,31 @@ using static Moq.MockBehavior;
 namespace MedEasy.CQRS.Core.UnitTests.Handlers
 {
     [UnitTest]
-    public class HandleDeleteBloodPressureInfoByIdCommandTests : IDisposable
+    public class HandlePatchBloodPressureInfoCommandTests : IDisposable
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        private IExpressionBuilder _expressionBuilder;
+        private IMapper _mapper;
         private Mock<IMediator> _mediatorMock;
-        private HandleDeleteBloodPressureInfoByIdCommand _sut;
+        private HandlePatchBloodPressureInfoCommand _sut;
 
-        public HandleDeleteBloodPressureInfoByIdCommandTests(ITestOutputHelper outputHelper)
+        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
             builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
+            _mapper = AutoMapperConfig.Build().CreateMapper();
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _sut = new HandleDeleteBloodPressureInfoByIdCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
+            _sut = new HandlePatchBloodPressureInfoCommand(_uowFactory, _mapper, _mediatorMock.Object);
         }
 
         public void Dispose()
         {
             _uowFactory = null;
-            _expressionBuilder = null;
+            _mapper = null;
             _sut = null;
             _mediatorMock = null;
         }
@@ -65,16 +65,16 @@ namespace MedEasy.CQRS.Core.UnitTests.Handlers
             get
             {
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>()};
-                IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
+                IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
-                    .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder })
-                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.expressionBuilder, mediator))
-                    .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator})
-                    .Where(tuple  => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null)
-                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator });
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper})
+                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator})
+                    .Where(tuple  => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
+                    .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
 
                 return cases;  
             }
@@ -83,14 +83,14 @@ namespace MedEasy.CQRS.Core.UnitTests.Handlers
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
-        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
+        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IMediator mediator)
         {
             _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {(mapper == null)}");
             _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleDeleteBloodPressureInfoByIdCommand(unitOfWorkFactory, expressionBuilder, mediator);
+            Action action = () => new HandlePatchBloodPressureInfoCommand(unitOfWorkFactory, mapper, mediator);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -101,13 +101,13 @@ namespace MedEasy.CQRS.Core.UnitTests.Handlers
         }
 
         [Fact]
-        public async Task DeleteBloodPressure()
+        public async Task PatchBloodPressure()
         {
             // Arrange
-            Guid idToDelete = Guid.NewGuid();
+            Guid idToPatch = Guid.NewGuid();
             BloodPressure measure = new BloodPressure
             {
-                UUID = idToDelete,
+                UUID = idToPatch,
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())),
@@ -124,28 +124,36 @@ namespace MedEasy.CQRS.Core.UnitTests.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            
 
-            DeleteBloodPressureInfoByIdCommand cmd = new DeleteBloodPressureInfoByIdCommand(idToDelete);
+            JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
+            patchDocument.Replace(x => x.SystolicPressure, 130);
+            
+            PatchInfo<Guid, BloodPressureInfo> patchInfo = new PatchInfo<Guid, BloodPressureInfo>
+            {
+                Id = idToPatch,
+                PatchDocument = patchDocument
+            };
+            PatchCommand<Guid, BloodPressureInfo> cmd = new PatchCommand<Guid, BloodPressureInfo>(patchInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            DeleteCommandResult result = await _sut.Handle(cmd, default)
+            await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureDeleted>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscribers that blood pressure resource was deleted");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureUpdated>(), default), Times.Once, $"{nameof(HandlePatchBloodPressureInfoCommand)} must notify suscribers that a resource was patched.");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.New())
             {
-                bool deleteSuccessfull = ! await uow.Repository<BloodPressure>()
-                     .AnyAsync(x => x.UUID == idToDelete)
+                BloodPressure actualMeasure = await uow.Repository<BloodPressure>()
+                     .SingleAsync(x => x.UUID == idToPatch)
                      .ConfigureAwait(false);
 
-                deleteSuccessfull.Should().BeTrue("element should not be present after handling the delete command");
+                actualMeasure.SystolicPressure.Should().Be(130);
+                actualMeasure.DiastolicPressure.Should().Be(measure.DiastolicPressure);
             }
         }
     }
