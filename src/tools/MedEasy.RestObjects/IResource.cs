@@ -1,5 +1,4 @@
-﻿using MedEasy.RestObjects;
-using System;
+﻿using System;
 
 namespace MedEasy.RestObjects
 {

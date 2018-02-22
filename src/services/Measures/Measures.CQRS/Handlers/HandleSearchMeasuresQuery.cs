@@ -5,13 +5,7 @@ using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.DTO.Search;
-using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

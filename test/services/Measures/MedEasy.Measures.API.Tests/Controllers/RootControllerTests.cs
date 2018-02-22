@@ -16,7 +16,6 @@ using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static MedEasy.RestObjects.FormFieldType;
-using MedEasy.DTO.Search;
 
 namespace Measures.API.Tests.Controllers
 {

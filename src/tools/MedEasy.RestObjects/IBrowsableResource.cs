@@ -1,5 +1,4 @@
-﻿using MedEasy.RestObjects;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MedEasy.RestObjects
 {

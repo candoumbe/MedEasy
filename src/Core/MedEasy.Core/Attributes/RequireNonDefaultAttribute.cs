@@ -6,13 +6,19 @@ using System.Reflection;
 using static System.AttributeTargets;
 namespace MedEasy.Core.Attributes
 {
+    /// <summary>
+    /// Marks a property/parameter/class so that its value cannot be its default.
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+
     [AttributeUsage(Parameter | Property | Class, AllowMultiple = false, Inherited = false)]
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
         /// <summary>
         /// List of all types that can be directly converted to their string representation
         /// </summary>
-        public static Type[] PrimitiveTypes =
+        private static Type[] PrimitiveTypes =
         {
             typeof(string),
 

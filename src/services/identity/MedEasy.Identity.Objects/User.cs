@@ -1,5 +1,4 @@
 ﻿using MedEasy.Objects;
-using System;
 
 namespace MedEasy.Identity.Objects
 {

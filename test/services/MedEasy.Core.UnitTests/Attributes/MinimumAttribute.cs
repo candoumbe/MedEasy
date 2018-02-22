@@ -3,13 +3,10 @@ using MedEasy.Core.Attributes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Core.UnitTests.Attributes
 {

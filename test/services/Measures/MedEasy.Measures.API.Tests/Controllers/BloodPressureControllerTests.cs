@@ -5,8 +5,8 @@ using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Routing;
 using Measures.Context;
-using Measures.CQRS.Commands;
-using Measures.CQRS.Queries;
+using Measures.CQRS.Commands.BloodPressures;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
@@ -342,7 +342,6 @@ namespace Measures.API.Tests.Controllers
         [Theory]
         [MemberData(nameof(SearchTestCases))]
         [Feature("Search")]
-        [Trait("Resource", "BloodPressures")]
         public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (

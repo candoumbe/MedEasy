@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
 
     /// <summary>

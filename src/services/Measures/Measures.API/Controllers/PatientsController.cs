@@ -9,7 +9,6 @@ using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;

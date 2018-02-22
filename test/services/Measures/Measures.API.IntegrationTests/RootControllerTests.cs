@@ -1,7 +1,6 @@
 using FluentAssertions;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -12,12 +11,13 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.IntegrationTests
 {
-    [Collection("IntegrationTests")]
+    [IntegrationTest]
     public class RootControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
     {
         private TestServer _server;

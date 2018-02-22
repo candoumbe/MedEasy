@@ -5,7 +5,6 @@ using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;

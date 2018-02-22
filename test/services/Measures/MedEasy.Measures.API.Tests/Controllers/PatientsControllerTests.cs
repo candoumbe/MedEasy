@@ -29,10 +29,11 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using FluentAssertions.Extensions;
+using Xunit.Categories;
 
 namespace Measures.API.Tests
 {
-    [Collection("Patient")]
+    [Feature("Patients")]
     public class PatientsControllerTests : IDisposable
     {
         private Mock<IUrlHelper> _urlHelperMock;
@@ -42,7 +43,7 @@ namespace Measures.API.Tests
         private IActionContextAccessor _actionContextAccessor;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";
-        private EFUnitOfWorkFactory<MeasuresContext> _uowFactory;
+        private IUnitOfWorkFactory _uowFactory;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {

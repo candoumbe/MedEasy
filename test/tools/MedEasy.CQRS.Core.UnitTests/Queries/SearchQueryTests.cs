@@ -2,10 +2,6 @@
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DTO.Search;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

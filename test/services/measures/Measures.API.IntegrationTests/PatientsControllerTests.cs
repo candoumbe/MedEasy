@@ -1,12 +1,9 @@
 using FluentAssertions;
-using Measures.API.Context;
 using Measures.Context;
-using Measures.DTO;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +22,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 namespace Measures.API.IntegrationTests
 {
     [IntegrationTest]
+    [Feature("Blood pressures")]
     public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
     {
         private TestServer _server;
@@ -58,7 +56,6 @@ namespace Measures.API.IntegrationTests
         }
 
         [Fact]
-        [Trait("Resource", "Patients")]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
@@ -137,7 +134,6 @@ namespace Measures.API.IntegrationTests
         [InlineData("/measures/patients", "GET")]
         [InlineData("/measures/patients", "HEAD")]
         [InlineData("/measures/patients", "OPTIONS")]
-        [Trait("Resource", "BloodPressures")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
 

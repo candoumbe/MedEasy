@@ -1,8 +1,6 @@
 ﻿using MedEasy.DTO.Search;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Measures.DTO
 {

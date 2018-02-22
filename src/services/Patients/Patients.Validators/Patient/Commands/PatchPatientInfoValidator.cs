@@ -4,7 +4,6 @@ using MedEasy.DTO;
 using MedEasy.Validators.Patch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Patients.DTO;
-using Patients.Objects;
 using System;
 using System.Linq;
 using static FluentValidation.CascadeMode;

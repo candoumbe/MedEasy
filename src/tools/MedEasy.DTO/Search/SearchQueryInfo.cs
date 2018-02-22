@@ -1,9 +1,7 @@
 ﻿using MedEasy.Data;
 using System.Collections.Generic;
-using static Newtonsoft.Json.JsonConvert;
 using System.Linq;
 using System;
-using Newtonsoft.Json;
 
 namespace MedEasy.DTO.Search
 {

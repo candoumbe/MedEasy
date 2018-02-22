@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using MedEasy.DTO;
-using System.Threading.Tasks;
 using FluentValidation;
-using System;
 using static FluentValidation.Severity;
 using static FluentValidation.CascadeMode;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Objects;
 using Patients.DTO;
 
 namespace Patients.Validators.Doctor.DTO

@@ -1,31 +1,31 @@
-﻿using Measures.CQRS.Handlers;
+﻿using AutoMapper.QueryableExtensions;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+using Measures.Context;
+using Measures.CQRS.Commands.BloodPressures;
+using Measures.CQRS.Events;
+using Measures.CQRS.Events.BloodPressures;
+using Measures.CQRS.Handlers.BloodPressures;
+using Measures.DTO;
+using Measures.Mapping;
+using Measures.Objects;
+using MedEasy.DAL.Context;
+using MedEasy.DAL.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
-using Moq;
-using Microsoft.EntityFrameworkCore;
-using Measures.Context;
-using AutoMapper.QueryableExtensions;
-using MedEasy.DAL.Context;
-using Xunit;
-using MedEasy.DAL.Interfaces;
-using FluentAssertions;
-using Measures.DTO;
-using FluentAssertions.Extensions;
-using Measures.CQRS.Commands;
-using Measures.Objects;
-using Optional;
-using MediatR;
-using Measures.CQRS.Events;
-using System.Reflection;
-using Measures.Mapping;
-using System.Threading;
 
-namespace MedEasy.CQRS.Core.UnitTests.Handlers
+namespace MedEasy.CQRS.Core.UnitTests.Handlers.BloodPressures
 {
     public class HandleCreateBloodPressureInfoCommandTests : IDisposable
     {

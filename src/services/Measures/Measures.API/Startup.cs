@@ -1,12 +1,10 @@
 ﻿using FluentValidation.AspNetCore;
-using Measures.API.Context;
 using Measures.API.Routing;
 using Measures.Context;
-using Measures.CQRS.Commands;
+using Measures.CQRS.Commands.BloodPressures;
 using Measures.Mapping;
-using Measures.Validators;
+using Measures.Validators.Commands.BloodPressures;
 using MedEasy.Core.Filters;
-using MedEasy.Core.Middlewares;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;

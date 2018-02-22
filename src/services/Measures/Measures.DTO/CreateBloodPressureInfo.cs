@@ -1,5 +1,4 @@
-﻿using FluentValidation.Attributes;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
