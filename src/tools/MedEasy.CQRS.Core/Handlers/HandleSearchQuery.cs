@@ -40,7 +40,6 @@ namespace MedEasy.CQRS.Core.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.New())
             {
-
                 _logger.LogInformation("Start searching");
                 _logger.LogDebug($"Query : {searchQuery}");
 
@@ -50,12 +49,11 @@ namespace MedEasy.CQRS.Core.Handlers
                 IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sorts
                     .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
+
                 Page<TResult> result = await uow.Repository<TEntity>()
                     .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);
-
-
-
+                
                 return result;
             }
         }

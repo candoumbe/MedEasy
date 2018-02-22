@@ -7,6 +7,7 @@ using Measures.Mapping;
 using Measures.Validators;
 using MedEasy.Core.Filters;
 using MedEasy.Core.Middlewares;
+using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
@@ -110,6 +111,7 @@ namespace Measures.API
             });
 
             services.AddMediatR(typeof(CreateBloodPressureInfoCommand).Assembly);
+            services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
             {

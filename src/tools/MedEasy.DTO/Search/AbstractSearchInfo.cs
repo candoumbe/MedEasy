@@ -17,6 +17,7 @@ namespace MedEasy.DTO.Search
     {
 
         public const string SortPattern = @"\s*(-{0,1}_*[a-zA-Z]+){0,1}\s*";
+        public const string SortSeparator = ",";
 
         /// <summary>
         /// Index of the page of result to read.

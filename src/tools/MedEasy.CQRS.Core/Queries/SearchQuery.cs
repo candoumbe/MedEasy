@@ -11,7 +11,7 @@ namespace MedEasy.CQRS.Core.Queries
     /// Query to filter resources
     /// </summary>
     /// <typeparam name="T">Type of the resources to perform search onto</typeparam>
-    [JsonObject]
+    //[JsonObject]
     public class SearchQuery<T> : IQuery<Guid, SearchQueryInfo<T>, Page<T>>
     {
         public Guid Id { get; }

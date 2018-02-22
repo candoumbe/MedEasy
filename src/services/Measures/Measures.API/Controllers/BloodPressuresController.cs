@@ -298,7 +298,7 @@ namespace Measures.API.Controllers
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         [ProducesResponseType(typeof(ErrorObject), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
             IList<IDataFilter> filters = new List<IDataFilter>();
 

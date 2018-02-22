@@ -2,6 +2,7 @@
 using Measures.API.Routing;
 using Measures.DTO;
 using Measures.Objects;
+using MedEasy.Core.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -81,7 +82,7 @@ namespace Measures.API.Controllers
         [HttpHead]
         [HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
-        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.New())
             {
@@ -152,7 +153,7 @@ namespace Measures.API.Controllers
         [HttpOptions("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
-        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([RequireNonDefault]Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
 
@@ -239,8 +240,8 @@ namespace Measures.API.Controllers
         [HttpHead("[action]")]
         [HttpOptions("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(ErrorObject), 400)]
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
 
             IList<IDataFilter> filters = new List<IDataFilter>();
@@ -362,7 +363,7 @@ namespace Measures.API.Controllers
         [HttpHead("{id}/most-recent-temperatures")]
         [HttpOptions("{id}/most-recent-temperatures")]
         [ProducesResponseType(typeof(IEnumerable<BrowsableResource<TemperatureInfo>>), 200)]
-        public async Task<IActionResult> MostRecentTemperatures(Guid id, int? count, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> MostRecentTemperatures([RequireNonDefault] Guid id, int? count, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
 

@@ -289,7 +289,7 @@ namespace Measures.API.IntegrationTests
 
             // Assert
             response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
-            ((int)response.StatusCode).Should().Be(Status201Created, $"The resource was created");
+            ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
 
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
@@ -492,5 +492,28 @@ namespace Measures.API.IntegrationTests
 
 
         }
+
+        [Theory]
+        [InlineData("HEAD", "")]
+        [InlineData("GET", "")]
+        public async Task GivenInvalidQueryString_CallingSearch_ShouldReturns_BadRequest(string method, string queryString)
+        {
+            // Arrange
+            string url = $"{_endpointUrl}/search{queryString}";
+
+            _outputHelper.WriteLine($"URL : {url}");
+            _outputHelper.WriteLine($"Method : {method}");
+
+            RequestBuilder requestBuilder = new RequestBuilder(_server, url);
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.SendAsync(method)
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should().BeFalse($"a non empty query string must be provided to the <{url}>");
+            ((int)response.StatusCode).Should().Be(Status400BadRequest);
+        }
+
     }
 }
