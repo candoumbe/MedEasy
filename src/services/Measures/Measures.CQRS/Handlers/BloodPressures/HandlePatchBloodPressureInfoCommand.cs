@@ -24,7 +24,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
         private readonly IMediator _mediator;
 
         /// <summary>
-        /// Builds a new <see cref="RunPatchAppointmentCommand"/> instance.
+        /// Builds a new <see cref="HandlePatchBloodPressureInfoCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="expressionBuilder"></param>

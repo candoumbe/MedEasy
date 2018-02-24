@@ -21,7 +21,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
         private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
-        /// Builds a new <see cref="HandleCreateBloodPressureInfoCommand"/> instance.
+        /// Builds a new <see cref="HandleGetOneBloodPressureInfoByIdQuery"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
         /// <param name="expressionBuilder"></param>

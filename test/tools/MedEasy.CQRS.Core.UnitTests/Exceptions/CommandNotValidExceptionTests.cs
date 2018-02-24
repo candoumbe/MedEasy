@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using Xunit.Categories;
 
 namespace MedEasy.CQRS.Core.UnitTests
 {
+    [UnitTest]
     public class CommandNotValidExceptionTests
     {
         public static IEnumerable<object[]> CtorThatThrowsArgumentExceptionCases

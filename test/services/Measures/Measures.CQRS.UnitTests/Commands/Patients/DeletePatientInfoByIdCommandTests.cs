@@ -8,6 +8,7 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Commands.Patients
 {
     [UnitTest]
+    [Feature("Commands")]
     public class DeletePatientInfoByIdCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

@@ -14,9 +14,12 @@ using Xunit;
 using static Moq.MockBehavior;
 using static MedEasy.CQRS.Core.Exceptions.ErrorLevel;
 using MedEasy.CQRS.Core.Exceptions;
+using Xunit.Categories;
 
 namespace MedEasy.Core.Filters
 {
+    [UnitTest]
+    [Feature("Filters")]
     public class HandleErrorAttributeTests : IDisposable
     {
         private HandleErrorAttribute _handleErrorAttribute;

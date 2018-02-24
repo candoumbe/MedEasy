@@ -1,20 +1,26 @@
-﻿using FluentAssertions;
+﻿using AutoMapper.QueryableExtensions;
+using FluentAssertions;
+using FluentAssertions.Extensions;
 using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Routing;
 using Measures.Context;
+using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
+using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using MedEasy.DAL.Repositories;
+using MedEasy.Data;
 using MedEasy.RestObjects;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
@@ -25,11 +31,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using FluentAssertions.Extensions;
-using Xunit.Categories;
 
 namespace Measures.API.Tests
 {
@@ -37,18 +42,18 @@ namespace Measures.API.Tests
     public class PatientsControllerTests : IDisposable
     {
         private Mock<IUrlHelper> _urlHelperMock;
-        private Mock<ILogger<PatientsController>> _loggerMock;
         private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
         private IActionContextAccessor _actionContextAccessor;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
+        private Mock<IMediator> _mediatorMock;
         private const string _baseUrl = "http://host/api";
         private IUnitOfWorkFactory _uowFactory;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _loggerMock = new Mock<ILogger<PatientsController>>(Strict);
+
             _urlHelperMock = new Mock<IUrlHelper>(Strict);
             _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
                 .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
@@ -67,24 +72,24 @@ namespace Measures.API.Tests
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbOptions.Options, (options) => new MeasuresContext(options));
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
-            
+
+            _mediatorMock = new Mock<IMediator>(Strict);
+
             _controller = new PatientsController(
-                _loggerMock.Object,
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
-                AutoMapperConfig.Build().ExpressionBuilder,
-                _uowFactory);
+                _mediatorMock.Object);
 
         }
 
         public void Dispose()
         {
-            _loggerMock = null;
             _urlHelperMock = null;
             _controller = null;
             _outputHelper = null;
             _actionContextAccessor = null;
             _apiOptionsMock = null;
+            _mediatorMock = null;
         }
 
 
@@ -274,6 +279,24 @@ namespace Measures.API.Tests
                 await uow.SaveChangesAsync();
             }
 
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PageOfPatientInfoQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(async (PageOfPatientInfoQuery query, CancellationToken cancellationToken) =>
+                {
+                    using (IUnitOfWork uow = _uowFactory.New())
+                    {
+                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+                        Page<PatientInfo> result = await uow.Repository<Patient>()
+                            .ReadPageAsync(
+                                selector,
+                                query.Data.PageSize,
+                                query.Data.Page,
+                                new[] { OrderClause<PatientInfo>.Create(x => x.UpdatedDate) },
+                                cancellationToken)
+                            .ConfigureAwait(false);
+
+                        return result;
+                    }
+                });
             
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
@@ -282,6 +305,7 @@ namespace Measures.API.Tests
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PageOfPatientInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
                     .NotBeNull().And
@@ -482,6 +506,31 @@ namespace Measures.API.Tests
                     .ConfigureAwait(false);
             }
 
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns(async (SearchQuery<PatientInfo> query, CancellationToken cancellationToken) =>
+                {
+                    using (IUnitOfWork uow = _uowFactory.New())
+                    {
+                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+
+                        Expression<Func<Patient, bool>> filter = query.Data.Filter?.ToExpression<Patient>() ?? (x => true);
+                            
+                        Page<PatientInfo> resources = await uow.Repository<Patient>()
+                            .WhereAsync(
+                                selector,
+                                filter,
+                                query.Data.Sorts.Select(sort => OrderClause<PatientInfo>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
+                                    ? MedEasy.DAL.Repositories.SortDirection.Ascending
+                                    : MedEasy.DAL.Repositories.SortDirection.Descending)),
+                                query.Data.PageSize,
+                                query.Data.Page,
+                                cancellationToken)
+                            .ConfigureAwait(false);
+
+                        return resources;
+                    }
+                });
+
             // Act
             IActionResult actionResult = await _controller.Search(searchRequest)
                     .ConfigureAwait(false);
@@ -539,7 +588,20 @@ namespace Measures.API.Tests
         [Fact]
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
-            
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) =>
+                {
+                    using (IUnitOfWork uow = _uowFactory.New())
+                    {
+                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
+                            .GetMapExpression<Patient, PatientInfo>();
+
+                        return await uow.Repository<Patient>().SingleOrDefaultAsync(selector, x => x.UUID == query.Data, ct)
+                            .ConfigureAwait(false);
+                    }
+                });
+
+
             //Act
             IActionResult actionResult = await _controller.Get(Guid.NewGuid());
 
@@ -548,6 +610,8 @@ namespace Measures.API.Tests
                 .NotBeNull().And
                 .BeOfType<NotFoundResult>().Which
                     .StatusCode.Should().Be(404);
+
+            _mediatorMock.Verify();
 
         }
 
@@ -572,12 +636,26 @@ namespace Measures.API.Tests
                 Firstname = "Bruce",
                 Lastname = "Wayne"
             };
-            
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) =>
+               {
+                   using (IUnitOfWork uow = _uowFactory.New())
+                   {
+                       Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
+                           .GetMapExpression<Patient, PatientInfo>();
+
+                       return await uow.Repository<Patient>().SingleOrDefaultAsync(selector, x => x.UUID == query.Data, ct)
+                           .ConfigureAwait(false);
+                   }
+               });
+
+
             //Act
             IActionResult actionResult = await _controller.Get(patientId);
 
             //Assert
-
+            
             BrowsableResource<PatientInfo> result = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
@@ -619,7 +697,7 @@ namespace Measures.API.Tests
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?Controller={BloodPressuresController.EndpointName}&{nameof(BloodPressureInfo.PatientId)}={expectedResource.Id}");
             bloodPressuresLink.Method.Should().Be("GET");
-
+            
 
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
@@ -628,122 +706,109 @@ namespace Measures.API.Tests
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
             
             _urlHelperMock.Verify();
+            _mediatorMock.Verify();
 
         }
 
-        [Fact]
-        public async Task Get_Should_Returns_BadRequest()
-        {
-            //Arrange
-           
-
-            //Act
-            IActionResult actionResult = await _controller.Get(Guid.Empty);
-
-            //Assert
-            actionResult.Should()
-                .NotBeNull().And
-                .BeOfType<BadRequestResult>();
-        }
-
-        [Theory]
-        [InlineData(1)]
-        [InlineData(10)]
-        [InlineData(int.MaxValue)]
-        public async Task GetLastTemperaturesMesures_Returns_NotFound(int count)
-        {
-            // Arrange
+        
+        //[Theory]
+        //[InlineData(1)]
+        //[InlineData(10)]
+        //[InlineData(int.MaxValue)]
+        //public async Task GetLastTemperaturesMesures_Returns_NotFound(int count)
+        //{
+        //    // Arrange
             
             
-            // Act
-            IActionResult actionResult = await _controller.MostRecentTemperatures(Guid.NewGuid(), count, CancellationToken.None)
-                .ConfigureAwait(false);
+        //    // Act
+        //    IActionResult actionResult = await _controller.MostRecentTemperatures(Guid.NewGuid(), count, CancellationToken.None)
+        //        .ConfigureAwait(false);
 
-            // Assert
-            actionResult.Should()
-                 .BeAssignableTo<NotFoundResult>();
-        }
+        //    // Assert
+        //    actionResult.Should()
+        //         .BeAssignableTo<NotFoundResult>();
+        //}
 
-        [Fact]
-        public async Task GetLastTemperaturesMesures_Returns_OkResult()
-        {
-            // Arrange
-            Guid patientId = Guid.NewGuid();
+        //[Fact]
+        //public async Task GetLastTemperaturesMesures_Returns_OkResult()
+        //{
+        //    // Arrange
+        //    Guid patientId = Guid.NewGuid();
 
-            Patient p = new Patient
-            {
-                Lastname = "Constantine",
-                UUID = patientId
-            };
-            IEnumerable<Temperature> measures = new[]
-            {
-                new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.August(2007).AddHours(12).AddMinutes(30) },
-                new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.July(2007) }
-            };
-
-
-            using (IUnitOfWork uow = _uowFactory.New())
-            {
-                uow.Repository<Temperature>().Create(measures);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
-            }
-
-            // Act
-            IActionResult actionResult = await _controller.MostRecentTemperatures(p.UUID, 15, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            // Assert
-            IEnumerable<BrowsableResource<TemperatureInfo>> resources = actionResult.Should()
-                 .BeAssignableTo<OkObjectResult>().Which
-                 .Value.Should()
-                    .BeAssignableTo<IEnumerable<BrowsableResource<TemperatureInfo>>>().Which;
-
-            resources.Should()
-                .NotContainNulls().And
-                .NotContain(x => x.Links == null).And
-                .NotContain(x => !x.Links.Any(), $"Each resource in the result must have one {nameof(Link)}").And
-                .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Href))).And
-                .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Method)), $"Each {nameof(Link)} of {nameof(BrowsableResource<TemperatureInfo>.Links)} must have its '{nameof(Link.Method)}' property set").And
-                .OnlyContain(x => x.Links.Any(link => link.Relation == LinkRelation.Self), "Each resource must provide a link to itself").And
-                .OnlyContain(x => x.Links.Any(link => link.Relation == "patient"), "Each resource must provide a link to the patient that owns the measure").And
-                .BeInDescendingOrder(x => x.Resource.DateOfMeasure)
-                ;
-
-            resources.ForEach(resource =>
-            {
-                Link self = resource.Links.Single(x => x.Relation == LinkRelation.Self);
-                self.Method.Should().Be("GET");
-
-                Link linkToPatient = resource.Links.Single(x => x.Relation == "patient");
-                self.Method.Should().Be("GET");
-
-            });
-        }
+        //    Patient p = new Patient
+        //    {
+        //        Lastname = "Constantine",
+        //        UUID = patientId
+        //    };
+        //    IEnumerable<Temperature> measures = new[]
+        //    {
+        //        new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.August(2007).AddHours(12).AddMinutes(30) },
+        //        new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.July(2007) }
+        //    };
 
 
-        public static IEnumerable<object[]> GetLastTemperatures_BadRequest_Cases
-        {
-            get
-            {
-                yield return new object[] { Guid.Empty, 10 };
-                yield return new object[] { Guid.NewGuid(), int.MinValue };
-                yield return new object[] { Guid.NewGuid(), -1 };
-                yield return new object[] { Guid.NewGuid(), 0 };
-                yield return new object[] { Guid.Empty, 0 };
-            }
-        }
+        //    using (IUnitOfWork uow = _uowFactory.New())
+        //    {
+        //        uow.Repository<Temperature>().Create(measures);
+        //        await uow.SaveChangesAsync().ConfigureAwait(false);
+        //    }
 
-        [Theory]
-        [MemberData(nameof(GetLastTemperatures_BadRequest_Cases))]
-        public async Task GetLastTemperaturesMesures_Returns_Bad_Request(Guid patientId, int count)
-        {
-            // Act
-            IActionResult actionResult = await _controller.MostRecentTemperatures(patientId, count, CancellationToken.None);
+        //    // Act
+        //    IActionResult actionResult = await _controller.MostRecentTemperatures(p.UUID, 15, CancellationToken.None)
+        //        .ConfigureAwait(false);
 
-            // Assert
-            actionResult.Should()
-                 .BeAssignableTo<BadRequestResult>();
-        }
+        //    // Assert
+        //    IEnumerable<BrowsableResource<TemperatureInfo>> resources = actionResult.Should()
+        //         .BeAssignableTo<OkObjectResult>().Which
+        //         .Value.Should()
+        //            .BeAssignableTo<IEnumerable<BrowsableResource<TemperatureInfo>>>().Which;
+
+        //    resources.Should()
+        //        .NotContainNulls().And
+        //        .NotContain(x => x.Links == null).And
+        //        .NotContain(x => !x.Links.Any(), $"Each resource in the result must have one {nameof(Link)}").And
+        //        .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Href))).And
+        //        .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Method)), $"Each {nameof(Link)} of {nameof(BrowsableResource<TemperatureInfo>.Links)} must have its '{nameof(Link.Method)}' property set").And
+        //        .OnlyContain(x => x.Links.Any(link => link.Relation == LinkRelation.Self), "Each resource must provide a link to itself").And
+        //        .OnlyContain(x => x.Links.Any(link => link.Relation == "patient"), "Each resource must provide a link to the patient that owns the measure").And
+        //        .BeInDescendingOrder(x => x.Resource.DateOfMeasure)
+        //        ;
+
+        //    resources.ForEach(resource =>
+        //    {
+        //        Link self = resource.Links.Single(x => x.Relation == LinkRelation.Self);
+        //        self.Method.Should().Be("GET");
+
+        //        Link linkToPatient = resource.Links.Single(x => x.Relation == "patient");
+        //        self.Method.Should().Be("GET");
+
+        //    });
+        //}
+
+
+        //public static IEnumerable<object[]> GetLastTemperatures_BadRequest_Cases
+        //{
+        //    get
+        //    {
+        //        yield return new object[] { Guid.Empty, 10 };
+        //        yield return new object[] { Guid.NewGuid(), int.MinValue };
+        //        yield return new object[] { Guid.NewGuid(), -1 };
+        //        yield return new object[] { Guid.NewGuid(), 0 };
+        //        yield return new object[] { Guid.Empty, 0 };
+        //    }
+        //}
+
+        //[Theory]
+        //[MemberData(nameof(GetLastTemperatures_BadRequest_Cases))]
+        //public async Task GetLastTemperaturesMesures_Returns_Bad_Request(Guid patientId, int count)
+        //{
+        //    // Act
+        //    IActionResult actionResult = await _controller.MostRecentTemperatures(patientId, count, CancellationToken.None);
+
+        //    // Assert
+        //    actionResult.Should()
+        //         .BeAssignableTo<BadRequestResult>();
+        //}
 
         
 

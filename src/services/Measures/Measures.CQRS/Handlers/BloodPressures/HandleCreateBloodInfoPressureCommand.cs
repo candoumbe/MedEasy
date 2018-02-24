@@ -6,6 +6,7 @@ using Measures.DTO;
 using Measures.Objects;
 using MedEasy.DAL.Interfaces;
 using MediatR;
+using Optional;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -44,18 +45,28 @@ namespace Measures.CQRS.Handlers.BloodPressures
         {
             using (IUnitOfWork uow = _uowFactory.New())
             {
-
                 CreateBloodPressureInfo data = cmd.Data;
-                data.Patient.Firstname = data.Patient?.Firstname?.ToTitleCase() ?? string.Empty;
-                data.Patient.Lastname = data.Patient?.Lastname?.ToUpperInvariant() ?? string.Empty;
+                Option<Patient> optionalPatient = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(x => x.UUID == data.Patient.Id)
+                    .ConfigureAwait(false);
 
                 Expression<Func<CreateBloodPressureInfo, BloodPressure>> mapBloodPressureInfoToEntity = _expressionBuilder.GetMapExpression<CreateBloodPressureInfo, BloodPressure>();
-                Expression<Func<PatientInfo, Patient>> mapPatientInfoToEntity = _expressionBuilder.GetMapExpression<PatientInfo, Patient>();
                 BloodPressure newEntity = mapBloodPressureInfoToEntity.Compile().Invoke(data);
 
-                newEntity.Patient.UUID = newEntity.Patient.UUID == default
-                    ? Guid.NewGuid()
-                    : newEntity.Patient.UUID;
+                optionalPatient.Match(
+                    some: (patient) => newEntity.Patient = patient,
+                    none: () =>
+                    {
+                        Expression<Func<PatientInfo, Patient>> mapPatientInfoToEntity = _expressionBuilder.GetMapExpression<PatientInfo, Patient>();
+                        newEntity.Patient = mapPatientInfoToEntity.Compile().Invoke(data.Patient);
+                        newEntity.Patient.Firstname = newEntity.Patient.Firstname?.ToTitleCase() ?? string.Empty;
+                        newEntity.Patient.Lastname = newEntity.Patient.Lastname?.ToUpperInvariant() ?? string.Empty;
+
+                        newEntity.Patient.UUID = newEntity.Patient.UUID == default
+                            ? Guid.NewGuid()
+                            : newEntity.Patient.UUID;
+                    }
+                );
 
                 uow.Repository<BloodPressure>().Create(newEntity);
                 await uow.SaveChangesAsync(cancellationToken)
@@ -64,15 +75,18 @@ namespace Measures.CQRS.Handlers.BloodPressures
                 Expression<Func<BloodPressure, BloodPressureInfo>> mapEntityToBloodPressureInfo = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                 Expression<Func<Patient, PatientInfo>> mapEntityToPatientInfo = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 BloodPressureInfo createdResource = mapEntityToBloodPressureInfo.Compile().Invoke(newEntity);
-                PatientInfo patientInfo = await uow.Repository<Patient>().SingleAsync(mapEntityToPatientInfo, x => x.UUID == createdResource.PatientId)
-                    .ConfigureAwait(false);
-
                 await _mediator.Publish(new BloodPressureCreated(createdResource.Id, createdResource.SystolicPressure, createdResource.DiastolicPressure, createdResource.DateOfMeasure))
                     .ConfigureAwait(false);
 
-                await _mediator.Publish(new PatientCreated(patientInfo.Id, patientInfo.Firstname, patientInfo.Lastname, patientInfo.BirthDate))
-                   .ConfigureAwait(false);
+                optionalPatient.MatchNone(async () =>
+                {
+                    PatientInfo patientInfo = await uow.Repository<Patient>().SingleAsync(mapEntityToPatientInfo, x => x.UUID == createdResource.PatientId)
+                        .ConfigureAwait(false);
 
+                    await _mediator.Publish(new PatientCreated(patientInfo.Id, patientInfo.Firstname, patientInfo.Lastname, patientInfo.BirthDate))
+                       .ConfigureAwait(false);
+                });
+                
                 return createdResource;
 
             }

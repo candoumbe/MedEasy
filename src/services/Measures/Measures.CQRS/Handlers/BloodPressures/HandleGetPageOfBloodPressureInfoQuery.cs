@@ -1,5 +1,6 @@
 ﻿using AutoMapper.QueryableExtensions;
 using Measures.CQRS.Commands.BloodPressures;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
 using Measures.Objects;
 using MedEasy.DAL.Interfaces;
@@ -14,26 +15,26 @@ using System.Threading.Tasks;
 namespace Measures.CQRS.Handlers.BloodPressures
 {
     /// <summary>
-    /// Handles <see cref="PageOfBloodPressureInfoQuery"/>s
+    /// Handles <see cref="GetPageOfBloodPressureInfoQuery"/>s
     /// </summary>
-    public class HandlePageOfBloodPressureInfoQuery : IRequestHandler<PageOfBloodPressureInfoQuery, Page<BloodPressureInfo>>
+    public class HandleGetPageOfBloodPressureInfoQuery : IRequestHandler<GetPageOfBloodPressureInfoQuery, Page<BloodPressureInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
-        /// Builds a new <see cref="HandleCreateBloodPressureInfoCommand"/> instance.
+        /// Builds a new <see cref="HandleGetPageOfBloodPressureInfoQuery"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
         /// <param name="expressionBuilder"></param>
-        public HandlePageOfBloodPressureInfoQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
+        public HandleGetPageOfBloodPressureInfoQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
         {
             _uowFactory = uowFactory;
             _expressionBuilder = expressionBuilder;
         }
 
 
-        public async Task<Page<BloodPressureInfo>> Handle(PageOfBloodPressureInfoQuery query, CancellationToken cancellationToken)
+        public async Task<Page<BloodPressureInfo>> Handle(GetPageOfBloodPressureInfoQuery query, CancellationToken cancellationToken)
         {
             PaginationConfiguration pagination = query.Data;
             using (IUnitOfWork uow = _uowFactory.New())

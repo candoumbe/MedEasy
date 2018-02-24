@@ -1,8 +1,8 @@
 ﻿using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using Measures.Context;
-using Measures.CQRS.Handlers.Patients;
-using Measures.CQRS.Queries.Patients;
+using Measures.CQRS.Handlers.BloodPressures;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
 using Measures.Mapping;
 using MedEasy.DAL.Context;
@@ -18,18 +18,16 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-namespace Measures.CQRS.UnitTests.Handlers.Patients
+namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    [Feature("Handlers")]
-    [Feature("Patients")]
-    public class HandleGetOnePatientInfoByIdQueryTests : IDisposable
+    public class HandleGetPageOfBloodPressureInfoQueryTests : IDisposable
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        private HandleGetOnePatientInfoByIdQuery _sut;
+        private HandleGetPageOfBloodPressureInfoQuery _sut;
 
-        public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper)
+        public HandleGetPageOfBloodPressureInfoQueryTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
@@ -37,7 +35,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
             
-            _sut = new HandleGetOnePatientInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetPageOfBloodPressureInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
         
         public void Dispose()
@@ -72,7 +70,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleGetOnePatientInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
+            Action action = () => new HandleGetOneBloodPressureInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -80,18 +78,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
-        }
-
-        [Fact]
-        public async Task Get_Unknown_Id_Returns_None()
-        {
-            // Act
-            Option<PatientInfo> optionalResource = await _sut.Handle(new GetPatientInfoByIdQuery(Guid.NewGuid()), default)
-                .ConfigureAwait(false);
-
-            // Assert
-            optionalResource.HasValue.Should()
-                .BeFalse();
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Measures.API.Controllers
         {
 
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-            Page<BloodPressureInfo> result = await _mediator.Send(new PageOfBloodPressureInfoQuery(pagination), cancellationToken)
+            Page<BloodPressureInfo> result = await _mediator.Send(new GetPageOfBloodPressureInfoQuery(pagination), cancellationToken)
                 .ConfigureAwait(false);
 
             Debug.Assert(result != null, $"{nameof(result)} cannot be null");

@@ -17,9 +17,12 @@ using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 using System.Linq;
 using Measures.Validators.Commands.BloodPressures;
+using Xunit.Categories;
 
 namespace Measures.Validators.Tests.BloodPressures
 {
+    [UnitTest]
+    [Feature("Validation")]
     public class CreateBloodPressureInfoValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

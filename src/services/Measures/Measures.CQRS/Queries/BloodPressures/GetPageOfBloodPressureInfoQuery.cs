@@ -3,18 +3,18 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.RestObjects;
 using System;
 
-namespace Measures.CQRS.Commands.BloodPressures
+namespace Measures.CQRS.Queries.BloodPressures
 {
     /// <summary>
     /// Query to get a <see cref="MedEasy.DAL.Repositories.Page{T}"/> of <see cref="BloodPressureInfo"/>s.
     /// </summary>
-    public class PageOfBloodPressureInfoQuery : GetPageOfResourcesQuery<Guid, BloodPressureInfo>
+    public class GetPageOfBloodPressureInfoQuery : GetPageOfResourcesQuery<Guid, BloodPressureInfo>
     {
         /// <summary>
-        /// Builds a new <see cref="PageOfBloodPressureInfoQuery"/> instance.
+        /// Builds a new <see cref="GetPageOfBloodPressureInfoQuery"/> instance.
         /// </summary>
         /// <param name="pagination">The paging configuration</param>
-        public PageOfBloodPressureInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
+        public GetPageOfBloodPressureInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
         {
         }
     }

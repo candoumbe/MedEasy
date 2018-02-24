@@ -1,4 +1,4 @@
-using AutoMapper.QueryableExtensions;
+﻿using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Measures.Context;
@@ -14,7 +14,11 @@ using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Optional;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -25,83 +29,237 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    [Feature("Handlers")]
     [Feature("Blood pressures")]
+    [Feature("Handlers")]
     public class HandleCreateBloodPressureInfoCommandTests : IDisposable
     {
-        private ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _unitOfWorkFactory;
-        private IExpressionBuilder _expressionBuilder;
+        private readonly ITestOutputHelper _outputHelper;
+        private IUnitOfWorkFactory _uowFactory;
+        private Mock<IExpressionBuilder> _expressionBuilderMock;
         private Mock<IMediator> _mediatorMock;
-        private HandleCreateBloodPressureInfoCommand _handler;
+        private HandleCreateBloodPressureInfoCommand _sut;
 
         public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
-            string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-            dbContextOptionsBuilder.UseInMemoryDatabase(dbName);
-            
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
 
-            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
+            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+            builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+            _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _handler = new HandleCreateBloodPressureInfoCommand(_unitOfWorkFactory, _expressionBuilder, _mediatorMock.Object);
+            _sut = new HandleCreateBloodPressureInfoCommand(_uowFactory, _expressionBuilderMock.Object, _mediatorMock.Object);
         }
-
 
         public void Dispose()
         {
-            _outputHelper = null;
-            _unitOfWorkFactory = null;
-            _expressionBuilder = null;
+            _uowFactory = null;
+            _expressionBuilderMock = null;
+            _sut = null;
+            _mediatorMock = null;
+        }
+
+
+        public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
+        {
+            get
+            {
+                IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
+                IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
+                IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
+
+                IEnumerable<object[]> cases = uowFactorieCases
+                    .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
+                    //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
+                    .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder })
+                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.expressionBuilder, mediator))
+                    //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder != null || tuple.mediator != null)
+                    .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator })
+                    .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null)
+                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator });
+
+                return cases;
+
+
+            }
+        }
+
+
+        [Theory]
+        [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
+        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
+        {
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            // Act
+#pragma warning disable IDE0039 // Utiliser une fonction locale
+            Action action = () => new HandleCreateBloodPressureInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
+#pragma warning restore IDE0039 // Utiliser une fonction locale
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentNullException>().Which
+                .ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
         }
 
         [Fact]
-        public async Task Create_A_New_Resource_With_Patient_Info()
+        public async Task CreateBloodPressure_With_New_PatientInfo()
         {
             // Arrange
-            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            CreateBloodPressureInfo newResource = new CreateBloodPressureInfo
+            CreateBloodPressureInfo newResourceInfo = new CreateBloodPressureInfo
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
-                DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53),
+                DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())),
                 Patient = new PatientInfo
                 {
                     Firstname = "victor",
-                    Lastname = "zsasz"
+                    Lastname = "zsasz",
                 }
             };
 
-            CreateBloodPressureInfoCommand command = new CreateBloodPressureInfoCommand(newResource);
+            CreateBloodPressureInfoCommand cmd = new CreateBloodPressureInfoCommand(newResourceInfo);
+
+            _expressionBuilderMock.Setup(mock => mock.GetMapExpression(It.IsAny<Type>(), It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+                .Returns((Type source, Type destination, IDictionary<string, object> parameters, MemberInfo[] members) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(source, destination, parameters, members));
+
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<PatientCreated>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
 
             // Act
-            BloodPressureInfo createdResource = await _handler.Handle(command, default)
+            BloodPressureInfo createdResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), It.IsAny<CancellationToken>()), Times.Once);
-
-
-            createdResource.Should()
-                .NotBeNull();
-            createdResource.Id.Should().NotBeEmpty();
-            createdResource.PatientId.Should().NotBeEmpty();
-            createdResource.DateOfMeasure.Should().Be(newResource.DateOfMeasure);
-            createdResource.SystolicPressure.Should().Be(newResource.SystolicPressure);
-            createdResource.DiastolicPressure.Should().Be(newResource.DiastolicPressure);
-
-            
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _uowFactory.New())
             {
-                (await uow.Repository<Patient>().AnyAsync(x => x.UUID == createdResource.PatientId)
-                    .ConfigureAwait(false)).Should().BeTrue("Creating a blood pressure with patient data should create the patient");
+                Option<BloodPressure> optionalCreatedMeasure = await uow.Repository<BloodPressure>()
+                    .SingleOrDefaultAsync(x => x.UUID == createdResource.Id)
+                    .ConfigureAwait(false);
+
+                optionalCreatedMeasure.HasValue.Should()
+                    .BeTrue();
+                optionalCreatedMeasure.MatchSome((measure) =>
+                {
+                    measure.UUID.Should()
+                        .Be(createdResource.Id);
+                    measure.SystolicPressure.Should()
+                        .Be(newResourceInfo.SystolicPressure);
+                    measure.DiastolicPressure.Should()
+                        .Be(newResourceInfo.DiastolicPressure);
+                    measure.DateOfMeasure.Should()
+                        .Be(newResourceInfo.DateOfMeasure);
+
+                });
+
+                Option<Patient> optionalCreatedPatient = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(x => x.UUID == createdResource.PatientId)
+                    .ConfigureAwait(false);
+                optionalCreatedPatient.HasValue.Should()
+                    .BeTrue();
+                optionalCreatedPatient.MatchSome((createdPatient) =>
+                {
+                    createdPatient.UUID.Should()
+                        .Be(createdResource.PatientId);
+                    createdPatient.Firstname.Should()
+                        .Be(newResourceInfo.Patient.Firstname.ToTitleCase());
+                    createdPatient.Lastname.Should()
+                        .Be(newResourceInfo.Patient.Lastname.ToUpper());
+                });
             }
+
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new measure resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new patient resource was created");
+
+        }
+
+        [Fact]
+        public async Task CreateBloodPressure_When_PatientInfo_Already_Exists()
+        {
+            // Arrange
+            Guid patientId = Guid.NewGuid();
+            Patient patientBeforeCreate = new Patient { Firstname = "Solomon", Lastname = "Grundy", UUID = patientId };
+            
+            using (IUnitOfWork uow = _uowFactory.New())
+            {
+                uow.Repository<Patient>().Create(patientBeforeCreate);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+            CreateBloodPressureInfo newResourceInfo = new CreateBloodPressureInfo
+            {
+                SystolicPressure = 120,
+                DiastolicPressure = 80,
+                DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())),
+                Patient = new PatientInfo
+                {
+                    Id = patientId,
+                    Firstname = "victor",
+                    Lastname = "zsasz",
+                }
+            };
+
+            CreateBloodPressureInfoCommand cmd = new CreateBloodPressureInfoCommand(newResourceInfo);
+
+            _expressionBuilderMock.Setup(mock => mock.GetMapExpression(It.IsAny<Type>(), It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
+                .Returns((Type source, Type destination, IDictionary<string, object> parameters, MemberInfo[] members) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(source, destination, parameters, members));
+
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<PatientCreated>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+
+            // Act
+            BloodPressureInfo createdResource = await _sut.Handle(cmd, default)
+                .ConfigureAwait(false);
+
+            // Assert
+            using (IUnitOfWork uow = _uowFactory.New())
+            {
+                Option<BloodPressure> optionalCreatedMeasure = await uow.Repository<BloodPressure>()
+                    .SingleOrDefaultAsync(x => x.UUID == createdResource.Id)
+                    .ConfigureAwait(false);
+
+                optionalCreatedMeasure.HasValue.Should()
+                    .BeTrue();
+                optionalCreatedMeasure.MatchSome((measure) =>
+                {
+                    measure.UUID.Should()
+                        .Be(createdResource.Id);
+                    measure.SystolicPressure.Should()
+                        .Be(newResourceInfo.SystolicPressure);
+                    measure.DiastolicPressure.Should()
+                        .Be(newResourceInfo.DiastolicPressure);
+                    measure.DateOfMeasure.Should()
+                        .Be(newResourceInfo.DateOfMeasure);
+
+                });
+
+                Patient patientAfterCreate = await uow.Repository<Patient>()
+                    .SingleAsync(x => x.UUID == createdResource.PatientId)
+                    .ConfigureAwait(false);
+
+                patientAfterCreate.UUID.Should()
+                    .Be(createdResource.PatientId);
+                patientAfterCreate.Firstname.Should()
+                    .Be(patientBeforeCreate.Firstname);
+                patientAfterCreate.Lastname.Should()
+                    .Be(patientBeforeCreate.Lastname);
+            }
+
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new measure resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientUpdated>(), default), Times.Never, $"{nameof(HandleCreateBloodPressureInfoCommand)} must not update a patient");
+
         }
     }
 }

@@ -18,7 +18,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-namespace Measures.CQRS.UnitTests.Queries.BloodPressures
+namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
     public class HandleGetOneBloodPressureInfoByIdQueryTests : IDisposable
