@@ -43,7 +43,7 @@ namespace Measures.Validators.Commands.BloodPressures
                         RuleFor(x => x.Patient.Id)
                             .MustAsync(async (id, cancellationToken) =>
                             {
-                                using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                                using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                                 {
                                     return await uow.Repository<Patient>()
                                         .AnyAsync(x => x.UUID == id, cancellationToken)

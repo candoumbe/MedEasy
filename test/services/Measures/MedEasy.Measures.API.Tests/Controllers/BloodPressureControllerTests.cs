@@ -357,7 +357,7 @@ namespace Measures.API.Tests.Controllers
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(items);
                 await uow.SaveChangesAsync()
@@ -371,7 +371,7 @@ namespace Measures.API.Tests.Controllers
                 .Returns(async (SearchQuery<BloodPressureInfo> query, CancellationToken cancellationToken) =>
                 {
                     SearchQueryInfo<BloodPressureInfo> search = query.Data;
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
@@ -470,7 +470,7 @@ namespace Measures.API.Tests.Controllers
             IEnumerable<BloodPressure> measures, string reason)
         {
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(measures);
                 await uow.SaveChangesAsync()
@@ -481,7 +481,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
                 .Returns(async (SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         SearchQueryInfo<BloodPressureInfo> search = request.Data;
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
@@ -540,7 +540,7 @@ namespace Measures.API.Tests.Controllers
         {
             // Arrange
             Guid id = Guid.NewGuid();
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(new BloodPressure
                 {
@@ -561,7 +561,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetBloodPressureInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetBloodPressureInfoByIdQuery query, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                         Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()

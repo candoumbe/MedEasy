@@ -39,7 +39,7 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<DeleteCommandResult> Handle(DeletePatientInfoByIdCommand cmd, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
 
                 DeleteCommandResult result = DeleteCommandResult.Done;

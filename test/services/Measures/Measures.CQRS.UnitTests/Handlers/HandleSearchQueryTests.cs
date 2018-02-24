@@ -40,7 +40,7 @@ namespace Measures.CQRS.UnitTests.Handlers
             _outputHelper = outputHelper;
 
             _uowFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _uowFactoryMock.Setup(mock => mock.New().Dispose());
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
             _loggerMock = new Mock<ILogger<HandleSearchQuery>>(Strict);
@@ -118,7 +118,7 @@ namespace Measures.CQRS.UnitTests.Handlers
             _expressionBuilderMock.Setup(mock => mock.GetMapExpression(It.IsAny<Type>(), It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
                .Returns((Type sourceType, Type destinationType, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(sourceType, destinationType, parameters, membersToExpand));
 
-            _uowFactoryMock.Setup(mock => mock.New().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
                 It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
                     => 

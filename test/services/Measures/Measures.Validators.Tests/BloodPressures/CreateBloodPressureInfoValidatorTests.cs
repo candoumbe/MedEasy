@@ -35,7 +35,7 @@ namespace Measures.Validators.Tests.BloodPressures
             _outputHelper = outputHelper;
 
             _uowFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _uowFactoryMock.Setup(mock => mock.New().Dispose());
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _validator = new CreateBloodPressureInfoValidator(_uowFactoryMock.Object);
 
@@ -169,7 +169,7 @@ namespace Measures.Validators.Tests.BloodPressures
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
 
             // Arrange
-            _uowFactoryMock.Setup(mock => mock.New().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(patients.Any(x => x.UUID == info.Patient?.Id)));
 
             // Act

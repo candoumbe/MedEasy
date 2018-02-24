@@ -39,7 +39,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<ModifyCommandResult> Handle(PatchCommand<Guid, BloodPressureInfo> command, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 JsonPatchDocument<BloodPressureInfo> patchDocument = command.Data.PatchDocument;
                 

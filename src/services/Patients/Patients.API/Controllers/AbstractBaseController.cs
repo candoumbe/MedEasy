@@ -72,7 +72,7 @@ namespace Patients.API.Controllers
         /// <returns></returns>
         protected async Task<Page<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
                 Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (x => true);
                 Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();

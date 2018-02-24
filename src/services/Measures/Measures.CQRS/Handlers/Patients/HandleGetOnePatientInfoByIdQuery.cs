@@ -35,7 +35,7 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<Option<PatientInfo>> Handle(GetPatientInfoByIdQuery query, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 Option<PatientInfo> result = await uow.Repository<Patient>()

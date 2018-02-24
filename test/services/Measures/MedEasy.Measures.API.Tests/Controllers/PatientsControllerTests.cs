@@ -273,7 +273,7 @@ namespace Measures.API.Tests
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(items);
                 await uow.SaveChangesAsync();
@@ -282,7 +282,7 @@ namespace Measures.API.Tests
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PageOfPatientInfoQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (PageOfPatientInfoQuery query, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.New())
+                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                         Page<PatientInfo> result = await uow.Repository<Patient>()
@@ -499,7 +499,7 @@ namespace Measures.API.Tests
 
 
             // Arrange
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(entries);
                 await uow.SaveChangesAsync()
@@ -509,7 +509,7 @@ namespace Measures.API.Tests
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
                 .Returns(async (SearchQuery<PatientInfo> query, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.New())
+                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
 
@@ -591,7 +591,7 @@ namespace Measures.API.Tests
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.New())
+                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                             .GetMapExpression<Patient, PatientInfo>();
@@ -620,7 +620,7 @@ namespace Measures.API.Tests
         {
             //Arrange
             Guid patientId = Guid.NewGuid();
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(new Patient
                 {
@@ -640,7 +640,7 @@ namespace Measures.API.Tests
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) =>
                {
-                   using (IUnitOfWork uow = _uowFactory.New())
+                   using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                    {
                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                            .GetMapExpression<Patient, PatientInfo>();

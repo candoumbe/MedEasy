@@ -37,7 +37,7 @@ namespace MedEasy.CQRS.Core.Handlers
 
         public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 _logger.LogInformation("Start searching");
                 _logger.LogDebug($"Query : {searchQuery}");

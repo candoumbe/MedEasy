@@ -36,7 +36,7 @@ namespace Measures.CQRS.Handlers.Patients
         public async Task<Page<PatientInfo>> Handle(PageOfPatientInfoQuery query, CancellationToken cancellationToken)
         {
             PaginationConfiguration pagination = query.Data;
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 Page<PatientInfo> result = await uow.Repository<Patient>()

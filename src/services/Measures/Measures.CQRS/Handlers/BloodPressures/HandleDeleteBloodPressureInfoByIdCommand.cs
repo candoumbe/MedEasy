@@ -39,7 +39,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<DeleteCommandResult> Handle(DeleteBloodPressureInfoByIdCommand cmd, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 DeleteCommandResult result = DeleteCommandResult.Done;
                 if (await uow.Repository<BloodPressure>().AnyAsync(x => x.UUID == cmd.Data).ConfigureAwait(false))

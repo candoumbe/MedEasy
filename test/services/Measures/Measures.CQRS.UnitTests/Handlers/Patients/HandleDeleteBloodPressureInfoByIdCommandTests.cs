@@ -106,7 +106,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 Firstname = "victor",
                 Lastname = "zsasz",
             };
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(measure);
                 await uow.SaveChangesAsync()
@@ -126,7 +126,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientDeleted>(), default), Times.Once, $"{nameof(HandleDeletePatientInfoByIdCommand)} must notify suscribers that a resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = !await uow.Repository<Patient>()
                      .AnyAsync(x => x.UUID == idToDelete)
@@ -172,7 +172,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public async Task DeletePatient_When_AnyMeasure_Exists_ShouldReturns_Conflict(Patient patient, IEnumerable<PhysiologicalMeasurement> measures)
         {
             // Arrange
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync().ConfigureAwait(false);

@@ -35,7 +35,7 @@ namespace MedEasy.Validators.Tests.Patient.DTO
             _outputHelper = outputHelper;
 
             _uowFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _uowFactoryMock.Setup(mock => mock.New().Dispose());
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _validator = new CreatePatientInfoValidator(_uowFactoryMock.Object);
 
@@ -127,7 +127,7 @@ namespace MedEasy.Validators.Tests.Patient.DTO
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
 
             // Arrange
-            _uowFactoryMock.Setup(mock => mock.New().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(false));
 
             // Act
@@ -143,7 +143,7 @@ namespace MedEasy.Validators.Tests.Patient.DTO
         {
             // Arrange
             _uowFactoryMock.Setup(mock =>
-                        mock.New().Repository<Patient>()
+                        mock.NewUnitOfWork().Repository<Patient>()
                         .AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(true));
 
@@ -164,7 +164,7 @@ namespace MedEasy.Validators.Tests.Patient.DTO
                 .HaveCount(1).And
                 .Contain(x => x.PropertyName == nameof(CreatePatientInfo.Id));
 
-            _uowFactoryMock.Verify(mock => mock.New().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()), Once);
+            _uowFactoryMock.Verify(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()), Once);
 
         }
 

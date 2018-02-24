@@ -114,7 +114,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 }
 
             };
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(measure);
                 await uow.SaveChangesAsync()
@@ -135,7 +135,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureDeleted>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscribers that blood pressure resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = ! await uow.Repository<BloodPressure>()
                      .AnyAsync(x => x.UUID == idToDelete)

@@ -34,7 +34,7 @@ namespace Patients.Validators.Patient.DTO
             RuleFor(x => x.Id)
                 .MustAsync(async (id, cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = uowFactory.New())
+                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
                         return !await uow.Repository<Objects.Patient>()
                             .AnyAsync(p => p.UUID == id);
@@ -54,7 +54,7 @@ namespace Patients.Validators.Patient.DTO
                 .MustAsync(async (mainDoctorId, cancellationToken) =>
                 {
                         
-                    using (IUnitOfWork uow = uowFactory.New())
+                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
                         return await uow.Repository<Objects.Doctor>()
                                 .AnyAsync(doc => doc.UUID == mainDoctorId, cancellationToken)

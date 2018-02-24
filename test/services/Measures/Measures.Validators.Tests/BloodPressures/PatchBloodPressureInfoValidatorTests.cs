@@ -31,7 +31,7 @@ namespace Measures.Validators.Tests.BloodPressures
             _outputHelper = outputHelper;
 
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _unitOfWorkFactoryMock.Setup(mock => mock.New().Dispose());
+            _unitOfWorkFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _validator = new PatchBloodPressureInfoValidator(_unitOfWorkFactoryMock.Object);
         }

@@ -35,7 +35,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<Option<BloodPressureInfo>> Handle(GetBloodPressureInfoByIdQuery query, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                 Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()

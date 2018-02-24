@@ -66,7 +66,7 @@ namespace Patients.API.Controllers
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
                 pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
                 Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
@@ -144,7 +144,7 @@ namespace Patients.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.New())
+                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
                     Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                     Option<PatientInfo> result = await uow.Repository<Patient>()
@@ -200,7 +200,7 @@ namespace Patients.API.Controllers
             {
                 newPatient.Id = Guid.NewGuid();
             }
-            using (IUnitOfWork uow = UowFactory.New())
+            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
                 Expression<Func<CreatePatientInfo, Patient>> mapFunc = ExpressionBuilder.GetMapExpression<CreatePatientInfo, Patient>();
                 Func<CreatePatientInfo, Patient> funcConverter = mapFunc.Compile();
@@ -268,7 +268,7 @@ namespace Patients.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.New())
+                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
                     uow.Repository<Patient>().Delete(x => x.UUID == id);
                     await uow.SaveChangesAsync(cancellationToken);
@@ -318,7 +318,7 @@ namespace Patients.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.New())
+                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
                     Option<Patient> optionalPatient = await uow.Repository<Patient>().SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
                         .ConfigureAwait(false);

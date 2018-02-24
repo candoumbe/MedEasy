@@ -68,7 +68,7 @@ namespace Patients.Validators.Patient.Commands
                             switch (replaceMainDoctorIdOperation?.value)
                             {
                                 case Guid mainDoctorId:
-                                    using (IUnitOfWork uow = unitOfWorkFactory.New())
+                                    using (IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork())
                                     {
                                         valid = await uow.Repository<Objects.Doctor>()
                                             .AnyAsync(x => x.UUID == mainDoctorId);

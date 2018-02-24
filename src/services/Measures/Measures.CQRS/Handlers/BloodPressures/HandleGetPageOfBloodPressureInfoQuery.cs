@@ -37,7 +37,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
         public async Task<Page<BloodPressureInfo>> Handle(GetPageOfBloodPressureInfoQuery query, CancellationToken cancellationToken)
         {
             PaginationConfiguration pagination = query.Data;
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                 Page<BloodPressureInfo> result = await uow.Repository<BloodPressure>()

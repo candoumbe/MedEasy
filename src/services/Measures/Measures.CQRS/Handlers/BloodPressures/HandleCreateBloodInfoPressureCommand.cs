@@ -43,7 +43,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<BloodPressureInfo> Handle(CreateBloodPressureInfoCommand cmd, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 CreateBloodPressureInfo data = cmd.Data;
                 Option<Patient> optionalPatient = await uow.Repository<Patient>()

@@ -138,7 +138,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .ConfigureAwait(false);
 
             // Assert
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Option<BloodPressure> optionalCreatedMeasure = await uow.Repository<BloodPressure>()
                     .SingleOrDefaultAsync(x => x.UUID == createdResource.Id)
@@ -187,7 +187,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             Guid patientId = Guid.NewGuid();
             Patient patientBeforeCreate = new Patient { Firstname = "Solomon", Lastname = "Grundy", UUID = patientId };
             
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(patientBeforeCreate);
                 await uow.SaveChangesAsync()
@@ -224,7 +224,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .ConfigureAwait(false);
 
             // Assert
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Option<BloodPressure> optionalCreatedMeasure = await uow.Repository<BloodPressure>()
                     .SingleOrDefaultAsync(x => x.UUID == createdResource.Id)
