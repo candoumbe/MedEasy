@@ -21,17 +21,19 @@ namespace MedEasy.DTO.Search
         /// <remarks>
         /// The first page 
         /// </remarks>
+        [FormField(Min = 1, Description = "Index of a page of results")]
         public int Page { get; set; }
 
         /// <summary>
         /// Size of a page 
         /// </summary>
+        [FormField(Min = 1, Description = "Number of items per page")]
         public int PageSize { get; set; }
 
         /// <summary>
         /// Sorts
         /// </summary>
-        //[RegularExpression(SortPattern)]
+        [FormField(Pattern = SortPattern)]
         public string Sort { get; set; }
 
 

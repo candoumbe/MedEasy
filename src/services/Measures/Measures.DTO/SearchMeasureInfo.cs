@@ -1,4 +1,5 @@
 ﻿using MedEasy.DTO.Search;
+using MedEasy.RestObjects;
 using Newtonsoft.Json;
 using System;
 
@@ -15,10 +16,12 @@ namespace Measures.DTO
         /// <summary>
         /// Defines the min <see cref="PhysiologicalMeasurementInfo.DateOfMeasure"/>
         /// </summary>
+        [FormField(Description = "Minimum date of measure")]
         public DateTime? From { get; set; }
         /// <summary>
         /// Defines the max <see cref="PhysiologicalMeasurementInfo.DateOfMeasure"/>
         /// </summary>
+        [FormField(Description = "Maximum date of measure")]
         public DateTime? To { get; set; }
     }
 }

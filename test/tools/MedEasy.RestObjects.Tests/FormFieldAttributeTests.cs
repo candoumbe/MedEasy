@@ -28,9 +28,9 @@ namespace MedEasy.RestObjects.Tests
             // Assert
             attribute.Type.Should().Be(FormFieldType.String);
             attribute.Enabled.Should()
-                .BeNull();
-            attribute.Mandatory.Should()
-                .BeNull();
+                .BeFalse();
+            attribute.Required.Should()
+                .BeFalse();
             attribute.Pattern.Should()
                 .BeNull();
             attribute.Relations.Should()
@@ -41,24 +41,11 @@ namespace MedEasy.RestObjects.Tests
         }
 
         [Fact]
-        public void IsValid()
-        {
-            // Arrange
-            TypeInfo typeInfo = typeof(FormFieldAttribute)
-                .GetTypeInfo();
-
-            // Act
-            AttributeUsageAttribute attr = typeInfo.GetCustomAttribute<AttributeUsageAttribute>();
-
-            // Assert
-            attr.AllowMultiple.Should()
-                .BeTrue($"multiple usage of {nameof(FormFieldAttribute)} on the same element is allowed");
-            attr.Inherited.Should()
-                .BeTrue("the attribute must propagate to inherited classes ");
-
-            attr.ValidOn.Should()
-                .Be(AttributeTargets.Property, $"{nameof(FormFieldAttribute)} can only be applied onto properties");
-
-        }
+        public void IsValid() => typeof(FormFieldAttribute).Should()
+                .BeDecoratedWith<AttributeUsageAttribute>(attr =>
+                    attr.AllowMultiple
+                    && attr.Inherited
+                    && attr.ValidOn == AttributeTargets.Property
+                );
     }
 }

@@ -27,7 +27,6 @@ namespace Measures.API.Tests.Controllers
         private ITestOutputHelper _outputHelper;
         private Mock<IHostingEnvironment> _hostingEnvironmentMock;
         private Mock<IUrlHelper> _urlHelperMock;
-        private ActionContextAccessor _actionContextAccessor;
         private Mock<IOptions<MeasuresApiOptions>> _optionsMock;
         private RootController _controller;
         private const string _baseUrl = "http://host/api";
@@ -40,29 +39,19 @@ namespace Measures.API.Tests.Controllers
             _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
                 .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
-
+            
             _optionsMock = new Mock<IOptions<MeasuresApiOptions>>(Strict);
             _optionsMock.Setup(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
 
-            _controller = new RootController(_hostingEnvironmentMock.Object, _urlHelperMock.Object, _actionContextAccessor, _optionsMock.Object);
+            _controller = new RootController(_hostingEnvironmentMock.Object, _urlHelperMock.Object, _optionsMock.Object);
         }
 
         public void Dispose()
         {
             _hostingEnvironmentMock = null;
             _urlHelperMock = null;
-            _actionContextAccessor = null;
             _controller = null;
             _optionsMock = null;
-
-
         }
 
 
@@ -79,8 +68,7 @@ namespace Measures.API.Tests.Controllers
 
             // Act
             IEnumerable<Endpoint> endpoints = _controller.Index();
-
-
+            
             // Assert
             endpoints.Should()
                 .NotBeNullOrEmpty().And
@@ -120,6 +108,7 @@ namespace Measures.API.Tests.Controllers
             #region Search form
             Form bloodPressureSearchForm = bloodPressuresForms.Single(x => x.Meta.Relation == LinkRelation.Search);
             bloodPressureSearchForm.Items.Should()
+                .NotBeNull().And
                 .NotContainNulls().And
                 .NotContain(x => x.Name == null, $"All items must have {nameof(FormField.Name)} property set").And
                 .ContainSingle(x => x.Name == nameof(SearchBloodPressureInfo.Page)).And
@@ -130,27 +119,33 @@ namespace Measures.API.Tests.Controllers
 
             IEnumerable<FormField> bloodPressureSearchFormItems = bloodPressureSearchForm.Items;
 
-            FormField bloodPressureSearchPage = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.Page));
-            bloodPressureSearchPage.Description.Should().Be("Index of a page of results");
-            bloodPressureSearchPage.Type.Should().Be(Integer);
-            bloodPressureSearchPage.Min.Should().Be(1);
+            FormField bloodPressureSearchPageField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.Page));
+            bloodPressureSearchPageField.Description.Should().Be("Index of a page of results");
+            bloodPressureSearchPageField.Type.Should().Be(Integer);
+            bloodPressureSearchPageField.Min.Should().Be(1);
+            bloodPressureSearchPageField.Label.Should().Be("Page");
+            
 
-            FormField bloodPressureSearchPageSize = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.PageSize));
-            bloodPressureSearchPageSize.Description.Should().Be("Number of items per page");
-            bloodPressureSearchPageSize.Type.Should().Be(Integer);
-            bloodPressureSearchPageSize.Min.Should().Be(1);
-            bloodPressureSearchPageSize.Max.Should().Be(_optionsMock.Object.Value.MaxPageSize);
+            FormField bloodPressureSearchPageSizeField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.PageSize));
+            bloodPressureSearchPageSizeField.Description.Should().Be("Number of items per page");
+            bloodPressureSearchPageSizeField.Type.Should().Be(Integer);
+            bloodPressureSearchPageSizeField.Min.Should().Be(1);
+            bloodPressureSearchPageSizeField.Max.Should().Be(_optionsMock.Object.Value.MaxPageSize);
 
             FormField bloodPressuresSearchSortField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.Sort));
             bloodPressuresSearchSortField.Type.Should().Be(FormFieldType.String);
             bloodPressuresSearchSortField.Pattern.Should().Be(SearchBloodPressureInfo.SortPattern, $"{nameof(SearchBloodPressureInfo.Sort)}.{nameof(FormField.Pattern)} must be specified");
+            bloodPressuresSearchSortField.Label.Should().Be(nameof(SearchBloodPressureInfo.Sort));
 
             FormField bloodPressuresSearchFromField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.From));
             bloodPressuresSearchFromField.Type.Should().Be(FormFieldType.DateTime);
+            bloodPressuresSearchFromField.Description.Should()
+                .Be("Minimum date of measure");
 
             FormField bloodPressuresSearchToField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.To));
             bloodPressuresSearchToField.Type.Should().Be(FormFieldType.DateTime);
-
+            bloodPressuresSearchToField.Description.Should()
+                .Be("Maximum date of measure");
             #endregion
 
             #region Create Form

@@ -5,10 +5,12 @@ using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Routing;
 using Measures.Context;
+using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
@@ -559,11 +561,7 @@ namespace Measures.API.Tests
             links.Next.Should().Match(linksExpectation.nextPageLink);
             links.Last.Should().Match(linksExpectation.lastPageLink);
         }
-
-
-
-
-
+        
         public static IEnumerable<object> PatchCases
         {
             get
@@ -580,10 +578,6 @@ namespace Measures.API.Tests
                 }
             }
         }
-
-
-
-
         
         [Fact]
         public async Task GetWithUnknownIdShouldReturnNotFound()
@@ -710,108 +704,48 @@ namespace Measures.API.Tests
 
         }
 
-        
-        //[Theory]
-        //[InlineData(1)]
-        //[InlineData(10)]
-        //[InlineData(int.MaxValue)]
-        //public async Task GetLastTemperaturesMesures_Returns_NotFound(int count)
-        //{
-        //    // Arrange
-            
-            
-        //    // Act
-        //    IActionResult actionResult = await _controller.MostRecentTemperatures(Guid.NewGuid(), count, CancellationToken.None)
-        //        .ConfigureAwait(false);
+        [Fact]
+        public async Task WhenMediatorReturnsNotFound_Delete_Returns_NotFound()
+        {
+            // Arrange
+            Guid idToDelete = Guid.NewGuid();
 
-        //    // Assert
-        //    actionResult.Should()
-        //         .BeAssignableTo<NotFoundResult>();
-        //}
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
-        //[Fact]
-        //public async Task GetLastTemperaturesMesures_Returns_OkResult()
-        //{
-        //    // Arrange
-        //    Guid patientId = Guid.NewGuid();
+            // Act
+            IActionResult actionResult = await _controller.Delete(id : idToDelete, ct: default)
+                .ConfigureAwait(false);
 
-        //    Patient p = new Patient
-        //    {
-        //        Lastname = "Constantine",
-        //        UUID = patientId
-        //    };
-        //    IEnumerable<Temperature> measures = new[]
-        //    {
-        //        new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.August(2007).AddHours(12).AddMinutes(30) },
-        //        new Temperature { Patient = p,  Value = 37.2f, DateOfMeasure = 23.July(2007) }
-        //    };
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeletePatientInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
 
+            actionResult.Should()
+                .BeAssignableTo<NotFoundResult>();
 
-        //    using (IUnitOfWork uow = _uowFactory.New())
-        //    {
-        //        uow.Repository<Temperature>().Create(measures);
-        //        await uow.SaveChangesAsync().ConfigureAwait(false);
-        //    }
+        }
 
-        //    // Act
-        //    IActionResult actionResult = await _controller.MostRecentTemperatures(p.UUID, 15, CancellationToken.None)
-        //        .ConfigureAwait(false);
+        [Fact]
+        public async Task WhenMediatorReturnsSuccess_Delete_Returns_NoContent()
+        {
+            // Arrange
+            Guid idToDelete = Guid.NewGuid();
 
-        //    // Assert
-        //    IEnumerable<BrowsableResource<TemperatureInfo>> resources = actionResult.Should()
-        //         .BeAssignableTo<OkObjectResult>().Which
-        //         .Value.Should()
-        //            .BeAssignableTo<IEnumerable<BrowsableResource<TemperatureInfo>>>().Which;
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DeleteCommandResult.Done);
 
-        //    resources.Should()
-        //        .NotContainNulls().And
-        //        .NotContain(x => x.Links == null).And
-        //        .NotContain(x => !x.Links.Any(), $"Each resource in the result must have one {nameof(Link)}").And
-        //        .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Href))).And
-        //        .NotContain(x => x.Links.Any(link => string.IsNullOrWhiteSpace(link.Method)), $"Each {nameof(Link)} of {nameof(BrowsableResource<TemperatureInfo>.Links)} must have its '{nameof(Link.Method)}' property set").And
-        //        .OnlyContain(x => x.Links.Any(link => link.Relation == LinkRelation.Self), "Each resource must provide a link to itself").And
-        //        .OnlyContain(x => x.Links.Any(link => link.Relation == "patient"), "Each resource must provide a link to the patient that owns the measure").And
-        //        .BeInDescendingOrder(x => x.Resource.DateOfMeasure)
-        //        ;
+            // Act
+            IActionResult actionResult = await _controller.Delete(id: idToDelete, ct: default)
+                .ConfigureAwait(false);
 
-        //    resources.ForEach(resource =>
-        //    {
-        //        Link self = resource.Links.Single(x => x.Relation == LinkRelation.Self);
-        //        self.Method.Should().Be("GET");
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeletePatientInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
 
-        //        Link linkToPatient = resource.Links.Single(x => x.Relation == "patient");
-        //        self.Method.Should().Be("GET");
+            actionResult.Should()
+                .BeAssignableTo<NoContentResult>();
 
-        //    });
-        //}
-
-
-        //public static IEnumerable<object[]> GetLastTemperatures_BadRequest_Cases
-        //{
-        //    get
-        //    {
-        //        yield return new object[] { Guid.Empty, 10 };
-        //        yield return new object[] { Guid.NewGuid(), int.MinValue };
-        //        yield return new object[] { Guid.NewGuid(), -1 };
-        //        yield return new object[] { Guid.NewGuid(), 0 };
-        //        yield return new object[] { Guid.Empty, 0 };
-        //    }
-        //}
-
-        //[Theory]
-        //[MemberData(nameof(GetLastTemperatures_BadRequest_Cases))]
-        //public async Task GetLastTemperaturesMesures_Returns_Bad_Request(Guid patientId, int count)
-        //{
-        //    // Act
-        //    IActionResult actionResult = await _controller.MostRecentTemperatures(patientId, count, CancellationToken.None);
-
-        //    // Assert
-        //    actionResult.Should()
-        //         .BeAssignableTo<BadRequestResult>();
-        //}
-
-        
-
-
+        }
     }
 }

@@ -17,6 +17,8 @@
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageReference Include="Optional" Version="4.0.0" />
+  
   </ItemGroup>
 
   <ItemGroup>

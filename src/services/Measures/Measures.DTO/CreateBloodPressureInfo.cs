@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MedEasy.RestObjects;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
@@ -15,12 +16,14 @@ namespace Measures.DTO
         /// <summary>
         /// The new systolic blod pressure value
         /// </summary>
+        [FormField(Min = 0)]
         public float SystolicPressure { get; set; }
 
 
         /// <summary>
         /// The new diastolic blod pressure value
         /// </summary>
+        [FormField(Min = 0)]
         public float DiastolicPressure { get; set; }
 
         

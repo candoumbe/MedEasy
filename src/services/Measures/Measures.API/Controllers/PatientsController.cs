@@ -1,26 +1,24 @@
-﻿using AutoMapper.QueryableExtensions;
-using Measures.API.Routing;
+﻿using Measures.API.Routing;
+using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
-using Measures.Objects;
 using MedEasy.Core.Attributes;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -221,8 +219,8 @@ namespace Measures.API.Controllers
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [HttpOptions("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
 
@@ -331,5 +329,44 @@ namespace Measures.API.Controllers
 
         }
 
+        /// <summary>
+        /// Delete a patient resource by its id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken ct = default)
+        {
+            DeleteCommandResult result = await _mediator.Send(new DeletePatientInfoByIdCommand(id), ct)
+                .ConfigureAwait(false);
+
+            IActionResult actionResult;
+            switch (result)
+            {
+                case DeleteCommandResult.Done:
+                    actionResult = new NoContentResult();
+                    break;
+                case DeleteCommandResult.Failed_Unauthorized:
+                    actionResult = new UnauthorizedResult();
+                    break;
+                case DeleteCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                case DeleteCommandResult.Failed_Conflict:
+                    actionResult = new StatusCodeResult(Status409Conflict);
+                    break;
+                default:
+#if DEBUG
+                    throw new ArgumentOutOfRangeException($"Unexpected value <{result}> for {nameof(DeleteCommandResult)}");
+#else
+                    actionResult = new StatusCodeResult(Status500InternalServerError);
+                    break;
+#endif
+            }
+            return actionResult;
+        }
     }
 }
