@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using MedEasy.Data;
 using AutoMapper.QueryableExtensions;
@@ -38,9 +37,8 @@ namespace MedEasy.CQRS.Core.Handlers
 
         public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
-            using (IUnitOfWork uow = _uowFactory.New())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-
                 _logger.LogInformation("Start searching");
                 _logger.LogDebug($"Query : {searchQuery}");
 
@@ -50,12 +48,11 @@ namespace MedEasy.CQRS.Core.Handlers
                 IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sorts
                     .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
+
                 Page<TResult> result = await uow.Repository<TEntity>()
                     .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);
-
-
-
+                
                 return result;
             }
         }

@@ -1,9 +1,5 @@
-﻿using MedEasy.RestObjects;
-using MediatR;
+﻿using MediatR;
 using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MedEasy.CQRS.Core.Queries
 {

@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,15 +27,16 @@ namespace MedEasy.RestObjects.Tests
             instance.Description.Should().BeNull();
             instance.Enabled.Should().BeNull();
             instance.Label.Should().BeNull();
+            instance.Max.Should().BeNull();
             instance.MaxLength.Should().BeNull();
             instance.MinLength.Should().BeNull();
+            instance.Min.Should().BeNull();
             instance.Name.Should().BeNull();
             instance.Pattern.Should().BeNull();
             instance.Placeholder.Should().BeNull();
             instance.Required.Should().BeNull();
             instance.Secret.Should().BeNull();
             instance.Type.Should().Be(FormFieldType.String);
-
         }
     }
 }

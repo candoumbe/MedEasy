@@ -34,6 +34,17 @@ namespace Measures.Context
         public DbSet<BloodPressure> BloodPressures { get; set; }
 
         /// <summary>
+        /// Collection of <see cref="PhysiologicalMeasurement"/>
+        /// </summary>
+        public DbSet<PhysiologicalMeasurement> Measures { get; set; }
+
+        /// <summary>
+        /// Collection of <see cref="Temperature"/>s
+        /// </summary>
+        public DbSet<Temperature> Temperatures { get; set; }
+
+
+        /// <summary>
         /// Builds a new <see cref="MeasuresContext"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
@@ -81,14 +92,17 @@ namespace Measures.Context
             }
 
 
-            modelBuilder.Entity<BloodPressure>(entity => 
+            modelBuilder.Entity<PhysiologicalMeasurement>(entity =>
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Id)
                     .UseSqlServerIdentityColumn()
                     .IsRequired();
+                entity.HasOne(x => x.Patient);
             });
 
+            modelBuilder.Entity<PhysiologicalMeasurement>()
+                .ToTable(nameof(Measures));
 
             modelBuilder.Entity<Patient>(entity =>
             {
@@ -97,17 +111,18 @@ namespace Measures.Context
 
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
-                
+
             });
-    
 
+            modelBuilder.Entity<BloodPressure>();
 
+            modelBuilder.Entity<Temperature>();
         }
 
         private IEnumerable<EntityEntry> GetModifiedEntities()
             => ChangeTracker.Entries()
                 .AsParallel()
-                .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType()) 
+                .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType())
                     && (x.State == EntityState.Added || x.State == EntityState.Modified))
 #if DEBUG
             .ToArray()

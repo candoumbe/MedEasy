@@ -3,12 +3,12 @@ using MedEasy.CQRS.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
+using Xunit.Categories;
 
 namespace MedEasy.CQRS.Core.UnitTests
 {
+    [UnitTest]
     public class CommandNotValidExceptionTests
     {
         public static IEnumerable<object[]> CtorThatThrowsArgumentExceptionCases

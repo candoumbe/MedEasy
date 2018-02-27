@@ -24,10 +24,5 @@ namespace Measures.Objects
         /// </summary>
         public DateTime? BirthDate { get; set; }
 
-        /// <summary>
-        /// Patient's <see cref="Temperature"/>s
-        /// </summary>
-        public IEnumerable<Temperature> Temperatures { get; set; }
-
     }
 }

@@ -1,14 +1,11 @@
-﻿using AutoMapper.QueryableExtensions;
-using Measures.API.Routing;
-using Measures.CQRS.Commands;
-using Measures.CQRS.Queries;
+﻿using Measures.API.Routing;
+using Measures.CQRS.Commands.BloodPressures;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
-using Measures.Objects;
 using MedEasy.Core.Attributes;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO;
@@ -16,16 +13,13 @@ using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static MedEasy.Data.DataFilterLogic;
@@ -95,7 +89,7 @@ namespace Measures.API.Controllers
         {
 
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-            Page<BloodPressureInfo> result = await _mediator.Send(new PageOfBloodPressureInfoQuery(pagination), cancellationToken)
+            Page<BloodPressureInfo> result = await _mediator.Send(new GetPageOfBloodPressureInfoQuery(pagination), cancellationToken)
                 .ConfigureAwait(false);
 
             Debug.Assert(result != null, $"{nameof(result)} cannot be null");
@@ -298,7 +292,7 @@ namespace Measures.API.Controllers
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         [ProducesResponseType(typeof(ErrorObject), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
             IList<IDataFilter> filters = new List<IDataFilter>();
 

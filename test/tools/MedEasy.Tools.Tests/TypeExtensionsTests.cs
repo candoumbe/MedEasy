@@ -2,9 +2,6 @@
 using FluentAssertions;
 using System.Collections.Generic;
 using System;
-using System.Linq.Expressions;
-using MedEasy.RestObjects;
-using System.Linq;
 
 namespace MedEasy.Tools.Tests
 {

@@ -1,6 +1,4 @@
-﻿using System;
-using Measures.Objects;
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
 
     /// <summary>

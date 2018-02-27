@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace System
-{ 
+{
     public static class TypeExtensions
     {
         /// <summary>

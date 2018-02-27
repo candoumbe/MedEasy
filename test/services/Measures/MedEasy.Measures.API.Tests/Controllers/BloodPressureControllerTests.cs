@@ -5,8 +5,8 @@ using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Routing;
 using Measures.Context;
-using Measures.CQRS.Commands;
-using Measures.CQRS.Queries;
+using Measures.CQRS.Commands.BloodPressures;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
@@ -48,7 +48,7 @@ namespace Measures.API.Tests.Controllers
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressureControllerTests : IDisposable
+    public class BloodPressuresControllerTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
 
@@ -56,13 +56,12 @@ namespace Measures.API.Tests.Controllers
         private static readonly MeasuresApiOptions _apiOptions = new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
         private Mock<IUrlHelper> _urlHelperMock;
-        private Mock<ILogger<BloodPressuresController>> _loggerMock;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private BloodPressuresController _controller;
         private const string _baseUrl = "http://host/api";
 
 
-        public BloodPressureControllerTests(ITestOutputHelper outputHelper)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
@@ -71,7 +70,6 @@ namespace Measures.API.Tests.Controllers
             _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
                 .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
-            _loggerMock = new Mock<ILogger<BloodPressuresController>>(Strict);
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
@@ -90,7 +88,6 @@ namespace Measures.API.Tests.Controllers
             _outputHelper = null;
             _unitOfWorkFactory = null;
             _urlHelperMock = null;
-            _loggerMock = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
 
@@ -215,8 +212,8 @@ namespace Measures.API.Tests.Controllers
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(_apiOptions);
 
             // Arrange
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((PageOfBloodPressureInfoQuery query, CancellationToken cancellationToken) =>
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()))
+                .Returns((GetPageOfBloodPressureInfoQuery query, CancellationToken cancellationToken) =>
                 {
                     PaginationConfiguration pagination = query.Data;
                     Func<BloodPressure, BloodPressureInfo> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>().Compile();
@@ -240,8 +237,8 @@ namespace Measures.API.Tests.Controllers
 
             // Assert
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<PageOfBloodPressureInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
             GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response  = actionResult.Should()
@@ -342,7 +339,6 @@ namespace Measures.API.Tests.Controllers
         [Theory]
         [MemberData(nameof(SearchTestCases))]
         [Feature("Search")]
-        [Trait("Resource", "BloodPressures")]
         public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
@@ -361,7 +357,7 @@ namespace Measures.API.Tests.Controllers
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(items);
                 await uow.SaveChangesAsync()
@@ -375,7 +371,7 @@ namespace Measures.API.Tests.Controllers
                 .Returns(async (SearchQuery<BloodPressureInfo> query, CancellationToken cancellationToken) =>
                 {
                     SearchQueryInfo<BloodPressureInfo> search = query.Data;
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
@@ -474,7 +470,7 @@ namespace Measures.API.Tests.Controllers
             IEnumerable<BloodPressure> measures, string reason)
         {
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(measures);
                 await uow.SaveChangesAsync()
@@ -485,7 +481,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
                 .Returns(async (SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         SearchQueryInfo<BloodPressureInfo> search = request.Data;
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
@@ -544,7 +540,7 @@ namespace Measures.API.Tests.Controllers
         {
             // Arrange
             Guid id = Guid.NewGuid();
-            using (IUnitOfWork uow = _unitOfWorkFactory.New())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(new BloodPressure
                 {
@@ -565,7 +561,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetBloodPressureInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetBloodPressureInfoByIdQuery query, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.New())
+                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                         Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()

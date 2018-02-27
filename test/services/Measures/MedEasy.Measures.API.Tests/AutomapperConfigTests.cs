@@ -1,11 +1,10 @@
 ﻿using Measures.Mapping;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
+using Xunit.Categories;
 
 namespace Measures.API.Tests
 {
+    [UnitTest]
     public class AutomapperConfigTests
     {
 

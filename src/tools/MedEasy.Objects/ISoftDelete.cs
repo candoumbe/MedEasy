@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MedEasy.Objects
+﻿namespace MedEasy.Objects
 {
     /// <summary>
     /// Add supports for logical deletion of a entity.

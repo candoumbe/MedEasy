@@ -191,7 +191,7 @@ namespace Patients.API.UnitTests.Controllers
             _outputHelper.WriteLine($"specialties store count: {items.Count()}");
 
             // Arrange
-            using (IUnitOfWork uow = _factory.New())
+            using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(items);
                 await uow.SaveChangesAsync();
@@ -454,7 +454,7 @@ namespace Patients.API.UnitTests.Controllers
             _outputHelper.WriteLine($"Patch : {SerializeObject(patchDocument)}");
 
             // Arrange
-            using (IUnitOfWork uow = _factory.New())
+            using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(source);
                 await uow.SaveChangesAsync()
@@ -471,7 +471,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotBeNull().And
                 .BeAssignableTo<NoContentResult>();
 
-            using (IUnitOfWork uow = _factory.New())
+            using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 Patient sourceAfterPatch = await uow.Repository<Patient>().SingleAsync(x => x.UUID == source.UUID)
                     .ConfigureAwait(false);
@@ -528,7 +528,7 @@ namespace Patients.API.UnitTests.Controllers
                 Lastname = "Wayne"
             };
 
-            using (IUnitOfWork uow = _factory.New())
+            using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(new Patient { UUID = patientId, Firstname = "Bruce", Lastname = "Wayne" });
                 await uow.SaveChangesAsync();
@@ -596,7 +596,7 @@ namespace Patients.API.UnitTests.Controllers
 
             //Assert
 
-            using (IUnitOfWork uow = _factory.New())
+            using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 (await uow.Repository<Patient>().AnyAsync(x => x.Firstname == "Bruce" && x.Lastname == "Wayne")).Should().BeTrue();
             }

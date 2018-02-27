@@ -1,6 +1,4 @@
-﻿using MedEasy.RestObjects;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
     public class BloodPressureInfo : PhysiologicalMeasurementInfo
     {

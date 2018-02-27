@@ -1,4 +1,5 @@
 ﻿using MedEasy.DTO.Search;
+using MedEasy.RestObjects;
 using System;
 
 namespace Measures.DTO
@@ -21,6 +22,7 @@ namespace Measures.DTO
         /// <summary>
         /// Searched <see cref="BirthDate"/>
         /// </summary>
+        [FormField(Type = FormFieldType.Date)]
         public DateTime? BirthDate { get; set; }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using MedEasy.Data;
 using System.Collections.Generic;
-using static Newtonsoft.Json.JsonConvert;
 using System.Linq;
 using System;
-using Newtonsoft.Json;
 
 namespace MedEasy.DTO.Search
 {
@@ -11,7 +9,7 @@ namespace MedEasy.DTO.Search
     /// Represents a request for a search on resources of type.
     /// </summary>
     /// <typeparam name="T">Type of resource the search query will be applied on</typeparam>
-    [JsonObject]
+    //[JsonObject]
     public class SearchQueryInfo<T> 
     {
 
@@ -45,10 +43,14 @@ namespace MedEasy.DTO.Search
 
 
         public override string ToString()
-            => $"{nameof(Filter)} : {SerializeObject(Filter)}," + Environment.NewLine +
-            $"{nameof(Page)}: {Page}" + Environment.NewLine +
-            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine +
-            $"{nameof(Sorts)} : {string.Join(",", Sorts.Select(x => new { Expression = x.Expression.Body.ToString(), x.Direction }))}";
+            => 
+            //$"{nameof(Filter)} : {SerializeObject(Filter)}," + Environment.NewLine +
+            $"{nameof(Page)}: {Page}" + Environment.NewLine 
+            +
+            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine 
+            //+
+            //$"{nameof(Sorts)} : {string.Join(",", Sorts.Select(x => new { Expression = x.Expression.Body.ToString(), x.Direction }))}"
+            ;
 
 
     }

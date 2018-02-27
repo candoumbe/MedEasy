@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using MedEasy.Core.Attributes;
 using MedEasy.Core.Filters;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
@@ -12,11 +11,6 @@ using Microsoft.AspNetCore.Routing;
 using Moq;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
