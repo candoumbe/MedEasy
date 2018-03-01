@@ -269,10 +269,11 @@ namespace Measures.API.Tests.Controllers
             {
                 {
                     IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach(async (x) => await Task.Factory.StartNew(() =>
+                    items.ForEach(async (x, pos) => await Task.Factory.StartNew(() =>
                     {
                         x.DateOfMeasure = 26.January(2001);
-                        x.Id = default;
+                        x.Id = pos;
+                        x.UUID = Guid.NewGuid();
                     }));
 
 
