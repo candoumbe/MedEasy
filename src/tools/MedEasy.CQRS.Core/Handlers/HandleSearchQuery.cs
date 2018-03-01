@@ -19,7 +19,6 @@ namespace MedEasy.CQRS.Core.Handlers
     public class HandleSearchQuery : IHandleSearchQuery
     {
         private readonly IExpressionBuilder _expressionBuilder;
-        private readonly ILogger<HandleSearchQuery> _logger;
         private readonly IUnitOfWorkFactory _uowFactory;
 
         /// <summary>
@@ -28,20 +27,16 @@ namespace MedEasy.CQRS.Core.Handlers
         /// <param name="uowFactory">Unit of work factory</param>
         /// <param name="expressionBuilder">Expression builder to map an entity type to result type</param>
         /// <exception cref="ArgumentNullException">if either <paramref name="uowFactory"/> or <paramref name="expressionBuilder"/> is <c>null</c>.</exception>
-        public HandleSearchQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, ILogger<HandleSearchQuery> logger)
+        public HandleSearchQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
         {
             _uowFactory = uowFactory;
             _expressionBuilder = expressionBuilder;
-            _logger = logger;
         }
 
         public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                _logger.LogInformation("Start searching");
-                _logger.LogDebug($"Query : {searchQuery}");
-
                 Expression<Func<TResult, bool>> filter = searchQuery.Data.Filter.ToExpression<TResult>();
                 int page = searchQuery.Data.Page;
                 int pageSize = searchQuery.Data.PageSize;

@@ -47,7 +47,7 @@ namespace Measures.CQRS.UnitTests.Handlers
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
 
 
-            _iHandleSearchQuery = new HandleSearchQuery(_uowFactoryMock.Object, _expressionBuilderMock.Object, _loggerMock.Object);
+            _iHandleSearchQuery = new HandleSearchQuery(_uowFactoryMock.Object, _expressionBuilderMock.Object);
         }
 
         public void Dispose()
@@ -75,7 +75,7 @@ namespace Measures.CQRS.UnitTests.Handlers
                     },
                     ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null &&
                         !x.Entries.Any() &&
-                        x.Count == 0 &&
+                        x.Count == 1 &&
                         x.Size == 3))
                 };
 

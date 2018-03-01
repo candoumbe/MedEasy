@@ -1,5 +1,6 @@
 ﻿using Measures.API.Routing;
 using Measures.CQRS.Commands.Patients;
+using Measures.CQRS.Queries.BloodPressures;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using MedEasy.Core.Attributes;
@@ -85,7 +86,7 @@ namespace Measures.API.Controllers
         {
 
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-            Page<PatientInfo> result = await _mediator.Send(new PageOfPatientInfoQuery(pagination), cancellationToken)
+            Page<PatientInfo> result = await _mediator.Send(new GetPageOfPatientInfoQuery(pagination), cancellationToken)
                 .ConfigureAwait(false);
 
             int count = result.Entries.Count();
@@ -216,6 +217,7 @@ namespace Measures.API.Controllers
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
+        /// <response code="404">The requested page is out of results page count bounds.</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [HttpOptions("[action]")]
@@ -261,71 +263,79 @@ namespace Measures.API.Controllers
                             return sort;
                         })
             };
-            Page<PatientInfo> resources = await _mediator.Send(new SearchQuery<PatientInfo>(searchQuery), cancellationToken)
+            Page<PatientInfo> page = await _mediator.Send(new SearchQuery<PatientInfo>(searchQuery), cancellationToken)
                 .ConfigureAwait(false);
+            IActionResult actionResult;
 
-            GenericPagedGetResponse<BrowsableResource<PatientInfo>> page = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
-                    items: resources.Entries.Select(x => new BrowsableResource<PatientInfo>
-                    {
-                        Resource = x,
-                        Links = new[] {
+            if (searchQuery.Page <= page.Count)
+            {
+                GenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
+                        items: page.Entries.Select(x => new BrowsableResource<PatientInfo>
+                        {
+                            Resource = x,
+                            Links = new[] {
                             new Link
                             {
                                 Method = "GET",
                                 Relation = LinkRelation.Self,
                                 Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id })
                             }
-                        }
-                    }),
-                    count: resources.Total,
-                    first: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
-                    {
-                        controller = EndpointName,
-                        search.Firstname,
-                        search.Lastname,
-                        search.BirthDate,
-                        search.Sort,
-                        page = 1,
-                        search.PageSize
-                    }),
-                    previous: search.Page > 1
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                            }
+                        }),
+                        count: page.Total,
+                        first: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = EndpointName,
                             search.Firstname,
                             search.Lastname,
                             search.BirthDate,
                             search.Sort,
-                            page = search.Page - 1,
+                            page = 1,
                             search.PageSize
-                        })
-                        : null,
-                    next: resources.Count > search.Page
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                        }),
+                        previous: search.Page > 1
+                            ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                            {
+                                controller = EndpointName,
+                                search.Firstname,
+                                search.Lastname,
+                                search.BirthDate,
+                                search.Sort,
+                                page = search.Page - 1,
+                                search.PageSize
+                            })
+                            : null,
+                        next: page.Count > search.Page
+                            ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                            {
+                                controller = EndpointName,
+                                search.Firstname,
+                                search.Lastname,
+                                search.BirthDate,
+                                search.Sort,
+                                page = search.Page + 1,
+                                search.PageSize
+                            })
+                            : null,
+                        last: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = EndpointName,
                             search.Firstname,
                             search.Lastname,
                             search.BirthDate,
                             search.Sort,
-                            page = search.Page + 1,
+                            page = Math.Max(page.Count, 1),
                             search.PageSize
                         })
-                        : null,
-                    last: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
-                    {
-                        controller = EndpointName,
-                        search.Firstname,
-                        search.Lastname,
-                        search.BirthDate,
-                        search.Sort,
-                        page = Math.Max(resources.Count, 1),
-                        search.PageSize
-                    })
-                );
+                    );
+                actionResult = new OkObjectResult(response);
+            }
+            else
+            {
+                actionResult = new NotFoundResult();
+            }
 
-
-            return new OkObjectResult(page);
+            return actionResult;
 
         }
 
@@ -368,5 +378,71 @@ namespace Measures.API.Controllers
             }
             return actionResult;
         }
+
+        /// <summary>
+        /// Retrieves a page of blood pressures for a patient
+        /// </summary>
+        /// <param name="id">id of the patient which</param>
+        /// <param name="pagination">pagination</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpGet("{id}/bloodpressures")]
+        [HttpHead("{id}/bloodpressures")]
+        public async Task<IActionResult> GetBloodPressures([FromQuery, RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
+        {
+            pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
+
+            GetPageOfBloodPressureInfoByPatientIdQuery query = new GetPageOfBloodPressureInfoByPatientIdQuery(id, pagination);
+            Option<Page<BloodPressureInfo>> result = await _mediator.Send(query, ct)
+                .ConfigureAwait(false);
+
+            return result.Match(
+                some: (page) =>
+                {
+                    IActionResult actionResult;
+                    if (pagination.Page <= page.Count)
+                    {
+                        string firstPageLink = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(GetBloodPressures), controller = EndpointName, page = 1, pagination.PageSize });
+                        bool hasPrevious = pagination.Page > 1;
+                        string previousPageLink = hasPrevious
+                            ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(GetBloodPressures), controller = EndpointName, page = pagination.Page - 1, pagination.PageSize })
+                            : null;
+                        string nextPageLink = pagination.Page < page.Count
+                            ? UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(GetBloodPressures), controller = EndpointName, page = pagination.Page + 1, pagination.PageSize })
+                            : null;
+                        string lastPageLink = UrlHelper.Link(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { action = nameof(GetBloodPressures), controller = EndpointName, page = page.Count == 0 ? 1 : page.Count, pageSize = page.Size });
+
+                        IEnumerable<BrowsableResource<BloodPressureInfo>> entries = page.Entries
+                            .Select(x => new BrowsableResource<BloodPressureInfo>
+                            {
+                                Resource = x,
+                                Links = new[]
+                                {
+                                new Link
+                                {
+                                    Relation = LinkRelation.Self,
+                                    Method = "GET",
+                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = BloodPressuresController.EndpointName, x.Id})
+                                }
+                                }
+                            });
+                        GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+                            entries, firstPageLink, previousPageLink, nextPageLink, lastPageLink, page.Total
+                        );
+                        actionResult = new OkObjectResult(response);
+                    }
+                    else
+                    {
+                        actionResult = new NotFoundResult();
+                    }
+
+                    return actionResult;
+                },
+                none: () => new NotFoundResult()
+            );
+
+        }
+
+
     }
 }

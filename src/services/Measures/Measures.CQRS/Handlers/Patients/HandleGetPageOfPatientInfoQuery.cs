@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 namespace Measures.CQRS.Handlers.Patients
 {
     /// <summary>
-    /// Handles <see cref="PageOfPatientInfoQuery"/>s
+    /// Handles <see cref="GetPageOfPatientInfoQuery"/>s
     /// </summary>
-    public class HandleGetPageOfPatientInfoQuery : IRequestHandler<PageOfPatientInfoQuery, Page<PatientInfo>>
+    public class HandleGetPageOfPatientInfoQuery : IRequestHandler<GetPageOfPatientInfoQuery, Page<PatientInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
@@ -33,7 +33,7 @@ namespace Measures.CQRS.Handlers.Patients
         }
 
 
-        public async Task<Page<PatientInfo>> Handle(PageOfPatientInfoQuery query, CancellationToken cancellationToken)
+        public async Task<Page<PatientInfo>> Handle(GetPageOfPatientInfoQuery query, CancellationToken cancellationToken)
         {
             PaginationConfiguration pagination = query.Data;
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

@@ -223,5 +223,26 @@ namespace Measures.API.IntegrationTests
 
         }
 
+        [Fact]
+        public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
+        {
+            
+            // Arrange
+            string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
+            _outputHelper.WriteLine($"Requested url : <{url}>");
+            RequestBuilder requestBuilder = new RequestBuilder(_server, url)
+                .AddHeader("Accept", "application/json");
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.GetAsync()
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("The page of results doesn't exist");
+            ((int)response.StatusCode).Should()
+                .Be(Status404NotFound);
+        }
+
     }
 }
