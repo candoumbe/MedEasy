@@ -15,7 +15,7 @@ namespace Measures.CQRS.Handlers
         where TMeasure : PhysiologicalMeasurement
         where TMeasureInfo : PhysiologicalMeasurementInfo
     {
-        public HandleSearchMeasuresQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, ILogger<HandleSearchQuery> logger) : base(uowFactory, expressionBuilder, logger)
+        public HandleSearchMeasuresQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, ILogger<HandleSearchQuery> logger) : base(uowFactory, expressionBuilder)
         {
         }
 
