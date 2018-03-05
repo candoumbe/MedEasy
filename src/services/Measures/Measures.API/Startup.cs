@@ -1,4 +1,5 @@
-﻿using FluentValidation.AspNetCore;
+﻿using AutoMapper;
+using FluentValidation.AspNetCore;
 using Measures.API.Routing;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
@@ -108,9 +109,10 @@ namespace Measures.API
                 options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             });
 
-            services.AddMediatR(typeof(CreateBloodPressureInfoCommand).Assembly);
+            services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
-            services.AddSingleton(x => AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder);
+            services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
             {
                 DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();

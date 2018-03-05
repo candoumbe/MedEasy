@@ -1,9 +1,9 @@
 ﻿namespace MedEasy.CQRS.Core.Commands.Results
 {
     /// <summary>
-    /// Type of result expected when deleting something
+    /// Type of result expected for  PATCH|PUT operation
     /// </summary>
-    public enum DeleteCommandResult
+    public enum ModifyCommandResult
     {
         /// <summary>
         /// The command completed successfully
@@ -22,5 +22,4 @@
         /// </summary>
         Failed_Conflict
     }
-
 }

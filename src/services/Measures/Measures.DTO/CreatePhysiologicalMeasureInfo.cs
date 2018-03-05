@@ -1,4 +1,6 @@
-﻿namespace Measures.DTO
+﻿using System;
+
+namespace Measures.DTO
 {
 
     /// <summary>
@@ -9,7 +11,7 @@
         /// <summary>
         /// Patient which the measure is created for
         /// </summary
-        public PatientInfo Patient { get; set; }
+        public Guid PatientId { get; set; }
 
     }
 }

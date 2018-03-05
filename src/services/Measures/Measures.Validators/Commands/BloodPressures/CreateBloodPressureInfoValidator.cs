@@ -3,6 +3,7 @@ using Measures.DTO;
 using Measures.Objects;
 using MedEasy.DAL.Interfaces;
 using System;
+using System.Threading;
 using static FluentValidation.Severity;
 
 namespace Measures.Validators.Commands.BloodPressures
@@ -30,46 +31,24 @@ namespace Measures.Validators.Commands.BloodPressures
                 .GreaterThan(0)
                 .WithSeverity(Warning);
 
-            RuleFor(x => x.Patient)
-                .NotNull()
+            RuleFor(x => x.PatientId)
+                .NotEmpty()
                 .WithSeverity(Error);
 
             When(
-                x => x.Patient != null,
+                x => x.PatientId != default,
                 () =>
                 {
-                    When(x => x.Patient.Id != default, () =>
-                    {
-                        RuleFor(x => x.Patient.Id)
-                            .MustAsync(async (id, cancellationToken) =>
+                    RuleFor(x => x.PatientId)
+                        .MustAsync(async (Guid patientId, CancellationToken ct) =>
+                        {
+                            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                             {
-                                using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-                                {
-                                    return await uow.Repository<Patient>()
-                                        .AnyAsync(x => x.UUID == id, cancellationToken)
-                                        .ConfigureAwait(false);
-                                }
-                            })
-                            .WithName($"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Id)}")
-                            .WithSeverity(Error);
-
-                        RuleFor(x => x.Patient.Firstname)
-                            .Null()
-                            .WithName($"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Firstname)}");
-
-                        RuleFor(x => x.Patient.Lastname)
-                            .Null()
-                            .WithName($"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Lastname)}");
-
-                        RuleFor(x => x.Patient.Fullname)
-                            .Null()
-                            .WithName($"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.Fullname)}");
-
-                        RuleFor(x => x.Patient.BirthDate)
-                            .Null()
-                            .WithName($"{nameof(CreateBloodPressureInfo.Patient)}.{nameof(PatientInfo.BirthDate)}");
-
-                    });
+                                return await uow.Repository<Patient>()
+                                    .AnyAsync(x => x.UUID == patientId, ct)
+                                    .ConfigureAwait(false);
+                            }
+                        });
                 }
             );
 

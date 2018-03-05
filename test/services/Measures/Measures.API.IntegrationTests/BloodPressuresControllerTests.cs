@@ -1,5 +1,6 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using Measures.API.Features.Patients;
 using Measures.Context;
 using Measures.DTO;
 using MedEasy.DAL.Context;
@@ -239,129 +240,7 @@ namespace Measures.API.IntegrationTests
 
         }
 
-        [Fact]
-        public async Task Create_Resource()
-        {
-            // Arrange
-            CreateBloodPressureInfo resourceToCreate = new CreateBloodPressureInfo
-            {
-                SystolicPressure = 120,
-                DiastolicPressure = 80,
-                DateOfMeasure = 23.January(2002).AddHours(23).AddMinutes(36),
-                Patient = new PatientInfo
-                {
-                    Firstname = "victor",
-                    Lastname = "zsasz"
-                }
-            };
-
-            JSchema createdResourceSchema = new JSchema
-            {
-                Type = JSchemaType.Object,
-                Properties =
-                {
-                    [nameof(BrowsableResource<BloodPressureInfo>.Resource).ToLower()] = new JSchema
-                    {
-                        Type = JSchemaType.Object,
-                        Properties =
-                        {
-                            [nameof(BloodPressureInfo.SystolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
-                            [nameof(BloodPressureInfo.DiastolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
-                            [nameof(BloodPressureInfo.DateOfMeasure).ToLower()] = new JSchema { Type = JSchemaType.String },
-                            [nameof(BloodPressureInfo.UpdatedDate).ToLower()] = new JSchema { Type = JSchemaType.String },
-                            [nameof(BloodPressureInfo.Id).ToLower()] = new JSchema { Type = JSchemaType.String },
-                        },
-                        AllowAdditionalItems = false
-                    }
-                },
-                AllowAdditionalItems = false
-            };
-
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .AddHeader("Content-Type", "application/json")
-                .And((request) =>
-                    request.Content = new StringContent(SerializeObject(resourceToCreate), Encoding.UTF8, "application/json")
-                );
-
-            // Act
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
-
-            // Assert
-            response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
-            ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
-
-            string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            JToken jToken = JToken.Parse(json);
-            jToken.IsValid(createdResourceSchema).Should()
-                .BeTrue();
-
-            Uri location = response.Headers.Location;
-            _outputHelper.WriteLine($"Location of the resource : <{location}>");
-            location.Should().NotBeNull();
-            location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
-
-            requestBuilder = new RequestBuilder(_server, location.ToString());
-
-            HttpResponseMessage checkResponse = await requestBuilder.SendAsync(Head)
-                .ConfigureAwait(false);
-
-            checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
-        }
-
-
-        public static IEnumerable<object[]> InvalidRequestToCreateABloodPressureResourceCases
-        {
-            get
-            {
-                yield return new object[]
-                {
-                    new CreateBloodPressureInfo(),
-                    $"No data set onto the resource"
-                };
-
-                yield return new object[]
-                {
-                    new CreateBloodPressureInfo {
-                        SystolicPressure = 120,
-                        DiastolicPressure = 80,
-                        DateOfMeasure = 20.June(2003)
-                    },
-                    $"No {nameof(CreateBloodPressureInfo.Patient)} data set onto the resource"
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
-        public async Task PostInvalidResource_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
-        {
-
-            // Arrange
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .And(request => request.Content = new StringContent(SerializeObject(invalidResource), Encoding.UTF8, "application/json"));
-
-            // Act
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
-
-            // Assert
-            response.IsSuccessStatusCode.Should().BeFalse(reason);
-            ((int)response.StatusCode).Should().Be(Status422UnprocessableEntity, reason);
-            response.ReasonPhrase.Should().NotBeNullOrWhiteSpace();
-
-            string content = await response.Content.ReadAsStringAsync()
-               .ConfigureAwait(false);
-
-            
-            JToken.Parse(content).IsValid(_errorObjectSchema)
-                .Should().BeTrue("Validation errors");
-
-        }
-
-
+        
         [Theory]
         [InlineData("HEAD")]
         [InlineData("GET")]
@@ -422,34 +301,10 @@ namespace Measures.API.IntegrationTests
         public async Task Patch_With_EmptyId_Returns_Bad_Request()
         {
             // Arrange
-            CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
-            {
-                SystolicPressure = 130,
-                DiastolicPressure = 80,
-                DateOfMeasure = 23.August(2013),
-                Patient = new PatientInfo { Firstname = "Victor", Lastname = "ZsaasZ" },
-            };
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .AddHeader("Accept", "application/json")
-                .And(request => request.Content = new StringContent(SerializeObject(createBloodPressureInfo), Encoding.UTF8, "application/json"));
-
-            HttpResponseMessage createResourceResponse = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
-
-            string createdResourceJson = await createResourceResponse.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-            _outputHelper.WriteLine($"Created resource : {createdResourceJson}");
-
-            JToken createdResourceToken = JToken.Parse(createdResourceJson);
-            string createdResourceId = createdResourceToken["resource"]["id"].ToString();
-            _outputHelper.WriteLine($"Created resource ID : {createdResourceId}");
-
             JsonPatchDocument<BloodPressureInfo> changes = new JsonPatchDocument<BloodPressureInfo>();
             changes.Replace(x => x.SystolicPressure, 120);
-            //warn replace this when upgrading to 2.1
-            changes.Operations.Add(new Operation<BloodPressureInfo>("test", nameof(BloodPressureInfo.Id).ToLower(), createdResourceId));
-
-            requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{Guid.Empty}")
+            
+            RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{Guid.Empty}")
                 .AddHeader("Accept", "application/json")
                 .And(request => request.Content = new StringContent(changes.ToString(), Encoding.UTF8, "application/json-patch+json"));
 

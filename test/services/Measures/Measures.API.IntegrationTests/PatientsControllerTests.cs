@@ -1,5 +1,8 @@
 using FluentAssertions;
+using FluentAssertions.Extensions;
+using Measures.API.Features.Patients;
 using Measures.Context;
+using Measures.DTO;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
@@ -10,15 +13,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using static Newtonsoft.Json.JsonConvert;
 
 namespace Measures.API.IntegrationTests
 {
@@ -243,6 +249,166 @@ namespace Measures.API.IntegrationTests
             ((int)response.StatusCode).Should()
                 .Be(Status404NotFound);
         }
+
+        [Fact]
+        public async Task Create_Resource()
+        {
+            // Arrange
+            CreatePatientInfo newPatient = new CreatePatientInfo
+            {
+                Firstname = "Victor",
+                Lastname = "Freeze"
+            };
+            RequestBuilder requestBuilder = new RequestBuilder(_server, "/measures/patients")
+                .AddHeader("Accept", "application/json")
+                .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
+
+            HttpResponseMessage response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            string patientId = JToken.Parse(json)["resource"]["id"].ToString();
+
+            NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
+            {
+                SystolicPressure = 120,
+                DiastolicPressure = 80,
+                DateOfMeasure = 23.January(2002).AddHours(23).AddMinutes(36),
+                
+            };
+
+            JSchema createdResourceSchema = new JSchema
+            {
+                Type = JSchemaType.Object,
+                Properties =
+                {
+                    [nameof(BrowsableResource<BloodPressureInfo>.Resource).ToLower()] = new JSchema
+                    {
+                        Type = JSchemaType.Object,
+                        Properties =
+                        {
+                            [nameof(BloodPressureInfo.SystolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
+                            [nameof(BloodPressureInfo.DiastolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
+                            [nameof(BloodPressureInfo.DateOfMeasure).ToLower()] = new JSchema { Type = JSchemaType.String },
+                            [nameof(BloodPressureInfo.UpdatedDate).ToLower()] = new JSchema { Type = JSchemaType.String },
+                            [nameof(BloodPressureInfo.Id).ToLower()] = new JSchema { Type = JSchemaType.String },
+                        },
+                        AllowAdditionalItems = false
+                    }
+                },
+                AllowAdditionalItems = false
+            };
+
+            requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{patientId}/bloodpressures")
+                .AddHeader("Content-Type", "application/json")
+                .And((request) =>
+                    request.Content = new StringContent(SerializeObject(resourceToCreate), Encoding.UTF8, "application/json")
+                );
+
+            // Act
+            response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+            _outputHelper.WriteLine($"HTTP create bloodpressure for patient <{patientId}> status code : {response.StatusCode}");
+
+            // Assert
+            response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
+            ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
+
+            json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            JToken jToken = JToken.Parse(json);
+            jToken.IsValid(createdResourceSchema).Should()
+                .BeTrue();
+
+            Uri location = response.Headers.Location;
+            _outputHelper.WriteLine($"Location of the resource : <{location}>");
+            location.Should().NotBeNull();
+            location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
+
+            requestBuilder = new RequestBuilder(_server, location.ToString());
+
+            HttpResponseMessage checkResponse = await requestBuilder.SendAsync(Head)
+                .ConfigureAwait(false);
+
+            checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
+        }
+
+
+        public static IEnumerable<object[]> InvalidRequestToCreateABloodPressureResourceCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    new CreateBloodPressureInfo(),
+                    $"No data set onto the resource"
+                };
+
+                yield return new object[]
+                {
+                    new CreateBloodPressureInfo {
+                        SystolicPressure = 120,
+                        DiastolicPressure = 80,
+                        DateOfMeasure = 20.June(2003)
+                    },
+                    $"No {nameof(CreateBloodPressureInfo.PatientId)} data set onto the resource"
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
+        public async Task PostInvalidBloodPressure_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
+        {
+
+            // Arrange
+            CreatePatientInfo newPatientInfo = new CreatePatientInfo
+            {
+                Firstname = "Solomon",
+                Lastname = "Grundy"
+            };
+
+            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
+                .And(request => request.Content = new StringContent(SerializeObject(newPatientInfo), Encoding.UTF8, "application/json"));
+
+            HttpResponseMessage response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            PatientInfo patientInfo = DeserializeObject<PatientInfo>(json);
+
+            requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{patientInfo.Id}/bloodpressures")
+                .And(request => request.Content = new StringContent(SerializeObject(invalidResource), Encoding.UTF8, "application/json"));
+
+            // Act
+            response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse(reason);
+            ((int)response.StatusCode).Should()
+                .Be(Status422UnprocessableEntity, reason);
+            response.ReasonPhrase.Should()
+                .NotBeNullOrWhiteSpace();
+
+            string content = await response.Content.ReadAsStringAsync()
+               .ConfigureAwait(false);
+
+
+            JToken.Parse(content).IsValid(_errorObjectSchema)
+                .Should().BeTrue("Validation errors");
+
+        }
+
+
 
     }
 }

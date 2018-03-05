@@ -3,8 +3,10 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using GenFu;
 using Measures.API.Controllers;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.Context;
+using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.CQRS.Queries.Patients;
@@ -40,7 +42,7 @@ using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-
+using static Microsoft.AspNetCore.Http.StatusCodes;
 namespace Measures.API.Tests
 {
     [Feature("Patients")]
@@ -161,12 +163,12 @@ namespace Measures.API.Tests
             }
         }
 
-        
+
         public static IEnumerable<object[]> GetAllTestCases
         {
             get
             {
-                int[] pageSizes = { 1, 10, 20};
+                int[] pageSizes = { 1, 10, 20 };
                 int[] pages = { 1, 5, 10 };
 
 
@@ -293,7 +295,7 @@ namespace Measures.API.Tests
                         return result;
                     }
                 });
-            
+
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
@@ -339,7 +341,7 @@ namespace Measures.API.Tests
         }
 
 
-        public static IEnumerable<object[ ] > SearchCases
+        public static IEnumerable<object[]> SearchCases
         {
             get
             {
@@ -509,7 +511,7 @@ namespace Measures.API.Tests
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
 
                         Expression<Func<Patient, bool>> filter = query.Data.Filter?.ToExpression<Patient>() ?? (x => true);
-                            
+
                         Page<PatientInfo> resources = await uow.Repository<Patient>()
                             .WhereAsync(
                                 selector,
@@ -554,7 +556,7 @@ namespace Measures.API.Tests
             links.Next.Should().Match(linksExpectation.nextPageLink);
             links.Last.Should().Match(linksExpectation.lastPageLink);
         }
-        
+
 
         [Fact]
         public async Task GivenMediatorReturnsEmptyPage_Search_Returns_NotFound_When_Requesting_PageTwoOfResult()
@@ -566,7 +568,7 @@ namespace Measures.API.Tests
                 PageSize = 10,
                 Lastname = "*e*"
             };
-            
+
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Page<PatientInfo>.Default);
 
@@ -598,7 +600,7 @@ namespace Measures.API.Tests
                 }
             }
         }
-        
+
         [Fact]
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
@@ -669,7 +671,7 @@ namespace Measures.API.Tests
             IActionResult actionResult = await _controller.Get(patientId);
 
             //Assert
-            
+
             BrowsableResource<PatientInfo> result = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
@@ -683,7 +685,7 @@ namespace Measures.API.Tests
                 .NotContainNulls().And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(BrowsableResource<PatientInfo>)}{nameof(BrowsableResource<PatientInfo>.Links)} cannot contain any element " +
-                    $"with null/empty/whitespace {nameof(Link.Href)}s" ).And
+                    $"with null/empty/whitespace {nameof(Link.Href)}s").And
                 .ContainSingle(x => x.Relation == LinkRelation.Self).And
                 .ContainSingle(x => x.Relation == "delete").And
                 .ContainSingle(x => x.Relation == BloodPressuresController.EndpointName.ToLowerKebabCase());
@@ -711,14 +713,14 @@ namespace Measures.API.Tests
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?Controller={BloodPressuresController.EndpointName}&{nameof(BloodPressureInfo.PatientId)}={expectedResource.Id}");
             bloodPressuresLink.Method.Should().Be("GET");
-            
+
 
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
             actualResource.Id.Should().Be(expectedResource.Id);
             actualResource.Firstname.Should().Be(expectedResource.Firstname);
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
-            
+
             _urlHelperMock.Verify();
             _mediatorMock.Verify();
 
@@ -734,7 +736,7 @@ namespace Measures.API.Tests
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
-            IActionResult actionResult = await _controller.Delete(id : idToDelete, ct: default)
+            IActionResult actionResult = await _controller.Delete(id: idToDelete, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -775,18 +777,16 @@ namespace Measures.API.Tests
             Guid patientId = Guid.NewGuid();
             PaginationConfiguration pagination = new PaginationConfiguration { Page = 1, PageSize = 50 };
 
-            _apiOptionsMock.Setup(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = 10, MaxPageSize = 100 });
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<Page<BloodPressureInfo>>());
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<PatientInfo>());
 
             // Act
-            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination : pagination, ct: default)
+            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: pagination, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoByPatientIdQuery>(query => query.Data.patientId == patientId && query.Data.pagination == pagination), It.IsAny<CancellationToken>()), Times.Once);
-
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
 
@@ -796,275 +796,267 @@ namespace Measures.API.Tests
         {
             get
             {
+
+                yield return new object[]
                 {
-                    Guid patientId = Guid.NewGuid();
-                    yield return new object[]
-                    {
-                        patientId,
-                        Enumerable.Empty<BloodPressure>(),
-                        (page :1, pageSize:10),
-                        (defaultPageSize : 30, maxPageSize : 200),
-                        0,
-                        (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=10").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous :((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=10").Equals(x.Href, OrdinalIgnoreCase)))
-                        )
+                    (page :1, pageSize:10),
+                    (defaultPageSize : 30, maxPageSize : 200)
+                };
 
-                    };
-                }
-
+                yield return new object[]
                 {
-                    Guid patientId = Guid.NewGuid();
-                    yield return new object[]
-                    {
-                        patientId,
-                        new[]
-                        {
-                            new BloodPressure { SystolicPressure = 120, DiastolicPressure = 80 }
-                        },
-                        (page :1, pageSize:10),
-                        (defaultPageSize : 30, maxPageSize : 200),
-                        1,
-                        (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=10").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous :((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=10").Equals(x.Href, OrdinalIgnoreCase)))
-                        )
-
-                    };
-                }
-                {
-                    Guid patientId = Guid.NewGuid();
-                    yield return new object[]
-                    {
-                        patientId,
-                        new[]
-                        {
-                            new BloodPressure { SystolicPressure = 120, DiastolicPressure = 80 },
-                            new BloodPressure { SystolicPressure = 140, DiastolicPressure = 80 },
-                            new BloodPressure { SystolicPressure = 170, DiastolicPressure = 100 }
-                        },
-                        (page :1, pageSize:1),
-                        (defaultPageSize : 30, maxPageSize : 200),
-                        3,
-                        (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous :((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Next
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=2" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=3" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase)))
-                        )
-
-                    };
-                }
-                {
-                    Guid patientId = Guid.NewGuid();
-                    yield return new object[]
-                    {
-                        patientId,
-                        new[]
-                        {
-                            new BloodPressure { SystolicPressure = 120, DiastolicPressure = 80 },
-                            new BloodPressure { SystolicPressure = 140, DiastolicPressure = 80 },
-                            new BloodPressure { SystolicPressure = 170, DiastolicPressure = 100 }
-                        },
-                        (page :2, pageSize:1),
-                        (defaultPageSize : 30, maxPageSize : 200),
-                        3,
-                        (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase))), 
-                            previous : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Previous
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase))), 
-                            next :((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Next
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=3" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase))), 
-                            last : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?" +
-                                    $"Action=GetBloodPressures&Controller={PatientsController.EndpointName}" +
-                                    $"&page=3" +
-                                    $"&pageSize=1").Equals(x.Href, OrdinalIgnoreCase)))
-                        )
-
-                    };
-                }
+                    (page :1, pageSize:10),
+                    (defaultPageSize : 30, maxPageSize : 5)
+                };
 
             }
         }
 
         [Theory]
         [MemberData(nameof(GetBloodPressuresWhenPatientExistsCases))]
-        public async Task GivenMediatorReturnsSome_GetBloodPressures_ReturnsOkObjectResult(Guid patientId, IEnumerable<BloodPressure> resources, (int page, int pageSize) request,
-            (int defaultPageSize, int maxPageSize) pagingOptions,
-            int expectedCount,
-            (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
+        public async Task GivenMediatorReturnsSome_GetBloodPressures_RedirectToSearch((int page, int pageSize) pagination, (int defaultPageSize, int maxPageSize) pagingConfiguration)
         {
             // Arrange
-            PaginationConfiguration pagination = new PaginationConfiguration { Page = request.page, PageSize = request.pageSize };
-            _outputHelper.WriteLine($"pagination : {pagination}");
-            _outputHelper.WriteLine($"resources : {resources}");
-
-            
-            Patient patient = new Patient { UUID = patientId };
-            resources.ForEach(x => x.Patient = patient);
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            PaginationConfiguration paging = new PaginationConfiguration
             {
-                uow.Repository<Patient>().Create(patient);
-                uow.Repository<BloodPressure>().Create(resources);
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+                Page = pagination.page,
+                PageSize = pagination.pageSize
+            };
+            Guid patientId = Guid.NewGuid();
 
+            MeasuresApiOptions apiOptions = new MeasuresApiOptions
+            {
+                DefaultPageSize = pagingConfiguration.defaultPageSize,
+                MaxPageSize = pagingConfiguration.maxPageSize
+            };
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
 
-            _apiOptionsMock.Setup(mock => mock.Value)
-                .Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
-
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (GetPageOfBloodPressureInfoByPatientIdQuery query, CancellationToken ct) =>
-                {
-                    var (id, paging) = query.Data;
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+                    .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) => await Task.FromResult<Option<PatientInfo>>(new PatientInfo
                     {
-                        Option<Page<BloodPressureInfo>> result;
-                        if (await uow.Repository<Patient>().AnyAsync(x => x.UUID == id).ConfigureAwait(false))
-                        {
-                            Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
-                                .GetMapExpression<BloodPressure, BloodPressureInfo>();
-                            result = Option.Some(await uow.Repository<BloodPressure>()
-                                        .WhereAsync(
-                                            selector,
-                                            (BloodPressureInfo x) => x.PatientId == id,
-                                            new[] { OrderClause<BloodPressureInfo>.Create(x => x.UpdatedDate) },
-                                            paging.PageSize,
-                                            paging.Page,
-                                            ct)
-                                        .ConfigureAwait(false));
-                        }
-                        else
-                        {
-                            result = Option.None<Page<BloodPressureInfo>>();
-                        }
-
-                        return result;
-
-                    }
-                });
-
+                        Id = query.Data
+                    }.Some()));
+            
 
             // Act
-            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: pagination, ct: default)
+            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: paging, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoByPatientIdQuery>(query => query.Data.patientId == patientId && query.Data.pagination == pagination), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> page = actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                   .NotBeNull().And
-                   .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>>().Which;
+            RedirectToRouteResult redirect = actionResult.Should()
+                .BeAssignableTo<RedirectToRouteResult>().Which;
 
+            redirect.RouteName.Should()
+                            .Be(RouteNames.DefaultSearchResourcesApi);
+            redirect.PreserveMethod.Should().BeTrue();
+            redirect.Permanent.Should().BeFalse();
+            redirect.RouteValues.Should()
+                        .ContainKey("controller").And
+                        .ContainKey("patientId").And
+                        .ContainKey("page").And
+                        .ContainKey("pageSize");
 
-            page.Count.Should()
-                .Be(expectedCount);
+            redirect.RouteValues["controller"].Should()
+                .Be(BloodPressuresController.EndpointName);
+            redirect.RouteValues["patientId"].Should()
+                        .Be(patientId);
+            redirect.RouteValues["page"].Should()
+                        .Be(pagination.page);
+            redirect.RouteValues["pageSize"].Should()
+                        .Be(Math.Min(pagination.pageSize, apiOptions.MaxPageSize), "request pageSize must be capped by the controller");
 
-            page.Items.Should()
-                .NotBeNull();
-
-            if (page.Items.Any())
-            {
-                page.Items.Should()
-                    .NotContainNulls().And
-                    .NotContain(x => x.Resource == null, $"{nameof(BrowsableResource<object>.Resource)} must be provided").And
-                    .NotContain(x => x.Links == null, $"{nameof(BrowsableResource<object>.Links)} must not be null").And
-                    .NotContain(x => !x.Links.Any(), $"at least one link must be provided").And
-                    .OnlyContain(x => x.Links.Once()).And
-                    .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self), $"self link must be provided");
-            }
-
-            PagedRestResponseLink links = page.Links;
-            links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
-            links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
-            links.Next.Should().Match(linksExpectation.nextPageUrlExpectation);
-            links.Last.Should().Match(linksExpectation.lastPageUrlExpectation);
 
         }
 
-
-        [Fact]    
-        public async Task GivenPageIndexOutOfPageCountBound_GetBloodPressures_Returns_NotFound()
+        [Fact]
+        public async Task Post_BloodPressure_For_Patient()
         {
-
             // Arrange
+            NewBloodPressureModel newMeasure = new NewBloodPressureModel
+            {
+                SystolicPressure = 120,
+                DiastolicPressure = 80,
+                DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53)
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoForPatientIdCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((CreateBloodPressureInfoForPatientIdCommand cmd, CancellationToken cancellationToken) =>
+                {
+
+                    return Task.FromResult(new BloodPressureInfo
+                    {
+                        DateOfMeasure = cmd.Data.DateOfMeasure,
+                        Id = Guid.NewGuid(),
+                        DiastolicPressure = cmd.Data.DiastolicPressure,
+                        PatientId = cmd.Data.PatientId,
+                        SystolicPressure = cmd.Data.SystolicPressure,
+                        UpdatedDate = 23.June(2010)
+                    }.Some<BloodPressureInfo, CreateCommandResult>());
+                })
+                .Verifiable();
             Guid patientId = Guid.NewGuid();
-
-            _apiOptionsMock.Setup(mock => mock.Value)
-                .Returns(new MeasuresApiOptions { DefaultPageSize = 10, MaxPageSize = 200 });
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.Some(new Page<BloodPressureInfo>(new[] { new BloodPressureInfo { SystolicPressure = 120, DiastolicPressure = 80 } }, 1, 10)));
-
             // Act
-            IActionResult actionResult = await _controller.GetBloodPressures(patientId, new PaginationConfiguration { Page = 2, PageSize = 10 }, default)
+
+            IActionResult actionResult = await _controller.PostBloodPressure(patientId, newMeasure)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoByPatientIdQuery>(q => q.Data.patientId == patientId), It.IsAny<CancellationToken>()), Times.Once);
-            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _mediatorMock.Verify();
 
+
+            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
+                .BeOfType<CreatedAtRouteResult>().Which
+                .Value.Should()
+                    .BeAssignableTo<BrowsableResource<BloodPressureInfo>>().Which;
+
+            BloodPressureInfo resource = browsableResource.Resource;
+            resource.Id.Should()
+                .NotBeEmpty();
+            resource.DateOfMeasure.Should()
+                .Be(newMeasure.DateOfMeasure);
+            resource.DiastolicPressure.Should()
+                .Be(newMeasure.DiastolicPressure);
+            resource.PatientId.Should()
+                .Be(patientId);
+
+
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeEmpty().And
+                .NotContainNulls().And
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(Link.Href)} must be provided for each link of the resource").And
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation), $"{nameof(Link.Relation)} must be provided for each link of the resource").And
+                .Contain(x => x.Relation == "delete-bloodpressure").And
+                .Contain(x => x.Relation == LinkRelation.Self).And
+                .Contain(x => x.Relation == "patient");
+
+            Link linkToPatient = links.Single(x => x.Relation == "patient");
+            linkToPatient.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&id={resource.PatientId}");
+
+            Link linkToSelf = links.Single(x => x.Relation == LinkRelation.Self);
+            linkToSelf.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id}");
+
+            Link linkToDelete = links.Single(x => x.Relation == "delete-bloodpressure");
+            linkToSelf.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id}");
+
+
+        }
+
+        public static IEnumerable<object[]> MediatorReturnsErrorCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    CreateCommandResult.Failed_NotFound,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult))
+                };
+
+                yield return new object[]
+                {
+                    CreateCommandResult.Failed_Conflict,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult
+                        && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict))
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(MediatorReturnsErrorCases))]
+        public async Task GivenMediatorReturnsError_Controller_ReturnsAssociatedResponse(CreateCommandResult mediatorResult, Expression<Func<IActionResult, bool>> actionResultExpectation)
+        {
+            // Arrange
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoForPatientIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<BloodPressureInfo, CreateCommandResult>(mediatorResult));
+
+            // Act
+            IActionResult actionResult = await _controller.PostBloodPressure(Guid.NewGuid(), new NewBloodPressureModel())
+                .ConfigureAwait(false);
+
+            // Assert
             actionResult.Should()
-                .BeAssignableTo<NotFoundResult>("Requested page index is out of page count bound");
+                .NotBeNull().And
+                .Match(actionResultExpectation);
+
+
+
+        }
+
+        [Fact]
+        public async Task GivenModel_Post_Create_PatientResource()
+        {
+            // Arrange
+            CreatePatientInfo newPatient = new CreatePatientInfo
+            {
+                Firstname = "Solomon",
+                Lastname = "Grundy"
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((CreatePatientInfoCommand cmd, CancellationToken ct) =>
+                {
+
+                    return Task.FromResult(new PatientInfo
+                    {
+                        Firstname = cmd.Data.Firstname,
+                        Lastname = cmd.Data.Lastname,
+                        BirthDate = cmd.Data.BirthDate,
+                        Id = Guid.NewGuid()
+                    });
+                });
+
+            // Act
+            IActionResult actionResult = await _controller.Post(newPatient, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
+                .BeAssignableTo<CreatedAtRouteResult>().Which;
+
+            createdAtRouteResult.RouteName.Should()
+                .Be(RouteNames.DefaultGetOneByIdApi);
+            createdAtRouteResult.RouteValues.Should()
+                .HaveCount(1).And
+                .ContainKey("id").WhichValue.Should()
+                    .BeOfType<Guid>().Which.Should()
+                        .NotBeEmpty();
+
+            BrowsableResource<PatientInfo> browsablePatientInfo = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<BrowsableResource<PatientInfo>>().Which;
+
+            PatientInfo resource = browsablePatientInfo.Resource;
+            resource.Should()
+                .NotBeNull();
+
+            IEnumerable<Link> links = browsablePatientInfo.Links;
+            links.Should()
+                .NotBeNullOrEmpty().And
+                .NotContainNulls().And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"each resource link must provide its {nameof(Link.Href)}").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"each resource link must provide its {nameof(Link.Method)}").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"each resource link must provide its {nameof(Link.Relation)}").And
+                .Contain(link => link.Relation == LinkRelation.Self).And
+                .Contain(link => link.Relation == "bloodpressures");
+
+            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+            linkToSelf.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={resource.Id}");
+            linkToSelf.Method.Should()
+                .Be("GET");
+
+            Link linkToBloodPressures = links.Single(link => link.Relation == "bloodpressures");
+            linkToBloodPressures.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&patientId={resource.Id}");
+            linkToSelf.Method.Should()
+                .Be("GET");
 
         }
     }

@@ -269,12 +269,12 @@ namespace Measures.API.Tests.Controllers
             {
                 {
                     IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach(async (x, pos) => await Task.Factory.StartNew(() =>
+                    items.ForEach((x, pos) =>
                     {
                         x.DateOfMeasure = 26.January(2001);
-                        x.Id = pos;
+                        x.Id = (pos + 1);
                         x.UUID = Guid.NewGuid();
-                    }));
+                    });
 
 
                     yield return new object[]
@@ -540,18 +540,19 @@ namespace Measures.API.Tests.Controllers
         public async Task Get_Returns_The_Element()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            Guid measureId = Guid.NewGuid();
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(new BloodPressure
                 {
                     SystolicPressure = 150,
                     DiastolicPressure = 90,
-                    UUID = id,
+                    UUID = measureId,
                     Patient = new Patient
                     {
                         Firstname = "Bruce",
-                        Lastname = "Wayne"
+                        Lastname = "Wayne",
+                        UUID = Guid.NewGuid()
                     }
                 });
 
@@ -577,11 +578,11 @@ namespace Measures.API.Tests.Controllers
                 });
 
             // Act
-            IActionResult actionResult = await _controller.Get(id)
+            IActionResult actionResult = await _controller.Get(measureId)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetBloodPressureInfoByIdQuery>(q => q.Data == id), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetBloodPressureInfoByIdQuery>(q => q.Data == measureId), It.IsAny<CancellationToken>()), Times.Once);
 
             BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
                 .BeAssignableTo<OkObjectResult>().Which
@@ -619,7 +620,7 @@ namespace Measures.API.Tests.Controllers
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.PatientId}");
 
 
-            resource.Id.Should().Be(id);
+            resource.Id.Should().Be(measureId);
             resource.SystolicPressure.Should().Be(150);
             resource.DiastolicPressure.Should().Be(90);
             resource.PatientId.Should()
@@ -643,65 +644,7 @@ namespace Measures.API.Tests.Controllers
         }
 
 
-        [Fact]
-        public async Task Post_CreateTheResource_With_Patient()
-        {
-            // Arrange
-            CreateBloodPressureInfo newResource = new CreateBloodPressureInfo
-            {
-                SystolicPressure = 120,
-                DiastolicPressure = 80,
-                DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53),
-                Patient = new PatientInfo
-                {
-                    Firstname = "victor",
-                    Lastname = "zsasz"
-                }
-            };
-
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateBloodPressureInfoCommand cmd, CancellationToken cancellationToken) =>
-                {
-
-                    return Task.FromResult(new BloodPressureInfo
-                    {
-                        DateOfMeasure = cmd.Data.DateOfMeasure,
-                        Id = Guid.NewGuid(),
-                        DiastolicPressure = cmd.Data.DiastolicPressure,
-                        PatientId = Guid.NewGuid(),
-                        SystolicPressure = cmd.Data.SystolicPressure,
-                        UpdatedDate = 23.June(2010)
-                    });
-                })
-                .Verifiable();
-
-            // Act
-            IActionResult actionResult = await _controller.Post(newResource)
-                .ConfigureAwait(false);
-
-            // Assert
-            _mediatorMock.Verify();
-
-
-            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
-                .BeOfType<CreatedAtRouteResult>().Which
-                .Value.Should()
-                    .BeAssignableTo<BrowsableResource<BloodPressureInfo>>().Which;
-
-
-
-            IEnumerable<Link> links = browsableResource.Links;
-            links.Should()
-                .NotBeEmpty().And
-                .NotContainNulls().And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(Link.Href)} must be provided for each link of the resource").And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation), $"{nameof(Link.Relation)} must be provided for each link of the resource").And
-                .Contain(x => x.Relation == "delete").And
-                .Contain(x => x.Relation == "patient");
-
-            Link linkToPatient = links.Single(x => x.Relation == "patient");
-            linkToPatient.Href.Should().Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?id={browsableResource.Resource.PatientId}");
-        }
+        
 
         [Fact]
         public async Task DeleteResource()

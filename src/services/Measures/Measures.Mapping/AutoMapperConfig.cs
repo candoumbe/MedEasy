@@ -26,8 +26,16 @@ namespace Measures.Mapping
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+            cfg.CreateMap<CreatePatientInfo, Patient>()
+                .ForMember(entity => entity.Id, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
+                .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
+                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
+                .ForMember(entity => entity.UUID, opt => opt.Ignore())
+                ;
+
             cfg.CreateMap<Patient, PatientInfo>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .ForMember(dest => dest.Fullname, opt => opt.Ignore())
                 .IncludeBase<IEntity<int>, Resource<Guid>>()
                 .ReverseMap()
@@ -40,47 +48,47 @@ namespace Measures.Mapping
 
             
             cfg.CreateMap<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
-                .ForMember(dest => dest.PatientId, opt => opt.MapFrom(source => source.Patient.UUID))
+                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
+                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.Patient.UUID))
                 .ReverseMap()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.PatientId, opt => opt.Ignore())
+                .ForMember(entity => entity.Id, opt => opt.Ignore())
+                .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))
+                .ForMember(entity => entity.Patient, opt => opt.Ignore())
+                .ForMember(entity => entity.PatientId, opt => opt.Ignore())
                 ;
 
             cfg.CreateMap<CreateBloodPressureInfo, BloodPressure>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.UUID, opt => opt.Ignore())
-                .ForMember(dest => dest.PatientId, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore());
+                .ForMember(entity => entity.Id, opt => opt.Ignore())
+                .ForMember(entity => entity.UUID, opt => opt.Ignore())
+                .ForMember(entity => entity.Patient, opt => opt.Ignore())
+                .ForMember(entity => entity.PatientId, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
+                .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
+                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore());
 
             cfg.CreateMap<BloodPressure, BloodPressureInfo>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
                 .ReverseMap()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;
 
             cfg.CreateMap<CreateTemperatureInfo, Temperature>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.UUID, opt => opt.ResolveUsing((source, dest) => Guid.NewGuid()))
                 .ForMember(dest => dest.PatientId, opt => opt.Ignore())
+                .ForMember(dest => dest.Patient, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore());
 
             cfg.CreateMap<Temperature, TemperatureInfo>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;
 
             cfg.CreateMap<BodyWeight, BodyWeightInfo>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
                 .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

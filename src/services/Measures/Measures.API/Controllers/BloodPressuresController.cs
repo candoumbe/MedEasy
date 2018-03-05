@@ -193,34 +193,61 @@ namespace Measures.API.Controllers
             return actionResult;
         }
 
-        /// <summary>
-        /// Creates a new <see cref="BloodPressureInfo"/> resource.
-        /// </summary>
-        /// <param name="newBloodPressure">data used to create the resource</param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
-        /// <response code="201">the resource was created successfully</response>
-        /// <response code="400"><paramref name="newBloodPressure"/> is not valid</response>
-        [HttpPost]
-        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 201)]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
-        public async Task<IActionResult> Post([FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
-        {
-            BloodPressureInfo createdResource = await _mediator.Send(new CreateBloodPressureInfoCommand(newBloodPressure), cancellationToken)
-                .ConfigureAwait(false);
+        ///// <summary>
+        ///// Creates a new <see cref="BloodPressureInfo"/> resource.
+        ///// </summary>
+        ///// <param name="newBloodPressure">data used to create the resource</param>
+        ///// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        ///// <response code="201">the resource was created successfully</response>
+        ///// <response code="400"><paramref name="newBloodPressure"/> is not valid</response>
+        //[HttpPost]
+        //[ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 201)]
+        //[ProducesResponseType(typeof(ErrorObject), 400)]
+        //public async Task<IActionResult> Post([FromBody] CreateBloodPressureInfo newBloodPressure, CancellationToken cancellationToken = default)
+        //{
+        //    Option<BloodPressureInfo, CreateCommandResult> optionalCreatedResource = await _mediator.Send(new CreateBloodPressureInfoForPatientIdCommand(newBloodPressure), cancellationToken)
+        //        .ConfigureAwait(false);
 
-            BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
-            {
-                Resource = createdResource,
-                Links = new[]
-                {
-                        new Link { Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { id = createdResource.PatientId }) },
-                        new Link { Relation = "delete", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }), Method = "GET"}
-                    }
 
-            };
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { createdResource.Id }, browsableResource);
+        //    return optionalCreatedResource.Match(
+        //        some: (resource) =>
+        //        {
 
-        }
+        //           BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+        //           {
+        //               Resource = resource,
+        //               Links = new[]
+        //               {
+        //                    new Link { Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { id = resource.PatientId }) },
+        //                    new Link { Relation = "delete", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { resource.Id }), Method = "DELETE"}
+        //               }
+
+        //           };
+        //           return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { resource.Id }, browsableResource);
+        //        },
+        //        none: (result) =>
+        //        {
+        //            IActionResult actionResult;
+        //            switch (result)
+        //            {
+        //                case CreateCommandResult.Failed_Conflict:
+        //                    actionResult = new StatusCodeResult(Status409Conflict);
+        //                    break;
+        //                case CreateCommandResult.Failed_NotFound:
+        //                    actionResult = new NotFoundResult();
+        //                    break;
+        //                case CreateCommandResult.Failed_Unauthorized:
+        //                    actionResult = new UnauthorizedResult();
+        //                    break;
+        //                default:
+        //                    throw new ArgumentOutOfRangeException($"Unexpected <{result}> for {nameof(CreateCommandResult)}");
+        //            }
+
+
+        //            return actionResult;
+        //        });
+
+        //}
 
 
 

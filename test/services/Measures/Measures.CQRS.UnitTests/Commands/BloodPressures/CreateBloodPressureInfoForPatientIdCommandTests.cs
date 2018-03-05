@@ -9,11 +9,11 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Commands.BloodPressures
 {
     [UnitTest]
-    public class CreateBloodPressureInfoCommandTests : IDisposable
+    public class CreateBloodPressureInfoForPatientIdCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
 
-        public CreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
+        public CreateBloodPressureInfoForPatientIdCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
         }
@@ -26,7 +26,7 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
         [Fact]
         public void Ctor_Is_Valid()
         {
-            CreateBloodPressureInfoCommand instance = new CreateBloodPressureInfoCommand(new CreateBloodPressureInfo()
+            CreateBloodPressureInfoForPatientIdCommand instance = new CreateBloodPressureInfoForPatientIdCommand(new CreateBloodPressureInfo()
             {
             });
 
@@ -41,7 +41,7 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
         public void Ctor_Throws_ArgumentNullException()
         {
             // Act
-            Action action = () => new CreateBloodPressureInfoCommand(null);
+            Action action = () => new CreateBloodPressureInfoForPatientIdCommand(null);
 
             // Assert
             action.Should()
