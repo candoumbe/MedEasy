@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +20,6 @@ namespace MedEasy.RestObjects.Tests
         [Fact]
         public void Ctor_Should_Build_Valid_Instance()
         {
-
             // Act
             FormFieldAttribute attribute = new FormFieldAttribute();
 
@@ -36,6 +34,8 @@ namespace MedEasy.RestObjects.Tests
             attribute.Relations.Should()
                 .BeAssignableTo<IEnumerable<string>>().And
                 .BeEmpty();
+            attribute.Min.Should()
+                .Be(0);
 
             
         }

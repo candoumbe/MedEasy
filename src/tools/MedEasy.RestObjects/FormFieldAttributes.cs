@@ -12,6 +12,8 @@ namespace MedEasy.RestObjects
     public class FormFieldAttributes
     {
         private string _description;
+        private int _maxLength;
+        private FormFieldType _type;
 
         /// <summary>
         /// Description of the <see cref="FormField"/>
@@ -49,7 +51,21 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Type of the value the field holds
         /// </summary>
-        public FormFieldType Type { get; set; }
+        public FormFieldType Type
+        {
+            get => _type;
+            set
+            {
+                _type = value;
+                IsTypeSet = true;
+            }
+        }
+
+        /// <summary>
+        /// Indicates if <see cref="Type"/> was set
+        /// </summary>
+        internal bool IsTypeSet { get; private set; }
+
 
         /// <summary>
         /// Minimum value of the field
@@ -66,6 +82,24 @@ namespace MedEasy.RestObjects
         /// Pattern the value of the field must match to be valid
         /// </summary>
         public string Pattern { get; set; }
+
+        /// <summary>
+        /// Maximum length of the string
+        /// </summary>
+        /// <remarks>This property is only relevant for string or array</remarks>
+        public int MaxLength
+        {
+            get => _maxLength;
+            set
+            {
+                _maxLength = value;
+                IsMaxLengthSet = true;
+            }
+        }
+        /// <summary>
+        /// Indicate if <see cref="MaxLength"/> was explicitely set
+        /// </summary>
+        internal bool IsMaxLengthSet { get; private set; }
 
     }
 }

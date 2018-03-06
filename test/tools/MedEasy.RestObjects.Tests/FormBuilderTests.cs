@@ -30,7 +30,6 @@ namespace MedEasy.RestObjects.Tests
             
             public DateTime? LastBattleDate { get; set; }
 
-
             public int? CurrentWinningStreakCount { get; set; }
 
         }

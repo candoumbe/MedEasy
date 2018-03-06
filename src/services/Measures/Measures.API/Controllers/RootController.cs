@@ -1,4 +1,5 @@
-﻿using Measures.API.Routing;
+﻿using Measures.API.Features.Patients;
+using Measures.API.Routing;
 using Measures.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
@@ -76,10 +77,7 @@ namespace Measures.API.Controllers
                     },
                     Forms = new[]
                     {
-                        new FormBuilder<SearchBloodPressureInfo>()
-                            .SetRelation(LinkRelation.Search)
-                            .SetMethod("GET")
-                            .SetHref(_urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = BloodPressuresController.EndpointName}))
+                        new FormBuilder<SearchBloodPressureInfo>(new Link { Relation = LinkRelation.Search, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = BloodPressuresController.EndpointName})  })
                             .AddField(x => x.From)
                             .AddField(x => x.To)
                             .AddField(x => x.Page)
@@ -87,22 +85,13 @@ namespace Measures.API.Controllers
                             .AddField(x => x.Sort)
                             .Build(),
 
-                        new FormBuilder<CreateBloodPressureInfo>()
-                            .SetRelation(LinkRelation.CreateForm)
-                            .SetMethod("POST")
-                            .SetHref(_urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = BloodPressuresController.EndpointName}))
-                            .AddField(x => x.DateOfMeasure)
-                            .AddField(x => x.SystolicPressure)
-                            .AddField(x => x.DiastolicPressure)
-                            .Build(),
-                        
                         typeof(BloodPressureInfo).ToForm(new Link
                             {
                                 Method = "PATCH",
                                 Relation = LinkRelation.EditForm,
                                 Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = BloodPressuresController.EndpointName, id = $"{{{nameof(BloodPressureInfo.Id)}}}"})
                             })
-                        
+
                     }
                 },
 
@@ -118,16 +107,27 @@ namespace Measures.API.Controllers
                     },
                     Forms = new[]
                     {
-                        new FormBuilder<SearchPatientInfo>()
-                            .SetRelation(LinkRelation.Search)
-                            .SetMethod("GET")
-                            .SetHref(_urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = PatientsController.EndpointName, page, pageSize }))
+                        new FormBuilder<CreatePatientInfo>(new Link { Relation = LinkRelation.CreateForm, Href = "_", Method = "POST" })
+                            .AddField(x => x.Firstname, new FormFieldAttributes { MaxLength = 255 })
+                            .AddField(x => x.Lastname, new FormFieldAttributes { MaxLength = 255 })
+                            .AddField(x => x.BirthDate, new FormFieldAttributes {Type = Date })
+                            .Build(),
+                        new FormBuilder<SearchPatientInfo>(new Link { Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = PatientsController.EndpointName, page, pageSize }), Relation = LinkRelation.Search, Method = "GET" })
                             .AddField(x => x.BirthDate)
                             .AddField(x => x.Firstname)
                             .AddField(x => x.Lastname)
                             .AddField(x => x.Page)
-                            .AddField(x => x.PageSize, new FormFieldAttributes { Max = apiOptions.MaxPageSize })
+                            .AddField(x => x.PageSize, new FormFieldAttributes { Max = maxPageSize })
                             .AddField(x => x.Sort)
+                            .Build(),
+                        new FormBuilder<NewBloodPressureModel>(new Link { Relation = "create-form-bloodpressure",
+                                Template = true,
+                                Method = "POST",
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = PatientsController.EndpointName, id = "{id}", action = nameof(PatientsController.PostBloodPressure)})
+                            })
+                            .AddField(x => x.DateOfMeasure)
+                            .AddField(x => x.SystolicPressure)
+                            .AddField(x => x.DiastolicPressure)
                             .Build(),
                     }
                 },

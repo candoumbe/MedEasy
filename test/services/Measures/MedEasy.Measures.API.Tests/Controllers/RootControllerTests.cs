@@ -1,12 +1,11 @@
 using FluentAssertions;
 using Measures.API.Controllers;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.DTO;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
@@ -14,8 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using static Moq.MockBehavior;
 using static MedEasy.RestObjects.FormFieldType;
+using static Moq.MockBehavior;
 
 namespace Measures.API.Tests.Controllers
 {
@@ -76,8 +75,8 @@ namespace Measures.API.Tests.Controllers
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Name)).And
                 .NotContain(x => x.Link == null, $"{nameof(Endpoint)}'s {nameof(Endpoint.Link)} must be provided").And
                 .BeInAscendingOrder(x => x.Name).And
-                .Contain(x => x.Name == BloodPressuresController.EndpointName.ToLowerKebabCase()).And
-                .Contain(x => x.Name == PatientsController.EndpointName.ToLowerKebabCase());
+                .ContainSingle(x => x.Name == BloodPressuresController.EndpointName.ToLowerKebabCase()).And
+                .ContainSingle(x => x.Name == PatientsController.EndpointName.ToLowerKebabCase());
 
             // BloodPressures endpoint
             #region Blood pressures endpoint
@@ -97,12 +96,12 @@ namespace Measures.API.Tests.Controllers
             bloodPressuresForms.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
+                .HaveCount(2).And
                 .NotContain(x => x.Meta == null, "Forms cannot contain any form with null metadata").And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Relation), $"{nameof(Link.Relation)} must be provided for each {nameof(Form)}'s {nameof(Form.Meta)} property.").And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Href), $"{nameof(Link.Href)} must be provided for each {nameof(Form)}'s {nameof(Form.Meta)} property.").And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Method), $"{nameof(Link.Method)} must be provided for each {nameof(Form)}'s {nameof(Form.Meta)} property.").And
                 .ContainSingle(x => x.Meta.Relation == LinkRelation.Search, $"a search form must be provided for {BloodPressuresController.EndpointName} endpoint.").And
-                .ContainSingle(x => x.Meta.Relation == LinkRelation.CreateForm, $"a create form must be provided for {BloodPressuresController.EndpointName} endpoint.").And
                 .ContainSingle(x => x.Meta.Relation == LinkRelation.EditForm, $"an edit form must be provided for {BloodPressuresController.EndpointName} endpoint.");
 
             #region Search form
@@ -148,41 +147,7 @@ namespace Measures.API.Tests.Controllers
                 .Be("Maximum date of measure");
             #endregion
 
-            #region Create Form
-            Form bloodPressureCreateForm = bloodPressuresEndpoint.Forms.Single(x => x.Meta.Relation == LinkRelation.CreateForm);
-
-            bloodPressureCreateForm.Meta.Method.Should()
-                .Be("POST");
-            bloodPressureCreateForm.Meta.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}");
-
-            bloodPressureCreateForm.Items.Should()
-                .NotBeNullOrEmpty().And
-                .NotContainNulls().And
-                .OnlyContain(x => !string.IsNullOrWhiteSpace(x.Name)).And
-                .ContainSingle(x => x.Name == nameof(BloodPressureInfo.DateOfMeasure)).And
-                .ContainSingle(x => x.Name == nameof(BloodPressureInfo.DiastolicPressure)).And
-                .ContainSingle(x => x.Name == nameof(BloodPressureInfo.SystolicPressure));
-
-            FormField bloodPressureDateOfMeasureField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.DateOfMeasure));
-            bloodPressureDateOfMeasureField.Type.Should()
-                .Be(FormFieldType.DateTime);
-
-            FormField bloodPressureDiastolicField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.DiastolicPressure));
-            bloodPressureDiastolicField.Type.Should()
-                .Be(Integer);
-            bloodPressureDiastolicField.Min.Should().Be(0);
-            bloodPressureDiastolicField.Max.Should().BeNull();
-
-
-            FormField bloodPressureSystolicField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.SystolicPressure));
-            bloodPressureSystolicField.Type.Should()
-                .Be(Integer);
-            bloodPressureSystolicField.Min.Should().Be(0);
-            bloodPressureSystolicField.Max.Should().BeNull();
-
-            #endregion
-
+            
             #region Edit form
             Form bloodPressureEditForm = bloodPressuresEndpoint.Forms.Single(x => x.Meta.Relation == LinkRelation.EditForm);
 
@@ -201,7 +166,7 @@ namespace Measures.API.Tests.Controllers
                 .ContainSingle(x => x.Name == nameof(BloodPressureInfo.SystolicPressure));
 
             FormField bloodPressureEditFormDateOfMeasureField = bloodPressureEditForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.DateOfMeasure));
-            bloodPressureDateOfMeasureField.Type.Should()
+            bloodPressureEditFormDateOfMeasureField.Type.Should()
                 .Be(FormFieldType.DateTime);
 
             FormField bloodPressureEditFormDiastolicField = bloodPressureEditForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.DiastolicPressure));
@@ -212,7 +177,7 @@ namespace Measures.API.Tests.Controllers
 
 
             FormField bloodPressureEditFormSystolicField = bloodPressureEditForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.SystolicPressure));
-            bloodPressureSystolicField.Type.Should()
+            bloodPressureEditFormSystolicField.Type.Should()
                 .Be(Integer);
             bloodPressureEditFormSystolicField.Min.Should().Be(0);
             bloodPressureEditFormSystolicField.Max.Should().BeNull();
@@ -241,7 +206,10 @@ namespace Measures.API.Tests.Controllers
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Relation)).And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Href)).And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Meta.Method)).And
-                .ContainSingle(x => x.Meta.Relation == LinkRelation.Search);
+                .ContainSingle(x => x.Meta.Relation == LinkRelation.Search).And
+                .ContainSingle(x => x.Meta.Relation == LinkRelation.CreateForm).And
+                .ContainSingle(x => x.Meta.Relation == "create-form-bloodpressure")
+                ;
 
             #region Search form
             Form patientsSearchForm = patientsEndpoint.Forms.Single(x => x.Meta.Relation == LinkRelation.Search);
@@ -286,13 +254,76 @@ namespace Measures.API.Tests.Controllers
             patientSortField.Type.Should().Be(FormFieldType.String);
             patientSortField.Pattern.Should().Be(SearchPatientInfo.SortPattern);
 
-            #endregion 
+            #endregion
+
+            #region Create form bloodpressure
+            Form bloodPressureCreateForm = patientsEndpoint.Forms.Single(f => f.Meta.Relation == "create-form-bloodpressure");
+            bloodPressureCreateForm.Meta.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?action={nameof(PatientsController.PostBloodPressure)}&controller=patients&id={Uri.EscapeDataString("{id}")}");
+            bloodPressureCreateForm.Meta.Method.Should()
+                .Be("POST");
+            bloodPressureCreateForm.Meta.Template.Should()
+                .BeTrue();
+
+            bloodPressureCreateForm.Items.Should()
+                .NotBeNullOrEmpty().And
+                .NotContainNulls().And
+                .ContainSingle(field => field.Name == nameof(NewBloodPressureModel.SystolicPressure)).And
+                .ContainSingle(field => field.Name == nameof(NewBloodPressureModel.DiastolicPressure)).And
+                .ContainSingle(field => field.Name == nameof(NewBloodPressureModel.DateOfMeasure))
+                ;
+
+            FormField bloodPressureDateOfMeasureField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(NewBloodPressureModel.DateOfMeasure));
+            bloodPressureDateOfMeasureField.Type.Should()
+                .Be(FormFieldType.DateTime);
+
+            FormField bloodPressureDiastolicField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(NewBloodPressureModel.DiastolicPressure));
+            bloodPressureDiastolicField.Type.Should()
+                .Be(Integer);
+            bloodPressureDiastolicField.Min.Should().Be(0);
+            bloodPressureDiastolicField.Max.Should().BeNull();
+
+
+            FormField bloodPressureSystolicField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(NewBloodPressureModel.SystolicPressure));
+            bloodPressureSystolicField.Type.Should()
+                .Be(Integer);
+            bloodPressureSystolicField.Min.Should().Be(0);
+            bloodPressureSystolicField.Max.Should().BeNull();
+
+            #endregion
+            #region Create Form
+            Form patientsCreateForm = patientsEndpoint.Forms.Single(form => form.Meta.Relation == LinkRelation.CreateForm);
+            patientsCreateForm.Items.Should()
+                .NotBeNullOrEmpty().And
+                .NotContainNulls().And
+                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.Firstname)).And
+                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.Lastname)).And
+                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.BirthDate))
+                ;
+
+            FormField createPatientFirstnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.Firstname));
+            createPatientFirstnameField.Type.Should()
+                .Be(FormFieldType.String);
+            createPatientFirstnameField.MaxLength.Should()
+                .Be(255);
+
+            FormField createPatientLastnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.Lastname));
+            createPatientLastnameField.Type.Should()
+                .Be(FormFieldType.String);
+            createPatientLastnameField.MaxLength.Should()
+                .Be(255);
+
+            FormField createPatientBirthDateField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.BirthDate));
+            createPatientBirthDateField.Type.Should()
+                .Be(Date);
+
+            #endregion
             #endregion
 
             if (environmentName != "Production")
             {
                 endpoints.Should()
-                    .Contain(x => x.Name == "documentation");
+                    .ContainSingle(x => x.Name == "documentation");
 
                 Endpoint documentationEnpoint = endpoints.Single(x => x.Name == "documentation");
                 documentationEnpoint.Link.Should()

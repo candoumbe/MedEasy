@@ -54,10 +54,14 @@ namespace MedEasy.RestObjects
             set
             {
                 _required = value;
-                _isRequiredSet = true;
+                IsRequiredSet = true;
             }
         }
-        private bool _isRequiredSet;
+        /// <summary>
+        /// Indicates if the <see cref="Required"/> property was explicitly set
+        /// </summary>
+        internal bool IsRequiredSet { get; private set; }
+
         private bool _required;
 
         /// <summary>
@@ -112,6 +116,27 @@ namespace MedEasy.RestObjects
         private string _description;
 
         internal bool IsMinSet { get; private set; }
+
+        private int _maxLength;
+
+        /// <summary>
+        /// Maximum length of the string
+        /// </summary>
+        /// <remarks>This property is only relevant for string or array</remarks>
+        public int MaxLength
+        {
+            get => _maxLength;
+            set
+            {
+                _maxLength = value;
+                IsMaxLengthSet = true;
+            }
+        }
+        /// <summary>
+        /// Indicates if <see cref="MaxLength"/> value was explicitely set with the attribute
+        /// </summary>
+        internal bool IsMaxLengthSet { get; private set; }
+
 
         /// <summary>
         /// Builds a new <see cref="FormFieldAttribute"/>

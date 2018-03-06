@@ -32,13 +32,16 @@ namespace MedEasy.RestObjects
         };
 
         private readonly IList<FormField> _fields;
-        private string _href;
-        private string _relation;
-        private string _method;
+        private readonly Link _meta;
 
-        public FormBuilder()
+        /// <summary>
+        /// Creates a new <see cref="FormBuilder{T}"/> instance
+        /// </summary>
+        /// <param name="meta">describes where and how to send the form's data</param>
+        public FormBuilder(Link meta = null)
         {
             _fields = new List<FormField>();
+            _meta = meta;
         }
 
         /// <summary>
@@ -91,6 +94,18 @@ namespace MedEasy.RestObjects
                         {
                             field.Type = attr.Type; 
                         }
+                        if (attr.IsMinSet)
+                        {
+                            field.Min = attr.Min;
+                        }
+                        if (attr.IsMaxLengthSet)
+                        {
+                            field.MaxLength = attr.MaxLength;
+                        }
+                        if (attr.IsTypeSet)
+                        {
+                            field.Type = attr.Type;
+                        }
                     });
 
                 optionalAttributesOverride.MatchSome((attrs) => 
@@ -116,7 +131,15 @@ namespace MedEasy.RestObjects
                     {
                         field.Pattern = attrs.Pattern;
                     }
+                    if (attrs.IsMaxLengthSet)
+                    {
+                        field.MaxLength = attrs.MaxLength;
+                    }
 
+                    if (attrs.IsTypeSet)
+                    {
+                        field.Type = attrs.Type;
+                    }
                 });
 
                 
@@ -130,44 +153,7 @@ namespace MedEasy.RestObjects
             return this;
         }
 
-        /// <summary>
-        /// Sets the link where data the form contains should be sent
-        /// </summary>
-        /// <param name="href">The new link</param>
-        /// <returns></returns>
-        public FormBuilder<T> SetHref(string href)
-        {
-            _href = href;
-
-            return this;
-        }
-
-
-        /// <summary>
-        /// Defines the relation of the form
-        /// </summary>
-        /// <param name="relation"></param>
-        /// <returns></returns>
-        public FormBuilder<T> SetRelation(string relation)
-        {
-            _relation = relation;
-
-            return this;
-        }
-
-        /// <summary>
-        /// Defines the method to use when sending a <see cref="Form"/>
-        /// </summary>
-        /// <param name="method"></param>
-        /// <returns></returns>
-        public FormBuilder<T> SetMethod(string method)
-        {
-            _method = method;
-
-
-            return this;
-        }
-
+        
         /// <summary>
         /// Builds a <see cref="Form"/> instance according to the current configuration.
         /// </summary>
@@ -176,17 +162,10 @@ namespace MedEasy.RestObjects
         {
             Form form = new Form
             {
+                Meta = _meta,
                 Items = _fields,
             };
-            if (!string.IsNullOrWhiteSpace(_relation) || !string.IsNullOrWhiteSpace(_method) || !string.IsNullOrWhiteSpace(_href))
-            {
-                form.Meta = new Link
-                {
-                    Href = _href,
-                    Relation = _relation,
-                    Method = _method
-                };
-            }
+            
             return form;
         }
     }
