@@ -21,6 +21,6 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Link to navigate through the result set
         /// </summary>
-        PagedRestResponseLink Links { get; }
+        PageLinks Links { get; }
     }
 }

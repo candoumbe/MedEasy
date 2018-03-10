@@ -9,8 +9,13 @@ namespace Measures.DTO
     /// data to provide when creating a new patient resource
     /// </summary>
     [DataContract]
-    public class CreatePatientInfo : Resource<Guid>
+    public class CreatePatientInfo
     {
+        /// <summary>
+        /// Id of the resource to create
+        /// </summary>
+        public Guid? Id { get; set; }
+
         /// <summary>
         /// Patient's firstname
         /// </summary>

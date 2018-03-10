@@ -81,7 +81,7 @@ namespace Measures.API.Controllers
                             .AddField(x => x.From)
                             .AddField(x => x.To)
                             .AddField(x => x.Page)
-                            .AddField(x => x.PageSize, new FormFieldAttributes { Max = apiOptions.MaxPageSize })
+                            .AddField(x => x.PageSize, new FormFieldAttributeOverrides { Max = apiOptions.MaxPageSize })
                             .AddField(x => x.Sort)
                             .Build(),
 
@@ -108,16 +108,17 @@ namespace Measures.API.Controllers
                     Forms = new[]
                     {
                         new FormBuilder<CreatePatientInfo>(new Link { Relation = LinkRelation.CreateForm, Href = "_", Method = "POST" })
-                            .AddField(x => x.Firstname, new FormFieldAttributes { MaxLength = 255 })
-                            .AddField(x => x.Lastname, new FormFieldAttributes { MaxLength = 255 })
-                            .AddField(x => x.BirthDate, new FormFieldAttributes {Type = Date })
+                            .AddField(x => x.Id)
+                            .AddField(x => x.Firstname, new FormFieldAttributeOverrides { MaxLength = 255 })
+                            .AddField(x => x.Lastname, new FormFieldAttributeOverrides { MaxLength = 255 })
+                            .AddField(x => x.BirthDate, new FormFieldAttributeOverrides {Type = Date })
                             .Build(),
                         new FormBuilder<SearchPatientInfo>(new Link { Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = PatientsController.EndpointName, page, pageSize }), Relation = LinkRelation.Search, Method = "GET" })
                             .AddField(x => x.BirthDate)
                             .AddField(x => x.Firstname)
                             .AddField(x => x.Lastname)
                             .AddField(x => x.Page)
-                            .AddField(x => x.PageSize, new FormFieldAttributes { Max = maxPageSize })
+                            .AddField(x => x.PageSize, new FormFieldAttributeOverrides { Max = maxPageSize })
                             .AddField(x => x.Sort)
                             .Build(),
                         new FormBuilder<NewBloodPressureModel>(new Link { Relation = "create-form-bloodpressure",

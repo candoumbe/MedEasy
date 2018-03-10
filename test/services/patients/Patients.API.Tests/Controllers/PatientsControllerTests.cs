@@ -420,7 +420,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotContain(x => x.Links == null);
 
             content.Links.Should().NotBeNull();
-            PagedRestResponseLink links = content.Links;
+            PageLinks links = content.Links;
 
             links.First.Should().Match(linksExpectation.firstPageLink);
             links.Previous.Should().Match(linksExpectation.previousPageLink);

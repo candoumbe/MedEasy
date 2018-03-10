@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +77,6 @@ namespace Measures.Context
                         .HasMaxLength(_normalTextLength);
 
                     modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
-                        .ValueGeneratedOnAddOrUpdate()
                         .IsConcurrencyToken();
                 }
 
@@ -166,6 +166,8 @@ namespace Measures.Context
             return SaveChanges(acceptAllChangesOnSuccess);
         }
 
+
+
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
         /// </summary>
@@ -174,11 +176,9 @@ namespace Measures.Context
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
 
             entities
-                .AsParallel()
                 .ForEach(UpdateModifiedEntry);
 
-
-            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken)
+            return await base.SaveChangesAsync(true, cancellationToken)
                 .ConfigureAwait(false);
         }
 

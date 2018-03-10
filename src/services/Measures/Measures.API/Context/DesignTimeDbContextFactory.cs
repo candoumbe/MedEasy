@@ -24,7 +24,7 @@ namespace Measures.API.Context
                 .Build();
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
             string connectionString = configuration.GetConnectionString("Measures");
-            builder.UseSqlServer(connectionString);
+            builder.UseSqlServer(connectionString, b => b.MigrationsAssembly("Measures.Context"));
             return new MeasuresContext(builder.Options);
         }
     }

@@ -11,6 +11,7 @@ using MedEasy.CQRS.Core.Commands;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
+using MedEasy.IntegrationTests.Core;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,7 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandlePatchBloodPressureInfoCommandTests : IDisposable
+    public class HandlePatchBloodPressureInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -36,13 +37,18 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         private Mock<IMediator> _mediatorMock;
         private HandlePatchBloodPressureInfoCommand _sut;
 
-        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper)
+        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+            builder.UseSqlite(database.Connection);
+
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
+                MeasuresContext context = new MeasuresContext(options);
+                context.Database.EnsureCreated();
+                return context;
+            });
             _mapper = AutoMapperConfig.Build().CreateMapper();
             _mediatorMock = new Mock<IMediator>(Strict);
 

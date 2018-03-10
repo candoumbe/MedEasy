@@ -72,7 +72,7 @@ namespace MedEasy.RestObjects.Tests
                 yield return new object[]
                 {
                     new FormBuilder<SuperHero>()
-                        .AddField(x => x.RealName, new FormFieldAttributes { Secret = false }),
+                        .AddField(x => x.RealName, new FormFieldAttributeOverrides { Secret = false }),
                     ((Expression<Func<Form, bool>>)(form => form.Items != null && form.Items.Count() == 1
                         && form.Items.Once(field => field.Name == nameof(SuperHero.RealName)
                             && field.Type == FormFieldType.String
@@ -85,7 +85,7 @@ namespace MedEasy.RestObjects.Tests
                 yield return new object[]
                 {
                     new FormBuilder<SuperHero>()
-                        .AddField(x => x.RealName, new FormFieldAttributes { Description = "Secret identity of the hero" }),
+                        .AddField(x => x.RealName, new FormFieldAttributeOverrides { Description = "Secret identity of the hero" }),
                     ((Expression<Func<Form, bool>>)(form => form.Items != null && form.Items.Count() == 1
                         && form.Items.Once(field => field.Name == nameof(SuperHero.RealName)
                             && field.Type == FormFieldType.String

@@ -54,12 +54,12 @@ namespace MedEasy.RestObjects
         /// <param name="property"></param>
         /// <param name="attributes">Overrides field's attributes</param>
         /// <returns></returns>
-        public FormBuilder<T> AddField<TProperty>(Expression<Func<T, TProperty>> property, FormFieldAttributes attributes = null)
+        public FormBuilder<T> AddField<TProperty>(Expression<Func<T, TProperty>> property, FormFieldAttributeOverrides attributes = null)
         {
             if(property.Body is MemberExpression me)
             {
                 FormField field = new FormField { Name = me.Member.Name };
-                Option<FormFieldAttributes> optionalAttributesOverride = attributes.SomeNotNull();
+                Option<FormFieldAttributeOverrides> optionalAttributesOverride = attributes.SomeNotNull();
                 Option<FormFieldAttribute> optionalFormFieldAttribute = me.Member.GetCustomAttribute<FormFieldAttribute>()
                     .SomeNotNull();
 

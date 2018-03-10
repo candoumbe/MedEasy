@@ -3,14 +3,16 @@ using Measures.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 
 namespace Measures.API.Migrations
 {
     [DbContext(typeof(MeasuresContext))]
-    partial class MeasuresContextModelSnapshot : ModelSnapshot
+    [Migration("20180124100129_UpdatePatient_AddBirthDate")]
+    partial class UpdatePatient_AddBirthDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using FluentValidation.Results;
 using Patients.DTO;
+using Patients.Validators.Features.Patients.Queries;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;

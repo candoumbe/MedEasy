@@ -4,12 +4,13 @@ using MedEasy.DTO;
 using MedEasy.Validators.Patch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Patients.DTO;
+using Patients.Objects;
 using System;
 using System.Linq;
 using static FluentValidation.CascadeMode;
 using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
 
-namespace Patients.Validators.Patient.Commands
+namespace Patients.Validators.Features.Patients.Commands
 {
     /// <summary>
     /// Validates <see cref="PatchInfo{Guid, PatientInfo}"/> instances.

@@ -7,6 +7,7 @@ using Measures.DTO;
 using Measures.Mapping;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Optional;
@@ -21,20 +22,24 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandleGetOneBloodPressureInfoByIdQueryTests : IDisposable
+    public class HandleGetOneBloodPressureInfoByIdQueryTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetOneBloodPressureInfoByIdQuery _sut;
 
-        public HandleGetOneBloodPressureInfoByIdQueryTests(ITestOutputHelper outputHelper)
+        public HandleGetOneBloodPressureInfoByIdQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-            
+            builder.UseSqlite(database.Connection);
+
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
+                MeasuresContext context = new MeasuresContext(options);
+                context.Database.EnsureCreated();
+                return context;
+            });
             _sut = new HandleGetOneBloodPressureInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
         

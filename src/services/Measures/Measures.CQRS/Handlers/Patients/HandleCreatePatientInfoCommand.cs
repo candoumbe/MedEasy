@@ -43,17 +43,23 @@ namespace Measures.CQRS.Handlers.Patients
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
+                CreatePatientInfo newResourceInfo = cmd.Data;
+                if (newResourceInfo.Id.HasValue && newResourceInfo.Id.Value == default)
+                {
+                    throw new InvalidOperationException();
+                }
                 Expression<Func<CreatePatientInfo, Patient>> mapDtoToEntityExpression = _expressionBuilder.GetMapExpression<CreatePatientInfo, Patient>();
                 Patient entity = mapDtoToEntityExpression.Compile().Invoke(cmd.Data);
 
                 entity.Firstname = cmd.Data.Firstname?.ToTitleCase();
                 entity.Lastname = cmd.Data.Lastname.ToUpperInvariant();
-                entity.UUID = entity.UUID == default
-                    ? Guid.NewGuid()
-                    : entity.UUID;
-
+                entity.UUID = newResourceInfo.Id.GetValueOrDefault(Guid.NewGuid());
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                entity.UpdatedDate = now;
+                entity.CreatedDate = now;
+                
                 uow.Repository<Patient>().Create(entity);
-                await uow.SaveChangesAsync()
+                await uow.SaveChangesAsync(ct)
                     .ConfigureAwait(false);
 
                 Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();

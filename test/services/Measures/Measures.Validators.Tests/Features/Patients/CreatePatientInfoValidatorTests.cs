@@ -3,11 +3,17 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Patients.Validators.Features.Patients.DTO;
+using Measures.Context;
+using Measures.DTO;
+using Measures.Objects;
+using Measures.Validators.Features.Patients.DTO;
+using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,11 +23,10 @@ using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 using static Moq.Times;
 using static Newtonsoft.Json.JsonConvert;
-using Patients.DTO;
-using Patients.Objects;
 
-namespace Patients.Validators.Tests.Features.Patients
+namespace Measures.Validators.Tests.Features.Patients
 {
+
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>
@@ -29,16 +34,16 @@ namespace Patients.Validators.Tests.Features.Patients
     {
         private ITestOutputHelper _outputHelper;
         private CreatePatientInfoValidator _validator;
-        private Mock<IUnitOfWorkFactory> _uowFactoryMock;
+        private IUnitOfWorkFactory _uowFactory;
 
         public CreatePatientInfoValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
-            _uowFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
-
-            _validator = new CreatePatientInfoValidator(_uowFactoryMock.Object);
+            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
+            dbContextOptionsBuilder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
+            _validator = new CreatePatientInfoValidator(_uowFactory);
 
         }
 
@@ -46,7 +51,7 @@ namespace Patients.Validators.Tests.Features.Patients
         {
             _outputHelper = null;
             _validator = null;
-            _uowFactoryMock = null;
+            _uowFactory = null;
         }
 
         [Fact]
@@ -60,7 +65,7 @@ namespace Patients.Validators.Tests.Features.Patients
             // Act
             Action action = () => new CreatePatientInfoValidator(null);
 
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
@@ -115,6 +120,16 @@ namespace Patients.Validators.Tests.Features.Patients
                     $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
                 };
 
+                yield return new object[]
+                {
+                    new CreatePatientInfo() { Lastname = "Wayne", Firstname = "Bruce", Id = Guid.Empty },
+                    ((Expression<Func<ValidationResult, bool>>)
+                        (vr => !vr.IsValid
+                            && vr.Errors.Count == 1
+                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                    )),
+                    $"because {nameof(CreatePatientInfo.Id)} is set to {Guid.Empty}"
+                };
 
             }
         }
@@ -126,10 +141,6 @@ namespace Patients.Validators.Tests.Features.Patients
             string because = "")
         {
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
-
-            // Arrange
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns(new ValueTask<bool>(false));
 
             // Act
             ValidationResult vr = await _validator.ValidateAsync(info);
@@ -143,17 +154,19 @@ namespace Patients.Validators.Tests.Features.Patients
         public async Task Should_Fails_When_Id_AlreadyExists()
         {
             // Arrange
-            _uowFactoryMock.Setup(mock =>
-                        mock.NewUnitOfWork().Repository<Patient>()
-                        .AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns(new ValueTask<bool>(true));
-
+            Guid patientId = Guid.NewGuid();
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                uow.Repository<Patient>().Create(new Patient { Lastname = "Grundy", UUID = patientId });
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
 
             CreatePatientInfo info = new CreatePatientInfo
             {
                 Firstname = "Bruce",
                 Lastname = "Wayne",
-                Id = Guid.NewGuid()
+                Id = patientId
             };
 
             // Act
@@ -164,12 +177,11 @@ namespace Patients.Validators.Tests.Features.Patients
             vr.Errors.Should()
                 .HaveCount(1).And
                 .Contain(x => x.PropertyName == nameof(CreatePatientInfo.Id));
-
-            _uowFactoryMock.Verify(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()), Once);
-
         }
 
 
 
     }
+
 }
+

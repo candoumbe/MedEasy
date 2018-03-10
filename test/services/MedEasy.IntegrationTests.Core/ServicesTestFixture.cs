@@ -11,10 +11,7 @@ namespace MedEasy.IntegrationTests.Core
     /// <typeparam name="TStartup">Target project's startup type</typeparam>
     public class ServicesTestFixture<TStartup> : BaseTestFixture<TStartup> where TStartup : class
     {
-        public void Initialize(string csprojPath, IHostingEnvironment environment, IConfiguration configuration, Action<IServiceCollection> configureServices)
-        {
-
-        }
+        
     }
 
 }

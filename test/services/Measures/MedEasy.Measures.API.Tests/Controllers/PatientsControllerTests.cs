@@ -549,7 +549,7 @@ namespace Measures.API.Tests
 
             content.Links.Should()
                 .NotBeNull();
-            PagedRestResponseLink links = content.Links;
+            PageLinks links = content.Links;
 
             links.First.Should().Match(linksExpectation.firstPageLink);
             links.Previous.Should().Match(linksExpectation.previousPageLink);
@@ -1059,5 +1059,6 @@ namespace Measures.API.Tests
                 .Be("GET");
 
         }
+
     }
 }

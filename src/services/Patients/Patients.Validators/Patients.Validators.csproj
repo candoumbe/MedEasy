@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Search\SearchPatientInfoValidator.cs" />
+    <None Include="Features\Patients\Queries\SearchPatientInfoValidator.cs" />
   </ItemGroup>
 
   <ItemGroup>

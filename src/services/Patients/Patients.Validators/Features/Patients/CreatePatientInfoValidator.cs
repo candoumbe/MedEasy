@@ -5,7 +5,7 @@ using System;
 using static FluentValidation.CascadeMode;
 using static FluentValidation.Severity;
 
-namespace Patients.Validators.Patient.DTO
+namespace Patients.Validators.Features.Patients.DTO
 {
     /// <summary>
     /// Validates <see cref="CreatePatientInfo"/> instances.

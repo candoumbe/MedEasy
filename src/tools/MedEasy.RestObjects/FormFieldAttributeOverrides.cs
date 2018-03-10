@@ -9,7 +9,7 @@ namespace MedEasy.RestObjects
     /// <summary>
     /// Attributes of a <see cref="FormField"/>
     /// </summary>
-    public class FormFieldAttributes
+    public class FormFieldAttributeOverrides
     {
         private string _description;
         private int _maxLength;

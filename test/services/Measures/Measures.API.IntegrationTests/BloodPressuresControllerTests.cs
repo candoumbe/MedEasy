@@ -80,15 +80,15 @@ namespace Measures.API.IntegrationTests
                         Type = JSchemaType.Object,
                         Properties =
                         {
-                            [nameof(PagedRestResponseLink.First).ToLower()] = _pageLink,
-                            [nameof(PagedRestResponseLink.Previous).ToLower()] = _pageLink,
-                            [nameof(PagedRestResponseLink.Next).ToLower()] = _pageLink,
-                            [nameof(PagedRestResponseLink.Last).ToLower()] = _pageLink
+                            [nameof(PageLinks.First).ToLower()] = _pageLink,
+                            [nameof(PageLinks.Previous).ToLower()] = _pageLink,
+                            [nameof(PageLinks.Next).ToLower()] = _pageLink,
+                            [nameof(PageLinks.Last).ToLower()] = _pageLink
                         },
                         Required =
                         {
-                            nameof(PagedRestResponseLink.First).ToLower(),
-                            nameof(PagedRestResponseLink.Last).ToLower()
+                            nameof(PageLinks.First).ToLower(),
+                            nameof(PageLinks.Last).ToLower()
                         }
                     }
                 },

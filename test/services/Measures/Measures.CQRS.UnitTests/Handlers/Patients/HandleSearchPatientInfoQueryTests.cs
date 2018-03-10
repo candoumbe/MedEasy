@@ -13,6 +13,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
+using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
@@ -31,7 +32,7 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleSearchPatientInfoQueryTests : IDisposable
+    public class HandleSearchPatientInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -39,15 +40,18 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         private HandleSearchPatientInfosQuery _sut;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         
-        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper)
+        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> dbOptions = new DbContextOptionsBuilder<MeasuresContext>();
-            string dbName = $"InMemoryMedEasyDb_{Guid.NewGuid()}";
-            dbOptions.UseInMemoryDatabase(dbName);
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbOptions.Options, (options) => new MeasuresContext(options));
+            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+            builder.UseSqlite(database.Connection);
 
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
+                MeasuresContext context = new MeasuresContext(options);
+                context.Database.EnsureCreated();
+                return context;
+            });
 
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
             

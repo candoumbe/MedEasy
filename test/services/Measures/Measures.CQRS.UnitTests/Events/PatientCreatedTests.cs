@@ -18,14 +18,9 @@ namespace MedEasy.CQRS.Core.UnitTests.Events
         {
             _outputHelper = outputHelper;
         }
-       
-        [Fact]
-        public void Is_Notification()
-        {
-            PatientCreated @event = new PatientCreated(patientId: Guid.NewGuid(), firstname: "Bruce", lastname: "Wayne", dateOfBirth: 3.July(1967));
 
-            @event.Should()
+        [Fact]
+        public void Is_Notification() => typeof(PatientCreated).Should()
                 .BeAssignableTo<INotification>();
-        }
     }
 }

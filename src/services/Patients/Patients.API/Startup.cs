@@ -17,7 +17,7 @@ using Patients.API.StartupRegistration;
 using FluentValidation.AspNetCore;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using Patients.Validators.Patient.DTO;
+using Patients.Validators.Features.Patients.DTO;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IO;
 using Patients.API.Routing;

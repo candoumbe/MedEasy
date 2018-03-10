@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Patients.DTO;
-using Patients.Validators.Patient.DTO;
+using Patients.Validators.Features.Patients.DTO;
 
 namespace Patients.API.StartupRegistration
 {

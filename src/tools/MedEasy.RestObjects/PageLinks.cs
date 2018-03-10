@@ -3,29 +3,29 @@ namespace MedEasy.RestObjects
     /// <summary>
     /// Holds links in a <see cref="GenericPagedGetResponse{T}"/>
     /// </summary>
-    public class PagedRestResponseLink
+    public class PageLinks
     {
         /// <summary>
-        /// Builds a new <see cref="PagedRestResponseLink"/> instance
+        /// Builds a new <see cref="PageLinks"/> instance
         /// </summary>
         /// <param name="first">link to the first page</param>
         /// <param name="previous">link to the next page</param>
         /// <param name="next">link to the previous page</param>
         /// <param name="last">link to the last page</param>
-        public PagedRestResponseLink(string first, string previous, string next, string last)
+        public PageLinks(string first, string previous, string next, string last)
         {
             First = first != null 
-                ? new Link { Href = first, Relation = "first"  } 
+                ? new Link { Href = first, Relation = LinkRelation.First  } 
                 : null;
             Next = next != null
-                ? new Link { Href = next, Relation = "next" }
+                ? new Link { Href = next, Relation = LinkRelation.Next }
                 : null;
             Last = last != null
-                ? new Link { Href = last, Relation = "last" }
+                ? new Link { Href = last, Relation = LinkRelation.Last }
                 : null;
             ;
             Previous = previous != null
-                ? new Link { Href = previous, Relation = "previous" }
+                ? new Link { Href = previous, Relation = LinkRelation.Previous }
                 : null;
             ;
         }

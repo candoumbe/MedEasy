@@ -49,6 +49,7 @@ namespace Measures.API
         /// </summary>
         public IHostingEnvironment HostingEnvironment { get; }
 
+
         /// <summary>
         /// Builds a new <see cref="Startup"/> instance.
         /// </summary>
@@ -123,7 +124,7 @@ namespace Measures.API
                 }
                 else
                 {
-                    builder.UseSqlServer(Configuration.GetConnectionString("Measures"));
+                    builder.UseSqlServer(Configuration.GetConnectionString("Measures"), b => b.MigrationsAssembly("Measures.API"));
                 }
                 builder.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
                 builder.ConfigureWarnings(options =>
@@ -198,9 +199,15 @@ namespace Measures.API
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="loggerFactory"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        /// <param name="applicationLifetime"></param>
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseHttpMethodOverride();
+            applicationLifetime.ApplicationStopping.Register(() =>
+            {
+
+            });
+
             if (env.IsProduction() || env.IsStaging())
             {
                 app.UseResponseCaching();
@@ -235,6 +242,8 @@ namespace Measures.API
                 routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "measures/{controller}/{id}/{action}/");
                 routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "measures/{controller}/search/");
             });
+
+
         }
     }
 }

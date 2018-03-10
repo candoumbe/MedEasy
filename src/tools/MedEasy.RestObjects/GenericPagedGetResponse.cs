@@ -15,7 +15,7 @@ namespace MedEasy.RestObjects
         /// Links that helps navigated through pages of the result
         /// </summary>
         [JsonProperty(Required = Required.Always)]
-        public PagedRestResponseLink Links { get; }
+        public PageLinks Links { get; }
 
         /// <summary>
         /// Builds a new <see cref="GenericPagedGetResponse{T}"/> instance. 
@@ -29,7 +29,7 @@ namespace MedEasy.RestObjects
         public GenericPagedGetResponse(IEnumerable<T> items, string first = null, string previous = null, string next = null, string last = null, int count = 0)
         {
             Items = items;
-            Links = new PagedRestResponseLink(first, previous, next, last);
+            Links = new PageLinks(first, previous, next, last);
             Count = count;
         }
         /// <summary>
