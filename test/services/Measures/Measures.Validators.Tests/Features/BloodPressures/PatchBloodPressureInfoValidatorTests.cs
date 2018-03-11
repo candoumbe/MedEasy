@@ -17,7 +17,7 @@ using static System.StringComparison;
 using Measures.Validators.Commands.BloodPressures;
 using Xunit.Categories;
 
-namespace Measures.Validators.Tests.BloodPressures
+namespace Measures.Validators.Tests.Features.BloodPressures
 {
     [UnitTest]
     public class PatchBloodPressureInfoValidatorTests : IDisposable

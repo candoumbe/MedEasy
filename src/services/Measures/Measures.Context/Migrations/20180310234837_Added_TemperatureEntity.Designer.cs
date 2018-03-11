@@ -12,9 +12,10 @@ using System;
 namespace Measures.API.Migrations
 {
     [DbContext(typeof(MeasuresContext))]
-    partial class MeasuresContextModelSnapshot : ModelSnapshot
+    [Migration("20180310234837_Added_TemperatureEntity")]
+    partial class Added_TemperatureEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

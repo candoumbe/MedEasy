@@ -2,32 +2,33 @@
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 
 namespace Measures.DTO
 {
     /// <summary>
     /// Informations on a patient
     /// </summary>
-    [JsonObject]
+    [DataContract]
     public class PatientInfo : Resource<Guid>
     {
         /// <summary>
         /// Patient's firstname
         /// </summary>
-        [JsonProperty(PropertyName = nameof(Firstname))]
+        [DataMember(Name = nameof(Firstname))]
         [Required]
-        [StringLength(255)]
+        [StringLength(100)]
         public string Firstname { get; set; }
 
         /// <summary>
         /// Patient's lastname
         /// </summary>
-        [JsonProperty(PropertyName = nameof(Lastname))]
+        [DataMember(Name = nameof(Lastname))]
         [Required]
-        [StringLength(255)]
+        [StringLength(100)]
         public string Lastname { get; set; }
 
-        [JsonProperty(PropertyName = nameof(Fullname))]
+        [DataMember(Name = nameof(Fullname))]
         public string Fullname { get; set; }
 
         /// <summary>

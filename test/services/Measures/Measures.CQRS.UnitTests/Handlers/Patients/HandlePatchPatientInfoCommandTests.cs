@@ -1,0 +1,157 @@
+﻿using AutoMapper;
+using FluentAssertions;
+using Measures.Context;
+using Measures.CQRS.Events;
+using Measures.CQRS.Handlers.Patients;
+using Measures.DTO;
+using Measures.Mapping;
+using Measures.Objects;
+using MedEasy.CQRS.Core.Commands;
+using MedEasy.DAL.Context;
+using MedEasy.DAL.Interfaces;
+using MedEasy.DTO;
+using MedEasy.IntegrationTests.Core;
+using MediatR;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+using Xunit.Categories;
+using static Moq.MockBehavior;
+
+namespace Measures.CQRS.UnitTests.Handlers.Patients
+{
+    [UnitTest]
+    public class HandlePatchPatientInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    {
+        private readonly ITestOutputHelper _outputHelper;
+        private IUnitOfWorkFactory _uowFactory;
+        private IMapper _mapper;
+        private Mock<IMediator> _mediatorMock;
+        private HandlePatchPatientInfoCommand _sut;
+
+        public HandlePatchPatientInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        {
+            _outputHelper = outputHelper;
+
+            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+            builder.UseSqlite(database.Connection);
+
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) =>
+            {
+                MeasuresContext context = new MeasuresContext(options);
+                context.Database.EnsureCreated();
+                return context;
+            });
+            _mapper = AutoMapperConfig.Build().CreateMapper();
+            _mediatorMock = new Mock<IMediator>(Strict);
+
+            _sut = new HandlePatchPatientInfoCommand(_uowFactory, _mapper, _mediatorMock.Object);
+        }
+
+        public void Dispose()
+        {
+            _uowFactory = null;
+            _mapper = null;
+            _sut = null;
+            _mediatorMock = null;
+        }
+
+
+        public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
+        {
+            get
+            {
+                IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
+                IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
+                IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
+
+                IEnumerable<object[]> cases = uowFactorieCases
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
+                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator })
+                    .Where(tuple => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
+                    .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
+
+                return cases;
+            }
+        }
+
+
+        [Theory]
+        [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
+        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IMediator mediator)
+        {
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {(mapper == null)}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            // Act
+#pragma warning disable IDE0039 // Utiliser une fonction locale
+            Action action = () => new HandlePatchPatientInfoCommand(unitOfWorkFactory, mapper, mediator);
+#pragma warning restore IDE0039 // Utiliser une fonction locale
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentNullException>().Which
+                .ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
+        }
+
+        [Fact]
+        public async Task PatchPatient()
+        {
+            // Arrange
+            Guid idToPatch = Guid.NewGuid();
+            Patient entity = new Patient
+            {
+                Firstname = "victor",
+                Lastname = "zsasz",
+                UUID = idToPatch
+            };
+
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                uow.Repository<Patient>().Create(entity);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+            patchDocument.Replace(x => x.Lastname, "Darkseid");
+
+            PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
+            {
+                Id = idToPatch,
+                PatchDocument = patchDocument
+            };
+            PatchCommand<Guid, PatientInfo> cmd = new PatchCommand<Guid, PatientInfo>(patchInfo);
+
+            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _sut.Handle(cmd, default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientUpdated>(), default), Times.Once, $"{nameof(HandlePatchPatientInfoCommand)} must notify suscribers that a resource was patched.");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                Patient actualMeasure = await uow.Repository<Patient>()
+                     .SingleAsync(x => x.UUID == idToPatch)
+                     .ConfigureAwait(false);
+
+                actualMeasure.Lastname.Should().Be("Darkseid");
+            }
+        }
+    }
+}

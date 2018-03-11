@@ -19,7 +19,7 @@ using System.Linq;
 using Measures.Validators.Commands.BloodPressures;
 using Xunit.Categories;
 
-namespace Measures.Validators.Tests.BloodPressures
+namespace Measures.Validators.Tests.Features.BloodPressures
 {
     [UnitTest]
     [Feature("Validation")]

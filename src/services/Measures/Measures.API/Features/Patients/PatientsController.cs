@@ -6,13 +6,16 @@ using Measures.CQRS.Queries.BloodPressures;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using MedEasy.Core.Attributes;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
+using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Optional;
@@ -516,6 +519,50 @@ namespace Measures.API.Controllers
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { resource.Id }, browsableResource);
+        }
+
+
+        /// <summary>
+        /// Partially updates a resource with the specified id
+        /// </summary>
+        /// <param name="id">id of the resource to patch</param>
+        /// <param name="changes">modifications to perform. Will be applied atomically.</param>
+        /// <param name="ct">Notification to cancel the execution of the request</param>
+        /// <returns></returns>
+        /// <reponse code="204">the resource was updated successfully</reponse>
+        /// <reponse code="404">the resource was not found</reponse>
+        /// <reponse code="400"><paramref name="id"/> or <paramref name="changes"/> are not valid</reponse>
+        [HttpPatch("{id}")]
+        [ProducesResponseType(Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        public async Task<IActionResult> Patch([RequireNonDefault]Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken ct = default)
+        {
+            PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
+            {
+                Id = id,
+                PatchDocument = changes
+            };
+            PatchCommand<Guid, PatientInfo> cmd = new PatchCommand<Guid, PatientInfo>(patchInfo);
+
+            ModifyCommandResult result = await _mediator.Send(cmd, ct)
+                .ConfigureAwait(false);
+            IActionResult actionResult = null;
+            switch (result)
+            {
+                case ModifyCommandResult.Done:
+                    actionResult = new NoContentResult();
+                    break;
+                case ModifyCommandResult.Failed_Unauthorized:
+                    break;
+                case ModifyCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                case ModifyCommandResult.Failed_Conflict:
+                    break;
+                default:
+                    break;
+            }
+            return actionResult;
         }
     }
 }

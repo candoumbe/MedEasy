@@ -43,6 +43,8 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using MedEasy.CQRS.Core.Commands;
+
 namespace Measures.API.Tests
 {
     [Feature("Patients")]
@@ -1057,6 +1059,47 @@ namespace Measures.API.Tests
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&patientId={resource.Id}");
             linkToSelf.Method.Should()
                 .Be("GET");
+
+        }
+
+
+        [Fact]
+        public async Task Patch_UnknownEntity_Returns_NotFound()
+        {
+            JsonPatchDocument<PatientInfo> changes = new JsonPatchDocument<PatientInfo>();
+            changes.Replace(x => x.Lastname, string.Empty);
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ModifyCommandResult.Failed_NotFound);
+
+            // Act
+            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+                .ConfigureAwait(false);
+
+            // Assert
+            actionResult.Should()
+                .BeAssignableTo<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task Patch_Valid_Resource_Returns_NoContentResult()
+        {
+            // Arrange
+            JsonPatchDocument<PatientInfo> changes = new JsonPatchDocument<PatientInfo>();
+            changes.Replace(x => x.Lastname, string.Empty);
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ModifyCommandResult.Done);
+
+            // Act
+            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PatchCommand<Guid, PatientInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<NoContentResult>();
 
         }
 

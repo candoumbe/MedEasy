@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 using static FluentValidation.Severity;
 using static Newtonsoft.Json.JsonConvert;
 
-namespace Measures.Validators.Tests.Queries.BloodPressures
+namespace Measures.Validators.Tests.Features.Queries.BloodPressures
 {
     public class SearchBloodPressureInfoValidatorTests : IDisposable
     {
