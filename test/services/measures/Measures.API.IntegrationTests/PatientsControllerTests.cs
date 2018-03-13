@@ -7,6 +7,7 @@ using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -271,7 +273,9 @@ namespace Measures.API.IntegrationTests
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
-            string patientId = JToken.Parse(json)["resource"]["id"].ToString();
+            _outputHelper.WriteLine($"created resource : {json}");
+
+            string patientId = JToken.Parse(json)[nameof(BrowsableResource<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
 
             NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
             {
@@ -408,7 +412,46 @@ namespace Measures.API.IntegrationTests
 
         }
 
+        [Fact]
+        public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
+        {
+            // Arrange
+            CreatePatientInfo newPatient = new CreatePatientInfo
+            {
+                Firstname = "Victor",
+                Lastname = "Freeze"
+            };
+            RequestBuilder requestBuilder = new RequestBuilder(_server, "/measures/patients")
+                .AddHeader("Accept", "application/json")
+                .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
+
+            HttpResponseMessage response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+            _outputHelper.WriteLine($"json : {json}");
+            IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(BrowsableResource<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
+            IEnumerable<Link> linksToGetData = patientLinks.Where(x => IsGet(x.Method));
+
+            foreach (Link link in linksToGetData)
+            {
+                requestBuilder = new RequestBuilder(_server, link.Href)
+                    .AddHeader("Accept", "application/json");
+
+                // Act
+                response = await requestBuilder.SendAsync(Head)
+                    .ConfigureAwait(false);
 
 
+                // Assert
+                _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");
+            }
+
+        }
     }
 }
