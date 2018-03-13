@@ -1000,6 +1000,8 @@ namespace Measures.API.Tests
                 Lastname = "Grundy"
             };
 
+            MeasuresApiOptions apiOptions = new MeasuresApiOptions { DefaultPageSize = 25, MaxPageSize = 10 };
+            _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreatePatientInfoCommand cmd, CancellationToken ct) =>
                 {
@@ -1019,7 +1021,7 @@ namespace Measures.API.Tests
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()), Times.Once);
-
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
             CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
                 .BeAssignableTo<CreatedAtRouteResult>().Which;
 
@@ -1056,7 +1058,7 @@ namespace Measures.API.Tests
 
             Link linkToBloodPressures = links.Single(link => link.Relation == "bloodpressures");
             linkToBloodPressures.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&patientId={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={apiOptions.DefaultPageSize}&patientId={resource.Id}");
             linkToSelf.Method.Should()
                 .Be("GET");
 

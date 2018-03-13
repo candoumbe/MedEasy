@@ -23,5 +23,8 @@ namespace Measures.DTO
         /// </summary>
         [FormField(Description = "Maximum date of measure")]
         public DateTime? To { get; set; }
+
+        [FormField(Description = "Id of the patient")]
+        public Guid? PatientId { get; set; }
     }
 }

@@ -29,15 +29,17 @@ namespace Measures.Validators.Queries.BloodPressures
 
             RuleFor(x => x.From)
                 .NotNull()
-                .Unless(x => x.To != default || x.Sort != default);
+                .Unless(x => x.To != default || x.Sort != default || x.PatientId != default);
 
             RuleFor(x => x.To)
                 .NotNull()
-                .Unless(x => x.From != default || x.Sort != default);
+                .Unless(x => x.From != default || x.Sort != default || x.PatientId != default);
+
+
 
             RuleFor(x => x.Sort)
                 .NotEmpty()
-                .Unless(x => x.From.HasValue || x.To.HasValue);
+                .Unless(x => x.From.HasValue || x.To.HasValue || x.PatientId != default);
 
 
             When(

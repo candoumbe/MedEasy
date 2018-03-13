@@ -78,6 +78,7 @@ namespace Measures.Context
 
                     modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
                         .IsConcurrencyToken();
+
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
@@ -87,6 +88,9 @@ namespace Measures.Context
                     modelBuilder.Entity(entity.Name)
                         .HasIndex(nameof(IEntity<int>.UUID))
                         .IsUnique();
+
+                    modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
+                       .ValueGeneratedOnAdd();
                 }
 
             }
@@ -95,9 +99,6 @@ namespace Measures.Context
             modelBuilder.Entity<PhysiologicalMeasurement>(entity =>
             {
                 entity.HasKey(x => x.Id);
-                entity.Property(x => x.Id)
-                    .UseSqlServerIdentityColumn()
-                    .IsRequired();
                 entity.HasOne(x => x.Patient);
             });
 

@@ -12,12 +12,14 @@ using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.DTO.Search;
+using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
@@ -47,11 +49,11 @@ namespace Measures.API.Tests.Controllers
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable
+    public class BloodPressuresControllerTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
 
-        private IUnitOfWorkFactory _unitOfWorkFactory;
+        private IUnitOfWorkFactory _uowFactory;
         private static readonly MeasuresApiOptions _apiOptions = new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
         private Mock<IUrlHelper> _urlHelperMock;
@@ -60,10 +62,9 @@ namespace Measures.API.Tests.Controllers
         private const string _baseUrl = "http://host/api";
 
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, DatabaseFixture database)
         {
             _outputHelper = outputHelper;
-
 
             _urlHelperMock = new Mock<IUrlHelper>(Strict);
             _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
@@ -72,11 +73,15 @@ namespace Measures.API.Tests.Controllers
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
-            string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-            dbContextOptionsBuilder.UseInMemoryDatabase(dbName);
-
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
+            dbContextOptionsBuilder.UseSqlite(database.Connection)
+                .EnableSensitiveDataLogging();
             
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => {
+                MeasuresContext context = new MeasuresContext(options);
+                context.Database.EnsureCreated();
+                return context;
+            });
+
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _controller = new BloodPressuresController(_urlHelperMock.Object, _apiOptionsMock.Object, _mediatorMock.Object);
@@ -85,7 +90,7 @@ namespace Measures.API.Tests.Controllers
         public void Dispose()
         {
             _outputHelper = null;
-            _unitOfWorkFactory = null;
+            _uowFactory = null;
             _urlHelperMock = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
@@ -273,6 +278,10 @@ namespace Measures.API.Tests.Controllers
                         x.DateOfMeasure = 26.January(2001);
                         x.Id = (pos + 1);
                         x.UUID = Guid.NewGuid();
+                        x.Patient = new Patient
+                        {
+                            UUID = Guid.NewGuid()
+                        };
                     });
 
 
@@ -310,12 +319,11 @@ namespace Measures.API.Tests.Controllers
                     new [] {
                         new BloodPressure
                         {
-                            Id = 1,
                             UUID = Guid.NewGuid(),
                             SystolicPressure = 120,
                             DiastolicPressure = 80,
-                            DateOfMeasure = 23.June(2012)
-                                .Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0))
+                            DateOfMeasure = 23.June(2012).Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0)),
+                            Patient = new Patient { UUID = Guid.NewGuid() }
                         }
                     },
                     new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
@@ -333,6 +341,40 @@ namespace Measures.API.Tests.Controllers
                         )
                     )
                 };
+
+                {
+                    Guid patientId = Guid.NewGuid();
+                    yield return new object[]
+                    {
+                        new [] {
+                            new BloodPressure
+                            {
+                                UUID = Guid.NewGuid(),
+                                SystolicPressure = 120,
+                                DiastolicPressure = 80,
+                                DateOfMeasure = 23.June(2012).Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0)),
+                                Patient = new Patient
+                                {
+                                    UUID = patientId
+                                }
+                            }
+                        },
+                        new SearchBloodPressureInfo { PatientId = patientId }, // request
+                        (maxPageSize : 200, pageSize : 30),
+                        (
+                            count : 1,
+                            items :
+                              ((Expression<Func<IEnumerable<BrowsableResource<BloodPressureInfo>>, bool>>)(resources =>
+                                resources.Count() == 1 && resources.All(x => x.Resource.PatientId == patientId))),
+                            links : (
+                                firstPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patientId}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                                previousPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
+                                nextPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
+                                lastPageUrlExpectation : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patientId}".Equals(x.Href, OrdinalIgnoreCase))) // expected link to last page
+                            )
+                        )
+                    };
+                }
             }
         }
 
@@ -357,8 +399,12 @@ namespace Measures.API.Tests.Controllers
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
+                uow.Repository<BloodPressure>().Delete(x => true);
+                uow.Repository<Patient>().Delete(x => true);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
                 uow.Repository<BloodPressure>().Create(items);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -368,27 +414,10 @@ namespace Measures.API.Tests.Controllers
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = apiOptions.defaultPageSize, MaxPageSize = apiOptions.maxPageSize });
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (SearchQuery<BloodPressureInfo> query, CancellationToken cancellationToken) =>
+                .Returns(async (SearchQuery<BloodPressureInfo> query, CancellationToken ct) =>
                 {
-                    SearchQueryInfo<BloodPressureInfo> search = query.Data;
-                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-                    {
-                        Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
-                        Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                        Page<BloodPressureInfo> resources = await uow.Repository<BloodPressure>()
-                            .WhereAsync(
-                                selector,
-                                filter,
-                                search.Sorts.Select(sort => OrderClause<BloodPressureInfo>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
-                                    ? MedEasy.DAL.Repositories.SortDirection.Ascending
-                                    : MedEasy.DAL.Repositories.SortDirection.Descending)),
-                                search.PageSize,
-                                search.Page,
-                                cancellationToken)
-                            .ConfigureAwait(false);
-
-                        return resources;
-                    }
+                    return await new HandleSearchQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder)
+                        .Search<BloodPressure, BloodPressureInfo>(query, ct);
                 });
 
             // Act
@@ -452,7 +481,8 @@ namespace Measures.API.Tests.Controllers
                             {
                                 UUID = Guid.NewGuid(),
                                 DiastolicPressure = 80,
-                                SystolicPressure = 120
+                                SystolicPressure = 120,
+                                Patient = new Patient { UUID = Guid.NewGuid() }
                             }
                         },
                         "page index is not 1 and there's no result for the search query"
@@ -470,7 +500,7 @@ namespace Measures.API.Tests.Controllers
             IEnumerable<BloodPressure> measures, string reason)
         {
             // Arrange
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(measures);
                 await uow.SaveChangesAsync()
@@ -481,7 +511,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
                 .Returns(async (SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         SearchQueryInfo<BloodPressureInfo> search = request.Data;
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
@@ -540,7 +570,7 @@ namespace Measures.API.Tests.Controllers
         {
             // Arrange
             Guid measureId = Guid.NewGuid();
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<BloodPressure>().Create(new BloodPressure
                 {
@@ -562,7 +592,7 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetBloodPressureInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetBloodPressureInfoByIdQuery query, CancellationToken cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                         Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()

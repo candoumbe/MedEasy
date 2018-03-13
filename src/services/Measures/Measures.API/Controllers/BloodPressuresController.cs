@@ -317,6 +317,7 @@ namespace Measures.API.Controllers
         /// <response code="400">one the search criteria is not valid</response>
         /// <response code="404">requested page is out of result bound</response>
         [HttpGet("[action]")]
+        [HttpHead("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
@@ -344,6 +345,11 @@ namespace Measures.API.Controllers
                         new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value)
                     }
                 });
+            }
+
+            if (search.PatientId.HasValue)
+            {
+                filters.Add(new DataFilter(field: nameof(BloodPressureInfo.PatientId), @operator: EqualTo, value: search.PatientId.Value));
             }
 
             SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
@@ -380,15 +386,16 @@ namespace Measures.API.Controllers
                 int count = pageOfResult.Entries.Count();
                 bool hasPreviousPage = count > 0 && search.Page > 1;
 
-                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort });
+                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, 
+                    new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort, search.PatientId });
                 string previousPageUrl = hasPreviousPage
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort })
+                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort })
+                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
 
-                string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort });
+                string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
 
                 IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
                     .Select(
@@ -397,12 +404,12 @@ namespace Measures.API.Controllers
                             Resource = x,
                             Links = new[]
                             {
-                            new Link
-                            {
-                                Relation = LinkRelation.Self,
-                                Method = "GET",
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
-                            }
+                                new Link
+                                {
+                                    Relation = LinkRelation.Self,
+                                    Method = "GET",
+                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
+                                }
                             }
                         });
 

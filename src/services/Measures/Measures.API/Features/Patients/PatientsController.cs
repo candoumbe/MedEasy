@@ -513,7 +513,7 @@ namespace Measures.API.Controllers
                 Links = new[]
                 {
                     new Link { Relation = LinkRelation.Self, Method = "GET", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {resource.Id}) },
-                    new Link { Relation = "bloodpressures", Method = "GET", Href = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = BloodPressuresController.EndpointName, patientId = resource.Id}) }
+                    new Link { Relation = "bloodpressures", Method = "GET", Href = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = BloodPressuresController.EndpointName, patientId = resource.Id, page = 1, pageSize = ApiOptions.Value.DefaultPageSize }) }
                 }
 
             };

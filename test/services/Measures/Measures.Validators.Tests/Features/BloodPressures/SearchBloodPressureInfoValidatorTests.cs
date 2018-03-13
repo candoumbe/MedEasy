@@ -85,7 +85,6 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                         )
                     )),
                     $"{nameof(SearchBloodPressureInfo.Sort)} is set with a value that doesn't contain any of {nameof(BloodPressureInfo)} properties"
-
                 };
 
                 yield return new object[]
@@ -125,6 +124,13 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                             && err.Severity == Error )
                     )),
                     $"{nameof(SearchBloodPressureInfo.From)} value cannot be greater than {nameof(SearchBloodPressureInfo.To)} value."
+                };
+
+                yield return new object[]
+                {
+                    new SearchBloodPressureInfo { PatientId = Guid.NewGuid() },
+                    ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid )),
+                    $"{nameof(SearchBloodPressureInfo.PatientId)} is set."
                 };
             }
         }

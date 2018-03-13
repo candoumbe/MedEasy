@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Objects\Measures.Objects.csproj" />
     <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\..\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>
 
 </Project>

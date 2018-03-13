@@ -17,11 +17,17 @@ namespace MedEasy.Core.UnitTests.Attributes
         private readonly ITestOutputHelper _outputHelper;
         private RequireNonDefaultAttribute _sut;
 
-        [RequireNonDefault]
-        public class Minion
+
+        public class Person
         {
             public string Name { get; set; }
 
+        }
+
+        [RequireNonDefault]
+        public class Minion : Person
+        {
+            
             public int? EyesCount { get; set; }
         }
 
@@ -35,16 +41,14 @@ namespace MedEasy.Core.UnitTests.Attributes
 
 
         [Fact]
-        public void IsProperlySet()
-        {
+        public void IsProperlySet() =>
             // Assert
             typeof(RequireNonDefaultAttribute).Should()
                 .BeAssignableTo<ValidationAttribute>().And
                 .BeDecoratedWith<AttributeUsageAttribute>(attr =>
-                    !attr.AllowMultiple 
-                    && attr.ValidOn == (AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Class) 
+                    !attr.AllowMultiple
+                    && attr.ValidOn == (AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Class)
                     && !attr.Inherited);
-        }
 
 
         public static IEnumerable<object[]> ValidateCases
@@ -62,6 +66,7 @@ namespace MedEasy.Core.UnitTests.Attributes
                 yield return new object[] { default(Minion), false, $"default({nameof(Minion)}) must not be valid" };
                 yield return new object[] { new Minion(), false, $"instance of <{nameof(Minion)}> created with default constructor must not be valid" };
                 yield return new object[] { new Minion { EyesCount = 2 }, true, $"instance of <{nameof(Minion)}> with one property set must be valid" };
+                yield return new object[] { new Minion { Name = "Kevin" }, true, $"instance of <{nameof(Minion)}> with one property set must be valid" };
 
             }
         }
