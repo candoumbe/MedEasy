@@ -466,7 +466,7 @@ namespace Measures.API.Controllers
                     return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = BloodPressuresController.EndpointName, resource.Id }, browsableResource);
                 },
                 none: (createResult) =>
-               {
+                {
                    IActionResult actionResult;
                    switch (createResult)
                    {
@@ -484,7 +484,7 @@ namespace Measures.API.Controllers
                    }
 
                    return actionResult;
-               }
+                }
             );
 
 

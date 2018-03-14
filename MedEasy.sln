@@ -61,7 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Measures", "Measures", "{28
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.API.Tests", "test\services\Measures\MedEasy.Measures.API.Tests\Measures.API.Tests.csproj", "{ECFC3942-4089-4615-867B-AB410D57E9E5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appointments", "Appointments", "{A6E3B758-2367-44CF-ACE1-FAD78F9FB3FC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agenda", "agenda", "{A6E3B758-2367-44CF-ACE1-FAD78F9FB3FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Appointments.API", "src\services\Appointments.API\Appointments.API.csproj", "{AF4E5049-7054-4740-AAD0-8813BC621F16}"
 EndProject
@@ -122,6 +122,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.CQRS.Core.UnitTests", "test\tools\MedEasy.CQRS.Core.UnitTests\MedEasy.CQRS.Core.UnitTests.csproj", "{5063B24B-D5F8-490D-8866-EDCE672E13D7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.CQRS.UnitTests", "test\services\Measures\Measures.CQRS.UnitTests\Measures.CQRS.UnitTests.csproj", "{8AF637E0-2C6F-46B7-A0C7-E8DD16E62FE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agenda", "agenda", "{FE6469AD-BAB7-426B-BB1B-FBA864B997F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1138,6 +1140,7 @@ Global
 		{61B02541-ACCE-4557-B9F0-F64DF03F03DB} = {28674543-8AA9-4B1A-B940-2ADAAFF5FD2B}
 		{5063B24B-D5F8-490D-8866-EDCE672E13D7} = {6C7B66AE-623D-49BC-9243-38408233FE85}
 		{8AF637E0-2C6F-46B7-A0C7-E8DD16E62FE4} = {28674543-8AA9-4B1A-B940-2ADAAFF5FD2B}
+		{FE6469AD-BAB7-426B-BB1B-FBA864B997F5} = {BAF3A8C2-E464-4BE0-83C4-6FAFD843C84F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B101B830-3137-4BD2-9F53-46A6941B4601}
