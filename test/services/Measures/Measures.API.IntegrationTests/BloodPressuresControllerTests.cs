@@ -1,6 +1,4 @@
 using FluentAssertions;
-using FluentAssertions.Extensions;
-using Measures.API.Features.Patients;
 using Measures.Context;
 using Measures.DTO;
 using MedEasy.DAL.Context;
@@ -8,7 +6,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -166,7 +163,7 @@ namespace Measures.API.IntegrationTests
                 IEnumerable<(int page, int pageSize)> invalidCases = invalidPages.CrossJoin(invalidPages)
                     .Where(tuple => tuple.Item1 <= 0 || tuple.Item2 <= 0);
 
-                foreach (var (page, pageSize) in invalidCases)
+                foreach ((int page, int pageSize) in invalidCases)
                 {
                     yield return new object[] { page, pageSize };
                 }

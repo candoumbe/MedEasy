@@ -44,7 +44,7 @@ namespace Measures.API.Controllers
         /// <summary>
         /// Helper to build URLs
         /// </summary>
-        public IUrlHelper UrlHelper { get; }
+        private IUrlHelper _urlHelper;
 
         /// <summary>
         /// Options of the API
@@ -62,7 +62,7 @@ namespace Measures.API.Controllers
         public BloodPressuresController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions,
             IMediator mediator)
         {
-            UrlHelper = urlHelper;
+            _urlHelper = urlHelper;
             ApiOptions = apiOptions;
             _mediator = mediator;
         }
@@ -97,16 +97,16 @@ namespace Measures.API.Controllers
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-            string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+            string firstPageUrl = _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                     : null;
 
             string nextPageUrl = pagination.Page < result.Count
-                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                     : null;
             string lastPageUrl = result.Count > 0
-                    ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                     : firstPageUrl;
 
 
@@ -119,7 +119,7 @@ namespace Measures.API.Controllers
                         new Link
                         {
                             Relation = LinkRelation.Self,
-                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
+                            Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                         }
                     }
                 });
@@ -170,19 +170,19 @@ namespace Measures.API.Controllers
                             {
                                 Relation = LinkRelation.Self,
                                 Method = "GET",
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
                             },
                             new Link
                             {
                                 Relation = "delete",
                                 Method = "DELETE",
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
                             },
                             new Link
                             {
                                 Relation = "patient",
                                 Method = "GET",
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
                             }
                         }
                     };
@@ -386,16 +386,16 @@ namespace Measures.API.Controllers
                 int count = pageOfResult.Entries.Count();
                 bool hasPreviousPage = count > 0 && search.Page > 1;
 
-                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, 
+                string firstPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, 
                     new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort, search.PatientId });
                 string previousPageUrl = hasPreviousPage
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
-                        ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
 
-                string lastPageUrl = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
+                string lastPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
 
                 IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
                     .Select(
@@ -408,7 +408,7 @@ namespace Measures.API.Controllers
                                 {
                                     Relation = LinkRelation.Self,
                                     Method = "GET",
-                                    Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
+                                    Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
                                 }
                             }
                         });

@@ -37,7 +37,7 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<Option<Page<BloodPressureInfo>>> Handle(GetPageOfBloodPressureInfoByPatientIdQuery query, CancellationToken cancellationToken)
         {
-            var (patientId, pagination) = query.Data;
+            (Guid patientId, PaginationConfiguration pagination) = query.Data;
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Option<Page<BloodPressureInfo>> result;

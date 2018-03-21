@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Runtime.Serialization;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.CQRS.Core.Commands
@@ -14,20 +15,20 @@ namespace MedEasy.CQRS.Core.Commands
     /// <typeparam name="TKey">Type of the command identifier</typeparam>
     /// <typeparam name="TData">Type of data the command will carry</typeparam>
     /// <typeparam name="TResult">Type of the result the commands outputs once handled.</typeparam>
-    [JsonObject]
+    [DataContract]
     public abstract class CommandBase<TKey, TData, TResult> : ICommand<TKey, TData, TResult>
         where TKey : IEquatable<TKey>
     {
         /// <summary>
         /// Data the command carries
         /// </summary>
-        [JsonProperty]
+        [DataMember]
         public TData Data { get; }
 
         /// <summary>
         /// Id of the command
         /// </summary>
-        [JsonProperty]
+        [DataMember]
         public TKey Id { get; }
 
         /// <summary>

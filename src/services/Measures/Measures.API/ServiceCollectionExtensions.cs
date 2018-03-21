@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using FluentValidation.AspNetCore;
 using Measures.Context;
+using Measures.CQRS.Commands.BloodPressures;
 using Measures.Mapping;
 using Measures.Validators.Commands.BloodPressures;
 using MedEasy.Core.Filters;
+using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
+using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,16 +22,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using MedEasy.CQRS.Core.Handlers;
-using Measures.CQRS.Commands.BloodPressures;
-using MediatR;
 
 namespace Measures.API
 {

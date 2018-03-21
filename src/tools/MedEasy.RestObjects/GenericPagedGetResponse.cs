@@ -45,6 +45,6 @@ namespace MedEasy.RestObjects
         public int Count { get; }
 
 
-        public override string ToString() => SerializeObject(this);
+        public override string ToString() => SerializeObject(this, Formatting.Indented);
     }
 }
