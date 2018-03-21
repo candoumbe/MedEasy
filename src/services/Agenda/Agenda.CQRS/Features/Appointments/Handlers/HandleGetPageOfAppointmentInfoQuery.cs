@@ -45,8 +45,8 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                         selector,
                         (AppointmentInfo x) => _dateTimeService.UtcNowOffset() <= x.StartDate ,
                         new[] { OrderClause<AppointmentInfo>.Create(x => x.StartDate)  },
-                        pageSize: request.Data.PageSize,
-                        page: request.Data.Page,
+                        request.Data.PageSize,
+                        request.Data.Page,
                         ct)
                     .ConfigureAwait(false);
             }
