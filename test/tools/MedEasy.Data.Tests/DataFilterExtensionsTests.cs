@@ -7,11 +7,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static MedEasy.Data.DataFilterLogic;
 using static MedEasy.Data.DataFilterOperator;
 
 namespace MedEasy.Data.Tests
 {
+    [Feature("Filters")]
+    [UnitTest]
     public class DataFilterExtensionsTests
     {
         private readonly ITestOutputHelper _output;

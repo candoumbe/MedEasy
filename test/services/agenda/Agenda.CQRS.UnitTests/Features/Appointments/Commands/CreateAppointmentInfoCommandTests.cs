@@ -5,9 +5,13 @@ using Xunit;
 using FluentAssertions.Extensions;
 using System.Collections.Generic;
 using Agenda.CQRS.Features.Appointments.Commands;
+using Xunit.Categories;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
+
+    [Feature("Agenda")]
+    [UnitTest]
     public class CreateAppointmentInfoCommandTests : IDisposable
     {
 

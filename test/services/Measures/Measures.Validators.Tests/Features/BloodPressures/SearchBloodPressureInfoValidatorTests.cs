@@ -3,6 +3,7 @@ using FluentAssertions.Extensions;
 using FluentValidation.Results;
 using Measures.DTO;
 using Measures.Validators.Queries.BloodPressures;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,6 +133,16 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                     ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid )),
                     $"{nameof(SearchBloodPressureInfo.PatientId)} is set."
                 };
+
+                yield return new object[]
+                {
+                    new SearchBloodPressureInfo { Page = -1, PatientId = Guid.NewGuid() },
+                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Page)
+                            && err.Severity == Error )
+                    )),
+                    $"{nameof(SearchBloodPressureInfo.Page)} is negative."
+                };
             }
         }
 
@@ -139,7 +150,7 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
         [MemberData(nameof(ValidateSearchCases))]
         public async Task ValidateSearch(SearchBloodPressureInfo search, Expression<Func<ValidationResult, bool>> validationResultExpectation, string reason)
         {
-            _outputHelper.WriteLine($"Search : {SerializeObject(search)}");
+            _outputHelper.WriteLine($"Search : {SerializeObject(search, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.Indented })}");
 
             // Act
             ValidationResult vr = await _sut.ValidateAsync(search)

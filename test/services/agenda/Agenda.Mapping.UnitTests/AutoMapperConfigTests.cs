@@ -1,8 +1,11 @@
 ﻿using System;
 using Xunit;
+using Xunit.Categories;
 
 namespace Agenda.Mapping.UnitTests
 {
+    [UnitTest]
+    [Feature("Agenda")]
     public class AutoMapperConfigTests
     {
 

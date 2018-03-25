@@ -5,7 +5,6 @@ using Agenda.DTO;
 using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.DAL.Context;
@@ -15,13 +14,15 @@ using Microsoft.EntityFrameworkCore;
 using Optional;
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
+    [Feature("Agenda")]
+    [UnitTest]
     public class HandleGetOneAppointmentInfoByIdQueryTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;

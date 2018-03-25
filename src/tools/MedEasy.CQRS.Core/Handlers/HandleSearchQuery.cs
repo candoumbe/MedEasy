@@ -1,15 +1,15 @@
-﻿using MedEasy.CQRS.Core.Queries;
+﻿using AutoMapper.QueryableExtensions;
+using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+using MedEasy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using MedEasy.Data;
-using AutoMapper.QueryableExtensions;
-using Microsoft.Extensions.Logging;
 using System.Threading;
+using System.Threading.Tasks;
+using static System.Linq.Expressions.ExpressionExtensions;
 
 namespace MedEasy.CQRS.Core.Handlers
 {
@@ -37,7 +37,7 @@ namespace MedEasy.CQRS.Core.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Expression<Func<TResult, bool>> filter = searchQuery.Data.Filter.ToExpression<TResult>();
+                Expression<Func<TResult, bool>> filter = searchQuery.Data.Filter?.ToExpression<TResult>() ?? True<TResult>();
                 int page = searchQuery.Data.Page;
                 int pageSize = searchQuery.Data.PageSize;
                 IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sorts

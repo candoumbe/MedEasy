@@ -7,13 +7,10 @@ namespace MedEasy.DTO.Search
     /// </summary>
     /// <typeparam name="T">Type of the searched resources.</typeparam>
     public abstract class AbstractSearchInfo<T>
-#if NETCOREAPP1_0
-        : IValidatableObject
-#endif
     {
 
-        public const string SortPattern = @"\s*(-{0,1}_*[a-zA-Z]+){0,1}\s*";
-        public const string SortSeparator = ",";
+        public const string SortPattern = @"^\s*(-|\+)?(([A-Za-z])\w*)+(\s*,\s*((-|\+)?(([A-Za-z])\w*)+)\s*)*$";
+        public const char SortSeparator = ',';
 
         /// <summary>
         /// Index of the page of result to read.
@@ -42,51 +39,5 @@ namespace MedEasy.DTO.Search
             Page = 1;
             PageSize = PaginationConfiguration.DefaultPageSize;
         }
-
-
-//        public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-//        {
-            
-
-//            if (!string.IsNullOrWhiteSpace(Sort))
-//            {
-//                string[] sorts = Sort.Split(new[] { "," }, StringSplitOptions.None);
-//#if !NETSTANDARD1_0
-//                if (sorts.AsParallel().Any(x => string.IsNullOrWhiteSpace(x) || !Regex.IsMatch(x, SortPattern)))
-//#else
-//                if (sorts.Any(x => string.IsNullOrWhiteSpace(x) || !Regex.IsMatch(x, SortPattern)))
-//#endif 
-//                {
-//                    yield return new ValidationResult($"<{Sort}> does not match '{SortPattern}'.", new[] { nameof(Sort) });
-//                }
-//                else
-//                {
-//                    IEnumerable<string> properties = typeof(T).GetProperties()
-//#if !NETSTANDARD1_0
-//                        .AsParallel()
-//#endif
-//                        .Select(x => x.Name);
-
-//                    IEnumerable<string> unknowProperties = sorts.Except(properties)
-//#if !NETSTANDARD1_0
-//                        .AsParallel()
-//#endif
-//                        .Select(x => $"<{x.Trim()}>");
-
-//                    if (unknowProperties.Any())
-//                    {
-//                        string unknownPropertiesErrorMsg = unknowProperties.Once()
-//                            ? $"Unknown {unknowProperties.Single()} property."
-//                            : $"Unknown {string.Join(", ", unknowProperties.OrderBy(x => x))} properties.";
-
-//                        yield return new ValidationResult(unknownPropertiesErrorMsg, new[] { nameof(Sort) });
-
-//                    }
-
-
-//                }
-                
-//            }
-//        }
     }
 }

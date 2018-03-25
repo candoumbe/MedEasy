@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 using static Moq.Times;
@@ -30,6 +31,8 @@ namespace Measures.Validators.Tests.Features.Patients
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>
+    [Feature("Measures")]
+    [UnitTest]
     public class CreatePatientInfoValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

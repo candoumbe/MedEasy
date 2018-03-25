@@ -24,10 +24,13 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Moq.MockBehavior;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
+    [Feature("Agenda")]
+    [UnitTest]
     public class HandleGetPageOfAppointmentInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;
@@ -64,6 +67,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
+            
             _uowFactory = null;
             _dateTimeServiceMock = null;
             _mapper = null;
@@ -100,7 +104,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 };
                 {
 
-                    GenFu.GenFu.Configure<Appointment>()
+                    A.Configure<Appointment>()
                         .Fill(x => x.StartDate, () => 10.April(2000))
                         .Fill(x => x.EndDate, (app) => app.StartDate.AddHours(10))
                         .Fill(x => x.Id, () => 0);
@@ -135,6 +139,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 uow.Repository<Appointment>().Create(appointments);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
+
+                int appointmentsCount = await uow.Repository<Appointment>().CountAsync()
+                    .ConfigureAwait(false);
+                _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
             }
             _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(currentDateTime);
             GetPageOfAppointmentInfoQuery request = new GetPageOfAppointmentInfoQuery(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });

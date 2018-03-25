@@ -10,12 +10,15 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Agenda.Validators.UnitTests
 {
+    [Feature("Agenda")]
+    [UnitTest]
     public class NewAppointmentInfoValidatorTests : IDisposable
     {
         private static ITestOutputHelper _outputHelper;

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Agenda.API.Routing;
+﻿using Agenda.API.Routing;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
+using Agenda.DTO.Resources.Search;
 using MedEasy.Core.Attributes;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
@@ -13,6 +9,11 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Optional;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.Controllers
@@ -131,6 +132,69 @@ namespace Agenda.API.Controllers
                 },
                 none: () => new NotFoundResult()
             );
+        }
+
+        /// <summary>
+        /// Search `appointments` resources based on some criteria.
+        /// </summary>
+        /// <param name="search">Search criteria</param>
+        /// <param name="cancellationToken">Notfies to cancel the search operation</param>
+        /// <remarks>
+        /// All criteria are combined as a AND.
+        /// 
+        /// Advanded search :
+        /// Several operators that can be used to make an advanced search :
+        /// '*' : match zero or more characters in a string property.
+        /// 
+        ///     // GET api/Appointments/Search?Location=Gotham
+        ///     will match all resources which have exactly 'Gotham' in the `Location` property
+        ///     
+        ///     // GET api/Appointments/Search?Location=C*tral
+        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        /// 
+        /// '?' : match exactly one charcter in a string property.
+        /// 
+        /// '!' : negate a criterion
+        /// 
+        ///     // GET api/Appointments/Search?Location=!Gotham
+        ///     will match all resources where Firstname is not "Bruce"
+        ///     
+        /// </remarks>
+        /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
+        /// <response code="400">one of the search criterion is not valid</response>
+        [HttpGet("[action]")]
+        [HttpHead("[action]")]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        public async Task<IActionResult> Search(SearchAppointmentInfo search, CancellationToken ct = default)
+        {
+
+            search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
+
+            Page<AppointmentInfo> page = await _mediator.Send(new SearchAppointmentInfoQuery(search), ct)
+                .ConfigureAwait(false);
+
+            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
+                page.Entries.Select(x => new BrowsableResource<AppointmentInfo>
+                {
+                    Resource = x,
+                    Links = new[]
+                    {
+                        new Link { Relation = LinkRelation.Self, Method = "GET", Href =_urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })}
+                    }
+                }),
+                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, search.Participant }),
+                previous : page.Count > 1 && search.Page > 1
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, search.Participant })
+                    : null,
+                next: search.Page < page.Count
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, search.Participant })
+                    : null,
+                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, search.Participant }),
+                count : page.Total
+            );
+
+            return new OkObjectResult(response);
         }
     }
 }

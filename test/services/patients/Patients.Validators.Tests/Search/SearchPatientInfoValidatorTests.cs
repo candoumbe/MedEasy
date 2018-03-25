@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using FluentValidation.Results;
+using MedEasy.DTO.Search;
 using Patients.DTO;
 using Patients.Validators.Features.Patients.Queries;
 using System;
@@ -8,11 +9,14 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static FluentValidation.Severity;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Patients.Validators.Tests.Search
 {
+    [UnitTest]
+    [Feature("Measures")]
     public class SearchPatientInfoValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
@@ -56,7 +60,7 @@ namespace Patients.Validators.Tests.Search
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(SearchPatientInfo.Sort).Equals(errorItem.PropertyName)
                                 && errorItem.Severity == Error
-                                && errorItem.ErrorMessage == "Cannot sort by unknown <Name> property."
+                                && errorItem.ErrorMessage == "Unknown <Name> property."
                             )
                     )),
                     $"Sorting by a property that is not either {nameof(SearchPatientInfo.Firstname)}/{nameof(SearchPatientInfo.Lastname)}/{nameof(SearchPatientInfo.BirthDate)}"
@@ -70,7 +74,7 @@ namespace Patients.Validators.Tests.Search
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(SearchPatientInfo.Sort).Equals(errorItem.PropertyName)
                                 && errorItem.Severity == Error
-                                && errorItem.ErrorMessage == "Cannot sort by unknown <Name,Nickname> properties."
+                                && errorItem.ErrorMessage == "Unknown <Name, Nickname> properties."
                             )
                     )),
                     $"Sorting by a property that is not either {nameof(SearchPatientInfo.Firstname)}/{nameof(SearchPatientInfo.Lastname)}/{nameof(SearchPatientInfo.BirthDate)}"
@@ -86,7 +90,7 @@ namespace Patients.Validators.Tests.Search
                                 && errorItem.Severity == Error
                             )
                     )),
-                    $"{nameof(SearchPatientInfo.Page)}'s value must be equal to or greater than 1"
+                    $"{nameof(SearchPatientInfo.Page)} < 1"
                 };
 
                 yield return new object[]
@@ -99,7 +103,7 @@ namespace Patients.Validators.Tests.Search
                                 && errorItem.Severity == Error
                             )
                     )),
-                    $"{nameof(SearchPatientInfo.PageSize)}'s value must be equal to or greater than 1"
+                    $"{nameof(SearchPatientInfo.PageSize)} < 1"
                 };
 
                 yield return new object[]
@@ -112,7 +116,7 @@ namespace Patients.Validators.Tests.Search
                                 && errorItem.Severity == Error
                             )
                     )),
-                    $"{nameof(SearchPatientInfo.Sort)}'s value contains two or more consecutive hyphens"
+                    $@"""--{nameof(SearchPatientInfo.Firstname)}"" contains two consecutive hyphens"
                 };
 
                 yield return new object[]
@@ -123,10 +127,10 @@ namespace Patients.Validators.Tests.Search
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(SearchPatientInfo.Sort).Equals(errorItem.PropertyName)
                                 && errorItem.Severity == Error
-                                && errorItem.ErrorMessage == $@"Sort expression ""--Lastname"" does not match ""{SearchPatientInfoValidator.SortPattern}""."
+                                && errorItem.ErrorMessage == $@"Sort expression ""--Lastname"" does not match ""{AbstractSearchInfo<PatientInfo>.SortPattern}""."
                         )
                     )),
-                    $"{nameof(SearchPatientInfo.Sort)} contains a sort expression with two or more consecutive hyphens"
+                    $@"""--Lastname"" contains two or more consecutive hyphens"
                 };
 
                 yield return new object[]
@@ -137,7 +141,7 @@ namespace Patients.Validators.Tests.Search
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(SearchPatientInfo.Sort).Equals(errorItem.PropertyName)
                                 && errorItem.Severity == Error
-                                && errorItem.ErrorMessage == $@"Sort expressions ""--Lastname"", ""--Firstname"" do not match ""{SearchPatientInfoValidator.SortPattern}""."
+                                && errorItem.ErrorMessage == $@"Sort expressions ""--Lastname"", ""--Firstname"" do not match ""{AbstractSearchInfo<PatientInfo>.SortPattern}""."
                         )
                     )),
                     $"{nameof(SearchPatientInfo.Sort)} contains a sort expression with two or more consecutive hyphens"

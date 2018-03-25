@@ -1,4 +1,6 @@
+using Agenda.API.Controllers;
 using Agenda.DataStores;
+using Agenda.DTO.Resources.Search;
 using FluentAssertions;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
@@ -7,12 +9,14 @@ using MedEasy.RestObjects;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -21,6 +25,7 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
+
 
 namespace Agenda.API.IntegrationTests
 {
@@ -125,6 +130,7 @@ namespace Agenda.API.IntegrationTests
 
         }
 
+        private static string Stringify(object o) => SerializeObject(o, new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
@@ -196,6 +202,93 @@ namespace Agenda.API.IntegrationTests
 
         }
 
+
+        public static IEnumerable<object[]> InvalidSearchCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    "?page=-1" ,
+                    ((Expression<Func<ErrorObject, bool>>)(err => err.Code == "BAD_REQUEST"
+                        && err.Description == "Validation failed"
+                        && err.Errors != null
+                        && err.Errors.ContainsKey("page")
+                    )),
+                    $"{nameof(SearchAppointmentInfo.Page)} must be greater than 1"
+                };
+
+                yield return new object[]
+                {
+                    "?pageSize=-1" ,
+                    ((Expression<Func<ErrorObject, bool>>)(err => err.Code == "BAD_REQUEST"
+                        && err.Description == "Validation failed"
+                        && err.Errors != null
+                        && err.Errors.ContainsKey("pageSize")
+                    )),
+                    $"{nameof(SearchAppointmentInfo.PageSize)} must be greater than 1"
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidSearchCases))]
+        public async Task GivenInvalidCriteria_Search_Returns_BadRequest(string queryString, Expression<Func<ErrorObject, bool>> errorObjectExpectation, string reason)
+        {
+            _outputHelper.WriteLine($"search query string : {queryString}");
+
+            // Arrange
+            string url = $"{_endpointUrl}/{nameof(AppointmentsController.Search)}{queryString}";
+            _outputHelper.WriteLine($"Url under test : <{url}>");
+            RequestBuilder rb = _server.CreateRequest(url)
+                .AddHeader("Accept", "application/json");
+
+            // Act
+            HttpResponseMessage response = await rb.SendAsync(Get)
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should().BeFalse("Invalid search criteria");
+            ((int)response.StatusCode).Should().Be(Status400BadRequest);
+
+            string content = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"Response content : {content}");
+
+            content.Should()
+                .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
+
+            JToken token = JToken.Parse(content);
+            token.IsValid(_errorObjectSchema)
+                .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
+
+            ErrorObject errorObject = token.ToObject<ErrorObject>();
+
+            errorObject.Should().Match(errorObjectExpectation, reason);
+        }
+
+        [Theory]
+        [InlineData("GET")]
+        [InlineData("HEAD")]
+        public async Task Search_Handles_Verb(string verb)
+        {
+
+            // Arrange
+            string url = $"{_endpointUrl}/search?sort=+startDate";
+            RequestBuilder requestBuilder = new RequestBuilder(_server, url)
+                .AddHeader("Accept", "application/json");
+
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.SendAsync(verb)
+                .ConfigureAwait(false);
+
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeTrue($@"HTTP {response.Version} {verb} /{url} must be supported");
+        }
 
     }
 }

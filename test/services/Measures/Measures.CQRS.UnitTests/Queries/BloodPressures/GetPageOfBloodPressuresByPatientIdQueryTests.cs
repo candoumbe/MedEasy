@@ -1,17 +1,16 @@
 ﻿using FluentAssertions;
 using Measures.CQRS.Queries.BloodPressures;
-using Measures.DTO;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
-using Optional;
 using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace Measures.CQRS.UnitTests.Queries.BloodPressures
 {
+    [Feature("Measures")]
+    [UnitTest]
     public class GetPageOfBloodPressuresByPatientIdQueryTests
     {
         private readonly ITestOutputHelper _outputHelper;

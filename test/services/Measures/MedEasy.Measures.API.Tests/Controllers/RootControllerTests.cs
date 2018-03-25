@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static MedEasy.RestObjects.FormFieldType;
 using static Moq.MockBehavior;
 
@@ -21,6 +22,8 @@ namespace Measures.API.Tests.Controllers
     /// <summary>
     /// Unit tests for <see cref="RootController"/>
     /// </summary>
+    [UnitTest]
+    [Feature("Measures")]
     public class RootControllerTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
