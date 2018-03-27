@@ -34,7 +34,27 @@ namespace System.Collections.Generic
         /// <see cref="Exactly{T}(IEnumerable{T}, Expression{Func{T, bool}}, int)"/>
         public static bool Once<T>(this IEnumerable<T> items) => Once(items, x => true);
 
+        /// <summary>
+        /// Tests if <paramref name="items"/> contains no item that verify the specified <paramref name="predicate"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the </typeparam>
+        /// <param name="items">Collection to test</param>
+        /// <param name="predicate">re</param>
+        /// <returns><c>true</c> if <paramref name="items"/> does not contain exactly any element that fullfills <paramref name="predicate"/> and <c>false</c> otherwise.</returns>
+        public static bool None<T>(this IEnumerable<T> items, Expression<Func<T, bool>> predicate)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
 
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            return !AtLeastOnce(items, predicate);
+        }
 
         /// <summary>
         /// Tests if <paramref name="items"/> contains exactly one item that verify the specified <paramref name="predicate"/>

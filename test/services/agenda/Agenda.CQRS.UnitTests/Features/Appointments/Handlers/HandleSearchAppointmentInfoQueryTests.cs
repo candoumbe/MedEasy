@@ -1,13 +1,14 @@
 ﻿using Agenda.CQRS.Features.Appointments.Handlers;
+using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
 using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper.QueryableExtensions;
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using GenFu;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
@@ -23,10 +24,9 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Newtonsoft.Json.JsonConvert;
 using static Newtonsoft.Json.Formatting;
+using static Newtonsoft.Json.JsonConvert;
 using static Newtonsoft.Json.NullValueHandling;
-using Agenda.CQRS.Features.Appointments.Queries;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
@@ -61,7 +61,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         public async void Dispose()
         {
-            A.Reset();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Participant>().Delete(x => true);
@@ -98,15 +97,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     )
                 };
                 {
-                    A.Configure<Appointment>()
-                        .Fill(x => x.Id, () => 0)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.UUID, () => Guid.NewGuid())
-                        .Fill(x => x.StartDate, 1.January(2010).Add(13.Hours()))
-                        .Fill(x => x.EndDate, app => 1.January(2010).Add(14.Hours()));
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 4))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, app => 1.January(2010).Add(14.Hours()));
 
-                    IEnumerable<Appointment> appointments = A.ListOf<Appointment>(10);
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(10);
                     yield return new object[]
                     {
                         appointments,
@@ -127,16 +126,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 }
 
                 {
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
 
-                    A.Configure<Appointment>()
-                        .Fill(x => x.Id, () => 0)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.UUID, () => Guid.NewGuid())
-                        .Fill(x => x.StartDate, 1.January(2010).Add(13.Hours()))
-                        .Fill(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
-
-                    IEnumerable<Appointment> appointments = A.ListOf<Appointment>(10);
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(10);
                     SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
                     {
                         From = 2.January(2010),
@@ -162,15 +160,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
 
-                    A.Configure<Appointment>()
-                        .Fill(x => x.Id, () => 0)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.UUID, () => Guid.NewGuid())
-                        .Fill(x => x.StartDate, 1.January(2010).Add(13.Hours()))
-                        .Fill(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount : 5))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
 
-                    IEnumerable<Appointment> appointments = A.ListOf<Appointment>(7);
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
                     SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
                     {
                         From = 2.January(2010),
@@ -195,20 +193,51 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 }
 
                 {
-
-                    A.Configure<Appointment>()
-                        .Fill(x => x.Id, () => 0)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.UUID, () => Guid.NewGuid())
-                        .Fill(x => x.StartDate, 1.January(2010).Add(13.Hours()))
-                        .Fill(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
-
-                    IEnumerable<Appointment> appointments = A.ListOf<Appointment>(7);
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
+                    
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
                     SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
                     {
                         From = 2.January(2010),
                         To = 2.January(2010),
+                        Page = 2,
+                        PageSize = 5
+                    };
+                    yield return new object[]
+                    {
+                        appointments,
+                        searchAppointmentInfo,
+                        (
+                            expectedPageCount : 2,
+                            expectedPageSize : searchAppointmentInfo.PageSize,
+                            expetedTotal : 7,
+                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                                && items.Count() == 2
+                                && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
+                            ))
+                        )
+                    };
+                }
+
+                {
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
+
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
+                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    {
+                        From = 1.January(2010),
                         Page = 2,
                         PageSize = 5
                     };
@@ -258,7 +287,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .ConfigureAwait(false);
 
             // Assert
-            
+
             page.Should()
                 .NotBeNull();
             page.Count.Should()
@@ -269,11 +298,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .Be(expectations.expectedPageSize);
             page.Entries.Should()
                 .Match(expectations.itemsExpectation);
-
-
         }
-
-
-
     }
 }

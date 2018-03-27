@@ -557,7 +557,54 @@ namespace MedEasy.Tools.Tests
                 .Match(crossJoinResultExpectation);
         }
 
-        
+        /// <summary>
+        /// <see cref="None(IEnumerable{int}, Expression{Func{int, bool}}, bool)"/> tests cases
+        /// </summary>
+        public static IEnumerable<object[]> NoneCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<int>(),
+                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    true
+                };
+
+                yield return new object[]
+                {
+                    new []{ 1, 3 },
+                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    false
+                };
+
+                yield return new object[]
+                {
+                    new []{ 1, 3 },
+                    ((Expression<Func<int, bool>>) (x => x == 5)),
+                    true
+                };
+
+            }
+        }
+
+        /// <summary>
+        /// Unit tests for <see cref="EnumerableExtensions.None{T}(IEnumerable{T})"/>
+        /// </summary>
+        /// <param name="source">collection to apply <see cref="EnumerableExtensions.None{T}(IEnumerable{T})"/> onto.</param>
+        /// <param name="predicate">predicate</param>
+        /// <param name="expectedResult">expected result</param>
+        [Theory]
+        [MemberData(nameof(NoneCases))]
+        public void None(IEnumerable<int> source, Expression<Func<int, bool>> predicate, bool expectedResult)
+        {
+            _outputHelper.WriteLine($"{nameof(source)} : {SerializeObject(source)}");
+            _outputHelper.WriteLine($"{nameof(predicate)} : {predicate}");
+
+            // Act and assert
+            source.None(predicate).Should().Be(expectedResult);
+        }
+
 
 
     }

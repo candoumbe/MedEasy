@@ -5,11 +5,10 @@ using Agenda.DTO;
 using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper;
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using GenFu;
 using MedEasy.Abstractions;
-using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
@@ -104,12 +103,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 };
                 {
 
-                    A.Configure<Appointment>()
-                        .Fill(x => x.StartDate, () => 10.April(2000))
-                        .Fill(x => x.EndDate, (app) => app.StartDate.AddHours(10))
-                        .Fill(x => x.Id, () => 0);
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.StartDate, 10.April(2000))
+                        .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(10.Hours()))
+                        .RuleFor(x => x.Location, faker=> faker.Address.City())
+                        .RuleFor(x => x.Subject, faker=> faker.Lorem.Sentence(wordCount : 5))
+                        ;
 
-                    IEnumerable<Appointment> items = A.ListOf<Appointment>(50);
+                    IEnumerable<Appointment> items = appointmentFaker.Generate(50);
                     yield return new object[]
                     {
                         items,

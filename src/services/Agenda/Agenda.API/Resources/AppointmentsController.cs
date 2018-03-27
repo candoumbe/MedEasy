@@ -54,8 +54,9 @@ namespace Agenda.API.Controllers
         /// <response code="200"/>
 
         [HttpGet]
+        [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
-        public async Task<IActionResult> Get([FromQuery, Minimum(1)] int page, [FromQuery, Minimum(1)] int pageSize, CancellationToken ct = default)
+        public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
 
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = pageSize };

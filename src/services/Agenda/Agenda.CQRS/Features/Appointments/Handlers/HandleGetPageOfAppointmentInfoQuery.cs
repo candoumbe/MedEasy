@@ -40,10 +40,11 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 Expression<Func<Appointment, AppointmentInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
+                DateTimeOffset now = _dateTimeService.UtcNowOffset();
                 return await uow.Repository<Appointment>()
                     .WhereAsync(
                         selector,
-                        (AppointmentInfo x) => _dateTimeService.UtcNowOffset() <= x.StartDate ,
+                        (AppointmentInfo x) =>  (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
                         new[] { OrderClause<AppointmentInfo>.Create(x => x.StartDate)  },
                         request.Data.PageSize,
                         request.Data.Page,

@@ -105,7 +105,7 @@ namespace Measures.API.IntegrationTests
             fixture.Initialize(
                 relativeTargetProjectParentDir : Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
                 environmentName: "IntegrationTest", 
-                applicationName: "Measures.API",
+                applicationName: typeof(Startup).Assembly.GetName().Name,
                 initializeServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
                 {
                     DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();

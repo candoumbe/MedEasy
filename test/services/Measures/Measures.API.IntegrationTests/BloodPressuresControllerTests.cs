@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -104,7 +105,7 @@ namespace Measures.API.IntegrationTests
             fixture.Initialize(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
                 environmentName: "IntegrationTest",
-                applicationName: "Measures.API",
+                applicationName: typeof(Startup).Assembly.GetName().Name,
                 initializeServices: (services) =>
                     services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
                     {

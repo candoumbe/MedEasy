@@ -1,13 +1,18 @@
 using Agenda.API.Controllers;
 using Agenda.DataStores;
+using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+using Bogus;
 using FluentAssertions;
+using FluentAssertions.Extensions;
+using MedEasy.Core.Filters;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,7 +38,7 @@ namespace Agenda.API.IntegrationTests
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IClassFixture<ServicesTestFixture<Startup>>, IDisposable
+    public class AppointmentsControllerTests : IClassFixture<ServicesTestFixture<Startup>>, IDisposable, IClassFixture<DatabaseFixture>
     {
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
@@ -98,22 +104,27 @@ namespace Agenda.API.IntegrationTests
             }
 
         };
+        private DatabaseFacade _databaseFacade;
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, DatabaseFixture database)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Agenda"),
                 environmentName: "IntegrationTest",
-                applicationName: "Agenda.API",
+                applicationName: typeof(Startup).Assembly.GetName().Name,
                 initializeServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(item =>
                 {
                     DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(database.Connection)
+                        .EnableSensitiveDataLogging()
+                        .ConfigureWarnings(warnings => warnings.Throw());
 
                     return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) =>
                     {
                         AgendaContext context = new AgendaContext(options);
+                        _databaseFacade = context.Database;
+                        _databaseFacade.EnsureCreated();
                         return context;
                     });
 
@@ -126,6 +137,7 @@ namespace Agenda.API.IntegrationTests
         public void Dispose()
         {
             _outputHelper = null;
+            _databaseFacade?.EnsureDeleted();
             _server.Dispose();
 
         }
@@ -290,5 +302,88 @@ namespace Agenda.API.IntegrationTests
                 .BeTrue($@"HTTP {response.Version} {verb} /{url} must be supported");
         }
 
+
+
+        public static IEnumerable<object[]> GetCountCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    Enumerable.Empty<NewAppointmentInfo>(),
+                    "?page=1&pageSize=10",
+                    (total : 0, count : 0)
+                };
+
+
+                {
+
+                    Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
+                        .RuleFor(x => x.Name, faker => faker.Name.FullName());
+
+                    Randomizer randomizer = new Randomizer();
+                    Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
+                        .RuleFor(x => x.Participants, () => participantFaker.Generate(randomizer.Number(min: 1, max: 5)))
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
+                        .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTime.UtcNow.Year + 1).Add(1.Hours())))
+                        .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
+                    
+                    yield return new object[]
+                    {
+                        appointmentFaker.Generate(10),
+                        $"/search?{new { page=1, pageSize=10, from = 1.January(DateTime.UtcNow.Year)}.ToQueryString()}",
+                        (total : 10, count : 10)
+                    };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCountCases))]
+        public async Task Enpoint_Provides_CountsHeaders(IEnumerable<NewAppointmentInfo> newAppointments, string url, (int total, int count) countHeaders)
+        {
+            // Arrange
+            _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
+            newAppointments.ForEach(async (newAppointment) =>
+            {
+                RequestBuilder rb = new RequestBuilder(_server, _endpointUrl)
+                    .And(message => message.Content = new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"));
+
+                await rb.PostAsync()
+                    .ConfigureAwait(false);
+
+            });
+            
+
+            string path = $"{_endpointUrl}{url}";
+            _outputHelper.WriteLine($"path under test : {path}");
+            RequestBuilder requestBuilder = new RequestBuilder(_server, path);
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.SendAsync(Head)
+                .ConfigureAwait(false);
+
+            // Assert
+            _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            _outputHelper.WriteLine($"Response headers :{Stringify(response.Headers)}");
+
+            response.Headers.Should()
+                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
+                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
+
+            response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
+                .HaveCount(1).And
+                .ContainSingle().And
+                .ContainSingle(value => value == countHeaders.total.ToString());
+
+            response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
+                .HaveCount(1).And
+                .ContainSingle().And
+                .ContainSingle(value => value == countHeaders.count.ToString());
+
+        }
     }
 }

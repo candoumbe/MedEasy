@@ -4,6 +4,7 @@ using Agenda.Mapping;
 using Agenda.Validators;
 using AutoMapper;
 using FluentValidation.AspNetCore;
+using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
@@ -49,6 +50,7 @@ namespace Agenda.API
                 options.Filters.Add(typeof(FormatFilter));
                 options.Filters.Add(typeof(ValidateModelActionFilter));
                 options.Filters.Add(typeof(HandleErrorAttribute));
+                options.Filters.Add(typeof(AddCountHeadersFilterAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
             })
@@ -140,7 +142,7 @@ namespace Agenda.API
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
-
+            services.AddSingleton<IDateTimeService, DateTimeService>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped(builder =>

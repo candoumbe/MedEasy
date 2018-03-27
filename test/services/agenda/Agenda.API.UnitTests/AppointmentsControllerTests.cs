@@ -3,12 +3,13 @@ using Agenda.API.Routing;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
+using Agenda.DTO.Resources.Search;
 using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper.QueryableExtensions;
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using GenFu;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
@@ -30,10 +31,9 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static Moq.MockBehavior;
+using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static Newtonsoft.Json.Formatting;
-using Agenda.DTO.Resources.Search;
 
 namespace Agenda.API.UnitTests.Features
 {
@@ -84,7 +84,6 @@ namespace Agenda.API.UnitTests.Features
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            A.Reset<Appointment>();
             _uowFactory = null;
             _outputHelper = null;
             _urlHelperMock = null;
@@ -319,6 +318,7 @@ namespace Agenda.API.UnitTests.Features
                             Enumerable.Empty<Appointment>(), // Current store state
                             (pageSize, page), // request,
                             (defaultPageSize : 30, maxPageSize : 200),
+                            1.January(2000),
                             0,    //expected total
                             (
                                 first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First &&
@@ -338,92 +338,111 @@ namespace Agenda.API.UnitTests.Features
                     }
                 }
 
+                Faker<Participant> participantFaker = new Faker<Participant>()
+                    .RuleFor(participant => participant.Id, 0)
+                    .RuleFor(participant => participant.UUID, () => Guid.NewGuid())
+                    .RuleFor(participant => participant.Name, faker => faker.Name.FullName())
+                    .RuleFor(participant => participant.Email, faker => faker.Internet.Email())
+                    .RuleFor(participant => participant.PhoneNumber, faker => faker.Person.Phone);
+                Randomizer randomizer = new Randomizer();
                 {
-                    IEnumerable<Appointment> items = A.ListOf<Appointment>(400);
-                    items.ForEach((item, pos) =>
-                    {
-                        item.Id = default;
-
-                        Random random = new Random(pos);
-                        int nbParticipants = random.Next(1, 5);
-                        for (int i = 0; i < nbParticipants; i++)
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(appointment => appointment.Id, 0)
+                        .RuleFor(appointment => appointment.UUID, () => Guid.NewGuid())
+                        .RuleFor(appointment => appointment.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(appointment => appointment.Location, faker => faker.Address.City())
+                        .RuleFor(appointment => appointment.StartDate, 10.January(2016).Add(10.Hours()))
+                        .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
+                        .FinishWith((faker, appointment) =>
                         {
-                            Guid participantId = Guid.NewGuid();
-                            item.AddParticipant(new Participant { UUID = participantId, Name = $"participant-{participantId}" });
-                        }
+                            IEnumerable<Participant> participants = participantFaker.Generate(randomizer.Int(min: 1, max: 5));
+                            foreach (Participant item in participants)
+                            {
+                                appointment.AddParticipant(item);
+                            }
+                        });
 
-                    });
+
+                    IEnumerable<Appointment> items = appointmentFaker.Generate(20);
+
                     yield return new object[]
                     {
                         items,
-                        (pageSize : PaginationConfiguration.DefaultPageSize, page : 1), // request
+                        (pageSize : 5, page : 1), // request
                         (defaultPageSize : 30, maxPageSize : 200),
-                        400,    //expected total
+                        1.January(2015),
+                        20,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)))
+                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                        )  // expected link to last page
+                    };
+
+                    yield return new object[]
+                    {
+                        items,
+                        (pageSize : 5, page : 1), // request
+                        (defaultPageSize : 30, maxPageSize : 200),
+                        1.January(2016),
+                        20,    //expected total
+                        (
+                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
+                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
+                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                        )  // expected link to last page
+                    };
+
+                    yield return new object[]
+                    {
+                        items,
+                        (pageSize : 5, page : 1), // request
+                        (defaultPageSize : 30, maxPageSize : 200),
+                        1.January(2017),
+                        0,    //expected total
+                        (
+                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
+                            next : ((Expression<Func<Link, bool>>) (x => x == null )), // expected link to next page
+                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
                         )  // expected link to last page
                     };
                 }
                 {
-                    IEnumerable<Appointment> items = A.ListOf<Appointment>(400);
-                    items.ForEach((item, pos) =>
-                    {
-                        item.Id = default;
-
-                        Random random = new Random(pos);
-                        int nbParticipants = random.Next(1, 5);
-                        for (int i = 0; i < nbParticipants; i++)
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(appointment => appointment.Id, 0)
+                        .RuleFor(appointment => appointment.UUID, () => Guid.NewGuid())
+                        .RuleFor(appointment => appointment.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(appointment => appointment.Location, faker => faker.Address.City())
+                        .RuleFor(appointment => appointment.StartDate, 10.January(2016).Add(10.Hours()))
+                        .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
+                        .FinishWith((faker, appointment) =>
                         {
-                            Guid participantId = Guid.NewGuid();
-                            item.AddParticipant(new Participant { UUID = participantId, Name = $"participant-{participantId}" });
-                        }
+                            IEnumerable<Participant> participants = participantFaker.Generate(randomizer.Int(min: 1, max: 5));
+                            foreach (Participant item in participants)
+                            {
+                                appointment.AddParticipant(item);
+                            }
+                        });
 
-                    });
+
+                    IEnumerable<Appointment> items = appointmentFaker.Generate(20);
                     yield return new object[]
                     {
                         items,
-                        (pageSize : 10, page : 1), // request
+                        (pageSize : 5, page : 1), // request
                         (defaultPageSize : 30, maxPageSize : 200),
-                        400,    //expected total
+                        10.January(2016).Add(10.Hours().Add(30.Minutes())),
+                        20,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
                             previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)))  // expected link to last page
-                        )
-                    };
-                }
-                {
-                    Appointment appointment = new Appointment
-                    {
-                        Location = "Wayne Tower",
-                        Subject = "Confidential",
-                        StartDate = 12.July(2013).AddHours(14).AddMinutes(30),
-                        EndDate = 12.July(2013).AddHours(14).AddMinutes(45),
-                    };
-                    appointment.AddParticipant(new Participant { Name = "Bruce Wayne" });
-                    appointment.AddParticipant(new Participant { Name = "Dick Grayson" });
-                    yield return new object[]
-                    {
-                        new [] { appointment },
-                        (pageSize : PaginationConfiguration.DefaultPageSize, page : 1), // request
-                        (defaultPageSize : 30, maxPageSize : 200),
-                        1,    //expected total
-                        (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
-                                && x.Relation == LinkRelation.First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
-                                    $"Controller={AppointmentsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize={PaginationConfiguration.DefaultPageSize}").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous :((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)))
-                        ), // expected link to last page
+                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+
+                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                        )  // expected link to last page
                     };
                 }
             }
@@ -433,13 +452,15 @@ namespace Agenda.API.UnitTests.Features
         [MemberData(nameof(GetAllTestCases))]
         public async Task GetAll(IEnumerable<Appointment> items, (int pageSize, int page) request,
             (int defaultPageSize, int maxPageSize) pagingOptions,
+            DateTimeOffset now,
             int expectedCount,
             (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(AppointmentsController.Get)}({nameof(PaginationConfiguration)})");
-            _outputHelper.WriteLine($"Page size : {request.pageSize}");
-            _outputHelper.WriteLine($"Page : {request.page}");
+            _outputHelper.WriteLine($"{nameof(request)}{nameof(request.pageSize)}: {request.pageSize}");
+            _outputHelper.WriteLine($"{nameof(request)}{nameof(request.page)}: {request.page}");
             _outputHelper.WriteLine($"items count: {items.Count()}");
+            _outputHelper.WriteLine($"Current server dateTime : {now}");
 
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -452,21 +473,20 @@ namespace Agenda.API.UnitTests.Features
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (GetPageOfAppointmentInfoQuery query, CancellationToken cancellationToken) =>
+                .Returns(async (GetPageOfAppointmentInfoQuery query, CancellationToken ct) =>
                 {
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<Appointment, AppointmentInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
-                        Page<AppointmentInfo> result = await uow.Repository<Appointment>()
-                            .ReadPageAsync(
+                        return await uow.Repository<Appointment>()
+                            .WhereAsync(
                                 selector,
+                                (AppointmentInfo x) => (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
+                                new[] { OrderClause<AppointmentInfo>.Create(x => x.StartDate) },
                                 query.Data.PageSize,
                                 query.Data.Page,
-                                new[] { OrderClause<AppointmentInfo>.Create(x => x.UpdatedDate) },
-                                cancellationToken)
+                                ct)
                             .ConfigureAwait(false);
-
-                        return result;
                     }
                 });
 
@@ -537,17 +557,17 @@ namespace Agenda.API.UnitTests.Features
                 };
 
                 {
-                    A.Configure<AppointmentInfo>()
-                        .Fill(x => x.Id)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.StartDate)
-                        .Fill(x => x.EndDate)
-                        .Fill(x => x.UpdatedDate);
+                    Faker<AppointmentInfo> appointmentFaker = new Faker<AppointmentInfo>()
+                        .RuleFor(x => x.Id, Guid.NewGuid())
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(x => x.StartDate, faker => faker.Date.Recent())
+                        .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(30.Minutes()))
+                        .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent());
 
                     yield return new object[]
                     {
-                        new Page<AppointmentInfo>(A.ListOf<AppointmentInfo>(10), total : 50, size :10),
+                        new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
                         new SearchAppointmentInfo { Page = 1, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
@@ -562,20 +582,10 @@ namespace Agenda.API.UnitTests.Features
                             ))
                         )
                     };
-                }
-
-                {
-                    A.Configure<AppointmentInfo>()
-                        .Fill(x => x.Id)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.StartDate)
-                        .Fill(x => x.EndDate)
-                        .Fill(x => x.UpdatedDate);
 
                     yield return new object[]
                     {
-                        new Page<AppointmentInfo>(A.ListOf<AppointmentInfo>(10), total : 50, size :10),
+                        new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
                         new SearchAppointmentInfo { Page = 2, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
@@ -591,20 +601,11 @@ namespace Agenda.API.UnitTests.Features
                             ))
                         )
                     };
-                }
 
-                {
-                    A.Configure<AppointmentInfo>()
-                        .Fill(x => x.Id)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.StartDate)
-                        .Fill(x => x.EndDate)
-                        .Fill(x => x.UpdatedDate);
 
                     yield return new object[]
                     {
-                        new Page<AppointmentInfo>(A.ListOf<AppointmentInfo>(10), total : 50, size :10),
+                        new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
                         new SearchAppointmentInfo { Page = 5, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
@@ -619,20 +620,10 @@ namespace Agenda.API.UnitTests.Features
                             ))
                         )
                     };
-                }
-
-                {
-                    A.Configure<AppointmentInfo>()
-                        .Fill(x => x.Id)
-                        .Fill(x => x.Location).AsCity()
-                        .Fill(x => x.Subject).AsLoremIpsumWords(numberOfWords: 5)
-                        .Fill(x => x.StartDate)
-                        .Fill(x => x.EndDate)
-                        .Fill(x => x.UpdatedDate);
 
                     yield return new object[]
                     {
-                        new Page<AppointmentInfo>(A.ListOf<AppointmentInfo>(5), total : 45, size :10),
+                        new Page<AppointmentInfo>(appointmentFaker.Generate(5), total : 45, size :10),
                         new SearchAppointmentInfo { Page = 5, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
@@ -663,11 +654,11 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(page);
 
-            
+
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _sut.Search(search, ct : default)
+            IActionResult actionResult = await _sut.Search(search, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
