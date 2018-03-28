@@ -38,6 +38,13 @@ namespace MedEasy.Tools.Tests
 
 
         [Theory]
+        [InlineData(null, null)]
+        [InlineData("startDate", "startDate")]
+        [InlineData("StartDate", "startDate")]
+        public void ToCamelCase(string input, string expectedString)
+            => input?.ToCamelCase()?.Should().Be(expectedString);
+
+        [Theory]
         [InlineData("bruce", "Bruce", true, true)]
         [InlineData("bruce", "Bruce", false, false)]
         [InlineData("bruce", "br*ce", true, true)]

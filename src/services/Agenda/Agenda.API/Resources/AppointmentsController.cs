@@ -1,4 +1,5 @@
 ﻿using Agenda.API.Routing;
+using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
@@ -44,6 +45,32 @@ namespace Agenda.API.Controllers
         }
 
 
+        /// <summary>
+        /// Creates a new appointment resource
+        /// </summary>
+        /// <param name="newAppointment">data of the appointment</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), Status201Created)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        public async Task<IActionResult> Post([FromBody] NewAppointmentInfo newAppointment, CancellationToken ct = default)
+        {
+            AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(newAppointment), ct)
+                .ConfigureAwait(false);
+
+            BrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
+            {
+                Resource = newResource,
+                Links = new[]
+                {
+                    new Link {Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
+                }
+            };
+
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id }, browsableResource);
+        }
+
 
         /// <summary>
         /// Gets the appointments
@@ -52,7 +79,6 @@ namespace Agenda.API.Controllers
         /// <param name="ct">Notifies to cancel the execution of the request</param>
         /// <returns></returns>
         /// <response code="200"/>
-
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
@@ -62,7 +88,7 @@ namespace Agenda.API.Controllers
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = pageSize };
             pagination.PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pagination.PageSize);
 
-            
+
             Page<AppointmentInfo> result = await _mediator.Send(new GetPageOfAppointmentInfoQuery(pagination), ct)
                 .ConfigureAwait(false);
 
@@ -81,15 +107,15 @@ namespace Agenda.API.Controllers
             GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
                 entries,
                 first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize }),
-                previous : pagination.Page > 1 && result.Count > 1
+                previous: pagination.Page > 1 && result.Count > 1
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize })
                     : null,
 
                 next: result.Count > pagination.Page
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize}),
-                count : result.Total
+                last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize }),
+                count: result.Total
             );
 
             IActionResult actionResult = new OkObjectResult(response);
@@ -108,6 +134,7 @@ namespace Agenda.API.Controllers
         /// <response code="400"><paramref name="id"/> was not sent or was empty</response>
 
         [HttpGet("{id}")]
+        [HttpHead("{id}")]
         [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), Status200OK)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
@@ -117,16 +144,18 @@ namespace Agenda.API.Controllers
                 .ConfigureAwait(false);
 
             return optionalAppointment.Match<IActionResult>(
-                some: appointment => {
+                some: appointment =>
+                {
+                    IList<Link> links = new List<Link>
+                    {
+                        new Link { Relation = LinkRelation.Self, Method = "GET",  Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})},
+                        new Link { Relation = "delete", Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})}
+                    };
 
                     BrowsableResource<AppointmentInfo> result = new BrowsableResource<AppointmentInfo>
                     {
                         Resource = appointment,
-                        Links = new[]
-                        {
-                            new Link { Relation = LinkRelation.Self, Method = "GET",  Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})},
-                            new Link { Relation = "delete", Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})}
-                        }
+                        Links = links
                     };
 
                     return new OkObjectResult(result);
@@ -185,14 +214,14 @@ namespace Agenda.API.Controllers
                     }
                 }),
                 first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, search.Participant }),
-                previous : page.Count > 1 && search.Page > 1
+                previous: page.Count > 1 && search.Page > 1
                     ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, search.Participant })
                     : null,
                 next: search.Page < page.Count
                     ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, search.Participant })
                     : null,
                 last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, search.Participant }),
-                count : page.Total
+                count: page.Total
             );
 
             return new OkObjectResult(response);

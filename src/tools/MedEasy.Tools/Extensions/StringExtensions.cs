@@ -40,6 +40,35 @@ namespace System
             return sbResult?.ToString() ?? string.Empty;
         }
 
+        /// <summary>
+        /// Converts the <paramref name="input"/> to its camelCase equivalent
+        /// </summary>
+        /// <param name="input">the string to convert</param>
+        /// <returns>the string converted to Title case</returns>
+        /// <example><c>"cyrille-alexandre".<see cref="ToTitleCase()"/></c> returns <c>"cyrilleAlexandre"</c></example>
+        public static string ToCamelCase(this string input)
+        {
+            StringBuilder sbResult = null;
+            if ((input?.ToCharArray()?.AtLeastOnce() ?? false))
+            {
+                sbResult = new StringBuilder(input);
+                if (char.IsLetter(sbResult[0]))
+                {
+                    sbResult[0] = char.ToLower(sbResult[0]);
+                }
+
+                for (int i = 1; i < sbResult.Length; i++)
+                {
+                    if (char.IsWhiteSpace(sbResult[i - 1]) || sbResult[i - 1] == '-')
+                    {
+                        sbResult[i] = char.ToUpper(sbResult[i]);
+                    }
+                }
+            }
+
+            return sbResult?.ToString() ?? string.Empty;
+        }
+
 
         /// <summary>
         /// Perfoms a VB "Like" comparison

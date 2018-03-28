@@ -1,6 +1,7 @@
 using AutoMapper.QueryableExtensions;
+using Bogus;
 using FluentAssertions;
-using GenFu;
+using FluentAssertions.Extensions;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.RestObjects;
@@ -28,7 +29,6 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using FluentAssertions.Extensions;
 
 namespace Patients.API.UnitTests.Controllers
 {
@@ -128,8 +128,13 @@ namespace Patients.API.UnitTests.Controllers
                     }
                 }
 
+                Faker<Patient> patientFaker = new Faker<Patient>()
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
+                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
+
                 {
-                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
+                    IEnumerable<Patient> items = patientFaker.Generate(400);
                     items.ForEach(item => item.Id = default);
                     yield return new object[]
                     {
@@ -143,9 +148,8 @@ namespace Patients.API.UnitTests.Controllers
                     };
                 }
                 {
-                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
-                    items.ForEach(item => item.Id = default);
-
+                    IEnumerable<Patient> items = patientFaker.Generate(400);
+                    
                     yield return new object[]
                     {
                         items,
@@ -178,7 +182,7 @@ namespace Patients.API.UnitTests.Controllers
             }
         }
 
-        // TODO add an integration test which validates that we receive BAD REQUEST when
+
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
         public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,

@@ -104,6 +104,48 @@ namespace Agenda.API.IntegrationTests
             }
 
         };
+        /// <summary>
+        /// Schema of an <see cref="AppointmentInfo"/> resource once translated to json
+        /// </summary>
+        private static JSchema _appointmentResourceSchema = new JSchema
+        {
+            Type = JSchemaType.Object,
+            Properties =
+            {
+                [nameof(AppointmentInfo.Id).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
+                [nameof(AppointmentInfo.Subject).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
+                [nameof(AppointmentInfo.Location).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
+                [nameof(AppointmentInfo.StartDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
+                [nameof(AppointmentInfo.EndDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
+                [nameof(AppointmentInfo.UpdatedDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String, },
+                [nameof(AppointmentInfo.Participants).ToCamelCase()] = new JSchema { Type = JSchemaType.Array,  MinimumItems = 1}
+            },
+            Required =
+            {
+                nameof(AppointmentInfo.Id).ToCamelCase(),
+                nameof(AppointmentInfo.Subject).ToCamelCase(),
+                nameof(AppointmentInfo.Location).ToCamelCase(),
+                nameof(AppointmentInfo.StartDate).ToCamelCase(),
+                nameof(AppointmentInfo.EndDate).ToCamelCase(),
+                nameof(AppointmentInfo.Participants).ToCamelCase(),
+
+            }
+        };
+
+        private static JSchema _browsableResourceSchema = new JSchema
+        {
+            Type = JSchemaType.Object,
+            Properties =
+            {
+                [nameof(BrowsableResource<AppointmentInfo>.Resource).ToLower()] = _appointmentResourceSchema,
+                [nameof(BrowsableResource<AppointmentInfo>.Links).ToLower()] = new JSchema
+                {
+                    Type = JSchemaType.Array,
+                }
+
+            }
+        };
+
         private DatabaseFacade _databaseFacade;
 
         public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, DatabaseFixture database)
@@ -321,18 +363,17 @@ namespace Agenda.API.IntegrationTests
                     Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
                         .RuleFor(x => x.Name, faker => faker.Name.FullName());
 
-                    Randomizer randomizer = new Randomizer();
                     Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
-                        .RuleFor(x => x.Participants, () => participantFaker.Generate(randomizer.Number(min: 1, max: 5)))
+                        .RuleFor(x => x.Participants, (faker) => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)))
                         .RuleFor(x => x.Location, faker => faker.Address.City())
                         .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
-                        .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTime.UtcNow.Year + 1).Add(1.Hours())))
+                        .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
                         .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
                     
                     yield return new object[]
                     {
-                        appointmentFaker.Generate(10),
-                        $"/search?{new { page=1, pageSize=10, from = 1.January(DateTime.UtcNow.Year)}.ToQueryString()}",
+                        appointmentFaker.Generate(count : 10),
+                        $"/search?{new { page=1, pageSize=10, from = 1.January(DateTimeOffset.UtcNow.Year)}.ToQueryString()}",
                         (total : 10, count : 10)
                     };
                 }
@@ -345,15 +386,18 @@ namespace Agenda.API.IntegrationTests
         {
             // Arrange
             _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
-            newAppointments.ForEach(async (newAppointment) =>
+            await newAppointments.ForEachAsync(async (newAppointment) =>
             {
                 RequestBuilder rb = new RequestBuilder(_server, _endpointUrl)
                     .And(message => message.Content = new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"));
 
-                await rb.PostAsync()
+                HttpResponseMessage createdResponse = await rb.PostAsync()
                     .ConfigureAwait(false);
 
-            });
+                _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
+                
+            })
+            .ConfigureAwait(false);
             
 
             string path = $"{_endpointUrl}{url}";
@@ -383,6 +427,69 @@ namespace Agenda.API.IntegrationTests
                 .HaveCount(1).And
                 .ContainSingle().And
                 .ContainSingle(value => value == countHeaders.count.ToString());
+
+        }
+
+        [Fact]
+        public async Task WhenPostingValidData_Post_CreateTheResource()
+        {
+            // Arrange
+            Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
+                        .RuleFor(x => x.Name, faker => faker.Person.FullName);
+
+            Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
+                .RuleFor(x => x.Participants, (faker) => participantFaker.Generate(count : 3))
+                .RuleFor(x => x.Location, faker => faker.Address.City())
+                .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
+                .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
+                .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
+
+            NewAppointmentInfo newAppointment = appointmentFaker.Generate();
+
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {Stringify(newAppointment)}");
+
+            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
+                .AddHeader("Accept", "application/json")
+                .And(message => message.Content = new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"));
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeTrue("The resource creation must succeed");
+            ((int)response.StatusCode).Should().Be(Status201Created);
+
+            response.Content.Should()
+                .NotBeNull("API must return a content");
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"content : {json}");
+
+            json.Should()
+                .NotBeNullOrWhiteSpace();
+
+
+            JToken token = JToken.Parse(json);
+            bool tokenIsValid = token.IsValid(_browsableResourceSchema, out IList<string> errors);
+            tokenIsValid.Should()
+                .BeTrue("content returned by the API must conform to appointment jschema");
+
+            BrowsableResource<AppointmentInfo> browsableResource = token.ToObject<BrowsableResource<AppointmentInfo>>();
+            IEnumerable<Link> links = browsableResource.Links;
+            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+
+            Uri location = response.Headers.Location;
+            linkToSelf.Href.Should().Be(location.ToString());
+
+            response = await new RequestBuilder(_server, $"{location}").SendAsync(Head)
+                .ConfigureAwait(false);
+
+            response.IsSuccessStatusCode.Should()
+                .BeTrue($"location <{location}> must point to the created resource");
 
         }
     }

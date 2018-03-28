@@ -1,18 +1,18 @@
 ﻿using AutoMapper.QueryableExtensions;
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
-using Measures.CQRS.Queries.BloodPressures;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Context;
@@ -21,16 +21,13 @@ using MedEasy.DAL.Repositories;
 using MedEasy.Data;
 using MedEasy.RestObjects;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
 using Optional;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -39,11 +36,10 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using MedEasy.CQRS.Core.Commands;
 
 namespace Measures.API.Tests
 {
@@ -202,8 +198,14 @@ namespace Measures.API.Tests
                     }
                 }
 
+                Faker<Patient> patientFaker = new Faker<Patient>()
+                    .RuleFor(x => x.Id, 0)
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
+                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
                 {
-                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
+
+                    IEnumerable<Patient> items =patientFaker.Generate(400);
                     items.ForEach(item => item.Id = default);
                     yield return new object[]
                     {
@@ -220,9 +222,8 @@ namespace Measures.API.Tests
                     };
                 }
                 {
-                    IEnumerable<Patient> items = A.ListOf<Patient>(400);
-                    items.ForEach(item => item.Id = default);
-
+                    IEnumerable<Patient> items = patientFaker.Generate(400);
+                    
                     yield return new object[]
                     {
                         items,
@@ -788,7 +789,7 @@ namespace Measures.API.Tests
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            
+
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
 
@@ -838,7 +839,7 @@ namespace Measures.API.Tests
                     {
                         Id = query.Data
                     }.Some()));
-            
+
 
             // Act
             IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: paging, ct: default)

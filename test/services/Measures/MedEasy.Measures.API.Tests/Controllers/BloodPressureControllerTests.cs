@@ -1,7 +1,7 @@
 using AutoMapper.QueryableExtensions;
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using GenFu;
 using Measures.API.Controllers;
 using Measures.API.Routing;
 using Measures.Context;
@@ -75,8 +75,9 @@ namespace Measures.API.Tests.Controllers
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
             dbContextOptionsBuilder.UseSqlite(database.Connection)
                 .EnableSensitiveDataLogging();
-            
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => {
+
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) =>
+            {
                 MeasuresContext context = new MeasuresContext(options);
                 context.Database.EnsureCreated();
                 return context;
@@ -125,18 +126,33 @@ namespace Measures.API.Tests.Controllers
                     }
                 }
 
-                {
-                    IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach((item, pos) =>
-                    {
-                        item.Id = default;
-                        item.Patient = new Patient
-                        {
-                            Id = pos,
-                            UUID = Guid.NewGuid()
-                        };
+                Faker<Patient> patientFaker = new Faker<Patient>()
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
+                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
 
-                    });
+                int patientId = 0;
+                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
+                    .RuleFor(x => x.Id, 0)
+                    .RuleFor(x => x.SystolicPressure, faker => faker.Random.Int(min: 120, max: 160))
+                    .RuleFor(x => x.DiastolicPressure, (faker, measure) => measure.SystolicPressure - 40)
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.DateOfMeasure, faker => faker.Date.Recent(days : 7))
+                    .RuleFor(x => x.CreatedBy, faker => faker.Person.UserName)
+                    .RuleFor(x => x.UpdatedBy, faker => faker.Person.UserName)
+                    .RuleFor(x => x.CreatedDate, faker => faker.Date.Recent())
+                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
+                    .RuleFor(x => x.Patient, () =>
+                    {
+                        Patient p = patientFaker.Generate();
+                        patientId++;
+                        p.Id = patientId;
+                        return p;
+                    })
+                    ;
+                {
+
+                    IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     yield return new object[]
                     {
                         items,
@@ -153,7 +169,7 @@ namespace Measures.API.Tests.Controllers
                     };
                 }
                 {
-                    IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
+                    IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((item, pos) =>
                     {
                         item.Id = default;
@@ -245,13 +261,13 @@ namespace Measures.API.Tests.Controllers
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
-            GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response  = actionResult.Should()
+            GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                         .Value.Should()
                         .NotBeNull().And
                         .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>>().Which;
-            
+
             response.Items.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
@@ -271,19 +287,32 @@ namespace Measures.API.Tests.Controllers
         {
             get
             {
-                {
-                    IEnumerable<BloodPressure> items = A.ListOf<BloodPressure>(400);
-                    items.ForEach((x, pos) =>
-                    {
-                        x.DateOfMeasure = 26.January(2001);
-                        x.Id = (pos + 1);
-                        x.UUID = Guid.NewGuid();
-                        x.Patient = new Patient
-                        {
-                            UUID = Guid.NewGuid()
-                        };
-                    });
+                Faker<Patient> patientFaker = new Faker<Patient>()
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
+                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
 
+                int patId = 0;
+                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
+                    .RuleFor(x => x.Id, 0)
+                    .RuleFor(x => x.SystolicPressure, faker => faker.Random.Int(min: 120, max: 160))
+                    .RuleFor(x => x.DiastolicPressure, (faker, measure) => measure.SystolicPressure - 40)
+                    .RuleFor(x => x.DateOfMeasure, faker => faker.Date.Between(start : 1.January(2001), end: 31.January(2001)))
+                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                    .RuleFor(x => x.CreatedBy, faker => faker.Person.UserName)
+                    .RuleFor(x => x.UpdatedBy, faker => faker.Person.UserName)
+                    .RuleFor(x => x.CreatedDate, faker => faker.Date.Recent())
+                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
+                    .RuleFor(x => x.Patient, () =>
+                    {
+                        Patient p = patientFaker.Generate();
+                        patId++;
+                        p.Id = patId;
+                        return p;
+                    });
+                {
+                    IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
+                    
 
                     yield return new object[]
                     {
@@ -673,7 +702,7 @@ namespace Measures.API.Tests.Controllers
         }
 
 
-        
+
 
         [Fact]
         public async Task DeleteResource()
@@ -756,10 +785,10 @@ namespace Measures.API.Tests.Controllers
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<PatchCommand<Guid, BloodPressureInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
-            
+
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
-            
+
         }
 
     }

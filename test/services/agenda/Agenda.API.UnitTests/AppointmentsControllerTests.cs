@@ -1,5 +1,7 @@
 using Agenda.API.Controllers;
 using Agenda.API.Routing;
+using Agenda.CQRS.Features.Appointments.Commands;
+using Agenda.CQRS.Features.Appointments.Handlers;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
@@ -17,6 +19,7 @@ using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -70,7 +73,6 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock = new Mock<IOptionsSnapshot<AgendaApiOptions>>(Strict);
 
             _mediatorMock = new Mock<IMediator>(Strict);
-
             _sut = new AppointmentsController(_urlHelperMock.Object, _mediatorMock.Object, _apiOptionsMock.Object);
         }
 
@@ -703,5 +705,92 @@ namespace Agenda.API.UnitTests.Features
 
         }
 
+
+        [Fact]
+        public async Task GivenValidInfo_Post_Returns_CreatedResource()
+        {
+            // Arrange
+            NewAppointmentInfo newAppointment = new NewAppointmentInfo
+            {
+                StartDate = 23.July(2012).Add(13.Hours().Add(30.Minutes())),
+                EndDate = 23.July(2012).Add(14.Hours().Add(30.Minutes())),
+                Subject = "Confidential",
+                Location = "Gotham",
+                Participants = new[]
+                {
+                    new ParticipantInfo { Id = Guid.NewGuid(), Name = "Dick Grayson", UpdatedDate = 10.January(2005) },
+                    new ParticipantInfo { Id = Guid.NewGuid(), Name = "Bruce Wayne", UpdatedDate = 10.January(2005) }
+                }
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAppointmentInfoCommand>(), It.IsAny<CancellationToken>()))
+                .Returns(async (CreateAppointmentInfoCommand cmd, CancellationToken ct) =>
+                {
+                    return await new HandleCreateAppointmentInfoCommand(_uowFactory, AutoMapperConfig.Build().CreateMapper())
+                        .Handle(cmd, ct)
+                        .ConfigureAwait(false);
+                });
+
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment}");
+
+            // Act
+            IActionResult actionResult = await _sut.Post(newAppointment, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
+                .BeAssignableTo<CreatedAtRouteResult>().Which;
+
+            createdAtRouteResult.RouteName.Should()
+                .Be(RouteNames.DefaultGetOneByIdApi);
+            RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
+            routeValues.Should()
+                .ContainKey(nameof(AppointmentInfo.Id)).And
+                .ContainKey("controller");
+            
+            routeValues[nameof(AppointmentInfo.Id)].Should()
+                .BeAssignableTo<Guid>().Which.Should()
+                .NotBeEmpty();
+            routeValues["controller"].Should()
+                .BeAssignableTo<string>().Which.Should()
+                .Be(AppointmentsController.EndpointName);
+
+            BrowsableResource<AppointmentInfo> browsableResource = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<BrowsableResource<AppointmentInfo>>().Which;
+
+
+            AppointmentInfo resource = browsableResource.Resource;
+            resource.Should()
+                .NotBeNull();
+
+            resource.Id.Should()
+                .NotBeEmpty();
+            resource.StartDate.Should()
+                .Be(newAppointment.StartDate);
+            resource.EndDate.Should()
+                .Be(newAppointment.EndDate);
+            resource.Subject.Should()
+                .Be(newAppointment.Subject);
+            resource.Location.Should()
+                .Be(newAppointment.Location);
+            IEnumerable<ParticipantInfo> participants = resource.Participants;
+            participants.Should()
+                .HaveSameCount(newAppointment.Participants).And
+                .OnlyContain(item => item.Id != default).And
+                .OnlyContain(item => newAppointment.Participants.Select(x => x.Name).Contains(item.Name));
+
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeNull().And
+                .NotContainNulls().And
+                .ContainSingle(link => link.Relation == LinkRelation.Self);
+
+            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+            linkToSelf.Method.Should()
+                .Be("GET");
+            linkToSelf.Href.Should()
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id}");
+
+        }
     }
 }

@@ -2,43 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using static Newtonsoft.Json.JsonConvert;
+using static Newtonsoft.Json.Formatting;
+using static Newtonsoft.Json.NullValueHandling;
+using Newtonsoft.Json;
 
 namespace Agenda.DTO
 {
     /// <summary>
     /// Contains data to create a new <see cref="Appointment"/> beetween two or more person
     /// </summary>
-    [DataContract]
+    [JsonObject]
     public class NewAppointmentInfo : IEquatable<NewAppointmentInfo>
     {
         /// <summary>
         /// Location of the appointment
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public string Location { get; set; }
 
         /// <summary>
         /// Subject of the appointment
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public string Subject { get; set; }
 
         /// <summary>
         /// Start date of the appointment
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public DateTimeOffset StartDate { get; set; }
 
         /// <summary>
         /// End date of the appointment
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public DateTimeOffset EndDate { get; set; }
 
         /// <summary>
         /// Participants of the appointment
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public IEnumerable<ParticipantInfo> Participants { get; set; }
 
 
@@ -75,5 +79,8 @@ namespace Agenda.DTO
         {
             return !(first == second);
         }
+
+
+        public override string ToString() => SerializeObject(this, new JsonSerializerSettings { NullValueHandling = Ignore });
     }
 }
