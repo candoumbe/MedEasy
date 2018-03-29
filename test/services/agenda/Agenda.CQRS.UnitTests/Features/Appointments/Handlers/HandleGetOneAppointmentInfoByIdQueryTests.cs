@@ -117,7 +117,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .HaveSameCount(appointment.Participants);
 
                 ParticipantInfo participantInfo = appointmentInfo.Participants.ElementAt(0);
-                participantInfo.Name.Should().Be(appointment.Participants.ElementAt(0).Name);
+                participantInfo.Name.Should().Be(appointment.Participants.ElementAt(0).Participant.Name);
                 participantInfo.UpdatedDate.Should()
                     .NotBe(DateTimeOffset.MinValue).And
                     .NotBe(DateTimeOffset.MaxValue);

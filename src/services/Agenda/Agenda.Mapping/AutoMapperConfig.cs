@@ -25,6 +25,14 @@ namespace Agenda.Mapping
                 .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.UUID, opt => opt.Ignore())
                 ;
+
+            cfg.CreateMap<AppointmentParticipant, ParticipantInfo>()
+                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.Participant.UUID))
+                .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Participant.Name))
+                .ForMember(dto => dto.PhoneNumber, opt => opt.MapFrom(entity => entity.Participant.PhoneNumber))
+                .ForMember(dto => dto.Email, opt => opt.MapFrom(entity => entity.Participant.Email))
+                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.Participant.UpdatedDate));
+
             cfg.CreateMap<Appointment, AppointmentInfo>()
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
                 .ForMember(dto => dto.Participants, opt => opt.MapFrom(entity => entity.Participants));

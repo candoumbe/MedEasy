@@ -1,4 +1,8 @@
 ﻿using MedEasy.Objects;
+using Optional;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Agenda.Objects
 {
@@ -21,5 +25,15 @@ namespace Agenda.Objects
         /// Email of the participant
         /// </summary>
         public string Email { get; set; }
+
+
+        private IList<AppointmentParticipant> _appointments;
+        public IEnumerable<AppointmentParticipant> Appointments { get => _appointments; }
+
+        public Participant()
+        {
+            _appointments = new List<AppointmentParticipant>();
+        }
+
     }
 }

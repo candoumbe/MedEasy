@@ -91,6 +91,19 @@ namespace Agenda.DataStores
             }
 
 
+            modelBuilder.Entity<AppointmentParticipant>()
+                .HasKey(ap => new { ap.AppointmentId, ap.ParticipantId });
+
+            modelBuilder.Entity<AppointmentParticipant>()
+                .HasOne(ap => ap.Appointment)
+                .WithMany(a => a.Participants)
+                .HasForeignKey(ap => ap.AppointmentId);
+
+            modelBuilder.Entity<AppointmentParticipant>()
+                .HasOne(ap => ap.Participant)
+                .WithMany(a => a.Appointments)
+                .HasForeignKey(ap => ap.ParticipantId);
+
             modelBuilder.Entity<Appointment>(entity =>
             {
                 entity.Property(x => x.Location)
@@ -105,6 +118,20 @@ namespace Agenda.DataStores
 
                 entity.Property(x => x.EndDate)
                     .IsRequired();
+                
+            });
+
+
+            modelBuilder.Entity<Participant>(entity =>
+            {
+                entity.Property(x => x.Name)
+                    .HasMaxLength(_normalTextLength)
+                    .IsRequired();
+
+                entity.Property(x => x.PhoneNumber)
+                    .HasMaxLength(_normalTextLength)
+                    .IsRequired()
+                    .HasDefaultValue(string.Empty);
             });
 
         }

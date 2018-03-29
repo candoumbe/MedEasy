@@ -11,8 +11,7 @@ namespace Agenda.Objects
     /// </summary>
     public class Appointment : AuditableEntity<int, Appointment>
     {
-        private ISet<Participant> _participants;
-
+        private IList<AppointmentParticipant> _participants;
         /// <summary>
         /// Location of the appointment
         /// </summary>
@@ -36,12 +35,12 @@ namespace Agenda.Objects
         /// <summary>
         /// Participants of the <see cref="Appointment"/>
         /// </summary>
-        public IEnumerable<Participant> Participants { get => _participants; }
+        public IEnumerable<AppointmentParticipant> Participants { get => _participants; }
 
 
         public Appointment()
         {
-            _participants = new HashSet<Participant>();
+            _participants = new List<AppointmentParticipant>();
         }
 
         /// <summary>
@@ -49,13 +48,14 @@ namespace Agenda.Objects
         /// </summary>
         /// <param name="participant">The participant to add</param>
         /// <returns><c>true</c> if <see cref="participant"/> was successfully added and <c>false</c> otherwise</returns>
-        public bool AddParticipant(Participant participant)
+        public void AddParticipant(Participant participant)
         {
             if (participant.UUID == default)
             {
                 participant.UUID = Guid.NewGuid();
             }
-            return _participants.Add(participant);
+            _participants.Add(new AppointmentParticipant { Participant = participant , Appointment = this});
+            
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Agenda.Objects
         /// <param name="participantId"></param>
         public void RemoveParticipant(Guid participantId)
         {
-            Option<Participant> optionalParticipant = _participants.SingleOrDefault(x => x.UUID == participantId)
+            Option<AppointmentParticipant> optionalParticipant = _participants.SingleOrDefault(x => x.Participant.UUID == participantId)
                 .SomeNotNull();
 
             optionalParticipant.MatchSome((participant) => _participants.Remove(participant));
