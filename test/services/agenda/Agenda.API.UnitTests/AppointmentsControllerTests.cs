@@ -232,15 +232,13 @@ namespace Agenda.API.UnitTests.Features
                 EndDate = 12.July(2013).AddHours(14).AddMinutes(45)
             };
 
-            appointment.AddParticipant(new Participant { UUID = Guid.NewGuid(), Name = "Bruce Wayne" });
-            appointment.AddParticipant(new Participant { UUID = Guid.NewGuid(), Name = "Dick Grayson" });
+            appointment.AddParticipant(new Participant("Bruce Wayne") { UUID = Guid.NewGuid() });
+            appointment.AddParticipant(new Participant("Dick Grayson") { UUID = Guid.NewGuid() });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
-                uow.Repository<Appointment>().Delete(x => true);
                 uow.Repository<Appointment>().Create(appointment);
-
+                
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -341,12 +339,12 @@ namespace Agenda.API.UnitTests.Features
                 }
 
                 Faker<Participant> participantFaker = new Faker<Participant>()
+                    .CustomInstantiator(faker => new Participant(faker.Person.FullName))
                     .RuleFor(participant => participant.Id, 0)
                     .RuleFor(participant => participant.UUID, () => Guid.NewGuid())
-                    .RuleFor(participant => participant.Name, faker => faker.Name.FullName())
                     .RuleFor(participant => participant.Email, faker => faker.Internet.Email())
                     .RuleFor(participant => participant.PhoneNumber, faker => faker.Person.Phone);
-                Randomizer randomizer = new Randomizer();
+                
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(appointment => appointment.Id, 0)
@@ -357,7 +355,7 @@ namespace Agenda.API.UnitTests.Features
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
                         .FinishWith((faker, appointment) =>
                         {
-                            IEnumerable<Participant> participants = participantFaker.Generate(randomizer.Int(min: 1, max: 5));
+                            IEnumerable<Participant> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
                             foreach (Participant item in participants)
                             {
                                 appointment.AddParticipant(item);
@@ -422,7 +420,7 @@ namespace Agenda.API.UnitTests.Features
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
                         .FinishWith((faker, appointment) =>
                         {
-                            IEnumerable<Participant> participants = participantFaker.Generate(randomizer.Int(min: 1, max: 5));
+                            IEnumerable<Participant> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
                             foreach (Participant item in participants)
                             {
                                 appointment.AddParticipant(item);

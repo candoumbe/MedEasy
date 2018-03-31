@@ -41,8 +41,6 @@ namespace Agenda.Mapping
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
                 .ReverseMap()
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))
-                .ForMember(entity => entity.PhoneNumber, opt => opt.Ignore())
                 ;
         });
         

@@ -76,8 +76,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             Guid firstParticipantId = Guid.NewGuid();
             Guid secondParticipantId = Guid.NewGuid();
-            appointment.AddParticipant(new Participant { Name = "Dick Grayson", UUID = firstParticipantId });
-            appointment.AddParticipant(new Participant { Name = "Bruce Wayne", UUID = secondParticipantId });
+            appointment.AddParticipant(new Participant ("Dick Grayson"){ UUID = firstParticipantId });
+            appointment.AddParticipant(new Participant ("Bruce Wayne") { UUID = secondParticipantId });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

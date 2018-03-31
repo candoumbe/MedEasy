@@ -88,7 +88,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 StartDate = 1.April(2018).AddHours(15),
                 EndDate = 1.April(2018).AddHours(16)
             };
-            appointment.AddParticipant(new Participant { Name = "Bruce Wayne" });
+            appointment.AddParticipant(new Participant("Bruce Wayne"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

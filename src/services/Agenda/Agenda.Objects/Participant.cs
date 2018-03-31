@@ -11,10 +11,16 @@ namespace Agenda.Objects
     /// </summary>
     public class Participant : AuditableEntity<int, Participant>
     {
+        private string _name;
+
         /// <summary>
         /// Name of the participant
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get => _name;
+            set => _name = value?.ToTitleCase() ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <summary>
         /// Phone number of the participant
@@ -28,12 +34,22 @@ namespace Agenda.Objects
 
 
         private IList<AppointmentParticipant> _appointments;
+
         public IEnumerable<AppointmentParticipant> Appointments { get => _appointments; }
 
-        public Participant()
+        /// <summary>
+        /// Builds a new <see cref="Participant"/> instance
+        /// </summary>
+        /// <param name="name">Name of the participant</param>
+        public Participant(string name)
         {
             _appointments = new List<AppointmentParticipant>();
+            Name = name;
         }
+
+
+        public Participant() : this(string.Empty)
+        {}
 
     }
 }

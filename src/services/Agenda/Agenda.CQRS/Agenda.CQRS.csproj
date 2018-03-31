@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\Agenda.DTO\Agenda.DTO.csproj" />
     <ProjectReference Include="..\Agenda.Mapping\Agenda.Mapping.csproj" />
   </ItemGroup>

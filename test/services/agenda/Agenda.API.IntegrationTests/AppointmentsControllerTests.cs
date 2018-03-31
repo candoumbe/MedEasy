@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using static Bogus.DataSets.Name;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
@@ -434,11 +435,13 @@ namespace Agenda.API.IntegrationTests
         public async Task WhenPostingValidData_Post_CreateTheResource()
         {
             // Arrange
-            Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
-                        .RuleFor(x => x.Name, faker => faker.Person.FullName);
+
+            Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>()
+                .RuleFor(x => x.Name, faker => faker.Name.FullName() )
+                .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent());
 
             Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
-                .RuleFor(x => x.Participants, (faker) => participantFaker.Generate(count : 3))
+                .RuleFor(x => x.Participants, participantFaker.Generate(count : 3))
                 .RuleFor(x => x.Location, faker => faker.Address.City())
                 .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                 .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
@@ -446,7 +449,7 @@ namespace Agenda.API.IntegrationTests
 
             NewAppointmentInfo newAppointment = appointmentFaker.Generate();
 
-            _outputHelper.WriteLine($"{nameof(newAppointment)} : {Stringify(newAppointment)}");
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {Stringify(newAppointment)}"); 
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
                 .AddHeader("Accept", "application/json")
@@ -457,6 +460,7 @@ namespace Agenda.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
+            _outputHelper.WriteLine($"Response Status code :  {response.StatusCode}");
             response.IsSuccessStatusCode.Should()
                 .BeTrue("The resource creation must succeed");
             ((int)response.StatusCode).Should().Be(Status201Created);

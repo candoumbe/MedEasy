@@ -53,8 +53,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             });
 
-            _mapperMock = A.Fake<IMapper>(x => x.Strict());
-            _unitOfWorkFactoryMock = A.Fake<IUnitOfWorkFactory>(x => x.Strict());
+            _mapperMock = A.Fake<IMapper>(x => x.Wrapping(AutoMapperConfig.Build().CreateMapper()));
+            _unitOfWorkFactoryMock = A.Fake<IUnitOfWorkFactory>(x => x.Wrapping(_unitOfWorkFactory));
 
             _sut = new HandleCreateAppointmentInfoCommand(_unitOfWorkFactoryMock, _mapperMock);
 
@@ -81,9 +81,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             get
             {
+                Person person = new Person();
                 Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>()
                     .RuleFor(x => x.Id, () => Guid.NewGuid())
-                    .RuleFor(x => x.Name, faker => faker.Name.FullName())
+                    .RuleFor(x => x.Name, faker => new Person().FullName )
                     .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
                     ;
 
@@ -92,14 +93,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(30.Minutes()))
                     .RuleFor(x => x.Location, faker => faker.Address.City())
                     .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
-                    .RuleFor(x => x.Participants, () => participantFaker.Generate(new Randomizer().Int(min : 1, max : 5)));
+                    .RuleFor(x => x.Participants, faker => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)));
                 {
                     NewAppointmentInfo data = newAppointmentFaker.Generate();
                     yield return new object[]
                     {
                         data,
-                        ((Expression<Func<AppointmentInfo, bool>>)(app => app.Id != default 
-                            && app.StartDate == data.StartDate 
+                        ((Expression<Func<AppointmentInfo, bool>>)(app => app.Id != default
+                            && app.StartDate == data.StartDate
                             && app.EndDate == data.EndDate
                             && app.Subject == data.Subject
                             && app.Location == data.Location
@@ -117,19 +118,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _outputHelper.WriteLine($"{nameof(info)} : {info}");
 
             // Arrange
-            IMapper mapper = AutoMapperConfig.Build().CreateMapper();
-
-            A.CallTo(() => _unitOfWorkFactoryMock.NewUnitOfWork())
-                .Returns(_unitOfWorkFactory.NewUnitOfWork());
-            A.CallTo(() => _mapperMock.Map<NewAppointmentInfo, Appointment>(A<NewAppointmentInfo>.Ignored))
-                .ReturnsLazily((NewAppointmentInfo data) => mapper.Map<NewAppointmentInfo, Appointment>(data));
-
-            A.CallTo(() => _mapperMock.Map<Appointment, AppointmentInfo>(A<Appointment>.Ignored))
-                .ReturnsLazily((Appointment data) => mapper.Map<Appointment, AppointmentInfo>(data));
-
-            A.CallTo(() => _mapperMock.Map<ParticipantInfo, Participant>(A<ParticipantInfo>._))
-                .ReturnsLazily((ParticipantInfo data) => mapper.Map<ParticipantInfo, Participant>(data));
-
             CreateAppointmentInfoCommand cmd = new CreateAppointmentInfoCommand(info);
 
             // Act
