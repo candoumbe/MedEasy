@@ -156,7 +156,7 @@ namespace Agenda.API.IntegrationTests
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Agenda"),
                 environmentName: "IntegrationTest",
                 applicationName: typeof(Startup).Assembly.GetName().Name,
-                initializeServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(item =>
+                overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(item =>
                 {
                     DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
                     builder.UseSqlite(database.Connection)
@@ -496,5 +496,71 @@ namespace Agenda.API.IntegrationTests
                 .BeTrue($"location <{location}> must point to the created resource");
 
         }
+
+
+        [Fact]
+        public async Task RemoveParticipantFromAppointment_MustComplete()
+        {
+            // Arrange
+            Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
+                        .RuleFor(x => x.Name, faker => faker.Name.FullName())
+                        .RuleFor(x => x.Id, () => Guid.NewGuid());
+
+            Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
+                .RuleFor(x => x.Participants, (faker) => participantFaker.Generate(faker.Random.Int(min: 2, max: 5)))
+                .RuleFor(x => x.Location, faker => faker.Address.City())
+                .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
+                .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
+                .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
+
+
+            NewAppointmentInfo newAppointmentInfo = appointmentFaker;
+
+            RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}")
+                .AddHeader("Accept", "application/json")
+                .And(message => message.Content = new StringContent(Stringify(newAppointmentInfo), Encoding.UTF8, "application/json"));
+
+            HttpResponseMessage response = await requestBuilder.PostAsync()
+                .ConfigureAwait(false);
+
+
+            _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            BrowsableResource<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<BrowsableResource<AppointmentInfo>>();
+
+            _outputHelper.WriteLine($"Resource created : {Stringify(browsableAppointmentInfo)}");
+
+            AppointmentInfo resource = browsableAppointmentInfo.Resource;
+            IEnumerable<ParticipantInfo> participants = resource.Participants;
+            int participantCountBeforeDelete = participants.Count();
+
+            ParticipantInfo participantToDelete = new Faker().PickRandom(participants);
+
+            Guid appointmentId = resource.Id;
+            Guid participantId = participantToDelete.Id;
+            string deletePath = $"{_endpointUrl}/{appointmentId}/participants/{participantId}";
+
+            _outputHelper.WriteLine($"delete url : <{deletePath}>");
+            requestBuilder = new RequestBuilder(_server, deletePath);
+            // Act
+            response = await requestBuilder.SendAsync(Delete)
+                .ConfigureAwait(false);
+
+
+            // Assert
+            _outputHelper.WriteLine("Starting assertions");
+            _outputHelper.WriteLine($"Delete status code : {response.StatusCode}");
+
+            response.IsSuccessStatusCode.Should()
+                .BeTrue($"Appointment <{appointmentId}> and Participant <{participantId}> exist.");
+
+            ((int)response.StatusCode).Should()
+                .Be(Status204NoContent);
+            
+        }
+
     }
 }

@@ -35,9 +35,10 @@ namespace MedEasy.IntegrationTests.Core
         /// <param name="relativeTargetProjectParentDir">Path to the directory of the project under test. </param>
         /// <param name="environmentName">Name of the environment to emulate</param>
         /// <param name="applicationName">Name of the application</param>
+        /// <param name="overrideServices">Provider for services implementations that will override the ones already set up in the <see cref="TStartup"/> class.</param>
         /// <exception cref="DirectoryNotFoundException"><paramref name="relativeTargetProjectParentDir"/> doesnot contain</exception>
         public virtual void Initialize(string relativeTargetProjectParentDir, string environmentName, string applicationName,
-            Action<IServiceCollection> initializeServices = null)
+            Action<IServiceCollection> overrideServices = null)
         {
             Assembly startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
             string contentRoot = GetProjectPath(relativeTargetProjectParentDir, startupAssembly);
@@ -65,9 +66,9 @@ namespace MedEasy.IntegrationTests.Core
                 .ConfigureServices(services => services.AddSingleton(env))
                 ;
 
-            if (initializeServices != null)
+            if (overrideServices != null)
             {
-                builder = builder.ConfigureServices(initializeServices);
+                builder = builder.ConfigureServices(overrideServices);
             }
 
             _server = new TestServer(builder);

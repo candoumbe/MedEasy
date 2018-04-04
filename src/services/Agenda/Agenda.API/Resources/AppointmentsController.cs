@@ -4,6 +4,7 @@ using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
 using MedEasy.Core.Attributes;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
 using MediatR;
@@ -59,13 +60,17 @@ namespace Agenda.API.Controllers
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(newAppointment), ct)
                 .ConfigureAwait(false);
 
+            IEnumerable<ParticipantInfo> participants = newResource.Participants;
+            IEnumerable<Link> links = new List<Link>(1 + participants.Count())
+            {
+                new Link {Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
+            }
+            .Union(participants.Select(participant => new Link { Relation = $"get-participant-{participant.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = "participant", participant.Id }) }));
+
             BrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
             {
                 Resource = newResource,
-                Links = new[]
-                {
-                    new Link {Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
-                }
+                Links = links
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id }, browsableResource);
@@ -82,6 +87,7 @@ namespace Agenda.API.Controllers
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
 
@@ -176,27 +182,27 @@ namespace Agenda.API.Controllers
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
         /// 
-        ///     // GET api/Appointments/Search?Location=Gotham
-        ///     will match all resources which have exactly 'Gotham' in the `Location` property
+        ///     // GET api/appointments/search?location=Gotham
+        ///     will match all resources which have exactly 'Gotham' in the `location` property
         ///     
-        ///     // GET api/Appointments/Search?Location=C*tral
-        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        ///     // GET api/appointments/search?location=C*tral
+        ///     will match match all resources which starts with 'C' and ends with 'tral'.
         /// 
         /// '?' : match exactly one charcter in a string property.
         /// 
         /// '!' : negate a criterion
         /// 
-        ///     // GET api/Appointments/Search?Location=!Gotham
-        ///     will match all resources where Firstname is not "Bruce"
+        ///     // GET api/appointments/search?location=!Gotham
+        ///     will match all resources where "location" is not "Gotham"
         ///     
         /// </remarks>
-        /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
+        /// <response code="200">"page" of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one of the search criterion is not valid</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Search(SearchAppointmentInfo search, CancellationToken ct = default)
+        public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken ct = default)
         {
 
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
@@ -225,6 +231,52 @@ namespace Agenda.API.Controllers
             );
 
             return new OkObjectResult(response);
+        }
+
+        /// <summary>
+        /// Removes the participant with the specified <see cref="participantId"/> from the appointment with 
+        /// the specified <paramref name="appointmentId"/>
+        /// </summary>
+        /// <param name="appointmentId">id of the appointment where to remove the participant from</param>
+        /// <param name="participantId">id of the participant to remove</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <response code="204">Participant was successfully removed</response>
+        /// <response code="404">Participant or apppointment not found</response>
+        /// <response code="409">Participant cannot be removed</response>
+        /// <response code="400"></response>
+        [HttpDelete("{appointmentId}/participants/{participantId}")]
+        [ProducesResponseType(Status204NoContent)]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        public async Task<IActionResult> Delete(Guid appointmentId, Guid participantId, CancellationToken ct = default)
+        {
+
+            RemoveParticipantFromAppointmentByIdCommand cmd = new RemoveParticipantFromAppointmentByIdCommand(data : (appointmentId, participantId));
+
+            DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
+                .ConfigureAwait(false);
+            IActionResult actionResult;
+            switch (cmdResult)
+            {
+                case DeleteCommandResult.Done:
+                    actionResult = new NoContentResult();
+                    break;
+                case DeleteCommandResult.Failed_Unauthorized:
+                    actionResult = new UnauthorizedResult();
+                    break;
+                case DeleteCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                case DeleteCommandResult.Failed_Conflict:
+                    actionResult = new StatusCodeResult(Status409Conflict);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cmdResult));
+            }
+
+            return actionResult;
         }
     }
 }

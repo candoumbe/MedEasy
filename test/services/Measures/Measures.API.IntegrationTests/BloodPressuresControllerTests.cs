@@ -106,7 +106,7 @@ namespace Measures.API.IntegrationTests
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
                 environmentName: "IntegrationTest",
                 applicationName: typeof(Startup).Assembly.GetName().Name,
-                initializeServices: (services) =>
+                overrideServices: (services) =>
                     services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
                     {
                         DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();

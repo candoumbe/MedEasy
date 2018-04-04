@@ -12,6 +12,7 @@ using AutoMapper.QueryableExtensions;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
@@ -37,6 +38,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.UnitTests.Features
 {
@@ -781,7 +783,10 @@ namespace Agenda.API.UnitTests.Features
             links.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
-                .ContainSingle(link => link.Relation == LinkRelation.Self);
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Href)).And
+                .HaveCount(1 + newAppointment.Participants.Count()).And
+                .ContainSingle(link => link.Relation == LinkRelation.Self).And
+                .Contain(link => link.Relation.StartsWith("get-participant-"));
 
             Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
             linkToSelf.Method.Should()
@@ -789,6 +794,72 @@ namespace Agenda.API.UnitTests.Features
             linkToSelf.Href.Should()
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id}");
 
+            IEnumerable<Guid> participantsGuids = participants.Select(p => p.Id);
+            IEnumerable<Link> linksToParticipants = links.Where(link => link.Relation.StartsWith("get-participant-"));
+            linksToParticipants.Should()
+                .HaveSameCount(participantsGuids, "Link(s) to GET participant(s) details must be provided").And
+                .OnlyContain(link => link.Method == "GET");
+
+            
+            
         }
+
+        public static IEnumerable<object[]> MediatorCompletedCommandToRemoveParticipantsFromAppointmentCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    DeleteCommandResult.Done,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NoContentResult)),
+                    "appointment <=> participant association was sucessfully deleted"
+                };
+                yield return new object[]
+                {
+                    DeleteCommandResult.Failed_NotFound,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult)),
+                    "Appointment/Participant was not found"
+                };
+
+                yield return new object[]
+                {
+                    DeleteCommandResult.Failed_Unauthorized,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is UnauthorizedResult)),
+                    "Removing participant from the appointment is not allowed"
+                };
+
+                yield return new object[]
+                {
+                    DeleteCommandResult.Failed_Conflict,
+                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict)),
+                    "Removing participant from the appointment is not allowed"
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(MediatorCompletedCommandToRemoveParticipantsFromAppointmentCases))]
+        public async Task GivenMediatorCompleteCommandExecution_Delete_Returns_ActionResult(DeleteCommandResult cmdResult, Expression<Func<IActionResult, bool>> actionResultExpectation, string reason)
+        {
+            // Arrange
+            Guid appointmentId = Guid.NewGuid();
+            Guid participantId = Guid.NewGuid();
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RemoveParticipantFromAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cmdResult);
+
+            // Act
+            IActionResult actionResult = await _sut.Delete(appointmentId, participantId, ct : default)
+                .ConfigureAwait(false);
+
+            // Assert
+            actionResult.Should()
+                .NotBeNull().And
+                .Match(actionResultExpectation, reason);
+
+        }
+
+
+
     }
 }
