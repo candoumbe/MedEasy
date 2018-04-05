@@ -32,7 +32,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleSearchAppointmentInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleSearchAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IHandleSearchQuery _searchQueryHandler;
@@ -40,7 +40,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         private IUnitOfWorkFactory _uowFactory;
         private IExpressionBuilder _expressionBuilder;
 
-        public HandleSearchAppointmentInfoQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleSearchAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
             optionsBuilder.UseSqlite(database.Connection)

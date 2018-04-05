@@ -106,7 +106,7 @@ namespace Measures.API.IntegrationTests
                 relativeTargetProjectParentDir : Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
                 environmentName: "IntegrationTest", 
                 applicationName: typeof(Startup).Assembly.GetName().Name,
-                initializeServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
+                overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
                 {
                     DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
                     builder.UseInMemoryDatabase($"{Guid.NewGuid()}");

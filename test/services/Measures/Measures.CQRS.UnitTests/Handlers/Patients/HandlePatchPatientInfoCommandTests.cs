@@ -28,7 +28,7 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandlePatchPatientInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandlePatchPatientInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -36,7 +36,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         private Mock<IMediator> _mediatorMock;
         private HandlePatchPatientInfoCommand _sut;
 
-        public HandlePatchPatientInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandlePatchPatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace MedEasy.IntegrationTests.Core
 {
     /// <summary>
-    /// 
+    /// A fixture that use a in-memory Sqlite database
     /// </summary>
-    public class DatabaseFixture : IDisposable
+    public class SqliteDatabaseFixture : IDisposable
     {
         /// <summary>
         /// The current connection
@@ -20,9 +20,9 @@ namespace MedEasy.IntegrationTests.Core
         public DbConnection Connection { get; private set; }
          
         /// <summary>
-        /// Builds a new <see cref="DatabaseFixture"/>
+        /// Builds a new <see cref="SqliteDatabaseFixture"/>
         /// </summary>
-        public DatabaseFixture()
+        public SqliteDatabaseFixture()
         {
             Connection = new SqliteConnection("Datasource=:memory:");
             Connection.Open();

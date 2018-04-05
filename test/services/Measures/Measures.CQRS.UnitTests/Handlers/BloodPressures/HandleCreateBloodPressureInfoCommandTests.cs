@@ -34,7 +34,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Handlers")]
-    public class HandleCreateBloodPressureInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleCreateBloodPressureInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -42,7 +42,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         private Mock<IMediator> _mediatorMock;
         private HandleCreateBloodPressureInfoCommand _sut;
 
-        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture databaseFixture)
+        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
         {
             _outputHelper = outputHelper;
 

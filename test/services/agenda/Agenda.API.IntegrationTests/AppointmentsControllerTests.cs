@@ -39,7 +39,7 @@ namespace Agenda.API.IntegrationTests
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IClassFixture<ServicesTestFixture<Startup>>, IDisposable, IClassFixture<DatabaseFixture>
+    public class AppointmentsControllerTests : IClassFixture<ServicesTestFixture<Startup>>, IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
@@ -149,7 +149,7 @@ namespace Agenda.API.IntegrationTests
 
         private DatabaseFacade _databaseFacade;
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, DatabaseFixture database)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(

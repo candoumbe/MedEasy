@@ -20,14 +20,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleRemoveParticipantFromAppointmentByIdCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleRemoveParticipantFromAppointmentByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleRemoveParticipantFromAppointmentByIdCommand _sut;
         private DatabaseFacade _databaseFacade;
 
-        public HandleRemoveParticipantFromAppointmentByIdCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleRemoveParticipantFromAppointmentByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

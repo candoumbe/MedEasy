@@ -27,7 +27,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleCreateAppointmentInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleCreateAppointmentInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactoryMock;
@@ -35,7 +35,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         private IMapper _mapperMock;
         private HandleCreateAppointmentInfoCommand _sut;
 
-        public HandleCreateAppointmentInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleCreateAppointmentInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

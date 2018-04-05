@@ -24,13 +24,13 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Patients")]
-    public class HandleGetOnePatientInfoByIdQueryTests : IDisposable,IClassFixture<DatabaseFixture>
+    public class HandleGetOnePatientInfoByIdQueryTests : IDisposable,IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetOnePatientInfoByIdQuery _sut;
 
-        public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

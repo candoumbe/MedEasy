@@ -29,7 +29,7 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandlePatchBloodPressureInfoCommandTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandlePatchBloodPressureInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -37,7 +37,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         private Mock<IMediator> _mediatorMock;
         private HandlePatchBloodPressureInfoCommand _sut;
 
-        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

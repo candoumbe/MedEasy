@@ -32,7 +32,7 @@ using static Moq.MockBehavior;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleSearchPatientInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleSearchPatientInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -40,7 +40,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         private HandleSearchPatientInfosQuery _sut;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
         
-        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

@@ -49,7 +49,7 @@ namespace Measures.API.Tests.Controllers
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class BloodPressuresControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
 
@@ -62,7 +62,7 @@ namespace Measures.API.Tests.Controllers
         private const string _baseUrl = "http://host/api";
 
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

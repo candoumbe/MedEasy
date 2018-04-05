@@ -18,13 +18,13 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleGetPageOfPatientInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleGetPageOfPatientInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfPatientInfoQuery _sut;
 
-        public HandleGetPageOfPatientInfoQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleGetPageOfPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

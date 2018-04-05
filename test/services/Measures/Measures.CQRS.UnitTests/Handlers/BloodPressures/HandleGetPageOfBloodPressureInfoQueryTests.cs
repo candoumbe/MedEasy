@@ -22,13 +22,13 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandleGetPageOfBloodPressureInfoQueryTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class HandleGetPageOfBloodPressureInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfBloodPressureInfoQuery _sut;
 
-        public HandleGetPageOfBloodPressureInfoQueryTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public HandleGetPageOfBloodPressureInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 

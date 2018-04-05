@@ -44,7 +44,7 @@ namespace Agenda.API.UnitTests.Features
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class AppointmentsControllerTests : IDisposable, IClassFixture<DatabaseFixture>
+    public class AppointmentsControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUrlHelper> _urlHelperMock;
@@ -54,7 +54,7 @@ namespace Agenda.API.UnitTests.Features
         private AppointmentsController _sut;
         private const string _baseUrl = "agenda";
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, DatabaseFixture database)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
