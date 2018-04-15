@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using System;
 
 namespace Agenda.API
 {
@@ -9,7 +10,6 @@ namespace Agenda.API
         public static void Main(string[] args)
         {
             IWebHost host = BuildWebHost(args);
-            
             host.Run();
         }
 

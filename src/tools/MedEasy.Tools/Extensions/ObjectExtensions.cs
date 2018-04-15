@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using static Newtonsoft.Json.JsonConvert;
+using static Newtonsoft.Json.Formatting;
+using static Newtonsoft.Json.NullValueHandling;
 
 namespace System
 {
@@ -18,9 +21,9 @@ namespace System
         public static T DeepClone<T>(this T source)
         {
             // Don't serialize a null object, simply return the default for that object
-            T clone = ReferenceEquals(source, null)
+            T clone = ReferenceEquals(source, default)
                 ? default
-                : JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(source));
+                : DeserializeObject<T>(SerializeObject(source));
 
             return clone;
         }
@@ -151,6 +154,12 @@ namespace System
             return safeCastResult;
         }
 
+        /// <summary>
+        /// Converts <see cref="o"/> to its string representation
+        /// </summary>
+        /// <param name="obj">The object to stringify</param>
+        /// <returns></returns>
+        public static string Stringify(this object obj) => SerializeObject(obj, new JsonSerializerSettings { Formatting = Indented, NullValueHandling = Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 
 
     }

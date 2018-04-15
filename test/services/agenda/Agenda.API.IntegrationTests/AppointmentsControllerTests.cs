@@ -185,8 +185,7 @@ namespace Agenda.API.IntegrationTests
 
         }
 
-        private static string Stringify(object o) => SerializeObject(o, new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
+        
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
             get
@@ -413,7 +412,7 @@ namespace Agenda.API.IntegrationTests
             _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
             response.IsSuccessStatusCode.Should().BeTrue();
 
-            _outputHelper.WriteLine($"Response headers :{Stringify(response.Headers)}");
+            _outputHelper.WriteLine($"Response headers :{response.Headers.Stringify()}");
 
             response.Headers.Should()
                 .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
@@ -449,7 +448,7 @@ namespace Agenda.API.IntegrationTests
 
             NewAppointmentInfo newAppointment = appointmentFaker.Generate();
 
-            _outputHelper.WriteLine($"{nameof(newAppointment)} : {Stringify(newAppointment)}"); 
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Stringify()}"); 
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
                 .AddHeader("Accept", "application/json")
@@ -518,7 +517,7 @@ namespace Agenda.API.IntegrationTests
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}")
                 .AddHeader("Accept", "application/json")
-                .And(message => message.Content = new StringContent(Stringify(newAppointmentInfo), Encoding.UTF8, "application/json"));
+                .And(message => message.Content = new StringContent(newAppointmentInfo.Stringify(), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
                 .ConfigureAwait(false);
@@ -531,7 +530,7 @@ namespace Agenda.API.IntegrationTests
 
             BrowsableResource<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<BrowsableResource<AppointmentInfo>>();
 
-            _outputHelper.WriteLine($"Resource created : {Stringify(browsableAppointmentInfo)}");
+            _outputHelper.WriteLine($"Resource created : {browsableAppointmentInfo.Stringify()}");
 
             AppointmentInfo resource = browsableAppointmentInfo.Resource;
             IEnumerable<ParticipantInfo> participants = resource.Participants;

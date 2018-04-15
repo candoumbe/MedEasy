@@ -1,8 +1,10 @@
 ﻿using Agenda.API.Routing;
+using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Agenda.API
@@ -43,6 +45,7 @@ namespace Agenda.API
             // Add framework services.
             services.AddCustomizedMvc(Configuration);
             services.AddDataStores();
+            services.AddConsul(Configuration);
             services.AddCustomizedDependencyInjection();
             
             if (HostingEnvironment.IsDevelopment())
@@ -62,8 +65,11 @@ namespace Agenda.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseHttpMethodOverride();
-            applicationLifetime.ApplicationStopping.Register(() =>
+            applicationLifetime.ApplicationStopping.Register(async () =>
             {
+                IHostedService hostedService = app.ApplicationServices.GetRequiredService<IHostedService>();
+                await hostedService.StopAsync(default)
+                    .ConfigureAwait(false);
 
             });
 
@@ -92,7 +98,7 @@ namespace Agenda.API
             app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "agenda/{controller=root}/{action=index}");
+                routeBuilder.MapRoute(RouteNames.Default, "agenda/{controller=health}/{action=status}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "agenda/{controller}/{id}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "agenda/{controller}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "agenda/{controller}/{id}/{action}/{subResourceId}");

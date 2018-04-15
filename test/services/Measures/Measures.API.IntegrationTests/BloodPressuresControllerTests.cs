@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Measures.Context;
 using Measures.DTO;
+using MedEasy.Core.Filters;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
@@ -210,6 +211,43 @@ namespace Measures.API.IntegrationTests
             errorObject.Errors.Should()
                 .NotBeEmpty();
 
+
+        }
+
+
+       
+
+        [Fact]
+        public async Task Enpoint_Provides_CountsHeaders()
+        {
+            // Arrange
+            string path = $"{_endpointUrl}";
+            _outputHelper.WriteLine($"path under test : {path}");
+            RequestBuilder requestBuilder = new RequestBuilder(_server, path);
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.SendAsync(Head)
+                .ConfigureAwait(false);
+
+            // Assert
+            _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            _outputHelper.WriteLine($"Response headers :{response.Headers.Stringify()}");
+
+            response.Headers.Should()
+                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
+                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
+
+            response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
+                .HaveCount(1).And
+                .ContainSingle().And
+                .ContainSingle(value => value == 0.ToString());
+
+            response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
+                .HaveCount(1).And
+                .ContainSingle().And
+                .ContainSingle(value => value == 0.ToString());
 
         }
 

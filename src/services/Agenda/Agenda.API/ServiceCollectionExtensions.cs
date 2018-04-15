@@ -3,9 +3,11 @@ using Agenda.DataStores;
 using Agenda.Mapping;
 using Agenda.Validators;
 using AutoMapper;
+using Consul;
 using FluentValidation.AspNetCore;
 using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
+using MedEasy.Core.Infrastructure;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
@@ -21,7 +23,9 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -100,6 +104,29 @@ namespace Agenda.API
         }
 
         /// <summary>
+        /// Adds required depencies for Consul
+        /// </summary>
+        /// <param name="services"></param>
+        public static void AddConsul(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<ConsulConfig>(configuration.GetSection("ConsulConfig"));
+            services.AddSingleton<IHostedService, ConsulHostedService>();
+            services.AddSingleton<IConsulClient, ConsulClient>(serviceProvider =>
+            {
+                IOptions<ConsulConfig> consulConfig = serviceProvider.GetRequiredService<IOptions<ConsulConfig>>();
+
+                ConsulClient client = new ConsulClient(config => {
+                    config.Address = new Uri(consulConfig.Value.Address);
+                    
+                });
+
+
+                return client;
+            });
+        }
+
+
+        /// <summary>
         /// Adds required dependencies to access API datastores
         /// </summary>
         /// <param name="services"></param>
@@ -152,8 +179,6 @@ namespace Agenda.API
 
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
-
-
         }
 
         /// <summary>

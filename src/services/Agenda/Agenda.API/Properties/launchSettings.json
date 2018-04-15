@@ -19,7 +19,7 @@
     "Agenda.API": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "agenda/",
+      "launchUrl": "/agenda",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using System;
+using System.Reflection;
 
 namespace Measures.API
 {
@@ -9,7 +11,7 @@ namespace Measures.API
         public static void Main(string[] args)
         {
             IWebHost host = BuildWebHost(args);
-            
+
             host.Run();
         }
 

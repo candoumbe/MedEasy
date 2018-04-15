@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Features\BloodPressures\" />
-    <Folder Include="Services\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
