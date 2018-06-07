@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\services\identity\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.DTO\Measures.DTO.csproj" />

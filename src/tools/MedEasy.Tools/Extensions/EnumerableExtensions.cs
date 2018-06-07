@@ -188,11 +188,14 @@ namespace System.Collections.Generic
 
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a vlid value");
+                throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value");
             }
 
             return items.Count(predicate.Compile()) == count;
         }
+
+
+        
 
 
 

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
+    <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
+  </ItemGroup>
+
+</Project>

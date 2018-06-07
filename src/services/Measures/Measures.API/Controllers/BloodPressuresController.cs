@@ -12,6 +12,7 @@ using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -85,6 +86,7 @@ namespace Measures.API.Controllers
         [HttpHead]
         [HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
+        [Authorize]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
 

@@ -9,19 +9,15 @@ import { PatientDetails } from './components/patient/PatientDetails';
 import { PatientCreatePage } from './components/patient/PatientCreatePage';
 import { NotFoundComponent } from './components/NotFoundComponent';
 
-const apis = {
-    
-    measures: { root: "http://localhost:63794/measures"},
-    patients: { root: "http://localhost:54004"}
-};
+const api = "http://localhost:8500";
 export const routes = <Layout>
     <Route exact path='/' component={Home} />
     <Route path='/fetchdata' component={FetchData} />
     <Switch>
-        <Route path={'/patients/new'} render={(props: any) => <PatientCreatePage endpoint={`${apis.patients.root}`} />} />
-        <Route path='/patients/details/:id' render={({ match }) => <PatientDetails endpoint={`${apis.patients.root}/patients/${match.params.id}`} />} />
-        <Route path='/patients/edit/:id' render={({ match }) => <PatientDetails endpoint={`${apis.patients.root}/patients/${match.params.id}`} />} />
-        <Route exact path='/patients' render={(props: any) => <PatientMainPage endpoint={`${apis.patients.root}`} />} />
+        <Route path={'/patients/new'} render={(props: any) => <PatientCreatePage endpoint={api} />} />
+        <Route path='/patients/details/:id' render={({ match }) => <PatientDetails endpoint={api} id={match.params.id} />} />
+        <Route path='/patients/edit/:id' render={({ match }) => <PatientDetails endpoint={api} id={match.params.id} />} />
+        <Route exact path='/patients' render={(props: any) => <PatientMainPage endpoint={api} />} />
         <Route render ={() => <NotFoundComponent  />} />
     </Switch>
 </Layout>;

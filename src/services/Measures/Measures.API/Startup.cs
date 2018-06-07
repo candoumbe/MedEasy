@@ -1,4 +1,7 @@
 ﻿using Measures.API.Routing;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -44,7 +47,8 @@ namespace Measures.API
             services.CustomizeMvc(Configuration);
             services.AddDataStores();
             services.CustomizeDependencyInjection();
-            
+            services.AddCustomizedAuthentication(Configuration);
+
             if (HostingEnvironment.IsDevelopment())
             {
                 services.AddCustomizedSwagger(HostingEnvironment, Configuration);
@@ -76,7 +80,7 @@ namespace Measures.API
             {
                 loggerFactory.AddDebug();
                 loggerFactory.AddConsole();
-                app.UseDeveloperExceptionPage();
+                app.UseAuthentication();
                 app.UseBrowserLink();
 
                 if (env.IsDevelopment())
@@ -90,6 +94,7 @@ namespace Measures.API
             }
 
             app.UseCors("AllowAnyOrigin");
+            app.UseAuthentication();
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");

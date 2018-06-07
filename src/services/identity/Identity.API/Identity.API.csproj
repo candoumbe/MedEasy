@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="4.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.4.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="7.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
+    <ProjectReference Include="..\Identity.CQRS\Identity.CQRS.csproj" />
+    <ProjectReference Include="..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
+    <ProjectReference Include="..\Identity.Mapping\Identity.Mapping.csproj" />
+    <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
+    <ProjectReference Include="..\Identity.Validators\Identity.Validators.csproj" />
+  </ItemGroup>
+
+</Project>

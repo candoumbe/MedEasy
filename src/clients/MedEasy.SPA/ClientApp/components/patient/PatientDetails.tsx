@@ -9,10 +9,13 @@ import * as LinQ from "linq";
 import { BrowsableResource } from "./../../restObjects/BrowsableResource";
 import { MeasuresRecap } from "./../../components/measures/MeasuresRecap";
 import { NotFoundComponent } from "./../NotFoundComponent";
+import { Guid } from "./../../System/Guid";
+import { RestClient } from "./../../System/RestClient";
 
 interface PatientDetailsComponentProps {
     /** endpoint where to get patient details from */
-    endpoint: string
+    endpoint: string,
+    id : string | Guid
 }
 
 interface PatientDetailsComponentState {
@@ -32,8 +35,9 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
         { relation: "body-weights", resource : "bodyWeights" },
         { relation: "temperatures", resource: "temperatures" },
         { relation: "heartbeats", resource: "heartbeats" },
-        
     ];
+
+    private _httpClient: RestClient<Guid, BrowsableResource<MedEasy.DTO.Patient>>
 
     public constructor(props: PatientDetailsComponentProps) {
         super(props);

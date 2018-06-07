@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\services\identity\Identity.API\Identity.API.csproj" />
     <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>

@@ -32,12 +32,12 @@ namespace Measures.API.IntegrationTests
 {
     [IntegrationTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
+    public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>, IClassFixture<SqliteDatabaseFixture>
     {
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/measures/patients";
-        private static JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -66,7 +66,7 @@ namespace Measures.API.IntegrationTests
             AllowAdditionalProperties = false
         };
 
-        private static JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -99,19 +99,24 @@ namespace Measures.API.IntegrationTests
 
         };
 
-        public PatientsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture)
+        public PatientsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, SqliteDatabaseFixture databaseFixture)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(
-                relativeTargetProjectParentDir : Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
-                environmentName: "IntegrationTest", 
+                relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
+                environmentName: "IntegrationTest",
                 applicationName: typeof(Startup).Assembly.GetName().Name,
                 overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
                 {
                     DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(databaseFixture.Connection);
 
-                    return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+                    return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) =>
+                    {
+                        MeasuresContext context = new MeasuresContext(options);
+                        context.Database.EnsureCreated();
+                        return context;
+                        });
 
                 })
             );
@@ -152,7 +157,7 @@ namespace Measures.API.IntegrationTests
             jToken.IsValid(_pageResponseSchema).Should().BeTrue();
         }
 
-        
+
 
         [Theory]
         [InlineData("/measures/patients", "GET")]
@@ -234,7 +239,7 @@ namespace Measures.API.IntegrationTests
         [Fact]
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
-            
+
             // Arrange
             string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
             _outputHelper.WriteLine($"Requested url : <{url}>");
@@ -282,7 +287,7 @@ namespace Measures.API.IntegrationTests
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.January(2002).AddHours(23).AddMinutes(36),
-                
+
             };
 
             JSchema createdResourceSchema = new JSchema
@@ -453,5 +458,7 @@ namespace Measures.API.IntegrationTests
             }
 
         }
+
+        
     }
 }

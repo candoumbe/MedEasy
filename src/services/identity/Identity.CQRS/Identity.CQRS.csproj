@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
+    <ProjectReference Include="..\Identity.DTO\Identity.DTO.csproj" />
+    <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
+  </ItemGroup>
+
+</Project>

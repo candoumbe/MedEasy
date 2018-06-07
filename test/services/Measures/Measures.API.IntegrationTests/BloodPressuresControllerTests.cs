@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Identity.DataStores.SqlServer;
 using Measures.Context;
 using Measures.DTO;
 using MedEasy.Core.Filters;
@@ -33,12 +34,12 @@ namespace Measures.API.IntegrationTests
     [IntegrationTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
+    public class BloodPressuresControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>, IClassFixture<ServicesTestFixture<Identity.API.Startup>>
     {
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/measures/bloodpressures";
-        private static JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -67,7 +68,7 @@ namespace Measures.API.IntegrationTests
             AllowAdditionalProperties = false
         };
 
-        private static JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -100,7 +101,7 @@ namespace Measures.API.IntegrationTests
 
         };
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, ServicesTestFixture<Startup> identityFixture)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(
@@ -114,6 +115,20 @@ namespace Measures.API.IntegrationTests
                         builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
 
                         return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+
+                    })
+                );
+            identityFixture.Initialize(
+                relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Identity"),
+                environmentName: "IntegrationTest",
+                applicationName: typeof(Startup).Assembly.GetName().Name,
+                overrideServices: (services) =>
+                    services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(provider =>
+                    {
+                        DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                        builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
+
+                        return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
 
                     })
                 );
@@ -406,5 +421,22 @@ namespace Measures.API.IntegrationTests
             ((int)response.StatusCode).Should().Be(Status400BadRequest);
         }
 
+
+        [Fact]
+        public async Task GivenNotConnected_Get_Returns_Unauthorized()
+        {
+            // Arrange
+            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl);
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.GetAsync()
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("The request is not authenticated");
+            response.StatusCode.Should()
+                .Be(Status401Unauthorized);
+        }
     }
 }
