@@ -8,7 +8,7 @@ using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.IntegrationTests.Core;
@@ -79,7 +79,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator})
                     .Where(tuple  => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
                     .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
-
+                    
                 return cases;  
             }
         }

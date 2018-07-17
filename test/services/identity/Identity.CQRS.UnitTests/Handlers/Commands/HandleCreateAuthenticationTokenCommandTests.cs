@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -62,7 +64,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 {
                     new ClaimInfo { Type =  "batarangs", Value = "10"},
                     new ClaimInfo { Type =  "fight", Value = "100"},
-                    new ClaimInfo { Type =  "money", Value = "1000K$"},
+                    new ClaimInfo { Type =  "money", Value = "1000K€"},
 
                 }
             };
@@ -73,9 +75,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Key = "key_to_encrypt_token",
                 Validity = 10
             };
-            DateTimeOffset utcNow = 10.January(2014);
+            DateTime utcNow = 10.January(2014).AsUtc();
             CreateAuthenticationTokenCommand cmd = new CreateAuthenticationTokenCommand((accountInfo, jwtInfos));
-            _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(utcNow);
+            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
 
             // Act
@@ -90,9 +92,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .NotBeNullOrWhiteSpace().And
                 .MatchRegex(@"^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$", "id must be a GUID");
             token.ValidFrom.Should()
-                .Be(utcNow.UtcDateTime);
+                .Be(utcNow);
             token.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtInfos.Validity).UtcDateTime);
+                .Be(utcNow.AddMinutes(jwtInfos.Validity));
             token.Issuer.Should()
                 .Be(jwtInfos.Issuer);
 
@@ -103,11 +105,43 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .BeEquivalentTo(jwtInfos.Audiences);
 
             jwtToken.Claims.Should()
-                .Contain(claim => claim.Type == "batarangs").And
-                .Contain(claim => claim.Type == "money").And
-                .Contain(claim => claim.Type == "fight")
-                ;
+                .ContainSingle(claim => claim.Type == ClaimTypes.NameIdentifier).And
+                .ContainSingle(claim => claim.Type == "batarangs").And
+                .ContainSingle(claim => claim.Type == "money").And
+                .ContainSingle(claim => claim.Type == "fight").And
+                .ContainSingle(claim => claim.Type == ClaimTypes.Name).And
+                .ContainSingle(claim => claim.Type == CustomClaimTypes.AccountId).And
+                .ContainSingle(claim => claim.Type == ClaimTypes.Email)
+            ;
 
+            Claim nameIdentifierClaim = jwtToken.Claims.Single(claim => claim.Type == ClaimTypes.NameIdentifier);
+            nameIdentifierClaim.Value.Should()
+                .Be(accountInfo.Username);
+
+            Claim nameClaim = jwtToken.Claims.Single(claim => claim.Type == ClaimTypes.Name);
+            nameClaim.Value.Should()
+                .Be($"{accountInfo.Firstname} {accountInfo.Lastname}");
+
+
+            Claim accountIdClaim = jwtToken.Claims.Single(claim => claim.Type == CustomClaimTypes.AccountId);
+            accountIdClaim.Value.Should()
+                .Be(accountInfo.Id.ToString());
+
+            Claim emailClaim = jwtToken.Claims.Single(claim => claim.Type == ClaimTypes.Email);
+            emailClaim.Value.Should()
+                .Be(accountInfo.Email);
+
+            Claim batarangsClaim  = jwtToken.Claims.Single(claim => claim.Type == "batarangs");
+            batarangsClaim.Value.Should()
+                .Be("10");
+
+            Claim moneyClaim = jwtToken.Claims.Single(claim => claim.Type == "money");
+            moneyClaim.Value.Should()
+                .Be("1000K€");
+
+            Claim fightClaim = jwtToken.Claims.Single(claim => claim.Type == "fight");
+            fightClaim.Value.Should()
+                .Be("100");
         }
 
 
@@ -137,9 +171,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Key = "key_to_encrypt_token",
                 Validity = 10
             };
-            DateTimeOffset utcNow = 10.January(2014);
+            DateTime utcNow = 10.January(2014).AsUtc();
             CreateAuthenticationTokenCommand cmd = new CreateAuthenticationTokenCommand((accountInfo, jwtInfos));
-            _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(utcNow);
+            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
 
             // Act

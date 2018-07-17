@@ -144,7 +144,8 @@ namespace MedEasy.DataStores.Core.Relational
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
         /// </summary>
-        public override async Task<int> SaveChangesAsync(CancellationToken ct = default) => await SaveChangesAsync(true, ct)
+        public override async Task<int> SaveChangesAsync(CancellationToken ct = default) => 
+            await SaveChangesAsync(true, ct)
                 .ConfigureAwait(false);
     }
 }

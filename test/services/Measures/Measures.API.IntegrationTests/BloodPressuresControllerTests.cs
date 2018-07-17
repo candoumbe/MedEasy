@@ -1,12 +1,11 @@
 using FluentAssertions;
-using Identity.DataStores.SqlServer;
 using Measures.Context;
 using Measures.DTO;
 using MedEasy.Core.Filters;
-using MedEasy.DAL.Context;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +18,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -28,15 +26,20 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
+using MedEasy.DAL.EFStore;
+using Identity.API.Fixtures;
+using Identity.DTO;
+using Identity.DataStores.SqlServer;
 
 namespace Measures.API.IntegrationTests
 {
     [IntegrationTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>, IClassFixture<ServicesTestFixture<Identity.API.Startup>>
+    public class BloodPressuresControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Identity.API.Startup>>, IClassFixture<ServicesTestFixture<Startup>>
     {
         private TestServer _server;
+        private TestServer _identityServer;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/measures/bloodpressures";
         private static readonly JSchema _errorObjectSchema = new JSchema
@@ -101,7 +104,7 @@ namespace Measures.API.IntegrationTests
 
         };
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, ServicesTestFixture<Startup> identityFixture)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, ServicesTestFixture<Identity.API.Startup> identityFixture)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(
@@ -118,39 +121,56 @@ namespace Measures.API.IntegrationTests
 
                     })
                 );
-            identityFixture.Initialize(
+            identityFixture.Initialize<Identity.API.Startup>(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Identity"),
                 environmentName: "IntegrationTest",
-                applicationName: typeof(Startup).Assembly.GetName().Name,
+                applicationName: typeof(Identity.API.Startup).Assembly.GetName().Name,
                 overrideServices: (services) =>
                     services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(provider =>
                     {
                         DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
                         builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-
                         return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
                     })
                 );
 
             _server = fixture.Server;
+            _identityServer = identityFixture.Server;
         }
 
 
         public void Dispose()
         {
             _outputHelper = null;
-            _server.Dispose();
-
+            _server?.Dispose();
+            _server = null;
+            _identityServer = null;
         }
 
         [Fact]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder rb = _server.CreateRequest(_endpointUrl)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Accept-Charset", "utf-8");
+                .AddHeader("Accept-Charset", "utf-8")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -166,8 +186,8 @@ namespace Measures.API.IntegrationTests
 
             _outputHelper.WriteLine($"json : {json}");
 
-            JToken jToken = JToken.Parse(json);
-            jToken.IsValid(_pageResponseSchema).Should().BeTrue();
+            JToken pageResponseToken = JToken.Parse(json);
+            pageResponseToken.IsValid(_pageResponseSchema).Should().BeTrue();
         }
 
 
@@ -195,7 +215,24 @@ namespace Measures.API.IntegrationTests
             _outputHelper.WriteLine($"Paging configuration : {SerializeObject(new { page, pageSize })}");
 
             // Arrange
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder rb = _server.CreateRequest($"{_endpointUrl}?page={page}&pageSize={pageSize}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .AddHeader("Accept", "application/json");
 
             // Act
@@ -214,11 +251,11 @@ namespace Measures.API.IntegrationTests
             content.Should()
                 .NotBeNullOrEmpty();
 
-            JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
+            JToken errorToken = JToken.Parse(content);
+            errorToken.IsValid(_errorObjectSchema)
                 .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-            ErrorObject errorObject = token.ToObject<ErrorObject>();
+            ErrorObject errorObject = errorToken.ToObject<ErrorObject>();
             errorObject.Code.Should()
                 .Be("BAD_REQUEST");
             errorObject.Description.Should()
@@ -236,9 +273,28 @@ namespace Measures.API.IntegrationTests
         public async Task Enpoint_Provides_CountsHeaders()
         {
             // Arrange
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+
             string path = $"{_endpointUrl}";
             _outputHelper.WriteLine($"path under test : {path}");
-            RequestBuilder requestBuilder = new RequestBuilder(_server, path);
+            RequestBuilder requestBuilder = new RequestBuilder(_server, path)
+                .AddHeader("Authorization", $"Bearer {bearerToken.Token}")
+                ;
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(Head)
@@ -266,6 +322,28 @@ namespace Measures.API.IntegrationTests
 
         }
 
+        
+
+        [Fact]
+        public async Task UnauthenticatedUser_Cant_Access_CountsHeader()
+        {
+            // Arrange
+            string path = $"{_endpointUrl}";
+            _outputHelper.WriteLine($"path under test : {path}");
+            RequestBuilder requestBuilder = _server.CreateRequest(path);
+
+            // Act
+            HttpResponseMessage response = await requestBuilder.SendAsync(Head)
+                .ConfigureAwait(false);
+
+            // Assert
+            _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
+            response.IsSuccessStatusCode.Should().BeFalse("the request must be authenticated using JWT token");
+            response.StatusCode.Should()
+                .Be(Status401Unauthorized);
+
+        }
+
 
         [Theory]
         [InlineData(_endpointUrl, "GET")]
@@ -278,7 +356,24 @@ namespace Measures.API.IntegrationTests
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
-            RequestBuilder rb = _server.CreateRequest(url);
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+            RequestBuilder rb = _server.CreateRequest(url)
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await rb.SendAsync(method)
@@ -302,10 +397,28 @@ namespace Measures.API.IntegrationTests
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             string url = $"{_endpointUrl}/{Guid.Empty.ToString()}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
+
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
-                .AddHeader("Accept", "application/json");
+                .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)
@@ -329,11 +442,11 @@ namespace Measures.API.IntegrationTests
                 content.Should()
                     .NotBeNullOrEmpty();
 
-                JToken token = JToken.Parse(content);
-                token.IsValid(_errorObjectSchema)
+                JToken errorToken = JToken.Parse(content);
+                errorToken.IsValid(_errorObjectSchema)
                     .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-                ErrorObject errorObject = token.ToObject<ErrorObject>();
+                ErrorObject errorObject = errorToken.ToObject<ErrorObject>();
                 errorObject.Code.Should()
                     .Be("BAD_REQUEST");
                 errorObject.Description.Should()
@@ -354,9 +467,26 @@ namespace Measures.API.IntegrationTests
             // Arrange
             JsonPatchDocument<BloodPressureInfo> changes = new JsonPatchDocument<BloodPressureInfo>();
             changes.Replace(x => x.SystolicPressure, 120);
-            
+
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{Guid.Empty}")
                 .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And(request => request.Content = new StringContent(changes.ToString(), Encoding.UTF8, "application/json-patch+json"));
 
             // Act
@@ -392,11 +522,6 @@ namespace Measures.API.IntegrationTests
                 .ContainKey("id").WhichValue.Should()
                     .HaveCount(1).And
                     .HaveElementAt(0, "'id' must have a non default value");
-
-
-
-
-
         }
 
         [Theory]
@@ -406,11 +531,27 @@ namespace Measures.API.IntegrationTests
         {
             // Arrange
             string url = $"{_endpointUrl}/search{queryString}";
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
 
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             _outputHelper.WriteLine($"URL : {url}");
             _outputHelper.WriteLine($"Method : {method}");
 
-            RequestBuilder requestBuilder = new RequestBuilder(_server, url);
+            RequestBuilder requestBuilder = new RequestBuilder(_server, url)
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)
@@ -421,22 +562,5 @@ namespace Measures.API.IntegrationTests
             ((int)response.StatusCode).Should().Be(Status400BadRequest);
         }
 
-
-        [Fact]
-        public async Task GivenNotConnected_Get_Returns_Unauthorized()
-        {
-            // Arrange
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl);
-
-            // Act
-            HttpResponseMessage response = await requestBuilder.GetAsync()
-                .ConfigureAwait(false);
-
-            // Assert
-            response.IsSuccessStatusCode.Should()
-                .BeFalse("The request is not authenticated");
-            response.StatusCode.Should()
-                .Be(Status401Unauthorized);
-        }
     }
 }

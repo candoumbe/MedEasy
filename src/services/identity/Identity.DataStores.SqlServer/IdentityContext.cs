@@ -39,9 +39,13 @@ namespace Identity.DataStores.SqlServer
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();
 
+                entity.HasIndex(x => x.UserName)
+                    .IsUnique();
+                entity.Property(x => x.Salt)
+                    .IsRequired();
+
                 entity.Property(x => x.PasswordHash)
-                    .IsRequired()
-                    .HasDefaultValue(string.Empty);
+                    .IsRequired();
 
                 entity.HasMany(x => x.Roles);
             });

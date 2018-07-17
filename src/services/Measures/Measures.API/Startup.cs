@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Runtime.ExceptionServices;
 
 namespace Measures.API
 {
@@ -44,15 +45,15 @@ namespace Measures.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.CustomizeMvc(Configuration);
-            services.AddDataStores();
-            services.CustomizeDependencyInjection();
-            services.AddCustomizedAuthentication(Configuration);
-
+            services.ConfigureDataStores();
+            services.ConfigureDependencyInjection();
+            services.ConfigureAuthentication(Configuration);
+            
             if (HostingEnvironment.IsDevelopment())
             {
-                services.AddCustomizedSwagger(HostingEnvironment, Configuration);
+                services.ConfigureSwagger(HostingEnvironment, Configuration);
             }
+            services.ConfigureMvc(Configuration);
         }
 
         /// <summary>
@@ -65,6 +66,8 @@ namespace Measures.API
         /// <param name="applicationLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
+            app.UseAuthentication();
+
             app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -80,7 +83,6 @@ namespace Measures.API
             {
                 loggerFactory.AddDebug();
                 loggerFactory.AddConsole();
-                app.UseAuthentication();
                 app.UseBrowserLink();
 
                 if (env.IsDevelopment())
@@ -94,7 +96,7 @@ namespace Measures.API
             }
 
             app.UseCors("AllowAnyOrigin");
-            app.UseAuthentication();
+            
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");

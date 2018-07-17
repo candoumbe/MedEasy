@@ -8,9 +8,9 @@ using static FluentValidation.Severity;
 namespace Measures.Validators.Features.Patients.DTO
 {
     /// <summary>
-    /// Validates <see cref="CreatePatientInfo"/> instances.
+    /// Validates <see cref="NewPatientInfo"/> instances.
     /// </summary>
-    public class CreatePatientInfoValidator : AbstractValidator<CreatePatientInfo>
+    public class CreatePatientInfoValidator : AbstractValidator<NewPatientInfo>
     {
         /// <summary>
         /// Builds a new <see cref="CreatePatientInfoValidator"/> instance.

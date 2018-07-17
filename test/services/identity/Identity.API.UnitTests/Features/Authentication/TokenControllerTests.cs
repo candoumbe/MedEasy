@@ -4,15 +4,13 @@ using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Identity.API.Features.Authentication;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Optional;
 using System;
@@ -81,7 +79,7 @@ namespace Identity.API.UnitTests.Features.Authentication
 
 
             // Act
-            IActionResult actionResult = await _controller.Post(model, ct : default(CancellationToken))
+            IActionResult actionResult = await _controller.Post(model, ct : default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -114,7 +112,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                 .ReturnsAsync(new JwtSecurityToken());
 
             // Act
-            IActionResult actionResult = await _controller.Post(model, ct: default(CancellationToken))
+            IActionResult actionResult = await _controller.Post(model, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -125,10 +123,7 @@ namespace Identity.API.UnitTests.Features.Authentication
 
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
 
-            actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                    .BeAssignableTo<SecurityToken>();
+            
 
         }
     }

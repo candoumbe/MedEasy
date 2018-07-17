@@ -2,7 +2,7 @@
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Measures.API.Controllers;
+using Measures.API.Features.BloodPressures;
 using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.Context;
@@ -15,7 +15,7 @@ using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -41,7 +42,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 
-namespace Measures.API.Tests
+namespace Measures.API.Tests.Features.Patients
 {
     [Feature("Patients")]
     public class PatientsControllerTests : IDisposable
@@ -51,6 +52,7 @@ namespace Measures.API.Tests
         private ITestOutputHelper _outputHelper;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private Mock<IMediator> _mediatorMock;
+        private Mock<ClaimsPrincipal> _claimsPrincipal;
         private const string _baseUrl = "http://host/api";
         private IUnitOfWorkFactory _uowFactory;
 
@@ -71,10 +73,13 @@ namespace Measures.API.Tests
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
+            _claimsPrincipal = new Mock<ClaimsPrincipal>(Strict);
+
             _controller = new PatientsController(
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
-                _mediatorMock.Object);
+                _mediatorMock.Object,
+                _claimsPrincipal.Object);
 
         }
 
@@ -86,6 +91,7 @@ namespace Measures.API.Tests
             _apiOptionsMock = null;
             _mediatorMock = null;
             _uowFactory = null;
+            _claimsPrincipal = null;
         }
 
 
@@ -995,7 +1001,7 @@ namespace Measures.API.Tests
         public async Task GivenModel_Post_Create_PatientResource()
         {
             // Arrange
-            CreatePatientInfo newPatient = new CreatePatientInfo
+            NewPatientInfo newPatient = new NewPatientInfo
             {
                 Firstname = "Solomon",
                 Lastname = "Grundy"

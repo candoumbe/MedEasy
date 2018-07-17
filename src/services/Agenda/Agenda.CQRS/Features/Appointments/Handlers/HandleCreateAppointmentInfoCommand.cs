@@ -1,14 +1,9 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
 using Agenda.Objects;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MediatR;
-using Optional;
-using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 

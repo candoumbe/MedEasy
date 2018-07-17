@@ -1,4 +1,5 @@
-﻿using Measures.API.Features.Patients;
+﻿using Measures.API.Features.BloodPressures;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
@@ -15,6 +16,7 @@ using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -22,13 +24,14 @@ using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace Measures.API.Controllers
+namespace Measures.API.Features.Patients
 {
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="PatientInfo"/> resources
@@ -54,7 +57,8 @@ namespace Measures.API.Controllers
         /// </summary>
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
 
-
+        private readonly ClaimsPrincipal _claimsPrincipal;
+        
 
 
         /// <summary>
@@ -62,12 +66,14 @@ namespace Measures.API.Controllers
         /// </summary>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
+        /// <param name="claimsPrincipal"></param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
-        public PatientsController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator)
+        public PatientsController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ClaimsPrincipal claimsPrincipal)
         {
             UrlHelper = urlHelper;
             ApiOptions = apiOptions;
             _mediator = mediator;
+            _claimsPrincipal = claimsPrincipal;
         }
 
 
@@ -500,8 +506,10 @@ namespace Measures.API.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), Status201Created)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
+        public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
+
+
             CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(newPatient);
 
             PatientInfo resource = await _mediator.Send(cmd, ct)

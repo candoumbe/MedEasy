@@ -9,7 +9,7 @@ using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.Abstractions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;

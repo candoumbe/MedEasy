@@ -1,12 +1,17 @@
 ﻿using AutoMapper;
-using Identity.CQRS;
+using FluentValidation.AspNetCore;
+using Identity.API.Features.Authentication;
+using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.Mapping;
 using Identity.Validators;
+using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,16 +24,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using MediatR;
-using FluentValidation.AspNetCore;
-using Identity.CQRS.Queries.Accounts;
 
 namespace Identity.API
 {
@@ -42,7 +47,7 @@ namespace Identity.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void CustomizeMvc(this IServiceCollection services, IConfiguration configuration)
+        public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddMvc(options =>
             {
@@ -57,7 +62,7 @@ namespace Identity.API
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;
-                
+
                 options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
             })
             .AddJsonOptions(options =>
@@ -80,11 +85,20 @@ namespace Identity.API
                 );
             });
             services.AddOptions();
-            //services.Configure<IdentityApiOptions>((options) =>
-            //{
-            //    options.DefaultPageSize = configuration.GetValue("APIOptions:DefaultPageSize", 30);
-            //    options.MaxPageSize = configuration.GetValue("APIOptions:MaxPageSize", 100);
-            //});
+            services.Configure<IdentityApiOptions>((options) =>
+            {
+                options.DefaultPageSize = configuration.GetValue("APIOptions:DefaultPageSize", 30);
+                options.MaxPageSize = configuration.GetValue("APIOptions:MaxPageSize", 100);
+            });
+            services.Configure<JwtOptions>((options) =>
+            {
+                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
+                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
+                options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
+                    .GetChildren()
+                    .Select(x => x.Value);
+                options.Validity = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Validity)}", 10);
+            });
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
@@ -103,38 +117,36 @@ namespace Identity.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services)
-        {
+        public static void AddDataStores(this IServiceCollection services) =>
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-            {
-                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-                DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                    builder.UseInMemoryDatabase(dbName);
-                }
-                else
-                {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(configuration.GetConnectionString("Identity"), b => b.MigrationsAssembly("Identity.API"));
-                }
-                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
+                    IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                    DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                    if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                    {
+                        string dbName = $"InMemoryDb_{Guid.NewGuid()}";
+                        builder.UseInMemoryDatabase(dbName);
+                    }
+                    else
+                    {
+                        IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                        builder.UseSqlServer(configuration.GetConnectionString("Identity"), b => b.MigrationsAssembly("Identity.API"));
+                    }
+                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                    builder.ConfigureWarnings(options =>
+                    {
+                        options.Default(WarningBehavior.Log);
+                    });
+
+                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
+
                 });
-
-                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
-            });
-        }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void CustomizeDependencyInjection(this IServiceCollection services)
+        public static void ConfigureDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
@@ -151,8 +163,61 @@ namespace Identity.API
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
 
+            services.AddSingleton<IDateTimeService, DateTimeService>();
+            ;
 
         }
+
+
+        /// <summary>
+        /// Adds required dependencies to access APÏ datastores
+        /// </summary>
+        /// <param name="services"></param>
+        /// 
+        /// 
+        public static void ConfigureDataStores(this IServiceCollection services) => 
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
+            {
+                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                {
+                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
+                    builder.UseInMemoryDatabase(dbName);
+                }
+                else
+                {
+                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                    builder.UseSqlServer(configuration.GetConnectionString("Identity"), b => b.MigrationsAssembly("Measures.API"));
+                }
+                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                builder.ConfigureWarnings(options =>
+                {
+                    options.Default(WarningBehavior.Log);
+                });
+
+                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
+
+            });
+
+        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                        ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
+                            .GetChildren()
+                            .Select(x => x.Value),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
+                    };
+
+                });
 
         /// <summary>
         /// Adds Swagger middlewares
@@ -160,10 +225,10 @@ namespace Identity.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             ApplicationEnvironment app = PlatformServices.Default.Application;
-            
+
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new Info
@@ -188,6 +253,12 @@ namespace Identity.API
                 }
                 config.DescribeStringEnumsInCamelCase();
                 config.DescribeAllEnumsAsStrings();
+                config.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                {
+                    Name = "Authorization",
+                    In = "header",
+                    Description = "Token to access the API"
+                });
             });
         }
     }

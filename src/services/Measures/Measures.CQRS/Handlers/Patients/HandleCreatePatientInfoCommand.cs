@@ -43,12 +43,12 @@ namespace Measures.CQRS.Handlers.Patients
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                CreatePatientInfo newResourceInfo = cmd.Data;
+                NewPatientInfo newResourceInfo = cmd.Data;
                 if (newResourceInfo.Id.HasValue && newResourceInfo.Id.Value == default)
                 {
                     throw new InvalidOperationException();
                 }
-                Expression<Func<CreatePatientInfo, Patient>> mapDtoToEntityExpression = _expressionBuilder.GetMapExpression<CreatePatientInfo, Patient>();
+                Expression<Func<NewPatientInfo, Patient>> mapDtoToEntityExpression = _expressionBuilder.GetMapExpression<NewPatientInfo, Patient>();
                 Patient entity = mapDtoToEntityExpression.Compile().Invoke(cmd.Data);
 
                 entity.Firstname = cmd.Data.Firstname?.ToTitleCase();
@@ -67,7 +67,7 @@ namespace Measures.CQRS.Handlers.Patients
                 PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
 
 
-                await _mediator.Publish(new PatientCreated(patientInfo.Id, patientInfo.Firstname, patientInfo.Lastname, patientInfo.BirthDate), ct);
+                await _mediator.Publish(new PatientCreated(patientInfo), ct);
 
                 return patientInfo;
             }

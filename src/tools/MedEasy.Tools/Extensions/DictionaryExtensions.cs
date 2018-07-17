@@ -86,7 +86,7 @@ namespace System.Collections.Generic
                 else if (value is IDictionary<string, object>)
                 {
                     IDictionary<string, object> subDictionary = ((IDictionary<string, object>)value)
-#if !NETSTANDARD1_0
+#if !NETSTANDARD1_0 && !NETSTANDARD1_3
                                     .AsParallel()
 #endif
                                     .ToDictionary(x => $"{kv.Key}[{x.Key}]", x => x.Value);

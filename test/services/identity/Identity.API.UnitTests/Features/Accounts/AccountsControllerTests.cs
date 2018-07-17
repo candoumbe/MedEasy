@@ -1,30 +1,23 @@
-﻿using AutoMapper.QueryableExtensions;
-using Bogus;
+﻿using Bogus;
 using FluentAssertions;
-using FluentAssertions.Extensions;
 using Identity.API.Features.Accounts;
 using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
-using Identity.Mapping;
 using Identity.Objects;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
-using MedEasy.DTO.Search;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -38,8 +31,8 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 
 namespace Identity.API.Tests.Features.Accounts
@@ -275,7 +268,8 @@ namespace Identity.API.Tests.Features.Accounts
                     UUID = accountId,
                     UserName = "thebatman",
                     PasswordHash = "a_super_secret_password",
-                    Email = "bruce@wayne-entreprise.com"
+                    Email = "bruce@wayne-entreprise.com",
+                    Salt = "salt_and_pepper_for_password"
                     
                 });
 
@@ -445,6 +439,99 @@ namespace Identity.API.Tests.Features.Accounts
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
+
+        }
+
+        [Fact]
+        public async Task GivenMediatorReturnsConflict_PostReturns_ConflictedResult()
+        {
+            // Arrange
+            NewAccountInfo newAccount = new NewAccountInfo
+            {
+                Username = "thebatman",
+                Email = "b.wayne@gotham.com"
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict));
+
+
+            // Act
+            IActionResult actionResult = await _controller.Post(newAccount, ct: default)
+                .ConfigureAwait(false);
+
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAccountInfoCommand>(cmd => cmd.Data == newAccount), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<StatusCodeResult>().Which
+                .StatusCode.Should()
+                    .Be(Status409Conflict);
+
+        }
+
+        [Fact]
+        public async Task GivenMediatorReturnAccountCreated_PostReturns_OkObjectResult()
+        {
+            // Arrange
+            NewAccountInfo newAccount = new NewAccountInfo
+            {
+                Username = "thebatman",
+                Email = "b.wayne@gotham.com"
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
+                .Returns((CreateAccountInfoCommand cmd, CancellationToken ct) => 
+                    Task.FromResult(Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() })));
+
+
+            // Act
+            IActionResult actionResult = await _controller.Post(newAccount, ct: default)
+                .ConfigureAwait(false);
+
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAccountInfoCommand>(cmd => cmd.Data == newAccount), It.IsAny<CancellationToken>()), Times.Once);
+
+            CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
+                .BeAssignableTo<CreatedAtRouteResult>().Which;
+
+            BrowsableResource<AccountInfo> browsableResource = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<BrowsableResource<AccountInfo>>().Which;
+
+            AccountInfo createdResource = browsableResource.Resource;
+
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeNullOrEmpty().And
+                .NotContainNulls().And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Href)).And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Method)).And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Relation)).And
+                .Contain(link => link.Relation == LinkRelation.Self);
+
+            Link linkSelf = links.Single(link => link.Relation == LinkRelation.Self);
+            linkSelf.Method.Should()
+                .Be("GET");
+            linkSelf.Href.Should()
+                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id}");
+
+            createdResource.Username.Should()
+                .Be(newAccount.Username);
+
+            createdAtRouteResult.RouteName.Should()
+                .Be(RouteNames.DefaultGetOneByIdApi);
+            RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
+            routeValues.Should()
+                .ContainKey("controller").WhichValue.Should().Be(AccountsController.EndpointName);
+            routeValues.Should()
+                .ContainKey("id").WhichValue.Should()
+                    .BeOfType<Guid>().Which.Should()
+                    .NotBeEmpty();
+
 
         }
 

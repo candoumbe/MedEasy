@@ -36,7 +36,7 @@ namespace MedEasy.Validators.Patch
                     RuleFor(x => x.Operations)
                                     .Must(operations => operations.AtLeastOnce(x => x.OperationType == OperationType.Test))
                                     .WithSeverity(Warning)
-                                    .WithMessage(@"No ""test"" operation provided."); 
+                                    .WithMessage(@"No ""test"" operation provided.");
 #endif
 
                     RuleFor(x => x.Operations)
@@ -46,20 +46,20 @@ namespace MedEasy.Validators.Patch
                                .GroupBy(op => op.path)
                                .ToDictionary();
 
-                            return !operationGroups.Any(x => x.Value.AtLeast(2));
+                            return !operationGroups.Any(x => x.Value.AtLeast(2) && !x.Value.Once(op => op.OperationType == OperationType.Test));
                         })
+                        .WithSeverity(Warning)
                         .WithMessage((patch) =>
                         {
                             IEnumerable<string> properties = patch.Operations
                                .GroupBy(op => op.path)
                                .ToDictionary()
-                               .Where(x => x.Value.AtLeast(2))
+                               .Where(x => x.Value.AtLeast(2) && !x.Value.Once(op => op.OperationType == OperationType.Test))
                                .Select(x => x.Key)
                                .OrderBy(x => x);
 
                             return $@"Multiple operations on the same path : {string.Join(", ", properties.Select(x => $@"""{x}"""))}";
-                        })
-                        .WithSeverity(Warning);
+                        });
                     ;
                 }
             );

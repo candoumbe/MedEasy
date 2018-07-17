@@ -15,7 +15,8 @@ using System.Threading.Tasks;
 
 namespace Identity.API.Features.Authentication
 {
-    [Route("api/[controller]")]
+    [Controller]
+    [Route("identity/[controller]")]
     public class TokenController
     {
         private readonly IMediator _mediator;
@@ -35,13 +36,13 @@ namespace Identity.API.Features.Authentication
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Post([FromBody]LoginModel model, CancellationToken ct = default)
+        public async ValueTask<IActionResult> Post([FromBody]LoginModel model, CancellationToken ct = default)
         {
             LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
                 .ConfigureAwait(false);
 
-            return await optionalUser.Match<Task<IActionResult>>(
+            return await optionalUser.Match<ValueTask<IActionResult>>(
                 some: async accountInfo =>
                 {
                     JwtOptions jwtOptions = _jwtOptions.Value;
@@ -67,10 +68,10 @@ namespace Identity.API.Features.Authentication
                     }
 
 
-                    return new OkObjectResult(token);
+                    return new OkObjectResult(new { token = tokenString });
 
                 },
-                none: () => Task.FromResult<IActionResult>(new UnauthorizedResult())
+                none: () => new ValueTask<IActionResult>(new UnauthorizedResult())
             );
         }
     }

@@ -1,4 +1,5 @@
-﻿using MedEasy.DAL.Context;
+﻿using FluentValidation.AspNetCore;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,16 +13,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Patients.API.Context;
-using Patients.Mapping;
+using Patients.API.Controllers;
+using Patients.API.Routing;
 using Patients.API.StartupRegistration;
-using FluentValidation.AspNetCore;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
+using Patients.Mapping;
 using Patients.Validators.Features.Patients.DTO;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IO;
-using Patients.API.Routing;
-using Patients.API.Controllers;
+using static Newtonsoft.Json.DateFormatHandling;
+using static Newtonsoft.Json.DateTimeZoneHandling;
 
 namespace Patients.API
 {

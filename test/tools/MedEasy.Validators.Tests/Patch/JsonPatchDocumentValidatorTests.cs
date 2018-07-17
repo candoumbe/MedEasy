@@ -63,112 +63,110 @@ namespace MedEasy.Validators.Tests.Patch
             }
         }
 
-        public static IEnumerable<object[]> CausesValidationWarningsCases
-        {
-            get
-            {
-
-                {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
-                    patch.Replace(x => x.Lastname, string.Empty);
-                    patch.Replace(x => x.Lastname, string.Empty);
-
-                    yield return new object[]
-                    {
-                        patch,
-#if NETCOREAPP2_0
-        ((Expression<Func<ValidationResult, bool>>)(
-                            vr => !vr.IsValid
-                                && vr.Errors.Count == 2
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
-                                )
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && x.ErrorMessage == @"No ""test"" operation provided."
-                                )
-                        )),
-#else
-		((Expression<Func<ValidationResult, bool>>)(
-                            vr => !vr.IsValid
-                                && vr.Errors.Count == 1
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
-                                )
-                        )),
-#endif
-                        "Patch document has multiple operations with same values for the same path"
-                    };
-                }
-
-                {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
-                    patch.Replace(x => x.Lastname, string.Empty);
-                    patch.Replace(x => x.Lastname, string.Empty);
-                    patch.Replace(x => x.Firstname, null);
-                    patch.Replace(x => x.Firstname, string.Empty);
-
-                    yield return new object[]
-                    {
-                        patch,
-#if !NETCOREAPP2_0
-		((Expression<Func<ValidationResult, bool>>)(
-                            vr => !vr.IsValid
-                                && vr.Errors.Count == 1
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
-                                )
-                        )),
-#else
-        ((Expression<Func<ValidationResult, bool>>)(
-                            vr => !vr.IsValid
-                                && vr.Errors.Count == 2
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
-                                )
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && x.ErrorMessage == @"No ""test"" operation provided."
-                                )
-                        )),
-#endif
-                        "Patch document has multiple operations with same values for the same path"
-                    };
-                }
-
-
-#if NETCOREAPP2_0
-                {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
-                    patch.Replace(x => x.Lastname, string.Empty);
-
-                    yield return new object[]
-                    {
-                        patch,
-                        ((Expression<Func<ValidationResult, bool>>)(
-                            vr => !vr.IsValid
-                                && vr.Errors.Count == 1
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && x.ErrorMessage == @"No ""test"" operation provided."
-                                )
-                        )),
-                        @"Patch document has no ""test"" operation."
-                    };
-                }
-#endif
-            }
-        }
-
+        
 
         public static IEnumerable<object[]> ValidPatchDocumentsCases
         {
             get
             {
+//                {
+//                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+//                    patch.Replace(x => x.Lastname, string.Empty);
+//                    patch.Replace(x => x.Lastname, string.Empty);
+//#if NETCOREAPP2_0
+//                    patch.Test(x => x.Lastname, "newValue");
+//#endif
+//                    yield return new object[]
+//                    {
+//                        patch,
+//#if NETCOREAPP2_0
+//        ((Expression<Func<ValidationResult, bool>>)(
+//                            vr => !vr.IsValid
+//                                && vr.Errors.Count == 1
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname)}""".Equals(x.ErrorMessage)
+//                                )
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && x.ErrorMessage == @"No ""test"" operation provided."
+//                                )
+//                        )),
+//#else
+//		((Expression<Func<ValidationResult, bool>>)(
+//                            vr => !vr.IsValid
+//                                && vr.Errors.Count == 1
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
+//                                )
+//                        )),
+//#endif
+//                        "Patch document has multiple operations with same values for the same path"
+//                    };
+//                }
+
+//                {
+//                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+//                    patch.Replace(x => x.Lastname, string.Empty);
+//                    patch.Replace(x => x.Lastname, string.Empty);
+//                    patch.Replace(x => x.Firstname, null);
+//                    patch.Replace(x => x.Firstname, string.Empty);
+//#if NETCOREAPP2_0
+//                    patch.Test(x => x.Lastname, "newValue");
+//#endif
+
+//                    yield return new object[]
+//                    {
+//                        patch,
+//#if !NETCOREAPP2_0
+//		((Expression<Func<ValidationResult, bool>>)(
+//                            vr => !vr.IsValid
+//                                && vr.Errors.Count == 2
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
+//                                )
+//                        )),
+//#else
+//        ((Expression<Func<ValidationResult, bool>>)(
+//                            vr => !vr.IsValid
+//                                && vr.Errors.Count == 2
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
+//                                )
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && x.ErrorMessage == @"No ""test"" operation provided."
+//                                )
+//                        )),
+//#endif
+//                        "Patch document has multiple operations with same values for two differents paths"
+//                    };
+//                }
+
+
+//#if NETCOREAPP2_0
+//                {
+//                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+//                    patch.Replace(x => x.Lastname, string.Empty);
+
+//                    yield return new object[]
+//                    {
+//                        patch,
+//                        ((Expression<Func<ValidationResult, bool>>)(
+//                            vr => !vr.IsValid
+//                                && vr.Errors.Count == 1
+//                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
+//                                    && x.Severity == Warning
+//                                    && x.ErrorMessage == @"No ""test"" operation provided."
+//                                )
+//                        )),
+//                        @"Patch document has no ""test"" operation."
+//                    };
+//                }
+//#endif
 #if NETCOREAPP1_1
                 {
                     JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
@@ -183,7 +181,18 @@ namespace MedEasy.Validators.Tests.Patch
                 {
                     JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
                     patch.Replace(x => x.Lastname, string.Empty);
-                    patch.Operations.Add(new Operation<SuperHero> { op = "test", path = $"/{nameof(SuperHero.Firstname)}", value = "Bruce" });
+                    patch.Test(x => x.Firstname, "Bruce" );
+
+                    yield return new object[]
+                    {
+                        patch
+                    };
+                }
+
+                {
+                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+                    patch.Replace(x => x.Lastname, string.Empty);
+                    patch.Test(x => x.Lastname, "Bruce");
 
                     yield return new object[]
                     {
@@ -199,12 +208,6 @@ namespace MedEasy.Validators.Tests.Patch
         [MemberData(nameof(CausesValidationErrorsCases))]
         public void ShouldFails_WithError(JsonPatchDocument<SuperHero> patchDocument, Expression<Func<ValidationResult, bool>> expectation, string because)
             => Test(patchDocument, expectation, because);
-
-        [Theory]
-        [MemberData(nameof(CausesValidationWarningsCases))]
-        public void ShouldFails_WithWarning(JsonPatchDocument<SuperHero> patchDocument, Expression<Func<ValidationResult, bool>> expectation, string because)
-            => Test(patchDocument, expectation, because);
-
 
         [Theory]
         [MemberData(nameof(ValidPatchDocumentsCases))]

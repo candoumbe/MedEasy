@@ -1,5 +1,6 @@
 using FluentAssertions;
-using Measures.API.Controllers;
+using Measures.API.Features;
+using Measures.API.Features.BloodPressures;
 using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.DTO;
@@ -17,7 +18,7 @@ using Xunit.Categories;
 using static MedEasy.RestObjects.FormFieldType;
 using static Moq.MockBehavior;
 
-namespace Measures.API.Tests.Controllers
+namespace Measures.API.Tests.Features
 {
     /// <summary>
     /// Unit tests for <see cref="RootController"/>
@@ -299,24 +300,24 @@ namespace Measures.API.Tests.Controllers
             patientsCreateForm.Items.Should()
                 .NotBeNullOrEmpty().And
                 .NotContainNulls().And
-                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.Firstname)).And
-                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.Lastname)).And
-                .ContainSingle(field => field.Name == nameof(CreatePatientInfo.BirthDate))
+                .ContainSingle(field => field.Name == nameof(NewPatientInfo.Firstname)).And
+                .ContainSingle(field => field.Name == nameof(NewPatientInfo.Lastname)).And
+                .ContainSingle(field => field.Name == nameof(NewPatientInfo.BirthDate))
                 ;
 
-            FormField createPatientFirstnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.Firstname));
+            FormField createPatientFirstnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.Firstname));
             createPatientFirstnameField.Type.Should()
                 .Be(FormFieldType.String);
             createPatientFirstnameField.MaxLength.Should()
                 .Be(255);
 
-            FormField createPatientLastnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.Lastname));
+            FormField createPatientLastnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.Lastname));
             createPatientLastnameField.Type.Should()
                 .Be(FormFieldType.String);
             createPatientLastnameField.MaxLength.Should()
                 .Be(255);
 
-            FormField createPatientBirthDateField = patientsCreateForm.Items.Single(field => field.Name == nameof(CreatePatientInfo.BirthDate));
+            FormField createPatientBirthDateField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.BirthDate));
             createPatientBirthDateField.Type.Should()
                 .Be(Date);
 

@@ -18,7 +18,11 @@ namespace Agenda.CQRS.Features.Appointments.Commands
 
         }
 
+        public override bool Equals(object obj) => Equals(obj as AddParticipantToAppointmentCommand);
+
         public bool Equals(AddParticipantToAppointmentCommand other) => other != null
                 && (ReferenceEquals(this, other) || Equals(Data, other.Data));
+
+        public override int GetHashCode() => base.GetHashCode();
     }
 }

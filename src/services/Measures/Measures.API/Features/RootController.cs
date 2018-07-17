@@ -1,11 +1,11 @@
-﻿using Measures.API.Features.Patients;
+﻿using Measures.API.Features.BloodPressures;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.DTO;
-using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using static MedEasy.RestObjects.FormFieldType;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace Measures.API.Controllers
+namespace Measures.API.Features
 {
     /// <summary>
     /// Controller that describe 
@@ -22,6 +22,7 @@ namespace Measures.API.Controllers
     [Controller]
     [Route("/")]
     [Route("/measures")]
+    [AllowAnonymous]
     public class RootController
     {
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -107,7 +108,7 @@ namespace Measures.API.Controllers
                     },
                     Forms = new[]
                     {
-                        new FormBuilder<CreatePatientInfo>(new Link { Relation = LinkRelation.CreateForm, Href = "_", Method = "POST" })
+                        new FormBuilder<NewPatientInfo>(new Link { Relation = LinkRelation.CreateForm, Href = "_", Method = "POST" })
                             .AddField(x => x.Id)
                             .AddField(x => x.Firstname, new FormFieldAttributeOverrides { MaxLength = 255 })
                             .AddField(x => x.Lastname, new FormFieldAttributeOverrides { MaxLength = 255 })

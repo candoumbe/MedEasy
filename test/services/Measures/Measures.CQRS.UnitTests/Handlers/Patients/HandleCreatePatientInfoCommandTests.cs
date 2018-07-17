@@ -7,13 +7,11 @@ using Measures.CQRS.Handlers.Patients;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -107,7 +105,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public async Task CreatePatientWithNoIdProvided()
         {
             // Arrange
-            CreatePatientInfo resourceInfo = new CreatePatientInfo
+            NewPatientInfo resourceInfo = new NewPatientInfo
             {
                 Firstname = "victor",
                 Lastname = "zsasz",
@@ -124,7 +122,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
             // Assert
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.PatientId == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             createdResource.Should()
@@ -154,7 +152,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             // Arrange
             Guid desiredId = Guid.NewGuid();
-            CreatePatientInfo resourceInfo = new CreatePatientInfo
+            NewPatientInfo resourceInfo = new NewPatientInfo
             {
                 Firstname = "victor",
                 Lastname = "zsasz",
@@ -172,13 +170,13 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
             // Assert
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.PatientId == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             createdResource.Should()
                 .NotBeNull();
             createdResource.Id.Should()
-                .Be(desiredId, $"handler must use value of {nameof(CreatePatientInfo)}.{nameof(CreatePatientInfo.Id)} when that value is not null");
+                .Be(desiredId, $"handler must use value of {nameof(NewPatientInfo)}.{nameof(NewPatientInfo.Id)} when that value is not null");
             createdResource.Firstname.Should()
                 .Be(resourceInfo.Firstname?.ToTitleCase());
             createdResource.Lastname.Should()
@@ -201,7 +199,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public void GivenCommandWithEmptyId_HandlesThrows_Exception()
         {
             // Arrange
-            CreatePatientInfo data = new CreatePatientInfo
+            NewPatientInfo data = new NewPatientInfo
             {
                 Lastname = "Grundy",
                 Id = Guid.Empty

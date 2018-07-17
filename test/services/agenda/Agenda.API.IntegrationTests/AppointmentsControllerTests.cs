@@ -6,7 +6,7 @@ using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.Core.Filters;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
@@ -28,7 +27,6 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Bogus.DataSets.Name;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
@@ -44,7 +42,7 @@ namespace Agenda.API.IntegrationTests
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/agenda/appointments";
-        private static JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -73,7 +71,7 @@ namespace Agenda.API.IntegrationTests
             AllowAdditionalProperties = false
         };
 
-        private static JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -133,7 +131,7 @@ namespace Agenda.API.IntegrationTests
             }
         };
 
-        private static JSchema _browsableResourceSchema = new JSchema
+        private static readonly JSchema _browsableResourceSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =

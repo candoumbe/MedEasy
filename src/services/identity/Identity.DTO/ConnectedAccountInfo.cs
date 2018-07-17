@@ -1,0 +1,28 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Identity.DTO
+{
+    public class ConnectedAccountInfo
+    {
+
+        public Guid Id { get; set; }
+
+        public string Username { get; set; }
+
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Name of the account.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Claims associated with the account
+        /// </summary>
+        public IEnumerable<ClaimInfo> Claims { get; set; }
+
+        public ConnectedAccountInfo() => Claims = Enumerable.Empty<ClaimInfo>();
+    }
+}

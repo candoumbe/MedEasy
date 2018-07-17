@@ -7,21 +7,16 @@ namespace Measures.CQRS.Events
     /// <summary>
     /// Event that notifies a patient resource was updated.
     /// </summary>
-    public class PatientDeleted : NotificationBase<Guid>
+    public class PatientDeleted : NotificationBase<Guid, Guid>
     {
-        /// <summary>
-        /// Deleded patient's unique identifier
-        /// </summary>
-        public Guid PatientId { get; }
         
 
         /// <summary>
         /// Builds a new measure
         /// </summary>
         /// <param name="patientId">Unique identifier of the new patient resource</param>
-        public PatientDeleted(Guid patientId) : base(Guid.NewGuid())
+        public PatientDeleted(Guid patientId) : base(Guid.NewGuid(), patientId)
         {
-            PatientId = patientId;
         }
 
     }

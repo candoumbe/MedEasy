@@ -2,7 +2,7 @@ using AutoMapper.QueryableExtensions;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
@@ -41,7 +41,7 @@ namespace Patients.API.UnitTests.Controllers
         private PatientsController _controller;
         private ITestOutputHelper _outputHelper;
         private IActionContextAccessor _actionContextAccessor;
-        private EFUnitOfWorkFactory<PatientsContext> _factory;
+        private IUnitOfWorkFactory _factory;
         private IExpressionBuilder _expressionBuilder;
         private Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";

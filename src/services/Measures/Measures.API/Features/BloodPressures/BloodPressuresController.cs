@@ -1,4 +1,5 @@
-﻿using Measures.API.Routing;
+﻿using Measures.API.Features.Patients;
+using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
@@ -27,7 +28,7 @@ using static MedEasy.Data.DataFilterLogic;
 using static MedEasy.Data.DataFilterOperator;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Measures.API.Controllers
+namespace Measures.API.Features.BloodPressures
 {
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources

@@ -21,10 +21,10 @@ namespace System
         private static bool HasInterfaceThatMapsToGenericTypeDefinition(this Type givenType, Type genericType)
         => givenType
                 .GetTypeInfo()
-#if NETSTANDARD1_0 || NETSTANDARD1_1
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_3
 
                 .ImplementedInterfaces
-#elif NETCOREAPP1_0
+#else
             .GetInterfaces()
 #endif
             .Where(it => it.GetTypeInfo().IsGenericType)

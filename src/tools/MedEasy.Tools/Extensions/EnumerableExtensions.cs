@@ -269,10 +269,8 @@ namespace System.Collections.Generic
         /// <param name="second">the second collection</param>
         /// <param name="third">the third collection</param>
         /// <returns>The cartesian product of <paramref name="first"/>.<paramref name="second"/>.<paramref name="third"/>></returns>
-        public static IEnumerable<(TFirst, TSecond, TThird)> CrossJoin<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third)
-        {
-            return CrossJoin(first, second, third, (x, y, z) => (x, y, z));
-        }
+        public static IEnumerable<(TFirst, TSecond, TThird)> CrossJoin<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third) => 
+            CrossJoin(first, second, third, (x, y, z) => (x, y, z));
 
         /// <summary>
         /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
@@ -286,12 +284,8 @@ namespace System.Collections.Generic
         /// <param name="third">the third collection</param>
         /// <param name="selector">projection to perform</param>
         /// <returns></returns>
-        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> selector)
-        {
-            return first.SelectMany(x => second.SelectMany(y => third, (y, z) => selector(x, y, z)));
-
-
-        }
+        public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> selector) =>
+            first.SelectMany(x => second.SelectMany(y => third, (y, z) => selector(x, y, z)));
 
 
 
@@ -370,7 +364,7 @@ namespace System.Collections.Generic
         }
 
 
-#if NETSTANDARD1_1
+#if !NETSTANDARD1_0
         /// <summary>
         /// Asynchronously run the 
         /// </summary>
@@ -379,6 +373,7 @@ namespace System.Collections.Generic
         /// <param name="body"></param>
         /// <param name="dop"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="dop"/> is negative or <c>0</c></exception>
         public static Task ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> body, int? dop = null)
         {
             Task t = Task.WhenAll(

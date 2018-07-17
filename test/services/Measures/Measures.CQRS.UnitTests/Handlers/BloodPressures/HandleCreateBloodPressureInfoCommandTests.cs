@@ -1,17 +1,15 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
-using Measures.CQRS.Events;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.CQRS.Handlers.BloodPressures;
 using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
@@ -21,7 +19,6 @@ using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -78,7 +75,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper:mapper)))
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
                     //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
                     .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))

@@ -60,7 +60,12 @@ namespace Agenda.API.Resources
                     Resource = x,
                     Links =new[]
                     {
-                        new Link { Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id })}
+                        new Link
+                        {
+                            Relation = LinkRelation.Self,
+                            Method = "GET",
+                            Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id })
+                        }
                     }
                 }),
                 first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, pageSize }),
@@ -103,7 +108,12 @@ namespace Agenda.API.Resources
                         Resource = resource,
                         Links = new[]
                         {
-                            new Link { Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })},
+                            new Link
+                            {
+                                Relation = LinkRelation.Self,
+                                Method = "GET",
+                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })
+                            },
                         }
                     };
 

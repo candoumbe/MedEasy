@@ -1,0 +1,40 @@
+version: '3.6'
+
+services:
+  identity.db:
+    image: ${SQL_SERVER_IMG}
+    environment: 
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: Y
+    ports:
+      - "6000:1433"
+  identity.api:
+    image: ${DOCKER_REGISTRY}identityapi
+    environment:
+      IDENTITY: ${IDENTITY_DB}
+    build:
+      context: .
+      dockerfile: src\services\identity\Identity.API\Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - identity.db  
+  measures.db:
+    image: ${SQL_SERVER_IMG}
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: Y
+    ports:
+      - "6001:1433"
+  measures.api:
+    image: ${DOCKER_REGISTRY}measuresapi
+    environment:
+      MEASURES: ${MEASURES_DB}
+    build:
+      context: .
+      dockerfile: src\services\Measures\Measures.API\Dockerfile
+    depends_on:
+      - measures.db
+      - identity.api
+    ports:
+      - "5001:80"

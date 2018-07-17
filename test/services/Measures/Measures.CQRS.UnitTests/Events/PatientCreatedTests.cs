@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
-using FluentAssertions.Extensions;
 using Measures.CQRS.Events;
 using MediatR;
-using System;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

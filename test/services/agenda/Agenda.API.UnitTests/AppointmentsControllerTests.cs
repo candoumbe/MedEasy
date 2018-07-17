@@ -13,7 +13,7 @@ using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
@@ -34,11 +34,11 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.UnitTests.Features
 {

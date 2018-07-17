@@ -8,7 +8,7 @@ using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;

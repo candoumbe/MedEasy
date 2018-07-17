@@ -7,22 +7,17 @@ using Measures.Context;
 using Measures.DTO;
 using Measures.Objects;
 using Measures.Validators.Features.Patients.DTO;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Moq.Times;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Measures.Validators.Tests.Features.Patients
@@ -59,7 +54,7 @@ namespace Measures.Validators.Tests.Features.Patients
 
         [Fact]
         public void Should_Implements_AbstractValidator() => _validator.Should()
-                .BeAssignableTo<AbstractValidator<CreatePatientInfo>>();
+                .BeAssignableTo<AbstractValidator<NewPatientInfo>>();
 
 
         [Fact]
@@ -81,57 +76,57 @@ namespace Measures.Validators.Tests.Features.Patients
 
                 yield return new object[]
                 {
-                    new CreatePatientInfo(),
+                    new NewPatientInfo(),
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     )),
-                    $"because no {nameof(CreatePatientInfo)}'s data set."
+                    $"because no {nameof(NewPatientInfo)}'s data set."
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientInfo() { Firstname = "Bruce" },
+                    new NewPatientInfo() { Firstname = "Bruce" },
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     )),
-                    $"because {nameof(CreatePatientInfo.Firstname)} is set and {nameof(CreatePatientInfo.Lastname)} is not"
+                    $"because {nameof(NewPatientInfo.Firstname)} is set and {nameof(NewPatientInfo.Lastname)} is not"
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientInfo() { Lastname = "Wayne" },
+                    new NewPatientInfo() { Lastname = "Wayne" },
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                     )),
-                    $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
+                    $"because {nameof(NewPatientInfo.Lastname)} is set and {nameof(NewPatientInfo.Firstname)} is not"
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientInfo() { Lastname = "Wayne" },
+                    new NewPatientInfo() { Lastname = "Wayne" },
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                     )),
-                    $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
+                    $"because {nameof(NewPatientInfo.Lastname)} is set and {nameof(NewPatientInfo.Firstname)} is not"
                 };
 
                 yield return new object[]
                 {
-                    new CreatePatientInfo() { Lastname = "Wayne", Firstname = "Bruce", Id = Guid.Empty },
+                    new NewPatientInfo() { Lastname = "Wayne", Firstname = "Bruce", Id = Guid.Empty },
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     )),
-                    $"because {nameof(CreatePatientInfo.Id)} is set to {Guid.Empty}"
+                    $"because {nameof(NewPatientInfo.Id)} is set to {Guid.Empty}"
                 };
 
             }
@@ -139,7 +134,7 @@ namespace Measures.Validators.Tests.Features.Patients
 
         [Theory]
         [MemberData(nameof(ValidateTestCases))]
-        public async Task ValidateTest(CreatePatientInfo info,
+        public async Task ValidateTest(NewPatientInfo info,
             Expression<Func<ValidationResult, bool>> errorMatcher,
             string because = "")
         {
@@ -165,7 +160,7 @@ namespace Measures.Validators.Tests.Features.Patients
                     .ConfigureAwait(false);
             }
 
-            CreatePatientInfo info = new CreatePatientInfo
+            NewPatientInfo info = new NewPatientInfo
             {
                 Firstname = "Bruce",
                 Lastname = "Wayne",
@@ -179,7 +174,7 @@ namespace Measures.Validators.Tests.Features.Patients
             vr.IsValid.Should().BeFalse($"{nameof(Patient)} <{info.Id}> already exists");
             vr.Errors.Should()
                 .HaveCount(1).And
-                .Contain(x => x.PropertyName == nameof(CreatePatientInfo.Id));
+                .Contain(x => x.PropertyName == nameof(NewPatientInfo.Id));
         }
 
 

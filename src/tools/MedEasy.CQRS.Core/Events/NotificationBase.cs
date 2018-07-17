@@ -6,27 +6,34 @@ namespace MedEasy.CQRS.Core.Events
     /// <summary>
     /// Base class for building events
     /// </summary>
-    /// <typeparam name="T">Type of the notification's <see cref="Id"/></typeparam>
-    public abstract class NotificationBase<T> : INotification
-        where T : IEquatable<T>
+    /// <typeparam name="TId">Type of the notification's <see cref="Id"/></typeparam>
+    public abstract class NotificationBase<TId, TData> : INotification
+        where TId : IEquatable<TId>
     {
         /// <summary>
         /// Uniquely identifies a notification.
         /// </summary>
-        public T Id { get; }
+        public TId Id { get; }
+
+        /// <summary>
+        /// Data associated with the event
+        /// </summary>
+        public TData Data { get; set; }
 
         /// <summary>
         /// Builds a new <see cref="NotificationBase{T}"/> instance
         /// </summary>
         /// <param name="id">id of the notification</param>
+        /// <param name="data">data of the event</param>
         /// <exception cref="ArgumentException"><paramref name="id"/> equals <c>default(T)</c></exception>
-        protected NotificationBase(T id)
+        protected NotificationBase(TId id, TData data)
         {
             if (Equals(id, default))
             {
-                throw new ArgumentException($"{nameof(id)} must not be {default(T)}");
+                throw new ArgumentException($"{nameof(id)} must not be {default(TId)}");
             }
             Id = id;
+            Data = data;
         }
     }
 }

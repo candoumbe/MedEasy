@@ -26,7 +26,7 @@ namespace Measures.Mapping
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
-            cfg.CreateMap<CreatePatientInfo, Patient>()
+            cfg.CreateMap<NewPatientInfo, Patient>()
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
                 .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())

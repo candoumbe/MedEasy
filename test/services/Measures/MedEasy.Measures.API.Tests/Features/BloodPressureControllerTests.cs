@@ -2,7 +2,8 @@ using AutoMapper.QueryableExtensions;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Measures.API.Controllers;
+using Measures.API.Features.BloodPressures;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
@@ -14,7 +15,7 @@ using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -41,7 +42,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 
-namespace Measures.API.Tests.Controllers
+namespace Measures.API.Tests.Features.BloodPressures
 {
     /// <summary>
     /// Unit tests for <see cref="BloodPressuresController"/>

@@ -1,7 +1,7 @@
 ﻿namespace Measures.API.Features.Patients
 {
     /// <summary>
-    /// Model to create a new <see cref="PatientInfo"/> resource
+    /// Model to create a new <see cref="DTO.PatientInfo"/> resource
     /// </summary>
     public class NewPatientModel
     {

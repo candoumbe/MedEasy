@@ -3,7 +3,7 @@ using FluentAssertions;
 using Measures.Context;
 using Measures.CQRS.Handlers.Patients;
 using Measures.Mapping;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;

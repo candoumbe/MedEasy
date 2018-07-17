@@ -59,7 +59,20 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                         new AddParticipantToAppointmentCommand((appointmentId, participantId)),
                         new AddParticipantToAppointmentCommand((appointmentId, participantId)),
                         true,
-                        "two commands with same data"
+                        $"two {nameof(AddParticipantToAppointmentCommand)} commands with same data"
+                    };
+                }
+
+                {
+                    Guid appointmentId = Guid.NewGuid();
+                    Guid participantId = Guid.NewGuid();
+
+                    yield return new object[]
+                    {
+                        new AddParticipantToAppointmentCommand((appointmentId, participantId)),
+                        new AddParticipantToAppointmentCommand((appointmentId, Guid.NewGuid())),
+                        false,
+                        $"two {nameof(AddParticipantToAppointmentCommand)} commands with different {nameof(AddParticipantToAppointmentCommand.Data.participantId)} data"
                     };
                 }
             }
@@ -68,7 +81,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 
         [Theory]
         [MemberData(nameof(EqualsCases))]
-        public void AreEquals(AddParticipantToAppointmentCommand first, AddParticipantToAppointmentCommand second, bool expectedResult, string reason)
+        public void AreEquals(AddParticipantToAppointmentCommand first, object second, bool expectedResult, string reason)
         {
             // Act
             bool actualResult = first.Equals(second);

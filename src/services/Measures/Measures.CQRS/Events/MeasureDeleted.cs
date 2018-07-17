@@ -6,7 +6,7 @@ namespace Measures.CQRS.Events
     /// <summary>
     /// Event sent when a new measure was deleted
     /// </summary>
-    public abstract class MeasureDeleted<TId, TMeasureId> : NotificationBase<TId>
+    public abstract class MeasureDeleted<TId, TMeasureId> : NotificationBase<TId, TMeasureId>
         where TId : IEquatable<TId>
     {
         /// <summary>
@@ -17,9 +17,8 @@ namespace Measures.CQRS.Events
         /// Builds a new <see cref="MeasureCreated{TId, TMeasureId}"/>
         /// </summary>
         /// <param name="measureId"></param>
-        protected MeasureDeleted(TId id, TMeasureId measureId) : base(id)
+        protected MeasureDeleted(TId id, TMeasureId measureId) : base(id, measureId)
         {
-            MeasureId = measureId;
         }
 
     }

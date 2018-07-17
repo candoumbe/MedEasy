@@ -11,15 +11,12 @@ namespace Identity.CQRS.Events.Accounts
         /// <summary>
         /// Id of the deleted account
         /// </summary>
-        public Guid Id { get; }
+        public Guid AccountId { get; }
 
         /// <summary>
         /// Builds a new <see cref="AccountDeleted"/> instance
         /// </summary>
-        /// <param name="id">id of the deleted account</param>
-        public AccountDeleted(Guid id)
-        {
-            Id = id;
-        }
+        /// <param name="accountId">id of the deleted account</param>
+        public AccountDeleted(Guid accountId) => AccountId = accountId;
     }
 }

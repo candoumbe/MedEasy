@@ -20,7 +20,7 @@ namespace Identity.CQRS.Handlers.Commands
     public class HandleCreateAuthenticationTokenCommand : IRequestHandler<CreateAuthenticationTokenCommand, SecurityToken>
     {
         private readonly IDateTimeService _dateTimeService;
-        
+
         /// <summary>
         /// Builds a new <see cref="HandleCreateAuthenticationTokenCommand"/> instance.
         /// </summary>
@@ -29,30 +29,40 @@ namespace Identity.CQRS.Handlers.Commands
 
         public Task<SecurityToken> Handle(CreateAuthenticationTokenCommand cmd, CancellationToken ct)
         {
-            DateTimeOffset now = _dateTimeService.UtcNowOffset();
+            DateTime now = _dateTimeService.UtcNow();
             (AccountInfo accountInfo, JwtInfos jwtInfos) = cmd.Data;
-            SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtInfos.Key));
+
+
             IEnumerable<string> audiences = jwtInfos.Audiences.Any()
                 ? jwtInfos.Audiences.Skip(1)
                 : Enumerable.Empty<string>();
-            IEnumerable<Claim> claims = accountInfo.Claims
-                    .Select(claim => new Claim(claim.Type, claim.Value))
-                    .Union(audiences.Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience)))
-                    .Union(new[] {
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                    });
+
+            IEnumerable<Claim> claims = new[]{
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(CustomClaimTypes.AccountId, accountInfo.Id.ToString()),
+                    new Claim(ClaimTypes.Name, $"{accountInfo.Firstname} {accountInfo.Lastname}"),
+                    new Claim(ClaimTypes.NameIdentifier, accountInfo.Username),
+                    new Claim(ClaimTypes.Email, accountInfo.Email),
+                    new Claim(ClaimTypes.GivenName, accountInfo.Firstname ?? string.Empty),
+                }
+            .Union(
+                    accountInfo.Claims.Select(claim => new Claim(claim.Type, claim.Value))
+            .Union(audiences.Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience)))
+);
+
+            SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
             SecurityToken token = new JwtSecurityToken(
                 jwtInfos.Issuer,
                 jwtInfos.Audiences.Any() ? jwtInfos.Audiences.First() : jwtInfos.Issuer,
                 claims,
-                now.DateTime,
-                now.AddMinutes(jwtInfos.Validity).DateTime,
+                notBefore: now,
+                expires: now.AddMinutes(jwtInfos.Validity),
                 new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
 
 
 
-            return Task.FromResult(token);
+            return new ValueTask<SecurityToken>(token).AsTask();
 
 
 

@@ -7,7 +7,7 @@ namespace Measures.CQRS.Events
     /// <summary>
     /// Event that notifies a <see cref="PatientInfo"/> resource was updated.
     /// </summary>
-    public class PatientUpdated : NotificationBase<Guid>
+    public class PatientUpdated : NotificationBase<Guid, Guid>
     {
         /// <summary>
         /// Created patient's unique identifier
@@ -18,10 +18,8 @@ namespace Measures.CQRS.Events
         /// Builds a new <see cref="PatientUpdated"/> instance.
         /// </summary>
         /// <param name="patientId"></param>
-        public PatientUpdated(Guid patientId) : base(Guid.NewGuid())
-        {
-            PatientId = patientId;
-        }
+        public PatientUpdated(Guid patientId) : base(Guid.NewGuid(), patientId)
+        { }
 
     }
 }

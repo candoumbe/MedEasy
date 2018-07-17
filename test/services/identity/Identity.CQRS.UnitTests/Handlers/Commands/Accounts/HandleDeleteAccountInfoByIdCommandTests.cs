@@ -1,13 +1,11 @@
-﻿using AutoMapper.QueryableExtensions;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Identity.CQRS.Commands.Accounts;
+using Identity.CQRS.Events.Accounts;
 using Identity.CQRS.Handlers.Commands.Accounts;
-using Identity.CQRS.UnitTests.Events.Accounts;
 using Identity.DataStores.SqlServer;
-using Identity.Mapping;
 using Identity.Objects;
 using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
@@ -30,7 +28,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        private IExpressionBuilder _expressionBuilder;
         private Mock<IMediator> _mediatorMock;
         private HandleDeleteAccountInfoByIdCommand _sut;
 
@@ -47,7 +44,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 return context;
             });
 
-            _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _sut = new HandleDeleteAccountInfoByIdCommand(_uowFactory, _mediatorMock.Object);
@@ -56,7 +52,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public void Dispose()
         {
             _uowFactory = null;
-            _expressionBuilder = null;
             _sut = null;
             _mediatorMock = null;
         }
@@ -108,8 +103,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 UUID = idToDelete,
                 Firstname = "victor",
                 Lastname = "zsasz",
-                UserName = "victorzsasz"
-
+                UserName = "victorzsasz",
+                Salt = "knife",
+                PasswordHash = "cut_up"
             };
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -129,8 +125,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountDeleted>(), default), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<AccountDeleted>(deleted => deleted.Id == idToDelete), default), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountDeleted>(), It.IsAny<CancellationToken>()), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<AccountDeleted>(deleted => deleted.AccountId == idToDelete), It.IsAny<CancellationToken>()), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

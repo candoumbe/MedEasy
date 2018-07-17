@@ -7,7 +7,7 @@ using Agenda.Objects;
 using AutoMapper;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;

@@ -15,13 +15,13 @@ using System.Threading.Tasks;
 
 namespace Identity.CQRS.Handlers.Queries.Accounts
 {
-    public class HandleGetOneUserByUsernameAndPasswordQuery : IRequestHandler<GetOneAccountByUsernameAndPasswordQuery, Option<AccountInfo>>
+    public class HandleGetOneAccountInfoByUsernameAndPasswordQuery : IRequestHandler<GetOneAccountByUsernameAndPasswordQuery, Option<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly IDateTimeService _dateTimeService;
 
-        public HandleGetOneUserByUsernameAndPasswordQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IDateTimeService dateTimeService)
+        public HandleGetOneAccountInfoByUsernameAndPasswordQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IDateTimeService dateTimeService)
         {
             _uowFactory = uowFactory;
             _expressionBuilder = expressionBuilder;
@@ -70,7 +70,8 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                         {
                             Username = account.UserName,
                             Email = account.Email,
-                            Claims = account.AccountClaims
+                            Claims = account
+                                .AccountClaims
                                 .Union(claimsFromRoles)
                         };
                         return Option.Some(accountInfo);

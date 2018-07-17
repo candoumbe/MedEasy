@@ -18,12 +18,16 @@ using Identity.API.Routing;
 using System.Linq;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Identity.API.Features.Accounts
 {
     /// <summary>
     /// Handles <see cref="Account"/>s resources
     /// </summary>
+    [Route("identity/[controller]")]
+    [Controller]
+    [Authorize]
     public class AccountsController
     {
         public static string EndpointName => nameof(AccountsController)
@@ -45,6 +49,8 @@ namespace Identity.API.Features.Accounts
         /// <param name="paginationConfiguration">paging configuration</param>
         /// <param name="ct">Notification to abort request execution</param>
         /// <returns></returns>
+        [HttpGet]
+        [HttpHead]
         public async Task<IActionResult> Get(PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             IdentityApiOptions apiOptions = _apiOptions.Value;
@@ -86,6 +92,7 @@ namespace Identity.API.Features.Accounts
         /// <param name="id">id of the resource to delete.</param>
         /// <param name="ct">Notifies to abort the request execution.</param>
         /// <returns></returns>
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
         {
             DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(id);
@@ -119,6 +126,8 @@ namespace Identity.API.Features.Accounts
         /// <param name="id">id of the account to delete</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        [HttpGet("{id}")]
+        [HttpHead("{id}")]
         public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
             Option<AccountInfo> optionalAccount = await _mediator.Send(new GetAccountInfoByIdQuery(id), ct)
@@ -208,6 +217,52 @@ namespace Identity.API.Features.Accounts
             return actionResult;
 
 
+        }
+
+        /// <summary>
+        /// Creates an account resource.
+        /// </summary>
+        /// <param name="newAccount">Data of the new account</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
+        {
+
+            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
+
+            Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
+                .ConfigureAwait(false);
+
+            return optionalAccount.Match(
+                some: account =>
+                {
+                    BrowsableResource<AccountInfo> browsableResource = new BrowsableResource<AccountInfo>
+                    {
+                        Resource = account,
+                        Links = new[]
+                        {
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, account.Id}) }
+                        }
+                    };
+
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }, browsableResource);
+                },
+                none: cmdError =>
+                {
+                    IActionResult actionResult;
+                    switch (cmdError)
+                    {
+
+                        case CreateCommandResult.Failed_Conflict:
+                            actionResult = new StatusCodeResult(Status409Conflict);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account");
+                    }
+                    return actionResult;
+                });
         }
     }
 }

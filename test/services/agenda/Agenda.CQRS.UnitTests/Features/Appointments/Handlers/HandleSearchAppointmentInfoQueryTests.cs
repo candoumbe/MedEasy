@@ -10,7 +10,7 @@ using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;

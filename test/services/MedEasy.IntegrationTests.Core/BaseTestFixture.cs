@@ -25,9 +25,7 @@ namespace MedEasy.IntegrationTests.Core
         { 
         }
 
-        private TestServer _server;
-
-        public TestServer Server { get => _server; }
+        public TestServer Server { get; private set; }
 
         /// <summary>
         /// Initialize data to use during the fixture lifetime.
@@ -38,9 +36,21 @@ namespace MedEasy.IntegrationTests.Core
         /// <param name="overrideServices">Provider for services implementations that will override the ones already set up in the <see cref="TStartup"/> class.</param>
         /// <exception cref="DirectoryNotFoundException"><paramref name="relativeTargetProjectParentDir"/> doesnot contain</exception>
         public virtual void Initialize(string relativeTargetProjectParentDir, string environmentName, string applicationName,
+            Action<IServiceCollection> overrideServices = null) => Initialize<TStartup>(relativeTargetProjectParentDir, environmentName, applicationName, overrideServices);
+
+
+        /// <summary>
+        /// Initialize data to use during the fixture lifetime.
+        /// </summary>
+        /// <param name="relativeTargetProjectParentDir">Path to the directory of the project under test. </param>
+        /// <param name="environmentName">Name of the environment to emulate</param>
+        /// <param name="applicationName">Name of the application</param>
+        /// <param name="overrideServices">Provider for services implementations that will override the ones already set up in the <see cref="TStartup"/> class.</param>
+        /// <exception cref="DirectoryNotFoundException"><paramref name="relativeTargetProjectParentDir"/> doesnot contain</exception>
+        public virtual void Initialize<TStart>(string relativeTargetProjectParentDir, string environmentName, string applicationName,
             Action<IServiceCollection> overrideServices = null)
         {
-            Assembly startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
+            Assembly startupAssembly = typeof(TStart).GetTypeInfo().Assembly;
             string contentRoot = GetProjectPath(relativeTargetProjectParentDir, startupAssembly);
             
             IHostingEnvironment env = new HostingEnvironment
@@ -61,7 +71,7 @@ namespace MedEasy.IntegrationTests.Core
             IWebHostBuilder builder = new WebHostBuilder()
                 .UseConfiguration(configuration)
                 .UseEnvironment(env.EnvironmentName)
-                .UseStartup(typeof(TStartup))
+                .UseStartup(typeof(TStart))
                 .ConfigureServices(InitializeServices)
                 .ConfigureServices(services => services.AddSingleton(env))
                 ;
@@ -71,15 +81,20 @@ namespace MedEasy.IntegrationTests.Core
                 builder = builder.ConfigureServices(overrideServices);
             }
 
-            _server = new TestServer(builder);
-            
+            Server = new TestServer(builder)
+            {
+                BaseAddress = new Uri($"http://locahost/{applicationName}")
+            };
+
         }
 
-        public void Dispose() => _server?.Dispose();
+        public void Dispose() => Server?.Dispose();
 
-        protected virtual void InitializeServices(IServiceCollection services)
+        protected virtual void InitializeServices(IServiceCollection services) => InitializeServices<TStartup>(services);
+
+        protected virtual void InitializeServices<TStart>(IServiceCollection services)
         {
-            Assembly startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
+            Assembly startupAssembly = typeof(TStart).GetTypeInfo().Assembly;
 
             // Inject a custom application part manager. 
             // Overrides AddMvcCore() because it uses TryAdd().
@@ -87,7 +102,7 @@ namespace MedEasy.IntegrationTests.Core
             manager.ApplicationParts.Add(new AssemblyPart(startupAssembly));
             manager.FeatureProviders.Add(new ControllerFeatureProvider());
             manager.FeatureProviders.Add(new ViewComponentFeatureProvider());
-            
+
             services.AddSingleton(manager);
         }
 

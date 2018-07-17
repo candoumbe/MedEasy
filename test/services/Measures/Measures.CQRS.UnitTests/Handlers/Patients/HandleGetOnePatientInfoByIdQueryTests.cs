@@ -5,7 +5,7 @@ using Measures.CQRS.Handlers.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Mapping;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;

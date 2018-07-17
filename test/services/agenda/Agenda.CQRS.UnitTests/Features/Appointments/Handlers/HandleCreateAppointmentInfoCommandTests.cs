@@ -9,7 +9,7 @@ using Bogus;
 using FakeItEasy;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -30,7 +29,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
     public class HandleCreateAppointmentInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _unitOfWorkFactoryMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private IMapper _mapperMock;
         private HandleCreateAppointmentInfoCommand _sut;
@@ -54,16 +52,16 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             });
 
             _mapperMock = A.Fake<IMapper>(x => x.Wrapping(AutoMapperConfig.Build().CreateMapper()));
-            _unitOfWorkFactoryMock = A.Fake<IUnitOfWorkFactory>(x => x.Wrapping(_unitOfWorkFactory));
+            _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>(x => x.Wrapping(_unitOfWorkFactory));
 
-            _sut = new HandleCreateAppointmentInfoCommand(_unitOfWorkFactoryMock, _mapperMock);
+            _sut = new HandleCreateAppointmentInfoCommand(_unitOfWorkFactory, _mapperMock);
 
 
         }
 
         public async void Dispose()
         {
-            using (IUnitOfWork uow = _unitOfWorkFactoryMock.NewUnitOfWork())
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 uow.Repository<Participant>().Delete(x => true);
                 uow.Repository<Appointment>().Delete(x => true);
@@ -71,7 +69,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            _unitOfWorkFactoryMock = null;
+            _unitOfWorkFactory = null;
             _mapperMock = null;
 
             _sut = null;
@@ -131,7 +129,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             A.CallTo(() => _mapperMock.Map<ParticipantInfo, Participant>(A<ParticipantInfo>.Ignored))
                 .MustHaveHappened(info.Participants.Count(), Times.Exactly);
-            A.CallTo(() => _unitOfWorkFactoryMock.NewUnitOfWork()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _unitOfWorkFactory.NewUnitOfWork()).MustHaveHappenedOnceExactly();
 
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {

@@ -7,9 +7,8 @@ using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper.QueryableExtensions;
 using Bogus;
-using FluentAssertions.Extensions;
 using FluentAssertions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
@@ -19,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,6 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static Moq.MockBehavior;
 using static System.StringComparison;
-using Optional;
 
 namespace Agenda.API.UnitTests
 {

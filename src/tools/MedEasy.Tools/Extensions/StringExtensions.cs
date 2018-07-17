@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Globalization;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using static System.Collections.Generic.EnumerableExtensions;
@@ -175,6 +176,31 @@ namespace System
             return sb.ToString();
         }
 
+
+#if !NETSTANDARD1_0 && !NETSTANDARD1_1
+        /// <summary>
+        /// Removes diacritics from <paramref name="input"/>
+        /// </summary>
+        /// <param name="input">where to remove diacritics</param>
+        /// <returns></returns>
+        public static string RemoveDiacritics(this string input)
+        {
+            string normalizedString = input.Normalize(NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+#endif
 
     }
 }

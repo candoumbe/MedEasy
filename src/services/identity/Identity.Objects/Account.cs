@@ -10,10 +10,25 @@ namespace Identity.Objects
     public class Account : AuditableEntity<int, Account>
 
     {
+        /// <summary>
+        /// Login used to authenticate
+        /// </summary>
         public string UserName { get; set; }
 
+        /// <summary>
+        /// Salt used when computing <see cref="PasswordHash"/>
+        /// </summary>
+        public string Salt { get; set; }
+
+
+        /// <summary>
+        /// Hash of the user's password
+        /// </summary>
         public string PasswordHash { get; set; }
 
+        /// <summary>
+        /// Email associated with the account
+        /// </summary>
         public string Email { get; set; }
 
         public string Firstname { get; set; }
@@ -21,6 +36,11 @@ namespace Identity.Objects
         public string Lastname { get; set; }
 
         public bool EmailConfirmed { get; set; }
+
+        /// <summary>
+        /// Indicates if the account can be used to authenticate a user
+        /// </summary>
+        public bool IsActive { get; set; }
 
         /// <summary>
         /// Indicates if <see cref="Account"/> is locked out.

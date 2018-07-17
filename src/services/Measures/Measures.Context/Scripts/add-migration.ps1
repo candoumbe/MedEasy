@@ -1,1 +1,1 @@
-﻿dotnet ef migrations add %1 -v --startup-project ..\Measures.APIdotnet ef migrations add %1 -v --startup-project ..\Measures.API
+﻿dotnet ef migrations add %1 -v --startup-project ..\Measures.API

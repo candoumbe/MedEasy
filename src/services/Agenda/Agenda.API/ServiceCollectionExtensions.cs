@@ -9,7 +9,7 @@ using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.Core.Infrastructure;
 using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using MediatR;

@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Reflection;
+using Microsoft.Extensions.Configuration;
 
 namespace Measures.API
 {
@@ -21,7 +20,12 @@ namespace Measures.API
                 {
                     options.AddServerHeader = false;
                 })
-                .UseStartup<Startup>()
+                .ConfigureAppConfiguration((context, builder) =>
+                    builder
+                        .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)
+                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                        .AddEnvironmentVariables()
+                ).UseStartup<Startup>()
                 .Build();
     }
 }

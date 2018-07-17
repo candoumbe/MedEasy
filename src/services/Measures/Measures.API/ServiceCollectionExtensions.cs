@@ -1,19 +1,22 @@
 ﻿using AutoMapper;
 using FluentValidation.AspNetCore;
+using Identity.DTO;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.Mapping;
 using Measures.Validators.Commands.BloodPressures;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -29,6 +32,7 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
+using System.Security.Claims;
 using System.Text;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
@@ -45,7 +49,7 @@ namespace Measures.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void CustomizeMvc(this IServiceCollection services, IConfiguration configuration)
+        public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddMvc(options =>
             {
@@ -55,6 +59,13 @@ namespace Measures.API
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+
+                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                     .RequireAuthenticatedUser()
+                     .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+
 
             })
             .AddFluentValidation(options =>
@@ -108,38 +119,36 @@ namespace Measures.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services)
-        {
+        public static void ConfigureDataStores(this IServiceCollection services) => 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
-            {
-                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-                DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                    builder.UseInMemoryDatabase(dbName);
-                }
-                else
-                {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(configuration.GetConnectionString("Measures"), b => b.MigrationsAssembly("Measures.API"));
-                }
-                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
+                    IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                    DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+                    if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                    {
+                        string dbName = $"InMemoryDb_{Guid.NewGuid()}";
+                        builder.UseInMemoryDatabase(dbName);
+                    }
+                    else
+                    {
+                        IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                        builder.UseSqlServer(configuration.GetConnectionString("Measures"), b => b.MigrationsAssembly("Measures.API"));
+                    }
+                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                    builder.ConfigureWarnings(options =>
+                    {
+                        options.Default(WarningBehavior.Log);
+                    });
+
+                    return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+
                 });
-
-                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-
-            });
-        }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void CustomizeDependencyInjection(this IServiceCollection services)
+        public static void ConfigureDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
@@ -156,6 +165,23 @@ namespace Measures.API
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
 
+            services.AddScoped(serviceProvider =>
+            {
+                IHttpContextAccessor httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+                ClaimsPrincipal principal = httpContextAccessor.HttpContext.User;
+
+                ConnectedAccountInfo connectedAccount = new ConnectedAccountInfo
+                {
+                    Id = Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.AccountId), out Guid accountId) 
+                        ? accountId 
+                        : Guid.Empty,
+                    Username = principal.FindFirstValue(ClaimTypes.Name),
+                    Email = principal.FindFirstValue(ClaimTypes.Email)
+                };
+
+                return principal;
+            });
+
 
         }
 
@@ -165,10 +191,10 @@ namespace Measures.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             ApplicationEnvironment app = PlatformServices.Default.Application;
-            
+
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new Info
@@ -193,28 +219,36 @@ namespace Measures.API
                 }
                 config.DescribeStringEnumsInCamelCase();
                 config.DescribeAllEnumsAsStrings();
+                config.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                {
+                    In = "header",
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    Type = "apiKey"
+                    
+                });
             });
         }
 
-
-        public static void AddCustomizedAuthentication(this IServiceCollection services, IConfiguration configuration)
-        {
+        /// <summary>
+        /// Configures the authentication middleware
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) => 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = configuration["JwtBearer:Issuer"],
-                ValidAudience = configuration["JwtBearer:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtBearer:Key"]))
-            };
-        });
-
-
-        }
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
+                        ValidAudience = configuration["Authentication:JwtBearer:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
+                    };
+                });
     }
 }

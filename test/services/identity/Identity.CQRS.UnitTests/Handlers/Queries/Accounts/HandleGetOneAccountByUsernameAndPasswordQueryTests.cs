@@ -7,7 +7,7 @@ using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
 using MedEasy.Abstractions;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
         private Mock<IDateTimeService> _dateTimeServiceMock;
-        private HandleGetOneUserByUsernameAndPasswordQuery _sut;
+        private HandleGetOneAccountInfoByUsernameAndPasswordQuery _sut;
 
         public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
         {
@@ -50,7 +50,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
 
-            _sut = new HandleGetOneUserByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
+            _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
         }
 
         public void Dispose()
@@ -90,7 +90,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     {
                         Email = "Bruce@wayne-entreprise.com",
                         UserName = "Batman",
-                        PasswordHash = "CapedCrusader"
+                        PasswordHash = "CapedCrusader",
+                        Salt = "the_kryptonian"
                     };
                     yield return new object[]
                     {
@@ -111,7 +112,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     {
                         Email = "clark.kent@smallville.com",
                         UserName = "Superman",
-                        PasswordHash = "StrongestManAlive"
+                        PasswordHash = "StrongestManAlive",
+                        Salt = "the_kryptonian"
                     };
                     clarkKent.AddOrUpdateClaim(type : "superstrength", value :"150", utcNow);
                     yield return new object[]
