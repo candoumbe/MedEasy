@@ -71,7 +71,7 @@ namespace Measures.API
             app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
-
+                
             });
 
             if (env.IsProduction() || env.IsStaging())

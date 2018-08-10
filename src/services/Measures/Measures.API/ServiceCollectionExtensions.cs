@@ -31,7 +31,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using static Newtonsoft.Json.DateFormatHandling;
@@ -111,6 +113,13 @@ namespace Measures.API
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
+
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new MeasuresContext(optionsBuilder.Options);
+            });
         }
 
         /// <summary>
@@ -121,28 +130,34 @@ namespace Measures.API
         /// 
         public static void ConfigureDataStores(this IServiceCollection services) => 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
-                {
-                    IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-                    DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-                    if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-                    {
-                        string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                        builder.UseInMemoryDatabase(dbName);
-                    }
-                    else
-                    {
-                        IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                        builder.UseSqlServer(configuration.GetConnectionString("Measures"), b => b.MigrationsAssembly("Measures.API"));
-                    }
-                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                    builder.ConfigureWarnings(options =>
-                    {
-                        options.Default(WarningBehavior.Log);
-                    });
+            {
+                DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
+                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
+            });
 
-                    return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-
-                });
+        private static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+        {
+            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+            {
+                builder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            }
+            else
+            {
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                builder.UseSqlServer(
+                    configuration.GetConnectionString("Measures"),
+                    options => options.MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
+                );
+            }
+            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+            builder.ConfigureWarnings(options =>
+            {
+                options.Default(WarningBehavior.Log);
+            });
+            return builder;
+        }
 
         /// <summary>
         /// Configure dependency injections
@@ -175,7 +190,7 @@ namespace Measures.API
                     Id = Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.AccountId), out Guid accountId) 
                         ? accountId 
                         : Guid.Empty,
-                    Username = principal.FindFirstValue(ClaimTypes.Name),
+                    Username = principal.FindFirstValue(ClaimTypes.NameIdentifier),
                     Email = principal.FindFirstValue(ClaimTypes.Email)
                 };
 
@@ -226,6 +241,11 @@ namespace Measures.API
                     Name = "Authorization",
                     Type = "apiKey"
                     
+                });
+
+                config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                {
+                    {"Bearer", Enumerable.Empty<string>() }
                 });
             });
         }

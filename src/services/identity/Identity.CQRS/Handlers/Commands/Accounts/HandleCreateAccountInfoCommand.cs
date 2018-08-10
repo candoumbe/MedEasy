@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -56,7 +53,7 @@ namespace Identity.CQRS.Handlers.Commands.Accounts
                     await uow.SaveChangesAsync(ct)
                         .ConfigureAwait(false);
 
-                    Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetAccountInfoByIdQuery(newEntity.UUID), ct)
+                    Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.UUID), ct)
                         .ConfigureAwait(false);
 
                     optionalAccountInfo.MatchSome(some: newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));

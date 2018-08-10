@@ -4,14 +4,14 @@ services:
   identity.db:
     image: ${SQL_SERVER_IMG}
     environment: 
-      SA_PASSWORD: ${SA_PASSWORD}
+      sa_password: ${SA_PASSWORD}
       ACCEPT_EULA: Y
     ports:
       - "6000:1433"
   identity.api:
     image: ${DOCKER_REGISTRY}identityapi
     environment:
-      IDENTITY: ${IDENTITY_DB}
+      CONNECTIONSTRINGS__IDENTITY: ${IDENTITY_DB}
     build:
       context: .
       dockerfile: src\services\identity\Identity.API\Dockerfile
@@ -22,14 +22,14 @@ services:
   measures.db:
     image: ${SQL_SERVER_IMG}
     environment:
-      SA_PASSWORD: ${SA_PASSWORD}
+      sa_password: ${SA_PASSWORD}
       ACCEPT_EULA: Y
     ports:
       - "6001:1433"
   measures.api:
     image: ${DOCKER_REGISTRY}measuresapi
     environment:
-      MEASURES: ${MEASURES_DB}
+      CONNECTIONSTRINGS__MEASURES: ${MEASURES_DB:?"Connection string to measures db not set}
     build:
       context: .
       dockerfile: src\services\Measures\Measures.API\Dockerfile

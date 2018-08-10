@@ -1,10 +1,5 @@
-﻿using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Queries;
+﻿using MedEasy.CQRS.Core.Queries;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Identity.CQRS.Queries
 {

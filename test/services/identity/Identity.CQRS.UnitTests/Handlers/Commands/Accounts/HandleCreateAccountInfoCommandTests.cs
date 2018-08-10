@@ -221,6 +221,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             // Arrange
             NewAccountInfo newAccount = new NewAccountInfo
             {
+                Name ="Bruce Wayne",
                 Username = "thebatman",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader",
@@ -238,8 +239,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<HashPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .Returns((HashPasswordQuery query, CancellationToken ct) => Task.FromResult((salt: query.Data, passwordHash: new string(query.Data.Reverse().ToArray()))));
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetAccountInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (GetAccountInfoByIdQuery query, CancellationToken ct) =>
+            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByIdQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
                 {
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
@@ -301,6 +302,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
 
             optionalResult.MatchSome(async resource =>
                 {
+                    resource.Name.Should()
+                        .Be(newAccount.Name);
+                    
                     resource.Username.Should()
                         .Be(newAccount.Username);
                     resource.Email.Should()
@@ -320,7 +324,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                         newEntity.Salt.Should()
                             .NotBeNullOrWhiteSpace();
                         newEntity.UUID.Should()
-                            .NotBeEmpty();
+                            .NotBeEmpty("UUID must not be empty");
                         newEntity.Email.Should()
                             .Be(resource.Email);
                         newEntity.EmailConfirmed.Should()

@@ -30,8 +30,6 @@ namespace Identity.Mapping
             cfg.CreateMap<NewAccountInfo, Account>()
                 .ForMember(entity => entity.Salt, opt => opt.Ignore())
                 .ForMember(entity => entity.PasswordHash, opt => opt.Ignore())
-                .ForMember(entity => entity.Firstname, opt => opt.Ignore())
-                .ForMember(entity => entity.Lastname, opt => opt.Ignore())
                 .ForMember(entity => entity.EmailConfirmed, opt => opt.Ignore())
                 .ForMember(entity => entity.Locked, opt => opt.Ignore())
                 .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
@@ -41,6 +39,7 @@ namespace Identity.Mapping
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
                 .ForMember(entity => entity.UUID, opt => opt.Ignore())
                 .ForMember(entity => entity.IsActive, opt => opt.UseValue(true))
+
                 ;
 
             cfg.CreateMap<Claim, ClaimInfo>();

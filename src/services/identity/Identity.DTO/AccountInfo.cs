@@ -13,9 +13,12 @@ namespace Identity.DTO
 
         public string Email { get; set; }
 
-        public string Firstname { get; set; }
+        /// <summary>
+        /// Name associated with the account
+        /// </summary>
+        public string Name { get; set; }
 
-        public string Lastname { get; set; }
+        public Guid? TenantId { get; set; }
 
         public IEnumerable<ClaimInfo> Claims { get; set; }
 

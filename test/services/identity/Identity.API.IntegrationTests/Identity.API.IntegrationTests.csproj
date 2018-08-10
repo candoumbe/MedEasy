@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.10" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
@@ -15,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\identity\Identity.API\Identity.API.csproj" />
+    <ProjectReference Include="..\..\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
+    <ProjectReference Include="..\..\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>
 
 </Project>

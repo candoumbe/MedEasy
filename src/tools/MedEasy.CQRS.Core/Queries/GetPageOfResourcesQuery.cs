@@ -15,10 +15,11 @@ namespace MedEasy.CQRS.Core.Queries
         /// </summary>
         /// <param name="id"></param>
         /// <param name="configuration"></param>
+        /// <exception cref="ArgumentNullException">if <paramref name="configuration"/> is <c>null</c>.</exception>
         protected GetPageOfResourcesQuery(TQueryId id, PaginationConfiguration configuration)
         {
             Id = id;
-            Data = configuration;
+            Data = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
     }
 }

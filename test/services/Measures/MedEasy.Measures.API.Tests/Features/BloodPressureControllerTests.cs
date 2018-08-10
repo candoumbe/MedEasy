@@ -41,6 +41,7 @@ using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using Newtonsoft.Json.Schema;
 
 namespace Measures.API.Tests.Features.BloodPressures
 {

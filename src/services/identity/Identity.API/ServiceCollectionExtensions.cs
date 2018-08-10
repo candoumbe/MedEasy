@@ -29,6 +29,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -124,13 +125,14 @@ namespace Identity.API
                     DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
                     if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                     {
-                        string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                        builder.UseInMemoryDatabase(dbName);
+                        builder.UseSqlite("Datasource=:memory:");
                     }
                     else
                     {
                         IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                        builder.UseSqlServer(configuration.GetConnectionString("Identity"), b => b.MigrationsAssembly("Identity.API"));
+                        builder.UseSqlServer(
+                            configuration.GetConnectionString("Identity"), 
+                            b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
                     }
                     builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
                     builder.ConfigureWarnings(options =>
@@ -139,7 +141,6 @@ namespace Identity.API
                     });
 
                     return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
                 });
 
         /// <summary>
@@ -164,8 +165,13 @@ namespace Identity.API
             });
 
             services.AddSingleton<IDateTimeService, DateTimeService>();
-            ;
 
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new IdentityContext(optionsBuilder.Options);
+            });
         }
 
 
@@ -175,30 +181,51 @@ namespace Identity.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void ConfigureDataStores(this IServiceCollection services) => 
+        public static void ConfigureDataStores(this IServiceCollection services)
+        {
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-            {
-                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-                DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+{
+                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) =>
                 {
-                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                    builder.UseInMemoryDatabase(dbName);
-                }
-                else
-                {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(configuration.GetConnectionString("Identity"), b => b.MigrationsAssembly("Measures.API"));
-                }
-                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
+                    IdentityContext context = new IdentityContext(options);
+
+                    //context.Database.Migrate();
+
+                    return context;
                 });
 
-                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
             });
+
+            
+        }
+
+        private static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+        {
+            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+            {
+                string dbName = $"InMemoryDb_{Guid.NewGuid()}";
+                builder.UseInMemoryDatabase(dbName);
+            }
+            else
+            {
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                builder.UseSqlServer(
+                    configuration.GetConnectionString("Identity"),
+                    options => options.EnableRetryOnFailure(5)
+                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
+                );
+            }
+            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+            builder.ConfigureWarnings(options =>
+            {
+                options.Default(WarningBehavior.Log);
+            });
+            return builder;
+        }
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -234,7 +261,7 @@ namespace Identity.API
                 config.SwaggerDoc("v1", new Info
                 {
                     Title = hostingEnvironment.ApplicationName,
-                    Description = "REST API for Identity management API",
+                    Description = "REST API for Identity management",
                     Version = "v1",
                     Contact = new Contact
                     {
@@ -257,7 +284,12 @@ namespace Identity.API
                 {
                     Name = "Authorization",
                     In = "header",
-                    Description = "Token to access the API"
+                    Description = "Token to access the API",
+                    Type = "apiKey"
+                });
+                config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                {
+                    {"Bearer", Enumerable.Empty<string>() }
                 });
             });
         }

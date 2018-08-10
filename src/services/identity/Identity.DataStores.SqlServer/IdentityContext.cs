@@ -11,9 +11,9 @@ namespace Identity.DataStores.SqlServer
     {
 
         /// <summary>
-        /// Collection of <see cref="Users"/>s
+        /// Collection of <see cref="Accounts"/>s
         /// </summary>
-        public DbSet<Account> Users { get; set; }
+        public DbSet<Account> Accounts { get; set; }
 
 
         /// <summary>
@@ -39,6 +39,9 @@ namespace Identity.DataStores.SqlServer
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();
 
+                entity.Property(x => x.Name)
+                    .HasMaxLength(NormalTextLength);
+
                 entity.HasIndex(x => x.UserName)
                     .IsUnique();
                 entity.Property(x => x.Salt)
@@ -48,6 +51,8 @@ namespace Identity.DataStores.SqlServer
                     .IsRequired();
 
                 entity.HasMany(x => x.Roles);
+
+                entity.Property(x => x.TenantId);
             });
 
 

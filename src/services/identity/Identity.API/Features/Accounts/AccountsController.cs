@@ -19,6 +19,7 @@ using System.Linq;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.DTO;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections.Generic;
 
 namespace Identity.API.Features.Accounts
 {
@@ -49,14 +50,17 @@ namespace Identity.API.Features.Accounts
         /// <param name="paginationConfiguration">paging configuration</param>
         /// <param name="ct">Notification to abort request execution</param>
         /// <returns></returns>
+        /// <response code="200">A collection of resource</response>
+        /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>), Status200OK)]
         public async Task<IActionResult> Get(PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             IdentityApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
 
-            GetPageOfAccountInfoQuery query = new GetPageOfAccountInfoQuery(paginationConfiguration);
+            GetPageOfAccountsQuery query = new GetPageOfAccountsQuery(paginationConfiguration);
 
             Page<AccountInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
@@ -92,6 +96,10 @@ namespace Identity.API.Features.Accounts
         /// <param name="id">id of the resource to delete.</param>
         /// <param name="ct">Notifies to abort the request execution.</param>
         /// <returns></returns>
+        /// <response code="204">The resource was successfully deleted.</response>
+        /// <response code="404">Resource to delete was not found</response>
+        /// <response code="409">Resource cannot be deleted</response>
+        /// <response code="403"></response>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
         {
@@ -130,20 +138,27 @@ namespace Identity.API.Features.Accounts
         [HttpHead("{id}")]
         public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
-            Option<AccountInfo> optionalAccount = await _mediator.Send(new GetAccountInfoByIdQuery(id), ct)
+            Option<AccountInfo> optionalAccount = await _mediator.Send(new GetOneAccountByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
             return optionalAccount.Match(
                 some: account =>
                {
+                   IList<Link> links = new List<Link>
+                   {
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) }
+                   };
+
+                   if (account.TenantId.HasValue)
+                   {
+                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId }) });
+                   }
+
                    BrowsableResource<AccountInfo> browsableResource = new BrowsableResource<AccountInfo>
                    {
                        Resource = account,
-                       Links = new[]
-                       {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) },
-                            new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) }
-                       }
+                       Links = links
                    };
 
                    return new OkObjectResult(browsableResource);
@@ -225,6 +240,9 @@ namespace Identity.API.Features.Accounts
         /// <param name="newAccount">Data of the new account</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="201">The resource was  created successfully.</response>
+        /// <response code="400">Changes are not valid for the selected resource.</response>
+        /// <response code="409">An account with the same <see cref="AccountInfo.Username"/> or <see cref="AccountInfo.Email"/> already exist</response>
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)

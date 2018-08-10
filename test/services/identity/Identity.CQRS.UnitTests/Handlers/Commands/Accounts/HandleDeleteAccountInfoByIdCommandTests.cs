@@ -49,8 +49,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _sut = new HandleDeleteAccountInfoByIdCommand(_uowFactory, _mediatorMock.Object);
         }
 
-        public void Dispose()
+        public async void Dispose()
         {
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                uow.Repository<Account>().Delete(x => true);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
             _uowFactory = null;
             _sut = null;
             _mediatorMock = null;
@@ -94,15 +100,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         }
 
         [Fact]
-        public async Task DeleteAccount()
+        public async Task GivenAccountExists_Delete_Succeed()
         {
             // Arrange
             Guid idToDelete = Guid.NewGuid();
             Account entity = new Account
             {
                 UUID = idToDelete,
-                Firstname = "victor",
-                Lastname = "zsasz",
+                Name = "victor zsasz",
                 UserName = "victorzsasz",
                 Salt = "knife",
                 PasswordHash = "cut_up"
@@ -125,6 +130,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 .ConfigureAwait(false);
 
             // Assert
+            result.Should()
+                .Be(DeleteCommandResult.Done, "The resource was deleted successfully");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountDeleted>(), It.IsAny<CancellationToken>()), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.Is<AccountDeleted>(deleted => deleted.AccountId == idToDelete), It.IsAny<CancellationToken>()), Times.Once, $"{nameof(HandleDeleteAccountInfoByIdCommand)} must notify suscribers that account resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -144,5 +151,57 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             // Assert
             typeof(HandleDeleteAccountInfoByIdCommand).Should()
                 .Implement<IRequestHandler<DeleteAccountInfoByIdCommand, DeleteCommandResult>>();
+
+        [Fact]
+        public async Task GivenAccountIsTenant_Delete_Returns_Conflict()
+        {
+            // Arrange
+            Guid idToDelete = Guid.NewGuid();
+            Account tenant = new Account
+            {
+                UUID = Guid.NewGuid(),
+                Name = "victor zsasz",
+                UserName = "victorzsasz",
+                Salt = "knife",
+                PasswordHash = "cut_up"
+            };
+
+            Account account = new Account
+            {
+                UUID = idToDelete,
+                Name = "victor zsasz's minion",
+                UserName = "victorzsasz-minion",
+                Salt = "knife",
+                PasswordHash = "cut_up",
+                TenantId = tenant.UUID
+            };
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                uow.Repository<Account>().Create(new[] { tenant, account });
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+
+            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(tenant.UUID);
+
+            
+            // Act
+            DeleteCommandResult result = await _sut.Handle(cmd, default)
+                .ConfigureAwait(false);
+
+            // Assert
+            result.Should()
+                .Be(DeleteCommandResult.Failed_Conflict, "The resource to delete is a tenant");
+            
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                bool deleteSuccessfull = !await uow.Repository<Account>()
+                     .AnyAsync(x => x.UUID == idToDelete)
+                     .ConfigureAwait(false);
+
+                deleteSuccessfull.Should().BeFalse("acouunt to delete is a tenant");
+            }
+        }
     }
 }

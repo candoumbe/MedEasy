@@ -8,13 +8,13 @@ namespace Identity.CQRS.Queries.Accounts
     /// <summary>
     /// Query to get a <see cref="MedEasy.DAL.Repositories.Page{T}"/> of <see cref="AccountInfo"/>s.
     /// </summary>
-    public class GetPageOfAccountInfoQuery : GetPageOfResourcesQuery<Guid, AccountInfo>
+    public class GetPageOfAccountsQuery : GetPageOfResourcesQuery<Guid, AccountInfo>
     {
         /// <summary>
-        /// Builds a new <see cref="GetPageOfAccountInfoQuery"/> instance.
+        /// Builds a new <see cref="GetPageOfAccountsQuery"/> instance.
         /// </summary>
         /// <param name="pagination">The paging configuration</param>
-        public GetPageOfAccountInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
+        public GetPageOfAccountsQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
         {
         }
     }

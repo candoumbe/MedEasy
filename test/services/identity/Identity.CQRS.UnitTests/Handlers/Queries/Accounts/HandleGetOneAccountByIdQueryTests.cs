@@ -25,13 +25,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]
-    public class HandleGetOneAccountInfoByIdQueryTests : IDisposable,IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetOneAccountByIdQueryTests : IDisposable,IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        private HandleGetOneAccountInfoByIdQuery _sut;
+        private HandleGetOneAccountByIdQuery _sut;
 
-        public HandleGetOneAccountInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetOneAccountByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
@@ -43,7 +43,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 context.Database.EnsureCreated();
                 return context;
             });
-            _sut = new HandleGetOneAccountInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetOneAccountByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
         
         public void Dispose()
@@ -78,7 +78,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleGetOneAccountInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
+            Action action = () => new HandleGetOneAccountByIdQuery(unitOfWorkFactory, expressionBuilder);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -89,14 +89,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         }
 
         [Fact]
-        public void IsHandler() => typeof(HandleGetOneAccountInfoByIdQuery)
-            .Should().Implement<IRequestHandler<GetAccountInfoByIdQuery, Option<AccountInfo>>>();
+        public void IsHandler() => typeof(HandleGetOneAccountByIdQuery)
+            .Should().Implement<IRequestHandler<GetOneAccountByIdQuery, Option<AccountInfo>>>();
 
         [Fact]
         public async Task Get_Unknown_Id_Returns_None()
         {
             // Act
-            Option<AccountInfo> optionalResource = await _sut.Handle(new GetAccountInfoByIdQuery(Guid.NewGuid()), default)
+            Option<AccountInfo> optionalResource = await _sut.Handle(new GetOneAccountByIdQuery(Guid.NewGuid()), default)
                 .ConfigureAwait(false);
 
             // Assert

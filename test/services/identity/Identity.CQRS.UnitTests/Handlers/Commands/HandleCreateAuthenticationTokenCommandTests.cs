@@ -58,8 +58,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Id = Guid.NewGuid(),
                 Username = "thebatman",
                 Email = "bwayne@wayne-enterprise.com",
-                Firstname = "Bruce",
-                Lastname = "Wayne",
+                Name = "Bruce Wayne",
                 Claims = new[]
                 {
                     new ClaimInfo { Type =  "batarangs", Value = "10"},
@@ -120,7 +119,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
             Claim nameClaim = jwtToken.Claims.Single(claim => claim.Type == ClaimTypes.Name);
             nameClaim.Value.Should()
-                .Be($"{accountInfo.Firstname} {accountInfo.Lastname}");
+                .Be(accountInfo.Name);
 
 
             Claim accountIdClaim = jwtToken.Claims.Single(claim => claim.Type == CustomClaimTypes.AccountId);
@@ -154,8 +153,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Id = Guid.NewGuid(),
                 Username = "thebatman",
                 Email = "bwayne@wayne-enterprise.com",
-                Firstname = "Bruce",
-                Lastname = "Wayne",
+                Name = "Bruce Wayne",
                 Claims = new[]
                 {
                     new ClaimInfo { Type =  "batarangs", Value = "10"},

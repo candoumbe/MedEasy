@@ -12,6 +12,11 @@ namespace Identity.DTO
     public class NewAccountInfo
     {
         /// <summary>
+        /// Name associated with the account
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// Desired username
         /// </summary>
         public string Username { get; set; }
@@ -30,6 +35,9 @@ namespace Identity.DTO
         /// Email associated with the <see cref="AccountInfo"/>
         /// </summary>
         public string Email { get; set; }
+
+
+        public Guid? TenantId { get; set; }
 
     }
 }

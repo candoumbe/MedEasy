@@ -1,6 +1,5 @@
 ﻿using Identity.DTO;
 using MedEasy.CQRS.Core.Events;
-using MediatR;
 using System;
 
 namespace Identity.CQRS.Events.Accounts

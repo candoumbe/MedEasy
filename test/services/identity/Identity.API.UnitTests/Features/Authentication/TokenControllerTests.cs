@@ -103,8 +103,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                 Id = Guid.NewGuid(),
                 Username = model.Username,
                 Email = "brucewayne@gotham.com",
-                Firstname = "Bruce",
-                Lastname = "Wayne"
+                Name = "Bruce Wayne"
             };
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.Some(accountInfo));

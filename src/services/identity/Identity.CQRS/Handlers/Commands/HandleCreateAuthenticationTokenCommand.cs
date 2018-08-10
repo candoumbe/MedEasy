@@ -40,10 +40,10 @@ namespace Identity.CQRS.Handlers.Commands
             IEnumerable<Claim> claims = new[]{
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(CustomClaimTypes.AccountId, accountInfo.Id.ToString()),
-                    new Claim(ClaimTypes.Name, $"{accountInfo.Firstname} {accountInfo.Lastname}"),
+                    new Claim(ClaimTypes.Name, accountInfo.Name ?? accountInfo.Username),
                     new Claim(ClaimTypes.NameIdentifier, accountInfo.Username),
                     new Claim(ClaimTypes.Email, accountInfo.Email),
-                    new Claim(ClaimTypes.GivenName, accountInfo.Firstname ?? string.Empty),
+                    new Claim(ClaimTypes.GivenName, accountInfo.Name ?? accountInfo.Username)
                 }
             .Union(
                     accountInfo.Claims.Select(claim => new Claim(claim.Type, claim.Value))

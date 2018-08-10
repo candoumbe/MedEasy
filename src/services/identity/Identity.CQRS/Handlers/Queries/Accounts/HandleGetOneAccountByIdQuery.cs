@@ -6,43 +6,44 @@ using MedEasy.DAL.Interfaces;
 using MediatR;
 using Optional;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Identity.CQRS.Handlers.Queries.Accounts
 {
     /// <summary>
-    /// Handler for <see cref="GetAccountInfoByIdQuery"/> queries.
+    /// Handler for <see cref="GetOneAccountByIdQuery"/> queries.
     /// </summary>
-    public class HandleGetOneAccountInfoByIdQuery : IRequestHandler<GetAccountInfoByIdQuery, Option<AccountInfo>>
+    public class HandleGetOneAccountByIdQuery : IRequestHandler<GetOneAccountByIdQuery, Option<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
 
         /// <summary>
-        /// Builds a new <see cref="HandleGetOneAccountInfoByIdQuery"/> instance
+        /// Builds a new <see cref="HandleGetOneAccountByIdQuery"/> instance
         /// </summary>
         /// <param name="uowFactory"></param>
         /// <param name="expressionBuilder"></param>
         /// <exception cref="ArgumentNullException">if either <paramref name="uowFactory"/> or 
         /// <paramref name="expressionBuilder"/> is <c>null</c>.</exception>
-        public HandleGetOneAccountInfoByIdQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
+        public HandleGetOneAccountByIdQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder)
         {
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-        public async Task<Option<AccountInfo>> Handle(GetAccountInfoByIdQuery query, CancellationToken ct)
+        public async Task<Option<AccountInfo>> Handle(GetOneAccountByIdQuery query, CancellationToken ct)
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 var optionalAccount = await uow.Repository<Account>()
                     .SingleOrDefaultAsync(x => new
                     {
-                        x.UserName
+                        Name = x.Name ?? x.UserName, 
+                        x.UserName,
+                        Id = x.UUID,
+                        x.UpdatedDate,
+                        x.Email
 
                     },
                     x => x.UUID == query.Data,
@@ -52,7 +53,10 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                 return optionalAccount.Match(
                     some: account => Option.Some(new AccountInfo
                     {
-
+                        Id = account.Id,
+                        Email = account.Email,
+                        Name = account.Name,
+                        Username = account.UserName
                     }),
                     none: () => Option.None<AccountInfo>()
                 );

@@ -42,7 +42,7 @@ namespace Identity.API.Fixtures
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
         public static async  Task<BearerTokenInfo> Connect(TestServer identityServer, LoginInfo loginInfo)
         {
-            RequestBuilder requestBuilder = identityServer.CreateRequest("/identity/token")
+            RequestBuilder requestBuilder = identityServer.CreateRequest("/auth/token")
                 .And(message => message.Content = new StringContent(SerializeObject(loginInfo), Encoding.UTF8, "application/json"));
             HttpResponseMessage response = await requestBuilder.PostAsync()
                 .ConfigureAwait(false);

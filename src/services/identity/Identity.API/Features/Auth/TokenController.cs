@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace Identity.API.Features.Authentication
 {
     [Controller]
-    [Route("identity/[controller]")]
+    [Route("auth/[controller]")]
     public class TokenController
     {
         private readonly IMediator _mediator;

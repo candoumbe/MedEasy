@@ -1,13 +1,16 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using Identity.API.Fixtures;
+using Identity.DataStores.SqlServer;
+using Identity.DTO;
 using Measures.API.Features.Patients;
 using Measures.Context;
 using Measures.DTO;
-using MedEasy.DAL.Context;
+using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,12 +35,13 @@ namespace Measures.API.IntegrationTests
 {
     [IntegrationTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>
+    public class PatientsControllerTests : IDisposable, IClassFixture<ServicesTestFixture<Startup>>, IClassFixture<ServicesTestFixture<Identity.API.Startup>>
     {
         private TestServer _server;
         private ITestOutputHelper _outputHelper;
+        private TestServer _identityServer;
         private const string _endpointUrl = "/measures/patients";
-        private static JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -53,7 +57,7 @@ namespace Measures.API.IntegrationTests
                 nameof(ErrorObject.Errors).ToLower()
             }
         };
-        private static JSchema _pageLink = new JSchema
+        private static readonly JSchema _pageLink = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -66,7 +70,7 @@ namespace Measures.API.IntegrationTests
             AllowAdditionalProperties = false
         };
 
-        private static JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -99,12 +103,12 @@ namespace Measures.API.IntegrationTests
 
         };
 
-        public PatientsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture)
+        public PatientsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, ServicesTestFixture<Identity.API.Startup> identityFixture)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(
-                relativeTargetProjectParentDir : Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
-                environmentName: "IntegrationTest", 
+                relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
+                environmentName: "IntegrationTest",
                 applicationName: typeof(Startup).Assembly.GetName().Name,
                 overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(item =>
                 {
@@ -116,23 +120,60 @@ namespace Measures.API.IntegrationTests
                 })
             );
             _server = fixture.Server;
+
+            identityFixture.Initialize<Identity.API.Startup>(
+                relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Identity"),
+                environmentName: "IntegrationTest",
+                applicationName: typeof(Identity.API.Startup).Assembly.GetName().Name,
+                overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(item =>
+                {
+                    DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+
+                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
+
+                })
+            );
+
+            _identityServer = identityFixture.Server;
         }
 
 
         public void Dispose()
         {
             _outputHelper = null;
-            _server.Dispose();
+            _server?.Dispose();
+            _server = null;
 
+            _identityServer?.Dispose();
+            _identityServer = null;
         }
 
         [Fact]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+
             RequestBuilder rb = _server.CreateRequest("/measures/patients")
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Accept-Charset", "utf-8");
+                .AddHeader("Accept-Charset", "utf-8")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -152,7 +193,7 @@ namespace Measures.API.IntegrationTests
             jToken.IsValid(_pageResponseSchema).Should().BeTrue();
         }
 
-        
+
 
         [Theory]
         [InlineData("/measures/patients", "GET")]
@@ -162,7 +203,24 @@ namespace Measures.API.IntegrationTests
         {
 
             // Arrange
-            RequestBuilder rb = _server.CreateRequest(url);
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+            RequestBuilder rb = _server.CreateRequest(url)
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await rb.SendAsync(method)
@@ -187,8 +245,27 @@ namespace Measures.API.IntegrationTests
             // Arrange
             string url = $"{_endpointUrl}/{Guid.Empty.ToString()}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
+
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
-                .AddHeader("Accept", "application/json");
+                .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)
@@ -234,12 +311,30 @@ namespace Measures.API.IntegrationTests
         [Fact]
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
-            
+
             // Arrange
             string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
             _outputHelper.WriteLine($"Requested url : <{url}>");
+
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
-                .AddHeader("Accept", "application/json");
+                .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.GetAsync()
@@ -256,13 +351,31 @@ namespace Measures.API.IntegrationTests
         public async Task Create_Resource()
         {
             // Arrange
-            CreatePatientInfo newPatient = new CreatePatientInfo
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
+
+            NewPatientModel newPatient = new NewPatientModel
             {
                 Firstname = "Victor",
                 Lastname = "Freeze"
             };
-            RequestBuilder requestBuilder = new RequestBuilder(_server, "/measures/patients")
+            RequestBuilder requestBuilder = _server.CreateRequest("/measures/patients")
                 .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -282,7 +395,7 @@ namespace Measures.API.IntegrationTests
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.January(2002).AddHours(23).AddMinutes(36),
-                
+
             };
 
             JSchema createdResourceSchema = new JSchema
@@ -307,8 +420,9 @@ namespace Measures.API.IntegrationTests
                 AllowAdditionalItems = false
             };
 
-            requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{patientId}/bloodpressures")
+            requestBuilder = _server.CreateRequest($"{_endpointUrl}/{patientId}/bloodpressures")
                 .AddHeader("Content-Type", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And((request) =>
                     request.Content = new StringContent(SerializeObject(resourceToCreate), Encoding.UTF8, "application/json")
                 );
@@ -334,7 +448,9 @@ namespace Measures.API.IntegrationTests
             location.Should().NotBeNull();
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
 
-            requestBuilder = new RequestBuilder(_server, location.ToString());
+            requestBuilder = _server.CreateRequest(location.ToString())
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                ;
 
             HttpResponseMessage checkResponse = await requestBuilder.SendAsync(Head)
                 .ConfigureAwait(false);
@@ -371,13 +487,29 @@ namespace Measures.API.IntegrationTests
         {
 
             // Arrange
-            CreatePatientInfo newPatientInfo = new CreatePatientInfo
+            NewPatientInfo newPatientInfo = new NewPatientInfo
             {
                 Firstname = "Solomon",
                 Lastname = "Grundy"
             };
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
 
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatientInfo), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -389,6 +521,7 @@ namespace Measures.API.IntegrationTests
             PatientInfo patientInfo = DeserializeObject<PatientInfo>(json);
 
             requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{patientInfo.Id}/bloodpressures")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And(request => request.Content = new StringContent(SerializeObject(invalidResource), Encoding.UTF8, "application/json"));
 
             // Act
@@ -416,13 +549,31 @@ namespace Measures.API.IntegrationTests
         public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
         {
             // Arrange
-            CreatePatientInfo newPatient = new CreatePatientInfo
+            NewPatientInfo newPatient = new NewPatientInfo
             {
                 Firstname = "Victor",
                 Lastname = "Freeze"
             };
+
+            NewAccountInfo newAccountInfo = new NewAccountInfo
+            {
+                Username = "batman",
+                Email = "batman@gotham.fr",
+                Password = "thecapedcrusader",
+                ConfirmPassword = "thecapedcrusader"
+            };
+
+            LoginInfo loginInfo = new LoginInfo
+            {
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
+
+            BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
+                .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, "/measures/patients")
                 .AddHeader("Accept", "application/json")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -439,6 +590,7 @@ namespace Measures.API.IntegrationTests
             foreach (Link link in linksToGetData)
             {
                 requestBuilder = new RequestBuilder(_server, link.Href)
+                    .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
                     .AddHeader("Accept", "application/json");
 
                 // Act

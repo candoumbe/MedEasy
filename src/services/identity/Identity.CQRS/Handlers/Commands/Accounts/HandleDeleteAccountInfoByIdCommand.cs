@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper.QueryableExtensions;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Events.Accounts;
 using Identity.Objects;
@@ -41,7 +37,11 @@ namespace Identity.CQRS.Handlers.Commands.Accounts
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 DeleteCommandResult cmdResult = DeleteCommandResult.Failed_NotFound;
-                if(await uow.Repository<Account>().AnyAsync(x => x.UUID == idToDelete, ct).ConfigureAwait(false))
+                if (await uow.Repository<Account>().AnyAsync(x => x.TenantId == idToDelete, ct).ConfigureAwait(false))
+                {
+                    cmdResult = DeleteCommandResult.Failed_Conflict;
+                }
+                else if(await uow.Repository<Account>().AnyAsync(x => x.UUID == idToDelete, ct).ConfigureAwait(false))
                 {
                     uow.Repository<Account>().Delete(x => x.UUID == idToDelete);
                     await uow.SaveChangesAsync(ct)

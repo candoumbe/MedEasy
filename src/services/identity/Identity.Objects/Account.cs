@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Identity.Objects
 {
-    public class Account : AuditableEntity<int, Account>
+    public class Account : AuditableEntity<int, Account>, IMayHaveTenant
 
     {
         /// <summary>
@@ -31,9 +31,7 @@ namespace Identity.Objects
         /// </summary>
         public string Email { get; set; }
 
-        public string Firstname { get; set; }
-
-        public string Lastname { get; set; }
+        public string Name { get; set; }
 
         public bool EmailConfirmed { get; set; }
 
@@ -49,6 +47,11 @@ namespace Identity.Objects
         /// A locked <see cref="Account"/> cannot log in.
         /// </remarks>
         public bool Locked { get; set; }
+
+        /// <summary>
+        /// Id of the owner of the element
+        /// </summary>
+        public Guid? TenantId { get; set; }
 
 
         private readonly IDictionary<string, Role> _roles;

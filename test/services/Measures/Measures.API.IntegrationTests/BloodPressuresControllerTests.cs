@@ -274,7 +274,7 @@ namespace Measures.API.IntegrationTests
         {
             // Arrange
             NewAccountInfo newAccountInfo = new NewAccountInfo
-            {
+            { 
                 Username = "batman",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",

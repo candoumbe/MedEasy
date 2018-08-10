@@ -41,6 +41,8 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                     .SingleOrDefaultAsync(
                         x => new
                         {
+                            Id = x.UUID,
+                            x.Name,
                             x.UserName,
                             x.Email,
                             Roles = x.Roles
@@ -68,11 +70,14 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
                         AccountInfo accountInfo = new AccountInfo
                         {
+                            Id = account.Id,
+                            Name = account.Name ?? account.UserName,
                             Username = account.UserName,
                             Email = account.Email,
                             Claims = account
                                 .AccountClaims
                                 .Union(claimsFromRoles)
+                                .ToList()
                         };
                         return Option.Some(accountInfo);
                     },
