@@ -34,10 +34,8 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
         public async Task<Page<AccountInfo>> Handle(GetPageOfAccountsByTenantIdQuery request, CancellationToken ct)
         {
-
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-
                 GetPageOfAccountInfoByTenantIdInfo data = request.Data;
                 Page<AccountInfo> result = await uow.Repository<Account>()
                     .WhereAsync(
@@ -59,7 +57,6 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
                 return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Default);
             }
-
         }
     }
 }

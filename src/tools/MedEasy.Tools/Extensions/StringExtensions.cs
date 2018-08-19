@@ -70,6 +70,14 @@ namespace System
             return sbResult?.ToString() ?? string.Empty;
         }
 
+        /// <summary>
+        /// Perfoms a VB "Like" comparison
+        /// </summary>
+        /// <param name="input">the string to test</param>
+        /// <param name="pattern">the pattern to test <paramref name="input"/> against</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">if <paramref name="input"/> or <paramref name="pattern"/> is <c>null</c>.</exception>
+        public static bool Like(this string input, string pattern) => input.Like(pattern, ignoreCase: true);
 
         /// <summary>
         /// Perfoms a VB "Like" comparison
@@ -79,7 +87,7 @@ namespace System
         /// <param name="ignoreCase"><c>true</c> to ignore case</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">if <paramref name="input"/> or <paramref name="pattern"/> is <c>null</c>.</exception>
-        public static bool Like(this string input, string pattern, bool ignoreCase = true)
+        public static bool Like(this string input, string pattern, bool ignoreCase)
         {
             if (input == null)
             {

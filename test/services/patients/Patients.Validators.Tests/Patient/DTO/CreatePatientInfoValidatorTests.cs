@@ -19,12 +19,16 @@ using static Moq.Times;
 using static Newtonsoft.Json.JsonConvert;
 using Patients.DTO;
 using Patients.Objects;
+using Xunit.Categories;
 
 namespace Patients.Validators.Tests.Features.Patients
 {
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>
+    [UnitTest]
+    [Feature("Patients")]
+    [Feature("Validation")]
     public class CreatePatientInfoValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

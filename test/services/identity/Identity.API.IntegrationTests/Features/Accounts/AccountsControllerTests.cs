@@ -147,7 +147,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
                 .ConfigureAwait(false);
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/accounts")
-                .AddHeader("Authorization", $"Bearer {bearerInfo.Token}");
+                .AddHeader("Authorization", $"Bearer {bearerInfo.AccessToken}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.GetAsync()

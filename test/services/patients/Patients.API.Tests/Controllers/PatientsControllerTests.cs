@@ -26,6 +26,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
@@ -33,7 +34,8 @@ using static System.StringComparison;
 namespace Patients.API.UnitTests.Controllers
 {
 
-    [Collection("Patient")]
+    [UnitTest]
+    [Feature("Patients")]
     public class PatientsControllerTests : IDisposable
     {
         private Mock<IUrlHelper> _urlHelperMock;

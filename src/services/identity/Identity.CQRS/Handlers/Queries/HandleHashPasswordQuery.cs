@@ -28,7 +28,6 @@ namespace Identity.CQRS.Handlers.Queries
 
                 return Task.FromResult<(string salt, string passwordHash)>((Convert.ToBase64String(salt), query.Data));
             }
-
         }
     }
 }

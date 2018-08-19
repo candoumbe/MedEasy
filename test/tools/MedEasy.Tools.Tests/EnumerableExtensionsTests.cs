@@ -5,11 +5,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 using Xunit.Abstractions;
-
+using Xunit.Categories;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.Tools.Tests
 {
+    [UnitTest]
     public class EnumerableExtensionsTests
     {
         private readonly ITestOutputHelper _outputHelper;

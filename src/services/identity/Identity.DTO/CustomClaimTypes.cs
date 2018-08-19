@@ -13,5 +13,9 @@ namespace Identity.DTO
         /// Name of the claim that holds the account id
         /// </summary>
         public static readonly string AccountId = "account-id";
+        /// <summary>
+        /// Location (name, IP adress,  of GPS coordinates)
+        /// </summary>
+        public static readonly string Location = nameof(Location);
     }
 }

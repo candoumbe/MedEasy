@@ -3,10 +3,14 @@ using Identity.CQRS.Queries;
 using System;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace Identity.CQRS.UnitTests.Queries
 {
-    public class HashPasswordQueryTests
+    [UnitTest]
+    [Feature("Identity")]
+    [Feature("Accounts")]
+    public class HashPasswordQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
         public HashPasswordQueryTests(ITestOutputHelper outputHelper)

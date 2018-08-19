@@ -1,17 +1,17 @@
-﻿using System;
+﻿using MedEasy.RestObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Identity.DTO
 {
-    public class AccountInfo
+    public class AccountInfo : Resource<Guid>
     {
-
-        public Guid Id { get; set; }
-
         public string Username { get; set; }
 
         public string Email { get; set; }
+
+        public bool Locked { get; set; }
 
         /// <summary>
         /// Name associated with the account

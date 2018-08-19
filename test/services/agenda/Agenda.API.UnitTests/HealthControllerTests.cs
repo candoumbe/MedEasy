@@ -11,9 +11,12 @@ using Xunit;
 using FluentAssertions;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using System.Collections.Generic;
+using Xunit.Categories;
 
 namespace Agenda.API.UnitTests
 {
+    [UnitTest]
+    [Feature("Health")]
     public class HealthControllerTests : IDisposable
     {
         private Mock<IUnitOfWorkFactory> _uowFactoryMock;

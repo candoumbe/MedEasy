@@ -33,7 +33,16 @@ namespace MedEasy.CQRS.Core.Handlers
             _expressionBuilder = expressionBuilder;
         }
 
-        public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken ct = default) where TEntity : class
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -44,11 +53,9 @@ namespace MedEasy.CQRS.Core.Handlers
                     .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
 
-                Page<TResult> result = await uow.Repository<TEntity>()
-                    .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
+                return await uow.Repository<TEntity>()
+                    .WhereAsync(selector, filter, sorts, pageSize, page, ct)
                     .ConfigureAwait(false);
-                
-                return result;
             }
         }
     }

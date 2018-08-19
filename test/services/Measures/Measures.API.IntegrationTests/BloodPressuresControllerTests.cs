@@ -170,7 +170,7 @@ namespace Measures.API.IntegrationTests
             RequestBuilder rb = _server.CreateRequest(_endpointUrl)
                 .AddHeader("Accept", "application/json")
                 .AddHeader("Accept-Charset", "utf-8")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -232,7 +232,7 @@ namespace Measures.API.IntegrationTests
             BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
                 .ConfigureAwait(false);
             RequestBuilder rb = _server.CreateRequest($"{_endpointUrl}?page={page}&pageSize={pageSize}")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .AddHeader("Accept", "application/json");
 
             // Act
@@ -293,7 +293,7 @@ namespace Measures.API.IntegrationTests
             string path = $"{_endpointUrl}";
             _outputHelper.WriteLine($"path under test : {path}");
             RequestBuilder requestBuilder = new RequestBuilder(_server, path)
-                .AddHeader("Authorization", $"Bearer {bearerToken.Token}")
+                .AddHeader("Authorization", $"Bearer {bearerToken.AccessToken}")
                 ;
 
             // Act
@@ -373,7 +373,7 @@ namespace Measures.API.IntegrationTests
             BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
                 .ConfigureAwait(false);
             RequestBuilder rb = _server.CreateRequest(url)
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await rb.SendAsync(method)
@@ -418,7 +418,7 @@ namespace Measures.API.IntegrationTests
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)
@@ -486,7 +486,7 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{Guid.Empty}")
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And(request => request.Content = new StringContent(changes.ToString(), Encoding.UTF8, "application/json-patch+json"));
 
             // Act
@@ -551,7 +551,7 @@ namespace Measures.API.IntegrationTests
             _outputHelper.WriteLine($"Method : {method}");
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)

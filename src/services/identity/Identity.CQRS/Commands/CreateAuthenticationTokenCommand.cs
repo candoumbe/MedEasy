@@ -8,13 +8,13 @@ namespace Identity.CQRS.Commands
     /// <summary>
     /// Requests creation of a token which can be later used to authenticate an <see cref="AccountInfo"/>.
     /// </summary>
-    public class CreateAuthenticationTokenCommand : CommandBase<Guid, (AccountInfo accountInfo, JwtInfos jwtInfos), SecurityToken>
+    public class CreateAuthenticationTokenCommand : CommandBase<Guid, (AuthenticationInfo authInfo, AccountInfo accountInfo, JwtInfos jwtInfos), AuthenticationTokenInfo>
     {
         /// <summary>
         /// Builds a new <see cref="CreateAuthenticationTokenCommand"/> instance.
         /// </summary>
         /// <param name="data"><see cref="AccountInfo"/> to create one token for.</param>
-        public CreateAuthenticationTokenCommand((AccountInfo accountInfo, JwtInfos jwtInfos) data) : base(Guid.NewGuid(), data)
+        public CreateAuthenticationTokenCommand((AuthenticationInfo authInfo, AccountInfo accountInfo, JwtInfos jwtInfos) data) : base(Guid.NewGuid(), data)
         {
         }
     }

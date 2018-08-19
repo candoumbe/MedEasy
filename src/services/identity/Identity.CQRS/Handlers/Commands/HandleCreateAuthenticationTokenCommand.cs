@@ -1,6 +1,8 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.DTO;
+using Identity.Objects;
 using MedEasy.Abstractions;
+using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -11,61 +13,97 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.Handlers.Commands
 {
     /// <summary>
     /// Handles creation of token suitable for authenticating an <see cref="AccountInfo"/>.
     /// </summary>
-    public class HandleCreateAuthenticationTokenCommand : IRequestHandler<CreateAuthenticationTokenCommand, SecurityToken>
+    public class HandleCreateAuthenticationTokenCommand : IRequestHandler<CreateAuthenticationTokenCommand, AuthenticationTokenInfo>
     {
         private readonly IDateTimeService _dateTimeService;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
+        private readonly IHandleCreateSecurityTokenCommand _handleCreateSecurityTokenCommand;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreateAuthenticationTokenCommand"/> instance.
         /// </summary>
         /// <param name="dateTimeService">Service that provide methods to get current date.</param>
-        public HandleCreateAuthenticationTokenCommand(IDateTimeService dateTimeService) => _dateTimeService = dateTimeService;
+        /// <param name="unitOfWorkFactory"></param>
+        /// <param name="handleCreateSecurityTokenCommand"></param>
+        /// 
+        public HandleCreateAuthenticationTokenCommand(IDateTimeService dateTimeService, IUnitOfWorkFactory unitOfWorkFactory, IHandleCreateSecurityTokenCommand handleCreateSecurityTokenCommand)
+        {
+            _dateTimeService = dateTimeService;
+            _unitOfWorkFactory = unitOfWorkFactory;
+            _handleCreateSecurityTokenCommand = handleCreateSecurityTokenCommand;
+        }
 
-        public Task<SecurityToken> Handle(CreateAuthenticationTokenCommand cmd, CancellationToken ct)
+        public async Task<AuthenticationTokenInfo> Handle(CreateAuthenticationTokenCommand cmd, CancellationToken ct)
         {
             DateTime now = _dateTimeService.UtcNow();
-            (AccountInfo accountInfo, JwtInfos jwtInfos) = cmd.Data;
+            (AuthenticationInfo authInfo, AccountInfo accountInfo, JwtInfos jwtInfos) = cmd.Data;
 
+            IEnumerable<string> audiences = jwtInfos.Audiences?.Distinct() ?? Enumerable.Empty<string>();
 
-            IEnumerable<string> audiences = jwtInfos.Audiences.Any()
-                ? jwtInfos.Audiences.Skip(1)
-                : Enumerable.Empty<string>();
+            IEnumerable<ClaimInfo> refreshTokenClaims = new[]{
+                    new ClaimInfo{ Type = JwtRegisteredClaimNames.Jti, Value =  Guid.NewGuid().ToString() },
+                    new ClaimInfo{ Type = CustomClaimTypes.AccountId, Value= accountInfo.Id.ToString() },
+                    new ClaimInfo{ Type = ClaimTypes.Name, Value = accountInfo.Name ?? accountInfo.Username },
+                    new ClaimInfo{ Type = ClaimTypes.NameIdentifier, Value = accountInfo.Username },
+                    new ClaimInfo{ Type = ClaimTypes.Email, Value = accountInfo.Email},
+                    new ClaimInfo{ Type = ClaimTypes.GivenName, Value = accountInfo.Name ?? accountInfo.Username },
+                    new ClaimInfo{ Type = CustomClaimTypes.Location, Value = authInfo.Location}
+                }.Union(audiences.Select(audience => new ClaimInfo { Type = JwtRegisteredClaimNames.Aud, Value = audience }));
 
-            IEnumerable<Claim> claims = new[]{
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(CustomClaimTypes.AccountId, accountInfo.Id.ToString()),
-                    new Claim(ClaimTypes.Name, accountInfo.Name ?? accountInfo.Username),
-                    new Claim(ClaimTypes.NameIdentifier, accountInfo.Username),
-                    new Claim(ClaimTypes.Email, accountInfo.Email),
-                    new Claim(ClaimTypes.GivenName, accountInfo.Name ?? accountInfo.Username)
-                }
-            .Union(
-                    accountInfo.Claims.Select(claim => new Claim(claim.Type, claim.Value))
-            .Union(audiences.Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience)))
-);
+            IEnumerable<ClaimInfo> accessTokenClaims = refreshTokenClaims
+            .Union(accountInfo.Claims);
 
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
-            SecurityToken token = new JwtSecurityToken(
-                jwtInfos.Issuer,
-                jwtInfos.Audiences.Any() ? jwtInfos.Audiences.First() : jwtInfos.Issuer,
-                claims,
-                notBefore: now,
-                expires: now.AddMinutes(jwtInfos.Validity),
-                new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
-            );
 
+            JwtSecurityTokenOptions jwtAccessTokenOptions = new JwtSecurityTokenOptions
+            {
+                Issuer = jwtInfos.Issuer,
+                Audiences = jwtInfos.Audiences,
+                Key = jwtInfos.Key,
+                LifetimeInMinutes = jwtInfos.AccessTokenValidity
+            };
+            CreateSecurityTokenCommand createAccessTokenCommand = new CreateSecurityTokenCommand((jwtAccessTokenOptions, accessTokenClaims));
+            Task<SecurityToken> accessTokenTask = _handleCreateSecurityTokenCommand.Handle(createAccessTokenCommand, ct);
 
+            JwtSecurityTokenOptions jwtRefreshTokenOptions = new JwtSecurityTokenOptions
+            {
+                Issuer = jwtInfos.Issuer,
+                Audiences = jwtInfos.Audiences,
+                Key = jwtInfos.Key,
+                LifetimeInMinutes = jwtInfos.RefreshTokenValidity
+            };
+            CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtRefreshTokenOptions, refreshTokenClaims));
+            Task<SecurityToken> refreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createRefreshTokenCommand, ct);
 
-            return new ValueTask<SecurityToken>(token).AsTask();
+            await Task.WhenAll(accessTokenTask, refreshTokenTask)
+                .ConfigureAwait(false);
 
+            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            {
+                Account authenticatedAccount = await uow.Repository<Account>()
+                    .SingleAsync(x => x.UUID == accountInfo.Id)
+                    .ConfigureAwait(false);
 
+                SecurityToken accessToken = await accessTokenTask;
+                SecurityToken refreshToken = await refreshTokenTask;
 
+                authenticatedAccount.RefreshToken = refreshToken.ToString();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+
+                return new AuthenticationTokenInfo
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken
+                };
+            }
         }
     }
 }

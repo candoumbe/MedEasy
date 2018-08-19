@@ -88,7 +88,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
-            
+
             request = _server.CreateRequest("/auth/token")
                 .And(msg => msg.Content = new StringContent(SerializeObject(loginInfo), UTF8, "application/json"));
 
@@ -112,11 +112,11 @@ namespace Identity.API.IntegrationTests.Features.Auth
             BearerTokenInfo tokenInfo = JToken.Parse(json)
                 .ToObject<BearerTokenInfo>();
 
-            tokenInfo.Token.Should()
-                .NotBeNullOrWhiteSpace();
+            tokenInfo.AccessToken.Should()
+                .NotBeNullOrWhiteSpace($"{nameof(BearerTokenInfo.AccessToken)} must be provided");
 
-
+            tokenInfo.RefreshToken.Should()
+                .NotBeNullOrWhiteSpace($"{nameof(BearerTokenInfo.RefreshToken)} must be provided");
         }
-
     }
 }

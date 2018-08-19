@@ -9,7 +9,6 @@ namespace Identity.CQRS.Events.Accounts
     /// </summary>
     public class AccountCreated : NotificationBase<Guid, AccountInfo>
     {
-        
         /// <summary>
         /// Builds a new <see cref="AccountCreated"/> instance
         /// </summary>

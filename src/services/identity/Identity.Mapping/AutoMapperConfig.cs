@@ -26,7 +26,17 @@ namespace Identity.Mapping
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
-            cfg.CreateMap<Account, AccountInfo>();
+            cfg.CreateMap<Account, AccountInfo>()
+                .IncludeBase<IEntity<int>, Resource<Guid>>()
+                .ReverseMap();
+
+            cfg.CreateMap<Account, SearchAccountInfoResult>()
+               .IncludeBase<IEntity<int>, Resource<Guid>>();
+
+            cfg.CreateMap<AccountClaim, ClaimInfo>()
+                .ForMember(dto => dto.Type, opt => opt.MapFrom(entity => entity.Claim.Type))
+                .ForMember(dto => dto.Value, opt => opt.MapFrom(entity => entity.Claim.Value));
+
             cfg.CreateMap<NewAccountInfo, Account>()
                 .ForMember(entity => entity.Salt, opt => opt.Ignore())
                 .ForMember(entity => entity.PasswordHash, opt => opt.Ignore())
@@ -38,7 +48,8 @@ namespace Identity.Mapping
                 .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
                 .ForMember(entity => entity.UUID, opt => opt.Ignore())
-                .ForMember(entity => entity.IsActive, opt => opt.UseValue(true))
+                .ForMember(entity => entity.IsActive, opt => opt.UseValue(false))
+                .ForMember(entity => entity.RefreshToken, opt => opt.Ignore())
 
                 ;
 

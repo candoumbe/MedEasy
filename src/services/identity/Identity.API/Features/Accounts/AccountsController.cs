@@ -1,25 +1,28 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+using MedEasy.Data;
+using MedEasy.DTO;
+using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Optional;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static MedEasy.RestObjects.LinkRelation;
-using Identity.API.Routing;
-using System.Linq;
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.DTO;
-using Microsoft.AspNetCore.Authorization;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using static MedEasy.RestObjects.LinkRelation;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API.Features.Accounts
 {
@@ -281,6 +284,77 @@ namespace Identity.API.Features.Accounts
                     }
                     return actionResult;
                 });
+        }
+
+
+        [HttpGet("/search")]
+        [HttpHead("/search")]
+        public async Task<IActionResult> Search(SearchAccountInfo search, CancellationToken ct = default)
+        {
+
+            search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
+            IList<IDataFilter> filters = new List<IDataFilter>();
+
+
+            if (!string.IsNullOrWhiteSpace(search.Name))
+            {
+                filters.Add($"{nameof(AccountInfo.Name)}={search.Name}".ToFilter<AccountInfo>());
+            }
+            if (!string.IsNullOrWhiteSpace(search.Email))
+            {
+                filters.Add($"{nameof(AccountInfo.Email)}={search.Email}".ToFilter<AccountInfo>());
+            }
+
+            SearchQueryInfo<SearchAccountInfoResult> searchQuery = new SearchQueryInfo<SearchAccountInfoResult>
+            {
+                Page = search.Page,
+                PageSize = search.PageSize,
+                Filter = filters.Skip(1).Any()
+                    ? new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters }
+                    : filters.Single(),
+
+                Sorts = (search.Sort ?? $"-{nameof(SearchAccountInfoResult.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x =>
+                        {
+                            x = x.Trim();
+                            Sort sort;
+#pragma warning disable RCS1179 // Use return instead of assignment.
+                            if (x.StartsWith("-"))
+                            {
+                                x = x.Substring(1);
+                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Descending, Expression = x.ToLambda<SearchAccountInfoResult>() };
+                            }
+                            else
+                            {
+                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Ascending, Expression = x.ToLambda<SearchAccountInfoResult>() };
+                            }
+#pragma warning restore RCS1179 // Use return instead of assignment.
+
+                            return sort;
+                        })
+            };
+
+            Page<SearchAccountInfoResult> searchResult = await _mediator.Send(new SearchQuery<SearchAccountInfoResult>(searchQuery), ct)
+                .ConfigureAwait(false);
+
+            bool hasNextPage = search.Page < searchResult.Count;
+            return new OkObjectResult(new GenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>>(
+
+                items: searchResult.Entries.Select(x => new BrowsableResource<SearchAccountInfoResult>
+                {
+                    Resource = x,
+                    Links = new[]
+                   {
+                        new Link { Relation = Self, Method = "GET" }
+                    }
+                }),
+                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                next: hasNextPage
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName })
+                    : null,
+                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                count: searchResult.Total
+            ));
         }
     }
 }

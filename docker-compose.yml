@@ -1,17 +1,17 @@
-version: '3.6'
+version: '3.7'
 
 services:
   identity.db:
-    image: ${SQL_SERVER_IMG}
+    image: microsoft/mssql-server-windows-express
     environment: 
-      sa_password: ${SA_PASSWORD}
+      sa_password: P4ss_Word!
       ACCEPT_EULA: Y
     ports:
       - "6000:1433"
   identity.api:
     image: ${DOCKER_REGISTRY}identityapi
     environment:
-      CONNECTIONSTRINGS__IDENTITY: ${IDENTITY_DB}
+      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;MultipleActiveResultSets=true;User ID=sa;Password=P4ss_Word!
     build:
       context: .
       dockerfile: src\services\identity\Identity.API\Dockerfile
@@ -20,16 +20,16 @@ services:
     depends_on:
       - identity.db  
   measures.db:
-    image: ${SQL_SERVER_IMG}
+    image: microsoft/mssql-server-windows-express
     environment:
-      sa_password: ${SA_PASSWORD}
+      sa_password: P4ss_Word!
       ACCEPT_EULA: Y
     ports:
       - "6001:1433"
   measures.api:
     image: ${DOCKER_REGISTRY}measuresapi
     environment:
-      CONNECTIONSTRINGS__MEASURES: ${MEASURES_DB:?"Connection string to measures db not set}
+      - CONNECTIONSTRINGS__MEASURES=Server=measures.db;Database=measures;MultipleActiveResultSets=true;User ID=sa;Password=P4ss_Word!
     build:
       context: .
       dockerfile: src\services\Measures\Measures.API\Dockerfile

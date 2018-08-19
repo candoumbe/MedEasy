@@ -16,12 +16,15 @@ using Xunit;
 using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static MedEasy.RestObjects.FormFieldType;
+using Xunit.Categories;
 
 namespace Patients.API.UnitTests.Controllers
 {
     /// <summary>
     /// Unit tests for <see cref="RootController"/>
     /// </summary>
+    [UnitTest]
+    [Feature("Documentation")]
     public class RootControllerTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

@@ -38,6 +38,5 @@ namespace Identity.DTO
 
 
         public Guid? TenantId { get; set; }
-
     }
 }

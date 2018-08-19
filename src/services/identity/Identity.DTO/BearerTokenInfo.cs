@@ -8,9 +8,20 @@ namespace Identity.DTO
 {
     public class BearerTokenInfo
     {
-        public string Token { get; set; }
+        /// <summary>
+        /// Token that can be used to access a resource
+        /// </summary>
+        /// <remarks>
+        /// This token as a shorter lifetime than <see cref="RefreshToken"/>
+        /// </remarks>
+        public string AccessToken { get; set; }
 
-        public long Expires { get; set; }
-
+        /// <summary>
+        /// Token that can be used to get a new access token when <see cref="AccessToken"/> has expired
+        /// </summary>
+        /// <remarks>
+        /// This token as a longer lifetime than <see cref="RefreshToken"/>
+        /// </remarks>
+        public string RefreshToken { get; set; }
     }
 }

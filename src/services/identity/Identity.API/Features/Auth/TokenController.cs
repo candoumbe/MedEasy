@@ -46,30 +46,46 @@ namespace Identity.API.Features.Authentication
                 some: async accountInfo =>
                 {
                     JwtOptions jwtOptions = _jwtOptions.Value;
+                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "Paris - France" };
                     JwtInfos jwtInfos = new JwtInfos
                     {
                         Key = jwtOptions.Key,
                         Issuer = jwtOptions.Issuer,
                         Audiences = jwtOptions.Audiences,
-                        Validity = jwtOptions.Validity
+                        AccessTokenValidity = jwtOptions.Validity,
+                        RefreshTokenValidity = jwtOptions.Validity * 2
+
                     };
-
-                    SecurityToken token = await _mediator.Send(new CreateAuthenticationTokenCommand((accountInfo, jwtInfos)), ct)
+                    AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
                         .ConfigureAwait(false);
-
-                    string tokenString;
-                    switch (token)
+                    
+                    string accessTokenString;
+                    string refreshTokenString;
+                    switch (token.AccessToken)
                     {
                         case JwtSecurityToken jwtToken:
-                            tokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+                            accessTokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
                             break;
                         default:
-                            throw new ArgumentOutOfRangeException("Unhandled token type");
+                            throw new ArgumentOutOfRangeException("Unhandled access token type");
                     }
 
+                    switch (token.RefreshToken)
+                    {
+                        case JwtSecurityToken jwtToken:
+                            refreshTokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("Unhandled refresh token type");
+                    }
 
-                    return new OkObjectResult(new { token = tokenString });
+                    BearerTokenInfo bearerToken = new BearerTokenInfo
+                    {
+                        AccessToken = accessTokenString,
+                        RefreshToken = refreshTokenString
+                    };
 
+                    return new OkObjectResult(bearerToken);
                 },
                 none: () => new ValueTask<IActionResult>(new UnauthorizedResult())
             );

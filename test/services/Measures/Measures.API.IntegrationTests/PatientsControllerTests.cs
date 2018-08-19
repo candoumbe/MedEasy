@@ -173,7 +173,7 @@ namespace Measures.API.IntegrationTests
             RequestBuilder rb = _server.CreateRequest("/measures/patients")
                 .AddHeader("Accept", "application/json")
                 .AddHeader("Accept-Charset", "utf-8")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -220,7 +220,7 @@ namespace Measures.API.IntegrationTests
             BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
                 .ConfigureAwait(false);
             RequestBuilder rb = _server.CreateRequest(url)
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await rb.SendAsync(method)
@@ -265,7 +265,7 @@ namespace Measures.API.IntegrationTests
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(method)
@@ -334,7 +334,7 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}");
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}");
 
             // Act
             HttpResponseMessage response = await requestBuilder.GetAsync()
@@ -375,7 +375,7 @@ namespace Measures.API.IntegrationTests
             };
             RequestBuilder requestBuilder = _server.CreateRequest("/measures/patients")
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -422,7 +422,7 @@ namespace Measures.API.IntegrationTests
 
             requestBuilder = _server.CreateRequest($"{_endpointUrl}/{patientId}/bloodpressures")
                 .AddHeader("Content-Type", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And((request) =>
                     request.Content = new StringContent(SerializeObject(resourceToCreate), Encoding.UTF8, "application/json")
                 );
@@ -449,7 +449,7 @@ namespace Measures.API.IntegrationTests
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
 
             requestBuilder = _server.CreateRequest(location.ToString())
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 ;
 
             HttpResponseMessage checkResponse = await requestBuilder.SendAsync(Head)
@@ -509,7 +509,7 @@ namespace Measures.API.IntegrationTests
             BearerTokenInfo bearerToken = await IdentityApiFixture.Register(_identityServer, newAccountInfo)
                 .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatientInfo), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -521,7 +521,7 @@ namespace Measures.API.IntegrationTests
             PatientInfo patientInfo = DeserializeObject<PatientInfo>(json);
 
             requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}/{patientInfo.Id}/bloodpressures")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And(request => request.Content = new StringContent(SerializeObject(invalidResource), Encoding.UTF8, "application/json"));
 
             // Act
@@ -573,7 +573,7 @@ namespace Measures.API.IntegrationTests
                 .ConfigureAwait(false);
             RequestBuilder requestBuilder = new RequestBuilder(_server, "/measures/patients")
                 .AddHeader("Accept", "application/json")
-                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                 .And(request => request.Content = new StringContent(SerializeObject(newPatient), Encoding.UTF8, "application/json"));
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
@@ -590,7 +590,7 @@ namespace Measures.API.IntegrationTests
             foreach (Link link in linksToGetData)
             {
                 requestBuilder = new RequestBuilder(_server, link.Href)
-                    .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.Token}")
+                    .AddHeader("Authorization", $"{JwtBearerDefaults.AuthenticationScheme} {bearerToken.AccessToken}")
                     .AddHeader("Accept", "application/json");
 
                 // Act

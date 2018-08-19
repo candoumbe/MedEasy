@@ -90,12 +90,18 @@ namespace Identity.API.Features.Accounts
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public IActionResult Get(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
-            return new RedirectToRouteResult(
-                RouteNames.DefaultGetOneByIdApi, new { controller = AccountsController.EndpointName, id }, 
-                permanent: false, 
-                preserveMethod: true);
+            bool isTenant = await _mediator.Send(new IsTenantQuery(id), ct)
+                .ConfigureAwait(false);
+
+            return isTenant
+                ? new RedirectToRouteResult(
+                           RouteNames.DefaultGetOneByIdApi, new { controller = AccountsController.EndpointName, id },
+                           permanent: false,
+                           preserveMethod: true)
+                : (IActionResult)new NotFoundResult();
+
         }
 
         /// <summary>

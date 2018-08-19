@@ -10,7 +10,6 @@ namespace Identity.CQRS.Queries.Accounts
     /// </summary>
     public class GetOneAccountByUsernameAndPasswordQuery : GetOneResourceQuery<Guid, LoginInfo, Option<AccountInfo>>
     {
-        
         /// <summary>
         /// Builds a new <see cref="GetOneAccountByUsernameAndPasswordQuery"/> instance
         /// </summary>
@@ -22,6 +21,5 @@ namespace Identity.CQRS.Queries.Accounts
                 throw new ArgumentNullException(nameof(data));
             }
         }
-        
     }
 }

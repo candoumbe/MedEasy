@@ -15,6 +15,7 @@ namespace Identity.DataStores.SqlServer
         /// </summary>
         public DbSet<Account> Accounts { get; set; }
 
+        public DbSet<Claim> Claims { get; set; }
 
         /// <summary>
         /// Builds a new <see cref="IdentityContext"/> instance.
@@ -90,7 +91,8 @@ namespace Identity.DataStores.SqlServer
             modelBuilder.Entity<AccountClaim>(entity =>
             {
                 entity.HasOne(x => x.Account)
-                    .WithMany(x => x.Claims);
+                    .WithMany(x => x.Claims)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(x => x.Claim)
                     .WithMany(claim => claim.Users);

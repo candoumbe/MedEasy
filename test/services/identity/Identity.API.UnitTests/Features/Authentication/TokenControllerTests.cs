@@ -15,6 +15,7 @@ using Moq;
 using Optional;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -108,7 +109,7 @@ namespace Identity.API.UnitTests.Features.Authentication
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.Some(accountInfo));
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new JwtSecurityToken());
+                .ReturnsAsync(new AuthenticationTokenInfo { AccessToken = new JwtSecurityToken(issuer: "me", audience: "you"), RefreshToken = new JwtSecurityToken(issuer: "me", audience : "you", claims: new[] { new Claim("Location", "Paris") }) });
 
             // Act
             IActionResult actionResult = await _controller.Post(model, ct: default)
@@ -121,6 +122,19 @@ namespace Identity.API.UnitTests.Features.Authentication
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()));
 
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
+
+
+            BearerTokenInfo bearerToken = actionResult.Should()
+                .BeOfType<OkObjectResult>().Which
+                .Value.Should()
+                .BeOfType<BearerTokenInfo>().Which;
+
+            bearerToken.AccessToken.Should()
+                .NotBeNullOrWhiteSpace();
+
+            bearerToken.RefreshToken.Should()
+                .NotBeNullOrWhiteSpace().And
+                .NotBe(bearerToken.AccessToken);
 
             
 

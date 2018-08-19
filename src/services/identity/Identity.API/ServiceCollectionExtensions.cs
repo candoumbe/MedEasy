@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation.AspNetCore;
 using Identity.API.Features.Authentication;
+using Identity.CQRS.Handlers.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.Mapping;
@@ -151,6 +152,7 @@ namespace Identity.API
         {
             services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
+            services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();
             services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 

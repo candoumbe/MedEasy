@@ -1,14 +1,18 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-using Identity.Objects;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using System.Linq.Expressions;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using Xunit;
+using Xunit.Categories;
 
 namespace Identity.Objects.Tests
 {
+    [UnitTest]
+    [Feature("Identity")]
+    [Feature("Domains")]
+    [Feature("Accounts")]
     public class AccountTests
     {
 

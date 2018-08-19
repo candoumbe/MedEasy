@@ -53,7 +53,6 @@ namespace Identity.CQRS.Handlers.Commands.Accounts
                 }
 
                 return cmdResult;
-                
             }
         }
     }

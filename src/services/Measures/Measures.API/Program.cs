@@ -69,6 +69,11 @@ namespace Measures.API
             }
         }
 
+        /// <summary>
+        /// Configures the host
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public static IWebHost BuildWebHost(string[] args)
         {
 

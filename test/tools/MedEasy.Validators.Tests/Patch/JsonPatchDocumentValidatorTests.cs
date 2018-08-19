@@ -9,11 +9,14 @@ using Xunit.Abstractions;
 using static Newtonsoft.Json.JsonConvert;
 using static FluentValidation.Severity;
 using Microsoft.AspNetCore.JsonPatch;
+using Xunit.Categories;
 #if NETCOREAPP2_0
 using Microsoft.AspNetCore.JsonPatch.Operations;
 #endif
 namespace MedEasy.Validators.Tests.Patch
 {
+    [UnitTest]
+    [Feature("Validation")]
     public class JsonPatchDocumentValidatorTests : IDisposable
     {
 

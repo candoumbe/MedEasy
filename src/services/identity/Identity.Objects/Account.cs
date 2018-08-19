@@ -35,6 +35,9 @@ namespace Identity.Objects
 
         public bool EmailConfirmed { get; set; }
 
+
+        public string RefreshToken { get; set; }
+
         /// <summary>
         /// Indicates if the account can be used to authenticate a user
         /// </summary>

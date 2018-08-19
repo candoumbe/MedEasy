@@ -10,12 +10,16 @@ namespace Identity.DTO
     public sealed class JwtInfos
     {
         /// <summary>
-        /// Validaty in minutes
+        /// Access token validaty (in minutes)
         /// </summary>
-        public int Validity { get; set; }
+        public double AccessTokenValidity { get; set; }
+
+        /// <summary>
+        /// Refresh token validity in minutes
+        /// </summary>
+        public double RefreshTokenValidity { get; set; }
 
         public string Key { get; set; }
-
 
         public string Issuer { get; set; }
 

@@ -21,7 +21,6 @@ namespace Identity.CQRS.Queries.Accounts
         /// <exception cref="ArgumentNullException">if <paramref name="data"/> is <c>null</c>.</exception>
         public GetPageOfAccountsByTenantIdQuery(GetPageOfAccountInfoByTenantIdInfo data)
         {
-
             Id = Guid.NewGuid();
             Data = data ?? throw new ArgumentNullException(nameof(data));
         }

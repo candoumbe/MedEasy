@@ -34,7 +34,6 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             DateTimeOffset now = _dateTimeService.UtcNowOffset();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-
                 Expression<Func<RoleClaim, ClaimInfo>> roleClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<RoleClaim, ClaimInfo>();
                 Expression<Func<AccountClaim, ClaimInfo>> userClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<AccountClaim, ClaimInfo>();
                 var optionalUser = await uow.Repository<Account>()
@@ -84,7 +83,6 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                     none: () => Task.FromResult(Option.None<AccountInfo>())
                 );
             }
-
         }
     }
 }
