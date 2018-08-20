@@ -106,7 +106,7 @@ namespace Agenda.API.IntegrationTests
         /// <summary>
         /// Schema of an <see cref="AppointmentInfo"/> resource once translated to json
         /// </summary>
-        private static JSchema _appointmentResourceSchema = new JSchema
+        private static readonly JSchema _appointmentResourceSchema = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -145,8 +145,6 @@ namespace Agenda.API.IntegrationTests
             }
         };
 
-        private DatabaseFacade _databaseFacade;
-
         public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
@@ -161,7 +159,6 @@ namespace Agenda.API.IntegrationTests
         public void Dispose()
         {
             _outputHelper = null;
-            _databaseFacade?.EnsureDeleted();
             _server.Dispose();
 
         }

@@ -1,4 +1,4 @@
-﻿namespace Identity.API.Features.Authentication
+﻿namespace Identity.API.Features.Auth
 {
 
     /// <summary>

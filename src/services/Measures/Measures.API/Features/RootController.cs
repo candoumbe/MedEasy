@@ -30,7 +30,7 @@ namespace Measures.API.Features
         private IOptions<MeasuresApiOptions> ApiOptions { get; }
 
         /// <summary>
-        /// 
+        /// Builds a new <see cref="RootController"/> instance.
         /// </summary>
         /// <param name="hostingEnvironment">Gives access to hosting environment</param>
         /// <param name="urlHelper"></param>

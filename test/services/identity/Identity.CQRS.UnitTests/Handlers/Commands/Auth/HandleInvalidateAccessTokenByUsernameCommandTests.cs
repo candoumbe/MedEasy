@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using FluentAssertions;
 using Identity.CQRS.Commands;
+using Identity.CQRS.Handlers.Commands;
 using Identity.DataStores.SqlServer;
 using Identity.Objects;
 using MedEasy.Abstractions;

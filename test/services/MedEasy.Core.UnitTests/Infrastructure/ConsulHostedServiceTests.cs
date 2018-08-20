@@ -81,7 +81,7 @@ namespace MedEasy.Core.UnitTests.Infrastructure
 
 
             // Assert
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

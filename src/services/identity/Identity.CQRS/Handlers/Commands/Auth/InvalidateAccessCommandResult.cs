@@ -22,5 +22,4 @@
         /// </summary>
         Failed_Conflict
     }
-
 }

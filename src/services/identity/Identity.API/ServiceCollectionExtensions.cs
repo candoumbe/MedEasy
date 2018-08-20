@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Identity.API.Features.Authentication;
+using Identity.API.Features.Auth;
 using Identity.CQRS.Handlers.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;

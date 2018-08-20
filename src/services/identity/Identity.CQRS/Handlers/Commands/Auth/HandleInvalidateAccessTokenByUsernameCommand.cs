@@ -8,7 +8,7 @@ using Optional;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Identity.CQRS.UnitTests.Handlers.Commands
+namespace Identity.CQRS.Handlers.Commands
 {
     public class HandleInvalidateAccessTokenByUsernameCommand : IRequestHandler<InvalidateAccessTokenByUsernameCommand, InvalidateAccessCommandResult>
     {

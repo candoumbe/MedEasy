@@ -129,7 +129,7 @@ namespace System
         /// <exception cref="ArgumentNullException">if <paramref name="obj"/> or <paramref name="targetType"/> is <c>null</c></exception>
         public static object As<TSource>(this TSource obj, Type targetType)
         {
-            if (obj == null)
+            if (EqualityComparer<TSource>.Default.Equals(obj, default))
             {
                 throw new ArgumentNullException(nameof(obj));
             }

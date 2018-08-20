@@ -1,6 +1,7 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
+using Identity.DTO.Auth;
 using MedEasy.CQRS.Core.Commands.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Identity.API.Features.Authentication
+namespace Identity.API.Features.Auth
 {
     [Controller]
     [Route("auth/[controller]")]
@@ -129,7 +130,40 @@ namespace Identity.API.Features.Authentication
         [HttpPatch("/{username}")]
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            JwtOptions jwtOptions = _jwtOptions.Value;
+            JwtSecurityTokenOptions refreshTokenOptions = new JwtSecurityTokenOptions
+            {
+                Key = jwtOptions.Key,
+                Issuer = jwtOptions.Issuer,
+                Audiences = jwtOptions.Audiences,
+                LifetimeInMinutes = jwtOptions.AccessTokenLifetime
+            };
+
+            Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(new RefreshAccessTokenByUsernameCommand((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, refreshTokenOptions)), ct)
+                .ConfigureAwait(false);
+
+            return optionalBearerToken.Match(
+                some: bearerToken => new OkObjectResult(bearerToken),
+                none: cmdResult =>
+                {
+                    IActionResult actionResult;
+                    switch (cmdResult)
+                    {
+                        case RefreshAccessCommandResult.NotFound:
+                            actionResult = new NotFoundResult();
+                            break;
+                        case RefreshAccessCommandResult.Conflict:
+                            actionResult = new StatusCodeResult(Status409Conflict);
+                            break;
+                        case RefreshAccessCommandResult.Unauthorized:
+                            actionResult = new UnauthorizedResult();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    return actionResult;
+                });
         }
     }
 }

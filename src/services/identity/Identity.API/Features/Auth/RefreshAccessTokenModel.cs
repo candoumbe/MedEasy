@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Identity.DTO.Auth
+namespace Identity.API.Features.Auth
 {
-    public class RefreshAccessTokenInfo
+    public class RefreshAccessTokenModel
     {
         /// <summary>
         /// Access token to refresh
@@ -22,6 +22,5 @@ namespace Identity.DTO.Auth
         /// This token as a longer lifetime than <see cref="RefreshToken"/>
         /// </remarks>
         public string RefreshToken { get; set; }
-
     }
 }

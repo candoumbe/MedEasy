@@ -13,7 +13,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.Handlers.Commands
 {

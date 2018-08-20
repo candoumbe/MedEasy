@@ -64,7 +64,7 @@ namespace Patients.Validators.Tests.Features.Patients
             // Act
             Action action = () => new CreatePatientInfoValidator(null);
 
-            action.ShouldThrow<ArgumentNullException>().Which
+            action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

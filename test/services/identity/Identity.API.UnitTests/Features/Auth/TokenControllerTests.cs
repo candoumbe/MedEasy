@@ -1,9 +1,10 @@
 using FluentAssertions;
-using Identity.API.Features.Authentication;
+using Identity.API.Features.Auth;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
+using Identity.DTO.Auth;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -147,7 +148,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                                 issuer: _jwtOptions.Issuer,
                                 claims: jwtInfos.Audiences
                                     .Select(aud => new Claim(JwtRegisteredClaimNames.Aud, aud))
-                                    .Concat(new [] {new Claim(CustomClaimTypes.Location, authInfo.Location)})
+                                    .Concat(new[] { new Claim(CustomClaimTypes.Location, authInfo.Location) })
                             ),
                         });
                     }
@@ -276,5 +277,116 @@ namespace Identity.API.UnitTests.Features.Authentication
             attributes.Should()
                 .ContainSingle(attr => attr is FromBodyAttribute);
         }
+
+        [Fact]
+        public async Task GivenMediator_Returns_NotFound_Refresh_Returns_NotFoundResult()
+        {
+            // Arrange
+            const string username = "thejoker";
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.NotFound));
+            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            {
+                AccessToken = "access",
+                RefreshToken = "refresh"
+            };
+
+            // Act
+            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task GivenMediator_Returns_Conflict_Refresh_Returns_Conflict()
+        {
+            // Arrange
+            const string username = "thejoker";
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Conflict));
+            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            {
+                AccessToken = "access",
+                RefreshToken = "refresh"
+            };
+
+            // Act
+            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<StatusCodeResult>().Which
+                .StatusCode.Should()
+                .Be(Status409Conflict);
+        }
+
+        [Fact]
+        public async Task GivenMediator_Returns_Bearer_Refresh_Returns_NewTokens()
+        {
+            // Arrange
+            const string username = "thejoker";
+            BearerTokenInfo bearerToken = new BearerTokenInfo
+            {
+                AccessToken = "<header-access>.<payload>.<signature>",
+                RefreshToken = "<header-refresh>.<payload>.<signature>"
+            };
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.Some<BearerTokenInfo, RefreshAccessCommandResult>(bearerToken));
+            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            {
+                AccessToken = "access",
+                RefreshToken = "refresh"
+            };
+
+            // Act
+            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<OkObjectResult>().Which
+                .Value.Should()
+                .BeSameAs(bearerToken);
+        }
+
+        [Fact]
+        public async Task GivenMediator_Returns_Bearer_Unauthorized_Returns_Unauthorized()
+        {
+            // Arrange
+            const string username = "thejoker";
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized));
+            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            {
+                AccessToken = "access",
+                RefreshToken = "refresh"
+            };
+
+            // Act
+            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+                .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
+
+            actionResult.Should()
+                .BeAssignableTo<UnauthorizedResult>();
+        }
+
     }
 }
