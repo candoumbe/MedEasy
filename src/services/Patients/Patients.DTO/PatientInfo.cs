@@ -28,7 +28,7 @@ namespace Patients.DTO
         public string Lastname { get; set; }
 
         [JsonProperty(PropertyName = nameof(Fullname))]
-        public string Fullname { get; set; }
+        public string Fullname => $"{Firstname?.Trim()}{(string.IsNullOrWhiteSpace(Firstname?.Trim()) ? string.Empty : " ")}{Lastname}";
 
         /// <summary>
         /// Patient's birth date

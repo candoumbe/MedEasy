@@ -6,6 +6,7 @@ namespace Agenda.Mapping.UnitTests
 {
     [UnitTest]
     [Feature("Agenda")]
+    [Feature("Mapping")]
     public class AutoMapperConfigTests
     {
 

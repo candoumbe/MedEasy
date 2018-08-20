@@ -10,10 +10,12 @@ namespace MedEasy.Mapping
         public static void CreateCoreMapping(this IMapperConfigurationExpression cfg)
         {
             cfg.CreateMap<IEntity<int>, Resource<Guid>>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(source => source.UUID))
-                .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
+                .ForMember(dto => dto.CreatedDate, opt => opt.Ignore())
+                .ForMember(dto => dto.UpdatedDate, opt => opt.Ignore())
                 .ReverseMap()
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+                .ForMember(entity => entity.Id, opt => opt.Ignore())
+                ;
         }
     }
 }

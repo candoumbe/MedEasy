@@ -31,7 +31,10 @@ namespace Agenda.Mapping
                 .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Participant.Name))
                 .ForMember(dto => dto.PhoneNumber, opt => opt.MapFrom(entity => entity.Participant.PhoneNumber))
                 .ForMember(dto => dto.Email, opt => opt.MapFrom(entity => entity.Participant.Email))
-                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.Participant.UpdatedDate));
+                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.Participant.UpdatedDate))
+                .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.Participant.CreatedDate))
+                ;
+                
 
             cfg.CreateMap<Appointment, AppointmentInfo>()
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))

@@ -1,9 +1,11 @@
 using Xunit;
 using Xunit.Categories;
 
-namespace Measures.Mapping.UnitTests
+namespace Patients.Mapping.UnitTests
 {
     [UnitTest]
+    [Feature("Patients")]
+    [Feature("Mapping")]
     public class AutoMapperConfigTests
     {
         [Fact]

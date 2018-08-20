@@ -27,6 +27,11 @@ namespace Patients.DTO
         public DateTime? BirthDate { get; set; }
 
         /// <summary>
+        /// Patient's birthplace
+        /// </summary>
+        public string BirthPlace { get; set; }
+
+        /// <summary>
         /// Id of the <see cref="Doctor"/> the patient consults.
         /// </summary>
         public Guid? MainDoctorId { get; set; }

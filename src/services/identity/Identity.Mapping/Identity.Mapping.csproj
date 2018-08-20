@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.1.0" />
     <PackageReference Include="Roslynator.Analyzers" Version="1.9.0">
       <PrivateAssets>all</PrivateAssets>
@@ -14,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Mapping\MedEasy.Mapping.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\Identity.DTO\Identity.DTO.csproj" />

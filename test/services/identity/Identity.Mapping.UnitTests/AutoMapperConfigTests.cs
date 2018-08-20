@@ -5,6 +5,7 @@ namespace Identity.Mapping.UnitTests
 {
     [UnitTest]
     [Feature("Mapping")]
+    [Feature("Identity")]
     public class AutoMapperConfigTests
     {
         [Fact]

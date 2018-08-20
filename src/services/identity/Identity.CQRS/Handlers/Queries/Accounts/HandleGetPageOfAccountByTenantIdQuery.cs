@@ -5,7 +5,9 @@ using Identity.Objects;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MediatR;
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static MedEasy.DAL.Repositories.SortDirection;
@@ -37,15 +39,21 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 GetPageOfAccountInfoByTenantIdInfo data = request.Data;
+
+                // TODO use IExpressionBuilder to retrieve the map expression
+                //Expression<Func<Account, AccountInfo>> selector = x => new AccountInfo
+                //{
+                //    Id = x.UUID,
+                //    TenantId = x.TenantId,
+                //    Email = x.Email,
+                //    Name = x.Name,
+                //    Username = x.UserName,
+                //};
+
+                Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account,AccountInfo>();
                 Page<AccountInfo> result = await uow.Repository<Account>()
                     .WhereAsync(
-                        selector: x => new AccountInfo {
-                            Id = x.UUID,
-                            TenantId = x.TenantId,
-                            Email = x.Email,
-                            Name = x.Name,
-                            Username = x.UserName,
-                        },
+                        selector: selector,
                         predicate: (Account x) => x.TenantId == data.TenantId,
                         orderBy: new[] {
                             OrderClause<AccountInfo>.Create(x => x.Id, Descending)
