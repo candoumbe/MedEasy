@@ -21,7 +21,7 @@ namespace System
         public static string ToTitleCase(this string input)
         {
             StringBuilder sbResult = null;
-            if ((input?.ToCharArray()?.AtLeastOnce() ?? false))
+            if (input?.ToCharArray()?.AtLeastOnce() ?? false)
             {
                 sbResult = new StringBuilder(input);
                 if (char.IsLetter(sbResult[0]))
@@ -50,7 +50,7 @@ namespace System
         public static string ToCamelCase(this string input)
         {
             StringBuilder sbResult = null;
-            if ((input?.ToCharArray()?.AtLeastOnce() ?? false))
+            if (input?.ToCharArray()?.AtLeastOnce() ?? false)
             {
                 sbResult = new StringBuilder(input);
                 if (char.IsLetter(sbResult[0]))
@@ -102,7 +102,7 @@ namespace System
             RegexOptions regexOptions = RegexOptions.Singleline;
             if (ignoreCase)
             {
-                regexOptions = regexOptions | RegexOptions.IgnoreCase;
+                regexOptions |= RegexOptions.IgnoreCase;
             }
             pattern = pattern.Replace("?", ".")
                 .Replace("*", ".*");

@@ -35,7 +35,7 @@ namespace MedEasy.CQRS.Core.Handlers
 
 
         /// <summary>
-        /// 
+        /// Performs a search query against <typeparamref name="TEntity"/> datastore.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TResult"></typeparam>

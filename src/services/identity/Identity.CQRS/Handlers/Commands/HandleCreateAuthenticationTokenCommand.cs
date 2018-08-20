@@ -67,7 +67,7 @@ namespace Identity.CQRS.Handlers.Commands
                 Issuer = jwtInfos.Issuer,
                 Audiences = jwtInfos.Audiences,
                 Key = jwtInfos.Key,
-                LifetimeInMinutes = jwtInfos.AccessTokenValidity
+                LifetimeInMinutes = jwtInfos.AccessTokenLifetime
             };
             CreateSecurityTokenCommand createAccessTokenCommand = new CreateSecurityTokenCommand((jwtAccessTokenOptions, accessTokenClaims));
             Task<SecurityToken> accessTokenTask = _handleCreateSecurityTokenCommand.Handle(createAccessTokenCommand, ct);
@@ -77,7 +77,7 @@ namespace Identity.CQRS.Handlers.Commands
                 Issuer = jwtInfos.Issuer,
                 Audiences = jwtInfos.Audiences,
                 Key = jwtInfos.Key,
-                LifetimeInMinutes = jwtInfos.RefreshTokenValidity
+                LifetimeInMinutes = jwtInfos.RefreshTokenLifetime
             };
             CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtRefreshTokenOptions, refreshTokenClaims));
             Task<SecurityToken> refreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createRefreshTokenCommand, ct);

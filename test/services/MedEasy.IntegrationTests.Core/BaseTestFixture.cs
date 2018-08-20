@@ -20,9 +20,8 @@ namespace MedEasy.IntegrationTests.Core
     /// <typeparam name="TStartup">Target project's startup type</typeparam>
     public abstract class BaseTestFixture<TStartup> : IDisposable where TStartup : class
     {
-        
         protected BaseTestFixture()
-        { 
+        {
         }
 
         public TestServer Server { get; private set; }
@@ -33,26 +32,24 @@ namespace MedEasy.IntegrationTests.Core
         /// <param name="relativeTargetProjectParentDir">Path to the directory of the project under test. </param>
         /// <param name="environmentName">Name of the environment to emulate</param>
         /// <param name="applicationName">Name of the application</param>
-        /// <param name="overrideServices">Provider for services implementations that will override the ones already set up in the <see cref="TStartup"/> class.</param>
+        /// 
         /// <exception cref="DirectoryNotFoundException"><paramref name="relativeTargetProjectParentDir"/> doesnot contain</exception>
-        public virtual void Initialize(string relativeTargetProjectParentDir, string environmentName, string applicationName,
-            Action<IServiceCollection> overrideServices = null) => Initialize<TStartup>(relativeTargetProjectParentDir, environmentName, applicationName, overrideServices);
-
+        public virtual void Initialize(string relativeTargetProjectParentDir, string environmentName, string applicationName) => Initialize<TStartup>(relativeTargetProjectParentDir, environmentName, applicationName);
 
         /// <summary>
         /// Initialize data to use during the fixture lifetime.
         /// </summary>
+        /// <typeparam name="TStart">Type of the startup class</typeparam>
         /// <param name="relativeTargetProjectParentDir">Path to the directory of the project under test. </param>
         /// <param name="environmentName">Name of the environment to emulate</param>
         /// <param name="applicationName">Name of the application</param>
-        /// <param name="overrideServices">Provider for services implementations that will override the ones already set up in the <see cref="TStartup"/> class.</param>
+        /// 
         /// <exception cref="DirectoryNotFoundException"><paramref name="relativeTargetProjectParentDir"/> doesnot contain</exception>
-        public virtual void Initialize<TStart>(string relativeTargetProjectParentDir, string environmentName, string applicationName,
-            Action<IServiceCollection> overrideServices = null)
+        public virtual void Initialize<TStart>(string relativeTargetProjectParentDir, string environmentName, string applicationName)
         {
             Assembly startupAssembly = typeof(TStart).GetTypeInfo().Assembly;
             string contentRoot = GetProjectPath(relativeTargetProjectParentDir, startupAssembly);
-            
+
             IHostingEnvironment env = new HostingEnvironment
             {
                 ContentRootPath = contentRoot,
@@ -76,16 +73,10 @@ namespace MedEasy.IntegrationTests.Core
                 .ConfigureServices(services => services.AddSingleton(env))
                 ;
 
-            if (overrideServices != null)
-            {
-                builder = builder.ConfigureServices(overrideServices);
-            }
-
             Server = new TestServer(builder)
             {
                 BaseAddress = new Uri($"http://locahost/{applicationName}")
             };
-
         }
 
         public void Dispose() => Server?.Dispose();
@@ -172,5 +163,4 @@ namespace MedEasy.IntegrationTests.Core
             return projectDirectoryPath;
         }
     }
-
 }

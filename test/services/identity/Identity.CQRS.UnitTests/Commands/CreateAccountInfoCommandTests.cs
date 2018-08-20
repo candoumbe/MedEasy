@@ -13,10 +13,7 @@ namespace Identity.CQRS.UnitTests.Commands.Accounts
     {
         private ITestOutputHelper _outputHelper;
 
-        public CreateAccountInfoForPatientIdCommandTests(ITestOutputHelper outputHelper)
-        {
-            _outputHelper = outputHelper;
-        }
+        public CreateAccountInfoForPatientIdCommandTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
         public void Dispose()
         {

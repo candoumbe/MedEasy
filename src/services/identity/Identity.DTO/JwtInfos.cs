@@ -12,12 +12,12 @@ namespace Identity.DTO
         /// <summary>
         /// Access token validaty (in minutes)
         /// </summary>
-        public double AccessTokenValidity { get; set; }
+        public double AccessTokenLifetime { get; set; }
 
         /// <summary>
         /// Refresh token validity in minutes
         /// </summary>
-        public double RefreshTokenValidity { get; set; }
+        public double RefreshTokenLifetime { get; set; }
 
         public string Key { get; set; }
 

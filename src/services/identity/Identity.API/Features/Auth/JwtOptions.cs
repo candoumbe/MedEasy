@@ -9,10 +9,17 @@ namespace Identity.API.Features.Authentication
     public class JwtOptions
     {
         /// <summary>
-        /// Validaty in minutes
+        /// Access token lifetime (in minutes)
         /// </summary>
-        public int Validity { get; set; }
+        public double AccessTokenLifetime { get; set; }
+        /// <summary>
+        /// Refresh token lifetime (in minutes)
+        /// </summary>
+        public double RefreshTokenLifetime { get; set; }
 
+        /// <summary>
+        /// Key used to signed a token
+        /// </summary>
         public string Key { get; set; }
 
 

@@ -36,7 +36,6 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static MedEasy.RestObjects.LinkRelation;
 using static System.Uri;
@@ -100,6 +99,7 @@ namespace Identity.API.Tests.Features.Accounts
             _urlHelperMock = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
+            _sut = null;
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -422,7 +422,6 @@ namespace Identity.API.Tests.Features.Accounts
             resource.Username.Should().Be(newAccount.UserName);
             resource.Email.Should().Be(newAccount.Email);
             resource.TenantId.Should().Be(newAccount.TenantId);
-
         }
 
         [Fact]
@@ -458,7 +457,6 @@ namespace Identity.API.Tests.Features.Accounts
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
-
         }
 
         [Fact]
@@ -479,7 +477,6 @@ namespace Identity.API.Tests.Features.Accounts
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
-
         }
 
         [Fact]
@@ -605,7 +602,6 @@ namespace Identity.API.Tests.Features.Accounts
                 .ContainKey("id").WhichValue.Should()
                     .BeOfType<Guid>().Which.Should()
                     .NotBeEmpty();
-
         }
 
         public static IEnumerable<object[]> SearchTestCases
@@ -735,6 +731,5 @@ namespace Identity.API.Tests.Features.Accounts
             response.Links.Next.Should().Match(pageExpectation.links.nextPageUrlExpectation);
             response.Links.Last.Should().Match(pageExpectation.links.lastPageUrlExpectation);
         }
-
     }
 }

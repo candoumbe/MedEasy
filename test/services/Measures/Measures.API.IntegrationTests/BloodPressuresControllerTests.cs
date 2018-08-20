@@ -110,29 +110,11 @@ namespace Measures.API.IntegrationTests
             fixture.Initialize(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Measures"),
                 environmentName: "IntegrationTest",
-                applicationName: typeof(Startup).Assembly.GetName().Name,
-                overrideServices: (services) =>
-                    services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(provider =>
-                    {
-                        DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-                        builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-
-                        return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-
-                    })
-                );
+                applicationName: typeof(Startup).Assembly.GetName().Name);
             identityFixture.Initialize<Identity.API.Startup>(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Identity"),
                 environmentName: "IntegrationTest",
-                applicationName: typeof(Identity.API.Startup).Assembly.GetName().Name,
-                overrideServices: (services) =>
-                    services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(provider =>
-                    {
-                        DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                        builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-                        return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-                    })
-                );
+                applicationName: typeof(Identity.API.Startup).Assembly.GetName().Name);
 
             _server = fixture.Server;
             _identityServer = identityFixture.Server;

@@ -122,8 +122,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
                 Key = "key_to_encrypt_token",
-                AccessTokenValidity = 10,
-                RefreshTokenValidity = 1.Days().TotalMinutes
+                AccessTokenLifetime = 10,
+                RefreshTokenLifetime = 1.Days().TotalMinutes
             };
             _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
@@ -164,7 +164,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             accessToken.ValidFrom.Should()
                 .Be(utcNow);
             accessToken.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtInfos.AccessTokenValidity));
+                .Be(utcNow.AddMinutes(jwtInfos.AccessTokenLifetime));
             accessToken.Issuer.Should()
                 .Be(jwtInfos.Issuer);
 
@@ -226,7 +226,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             refreshToken.ValidFrom.Should()
                 .Be(utcNow);
             refreshToken.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtInfos.RefreshTokenValidity));
+                .Be(utcNow.AddMinutes(jwtInfos.RefreshTokenLifetime));
             refreshToken.Issuer.Should()
                 .Be(jwtInfos.Issuer);
             JwtSecurityToken jwtRefreshToken = refreshToken.Should()
@@ -316,8 +316,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
                 Key = "key_to_encrypt_token",
-                AccessTokenValidity = 10,
-                RefreshTokenValidity = 1.Days().TotalMinutes
+                AccessTokenLifetime = 10,
+                RefreshTokenLifetime = 1.Days().TotalMinutes
             };
             AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "127.0.0.1" };
 

@@ -11,7 +11,9 @@ using static Newtonsoft.Json.JsonConvert;
 
 namespace Identity.API.Fixtures
 {
+#pragma warning disable RCS1102 // Make class static.
     public class IdentityApiFixture
+#pragma warning restore RCS1102 // Make class static.
     {
         /// <summary>
         /// Register a new account

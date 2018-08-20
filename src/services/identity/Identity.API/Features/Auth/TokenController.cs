@@ -1,17 +1,20 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
-using MedEasy.Identity.API.Features.Authentication;
+using MedEasy.CQRS.Core.Commands.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Primitives;
 using Optional;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API.Features.Authentication
 {
@@ -21,11 +24,13 @@ namespace Identity.API.Features.Authentication
     {
         private readonly IMediator _mediator;
         private readonly IOptionsSnapshot<JwtOptions> _jwtOptions;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public TokenController(IMediator mediator, IOptionsSnapshot<JwtOptions> jwtOptions)
+        public TokenController(IMediator mediator, IOptionsSnapshot<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
             _mediator = mediator;
             _jwtOptions = jwtOptions;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -46,14 +51,15 @@ namespace Identity.API.Features.Authentication
                 some: async accountInfo =>
                 {
                     JwtOptions jwtOptions = _jwtOptions.Value;
-                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "Paris - France" };
+                    _httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
+                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = ipValues.ToArray().FirstOrDefault() ?? string.Empty };
                     JwtInfos jwtInfos = new JwtInfos
                     {
                         Key = jwtOptions.Key,
                         Issuer = jwtOptions.Issuer,
                         Audiences = jwtOptions.Audiences,
-                        AccessTokenValidity = jwtOptions.Validity,
-                        RefreshTokenValidity = jwtOptions.Validity * 2
+                        AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
+                        RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
 
                     };
                     AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
@@ -89,6 +95,41 @@ namespace Identity.API.Features.Authentication
                 },
                 none: () => new ValueTask<IActionResult>(new UnauthorizedResult())
             );
+        }
+
+        [HttpDelete("/{username}")]
+        public async Task<IActionResult> Invalidate(string username, CancellationToken ct = default)
+        {
+            InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand(username);
+            InvalidateAccessCommandResult cmdResult = await _mediator.Send(cmd, ct)
+                .ConfigureAwait(false);
+
+            IActionResult actionResult;
+            switch (cmdResult)
+            {
+                case InvalidateAccessCommandResult.Done:
+                    actionResult = new OkResult();
+                    break;
+                case InvalidateAccessCommandResult.Failed_Unauthorized:
+                    actionResult = new UnauthorizedResult();
+                    break;
+                case InvalidateAccessCommandResult.Failed_NotFound:
+                    actionResult = new NotFoundResult();
+                    break;
+                case InvalidateAccessCommandResult.Failed_Conflict:
+                    actionResult = new StatusCodeResult(Status409Conflict);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unknown <{cmdResult}> command result");
+            }
+
+            return actionResult;
+        }
+
+        [HttpPatch("/{username}")]
+        public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
         }
     }
 }

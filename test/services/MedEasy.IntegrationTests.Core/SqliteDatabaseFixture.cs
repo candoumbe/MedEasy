@@ -13,7 +13,7 @@ namespace MedEasy.IntegrationTests.Core
         /// The current connection
         /// </summary>
         public SqliteConnection Connection { get; private set; }
-
+         
         /// <summary>
         /// Builds a new <see cref="SqliteDatabaseFixture"/>
         /// </summary>
@@ -23,6 +23,7 @@ namespace MedEasy.IntegrationTests.Core
             Connection.Open();
         }
 
+        
         public void Dispose()
         {
             Connection?.Close();

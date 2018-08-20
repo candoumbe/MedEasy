@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Identity.API.Features.Authentication;
 using Identity.CQRS.Handlers.Commands;
@@ -59,7 +60,6 @@ namespace Identity.API
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 options.Filters.Add(typeof(HandleErrorAttribute));
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-
             })
             .AddFluentValidation(options =>
             {
@@ -75,7 +75,6 @@ namespace Identity.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
             });
 
             services.AddCors(options =>
@@ -99,12 +98,10 @@ namespace Identity.API
                 options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
                     .GetChildren()
                     .Select(x => x.Value);
-                options.Validity = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Validity)}", 10);
+                options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
+                options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
-            services.Configure<MvcOptions>(options =>
-            {
-                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
-            });
+            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
 
             services.AddRouting(options =>
             {
@@ -132,7 +129,7 @@ namespace Identity.API
                     {
                         IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                         builder.UseSqlServer(
-                            configuration.GetConnectionString("Identity"), 
+                            configuration.GetConnectionString("Identity"),
                             b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
                     }
                     builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -176,32 +173,18 @@ namespace Identity.API
             });
         }
 
-
         /// <summary>
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
         /// 
         /// 
-        public static void ConfigureDataStores(this IServiceCollection services)
-        {
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-{
-                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+        public static void ConfigureDataStores(this IServiceCollection services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
+                                                                      {
+                                                                          DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
 
-                return new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) =>
-                {
-                    IdentityContext context = new IdentityContext(options);
-
-                    //context.Database.Migrate();
-
-                    return context;
-                });
-
-            });
-
-            
-        }
+                                                                          return new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) => new IdentityContext(options));
+                                                                      });
 
         private static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
         {
@@ -238,6 +221,17 @@ namespace Identity.API
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
+                        LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
+                        {
+                            using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
+                            {
+                                IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
+
+                                return securityTokenValidator.Validate(securityToken).IsValid;
+                            }
+                            
+                        },
+                        RequireExpirationTime = true,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
                         ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
@@ -245,7 +239,6 @@ namespace Identity.API
                             .Select(x => x.Value),
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
                     };
-
                 });
 
         /// <summary>

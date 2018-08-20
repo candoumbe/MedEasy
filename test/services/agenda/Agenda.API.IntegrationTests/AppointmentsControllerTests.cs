@@ -153,24 +153,7 @@ namespace Agenda.API.IntegrationTests
             fixture.Initialize(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Agenda"),
                 environmentName: "IntegrationTest",
-                applicationName: typeof(Startup).Assembly.GetName().Name,
-                overrideServices: (services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(item =>
-                {
-                    DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
-                    builder.UseSqlite(database.Connection)
-                        .EnableSensitiveDataLogging()
-                        .ConfigureWarnings(warnings => warnings.Throw());
-
-                    return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) =>
-                    {
-                        AgendaContext context = new AgendaContext(options);
-                        _databaseFacade = context.Database;
-                        _databaseFacade.EnsureCreated();
-                        return context;
-                    });
-
-                })
-            );
+                applicationName: typeof(Startup).Assembly.GetName().Name);
             _server = fixture.Server;
         }
 

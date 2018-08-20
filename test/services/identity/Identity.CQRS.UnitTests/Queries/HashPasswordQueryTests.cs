@@ -13,10 +13,7 @@ namespace Identity.CQRS.UnitTests.Queries
     public class HashPasswordQueryTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        public HashPasswordQueryTests(ITestOutputHelper outputHelper)
-        {
-            _outputHelper = outputHelper;
-        }
+        public HashPasswordQueryTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
         public void Dispose() => _outputHelper = null;
 

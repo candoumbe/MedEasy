@@ -44,17 +44,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             fixture.Initialize(
                 relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Identity"),
                 environmentName: "IntegrationTest",
-                applicationName: typeof(Startup).Assembly.GetName().Name,
-                overrideServices: (services) =>
-                    services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(provider =>
-                    {
-                        DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                        builder.UseInMemoryDatabase($"InMemoryDb_{Guid.NewGuid()}");
-
-                        return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
-                    })
-                );
+                applicationName: typeof(Startup).Assembly.GetName().Name);
             
 
             _server = fixture.Server;
@@ -127,7 +117,6 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
             createdAccountInfo.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Fact]
@@ -165,7 +154,6 @@ namespace Identity.API.IntegrationTests.Features.Accounts
                 .Generate(typeof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>));
             jsonToken.IsValid(responseSchema);
         }
-
 
 
     }

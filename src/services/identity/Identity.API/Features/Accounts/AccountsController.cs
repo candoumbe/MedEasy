@@ -1,4 +1,5 @@
 ﻿using Identity.API.Routing;
+using Identity.CQRS.Commands;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
@@ -174,11 +175,12 @@ namespace Identity.API.Features.Accounts
         /// Partially update an account resource.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
-        ///
-        ///     // PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725
-        ///     
+        /// </para>
+        /// <para>    // PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725</para>
+        /// <para>
         ///     [
         ///         {
         ///             "op": "update",
@@ -187,12 +189,13 @@ namespace Identity.API.Features.Accounts
         ///             "value": "bruce@wayne-entreprise.com"
         ///       }
         ///     ]
-        /// 
-        /// The set of changes to apply will be applied atomically. 
+        /// </para>
+        /// <para>The set of changes to apply will be applied atomically. </para>
         /// 
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
+        /// <param name="ct"></param>
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
@@ -356,5 +359,7 @@ namespace Identity.API.Features.Accounts
                 count: searchResult.Total
             ));
         }
+
+       
     }
 }
