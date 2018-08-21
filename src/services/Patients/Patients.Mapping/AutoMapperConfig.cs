@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
@@ -20,11 +21,7 @@ namespace Patients.Mapping
         /// <returns></returns>
         public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<IEntity<int>, Resource<Guid>>()
-                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
-                .ForMember(dto => dto.CreatedDate, opt => opt.Ignore())
-                .ForMember(dto => dto.UpdatedDate, opt => opt.Ignore())
-                .ReverseMap();
+            cfg.CreateCoreMapping();
 
             cfg.CreateMap<CreatePatientInfo, Patient>()
                 .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))

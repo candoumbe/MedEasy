@@ -4,6 +4,7 @@ using MedEasy.DAL.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -41,10 +42,10 @@ namespace Patients.API
         {
             services.AddMvc(options =>
             {
-                options.Filters.Add(typeof(FormatFilter));
-                //options.Filters.Add(typeof(ValidateModelAttribute));
-                ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                //options.Filters.Add(typeof(HandleErrorAttribute));
+                options.Filters.Add<FormatFilterAttribute>();
+                //options.Filters.Add<ValidateModelAttribute>();
+                ////options.Filters.Add<EnvelopeFilterAttribute>();
+                //options.Filters.Add<HandleErrorAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
 

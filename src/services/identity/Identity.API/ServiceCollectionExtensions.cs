@@ -54,11 +54,11 @@ namespace Identity.API
         {
             services.AddMvc(options =>
             {
-                options.Filters.Add(typeof(FormatFilter));
-                options.Filters.Add(typeof(ValidateModelActionFilter));
-                options.Filters.Add(typeof(AddCountHeadersFilterAttribute));
+                options.Filters.Add<FormatFilterAttribute>();
+                options.Filters.Add<ValidateModelActionFilter>();
+                options.Filters.Add<AddCountHeadersFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                options.Filters.Add(typeof(HandleErrorAttribute));
+                options.Filters.Add<HandleErrorAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             })
             .AddFluentValidation(options =>

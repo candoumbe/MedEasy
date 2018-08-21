@@ -34,6 +34,7 @@ using System;
 using System.IO;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Agenda.API
 {
@@ -51,10 +52,10 @@ namespace Agenda.API
         {
             services.AddMvc(options =>
             {
-                options.Filters.Add(typeof(FormatFilter));
-                options.Filters.Add(typeof(ValidateModelActionFilter));
-                options.Filters.Add(typeof(HandleErrorAttribute));
-                options.Filters.Add(typeof(AddCountHeadersFilterAttribute));
+                options.Filters.Add<FormatFilterAttribute>();
+                options.Filters.Add<ValidateModelActionFilter>();
+                options.Filters.Add<HandleErrorAttribute>();
+                options.Filters.Add<AddCountHeadersFilterAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
             })

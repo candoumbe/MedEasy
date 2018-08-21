@@ -21,7 +21,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="7.4.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

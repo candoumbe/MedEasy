@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Roslynator.Analyzers" Version="1.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -15,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Mapping\MedEasy.Mapping.csproj" />
     <ProjectReference Include="..\Patients.DTO\Patients.DTO.csproj" />
     <ProjectReference Include="..\Patients.Objects\Patients.Objects.csproj" />
   </ItemGroup>
