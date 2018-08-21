@@ -445,11 +445,9 @@ namespace Measures.API.Tests.Features.BloodPressures
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = apiOptions.defaultPageSize, MaxPageSize = apiOptions.maxPageSize });
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (SearchQuery<BloodPressureInfo> query, CancellationToken ct) =>
-                {
-                    return await new HandleSearchQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder)
-                        .Search<BloodPressure, BloodPressureInfo>(query, ct);
-                });
+                .Returns((SearchQuery<BloodPressureInfo> query, CancellationToken ct) => 
+                    new HandleSearchQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder).Search<BloodPressure, BloodPressureInfo>(query, ct)
+                );
 
             // Act
             IActionResult actionResult = await _controller.Search(searchQuery)

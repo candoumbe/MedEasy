@@ -228,26 +228,6 @@ namespace Patients.API.Controllers
             }
         }
 
-
-        ///// <summary>
-        ///// Updates the specified resource
-        ///// </summary>
-        ///// <remarks>
-        ///// The resource's current value will completely be replace
-        ///// </remarks>
-        ///// <param name="id">identifier of the resource to update</param>
-        ///// <param name="info">new values to set</param>
-        ///// <returns></returns>
-        ///// <response code="200">the operation succeed</response>
-        ///// <response code="400">Submitted values contains an error</response>
-        ///// <response code="404">Resource not found</response>
-        //[HttpPut("{id}")]
-        //[ProducesResponseType(typeof(PatientInfo), 200)]
-        //public Task<IActionResult> Put(Guid id, [FromBody] CreatePatientInfo info)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         // DELETE measures/bloodpressures/5
 
         /// <summary>

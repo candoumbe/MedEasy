@@ -155,11 +155,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                             IEnumerable<OrderClause<PatientInfo>> sorts = query.Data.Sorts
                                 .Select(x => OrderClause<PatientInfo>.Create(x.Expression, x.Direction == MedEasy.Data.SortDirection.Ascending ? MedEasy.DAL.Repositories.SortDirection.Ascending : MedEasy.DAL.Repositories.SortDirection.Descending));
 
-                            Page<PatientInfo> page = await uow.Repository<Patient>()
+                            return await uow.Repository<Patient>()
                                 .WhereAsync(selector, filter, sorts, query.Data.PageSize, query.Data.Page, ct)
                                 .ConfigureAwait(false);
-
-                            return page;
                         }
                     }
                 });

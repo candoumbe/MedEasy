@@ -50,9 +50,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 context.Database.EnsureCreated();
                 return context;
             });
-            _mapper = AutoMapperConfig.Build().CreateMapper();
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
-            _sut = new HandleGetPageOfAppointmentInfoQuery(_uowFactory, _mapper, _dateTimeServiceMock.Object);
+            _sut = new HandleGetPageOfAppointmentInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
             _outputHelper = outputHelper;
         }
 
@@ -69,7 +68,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             
             _uowFactory = null;
             _dateTimeServiceMock = null;
-            _mapper = null;
             _sut = null;
         }
 

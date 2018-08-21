@@ -121,9 +121,8 @@ namespace Measures.CQRS.UnitTests.Handlers
             _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
                 It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
-                    => 
+                    =>
                     {
-
                         IEnumerable<PatientInfo> results = patients.Select(selector.Compile())
                             .Where(filter.Compile())
                             .Skip(pageSize * (page - 1))

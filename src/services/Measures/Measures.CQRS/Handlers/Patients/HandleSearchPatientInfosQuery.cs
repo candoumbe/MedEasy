@@ -26,8 +26,7 @@ namespace Measures.CQRS.Handlers.Patients
             _handleSearchQuery = handleSearchQuery ?? throw new ArgumentNullException(nameof(handleSearchQuery));
         }
 
-        public async Task<Page<PatientInfo>> Handle(SearchQuery<PatientInfo> request, CancellationToken cancellationToken) =>  
-            await _handleSearchQuery.Search<Patient, PatientInfo>(request, cancellationToken)
-                .ConfigureAwait(false);
+        public Task<Page<PatientInfo>> Handle(SearchQuery<PatientInfo> request, CancellationToken cancellationToken) =>
+            _handleSearchQuery.Search<Patient, PatientInfo>(request, cancellationToken);
     }
 }

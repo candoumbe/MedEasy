@@ -18,13 +18,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
             _handleSearchQuery = handleSearchQuery;
         }
 
-        public async Task<Page<BloodPressureInfo>> Handle(SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken)
-        {
-            Page<BloodPressureInfo> page = await _handleSearchQuery.Search<BloodPressure, BloodPressureInfo>(request, cancellationToken)
-                .ConfigureAwait(false);
-
-            return page;
-
-        } 
+        public Task<Page<BloodPressureInfo>> Handle(SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken) =>
+            _handleSearchQuery.Search<BloodPressure, BloodPressureInfo>(request, cancellationToken);
     }
 }

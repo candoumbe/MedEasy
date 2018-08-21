@@ -19,19 +19,19 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
     public class HandleGetPageOfAppointmentInfoQuery : IRequestHandler<GetPageOfAppointmentInfoQuery, Page<AppointmentInfo>>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-        private readonly IMapper _mapper;
+        private readonly IExpressionBuilder _expressionBuilder;
         private readonly IDateTimeService _dateTimeService;
 
         /// <summary>
         /// Builds a new <see cref="HandleGetOneAppointmentInfoByIdQuery"/> instance.
         /// </summary>
         /// <param name="unitOfWorkFactory"></param>
-        /// <param name="mapper"></param>
+        /// <param name="expressionBuilder"></param>
         /// <param name="dateTimeService">Service to get <see cref="DateTime"/>s/<see cref="DateTimeOffset"/>s</param>
-        public HandleGetPageOfAppointmentInfoQuery(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IDateTimeService dateTimeService)
+        public HandleGetPageOfAppointmentInfoQuery(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IDateTimeService dateTimeService)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
-            _mapper = mapper;
+            _expressionBuilder = expressionBuilder;
             _dateTimeService = dateTimeService;
         }
 
@@ -39,7 +39,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                Expression<Func<Appointment, AppointmentInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
+                Expression<Func<Appointment, AppointmentInfo>> selector = _expressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
                 DateTimeOffset now = _dateTimeService.UtcNowOffset();
                 return await uow.Repository<Appointment>()
                     .WhereAsync(

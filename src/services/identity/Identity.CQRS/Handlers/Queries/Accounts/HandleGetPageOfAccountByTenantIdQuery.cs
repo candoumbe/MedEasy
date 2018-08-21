@@ -39,17 +39,6 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 GetPageOfAccountInfoByTenantIdInfo data = request.Data;
-
-                // TODO use IExpressionBuilder to retrieve the map expression
-                //Expression<Func<Account, AccountInfo>> selector = x => new AccountInfo
-                //{
-                //    Id = x.UUID,
-                //    TenantId = x.TenantId,
-                //    Email = x.Email,
-                //    Name = x.Name,
-                //    Username = x.UserName,
-                //};
-
                 Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account,AccountInfo>();
                 Page<AccountInfo> result = await uow.Repository<Account>()
                     .WhereAsync(

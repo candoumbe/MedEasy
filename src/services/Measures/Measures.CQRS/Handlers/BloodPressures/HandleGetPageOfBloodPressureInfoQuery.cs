@@ -40,7 +40,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                Page<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
+                return await uow.Repository<BloodPressure>()
                     .ReadPageAsync(
                         selector,
                         pagination.PageSize,
@@ -48,9 +48,6 @@ namespace Measures.CQRS.Handlers.BloodPressures
                         new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure) },
                         cancellationToken)
                     .ConfigureAwait(false);
-
-
-                return result;
             }
         }
     }
