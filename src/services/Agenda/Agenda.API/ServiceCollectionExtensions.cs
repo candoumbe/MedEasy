@@ -165,7 +165,12 @@ namespace Agenda.API
         /// <param name="services"></param>
         public static void AddCustomizedDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(CreateAppointmentInfoCommand).Assembly);
+            services.AddScoped<ServiceFactory>(provider => provider.GetService);
+            services.Scan(scan => scan
+                .FromAssembliesOf(typeof(IMediator), typeof(CreateAppointmentInfoCommand))
+                .AddClasses()
+                .AsImplementedInterfaces()
+            );
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);

@@ -165,7 +165,13 @@ namespace Measures.API
         /// <param name="services"></param>
         public static void ConfigureDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
+            services.AddScoped<ServiceFactory>(provider => provider.GetService);
+            services.Scan( scan => scan
+                .FromAssembliesOf(typeof(CreateBloodPressureInfoForPatientIdCommand), typeof(IMediator))
+                .AddClasses()
+                .AsImplementedInterfaces()
+            )
+            ;
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
