@@ -11,6 +11,7 @@ using static Newtonsoft.Json.JsonConvert;
 namespace MedEasy.Tools.Tests
 {
     [UnitTest]
+    [Feature("Tools")]
     public class EnumerableExtensionsTests
     {
         private readonly ITestOutputHelper _outputHelper;
@@ -30,24 +31,34 @@ namespace MedEasy.Tools.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<int>(),
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
-                    false
+                    (Expression<Func<int, bool>>) (x => x == 1),
+                    false,
+                    "Collection is empty"
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
-                    true
+                    (Expression<Func<int, bool>>) (x => x == 1),
+                    true,
+                    "Element is exactly one time in the collection"
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 5)),
-                    false
+                    (Expression<Func<int, bool>>) (x => x == 5),
+                    false,
+                    "Element is not present in the collection"
                 };
 
+                yield return new object[]
+                {
+                    new []{ 1, 1 },
+                    (Expression<Func<int, bool>>) (x => x == 1),
+                    false,
+                    "Element is present more than one time in collection"
+                };
             }
         }
 
@@ -59,15 +70,18 @@ namespace MedEasy.Tools.Tests
         /// <param name="expectedResult">expected result</param>
         [Theory]
         [MemberData(nameof(OnceCases))]
-        public void Once(IEnumerable<int> source, Expression<Func<int, bool>> predicate, bool expectedResult)
+        public void Once(IEnumerable<int> source, Expression<Func<int, bool>> predicate, bool expectedResult, string reason)
         {
             _outputHelper.WriteLine($"{nameof(source)} : {SerializeObject(source)}");
             _outputHelper.WriteLine($"{nameof(predicate)} : {predicate}");
 
-            // Act and assert
-            source.Once(predicate).Should().Be(expectedResult);
-        }
+            // Act
+            bool actualResult = source.Once(predicate);
 
+            // Assert
+            actualResult.Should()
+                .Be(expectedResult, reason);
+        }
 
         public static IEnumerable<object[]> OnceWithPredicateThrowsArgumentNullExceptionCases
         {
@@ -75,12 +89,11 @@ namespace MedEasy.Tools.Tests
             {
                 yield return new[] { null, (Expression<Func<int, bool>>)(x => x == 1) };
                 yield return new[] { Enumerable.Empty<int>(), null };
-
             }
         }
 
         /// <summary>
-        /// 
+        /// Tests <see cref="EnumerableExtensions.Once{T}(IEnumerable{T}, Expression{Func{T, bool}})"/>
         /// </summary>
         /// <param name="source"></param>
         /// <param name="predicate"></param>
@@ -97,16 +110,12 @@ namespace MedEasy.Tools.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
-
-
         public static IEnumerable<object[]> AtLeastOnceWithPredicateThrowsArgumentNullExceptionCases
         {
             get
             {
                 yield return new[] { null, (Expression<Func<int, bool>>)(x => x == 1) };
                 yield return new[] { Enumerable.Empty<int>(), null };
-
             }
         }
 
@@ -159,8 +168,6 @@ namespace MedEasy.Tools.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
-
         /// <summary>
         /// <see cref="AtLeastOnce(IEnumerable{int}, Expression{Func{int, bool}}, bool)"/> tests cases
         /// </summary>
@@ -171,31 +178,30 @@ namespace MedEasy.Tools.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<int>(),
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    (Expression<Func<int, bool>>) (x => x == 1),
                     false
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    (Expression<Func<int, bool>>) (x => x == 1),
                     true
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 5)),
+                    (Expression<Func<int, bool>>) (x => x == 5),
                     false
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3, 3 },
-                    ((Expression<Func<int, bool>>) (x => x ==3)),
+                    (Expression<Func<int, bool>>) (x => x ==3),
                     true
                 };
-
             }
         }
 
@@ -214,7 +220,7 @@ namespace MedEasy.Tools.Tests
 
             // Act
             bool actualResult = source.AtLeastOnce(predicate);
-            
+
             // Assert
             actualResult.Should().Be(expectedResult);
         }
@@ -237,7 +243,6 @@ namespace MedEasy.Tools.Tests
                     new []{ 1, 3 },
                     true
                 };
-
             }
         }
 
@@ -252,7 +257,7 @@ namespace MedEasy.Tools.Tests
         public void AtLeastOnce(IEnumerable<int> source, bool expectedResult)
         {
             _outputHelper.WriteLine($"{nameof(source)} : {SerializeObject(source)}");
-            
+
             // Act
             bool actualResult = source.AtLeastOnce();
 
@@ -260,14 +265,12 @@ namespace MedEasy.Tools.Tests
             actualResult.Should().Be(expectedResult);
         }
 
-
         public static IEnumerable<object[]> AtLeastOnceThrowsArgumentNullExceptionCases
         {
             get
             {
                 yield return new[] { null, (Expression<Func<int, bool>>)(x => x == 1) };
                 yield return new[] { Enumerable.Empty<int>(), null };
-                
             }
         }
 
@@ -282,7 +285,6 @@ namespace MedEasy.Tools.Tests
         {
             AtLeastShouldThrowArgumentNullException(source, 1, predicate);
         }
-
 
         public static IEnumerable<object[]> AtLeastThrowsArgumentNullExceptionCases
         {
@@ -320,7 +322,6 @@ namespace MedEasy.Tools.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
         public static IEnumerable<object[]> AtMostWithPredicateThrowsArgumentNullExceptionCases
         {
             get
@@ -356,7 +357,6 @@ namespace MedEasy.Tools.Tests
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
-
 
         public static IEnumerable<object[]> ExactlyWithPredicateThrowsArgumentNullExceptionCases
         {
@@ -394,10 +394,6 @@ namespace MedEasy.Tools.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
-
-
-
         /// <summary>
         /// <see cref="CrossJoin(IEnumerable{int}, IEnumerable{int})"/> tests cases
         /// </summary>
@@ -409,50 +405,46 @@ namespace MedEasy.Tools.Tests
                 {
                     Enumerable.Empty<int>(),
                     Enumerable.Empty<int>(),
-                    ((Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
                 {
                     new [] { 1, 3 },
                     Enumerable.Empty<int>(),
-                    ((Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
                 {
                     Enumerable.Empty<int>(),
                     new [] { 1, 3 },
-                    ((Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
                 {
                     new [] { 1, 3 },
                     new [] { 2 },
-                    ((Expression<Func<IEnumerable<(int X, int Y)>, bool>>)(items => 
-                        items.Count() == 2 &&
-                        items.Once(tuple => tuple.X == 1 && tuple.Y == 2) &&
-                        items.Once(tuple => tuple.X == 3 && tuple.Y == 2)
-                    ))
+                    (Expression<Func<IEnumerable<(int X, int Y)>, bool>>)(items =>
+                        items.Count() == 2
+                        && items.Once(tuple => tuple.X == 1 && tuple.Y == 2)
+                        && items.Once(tuple => tuple.X == 3 && tuple.Y == 2)
+                    )
                 };
-
 
                 yield return new object[]
                 {
                     new [] { 2 },
                     new [] { 1, 3 },
-                    ((Expression<Func<IEnumerable<(int X, int Y)>, bool>>)(items =>
-                        items.Count() == 2 &&
-                        items.Once(tuple => tuple.X == 2 && tuple.Y == 1) &&
-                        items.Once(tuple => tuple.X == 2 && tuple.Y == 3)
-                    ))
+                    (Expression<Func<IEnumerable<(int X, int Y)>, bool>>)(items =>
+                        items.Count() == 2
+                        && items.Once(tuple => tuple.X == 2 && tuple.Y == 1)
+                        && items.Once(tuple => tuple.X == 2 && tuple.Y == 3)
+                    )
                 };
-
             }
         }
-
-
 
         /// <summary>
         /// Unit tests <see cref="EnumerableExtensions.CrossJoin{TFirst, TSecond}(IEnumerable{TFirst}, IEnumerable{TSecond})"/>
@@ -466,15 +458,14 @@ namespace MedEasy.Tools.Tests
         {
             _outputHelper.WriteLine($"{nameof(first)} : {SerializeObject(first)}");
             _outputHelper.WriteLine($"{nameof(second)} : {SerializeObject(second)}");
-            
+
             // Act
             IEnumerable<(int, int)> result = first.CrossJoin(second);
-            
+
             // Assert
             result.Should()
                 .Match(crossJoinResultExpectation);
         }
-
 
         /// <summary>
         /// <see cref="CrossJoin(IEnumerable{int}, IEnumerable{int}, IEnumerable{string})"/> tests cases
@@ -488,7 +479,7 @@ namespace MedEasy.Tools.Tests
                     Enumerable.Empty<int>(),
                     Enumerable.Empty<int>(),
                     Enumerable.Empty<string>(),
-                    ((Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
@@ -496,7 +487,7 @@ namespace MedEasy.Tools.Tests
                     new [] { 1, 3 },
                     Enumerable.Empty<int>(),
                     Enumerable.Empty<string>(),
-                    ((Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
@@ -504,7 +495,7 @@ namespace MedEasy.Tools.Tests
                     Enumerable.Empty<int>(),
                     new [] { 1, 3 },
                     Enumerable.Empty<string>(),
-                    ((Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any()))
+                    (Expression<Func<IEnumerable<(int, int, string)>, bool>>)(items => !items.Any())
                 };
 
                 yield return new object[]
@@ -512,26 +503,24 @@ namespace MedEasy.Tools.Tests
                     new [] { 1, 3 },
                     new [] { 2 },
                     new [] { "a"},
-                    ((Expression<Func<IEnumerable<(int X, int Y, string Letter)>, bool>>)(items =>
-                        items.Count() == 2 &&
-                        items.Once(tuple => tuple.X == 1 && tuple.Y == 2 && tuple.Letter == "a" ) &&
-                        items.Once(tuple => tuple.X == 3 && tuple.Y == 2 && tuple.Letter == "a" )
-                    ))
+                    (Expression<Func<IEnumerable<(int X, int Y, string Letter)>, bool>>)(items =>
+                        items.Count() == 2
+                        && items.Once(tuple => tuple.X == 1 && tuple.Y == 2 && tuple.Letter == "a" )
+                        && items.Once(tuple => tuple.X == 3 && tuple.Y == 2 && tuple.Letter == "a" )
+                    )
                 };
-
 
                 yield return new object[]
                 {
                     new [] { 2 },
                     new [] { 1, 3 },
                     new [] { "a"},
-                    ((Expression<Func<IEnumerable<(int X, int Y, string Letter)>, bool>>)(items =>
-                        items.Count() == 2 &&
-                        items.Once(tuple => tuple.X == 2 && tuple.Y == 1 && tuple.Letter == "a") &&
-                        items.Once(tuple => tuple.X == 2 && tuple.Y == 3 && tuple.Letter == "a")
-                    ))
+                    (Expression<Func<IEnumerable<(int X, int Y, string Letter)>, bool>>)(items =>
+                        items.Count() == 2
+                        && items.Once(tuple => tuple.X == 2 && tuple.Y == 1 && tuple.Letter == "a")
+                        && items.Once(tuple => tuple.X == 2 && tuple.Y == 3 && tuple.Letter == "a")
+                    )
                 };
-
             }
         }
 
@@ -568,24 +557,23 @@ namespace MedEasy.Tools.Tests
                 yield return new object[]
                 {
                     Enumerable.Empty<int>(),
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    (Expression<Func<int, bool>>) (x => x == 1),
                     true
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 1)),
+                    (Expression<Func<int, bool>>) (x => x == 1),
                     false
                 };
 
                 yield return new object[]
                 {
                     new []{ 1, 3 },
-                    ((Expression<Func<int, bool>>) (x => x == 5)),
+                    (Expression<Func<int, bool>>) (x => x == 5),
                     true
                 };
-
             }
         }
 
@@ -605,7 +593,6 @@ namespace MedEasy.Tools.Tests
             // Act and assert
             source.None(predicate).Should().Be(expectedResult);
         }
-
 
 
     }

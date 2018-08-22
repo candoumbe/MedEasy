@@ -7,7 +7,6 @@ namespace System.Linq.Expressions
     /// </summary>
     public static class ExpressionExtensions
     {
-
         /// <summary>
         /// Creates a 
         /// </summary>
@@ -61,7 +60,6 @@ namespace System.Linq.Expressions
         /// <returns>A new expression that represents <code>(T x) => f && g</code></returns>
         public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
         {
-
             if (first == null)
             {
                 throw new ArgumentNullException("f");
@@ -257,9 +255,7 @@ namespace System.Linq.Expressions
 
             return Expression.Lambda<Func<T, bool>>(Expression.Equal(left, right), parameter);
         }
-
     }
-
 
    
 }

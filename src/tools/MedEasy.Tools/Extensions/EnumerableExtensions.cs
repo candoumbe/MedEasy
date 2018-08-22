@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Linq.Expressions;
+using static System.Linq.Expressions.ExpressionExtensions;
 using System.Threading.Tasks;
 #if NETSTANDARD1_1
 using System.Collections.Concurrent;
@@ -32,7 +33,7 @@ namespace System.Collections.Generic
         /// <param name="items">Collection to test</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains exactly one element</returns>
         /// <see cref="Exactly{T}(IEnumerable{T}, Expression{Func{T, bool}}, int)"/>
-        public static bool Once<T>(this IEnumerable<T> items) => Once(items, x => true);
+        public static bool Once<T>(this IEnumerable<T> items) => Once(items, True<T>());
 
         /// <summary>
         /// Tests if <paramref name="items"/> contains no item that verify the specified <paramref name="predicate"/>
@@ -106,18 +107,17 @@ namespace System.Collections.Generic
         /// <param name="items">Collection to test</param>
         /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
         /// <exception cref="ArgumentNullException">if <paramref name="items"/>  <c>null</c></exception>
-        public static bool AtLeastOnce<T>(this IEnumerable<T> items) => AtLeast(items, x => true, 1);
+        public static bool AtLeastOnce<T>(this IEnumerable<T> items) => AtLeast(items, True<T>(), 1);
 
         /// <summary>
         /// Tests if <paramref name="items"/> contains one or more items that verify the specified <paramref name="predicate"/>
         /// </summary>
         /// <typeparam name="T">Type of the </typeparam>
         /// <param name="items">Collection to test</param>
-        /// <param name="predicate">predicate to use</param>
+        /// <param name="count"></param>
         /// <returns><c>true</c> if <paramref name="items"/> contains one or more one element that fullfills <paramref name="predicate"/></returns>
         /// <exception cref="ArgumentNullException">if <paramref name="items"/>  <c>null</c></exception>
-        public static bool AtLeast<T>(this IEnumerable<T> items, int count) => AtLeast(items, x => true, count);
-
+        public static bool AtLeast<T>(this IEnumerable<T> items, int count) => AtLeast(items, True<T>(), count);
 
         /// <summary>
         /// Tests if <paramref name="items"/> contains at least <paramref name="count"/> elements that match <paramref name="predicate"/>
@@ -149,19 +149,9 @@ namespace System.Collections.Generic
                 throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value");
             }
 
-            bool result;
-
-            if (count == 0)
-            {
-                result = items != null;
-            }
-            else
-            {
-                // TODO Replace the following line by a while loop
-                result = items.Count(predicate.Compile()) >= count;
-            }
-
-            return result;
+            return count == 0
+                ? items != null
+                : items.Where(predicate.Compile()).Skip(count).Any();
         }
 
         /// <summary>
@@ -170,7 +160,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">Type of the elements of</typeparam>
         /// <param name="items">collection under test</param>
         /// <param name="predicate">predicate to match</param>
-        /// <param name="count">number of elements in <paramref name="items"/> that must match</param>
+        /// <param name="count">number of elements in <paramref name="items"/> that must match <paramref name="predicate"/> </param>
         /// <returns><c>true</c> if <paramref name="items"/> contains <strong>exactly</strong> <paramref name="count"/> elements that match <paramref name="predicate"/> and <c>false</c> otherwise</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="items"/> or <paramref name="predicate"/> are null</exception>
         /// <exception cref="ArgumentOutOfRangeException">if <paramref name="count"/> is negative.</exception>
@@ -191,15 +181,17 @@ namespace System.Collections.Generic
                 throw new ArgumentOutOfRangeException(nameof(count), $"{count} is not a valid value");
             }
 
-            return items.Count(predicate.Compile()) == count;
+            bool valid = false;
+            if (count == default)
+            {
+                valid = !items.Any(predicate.Compile());
+            }
+            else
+            {
+                valid = items.Count(predicate.Compile()) == count;
+            }
+            return valid;
         }
-
-
-        
-
-
-
-
 
         /// <summary>
         /// Tests if there are <paramref name="count"/> elements at most that match <paramref name="predicate"/>.
@@ -229,7 +221,6 @@ namespace System.Collections.Generic
             }
 
             return (count == 0 && items == Enumerable.Empty<T>()) || items.Count(predicate.Compile()) <= count;
-
         }
 
         /// <summary>
@@ -242,7 +233,6 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static IEnumerable<(TFirst, TSecond)> CrossJoin<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second)
             => CrossJoin(first, second, (t1, t2) => (t1, t2));
-
 
         /// <summary>
         /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
@@ -257,7 +247,6 @@ namespace System.Collections.Generic
         public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> selector)
             => first?.SelectMany(t1 => second, (t1, t2) => selector(t1, t2));
 
-
         /// <summary>
         /// Performs a cartesian product beetwen <paramref name="first"/> and <paramref name="second"/>.
         /// </summary>
@@ -269,7 +258,7 @@ namespace System.Collections.Generic
         /// <param name="second">the second collection</param>
         /// <param name="third">the third collection</param>
         /// <returns>The cartesian product of <paramref name="first"/>.<paramref name="second"/>.<paramref name="third"/>></returns>
-        public static IEnumerable<(TFirst, TSecond, TThird)> CrossJoin<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third) => 
+        public static IEnumerable<(TFirst, TSecond, TThird)> CrossJoin<TFirst, TSecond, TThird>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third) =>
             CrossJoin(first, second, third, (x, y, z) => (x, y, z));
 
         /// <summary>
@@ -286,8 +275,6 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static IEnumerable<TResult> CrossJoin<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> selector) =>
             first.SelectMany(x => second.SelectMany(y => third, (y, z) => selector(x, y, z)));
-
-
 
         /// <summary>
         /// Synchronously iterates over source an execute the <paramref name="body"/> action
@@ -363,7 +350,6 @@ namespace System.Collections.Generic
             }
         }
 
-
 #if !NETSTANDARD1_0
         /// <summary>
         /// Asynchronously run the 
@@ -393,7 +379,6 @@ namespace System.Collections.Generic
             return t;
         }
 #endif
-
 
     }
 }

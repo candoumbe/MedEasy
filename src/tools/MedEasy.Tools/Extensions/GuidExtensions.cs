@@ -21,6 +21,5 @@ namespace MedEasy.Tools.Extensions
             return enc.Substring(0, 22);
         }
 
-
     }
 }

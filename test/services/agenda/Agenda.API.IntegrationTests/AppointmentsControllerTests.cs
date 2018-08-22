@@ -168,7 +168,7 @@ namespace Agenda.API.IntegrationTests
         {
             get
             {
-                int[] invalidPages = { int.MinValue, -1, -10, 0 };
+                int[] invalidPages = { int.MinValue, -1, -10, 0, 1, 5, 10 };
 
                 IEnumerable<(int page, int pageSize)> invalidCases = invalidPages.CrossJoin(invalidPages)
                     .Where(tuple => tuple.Item1 <= 0 || tuple.Item2 <= 0);

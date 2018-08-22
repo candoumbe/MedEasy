@@ -24,5 +24,4 @@ namespace MedEasy.Tools
             return _hashFunc(obj);
         }
     }
-
 }

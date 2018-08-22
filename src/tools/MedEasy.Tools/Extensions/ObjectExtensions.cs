@@ -63,9 +63,7 @@ namespace System
                             count++;
                         }
                     }
-                    
                 }
-
                 else
                 {
                     IEnumerable<PropertyInfo> properties = obj.GetType()
@@ -90,7 +88,6 @@ namespace System
                         }
                     ); 
                 }
-
             }
             return dictionary
                 .OrderBy(x => x.Key)
@@ -160,7 +157,6 @@ namespace System
         /// <param name="obj">The object to stringify</param>
         /// <returns></returns>
         public static string Stringify(this object obj) => SerializeObject(obj, new JsonSerializerSettings { Formatting = Indented, NullValueHandling = Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
 
     }
 }

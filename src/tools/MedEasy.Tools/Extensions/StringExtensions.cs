@@ -110,7 +110,6 @@ namespace System
             return Regex.IsMatch(input, $"{pattern}$", regexOptions);
         }
 
-
         /// <summary>
         /// Converts <paramref name="source"/> to its <see cref="LambdaExpression"/> equivalent
         /// </summary>
@@ -135,7 +134,6 @@ namespace System
                     : Property(property, field);
             }
 
-
             return Lambda(property, pe);
         }
 
@@ -155,7 +153,6 @@ namespace System
             return new Guid(buffer);
         }
 
-
         /// <summary>
         /// Converts <see cref="input"/> to its lower kebab representation
         /// 
@@ -164,7 +161,6 @@ namespace System
         /// <returns>The lower-kebab-cased string</returns>
         public static string ToLowerKebabCase(this string input)
         {
-
             if (input == null)
             {
                 throw new ArgumentNullException(nameof(input), $"{nameof(input)} cannot be null");
@@ -183,7 +179,6 @@ namespace System
 
             return sb.ToString();
         }
-
 
 #if !NETSTANDARD1_0 && !NETSTANDARD1_1
         /// <summary>
