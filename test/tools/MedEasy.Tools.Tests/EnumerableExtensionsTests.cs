@@ -46,6 +46,22 @@ namespace MedEasy.Tools.Tests
 
                 yield return new object[]
                 {
+                    new []{ 3, 1 },
+                    (Expression<Func<int, bool>>) (x => x == 1),
+                    true,
+                    "Element is exactly one time in the collection"
+                };
+
+                yield return new object[]
+                {
+                    new []{ 1, 3, 1 },
+                    (Expression<Func<int, bool>>) (x => x == 3),
+                    true,
+                    "Element is exactly one time in the collection"
+                };
+
+                yield return new object[]
+                {
                     new []{ 1, 3 },
                     (Expression<Func<int, bool>>) (x => x == 5),
                     false,
@@ -59,6 +75,15 @@ namespace MedEasy.Tools.Tests
                     false,
                     "Element is present more than one time in collection"
                 };
+
+
+                yield return new object[]
+                    {
+                    new []{ 1 },
+                    (Expression<Func<int, bool>>) (x => x == 1),
+                    true,
+                    "Element is present exactly one time in collection"
+                    };
             }
         }
 
@@ -126,7 +151,7 @@ namespace MedEasy.Tools.Tests
             IEnumerable<int> source = Enumerable.Empty<int>();
 
             // Act
-            source.AtLeast(x => x == -1, 0).Should().BeTrue("a non null collection always has at least 0 items.");
+            source.AtLeast(x => x == -1, 0).Should().BeTrue("a empty collection always has at least 0 items.");
         }
 
         [Fact]
@@ -137,7 +162,7 @@ namespace MedEasy.Tools.Tests
 
             // Act
             source.AtLeast(1).Should()
-                .BeFalse("a non null collection always has at least 0 items.");
+                .BeFalse("an empty collection always has at least 0 items.");
         }
 
         [Fact]
@@ -147,7 +172,7 @@ namespace MedEasy.Tools.Tests
             IEnumerable<int> source = Enumerable.Empty<int>();
 
             // Act
-            source.AtMost(x => x == -1, 0).Should().BeTrue("a non null collection always has at most 0 items.");
+            source.AtMost(x => x == -1, 0).Should().BeTrue("an empty collection always has at most 0 items.");
         }
 
         /// <summary>
