@@ -188,9 +188,9 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Validators.UnitTests", "test\services\identity\Identity.Validators.UnitTests\Identity.Validators.UnitTests.csproj", "{759B17D1-3750-4385-81A3-4740250D40E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patients.Mapping.UnitTests", "test\services\Patients\Patients.Mapping.UnitTests\Patients.Mapping.UnitTests.csproj", "{A36255B3-3EAC-4EFB-A37B-C97DFED7D2BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Mapping.UnitTests", "test\services\Patients\Patients.Mapping.UnitTests\Patients.Mapping.UnitTests.csproj", "{A36255B3-3EAC-4EFB-A37B-C97DFED7D2BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patients.Mapping", "src\services\Patients\Patients.Mapping\Patients.Mapping.csproj", "{6A2C9750-FFEA-4650-B330-88D4B5730B30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Mapping", "src\services\Patients\Patients.Mapping\Patients.Mapping.csproj", "{6A2C9750-FFEA-4650-B330-88D4B5730B30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

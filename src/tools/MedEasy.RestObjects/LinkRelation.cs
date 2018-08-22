@@ -7,10 +7,10 @@
     /// <remarks>
     ///     
     /// </remarks>
-    public class LinkRelation
+    public static class LinkRelation
     {
         /// <summary>
-        /// 
+        /// Relation to the current resource
         /// </summary>
         public const string Self = "self";
 

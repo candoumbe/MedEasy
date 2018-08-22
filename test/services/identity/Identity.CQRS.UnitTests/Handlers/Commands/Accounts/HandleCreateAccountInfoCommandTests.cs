@@ -252,10 +252,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                                     x.UserName,
                                     x.Email,
                                     Roles = x.Roles
-                                        .Select(r => r.Id),
+                                        .Select(r => r.Id)
+                                        .ToList(),
                                     AccountClaims = x.Claims
                                         .Where(uc => uc.Start <= now && (uc.End == null || now <= uc.End))
                                         .Select(uc => new ClaimInfo { Type = uc.Claim.Type, Value = uc.Claim.Value })
+                                        .ToList()
                                 },
                                 (Account x) => x.UUID == query.Data,
                                 ct
