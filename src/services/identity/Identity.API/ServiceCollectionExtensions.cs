@@ -147,13 +147,7 @@ namespace Identity.API
         /// <param name="services"></param>
         public static void ConfigureDependencyInjection(this IServiceCollection services)
         {
-
-            services.AddScoped<ServiceFactory>(provider => provider.GetService);
-            services.Scan(scan => scan
-                .FromAssembliesOf(typeof(IMediator), typeof(GetOneAccountByUsernameAndPasswordQuery))
-                .AddClasses()
-                .AsImplementedInterfaces()
-            );
+            services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();
             services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
