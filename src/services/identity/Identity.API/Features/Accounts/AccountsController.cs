@@ -292,7 +292,7 @@ namespace Identity.API.Features.Accounts
 
         [HttpGet("/search")]
         [HttpHead("/search")]
-        public async Task<IActionResult> Search(SearchAccountInfo search, CancellationToken ct = default)
+        public async Task<IActionResult> Search([FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
 
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
@@ -347,7 +347,7 @@ namespace Identity.API.Features.Accounts
                 {
                     Resource = x,
                     Links = new[]
-                   {
+                    {
                         new Link { Relation = Self, Method = "GET" }
                     }
                 }),
