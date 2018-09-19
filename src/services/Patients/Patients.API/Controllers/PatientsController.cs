@@ -54,6 +54,7 @@ namespace Patients.API.Controllers
         /// Gets all the resources of the endpoint
         /// </summary>
         /// <param name="pagination">index of the page of resources to get</param>
+        /// <param name="cancellationToken"></param>
         /// <remarks>
         /// Resources are returned as pages. The <paramref name="pagination"/>'s value is used has a hint by the server
         /// and there's no garanty that the size of page of result will be equal to the <paramref name="pageSize"/> set in the query.
@@ -76,7 +77,7 @@ namespace Patients.API.Controllers
                         pagination.PageSize,
                         pagination.Page,
                         new[] { OrderClause<PatientInfo>.Create(x => x.UpdatedDate) },
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(false);
 
                 int count = result.Entries.Count();
                 bool hasPreviousPage = count > 0 && pagination.Page > 1;
@@ -92,7 +93,6 @@ namespace Patients.API.Controllers
                 string lastPageUrl = result.Count > 0
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : firstPageUrl;
-
 
                 IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
                     .Select(x => new BrowsableResource<PatientInfo>
@@ -116,12 +116,9 @@ namespace Patients.API.Controllers
                     lastPageUrl,
                     result.Total);
 
-
                 return new OkObjectResult(response);
             }
         }
-
-
 
         /// <summary>
         /// Gets the <see cref="PatientInfo"/> resource by its <paramref name="id"/>
@@ -148,7 +145,7 @@ namespace Patients.API.Controllers
                 {
                     Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                     Option<PatientInfo> result = await uow.Repository<Patient>()
-                        .SingleOrDefaultAsync(selector, x => x.Id == id);
+                        .SingleOrDefaultAsync(selector, x => x.Id == id).ConfigureAwait(false);
 
                     actionResult = result.Match<IActionResult>(
                         some: resource =>
@@ -180,9 +177,7 @@ namespace Patients.API.Controllers
             }
 
             return actionResult;
-
         }
-
 
         /// <summary>
         /// Creates a new <see cref="PatientInfo"/> resource.
@@ -208,7 +203,7 @@ namespace Patients.API.Controllers
 
                 patient = uow.Repository<Patient>().Create(patient);
 
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync().ConfigureAwait(false);
                 Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 PatientInfo resource = mapEntityToResource.Compile()(patient);
 
@@ -251,7 +246,7 @@ namespace Patients.API.Controllers
                 using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
                     uow.Repository<Patient>().Delete(x => x.UUID == id);
-                    await uow.SaveChangesAsync(cancellationToken);
+                    await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                     actionResult = new NoContentResult();
                 }
             }
@@ -325,12 +320,10 @@ namespace Patients.API.Controllers
                                 .ConfigureAwait(false);
 
                             return patchActionResult;
-
                         },
                         none: () => Task.FromResult((IActionResult) new NotFoundResult())
                     )
                     .ConfigureAwait(false);
-
                 }
             }
 
@@ -371,7 +364,6 @@ namespace Patients.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-
             IList<IDataFilter> filters = new List<IDataFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
             {
@@ -383,10 +375,9 @@ namespace Patients.API.Controllers
                 filters.Add($"{(nameof(search.Lastname))}={search.Lastname}".ToFilter<PatientInfo>());
             }
 
-
             SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
             {
-                Filter = filters.Count() == 1
+                Filter = filters.Count == 1
                     ? filters.Single()
                     : new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters },
                 Page = search.Page,
@@ -418,7 +409,7 @@ namespace Patients.API.Controllers
                         })
             };
 
-            Page<PatientInfo> resources = await Search(searchQuery, cancellationToken);
+            Page<PatientInfo> resources = await Search(searchQuery, cancellationToken).ConfigureAwait(false);
 
             GenericPagedGetResponse<BrowsableResource<PatientInfo>> page = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
                     items: resources.Entries.Select(x => new BrowsableResource<PatientInfo>
@@ -480,10 +471,7 @@ namespace Patients.API.Controllers
                     })
                 );
 
-
             return new OkObjectResult(page);
-
         }
-
     }
 }

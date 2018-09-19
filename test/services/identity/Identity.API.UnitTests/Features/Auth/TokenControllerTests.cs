@@ -250,7 +250,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                 .BeAsync().And
                 .BeDecoratedWith<HttpDeleteAttribute>().Which
                 .Template.Should()
-                .Be("/{username}");
+                .Be("{username}");
 
             ParameterInfo[] parameters = invalidateMethod.GetParameters();
             parameters.Should()
@@ -265,7 +265,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                 .BeAsync().And
                 .BeDecoratedWith<HttpPatchAttribute>().Which
                 .Template.Should()
-                .Be("/{username}");
+                .Be("{username}");
 
             ParameterInfo[] parameters = invalidateMethod.GetParameters();
             parameters.Should()

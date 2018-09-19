@@ -90,7 +90,6 @@ namespace Measures.API.Features.BloodPressures
         [Authorize]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
             Page<BloodPressureInfo> result = await _mediator.Send(new GetPageOfBloodPressureInfoQuery(pagination), cancellationToken)
                 .ConfigureAwait(false);
@@ -137,7 +136,6 @@ namespace Measures.API.Features.BloodPressures
 
 
             return new OkObjectResult(response);
-
 
 
         }
@@ -287,7 +285,6 @@ namespace Measures.API.Features.BloodPressures
 
             return actionResult;
 
-
         }
 
         /// <summary>
@@ -432,7 +429,6 @@ namespace Measures.API.Features.BloodPressures
             }
 
             return actionResult;
-
         }
 
 
@@ -504,8 +500,6 @@ namespace Measures.API.Features.BloodPressures
             }
 
             return actionResult;
-
         }
-
     }
 }

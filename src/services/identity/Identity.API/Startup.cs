@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Identity.API.Routing;
+﻿using Identity.API.Routing;
+using Identity.DataStores.SqlServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
+using System;
+using System.Data.SqlClient;
 
 namespace Identity.API
 {
@@ -23,22 +24,65 @@ namespace Identity.API
             _hostingEnvironment = hostingEnvironment;
         }
 
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.ConfigureMvc(_configuration);
-            services.ConfigureDependencyInjection();
+            services.AddCustomMvc(_configuration);
+            services.AddAuthorization();
+            services.AddDependencyInjection();
             services.ConfigureSwagger(_hostingEnvironment, _configuration);
             services.ConfigureAuthentication(_configuration);
-            services.ConfigureDataStores();
+            services.AddDataStores();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
+
+            using (IServiceScope scope = app.ApplicationServices.CreateScope())
+            {
+                IServiceProvider services = scope.ServiceProvider;
+                ILogger<Startup> logger = services.GetRequiredService<ILogger<Startup>>();
+                IdentityContext context = services.GetRequiredService<IdentityContext>();
+                logger?.LogInformation($"Starting Identity.API");
+
+                try
+                {
+                    if (!context.Database.IsInMemory())
+                    {
+                        logger?.LogInformation($"Upgrading Identity store");
+                        // Forces database migrations on startup
+                        RetryPolicy policy = Policy
+                            .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
+                            .WaitAndRetry(
+                                retryCount: 5,
+                                sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
+                                onRetry: (exception, timeSpan, attempt, pollyContext) =>
+                                    logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
+                                );
+                        logger?.LogInformation("Starting identity database migration");
+
+                        // Forces datastore migration on startup
+                        policy.Execute(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
+                            .ConfigureAwait(false);
+
+                        logger?.LogInformation("Identity database migrated successfully");
+
+                    }
+                    
+
+                    logger?.LogInformation($"Identity.API started");
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "An error occurred on startup.");
+                }
+            }
+
             app.UseAuthentication();
             app.UseHttpMethodOverride();
+            app.UseHsts();
+            app.UseHttpsRedirection();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
 
@@ -53,8 +97,7 @@ namespace Identity.API
             {
                 loggerFactory.AddDebug();
                 loggerFactory.AddConsole();
-                app.UseBrowserLink();
-
+                
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();

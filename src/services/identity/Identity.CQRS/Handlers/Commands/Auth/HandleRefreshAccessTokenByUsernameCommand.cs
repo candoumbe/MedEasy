@@ -39,22 +39,59 @@ namespace Identity.CQRS.Handlers.Commands
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearer = default;
             DateTime utcNow = _datetimeService.UtcNow();
 
-            (string username, string expiredAccessTokenString, string refreshTokenString, JwtSecurityTokenOptions accessTokenOptions) = cmd.Data;
+            (string username, string expiredAccessTokenString, string refreshTokenString, JwtInfos tokenOptions) = cmd.Data;
             JwtSecurityToken refreshToken = new JwtSecurityToken(refreshTokenString);
             JwtSecurityToken accessToken = new JwtSecurityToken(expiredAccessTokenString);
 
-            if (refreshToken.ValidTo <= utcNow)
+
+            if (refreshToken.ValidFrom > utcNow || refreshToken.ValidTo <= utcNow)
             {
                 optionalBearer = Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized);
             }
             else
             {
+                using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+                {
+                    Option<Account> optionalAccount = await uow.Repository<Account>().SingleOrDefaultAsync(x => x.RefreshToken == refreshTokenString && x.UserName == username, ct)
+                        .ConfigureAwait(false);
+                    optionalBearer = await optionalAccount.Match<ValueTask<Option<BearerTokenInfo, RefreshAccessCommandResult>>>(
+                        some: async account =>
+                        {
+                            JwtSecurityTokenOptions accessTokenOptions = new JwtSecurityTokenOptions
+                            {
+                                Audiences = tokenOptions.Audiences,
+                                Issuer = tokenOptions.Issuer,
+                                Key = tokenOptions.Key,
+                                LifetimeInMinutes = tokenOptions.AccessTokenLifetime
+                            };
+                            CreateSecurityTokenCommand createNewAccessTokenCmd = new CreateSecurityTokenCommand((accessTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
+                            Task<SecurityToken> newAccessTokenTask = _handleCreateSecurityTokenCommand.Handle(createNewAccessTokenCmd, ct);
 
-                CreateSecurityTokenCommand createNewAccessTokenCmd = new CreateSecurityTokenCommand((accessTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
-                SecurityToken newAccessToken = await _handleCreateSecurityTokenCommand.Handle(createNewAccessTokenCmd, ct)
+                            JwtSecurityTokenOptions refreshTokenOptions = new JwtSecurityTokenOptions
+                            {
+                                Audiences = tokenOptions.Audiences,
+                                Issuer = tokenOptions.Issuer,
+                                Key = tokenOptions.Key,
+                                LifetimeInMinutes = tokenOptions.RefreshTokenLifetime
+                            };
+                            CreateSecurityTokenCommand createNewRefreshTokenCmd = new CreateSecurityTokenCommand((refreshTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
+                            Task<SecurityToken> newRefreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createNewRefreshTokenCmd, ct);
+
+                            await Task.WhenAll(newAccessTokenTask, newRefreshTokenTask)
+                            .ConfigureAwait(false);
+
+                            account.RefreshToken = (await newRefreshTokenTask).ToString();
+
+                            await uow.SaveChangesAsync(ct)
+                                .ConfigureAwait(false);
+
+                            return Option.Some<BearerTokenInfo, RefreshAccessCommandResult>(new BearerTokenInfo { AccessToken = (await newAccessTokenTask).ToString(), RefreshToken = refreshTokenString });
+
+                        },
+                        none: () => new ValueTask<Option<BearerTokenInfo, RefreshAccessCommandResult>>(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized))
+                    )
                     .ConfigureAwait(false);
-
-                optionalBearer = Option.Some<BearerTokenInfo, RefreshAccessCommandResult>(new BearerTokenInfo { AccessToken = newAccessToken.ToString(), RefreshToken = refreshTokenString });
+                }
             }
             return optionalBearer;
         }

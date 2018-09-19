@@ -60,7 +60,6 @@ namespace Measures.API.Features.Patients
         private readonly ClaimsPrincipal _claimsPrincipal;
         
 
-
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
@@ -75,8 +74,6 @@ namespace Measures.API.Features.Patients
             _mediator = mediator;
             _claimsPrincipal = claimsPrincipal;
         }
-
-
 
         /// <summary>
         /// Gets all the resources of the endpoint
@@ -96,7 +93,6 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
             Page<PatientInfo> result = await _mediator.Send(new GetPageOfPatientInfoQuery(pagination), cancellationToken)
                 .ConfigureAwait(false);
@@ -115,7 +111,6 @@ namespace Measures.API.Features.Patients
             string lastPageUrl = result.Count > 0
                     ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                     : firstPageUrl;
-
 
             IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
                 .Select(x => new BrowsableResource<PatientInfo>
@@ -139,12 +134,8 @@ namespace Measures.API.Features.Patients
                 lastPageUrl,
                 result.Total);
 
-
             return new OkObjectResult(response);
-
         }
-
-
 
         /// <summary>
         /// Gets the <see cref="PatientInfo"/> resource by its <paramref name="id"/>
@@ -160,7 +151,6 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
         public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
-
             Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
                 .ConfigureAwait(false);
 
@@ -198,7 +188,6 @@ namespace Measures.API.Features.Patients
             );
 
             return actionResult;
-
         }
 
         /// <summary>
@@ -237,7 +226,6 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-
             IList<IDataFilter> filters = new List<IDataFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
             {
@@ -249,10 +237,9 @@ namespace Measures.API.Features.Patients
                 filters.Add($"{(nameof(search.Lastname))}={search.Lastname}".ToFilter<PatientInfo>());
             }
 
-
             SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
             {
-                Filter = filters.Count() == 1
+                Filter = filters.Count == 1
                     ? filters.Single()
                     : new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters },
                 Page = search.Page,
@@ -348,7 +335,6 @@ namespace Measures.API.Features.Patients
             }
 
             return actionResult;
-
         }
 
         /// <summary>
@@ -402,7 +388,6 @@ namespace Measures.API.Features.Patients
         [HttpHead("{id}/bloodpressures")]
         public async Task<IActionResult> GetBloodPressures([FromQuery, RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
         {
-
             GetPatientInfoByIdQuery query = new GetPatientInfoByIdQuery(id);
             Option<PatientInfo> result = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
@@ -420,11 +405,9 @@ namespace Measures.API.Features.Patients
 
                     })
                     { PreserveMethod = true };
-
                 },
                 none: () => new NotFoundResult()
             );
-
         }
 
         /// <summary>
@@ -450,10 +433,8 @@ namespace Measures.API.Features.Patients
                 SystolicPressure = newResource.SystolicPressure
             };
 
-
             Option<BloodPressureInfo, CreateCommandResult> optionalResource = await _mediator.Send(new CreateBloodPressureInfoForPatientIdCommand(createBloodPressureInfo), ct)
                 .ConfigureAwait(false);
-
 
             return optionalResource.Match(
                 some: (resource) =>
@@ -493,7 +474,6 @@ namespace Measures.API.Features.Patients
                 }
             );
 
-
         }
 
         /// <summary>
@@ -508,7 +488,6 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
-
 
             CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(newPatient);
 
@@ -528,7 +507,6 @@ namespace Measures.API.Features.Patients
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { resource.Id }, browsableResource);
         }
-
 
         /// <summary>
         /// Partially updates a resource with the specified id

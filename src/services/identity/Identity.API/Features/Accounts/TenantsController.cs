@@ -1,24 +1,20 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
+using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Repositories;
+using MedEasy.DTO;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Optional;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static MedEasy.RestObjects.LinkRelation;
-using Identity.API.Routing;
-using System.Linq;
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.DTO;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Identity.API.Features.Accounts
 {
@@ -26,7 +22,7 @@ namespace Identity.API.Features.Accounts
     /// Handles <see cref="Account"/>s resources
     /// </summary>
     [Route("identity/[controller]")]
-    [Controller]
+    [ApiController]
     [Authorize]
     public class TenantsController
     {
@@ -133,7 +129,7 @@ namespace Identity.API.Features.Accounts
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
         public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
 

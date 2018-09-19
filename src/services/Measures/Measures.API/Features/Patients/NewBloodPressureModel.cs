@@ -24,6 +24,5 @@ namespace Measures.API.Features.Patients
         /// </summary>
         [FormField(Min = 0)]
         public float DiastolicPressure { get; set; }
-        
     }
 }

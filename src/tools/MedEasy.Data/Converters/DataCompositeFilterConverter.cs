@@ -13,29 +13,10 @@ namespace MedEasy.Data.Converters
     public class DataCompositeFilterConverter : JsonConverter
     {
 
-        private static IImmutableDictionary<string, DataFilterLogic> Logics = new Dictionary<string, DataFilterLogic>
+        private static readonly IImmutableDictionary<string, DataFilterLogic> _logics = new Dictionary<string, DataFilterLogic>
         {
-            [DataFilterLogic.And.ToString().ToLower()] = DataFilterLogic.And,
-            [DataFilterLogic.Or.ToString().ToLower()] = DataFilterLogic.Or
-        }.ToImmutableDictionary();
-
-
-        private static IImmutableDictionary<string, DataFilterOperator> Operators = new Dictionary<string, DataFilterOperator>
-        {
-            ["contains"] = DataFilterOperator.Contains,
-            ["endswith"] = DataFilterOperator.EndsWith,
-            ["eq"] = DataFilterOperator.EqualTo,
-            ["gt"] = DataFilterOperator.GreaterThan,
-            ["gte"] = DataFilterOperator.GreaterThanOrEqual,
-            ["isempty"] = DataFilterOperator.IsEmpty,
-            ["isnotempty"] = DataFilterOperator.IsNotEmpty,
-            ["isnotnull"] = DataFilterOperator.IsNotNull,
-            ["isnull"] = DataFilterOperator.IsNull,
-            ["lt"] = DataFilterOperator.LessThan,
-            ["lte"] = DataFilterOperator.LessThanOrEqualTo,
-            ["neq"] = DataFilterOperator.NotEqualTo,
-            ["startswith"] = DataFilterOperator.StartsWith,
-
+            [nameof(DataFilterLogic.And).ToLower()] = DataFilterLogic.And,
+            [nameof(DataFilterLogic.Or).ToLower()] = DataFilterLogic.Or
         }.ToImmutableDictionary();
 
         public override bool CanConvert(Type objectType) => objectType == typeof(DataCompositeFilter);
@@ -58,8 +39,7 @@ namespace MedEasy.Data.Converters
                     if (logicProperty != null)
                     {
                         JProperty filtersProperty = properties.SingleOrDefault(prop => prop.Name == DataCompositeFilter.FiltersJsonPropertyName);
-                        if (filtersProperty != null
-                            && filtersProperty.Type == JTokenType.Array)
+                        if (filtersProperty?.Type == JTokenType.Array)
                         {
                             JArray filtersArray = (JArray)token[DataCompositeFilter.FiltersJsonPropertyName];
                             int nbFilters = filtersArray.Count();
@@ -81,7 +61,7 @@ namespace MedEasy.Data.Converters
                                 {
                                     kcf = new DataCompositeFilter
                                     {
-                                        Logic = Logics[token[DataCompositeFilter.LogicJsonPropertyName].Value<string>()],
+                                        Logic = _logics[token[DataCompositeFilter.LogicJsonPropertyName].Value<string>()],
                                         Filters = filters
                                     };
                                 }
@@ -103,7 +83,7 @@ namespace MedEasy.Data.Converters
 
             writer.WriteStartObject();
 
-            // TODO Maybe can we rely on the serializer to handle the logic serialization ?
+            // TODO Maybe can we rely on the serializer to handle the serialization logic ?
             writer.WritePropertyName(DataCompositeFilter.LogicJsonPropertyName);
             writer.WriteValue(kcf.Logic.ToString().ToLower());
 

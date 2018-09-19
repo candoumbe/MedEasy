@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Measures.API.Features.Patients
 {
-
     /// <summary>
     /// Base class for model to create new measure
     /// </summary>

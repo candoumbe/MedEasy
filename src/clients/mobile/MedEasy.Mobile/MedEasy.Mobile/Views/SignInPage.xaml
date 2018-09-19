@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="MedEasy.Mobile.Views.SignInPage"
+    xmlns:vm="clr-namespace:MedEasy.Mobile.Core.ViewModels.Base"
+    BindingContext="{x:Static vm:ViewModelLocator.SignInViewModel}">
+    <StackLayout HorizontalOptions="FillAndExpand"
+                 VerticalOptions="CenterAndExpand">
+        <Label Text="Username"/>
+        <Entry Text="{Binding Login}"
+               Keyboard="Email" />
+        <Entry Text="{Binding Password}"
+               Placeholder="Password"
+               IsPassword="True" />
+        <Button Text="Sign in" Command="{Binding SignInCommand }"/>
+        <Button Text="Lost password ?" Command="{Binding LostPasswordCommand}" Style="{StaticResource ButtonAsLabel}"/>
+    </StackLayout>
+</ContentPage>

@@ -7,10 +7,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Optional;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading;
@@ -19,8 +21,10 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API.Features.Auth
 {
-    [Controller]
+
+    [ApiController]
     [Route("auth/[controller]")]
+    [Authorize]
     public class TokenController
     {
         private readonly IMediator _mediator;
@@ -42,7 +46,7 @@ namespace Identity.API.Features.Auth
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public async ValueTask<IActionResult> Post([FromBody]LoginModel model, CancellationToken ct = default)
+        public async ValueTask<IActionResult> Post([FromBody, BindRequired]LoginModel model, CancellationToken ct = default)
         {
             LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
@@ -86,19 +90,17 @@ namespace Identity.API.Features.Auth
                             throw new ArgumentOutOfRangeException("Unhandled refresh token type");
                     }
 
-                    BearerTokenInfo bearerToken = new BearerTokenInfo
+                    return new OkObjectResult( new BearerTokenInfo
                     {
                         AccessToken = accessTokenString,
                         RefreshToken = refreshTokenString
-                    };
-
-                    return new OkObjectResult(bearerToken);
+                    });
                 },
                 none: () => new ValueTask<IActionResult>(new UnauthorizedResult())
-            );
+            ).ConfigureAwait(false);
         }
 
-        [HttpDelete("/{username}")]
+        [HttpDelete("{username}")]
         public async Task<IActionResult> Invalidate(string username, CancellationToken ct = default)
         {
             InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand(username);
@@ -127,19 +129,21 @@ namespace Identity.API.Features.Auth
             return actionResult;
         }
 
-        [HttpPatch("/{username}")]
-        public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
+        [HttpPatch("{username}")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> Refresh(string username, [FromBody, BindRequired] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;
-            JwtSecurityTokenOptions refreshTokenOptions = new JwtSecurityTokenOptions
+            JwtInfos jwtInfos = new JwtInfos
             {
-                Key = jwtOptions.Key,
-                Issuer = jwtOptions.Issuer,
+                AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
                 Audiences = jwtOptions.Audiences,
-                LifetimeInMinutes = jwtOptions.AccessTokenLifetime
+                Issuer = jwtOptions.Issuer,
+                Key = jwtOptions.Key,
+                RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
             };
-
-            Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(new RefreshAccessTokenByUsernameCommand((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, refreshTokenOptions)), ct)
+            RefreshAccessTokenByUsernameCommand request = new RefreshAccessTokenByUsernameCommand((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
+            Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(request, ct)
                 .ConfigureAwait(false);
 
             return optionalBearerToken.Match(

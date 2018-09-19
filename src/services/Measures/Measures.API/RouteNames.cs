@@ -5,7 +5,6 @@
     /// </summary>
     public static class RouteNames
     {
-
         /// <summary>
         /// Name of the route to the root 
         /// </summary>

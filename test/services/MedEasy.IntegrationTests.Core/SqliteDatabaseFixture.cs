@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
-using System.Data.Common;
 
 namespace MedEasy.IntegrationTests.Core
 {
@@ -13,7 +12,7 @@ namespace MedEasy.IntegrationTests.Core
         /// The current connection
         /// </summary>
         public SqliteConnection Connection { get; private set; }
-         
+
         /// <summary>
         /// Builds a new <see cref="SqliteDatabaseFixture"/>
         /// </summary>

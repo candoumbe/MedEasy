@@ -15,10 +15,10 @@ namespace MedEasy.Validators
         public PaginationConfigurationValidator()
         {
             RuleFor(x => x.Page)
-                .GreaterThan(0)
+                .GreaterThanOrEqualTo(1)
                 .WithSeverity(Error);
             RuleFor(x => x.PageSize)
-                .GreaterThan(0)
+                .GreaterThanOrEqualTo(1)
                 .WithSeverity(Error);
         }
     }

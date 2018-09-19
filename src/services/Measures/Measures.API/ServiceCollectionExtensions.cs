@@ -68,8 +68,12 @@ namespace Measures.API
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
 
-
             })
+#if NETCOREAPP2_0
+        .SetCompatibilityVersion(CompatibilityVersion.Version_2_0)
+#else
+        .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+#endif
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;
@@ -86,7 +90,6 @@ namespace Measures.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
             });
 
             services.AddCors(options =>
@@ -196,7 +199,6 @@ namespace Measures.API
 
                 return principal;
             });
-
 
         }
 

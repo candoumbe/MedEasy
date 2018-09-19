@@ -31,7 +31,6 @@ using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 
-
 namespace Agenda.API.IntegrationTests
 {
     [IntegrationTest]
@@ -155,12 +154,10 @@ namespace Agenda.API.IntegrationTests
             _server = fixture.Server;
         }
 
-
         public void Dispose()
         {
             _outputHelper = null;
             _server.Dispose();
-
         }
 
         
@@ -184,7 +181,6 @@ namespace Agenda.API.IntegrationTests
         [MemberData(nameof(GetAll_With_Invalid_Pagination_Returns_BadRequestCases))]
         public async Task GetAll_With_Invalid_Pagination_Returns_BadRequest(int page, int pageSize)
         {
-
             _outputHelper.WriteLine($"Paging configuration : {SerializeObject(new { page, pageSize })}");
 
             // Arrange
@@ -231,9 +227,7 @@ namespace Agenda.API.IntegrationTests
                 errorObject.Errors.ContainsKey("pageSize").Should().BeTrue("pageSize <= 0 is not a valid value");
             }
 
-
         }
-
 
         public static IEnumerable<object[]> InvalidSearchCases
         {
@@ -305,24 +299,19 @@ namespace Agenda.API.IntegrationTests
         [InlineData("HEAD")]
         public async Task Search_Handles_Verb(string verb)
         {
-
             // Arrange
             string url = $"{_endpointUrl}/search?sort=+startDate";
             RequestBuilder requestBuilder = new RequestBuilder(_server, url)
                 .AddHeader("Accept", "application/json");
 
-
             // Act
             HttpResponseMessage response = await requestBuilder.SendAsync(verb)
                 .ConfigureAwait(false);
 
-
             // Assert
             response.IsSuccessStatusCode.Should()
-                .BeTrue($@"HTTP {response.Version} {verb} /{url} must be supported");
+                .BeTrue($"HTTP {response.Version} {verb} /{url} must be supported");
         }
-
-
 
         public static IEnumerable<object[]> GetCountCases
         {
@@ -335,9 +324,7 @@ namespace Agenda.API.IntegrationTests
                     (total : 0, count : 0)
                 };
 
-
                 {
-
                     Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
                         .RuleFor(x => x.Name, faker => faker.Name.FullName());
 
@@ -373,7 +360,6 @@ namespace Agenda.API.IntegrationTests
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
-                
             })
             .ConfigureAwait(false);
             
@@ -405,7 +391,6 @@ namespace Agenda.API.IntegrationTests
                 .HaveCount(1).And
                 .ContainSingle().And
                 .ContainSingle(value => value == countHeaders.count.ToString());
-
         }
 
         [Fact]
@@ -453,7 +438,6 @@ namespace Agenda.API.IntegrationTests
             json.Should()
                 .NotBeNullOrWhiteSpace();
 
-
             JToken token = JToken.Parse(json);
             bool tokenIsValid = token.IsValid(_browsableResourceSchema, out IList<string> errors);
             tokenIsValid.Should()
@@ -471,9 +455,7 @@ namespace Agenda.API.IntegrationTests
 
             response.IsSuccessStatusCode.Should()
                 .BeTrue($"location <{location}> must point to the created resource");
-
         }
-
 
         [Fact]
         public async Task RemoveParticipantFromAppointment_MustComplete()
@@ -490,7 +472,6 @@ namespace Agenda.API.IntegrationTests
                 .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
                 .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
 
-
             NewAppointmentInfo newAppointmentInfo = appointmentFaker;
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}")
@@ -499,7 +480,6 @@ namespace Agenda.API.IntegrationTests
 
             HttpResponseMessage response = await requestBuilder.PostAsync()
                 .ConfigureAwait(false);
-
 
             _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
 
@@ -526,7 +506,6 @@ namespace Agenda.API.IntegrationTests
             response = await requestBuilder.SendAsync(Delete)
                 .ConfigureAwait(false);
 
-
             // Assert
             _outputHelper.WriteLine("Starting assertions");
             _outputHelper.WriteLine($"Delete status code : {response.StatusCode}");
@@ -536,8 +515,6 @@ namespace Agenda.API.IntegrationTests
 
             ((int)response.StatusCode).Should()
                 .Be(Status204NoContent);
-            
         }
-
     }
 }

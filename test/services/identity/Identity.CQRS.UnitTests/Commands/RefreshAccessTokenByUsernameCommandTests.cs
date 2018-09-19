@@ -25,35 +25,34 @@ namespace Identity.CQRS.UnitTests.Commands
 
         [Fact]
         public void IsCommand() => typeof(RefreshAccessTokenByUsernameCommand).Should()
-            .Implement<ICommand<Guid, (string username, string expiredAccessToken, string refreshToken, JwtSecurityTokenOptions accessTokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
-
+.Implement<ICommand<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
 
         public static IEnumerable<object[]> InvalidCtorCases
         {
             get
             {
                 yield return new object[] { null, null, null, null, "all parameters are null"};
-                yield return new object[] { string.Empty, "header-access.payload.signature", "header-refresh.payload.signature", new JwtSecurityTokenOptions(), "username is empty" };
-                yield return new object[] { "   ", "header-access.payload.signature", "header-refresh.payload.signature", new JwtSecurityTokenOptions(), "username is whitespace" };
-                yield return new object[] { "thejoker", string.Empty, "header-refresh.payload.signature", new JwtSecurityTokenOptions(), "expiredAccessToken is empty" };
-                yield return new object[] { "thejoker", "  ", "header-refresh.payload.signature", new JwtSecurityTokenOptions(), "expiredAccessToken is whitespace" };
-                yield return new object[] { "thejoker", null, "header-refresh.payload.signature", new JwtSecurityTokenOptions(), "expiredAccessToken is null" };
-                yield return new object[] { "thejoker", "header-access.payload.signature", "  ", new JwtSecurityTokenOptions(), "refresh token is whitespace" };
-                yield return new object[] { "thejoker", "header-access.payload.signature", null, new JwtSecurityTokenOptions(), "refresh token is null" };
-                yield return new object[] { "thejoker", "header-access.payload.signature", string.Empty, new JwtSecurityTokenOptions(), "refresh token is empty" };
+                yield return new object[] { string.Empty, "header-access.payload.signature", "header-refresh.payload.signature", new JwtInfos(), "username is empty" };
+                yield return new object[] { "   ", "header-access.payload.signature", "header-refresh.payload.signature", new JwtInfos(), "username is whitespace" };
+                yield return new object[] { "thejoker", string.Empty, "header-refresh.payload.signature", new JwtInfos(), "expiredAccessToken is empty" };
+                yield return new object[] { "thejoker", "  ", "header-refresh.payload.signature", new JwtInfos(), "expiredAccessToken is whitespace" };
+                yield return new object[] { "thejoker", null, "header-refresh.payload.signature", new JwtInfos(), "expiredAccessToken is null" };
+                yield return new object[] { "thejoker", "header-access.payload.signature", "  ", new JwtInfos(), "refresh token is whitespace" };
+                yield return new object[] { "thejoker", "header-access.payload.signature", null, new JwtInfos(), "refresh token is null" };
+                yield return new object[] { "thejoker", "header-access.payload.signature", string.Empty, new JwtInfos(), "refresh token is empty" };
                 yield return new object[] { "thejoker", "header-access.payload.signature", "header-refresh.payload.signature", null, "accessTokenOptions is null" };
             }
         }
 
         [Theory]
         [MemberData(nameof(InvalidCtorCases))]
-        public void Ctor_Throws_ArgumentNullException(string username, string expiredAccessToken, string refreshToken, JwtSecurityTokenOptions accessTokenOptions, string reason)
+        public void Ctor_Throws_ArgumentNullException(string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions, string reason)
         {
 
-            _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, accessTokenOptions }.Stringify()}");
+            _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, tokenOptions }.Stringify()}");
 
             // Act
-            Action action = () => new RefreshAccessTokenByUsernameCommand((username, expiredAccessToken, refreshToken, accessTokenOptions));
+            Action action = () => new RefreshAccessTokenByUsernameCommand((username, expiredAccessToken, refreshToken, tokenOptions));
 
             // Assert
             action.Should()

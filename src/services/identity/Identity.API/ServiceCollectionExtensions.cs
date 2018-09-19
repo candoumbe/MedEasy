@@ -14,9 +14,11 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -25,7 +27,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -50,17 +51,26 @@ namespace Identity.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
+        public static void AddCustomMvc(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddMvc(options =>
+            services.AddMvc(config =>
             {
-                options.Filters.Add<FormatFilterAttribute>();
-                options.Filters.Add<ValidateModelActionFilter>();
-                options.Filters.Add<AddCountHeadersFilterAttribute>();
+                config.Filters.Add<FormatFilterAttribute>();
+                //options.Filters.Add<ValidateModelActionFilter>();
+                config.Filters.Add<AddCountHeadersFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                options.Filters.Add<HandleErrorAttribute>();
-                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                config.Filters.Add<HandleErrorAttribute>();
+                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+
+                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .Build();
+
+                config.Filters.Add(new AuthorizeFilter(policy));
+
             })
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;
@@ -121,9 +131,20 @@ namespace Identity.API
                 {
                     IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                     DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                    builder.ConfigureWarnings(options =>
+                    {
+                        options.Default(WarningBehavior.Log);
+                    });
+
+                    Func<DbContextOptions<IdentityContext>, IdentityContext> contextGenerator;
+
                     if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                     {
-                        builder.UseSqlite("Datasource=:memory:");
+                        string databaseName = $"InMemory_{Guid.NewGuid()}";
+                        builder.UseInMemoryDatabase(databaseName);
+
+                        contextGenerator = options => new IdentityContext(options);
                     }
                     else
                     {
@@ -131,27 +152,24 @@ namespace Identity.API
                         builder.UseSqlServer(
                             configuration.GetConnectionString("Identity"),
                             b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
-                    }
-                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                    builder.ConfigureWarnings(options =>
-                    {
-                        options.Default(WarningBehavior.Log);
-                    });
 
-                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
+                        contextGenerator = (options) => new IdentityContext(options);
+
+                    }
+                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, contextGenerator);
                 });
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void ConfigureDependencyInjection(this IServiceCollection services)
+        public static void AddDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();
-            services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
-            services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
+            services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -218,6 +236,7 @@ namespace Identity.API
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
+
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
@@ -229,7 +248,7 @@ namespace Identity.API
 
                                 return securityTokenValidator.Validate(securityToken).IsValid;
                             }
-                            
+
                         },
                         RequireExpirationTime = true,
                         ValidateIssuerSigningKey = true,
@@ -249,7 +268,8 @@ namespace Identity.API
         /// <param name="configuration"></param>
         public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
-            ApplicationEnvironment app = PlatformServices.Default.Application;
+
+            (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
@@ -268,7 +288,7 @@ namespace Identity.API
 
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
-                string documentationPath = Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml");
+                string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");
                 if (File.Exists(documentationPath))
                 {
                     config.IncludeXmlComments(documentationPath);

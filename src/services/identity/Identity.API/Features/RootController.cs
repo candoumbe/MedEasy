@@ -18,7 +18,7 @@ namespace Identity.API.Features
     /// <summary>
     /// Controller that describe 
     /// </summary>
-    [Controller]
+    [ApiController]
     [Route("/")]
     [AllowAnonymous]
     public class RootController
@@ -28,7 +28,7 @@ namespace Identity.API.Features
         private IOptions<IdentityApiOptions> ApiOptions { get; }
 
         /// <summary>
-        /// 
+        /// Builds a new <see cref="RootController"/> instance
         /// </summary>
         /// <param name="hostingEnvironment">Gives access to hosting environment</param>
         /// <param name="urlHelper"></param>

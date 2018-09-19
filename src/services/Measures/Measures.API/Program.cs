@@ -6,16 +6,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Polly.Retry;
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 namespace Measures.API
 {
-    /// <summary>
-    /// Host's entry point
-    /// </summary>
+#pragma warning disable RCS1102 // Make class static.
+                               /// <summary>
+                               /// Host's entry point
+                               /// </summary>
     public class Program
+#pragma warning restore RCS1102 // Make class static.
     {
         /// <summary>
         /// Host's entry point
@@ -23,7 +26,8 @@ namespace Measures.API
         /// </summary>
         public static async Task Main(string[] args)
         {
-            IWebHost host = BuildWebHost(args);
+            IWebHost host = CreateWebHostBuilder(args)
+                .Build();
 
             using (IServiceScope scope = host.Services.CreateScope())
             {
@@ -38,24 +42,21 @@ namespace Measures.API
                     {
                         logger?.LogInformation($"Upgrading Measures store");
                         // Forces database migrations on startup
-                        Policy
+                        RetryPolicy policy = Policy
                             .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
-                            .WaitAndRetry(
+                            .WaitAndRetryAsync(
                                 retryCount: 5,
                                 sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
                                 onRetry: (exception, timeSpan, attempt, pollyContext) =>
-                                {
-                                    if (exception != default)
-                                    {
-                                        logger?.LogError(exception, "Error while upgrading database");
-                                    }
+                                    logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
+                                );
+                        logger?.LogInformation("Starting measures database migration");
 
-                                    logger?.LogInformation($"Upgrading database (Attempt {attempt}/{pollyContext.Count})");
-                                    // Forces database migrations on startup
-                                    context.Database.Migrate();
-                                });
-                        logger?.LogInformation($"Database updated");
+                        // Forces datastore migration on startup
+                        await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
+                            .ConfigureAwait(false);
 
+                        logger?.LogInformation($"Measures database updated");
                     }
                     await host.RunAsync()
                         .ConfigureAwait(false);
@@ -74,10 +75,7 @@ namespace Measures.API
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHost BuildWebHost(string[] args)
-        {
-
-            IWebHost host = WebHost.CreateDefaultBuilder(args)
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder(args)
                .UseStartup<Startup>()
                .ConfigureAppConfiguration((context, builder) =>
 
@@ -86,11 +84,6 @@ namespace Measures.API
                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                        .AddEnvironmentVariables()
                        .AddCommandLine(args)
-               )
-               .Build();
-
-
-            return host;
-        }
+               );
     }
 }

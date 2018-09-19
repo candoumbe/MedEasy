@@ -1,5 +1,4 @@
 ﻿using Identity.API.Routing;
-using Identity.CQRS.Commands;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
@@ -15,6 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
@@ -31,12 +31,13 @@ namespace Identity.API.Features.Accounts
     /// Handles <see cref="Account"/>s resources
     /// </summary>
     [Route("identity/[controller]")]
-    [Controller]
+    [ApiController]
     [Authorize]
     public class AccountsController
     {
         public static string EndpointName => nameof(AccountsController)
             .Replace(nameof(Controller), string.Empty);
+
         private readonly IUrlHelper _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
         private readonly IMediator _mediator;
@@ -59,7 +60,7 @@ namespace Identity.API.Features.Accounts
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>), Status200OK)]
-        public async Task<IActionResult> Get(PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
+        public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             IdentityApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
@@ -201,8 +202,8 @@ namespace Identity.API.Features.Accounts
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
 
             PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
@@ -292,7 +293,7 @@ namespace Identity.API.Features.Accounts
 
         [HttpGet("/search")]
         [HttpHead("/search")]
-        public async Task<IActionResult> Search([FromQuery] SearchAccountInfo search, CancellationToken ct = default)
+        public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
 
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);

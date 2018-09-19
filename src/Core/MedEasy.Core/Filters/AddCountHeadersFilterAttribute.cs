@@ -26,8 +26,8 @@ namespace MedEasy.Core.Filters
         /// </summary>
         public static readonly string CountHeaderName = "X-Count";
 
-        private static Type _genericPageResponseType = typeof(GenericPagedGetResponse<>);
-        private static Type _enumerableType = typeof(Enumerable);
+        private static readonly Type _genericPageResponseType = typeof(GenericPagedGetResponse<>);
+        private static readonly Type _enumerableType = typeof(Enumerable);
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {

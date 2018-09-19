@@ -67,7 +67,10 @@ namespace Measures.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseAuthentication();
-
+#if !NETCOREAPP2_0
+            app.UseHsts();
+            app.UseHttpsRedirection();
+#endif
             app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -83,7 +86,6 @@ namespace Measures.API
             {
                 loggerFactory.AddDebug();
                 loggerFactory.AddConsole();
-                app.UseBrowserLink();
 
                 if (env.IsDevelopment())
                 {

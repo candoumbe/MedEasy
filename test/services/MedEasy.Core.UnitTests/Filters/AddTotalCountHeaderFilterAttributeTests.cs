@@ -52,40 +52,40 @@ namespace MedEasy.Core.UnitTests.Filters
                 yield return new object[]
                 {
                     new { page = 1},
-                    ((Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                    )),
+                    ),
                     "value is an anonymous object"
                 };
 
                 yield return new object[]
                 {
                     new GenericPagedGetResponse<BrowsableResource<Minion>>(Enumerable.Empty<BrowsableResource<Minion>>(), count: 20),
-                    ((Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                    )),
+                    ),
                     $"value is a {nameof(GenericPagedGetResponse<object>)}"
                 };
 
                 yield return new object[]
                 {
                     Enumerable.Empty<Minion>(),
-                    ((Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                    )),
+                    ),
                     $"value is a collection"
                 };
 
                 yield return new object[]
                 {
                     new List<Minion>(),
-                    ((Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                    )),
+                    ),
                     $"value is a list"
                 };
             }
@@ -180,7 +180,7 @@ namespace MedEasy.Core.UnitTests.Filters
             // Assert
             IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
 
-            _outputHelper.WriteLine($"Headers : {SerializeObject(headers, new JsonSerializerSettings { NullValueHandling = Ignore, Formatting = Indented })}");
+            _outputHelper.WriteLine($"Headers : {headers.Stringify()}");
 
             headers.Should()
                 .ContainKey(AddCountHeadersFilterAttribute.TotalCountHeaderName).WhichValue.Should()

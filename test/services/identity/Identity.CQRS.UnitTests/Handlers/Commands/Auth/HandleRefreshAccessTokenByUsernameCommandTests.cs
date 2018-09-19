@@ -101,11 +101,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
             Faker faker = new Faker();
 
-            JwtSecurityTokenOptions tokenOptions = new JwtSecurityTokenOptions
+            JwtInfos tokenInfos = new JwtInfos
             {
                 Issuer = faker.Internet.DomainName(),
                 Key = faker.Lorem.Word(),
-                LifetimeInMinutes = faker.Random.Int(),
+                AccessTokenLifetime = faker.Random.Int(min: 1, max: 10),
+                RefreshTokenLifetime = faker.Random.Int(min: 10, max: 20),
                 Audiences = faker.Lorem.Words()
             };
             SecurityToken accessToken = new JwtSecurityToken(
@@ -129,13 +130,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                 }
             );
 
-            
             string refreshTokenString = _jwtSecurityTokenHandler.WriteToken(refreshToken);
             string expiredAccessTokenString = _jwtSecurityTokenHandler.WriteToken(accessToken);
 
             _outputHelper.WriteLine($"Refresh token : {refreshTokenString}");
 
-            RefreshAccessTokenByUsernameCommand cmd = new RefreshAccessTokenByUsernameCommand(("thejoker", expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenOptions));
+            RefreshAccessTokenByUsernameCommand cmd = new RefreshAccessTokenByUsernameCommand(("thejoker", expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenInfos));
 
             _datetimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
@@ -158,12 +158,37 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
             // Arrange
             DateTime utcNow = 25.June(2018).Add(15.Hours());
             Faker faker = new Faker();
-
-            JwtSecurityTokenOptions tokenOptions = new JwtSecurityTokenOptions
+            JwtSecurityToken refreshToken = new JwtSecurityToken(
+               audience: "api",
+               notBefore: utcNow.Subtract(2.Days()),
+               expires: utcNow.Add(1.Days()),
+               signingCredentials: _signingCredentials,
+               claims: new[]
+               {
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+               }
+           );
+            Account account = new Account
+            {
+                Name = faker.Person.FullName,
+                Email = faker.Person.Email,
+                PasswordHash = faker.Lorem.Word(),
+                Salt = faker.Lorem.Word(),
+                UserName = faker.Person.UserName,
+                RefreshToken = new JwtSecurityTokenHandler().WriteToken(refreshToken)
+            };
+            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            {
+                uow.Repository<Account>().Create(account);
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+            JwtInfos tokenOptions = new JwtInfos
             {
                 Issuer = faker.Internet.DomainName(),
                 Key = faker.Lorem.Word(),
-                LifetimeInMinutes = faker.Random.Int(),
+                AccessTokenLifetime = faker.Random.Int(min: 1, max: 10),
+                RefreshTokenLifetime = faker.Random.Int(min: 20, max: 30),
                 Audiences = faker.Lorem.Words()
             };
             SecurityToken accessToken = new JwtSecurityToken(
@@ -176,23 +201,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 }
             );
-            SecurityToken refreshToken = new JwtSecurityToken(
-                audience: "api",
-                notBefore: utcNow.Subtract(2.Days()),
-                expires: utcNow.Add(1.Days()),
-                signingCredentials: _signingCredentials,
-                claims: new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                }
-            );
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             string refreshTokenString = _jwtSecurityTokenHandler.WriteToken(refreshToken);
             string expiredAccessTokenString = _jwtSecurityTokenHandler.WriteToken(refreshToken);
 
             _outputHelper.WriteLine($"Refresh token : {refreshTokenString}");
 
-            RefreshAccessTokenByUsernameCommand refreshAccessTokenByUsernameCommand = new RefreshAccessTokenByUsernameCommand(("thejoker", expiredAccessTokenString, refreshTokenString, tokenOptions));
+            RefreshAccessTokenByUsernameCommand refreshAccessTokenByUsernameCommand = new RefreshAccessTokenByUsernameCommand((account.UserName, expiredAccessTokenString, refreshTokenString, tokenOptions));
 
             _datetimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
@@ -201,9 +216,23 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                 .ConfigureAwait(false);
 
             // Assert
+            optionalBearer.HasValue.Should()
+                .BeTrue("refresh token is valid and the user exists in the database");
             _datetimeServiceMock.Verify(mock => mock.UtcNow(), Times.Once);
-            _handleCreateSecurityTokenMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()), Times.Once);
-            _handleCreateSecurityTokenMock.Verify(mock => mock.Handle(It.Is<CreateSecurityTokenCommand>(cmd => cmd.Data.tokenOptions == tokenOptions), It.IsAny<CancellationToken>()), Times.Once);
+            _handleCreateSecurityTokenMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _handleCreateSecurityTokenMock.Verify(mock =>
+                mock.Handle(It.Is<CreateSecurityTokenCommand>(cmd => cmd.Data.tokenOptions.Audiences.SequenceEqual(tokenOptions.Audiences)
+                    && cmd.Data.tokenOptions.Issuer == tokenOptions.Issuer
+                    && cmd.Data.tokenOptions.Key == tokenOptions.Key
+                    && cmd.Data.tokenOptions.LifetimeInMinutes == tokenOptions.AccessTokenLifetime
+            ), It.IsAny<CancellationToken>()), Times.Once);
+
+            _handleCreateSecurityTokenMock.Verify(mock =>
+                mock.Handle(It.Is<CreateSecurityTokenCommand>(cmd => cmd.Data.tokenOptions.Audiences.SequenceEqual(tokenOptions.Audiences)
+                    && cmd.Data.tokenOptions.Issuer == tokenOptions.Issuer
+                    && cmd.Data.tokenOptions.Key == tokenOptions.Key
+                    && cmd.Data.tokenOptions.LifetimeInMinutes == tokenOptions.RefreshTokenLifetime
+            ), It.IsAny<CancellationToken>()), Times.Once);
 
             optionalBearer.HasValue.Should()
                 .BeTrue("access token was successfully renewed");

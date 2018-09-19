@@ -15,6 +15,5 @@
         /// Patient's lastname
         /// </summary>
         public string Lastname { get; set; }
-
     }
 }

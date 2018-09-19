@@ -9,13 +9,13 @@ namespace Identity.CQRS.Commands
     /// <summary>
     /// Command to invalidate an access token for an account.
     /// </summary>
-    public class RefreshAccessTokenByUsernameCommand : CommandBase<Guid, (string username, string expiredAccessToken, string refreshToken, JwtSecurityTokenOptions accessTokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>
+    public class RefreshAccessTokenByUsernameCommand : CommandBase<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>
     {
         /// <summary>
         /// Builds a new <see cref="InvalidateAccessTokenByUsernameCommand"/> instance
         /// </summary>
         /// <param name="data"></param>
-        public RefreshAccessTokenByUsernameCommand((string username, string expiredAccessToken, string refreshToken, JwtSecurityTokenOptions accessTokenOptions)  data) : base(Guid.NewGuid(), data)
+        public RefreshAccessTokenByUsernameCommand((string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions)  data) : base(Guid.NewGuid(), data)
         {
             if (string.IsNullOrWhiteSpace(data.username))
             {
@@ -32,9 +32,9 @@ namespace Identity.CQRS.Commands
                 throw new ArgumentException(nameof(data.refreshToken), $"{nameof(data.refreshToken)} is null or whitespace");
             }
 
-            if (data.accessTokenOptions == default)
+            if (data.tokenOptions == default)
             {
-                throw new ArgumentException(nameof(data.accessTokenOptions), $"{nameof(data.accessTokenOptions)} is null");
+                throw new ArgumentException(nameof(data.tokenOptions), $"{nameof(data.tokenOptions)} is null");
             }
         }
     }

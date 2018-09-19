@@ -1,40 +1,44 @@
 using Identity.API.Features.Accounts;
+using Identity.DataStores.SqlServer;
 using Identity.DTO;
+using MedEasy.DAL.EFStore;
+using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.AspNetCore.TestHost;
-using System;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Xunit;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Identity.API.Fixtures
 {
-#pragma warning disable RCS1102 // Make class static.
-    public class IdentityApiFixture
-#pragma warning restore RCS1102 // Make class static.
+    public class IdentityApiFixture : IntegrationFixture<Startup>
     {
+        protected override void ConfigureClient(HttpClient client)
+            => client.BaseAddress = new System.Uri("https://localhost");
+
+
         /// <summary>
         /// Register a new account
         /// </summary>
-        /// <param name="newAccount"></param>
+        /// <param name="newAccount">Account to register</param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public static async ValueTask<BearerTokenInfo> Register(TestServer identityServer , NewAccountInfo newAccount)
+        public async ValueTask<BearerTokenInfo> Register(NewAccountInfo newAccount)
         {
             // Create account
-            RequestBuilder requestBuilder = identityServer.CreateRequest($"/identity/{AccountsController.EndpointName}")
-                .And(message => message.Content = new StringContent(SerializeObject(newAccount), Encoding.UTF8, "application/json"));
+            using (HttpClient client = CreateClient())
+            {
+                HttpResponseMessage response = await client.PostAsJsonAsync($"/identity/{AccountsController.EndpointName}", newAccount)
+                    .ConfigureAwait(false);
 
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
 
-            response.EnsureSuccessStatusCode();
-
-            // Get Token
-            return await Connect(identityServer, new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
-                .ConfigureAwait(false);
-            
+                // Get Token
+                return await Connect(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
+                    .ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -42,22 +46,19 @@ namespace Identity.API.Fixtures
         /// </summary>
         /// <param name="loginInfo"></param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public static async  Task<BearerTokenInfo> Connect(TestServer identityServer, LoginInfo loginInfo)
+        public async Task<BearerTokenInfo> Connect(LoginInfo loginInfo)
         {
-            RequestBuilder requestBuilder = identityServer.CreateRequest("/auth/token")
-                .And(message => message.Content = new StringContent(SerializeObject(loginInfo), Encoding.UTF8, "application/json"));
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
+            using (HttpClient client = CreateClient())
+            {
+                HttpResponseMessage response = await client.PostAsJsonAsync($"/auth/token", loginInfo)
+                    .ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
 
-            response.EnsureSuccessStatusCode();
+                string tokenJson = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
 
-            string tokenJson = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            return DeserializeObject<BearerTokenInfo>(tokenJson);
-
+                return DeserializeObject<BearerTokenInfo>(tokenJson);
+            }
         }
-
-
     }
 }
