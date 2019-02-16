@@ -26,7 +26,6 @@ namespace MedEasy.Data.Tests
             public string Lastname { get; set; }
 
             public DateTime BirthDate { get; set; }
-
         }
 
         public class SuperHero : Person
@@ -50,7 +49,6 @@ namespace MedEasy.Data.Tests
             _output = output;
         }
 
-
         public static IEnumerable<object[]> EqualToTestCases
         {
             get
@@ -61,7 +59,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : nameof(SuperHero.Firstname), @operator : EqualTo, value : "Bruce"),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Firstname == "Bruce"))
                 };
-
 
                 yield return new object[]
                 {
@@ -77,15 +74,12 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Firstname == "Bruce"))
                 };
 
-
                 yield return new object[]
                 {
                     new[] {new SuperHero { Firstname = "Bruce", Lastname = "Wayne", Height = 190 }},
                     new DataFilter(field : nameof(SuperHero.Height), @operator : EqualTo, value : 190),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Height == 190 ))
                 };
-
-
 
                 yield return new object[]
                 {
@@ -102,7 +96,6 @@ namespace MedEasy.Data.Tests
                     },
                     ((Expression<Func<SuperHero, bool>>)(item => item.Nickname == "Batman" || item.Nickname == "Superman"))
                 };
-
 
                 yield return new object[]
                 {
@@ -129,7 +122,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Firstname.Contains("a") && (item.Nickname == "Batman" || item.Nickname == "Superman")))
                 };
 
-
                 yield return new object[]
                 {
                     new[] {
@@ -154,9 +146,7 @@ namespace MedEasy.Data.Tests
                     },
                     ((Expression<Func<SuperHero, bool>>)(item => item.Firstname.Contains("a") && (1.January(2007) < item.LastBattleDate) && item.LastBattleDate < 31.December(2012)))
                 };
-
             }
-
         }
         [Theory]
         [MemberData(nameof(EqualToTestCases))]
@@ -202,7 +192,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Lastname == string.Empty))
                 };
 
-
                 yield return new object[]
                 {
                     new[] {
@@ -232,7 +221,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Henchman.Lastname == string.Empty))
                 };
 
-
                 yield return new object[]
                 {
                     new[] {
@@ -251,7 +239,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : $"{nameof(SuperHero.Henchman)}.{nameof(Henchman.Firstname)}", @operator : NotEqualTo, value: "Dick"),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Henchman.Firstname != "Dick"))
                 };
-
             }
         }
 
@@ -259,8 +246,6 @@ namespace MedEasy.Data.Tests
         [MemberData(nameof(IsEmptyTestCases))]
         public void BuildIsEmpty(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
-
-
 
         public static IEnumerable<object[]> IsNotEmptyTestCases
         {
@@ -272,7 +257,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : nameof(SuperHero.Lastname), @operator : IsNotEmpty),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Lastname != string.Empty))
                 };
-
 
                 yield return new object[]
                 {
@@ -302,7 +286,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : $"{nameof(SuperHero.Henchman)}.{nameof(Henchman.Firstname)}", @operator : IsNotEmpty),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Henchman.Lastname != string.Empty))
                 };
-
             }
         }
 
@@ -327,9 +310,7 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Nickname.StartsWith("B")))
                 };
             }
-
         }
-
 
         [Theory]
         [MemberData(nameof(StartsWithCases))]
@@ -352,7 +333,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Nickname.EndsWith("n")))
                 };
             }
-
         }
 
         [Theory]
@@ -376,14 +356,12 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Nickname.Contains("n")))
                 };
             }
-
         }
 
         [Theory]
         [MemberData(nameof(ContainsCases))]
         public void BuildContains(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
-
 
         public static IEnumerable<object[]> LessThanTestCases
         {
@@ -399,8 +377,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : nameof(SuperHero.Height), @operator : LessThan, value: 150),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Height < 150)),
                 };
-
-
             }
         }
 
@@ -438,7 +414,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<SuperHero, bool>>)(item => item.Lastname != "Kent"))
                 };
 
-
                 yield return new object[]
                 {
                     new[] {
@@ -457,7 +432,6 @@ namespace MedEasy.Data.Tests
                     new DataFilter(field : $"{nameof(SuperHero.Henchman)}.{nameof(Henchman.Firstname)}", @operator : NotEqualTo, value : "Dick"),
                     ((Expression<Func<SuperHero, bool>>)(item => item.Henchman.Firstname != "Dick"))
                 };
-
             }
         }
 
@@ -465,7 +439,6 @@ namespace MedEasy.Data.Tests
         [MemberData(nameof(NotEqualToTestCases))]
         public void BuildNotEqual(IEnumerable<SuperHero> superheroes, IDataFilter filter, Expression<Func<SuperHero, bool>> expression)
             => Build(superheroes, filter, expression);
-
 
         /// <summary>
         /// Tests various filters
@@ -490,7 +463,6 @@ namespace MedEasy.Data.Tests
             filteredResult.Should()
                 .NotBeNull()
                 .And.BeEquivalentTo(superheroes?.Where(expression.Compile()));
-
         }
 
         /// <summary>
@@ -509,16 +481,12 @@ namespace MedEasy.Data.Tests
 
 
 
-
-
         }
-
 
         public static IEnumerable<object[]> QueryStringToFilterCases
         {
             get
             {
-
                 yield return new object[]
                {
                     string.Empty,
@@ -624,7 +592,6 @@ namespace MedEasy.Data.Tests
 
                         ))
                 };
-
             }
         }
 
@@ -642,7 +609,6 @@ namespace MedEasy.Data.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
         [Fact]
         public void ToExpressionThrowsArgumentNullExceptionWhenParameterIsNull()
         {
@@ -656,7 +622,6 @@ namespace MedEasy.Data.Tests
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
-
 
         /// <summary>
         /// Tests for the <see cref="DataFilterExtensions.ToFilter{T}(string)"/>
@@ -677,10 +642,7 @@ namespace MedEasy.Data.Tests
             // Assert
             filter.Should()
                 .Match(resultExpression);
-
-
         }
-
 
         [Theory]
         [InlineData(Contains, " ")]
@@ -698,7 +660,6 @@ namespace MedEasy.Data.Tests
         [InlineData(StartsWith, " ")]
         public void FilterIsConvertedToAlwaysTrueExpressionWhenFieldIsNull(DataFilterOperator @operator, object value)
         {
-
             // Arrange
             IEnumerable<SuperHero> superHeroes = new[]
             {
@@ -718,5 +679,4 @@ namespace MedEasy.Data.Tests
                 .OnlyContain(x => superHeroes.Once(sh => x.Firstname == sh.Firstname && x.Lastname == sh.Lastname));
         }
     }
-
 }

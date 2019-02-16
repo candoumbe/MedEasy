@@ -10,7 +10,6 @@ using Xunit.Categories;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
-
     [Feature("Agenda")]
     [UnitTest]
     public class RemoveParticipantFromAppointmentByIdCommandTests
@@ -23,7 +22,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                 .NotBeAbstract().And
                 .NotHaveDefaultConstructor();
         }
-
 
         [Fact]
         public void Ctor_Is_Valid()
@@ -53,7 +51,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                 return guids.CrossJoin(guids)
                     .Where(tuple => tuple.Item1 == default || tuple.Item2 == default)
                     .Select(tuple => new object[] { tuple.Item1, tuple.Item2});
-
             }
         }
 
@@ -69,7 +66,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                 .Throw<ArgumentException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
 
         public static IEnumerable<object[]> EqualsCases
@@ -89,7 +85,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                     };
                 }
             }
-
         }
 
         [Theory]

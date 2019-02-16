@@ -212,12 +212,12 @@ namespace Identity.API.Tests.Features.Accounts
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAccountsQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
-            GenericPagedGetResponse<BrowsableResource<AccountInfo>> response = actionResult.Should()
+            GenericPagedGetResponse<Browsable<AccountInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                         .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<AccountInfo>>>().Which;
+                        .BeAssignableTo<GenericPagedGetResponse<Browsable<AccountInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -226,7 +226,7 @@ namespace Identity.API.Tests.Features.Accounts
                 .NotContain(x => x.Links == null);
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>)}.{nameof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<AccountInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<AccountInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageLinksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageLinksExpectation.previousPageUrlExpectation);
@@ -298,10 +298,10 @@ namespace Identity.API.Tests.Features.Accounts
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByIdQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
 
-            BrowsableResource<AccountInfo> browsableResource = actionResult.Should()
+            Browsable<AccountInfo> browsableResource = actionResult.Should()
                 .BeAssignableTo<OkObjectResult>().Which
                 .Value.Should()
-                .BeAssignableTo<BrowsableResource<AccountInfo>>().Which;
+                .BeAssignableTo<Browsable<AccountInfo>>().Which;
 
             browsableResource.Links.Should()
                 .NotBeNull().And
@@ -386,10 +386,10 @@ namespace Identity.API.Tests.Features.Accounts
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByIdQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
 
-            BrowsableResource<AccountInfo> browsableResource = actionResult.Should()
+            Browsable<AccountInfo> browsableResource = actionResult.Should()
                 .BeAssignableTo<OkObjectResult>().Which
                 .Value.Should()
-                .BeAssignableTo<BrowsableResource<AccountInfo>>().Which;
+                .BeAssignableTo<Browsable<AccountInfo>>().Which;
 
             browsableResource.Links.Should()
                 .NotBeNull().And
@@ -570,8 +570,8 @@ namespace Identity.API.Tests.Features.Accounts
             CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
                 .BeAssignableTo<CreatedAtRouteResult>().Which;
 
-            BrowsableResource<AccountInfo> browsableResource = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<BrowsableResource<AccountInfo>>().Which;
+            Browsable<AccountInfo> browsableResource = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<Browsable<AccountInfo>>().Which;
 
             AccountInfo createdResource = browsableResource.Resource;
 
@@ -636,7 +636,7 @@ namespace Identity.API.Tests.Features.Accounts
                         (
                             count : 40,
                             items :
-                            (Expression<Func<IEnumerable<BrowsableResource<SearchAccountInfoResult>>, bool>>)(resources =>
+                            (Expression<Func<IEnumerable<Browsable<SearchAccountInfoResult>>, bool>>)(resources =>
                                 resources.All(x => x.Resource.Name.Like("*Wayne")))
                             ,
                             links :
@@ -661,7 +661,7 @@ namespace Identity.API.Tests.Features.Accounts
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
                 int count,
-                Expression<Func<IEnumerable<BrowsableResource<SearchAccountInfoResult>>, bool>> items,
+                Expression<Func<IEnumerable<Browsable<SearchAccountInfoResult>>, bool>> items,
                 (
                     Expression<Func<Link, bool>> firstPageUrlExpectation,
                     Expression<Func<Link, bool>> previousPageUrlExpectation,
@@ -701,13 +701,13 @@ namespace Identity.API.Tests.Features.Accounts
             _mediatorMock.Verify(mock => mock.Send(It.Is<SearchQuery<SearchAccountInfoResult>>(query => query.Data.Page == searchQuery.Page && query.Data.PageSize == Math.Min(searchQuery.PageSize, apiOptions.maxPageSize)), It.IsAny<CancellationToken>()), Times.Once);
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.AtLeastOnce, $"because {nameof(AccountsController)}.{nameof(AccountsController.Search)} must always check that " +
                 $"{nameof(SearchAccountInfo.PageSize)} don't exceed {nameof(IdentityApiOptions.MaxPageSize)} value");
-            
-            GenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>> response = actionResult.Should()
+
+            GenericPagedGetResponse<Browsable<SearchAccountInfoResult>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>>>().Which;
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -724,7 +724,7 @@ namespace Identity.API.Tests.Features.Accounts
             }
 
             response.Count.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(IGenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>>)}.{nameof(IGenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>>.Count)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(IGenericPagedGetResponse<Browsable<SearchAccountInfoResult>>)}.{nameof(IGenericPagedGetResponse<Browsable<SearchAccountInfoResult>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

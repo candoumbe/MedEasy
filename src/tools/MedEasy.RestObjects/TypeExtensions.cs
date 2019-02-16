@@ -17,7 +17,6 @@ namespace System
         /// <returns><see cref="Form"/> representation of <paramref name="t"/></returns>
         public static Form ToForm(this Type t, Link linkToForm)
         {
-
             Form f = new Form() { Meta = linkToForm };
 
             IEnumerable<PropertyInfo> properties = t.GetRuntimeProperties()
@@ -51,7 +50,6 @@ namespace System
                     ff.Secret = dataTypeAttribute != null && dataTypeAttribute.DataType == DataType.Password
                         ? true
                         : (bool?)null;
-
                 }
                 else if (pi.PropertyType.Equals(typeof(DateTime)) || pi.PropertyType.Equals(typeof(DateTime?))
                     || pi.PropertyType.Equals(typeof(DateTimeOffset?)) || pi.PropertyType.Equals(typeof(DateTimeOffset)))
@@ -81,6 +79,5 @@ namespace System
 
             return f;
         }
-
     }
 }

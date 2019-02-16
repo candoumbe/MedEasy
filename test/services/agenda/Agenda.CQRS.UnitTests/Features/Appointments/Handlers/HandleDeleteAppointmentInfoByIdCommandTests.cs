@@ -108,10 +108,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 participantsNotDeleted.Should()
                     .BeTrue("deleting an appointment must not remove associated participants from the datastore");
-
             }
-
-
         }
     }
 }

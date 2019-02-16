@@ -10,9 +10,8 @@ namespace MedEasy.DTO.Search
     /// </summary>
     /// <typeparam name="T">Type of resource the search query will be applied on</typeparam>
     //[JsonObject]
-    public class SearchQueryInfo<T> 
+    public class SearchQueryInfo<T>
     {
-
         /// <summary>
         /// Defines how to sort the result of the search
         /// </summary>
@@ -41,17 +40,14 @@ namespace MedEasy.DTO.Search
             Sorts = Enumerable.Empty<Sort>();
         }
 
-
         public override string ToString()
-            => 
+            =>
             //$"{nameof(Filter)} : {SerializeObject(Filter)}," + Environment.NewLine +
-            $"{nameof(Page)}: {Page}" + Environment.NewLine 
+            $"{nameof(Page)}: {Page}" + Environment.NewLine
             +
-            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine 
+            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine
             //+
             //$"{nameof(Sorts)} : {string.Join(",", Sorts.Select(x => new { Expression = x.Expression.Body.ToString(), x.Direction }))}"
             ;
-
-
     }
 }

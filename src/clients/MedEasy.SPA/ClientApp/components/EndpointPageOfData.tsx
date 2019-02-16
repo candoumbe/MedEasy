@@ -9,16 +9,18 @@ import * as LinQ from "linq";
 import { Endpoint } from "./../restObjects/Endpoint";
 import { Form } from "./../restObjects/Form";
 import { PageOfResult } from "./../restObjects/PageOfResult";
-import { BrowsableResource } from "./../restObjects/BrowsableResource";
+import { Browsable } from "./../restObjects/Browsable";
 import { Guid } from "./../System/Guid";
+import { Table, Button, Pager, PagerItem } from "react-bootstrap";
+import { RestClient } from "./../System/RestClient";
 
 
 /**
  * Properties of the EndpointPageOfData component.
  */
-export interface EndpointPageOfDataProps<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> {
+export interface EndpointPageOfDataProps<TResource extends Browsable<MedEasy.DTO.Resource<string>>> {
     /** Datasource url */
-    endpoint: string;
+    restClient: RestClient<string, TResource>;
     /** Function to get access to the resource identifier */
     id: (item: TResource) => string;
 
@@ -42,7 +44,7 @@ export interface EndpointPageOfDataProps<TResource extends BrowsableResource<Med
 /**
  * 
  */
-interface EndpointPageOfDataState<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> {
+interface EndpointPageOfDataState<TResource extends Browsable<MedEasy.DTO.Resource<string>>> {
     pageOfResult: PageOfResult<TResource>;
     page: number;
     pageSize?: number;
@@ -55,21 +57,22 @@ interface EndpointPageOfDataState<TResource extends BrowsableResource<MedEasy.DT
  * Displays a list of resources in a Table.
  * 
  */
-export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> extends React.Component<EndpointPageOfDataProps<TResource>, EndpointPageOfDataState<TResource>> {
-
+export class EndpointPageOfData<TResource extends Browsable<MedEasy.DTO.Resource<string>>> extends React.Component<EndpointPageOfDataProps<TResource>, EndpointPageOfDataState<TResource>> {
+    private readonly restClient: RestClient<string, TResource>;
     /**
      * Builds a new {EndpointPageOfData} instance
-     * @param {EndpointPageOfDataProps<TResource>} props component's properties
+     * @param  props component's properties
+     * @see {EndpointPageOfDataProps<TResource>}
      */
     public constructor(props: EndpointPageOfDataProps<TResource>) {
         super(props);
         this.state = {
             pageOfResult: PageOfResult.empty,
             page: 1,
-            pageSize:
-            props.pageSize,
+            pageSize: props.pageSize,
             loading: true
         };
+        this.restClient = this.props.restClient;
         this.loadData(1);
     }
 
@@ -77,27 +80,29 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
      * Loads
      */
     private async loadData(page: number): Promise<void> {
-        
-        let response: Response = await fetch(`${this.props.endpoint}?page=${page}&pageSize=${this.state.pageSize}`);
-        if (response.ok) {
-            let pageOfResult: PageOfResult<TResource> = await (response.json() as Promise<PageOfResult<TResource>>);
-            let newState: EndpointPageOfDataState<TResource> = {
-                pageOfResult: pageOfResult,
-                page: this.state.page,
-                pageSize: this.state.pageSize,
-                loading: false
-            };
 
-            this.setState(newState);
-        } else {
-            this.setState({
-                pageOfResult: PageOfResult.empty,
-                page: this.state.page,
-                pageSize: this.state.pageSize,
-                error: true,
-                loading: false
-            })
-        }
+        let response = await this.restClient.getMany({ page, pageSize: this.state.pageSize });
+        await response.match(
+            async (pageOfResult) => {
+                let newState: EndpointPageOfDataState<TResource> = {
+                    pageOfResult : await pageOfResult,
+                    page: this.state.page,
+                    pageSize: this.state.pageSize,
+                    loading: false
+                };
+
+                this.setState(newState);
+
+            },
+            async () => {
+                this.setState({
+                    pageOfResult: PageOfResult.empty,
+                    page: this.state.page,
+                    pageSize: this.state.pageSize,
+                    error: true,
+                    loading: false
+                });
+            });
     }
 
 
@@ -182,7 +187,7 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                             : null
                     }
                     <div className="row">
-                        <table className="table-condensed table" id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
+                        <Table className="table-condensed table" id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
                             <thead>
                                 <tr>
                                     {headers}
@@ -192,12 +197,12 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                                 {tbodyContent}
                             </tbody>
 
-                        </table>
+                        </Table>
                         <div>
-                            <button className="btn btn-defaut" title="Refresh" type="button" onClick={() => this.loadData(this.state.page)}>
+                            <Button title="Refresh" onClick={() => this.loadData(this.state.page)}>
                                 <span className="glyphicon glyphicon-refresh"></span>
                                 <span className="sr-only">Refresh</span>
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -207,7 +212,6 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                             <button className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
                                 title={first.title}
                                 disabled={this.state.page === 1}
-                                rel={first.relation}
                                 aria-label="1"
                                 onClick={() => this.loadData(1)}>
                                 <span aria-hidden="true">&laquo;</span>
@@ -221,8 +225,6 @@ export class EndpointPageOfData<TResource extends BrowsableResource<MedEasy.DTO.
                                     </button>
                                 })
                             }
-                            
-
                         </li>
                     </ul>
                 </nav>

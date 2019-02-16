@@ -15,8 +15,6 @@ namespace Identity.Objects.Tests
     [Feature("Accounts")]
     public class AccountTests
     {
-
-
         public static IEnumerable<object[]> AddOrUpdateClaimCases
         {
             get
@@ -57,8 +55,6 @@ namespace Identity.Objects.Tests
             }
         }
 
-
-        
         [Theory]
         [MemberData(nameof(AddOrUpdateClaimCases))]
         public void AddOrUpdate(Account account, (string type, string value, DateTimeOffset start, DateTimeOffset? end) claim, Expression<Func<Account, bool>> accountExpectation)
@@ -70,8 +66,6 @@ namespace Identity.Objects.Tests
             account.Should()
                 .Match(accountExpectation);
         }
-
-
 
         public static IEnumerable<object[]> RemoveClaimCases
         {
@@ -110,7 +104,7 @@ namespace Identity.Objects.Tests
                     {
                         account,
                         "create",
-                        ((Expression<Func<Account, bool>>)(acc => 
+                        ((Expression<Func<Account, bool>>)(acc =>
                             acc.Claims.Count() == 1
                             && !acc.Claims.Any(uc => uc.Claim.Type == "create"))),
                         "The corresponding claim must no longer exists"
@@ -119,15 +113,12 @@ namespace Identity.Objects.Tests
             }
         }
 
-
-
         [Theory]
         [MemberData(nameof(RemoveClaimCases))]
         public void RemoveClaim(Account account, string type, Expression<Func<Account, bool>> accountExpectation, string reason)
         {
             // Act
             account.RemoveClaim(type);
-
 
             // Assert
             account.Should()

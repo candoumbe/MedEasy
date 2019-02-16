@@ -1,6 +1,5 @@
 ﻿namespace MedEasy.RestObjects
 {
-
     /// <summary>
     /// Link representation
     /// </summary>
@@ -44,6 +43,5 @@
         /// 
         /// </remarks>
         public bool? Template { get; set; }
-
     }
 }

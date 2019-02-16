@@ -81,7 +81,6 @@ namespace MedEasy.RestObjects
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Max { get; set; }
 
-
         /// <summary>
         /// Indicates whether or not the field value is considered sensitive information 
         /// and should be kept secret.
@@ -94,7 +93,5 @@ namespace MedEasy.RestObjects
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; }
-
-
     }
 }

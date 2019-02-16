@@ -1,6 +1,5 @@
 ﻿namespace Identity.API.Features.Auth
 {
-
     /// <summary>
     /// Model used to get a new token
     /// </summary>

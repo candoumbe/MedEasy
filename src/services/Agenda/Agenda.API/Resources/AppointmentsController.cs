@@ -45,7 +45,6 @@ namespace Agenda.API.Controllers
             _apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
         }
 
-
         /// <summary>
         /// Creates a new appointment resource
         /// </summary>
@@ -53,7 +52,7 @@ namespace Agenda.API.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost]
-        [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), Status201Created)]
+        [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status201Created)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewAppointmentInfo newAppointment, CancellationToken ct = default)
         {
@@ -67,7 +66,7 @@ namespace Agenda.API.Controllers
             }
             .Union(participants.Select(participant => new Link { Relation = $"get-participant-{participant.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = "participant", participant.Id }) }));
 
-            BrowsableResource<AppointmentInfo> browsableResource = new BrowsableResource<AppointmentInfo>
+            Browsable<AppointmentInfo> browsableResource = new Browsable<AppointmentInfo>
             {
                 Resource = newResource,
                 Links = links
@@ -75,7 +74,6 @@ namespace Agenda.API.Controllers
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id }, browsableResource);
         }
-
 
         /// <summary>
         /// Gets the appointments
@@ -86,21 +84,18 @@ namespace Agenda.API.Controllers
         /// <response code="200"/>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
-
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = pageSize };
             pagination.PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pagination.PageSize);
-
 
             Page<AppointmentInfo> result = await _mediator.Send(new GetPageOfAppointmentInfoQuery(pagination), ct)
                 .ConfigureAwait(false);
 
-
-            IEnumerable<BrowsableResource<AppointmentInfo>> entries = result.Entries
-                .Select(x => new BrowsableResource<AppointmentInfo>
+            IEnumerable<Browsable<AppointmentInfo>> entries = result.Entries
+                .Select(x => new Browsable<AppointmentInfo>
                 {
                     Resource = x,
                     Links = new[]
@@ -109,8 +104,7 @@ namespace Agenda.API.Controllers
                     }
                 });
 
-
-            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = new GenericPagedGetResponse<Browsable<AppointmentInfo>>(
                 entries,
                 first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize }),
                 previous: pagination.Page > 1 && result.Count > 1
@@ -141,7 +135,7 @@ namespace Agenda.API.Controllers
 
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        [ProducesResponseType(typeof(BrowsableResource<AppointmentInfo>), Status200OK)]
+        [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status200OK)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
@@ -158,7 +152,7 @@ namespace Agenda.API.Controllers
                         new Link { Relation = "delete", Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})}
                     };
 
-                    BrowsableResource<AppointmentInfo> result = new BrowsableResource<AppointmentInfo>
+                    Browsable<AppointmentInfo> result = new Browsable<AppointmentInfo>
                     {
                         Resource = appointment,
                         Links = links
@@ -200,18 +194,17 @@ namespace Agenda.API.Controllers
         /// <response code="400">one of the search criterion is not valid</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken ct = default)
         {
-
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
 
             Page<AppointmentInfo> page = await _mediator.Send(new SearchAppointmentInfoQuery(search), ct)
                 .ConfigureAwait(false);
 
-            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = new GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>(
-                page.Entries.Select(x => new BrowsableResource<AppointmentInfo>
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = new GenericPagedGetResponse<Browsable<AppointmentInfo>>(
+                page.Entries.Select(x => new Browsable<AppointmentInfo>
                 {
                     Resource = x,
                     Links = new[]
@@ -252,7 +245,6 @@ namespace Agenda.API.Controllers
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Delete(Guid appointmentId, Guid participantId, CancellationToken ct = default)
         {
-
             RemoveParticipantFromAppointmentByIdCommand cmd = new RemoveParticipantFromAppointmentByIdCommand(data : (appointmentId, participantId));
 
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)

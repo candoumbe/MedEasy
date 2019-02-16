@@ -11,14 +11,13 @@ namespace Agenda.CQRS.Features.Appointments.Queries
     /// </summary>
     public class GetOneAppointmentInfoByIdQuery : GetOneResourceQuery<Guid, Guid, Option<AppointmentInfo>>
     {
-
         /// <summary>
         /// Builds a new <see cref="GetOneAppointmentInfoByIdQuery"/> instance.
         /// </summary>
         /// <param name="appointmentId">id of the <see cref="AppointmentInfo"/> to retrieve</param>
         /// <exception cref="ArgumentException">if <paramref name="appointmentId"/> is <see cref="Guid.Empty"/></exception>
         public GetOneAppointmentInfoByIdQuery(Guid appointmentId) : base(Guid.NewGuid(), appointmentId)
-        { 
+        {
         }
     }
 }

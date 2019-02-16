@@ -16,7 +16,6 @@ namespace MedEasy.Data.Tests
 {
     public class DataFilterTests
     {
-
         private readonly ITestOutputHelper _output;
         private static IImmutableDictionary<string, DataFilterOperator> _operators = new Dictionary<string, DataFilterOperator>
         {
@@ -34,7 +33,6 @@ namespace MedEasy.Data.Tests
             ["neq"] = NotEqualTo,
             ["startswith"] = StartsWith
         }.ToImmutableDictionary();
-
 
         /// <summary>
         /// Serialization of instance of <see cref="DataFilter"/> test cases
@@ -91,7 +89,6 @@ namespace MedEasy.Data.Tests
                     ((Expression<Func<string, bool>>)(json =>
                         JToken.Parse(json).Type == JTokenType.Array
                         && JArray.Parse(json).Count == 2
-
 
                         && JArray.Parse(json)[0].Type == JTokenType.Object
                         && JArray.Parse(json)[0].IsValid(DataFilter.Schema(EqualTo))
@@ -163,10 +160,8 @@ namespace MedEasy.Data.Tests
 
                     ))
                 };
-
             }
         }
-
 
         public static IEnumerable<object[]> DataFilterSchemaTestCases
         {
@@ -216,7 +211,6 @@ namespace MedEasy.Data.Tests
             }
         }
 
-
         public static IEnumerable<object[]> DataCompositeFilterSchemaTestCases
         {
             get
@@ -265,29 +259,23 @@ namespace MedEasy.Data.Tests
                     "}",
                     false
                 };
-
             }
         }
-
-
 
         public DataFilterTests(ITestOutputHelper output)
         {
             _output = output;
         }
 
-
         [Theory]
         [MemberData(nameof(DataFilterToJsonCases))]
         public void DataFilterToJson(DataFilter filter, Expression<Func<string, bool>> jsonMatcher)
             => ToJson(filter, jsonMatcher);
 
-
         [Theory]
         [MemberData(nameof(DataCompositeFilterToJsonCases))]
         public void DataCompositeFilterToJson(DataCompositeFilter filter, Expression<Func<string, bool>> jsonMatcher)
             => ToJson(filter, jsonMatcher);
-
 
         [Theory]
         [MemberData(nameof(CollectionOfDataFiltersCases))]
@@ -308,14 +296,12 @@ namespace MedEasy.Data.Tests
             filter.ToJson().Should().Match(jsonMatcher);
         }
 
-
         [Theory]
         [MemberData(nameof(DataFilterSchemaTestCases))]
         public void DataFilterSchema(string json, DataFilterOperator @operator, bool expectedValidity)
         {
             _output.WriteLine($"{nameof(json)} : {json}");
             _output.WriteLine($"{nameof(DataFilterOperator)} : {@operator}");
-
 
             // Arrange
             JSchema schema = DataFilter.Schema(@operator);
@@ -359,8 +345,6 @@ namespace MedEasy.Data.Tests
                     false
                 };
 
-
-
                 {
                     DataFilter first = new DataFilter("Property", EqualTo, "value");
                     yield return new object[]
@@ -370,7 +354,6 @@ namespace MedEasy.Data.Tests
                         true
                     };
                 }
-
             }
         }
 
@@ -387,7 +370,6 @@ namespace MedEasy.Data.Tests
             // Assert
             result.Should().Be(expectedResult);
         }
-
 
         [Theory]
         [MemberData(nameof(DataCompositeFilterSchemaTestCases))]

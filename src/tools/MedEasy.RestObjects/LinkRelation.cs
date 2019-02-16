@@ -1,6 +1,5 @@
 ﻿namespace MedEasy.RestObjects
 {
-
     /// <summary>
     /// Link relation type representation (see http://www.iana.org/assignments/link-relations/link-relations.xhtml)
     /// </summary>
@@ -48,11 +47,10 @@
         /// The target IRI points to a resource where a submission form can be obtained.
         /// </summary>
         public const string CreateForm = "create-form";
-        
+
         /// <summary>
         /// The target IRI points to a resource where a submission form for editing associated resource can be obtained.
         /// </summary>
         public const string EditForm = "edit-form";
-
     }
 }

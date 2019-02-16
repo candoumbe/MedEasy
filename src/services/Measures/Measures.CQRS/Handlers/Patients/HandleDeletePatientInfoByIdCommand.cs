@@ -36,12 +36,10 @@ namespace Measures.CQRS.Handlers.Patients
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-
         public async Task<DeleteCommandResult> Handle(DeletePatientInfoByIdCommand cmd, CancellationToken cancellationToken)
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-
                 DeleteCommandResult result = DeleteCommandResult.Done;
                 if (await uow.Repository<PhysiologicalMeasurement>().AnyAsync(x => x.Patient.UUID == cmd.Data, cancellationToken).ConfigureAwait(false))
                 {
@@ -61,7 +59,6 @@ namespace Measures.CQRS.Handlers.Patients
                     await _mediator.Publish(new PatientDeleted(cmd.Data), cancellationToken)
                         .ConfigureAwait(false);
                 }
-
 
                 return result;
             }

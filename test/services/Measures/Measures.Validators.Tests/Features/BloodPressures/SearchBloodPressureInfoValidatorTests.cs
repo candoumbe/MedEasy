@@ -39,7 +39,7 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count == 3
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.From))
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.To))
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort))   
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort))
                     )),
                     "no property set"
 
@@ -66,8 +66,8 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                 yield return new object[]
                 {
                     new SearchBloodPressureInfo { Sort = "UnknownProperty" },
-                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1 
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort) 
+                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort)
                             && err.Severity == Error
                             && err.ErrorMessage == "Unknown <UnknownProperty> property."
                         )
@@ -111,7 +111,7 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
                 {
                     new SearchBloodPressureInfo { Sort = $"--{nameof(BloodPressureInfo.DiastolicPressure)}" },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort) 
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort)
                             && err.Severity == Error )
                     )),
                     $"{nameof(SearchBloodPressureInfo.Sort)} value cannot contain any field that start with two consecutives hyphens {nameof(BloodPressureInfo.DiastolicPressure)} in descending order"
@@ -160,6 +160,5 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
             vr.Should()
                 .Match(validationResultExpectation, reason);
         }
-
     }
 }

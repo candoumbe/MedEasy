@@ -1,14 +1,12 @@
 ﻿import * as React from "react";
 
-export class NotFoundComponent extends React.PureComponent<any, any>{
-
-
+export class NotFoundComponent extends React.PureComponent<{text? : string | JSX.Element}, any>{
 
     public render() {
 
         return (
             <div>
-                Not found !!!
+                {this.props.text}
             </div>
             );
     }

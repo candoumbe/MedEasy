@@ -7,7 +7,8 @@ namespace MedEasy.CQRS.Core.Events
     /// Base class for building events
     /// </summary>
     /// <typeparam name="TId">Type of the notification's <see cref="Id"/></typeparam>
-    public abstract class NotificationBase<TId, TData> : INotification
+    /// <typeparam name="TData">Type of data the notification carries</typeparam>
+    public abstract class NotificationBase<TId, TData> : INotification, IEquatable<NotificationBase<TId, TData>>
         where TId : IEquatable<TId>
     {
         /// <summary>
@@ -35,5 +36,12 @@ namespace MedEasy.CQRS.Core.Events
             Id = id;
             Data = data;
         }
+
+        public override bool Equals(object obj) => Equals(obj as NotificationBase<TId, TData>);
+
+        public override int GetHashCode() => Data.GetHashCode();
+
+        public bool Equals(NotificationBase<TId, TData> other)
+            => other != null && Data.Equals(other.Data);
     }
 }

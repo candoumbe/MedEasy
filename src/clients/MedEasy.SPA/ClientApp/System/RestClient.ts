@@ -1,26 +1,28 @@
-﻿import { Option } from "./Option";
+﻿import { Option } from "./Option_Maybe";
+import { PageOfResult } from "./../restObjects/PageOfResult";
 
 export class RestClient<TKey, TElement> {
-
-    public readonly baseUrl: string;
 
     /**
      * Builds a new RestClient instance
      * @param baseUrl url of the rest endpoint
      */
-    public constructor(baseUrl: string) {
+    public constructor(private readonly baseUrl: string, private readonly defaultHeaders?: () => {[key:string] : string}) {
         this.baseUrl = baseUrl;
     }
 
     /**
      * Gets an array of resources
      */
-    public async getMany(): Promise<Option<Promise<Array<TElement>>>> {
-        let response = await fetch(`${this.baseUrl}`, { method: 'GET' });
+    public async getMany(request: { page: number, pageSize: number } = { page: 1, pageSize: 30 }): Promise<Option<Promise<PageOfResult<TElement>>>> {
+        let response = await fetch(`${this.baseUrl}/?page=${request.page}&pageSize=${request.pageSize}`, {
+            method: 'GET',
+            headers: this.defaultHeaders ? this.defaultHeaders() : null
+        });
 
-        let result: Option<Promise<Array<TElement>>> = response.ok
-            ? Option.Some(await response.json() as Promise<Array<TElement>>)
-            : Option.None<Promise<Array<TElement>>>();
+        let result: Option<Promise<PageOfResult<TElement>>> = response.ok
+            ? Option.some(await response.json() as Promise<PageOfResult<TElement>>)
+            : Option.none<Promise<PageOfResult<TElement>>>();
 
         return result;
     }
@@ -33,8 +35,8 @@ export class RestClient<TKey, TElement> {
         let response = await fetch(`${this.baseUrl}/${id}`, { method: 'GET' });
 
         let result: Option<Promise<TElement>> = response.ok
-            ? Option.Some(await response.json() as Promise<TElement>)
-            : Option.None<Promise<TElement>>();
+            ? Option.some(await response.json() as Promise<TElement>)
+            : Option.none<Promise<TElement>>();
 
         return result;
     }

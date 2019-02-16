@@ -20,7 +20,6 @@ namespace Identity.Objects
         /// </summary>
         public string Salt { get; set; }
 
-
         /// <summary>
         /// Hash of the user's password
         /// </summary>
@@ -34,7 +33,6 @@ namespace Identity.Objects
         public string Name { get; set; }
 
         public bool EmailConfirmed { get; set; }
-
 
         public string RefreshToken { get; set; }
 
@@ -55,7 +53,6 @@ namespace Identity.Objects
         /// Id of the owner of the element
         /// </summary>
         public Guid? TenantId { get; set; }
-
 
         private readonly IDictionary<string, Role> _roles;
 
@@ -107,7 +104,6 @@ namespace Identity.Objects
             }
         }
 
-
         /// <summary>
         /// Remove the <see cref="UserClaim"/> with the specified <see cref="UserClaim.Claim.Type"/>.
         /// </summary>
@@ -121,7 +117,6 @@ namespace Identity.Objects
             }
 
             _claims.Remove(type);
-            
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 
 namespace Measures.CQRS.Events
 {
-
     /// <summary>
     /// Event that notifies the creation of a new <see cref="PatientInfo"/> resource alongside with a new measure.
     /// </summary>
@@ -13,6 +12,5 @@ namespace Measures.CQRS.Events
         public PatientCreated(PatientInfo patient) : base(Guid.NewGuid(), patient)
         {
         }
-
     }
 }

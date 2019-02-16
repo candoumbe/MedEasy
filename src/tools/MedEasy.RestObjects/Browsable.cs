@@ -9,9 +9,8 @@ namespace MedEasy.RestObjects
     /// </summary>
     /// <typeparam name="T">Type of the resource that will be wrapped</typeparam>
     [JsonObject]
-    public class BrowsableResource<T> : IBrowsableResource<T>
+    public class Browsable<T> : IBrowsableResource<T>
     {
-
         private IEnumerable<Link> _links;
 
         /// <summary>
@@ -38,11 +37,8 @@ namespace MedEasy.RestObjects
         public T Resource { get; set; }
 
         /// <summary>
-        /// Builds a new <see cref="BrowsableResource{T}"/> instance.
+        /// Builds a new <see cref="Browsable{T}"/> instance.
         /// </summary>
-        public BrowsableResource()
-        {
-            _links = Enumerable.Empty<Link>();
-        }
+        public Browsable() => _links = Enumerable.Empty<Link>();
     }
 }

@@ -96,7 +96,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .Be(utcNow);
             jwtSecurityToken.ValidTo.Should()
                 .Be(utcNow.AddMinutes(jwtSecurityTokenOptions.LifetimeInMinutes));
-
+            jwtSecurityToken.Claims.Should()
+                .NotContainNulls().And
+                .NotContain(claim => claim.Value == null);
         }
 
         [Fact]

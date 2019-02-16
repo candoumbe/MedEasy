@@ -44,7 +44,6 @@ namespace MedEasy.Core.UnitTests.Filters
 
         public void Dispose() => _sut = null;
 
-
         public static IEnumerable<object[]> AddHeadersDependingOnValueCases
         {
             get
@@ -61,7 +60,7 @@ namespace MedEasy.Core.UnitTests.Filters
 
                 yield return new object[]
                 {
-                    new GenericPagedGetResponse<BrowsableResource<Minion>>(Enumerable.Empty<BrowsableResource<Minion>>(), count: 20),
+                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), count: 20),
                     (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
@@ -118,14 +117,13 @@ namespace MedEasy.Core.UnitTests.Filters
                 .Match(headersExpectation, reason);
         }
 
-
         public static IEnumerable<object[]> ActionResultWithCollectionOfElementCases
         {
             get
             {
                 yield return new object[]
                 {
-                    new GenericPagedGetResponse<BrowsableResource<Minion>>(Enumerable.Empty<BrowsableResource<Minion>>(), count: 20),
+                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), count: 20),
                     (expectedTotalCount : 20, expectedCount : 0)
                 };
                 {
@@ -133,8 +131,8 @@ namespace MedEasy.Core.UnitTests.Filters
                         .RuleFor(minion => minion.Name, faker => faker.Name.FullName())
                         .Generate(10);
 
-                    IEnumerable<BrowsableResource<Minion>> resources = minions
-                        .Select(minion => new BrowsableResource<Minion>
+                    IEnumerable<Browsable<Minion>> resources = minions
+                        .Select(minion => new Browsable<Minion>
                         {
                             Resource = minion,
                             Links = new[]
@@ -146,13 +144,10 @@ namespace MedEasy.Core.UnitTests.Filters
                     int resourcesCount = resources.Count();
                     yield return new object[]
                     {
-                        new GenericPagedGetResponse<BrowsableResource<Minion>>(resources, count: resourcesCount),
+                        new GenericPagedGetResponse<Browsable<Minion>>(resources, count: resourcesCount),
                         (expectedTotal : resourcesCount, expectedCount : resourcesCount)
                     };
-
                 }
-
-
             }
         }
 
@@ -190,7 +185,6 @@ namespace MedEasy.Core.UnitTests.Filters
                 .ContainKey(AddCountHeadersFilterAttribute.CountHeaderName).WhichValue.Should()
                 .HaveCount(1).And
                 .ContainSingle(value => headersCountExpectation.expectedCount.ToString().Equals(value));
-
         }
     }
 }

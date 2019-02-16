@@ -15,13 +15,11 @@ namespace Agenda.CQRS.Features.Participants.Queries
     /// </summary>
     public class GetPageOfParticipantInfoQuery : QueryBase<Guid, PaginationConfiguration, Page<ParticipantInfo>>, IWantPageOf<Guid, ParticipantInfo>
     {
-
         /// <summary>
         /// Builds a new <see cref="GetPageOfParticipantInfoQuery"/> instance.
         /// </summary>
         /// <param name="pagination"></param>
         public GetPageOfParticipantInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination) { }
-
 
         /// <summary>
         /// Builds a new <see cref="GetPageOfParticipantInfoQuery"/> instance.

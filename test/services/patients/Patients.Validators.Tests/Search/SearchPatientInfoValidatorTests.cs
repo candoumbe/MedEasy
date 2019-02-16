@@ -51,7 +51,6 @@ namespace Patients.Validators.Tests.Search
                     $"because {nameof(SearchPatientInfo.Firstname)}/{nameof(SearchPatientInfo.Lastname)}/{nameof(SearchPatientInfo.BirthDate)}/{nameof(SearchPatientInfo.Sort)} not set."
                 };
 
-
                 yield return new object[]
                 {
                     new SearchPatientInfo { Sort = "-Name"},
@@ -147,7 +146,6 @@ namespace Patients.Validators.Tests.Search
                     $"{nameof(SearchPatientInfo.Sort)} contains a sort expression with two or more consecutive hyphens"
                 };
             }
-
         }
 
         [Theory]
@@ -162,10 +160,7 @@ namespace Patients.Validators.Tests.Search
 
             // Assert
             result.Should().Match(validationResultExpectation, reason);
-
         }
-
-
 
     }
 }

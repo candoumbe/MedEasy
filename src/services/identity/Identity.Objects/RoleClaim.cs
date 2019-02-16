@@ -7,7 +7,6 @@ namespace Identity.Objects
     /// </summary>
     public class RoleClaim : AuditableEntity<int, RoleClaim>
     {
-
         public int RoleId { get; set; }
 
         public int ClaimId { get; set; }
@@ -19,7 +18,5 @@ namespace Identity.Objects
         /// <see cref="Claim"/> of the associtation
         /// </summary>
         public Claim Claim { get; set; }
-
-
     }
 }

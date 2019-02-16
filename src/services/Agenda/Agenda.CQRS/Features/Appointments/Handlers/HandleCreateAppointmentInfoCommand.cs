@@ -29,7 +29,6 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-
                 Appointment appointment = _mapper.Map<NewAppointmentInfo, Appointment>(request.Data);
                 foreach (ParticipantInfo participantInfo in request.Data.Participants)
                 {
@@ -41,10 +40,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     .ConfigureAwait(false);
 
                 return _mapper.Map<Appointment, AppointmentInfo>(appointment);
-
             }
-
-
         }
     }
 }

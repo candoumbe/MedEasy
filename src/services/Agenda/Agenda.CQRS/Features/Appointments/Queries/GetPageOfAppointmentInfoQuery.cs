@@ -15,7 +15,6 @@ namespace Agenda.CQRS.Features.Appointments.Queries
     /// </summary>
     public class GetPageOfAppointmentInfoQuery : IWantPageOf<Guid, AppointmentInfo>
     {
-
         public Guid Id { get; }
 
         public PaginationConfiguration Data { get; }

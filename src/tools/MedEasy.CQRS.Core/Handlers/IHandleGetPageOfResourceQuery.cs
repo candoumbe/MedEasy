@@ -20,9 +20,8 @@ namespace MedEasy.CQRS.Core.Handlers
         /// <typeparam name="TQueryId">Type of the <paramref name="request"/> identifier</typeparam>
         /// <typeparam name="TEntity">Type of entity</typeparam>
         /// <typeparam name="TResult">Type of the result</typeparam>
-        Task<Page<TResult>> GetPageAsync<TQueryId, TEntity, TResult>(IWantPageOf<TQueryId, TResult> request, CancellationToken ct = default) 
+        Task<Page<TResult>> GetPageAsync<TQueryId, TEntity, TResult>(IWantPageOf<TQueryId, TResult> request, CancellationToken ct = default)
             where TQueryId : IEquatable<TQueryId>
             where TEntity : class;
-
     }
 }

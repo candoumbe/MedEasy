@@ -6,7 +6,7 @@ import { Form } from "./../../restObjects/Form"
 import { Endpoint } from "./../../restObjects/Endpoint"
 import { LoadingComponent } from "./../LoadingComponent";
 import * as LinQ from "linq";
-import { BrowsableResource } from "./../../restObjects/BrowsableResource";
+import { Browsable } from "./../../restObjects/Browsable";
 import { MeasuresRecap } from "./../../components/measures/MeasuresRecap";
 import { NotFoundComponent } from "./../NotFoundComponent";
 import { Guid } from "./../../System/Guid";
@@ -20,7 +20,7 @@ interface PatientDetailsComponentProps {
 
 interface PatientDetailsComponentState {
     /** The patient currently displayed */
-    patient: null | BrowsableResource<MedEasy.DTO.Patient>,
+    patient: null | Browsable<MedEasy.DTO.Patient>,
     loading : boolean | undefined
 }
 
@@ -37,7 +37,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
         { relation: "heartbeats", resource: "heartbeats" },
     ];
 
-    private _httpClient: RestClient<Guid, BrowsableResource<MedEasy.DTO.Patient>>
+    private _httpClient: RestClient<Guid, Browsable<MedEasy.DTO.Patient>>
 
     public constructor(props: PatientDetailsComponentProps) {
         super(props);
@@ -49,7 +49,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
     private async loadContent(): Promise<void> {
         let response = await fetch(this.props.endpoint);
         if (response.ok) {
-            let item = await (response.json() as Promise<BrowsableResource<MedEasy.DTO.Patient>>);
+            let item = await (response.json() as Promise<Browsable<MedEasy.DTO.Patient>>);
             this.setState({  patient: item, loading : false });
         } else {
             if (response.status === 404) {

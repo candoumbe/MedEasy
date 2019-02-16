@@ -27,11 +27,9 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
         {
             DeleteBloodPressureInfoByIdCommand instance = new DeleteBloodPressureInfoByIdCommand(Guid.NewGuid());
 
-
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Fact]
@@ -45,7 +43,6 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
                 .Throw<ArgumentException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

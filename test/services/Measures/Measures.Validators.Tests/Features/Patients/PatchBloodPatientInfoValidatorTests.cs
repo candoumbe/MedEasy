@@ -58,10 +58,7 @@ namespace Measures.Validators.Tests.Features.Patients
             action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
-
         }
-
 
         public static IEnumerable<object[]> InvalidPatchDocumentCases
         {
@@ -130,7 +127,6 @@ namespace Measures.Validators.Tests.Features.Patients
                     return sb.ToString(0, desiredLength);
                 }
                 {
-
                     string lastnameIsTooLong = computeLongString(101);
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
                     patchDocument.Replace(x => x.Lastname, lastnameIsTooLong);
@@ -146,7 +142,6 @@ namespace Measures.Validators.Tests.Features.Patients
                     };
                 }
                 {
-
                     string lastnameIsTooLong = computeLongString(100);
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
                     patchDocument.Replace(x => x.Lastname, lastnameIsTooLong);
@@ -161,17 +156,14 @@ namespace Measures.Validators.Tests.Features.Patients
             }
         }
 
-
         [Theory]
         [MemberData(nameof(InvalidPatchDocumentCases))]
         public async Task Validate(JsonPatchDocument<PatientInfo> changes, Expression<Func<ValidationResult, bool>> expectation, string reason)
         {
-
             // Act
             _outputHelper.WriteLine($"Input : {SerializeObject(changes)}");
             ValidationResult vr = await _validator.ValidateAsync(changes)
                 .ConfigureAwait(false);
-
 
             // Assert
             vr.Should().Match(expectation, reason);

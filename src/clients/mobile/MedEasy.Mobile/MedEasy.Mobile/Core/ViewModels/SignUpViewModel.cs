@@ -4,6 +4,7 @@ using MedEasy.Mobile.Core.Services;
 using MedEasy.Mobile.Core.ViewModels.Base;
 using Optional;
 using System;
+using System.Runtime.CompilerServices;
 using Xamarin.Forms;
 
 namespace MedEasy.Mobile.Core.ViewModels
@@ -71,14 +72,16 @@ namespace MedEasy.Mobile.Core.ViewModels
             SignUpCommand = new Command(
                 async () =>
                 {
+                    IsBusy = true;
                     Option<BearerTokenInfo> optionalTokenInfo = (await accountsApi.SignUp(GetNewAccountInfo(Name, Email, Username, Password,ConfirmPassword), default)
                             .ConfigureAwait(true)).SomeNotNull();
 
                     optionalTokenInfo.MatchSome(async tokenInfo =>
                     {
-                        navigationService.InsertViewModelBefore<HomeViewModel, SignUpViewModel>();
-                        await navigationService.PopToRootAsync(animated: true);
+                        await navigationService.NavigateTo<HomeViewModel>();
+                        await navigationService.RemoveBackStackAsync();
                     });
+                    IsBusy = false;
                 },
                 canExecute: () => !(string.IsNullOrWhiteSpace(Username) 
                     || string.IsNullOrWhiteSpace(Email) 
@@ -88,6 +91,24 @@ namespace MedEasy.Mobile.Core.ViewModels
                     && string.Equals(Password, ConfirmPassword, StringComparison.Ordinal)
                 );
             SignInCommand = new Command(async () => await navigationService.NavigateTo<SignInViewModel>());
+        }
+
+
+        protected override void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            base.OnPropertyChanged(propertyName);
+
+            switch (propertyName)
+            {
+                case nameof(Username):
+                case nameof(Email):
+                case nameof(Password):
+                case nameof(ConfirmPassword):
+                    SignUpCommand?.ChangeCanExecute();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

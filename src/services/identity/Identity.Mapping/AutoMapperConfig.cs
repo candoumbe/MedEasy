@@ -51,11 +51,8 @@ namespace Identity.Mapping
 
             cfg.CreateMap<Claim, ClaimInfo>();
 
-            
             cfg.CreateMap(typeof(JsonPatchDocument<>), typeof(JsonPatchDocument<>));
             cfg.CreateMap(typeof(Operation<>), typeof(Operation<>));
-
-
         });
     }
 }

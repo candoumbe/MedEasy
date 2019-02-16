@@ -15,7 +15,7 @@ namespace MedEasy.Data.Tests.Converters
     public class DataFilterConverterTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        
+
         private static IImmutableDictionary<string, DataFilterOperator> Operators => new Dictionary<string, DataFilterOperator>
         {
             ["eq"] = EqualTo,
@@ -35,7 +35,6 @@ namespace MedEasy.Data.Tests.Converters
         {
             _outputHelper = outputHelper;
         }
-
 
         /// <summary>
         /// Deserialize tests cases
@@ -65,7 +64,6 @@ namespace MedEasy.Data.Tests.Converters
                             && Operators["isnull"] == ((DataFilter)result).Operator
                             && ((DataFilter)result).Value == null))
                     };
-
 
                 yield return new object[]{
                         $"{{{DataFilter.FieldJsonPropertyName} :'Firstname', {DataFilter.OperatorJsonPropertyName} :'isnull', {DataFilter.ValueJsonPropertyName} : 6}}",
@@ -112,8 +110,6 @@ namespace MedEasy.Data.Tests.Converters
                             && ((DataFilter)result).Value == null))
                     };
 
-
-
             }
         }
 
@@ -124,7 +120,6 @@ namespace MedEasy.Data.Tests.Converters
         {
             get
             {
-                
                 foreach (KeyValuePair<string, DataFilterOperator> item in Operators.Where(kv => !DataFilter.UnaryOperators.Any(op => op  == kv.Value)))
                 {
                     yield return new object[]{
@@ -135,7 +130,6 @@ namespace MedEasy.Data.Tests.Converters
                             && "Firstname".Equals(JObject.Parse(json)[DataFilter.FieldJsonPropertyName].Value<string>())
                             && item.Key.Equals(JObject.Parse(json)[DataFilter.OperatorJsonPropertyName].Value<string>())
                             && "Bruce".Equals(JObject.Parse(json)[DataFilter.ValueJsonPropertyName].Value<string>())))
-
 
                     };
                 }
@@ -152,10 +146,8 @@ namespace MedEasy.Data.Tests.Converters
 
                     };
                 }
-
             }
         }
-
 
         /// <summary>
         /// Tests the deserialization of the <paramref name="json"/> to an instance of the specified <paramref name="targetType"/> <br/>
@@ -176,7 +168,6 @@ namespace MedEasy.Data.Tests.Converters
                 .Match(expectation);
         }
 
-
         /// <summary>
         /// Tests the serialization of the <paramref name="obj"/> to its string representation
         /// The deserialization is done using <c>JsonConvert.DeserializeObject</c>
@@ -196,14 +187,9 @@ namespace MedEasy.Data.Tests.Converters
         }
 
 
-        
-
-
         public void Dispose()
         {
             _outputHelper = null;
         }
-
-
     }
 }

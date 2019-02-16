@@ -7,7 +7,8 @@ using Measures.DTO;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
@@ -15,14 +16,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static System.Net.Http.HttpMethod;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
+using static System.Net.Http.HttpMethod;
 
 namespace Measures.API.IntegrationTests
 {
@@ -35,7 +35,9 @@ namespace Measures.API.IntegrationTests
         private IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/measures/patients";
 
-        private static readonly JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema =
+#if NETCOREAPP2_0
+         new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
@@ -51,6 +53,25 @@ namespace Measures.API.IntegrationTests
                 nameof(ErrorObject.Errors).ToLower()
             }
         };
+#elif NETCOREAPP2_1
+        new JSchema
+        {
+            Type = JSchemaType.Object,
+            Properties =
+            {
+                [nameof(ValidationProblemDetails.Title).ToLower()] = new JSchema { Type = JSchemaType.String},
+                [nameof(ValidationProblemDetails.Status).ToLower()] = new JSchema { Type = JSchemaType.Number},
+                [nameof(ValidationProblemDetails.Detail).ToLower()] = new JSchema { Type = JSchemaType.String },
+                [nameof(ValidationProblemDetails.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
+            },
+            Required =
+            {
+                nameof(ValidationProblemDetails.Title).ToLower(),
+                nameof(ValidationProblemDetails.Status).ToLower(),
+
+            }
+        };
+#endif
 
         private static readonly JSchema _pageLink = new JSchema
         {
@@ -118,7 +139,7 @@ namespace Measures.API.IntegrationTests
             // Arrange
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"robin_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -151,7 +172,7 @@ namespace Measures.API.IntegrationTests
                 _outputHelper.WriteLine($"json : {json}");
 
                 JToken jToken = JToken.Parse(json);
-                jToken.IsValid(_pageResponseSchema).Should().BeTrue(); 
+                jToken.IsValid(_pageResponseSchema).Should().BeTrue();
             }
         }
 
@@ -173,7 +194,7 @@ namespace Measures.API.IntegrationTests
             // Arrange
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"dick_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -199,7 +220,7 @@ namespace Measures.API.IntegrationTests
                 // Assert
                 response.IsSuccessStatusCode.Should()
                     .BeTrue($"'{method}' HTTP method must be supported");
-                ((int)response.StatusCode).Should().Be(Status200OK); 
+                ((int)response.StatusCode).Should().Be(Status200OK);
             }
         }
 
@@ -226,7 +247,7 @@ namespace Measures.API.IntegrationTests
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"robin_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -269,7 +290,8 @@ namespace Measures.API.IntegrationTests
 
                     JToken token = JToken.Parse(content);
                     token.IsValid(_errorObjectSchema)
-                        .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
+#if NETCOREAPP2_0
+                                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
                     ErrorObject errorObject = token.ToObject<ErrorObject>();
                     errorObject.Code.Should()
@@ -280,7 +302,19 @@ namespace Measures.API.IntegrationTests
                         .HaveCount(1).And
                         .ContainKey("id").WhichValue.Should()
                             .HaveCount(1).And
+                            .HaveElementAt(0, $"'id' must have a non default value"); 
+#elif NETCOREAPP2_1
+                        .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
+
+                    ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
+                    errorObject.Title.Should()
+                        .Be("Validation failed");
+                    errorObject.Errors.Should()
+                        .HaveCount(1).And
+                        .ContainKey("id").WhichValue.Should()
+                            .HaveCount(1).And
                             .HaveElementAt(0, $"'id' must have a non default value");
+#endif
                 }
             }
         }
@@ -294,7 +328,7 @@ namespace Measures.API.IntegrationTests
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"batman_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -311,16 +345,16 @@ namespace Measures.API.IntegrationTests
             using (HttpClient client = _server.CreateClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
-               
+
                 // Act
                 HttpResponseMessage response = await client.GetAsync(url)
                     .ConfigureAwait(false);
-                
+
                 // Assert
                 response.IsSuccessStatusCode.Should()
                     .BeFalse("The page of results doesn't exist");
                 ((int)response.StatusCode).Should()
-                    .Be(Status404NotFound); 
+                    .Be(Status404NotFound);
             }
         }
 
@@ -330,8 +364,8 @@ namespace Measures.API.IntegrationTests
             // Arrange
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
-                Email = "batman@gotham.fr",
+                Username = $"robin_{Guid.NewGuid()}",
+                Email = "robin@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
             };
@@ -353,11 +387,11 @@ namespace Measures.API.IntegrationTests
             using (HttpClient client = _server.CreateClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
-                
+
                 // Act
-                HttpResponseMessage response = await client.PostAsJsonAsync("/mesasures/patients", newPatient)
+                HttpResponseMessage response = await client.PostAsJsonAsync("/measures/patients", newPatient)
                     .ConfigureAwait(false);
-               
+
                 _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
 
                 string json = await response.Content.ReadAsStringAsync()
@@ -365,7 +399,7 @@ namespace Measures.API.IntegrationTests
 
                 _outputHelper.WriteLine($"created resource : {json}");
 
-                string patientId = JToken.Parse(json)[nameof(BrowsableResource<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
+                string patientId = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
 
                 NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
                 {
@@ -380,7 +414,7 @@ namespace Measures.API.IntegrationTests
                     Type = JSchemaType.Object,
                     Properties =
                 {
-                    [nameof(BrowsableResource<BloodPressureInfo>.Resource).ToLower()] = new JSchema
+                    [nameof(Browsable<BloodPressureInfo>.Resource).ToLower()] = new JSchema
                     {
                         Type = JSchemaType.Object,
                         Properties =
@@ -459,7 +493,7 @@ namespace Measures.API.IntegrationTests
             };
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"batman_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -486,10 +520,14 @@ namespace Measures.API.IntegrationTests
                 PatientInfo patientInfo = DeserializeObject<PatientInfo>(json);
 
                 // Act
+                _outputHelper.WriteLine($"Invalid resource : {invalidResource}");
                 response = await client.PostAsJsonAsync($"{_endpointUrl}/{patientInfo.Id}/bloodpressures", invalidResource)
                     .ConfigureAwait(false);
 
                 // Assert
+
+                _outputHelper.WriteLine($"Response HTTP code : {response.StatusCode}");
+
                 response.IsSuccessStatusCode.Should()
                     .BeFalse(reason);
                 ((int)response.StatusCode).Should()
@@ -499,6 +537,7 @@ namespace Measures.API.IntegrationTests
 
                 string content = await response.Content.ReadAsStringAsync()
                    .ConfigureAwait(false);
+                _outputHelper.WriteLine($"Response content : {content}");
 
                 JToken.Parse(content).IsValid(_errorObjectSchema)
                     .Should().BeTrue("Validation errors");
@@ -517,7 +556,7 @@ namespace Measures.API.IntegrationTests
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
-                Username = "batman",
+                Username = $"batman_{Guid.NewGuid()}",
                 Email = "batman@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
@@ -543,24 +582,30 @@ namespace Measures.API.IntegrationTests
                 string json = await response.Content.ReadAsStringAsync()
                     .ConfigureAwait(false);
                 _outputHelper.WriteLine($"json : {json}");
-                IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(BrowsableResource<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
+                IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
                 IEnumerable<Link> linksToGetData = patientLinks.Where(x => x.Method == "GET");
 
-                HttpRequestMessage headRequestMessage = new HttpRequestMessage();
-                foreach (Link link in linksToGetData)
+                using (HttpClient client2 = _server.CreateClient())
                 {
-                    headRequestMessage.Method = Head;
-                    headRequestMessage.RequestUri = new Uri(link.Href);
+                    foreach (Link link in linksToGetData)
+                    {
+                        HttpRequestMessage headRequestMessage = new HttpRequestMessage
+                        {
+                            Method = Head,
+                            RequestUri = new Uri(link.Href)
+                        };
+                        headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-                    // Act
-                    response = await client.SendAsync(headRequestMessage)
-                        .ConfigureAwait(false);
+                        // Act
+                        response = await client2.SendAsync(headRequestMessage)
+                            .ConfigureAwait(false);
 
-                    // Assert
-                    _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
-                    response.IsSuccessStatusCode.Should()
-                        .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");
-                } 
+                        // Assert
+                        _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
+                        response.IsSuccessStatusCode.Should()
+                            .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");
+                    }
+                }
             }
         }
     }

@@ -14,7 +14,6 @@ namespace Measures.Validators.Commands.Patients
     /// </summary>
     public class PatchPatientInfoValidator : AbstractValidator<JsonPatchDocument<PatientInfo>>
     {
-        
         /// <summary>
         /// Builds a new <see cref="PatchPatientInfoValidator"/> instance.
         /// </summary>
@@ -34,7 +33,7 @@ namespace Measures.Validators.Commands.Patients
                 () =>
                 {
                     RuleFor(x => x.Operations)
-                        .Must(ops => 
+                        .Must(ops =>
                             !ops.Any(op => $"/{nameof(PatientInfo.Id)}".Equals(op.path, OrdinalIgnoreCase))
                         );
 
@@ -42,12 +41,10 @@ namespace Measures.Validators.Commands.Patients
                         () =>
                         {
                             RuleFor(x => x.Operations)
-                                .Must(ops => !ops.Any(op => $"/{nameof(PatientInfo.Lastname)}".Equals(op.path, OrdinalIgnoreCase) 
+                                .Must(ops => !ops.Any(op => $"/{nameof(PatientInfo.Lastname)}".Equals(op.path, OrdinalIgnoreCase)
                                     && op.value != null && op.value.ToString().Length > 100))
                                     .WithMessage($"{nameof(PatientInfo.Lastname)} must have a length of 100 characters at most.");
                         });
-
-
                 }
             );
         }

@@ -42,7 +42,6 @@ namespace Measures.Mapping
                 .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
                 ;
 
-            
             cfg.CreateMap<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
                 .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.Patient.UUID))
@@ -92,8 +91,6 @@ namespace Measures.Mapping
 
             cfg.CreateMap(typeof(JsonPatchDocument<>), typeof(JsonPatchDocument<>));
             cfg.CreateMap(typeof(Operation<>), typeof(Operation<>));
-
-
         });
     }
 }

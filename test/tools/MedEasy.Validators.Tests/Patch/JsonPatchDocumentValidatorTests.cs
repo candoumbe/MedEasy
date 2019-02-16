@@ -19,7 +19,6 @@ namespace MedEasy.Validators.Tests.Patch
     [Feature("Validation")]
     public class JsonPatchDocumentValidatorTests : IDisposable
     {
-
         public class SuperHero
         {
             public Guid Id { get; set; }
@@ -27,7 +26,6 @@ namespace MedEasy.Validators.Tests.Patch
             public string Firstname { get; set; }
 
             public string Lastname { get; set; }
-
         }
 
         private ITestOutputHelper _outputHelper;
@@ -40,13 +38,11 @@ namespace MedEasy.Validators.Tests.Patch
             _validator = new JsonPatchDocumentValidator<SuperHero>();
         }
 
-
         public void Dispose()
         {
             _outputHelper = null;
             _validator = null;
         }
-
 
         public static IEnumerable<object[]> CausesValidationErrorsCases
         {
@@ -66,7 +62,6 @@ namespace MedEasy.Validators.Tests.Patch
             }
         }
 
-        
 
         public static IEnumerable<object[]> ValidPatchDocumentsCases
         {
@@ -149,7 +144,6 @@ namespace MedEasy.Validators.Tests.Patch
 //                    };
 //                }
 
-
 //#if NETCOREAPP2_0
 //                {
 //                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
@@ -205,7 +199,7 @@ namespace MedEasy.Validators.Tests.Patch
 #endif
             }
         }
-        
+
 
         [Theory]
         [MemberData(nameof(CausesValidationErrorsCases))]
@@ -236,5 +230,4 @@ namespace MedEasy.Validators.Tests.Patch
             vr.Should().Match(expectation, because);
         }
     }
-
 }

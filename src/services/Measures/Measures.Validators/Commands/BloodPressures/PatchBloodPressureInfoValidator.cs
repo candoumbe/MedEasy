@@ -13,7 +13,6 @@ namespace Measures.Validators.Commands.BloodPressures
     /// </summary>
     public class PatchBloodPressureInfoValidator : AbstractValidator<JsonPatchDocument<BloodPressureInfo>>
     {
-        
         /// <summary>
         /// Builds a new <see cref="PatchBloodPressureInfoValidator"/> instance.
         /// </summary>
@@ -33,7 +32,7 @@ namespace Measures.Validators.Commands.BloodPressures
                 () =>
                 {
                     RuleFor(x => x.Operations)
-                        .Must(ops => 
+                        .Must(ops =>
                             !ops.Any(op => $"/{nameof(BloodPressureInfo.Id)}".Equals(op.path, OrdinalIgnoreCase))
                         );
                 }

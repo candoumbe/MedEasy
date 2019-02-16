@@ -2,7 +2,6 @@ using System;
 
 namespace MedEasy.Objects
 {
-
     /// <summary>
     /// Classes implementing this interface agree that <see cref="Id"/> should uniquely identifies them
     /// </summary>

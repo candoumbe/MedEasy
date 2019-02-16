@@ -23,7 +23,17 @@ namespace MedEasy.Mobile.UnitTests.Core.Services
     [Feature("Mobile")]
     public class ViewFactoryTests : IDisposable
     {
-        public class FirstViewModel : ViewModelBase { }
+        public class FirstViewModel : ViewModelBase
+        {
+
+            public override void Prepare(object navigationData)
+            {
+                if (navigationData is FirstViewModel data)
+                {
+                    IsBusy = data.IsBusy;
+                }
+            }
+        }
         public class SecondViewModel : ViewModelBase { }
         public class ThirdViewModel : ViewModelBase { }
 
@@ -94,7 +104,7 @@ namespace MedEasy.Mobile.UnitTests.Core.Services
 
 
             _sut.AddMapping<FirstViewModel, Page>();
-            
+
             // Act
             Option<Page> optionalPage = _sut.Resolve<FirstViewModel>();
 
@@ -102,9 +112,10 @@ namespace MedEasy.Mobile.UnitTests.Core.Services
             optionalPage.HasValue.Should()
                 .BeTrue("there's mapping for the specified view model");
             optionalPage.MatchSome(
-                page => page.BindingContext.Should()
-                    .BeOfType<FirstViewModel>()
-
+                page => {
+                    page.BindingContext.Should()
+                        .BeOfType<FirstViewModel>();
+                }
             );
         }
 
@@ -123,15 +134,26 @@ namespace MedEasy.Mobile.UnitTests.Core.Services
 
 
             _sut.AddMapping<FirstViewModel, Page>();
-            FirstViewModel model = new FirstViewModel();
+            FirstViewModel initializeData = new FirstViewModel
+            {
+                IsBusy = true
+            };
 
             // Act
-            Option<Page> optionalPage = _sut.Resolve(model);
+            Option<Page> optionalPage = _sut.Resolve<FirstViewModel>(initializeData);
 
             // Assert
             optionalPage.HasValue.Should()
                 .BeTrue("there's mapping for the specified view model");
-            optionalPage.MatchSome(page => page.BindingContext.Should().BeSameAs(model));
+            optionalPage.MatchSome(page =>
+            {
+                FirstViewModel bindingContext = page.BindingContext.Should()
+                    .NotBeNull().And
+                    .BeAssignableTo<FirstViewModel>().Which;
+
+                bindingContext.IsBusy.Should()
+                    .Be(initializeData.IsBusy);
+            });
         }
     }
 }

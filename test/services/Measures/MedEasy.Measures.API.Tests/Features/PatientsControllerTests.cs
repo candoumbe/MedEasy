@@ -80,7 +80,6 @@ namespace Measures.API.Tests.Features.Patients
                 _apiOptionsMock.Object,
                 _mediatorMock.Object,
                 _claimsPrincipal.Object);
-
         }
 
         public void Dispose()
@@ -94,7 +93,6 @@ namespace Measures.API.Tests.Features.Patients
             _claimsPrincipal = null;
         }
 
-
         public static IEnumerable<object> GetLastBloodPressuresMesuresCases
         {
             get
@@ -103,7 +101,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     Enumerable.Empty<BloodPressure>(),
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
+                    (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any())
                 };
 
                 yield return new object[]
@@ -114,7 +112,7 @@ namespace Measures.API.Tests.Features.Patients
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
 
-                    ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any()))
+                    (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => !x.Any())
                 };
 
                 {
@@ -126,7 +124,7 @@ namespace Measures.API.Tests.Features.Patients
                             new BloodPressure { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
-                        ((Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1))
+                        (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
                     };
                 }
             }
@@ -140,7 +138,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     Enumerable.Empty<Temperature>(),
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
-                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
+                    (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any())
                 };
 
                 yield return new object[]
@@ -150,7 +148,7 @@ namespace Measures.API.Tests.Features.Patients
                         new Temperature { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
-                    ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any()))
+                    (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any())
                 };
                 {
                     Guid patientId = Guid.NewGuid();
@@ -161,12 +159,11 @@ namespace Measures.API.Tests.Features.Patients
                             new Temperature { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
-                        ((Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1))
+                        (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
                     };
                 }
             }
         }
-
 
         public static IEnumerable<object[]> GetAllTestCases
         {
@@ -174,7 +171,6 @@ namespace Measures.API.Tests.Features.Patients
             {
                 int[] pageSizes = { 1, 10, 20 };
                 int[] pages = { 1, 5, 10 };
-
 
                 foreach (int pageSize in pageSizes)
                 {
@@ -187,18 +183,20 @@ namespace Measures.API.Tests.Features.Patients
                             (defaultPageSize : 30, maxPageSize : 200),
                             0,    //expected total
                             (
-                                first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First &&
-                                    ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
-                                    $"Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First
+                                    &&
+                                        ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                        $"Controller={PatientsController.EndpointName}" +
+                                        $"&page=1" +
+                                        $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 next :(Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last &&
-                                    ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
-                                    $"Controller={PatientsController.EndpointName}" +
-                                    $"&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase))
+                                last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last
+                                    &&
+                                        ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                        $"Controller={PatientsController.EndpointName}" +
+                                        $"&page=1" +
+                                        $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase))
                             )  // expected link to last page
                         };
                     }
@@ -210,7 +208,6 @@ namespace Measures.API.Tests.Features.Patients
                     .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
                     .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
                 {
-
                     IEnumerable<Patient> items =patientFaker.Generate(400);
                     items.ForEach(item => item.Id = default);
                     yield return new object[]
@@ -220,16 +217,16 @@ namespace Measures.API.Tests.Features.Patients
                         (defaultPageSize : 30, maxPageSize : 200),
                         400,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)))
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
                 }
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
-                    
+
                     yield return new object[]
                     {
                         items,
@@ -237,10 +234,10 @@ namespace Measures.API.Tests.Features.Patients
                         (defaultPageSize : 30, maxPageSize : 200),
                         400,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)))  // expected link to last page
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -254,19 +251,20 @@ namespace Measures.API.Tests.Features.Patients
                         (defaultPageSize : 30, maxPageSize : 200),
                         1,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null
+                            first : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == LinkRelation.First
                                 && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
                                     $"&page=1" +
-                                    $"&pageSize={PaginationConfiguration.DefaultPageSize}").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous :((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)))
+                                    $"&pageSize={PaginationConfiguration.DefaultPageSize}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous :(Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
                         ), // expected link to last page
                     };
             }
         }
+
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
         public async Task GetAll(IEnumerable<Patient> items, (int pageSize, int page) request,
@@ -283,7 +281,8 @@ namespace Measures.API.Tests.Features.Patients
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(items);
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfPatientInfoQuery>(), It.IsAny<CancellationToken>()))
@@ -308,7 +307,8 @@ namespace Measures.API.Tests.Features.Patients
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { Page = request.page, PageSize = request.pageSize });
+            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { Page = request.page, PageSize = request.pageSize })
+                .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
@@ -323,9 +323,9 @@ namespace Measures.API.Tests.Features.Patients
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<PatientInfo>>>();
+                    .BeAssignableTo<IGenericPagedGetResponse<Browsable<PatientInfo>>>();
 
-            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = (IGenericPagedGetResponse<BrowsableResource<PatientInfo>>)value;
+            IGenericPagedGetResponse<Browsable<PatientInfo>> response = (IGenericPagedGetResponse<Browsable<PatientInfo>>)value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -346,9 +346,7 @@ namespace Measures.API.Tests.Features.Patients
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
             response.Links.Next.Should().Match(linksExpectation.nextPageUrlExpectation);
             response.Links.Last.Should().Match(linksExpectation.lastPageUrlExpectation);
-
         }
-
 
         public static IEnumerable<object[]> SearchCases
         {
@@ -367,28 +365,27 @@ namespace Measures.API.Tests.Features.Patients
                     {
                         Enumerable.Empty<Patient>(),
                         searchInfo,
-                        ((
-                        ((Expression<Func<Link, bool>>) (x => x != null
+                        (
+                        (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
                                 $"&firstname={searchInfo.Firstname}"+
                                 $"&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
-                        ((Expression<Func<Link, bool>>)(next => next == null)),
-                        ((Expression<Func<Link, bool>>) (x => x != null
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        (Expression<Func<Link, bool>>)(previous => previous == null),
+                        (Expression<Func<Link, bool>>)(next => next == null),
+                        (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.Last
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
                                 $"&firstname={searchInfo.Firstname}"+
                                 $"&page=1" +
                                 $"&pageSize=30" +
-                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))))
-                        )
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)))
+
 
                     };
-
                 }
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
@@ -405,25 +402,24 @@ namespace Measures.API.Tests.Features.Patients
                         },
                         searchInfo,
                         (
-                           ((Expression<Func<Link, bool>>) (x => x != null
+                           (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
                                 $"&lastname={Uri.EscapeDataString(searchInfo.Lastname)}"+
                                 $"&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))),
-                            ((Expression<Func<Link, bool>>)(previous => previous == null)),
-                            ((Expression<Func<Link, bool>>)(next => next == null)),
-                            ((Expression<Func<Link, bool>>) (x => x != null
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)),
+                            (Expression<Func<Link, bool>>)(previous => previous == null),
+                            (Expression<Func<Link, bool>>)(next => next == null),
+                            (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == LinkRelation.Last
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
                                     $"&lastname={Uri.EscapeDataString(searchInfo.Lastname)}"+
                                     $"&page=1&pageSize=30" +
-                                    $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)))
+                                    $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))
                         )
                     };
-
                 }
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
@@ -439,20 +435,20 @@ namespace Measures.API.Tests.Features.Patients
                         },
                         searchInfo,
                         (
-                            ((Expression<Func<Link, bool>>) (x => x != null
+                            (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == LinkRelation.First
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
                                     $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
-                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            ((Expression<Func<Link, bool>>)(previous => previous == null)),
-                            ((Expression<Func<Link, bool>>)(next => next == null)),
-                            ((Expression<Func<Link, bool>>) (x => x != null
+                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            (Expression<Func<Link, bool>>)(previous => previous == null),
+                            (Expression<Func<Link, bool>>)(next => next == null),
+                            (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == LinkRelation.Last
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
                                     $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
-                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)))
+                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))
                         )
 
                     };
@@ -472,28 +468,27 @@ namespace Measures.API.Tests.Features.Patients
                             new Patient { Firstname = "bruce", BirthDate = 31.July(2010) }
                         },
                         searchInfo,
-                        ( ((Expression<Func<Link, bool>>) (x => x != null
+                        ( (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
                                 $"&Controller={PatientsController.EndpointName}" +
                                 $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
-                                $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                        ((Expression<Func<Link, bool>>)(previous => previous == null)),
-                        ((Expression<Func<Link, bool>>)(next => next == null)),
-                        ((Expression<Func<Link, bool>>) (x => x != null
+                                $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        (Expression<Func<Link, bool>>)(previous => previous == null),
+                        (Expression<Func<Link, bool>>)(next => next == null),
+                        (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.Last
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
                                 $"&Controller={PatientsController.EndpointName}" +
                                 $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
-                                $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))))
+                                $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)))
 
                     };
                 }
             }
         }
-
 
         [Theory]
         [MemberData(nameof(SearchCases))]
@@ -502,7 +497,6 @@ namespace Measures.API.Tests.Features.Patients
         {
             _outputHelper.WriteLine($"Entries : {SerializeObject(entries)}");
             _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
-
 
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -542,13 +536,12 @@ namespace Measures.API.Tests.Features.Patients
                     .ConfigureAwait(false);
 
             // Assert
-            GenericPagedGetResponse<BrowsableResource<PatientInfo>> content = actionResult.Should()
+            GenericPagedGetResponse<Browsable<PatientInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<PatientInfo>>>().Which;
-
+                        .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>().Which;
 
             content.Items.Should()
                 .NotBeNull($"{nameof(GenericPagedGetResponse<object>.Items)} must not be null").And
@@ -565,7 +558,6 @@ namespace Measures.API.Tests.Features.Patients
             links.Next.Should().Match(linksExpectation.nextPageLink);
             links.Last.Should().Match(linksExpectation.lastPageLink);
         }
-
 
         [Fact]
         public async Task GivenMediatorReturnsEmptyPage_Search_Returns_NotFound_When_Requesting_PageTwoOfResult()
@@ -589,9 +581,7 @@ namespace Measures.API.Tests.Features.Patients
             actionResult.Should()
                 .NotBeNull().And
                 .BeAssignableTo<NotFoundResult>();
-
         }
-
 
         public static IEnumerable<object> PatchCases
         {
@@ -604,7 +594,7 @@ namespace Measures.API.Tests.Features.Patients
                     {
                         new Patient { Id = 1, },
                         patchDocument,
-                        ((Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce"))
+                        (Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce")
                     };
                 }
             }
@@ -626,9 +616,9 @@ namespace Measures.API.Tests.Features.Patients
                     }
                 });
 
-
             //Act
-            IActionResult actionResult = await _controller.Get(Guid.NewGuid());
+            IActionResult actionResult = await _controller.Get(Guid.NewGuid())
+                .ConfigureAwait(false);
 
             //Assert
             actionResult.Should()
@@ -637,7 +627,6 @@ namespace Measures.API.Tests.Features.Patients
                     .StatusCode.Should().Be(404);
 
             _mediatorMock.Verify();
-
         }
 
         [Fact]
@@ -653,7 +642,8 @@ namespace Measures.API.Tests.Features.Patients
                     Firstname = "Bruce",
                     Lastname = "Wayne"
                 });
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
             PatientInfo expectedResource = new PatientInfo
             {
@@ -675,17 +665,17 @@ namespace Measures.API.Tests.Features.Patients
                    }
                });
 
-
             //Act
-            IActionResult actionResult = await _controller.Get(patientId);
+            IActionResult actionResult = await _controller.Get(patientId)
+                .ConfigureAwait(false);
 
             //Assert
 
-            BrowsableResource<PatientInfo> result = actionResult.Should()
+            Browsable<PatientInfo> result = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
-                    .BeAssignableTo<BrowsableResource<PatientInfo>>().Which;
+                    .BeAssignableTo<Browsable<PatientInfo>>().Which;
 
             IEnumerable<Link> links = result.Links;
 
@@ -693,7 +683,7 @@ namespace Measures.API.Tests.Features.Patients
                 .NotBeNull().And
                 .NotContainNulls().And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(BrowsableResource<PatientInfo>)}{nameof(BrowsableResource<PatientInfo>.Links)} cannot contain any element " +
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Href), $"{nameof(Browsable<PatientInfo>)}{nameof(Browsable<PatientInfo>.Links)} cannot contain any element " +
                     $"with null/empty/whitespace {nameof(Link.Href)}s").And
                 .ContainSingle(x => x.Relation == LinkRelation.Self).And
                 .ContainSingle(x => x.Relation == "delete").And
@@ -709,20 +699,17 @@ namespace Measures.API.Tests.Features.Patients
             self.Method.Should()
                 .Be("GET");
 
-
             Link linkDelete = links.Single(x => x.Relation == "delete");
             linkDelete.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={expectedResource.Id}");
             linkDelete.Method.Should().Be("DELETE");
 
-
             Link bloodPressuresLink = links.Single(x => x.Relation == BloodPressuresController.EndpointName.ToLowerKebabCase());
             bloodPressuresLink.Href.Should()
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?Controller={BloodPressuresController.EndpointName}&{nameof(BloodPressureInfo.PatientId)}={expectedResource.Id}");
             bloodPressuresLink.Method.Should().Be("GET");
-
 
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
@@ -732,7 +719,6 @@ namespace Measures.API.Tests.Features.Patients
 
             _urlHelperMock.Verify();
             _mediatorMock.Verify();
-
         }
 
         [Fact]
@@ -754,7 +740,6 @@ namespace Measures.API.Tests.Features.Patients
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
-
         }
 
         [Fact]
@@ -776,7 +761,6 @@ namespace Measures.API.Tests.Features.Patients
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
-
         }
 
         [Fact]
@@ -798,14 +782,12 @@ namespace Measures.API.Tests.Features.Patients
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
-
         }
 
         public static IEnumerable<object[]> GetBloodPressuresWhenPatientExistsCases
         {
             get
             {
-
                 yield return new object[]
                 {
                     (page :1, pageSize:10),
@@ -817,7 +799,6 @@ namespace Measures.API.Tests.Features.Patients
                     (page :1, pageSize:10),
                     (defaultPageSize : 30, maxPageSize : 5)
                 };
-
             }
         }
 
@@ -841,11 +822,10 @@ namespace Measures.API.Tests.Features.Patients
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                    .Returns(async (GetPatientInfoByIdQuery query, CancellationToken ct) => await Task.FromResult<Option<PatientInfo>>(new PatientInfo
+                    .Returns((GetPatientInfoByIdQuery query, CancellationToken ct) => new ValueTask<Option<PatientInfo>>(new PatientInfo
                     {
                         Id = query.Data
-                    }.Some()));
-
+                    }.Some()).AsTask());
 
             // Act
             IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: paging, ct: default)
@@ -876,8 +856,6 @@ namespace Measures.API.Tests.Features.Patients
                         .Be(pagination.page);
             redirect.RouteValues["pageSize"].Should()
                         .Be(Math.Min(pagination.pageSize, apiOptions.MaxPageSize), "request pageSize must be capped by the controller");
-
-
         }
 
         [Fact]
@@ -894,7 +872,6 @@ namespace Measures.API.Tests.Features.Patients
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoForPatientIdCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreateBloodPressureInfoForPatientIdCommand cmd, CancellationToken cancellationToken) =>
                 {
-
                     return Task.FromResult(new BloodPressureInfo
                     {
                         DateOfMeasure = cmd.Data.DateOfMeasure,
@@ -915,11 +892,10 @@ namespace Measures.API.Tests.Features.Patients
             // Assert
             _mediatorMock.Verify();
 
-
-            BrowsableResource<BloodPressureInfo> browsableResource = actionResult.Should()
+            Browsable<BloodPressureInfo> browsableResource = actionResult.Should()
                 .BeOfType<CreatedAtRouteResult>().Which
                 .Value.Should()
-                    .BeAssignableTo<BrowsableResource<BloodPressureInfo>>().Which;
+                    .BeAssignableTo<Browsable<BloodPressureInfo>>().Which;
 
             BloodPressureInfo resource = browsableResource.Resource;
             resource.Id.Should()
@@ -930,7 +906,6 @@ namespace Measures.API.Tests.Features.Patients
                 .Be(newMeasure.DiastolicPressure);
             resource.PatientId.Should()
                 .Be(patientId);
-
 
             IEnumerable<Link> links = browsableResource.Links;
             links.Should()
@@ -953,8 +928,6 @@ namespace Measures.API.Tests.Features.Patients
             Link linkToDelete = links.Single(x => x.Relation == "delete-bloodpressure");
             linkToSelf.Href.Should()
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id}");
-
-
         }
 
         public static IEnumerable<object[]> MediatorReturnsErrorCases
@@ -964,14 +937,14 @@ namespace Measures.API.Tests.Features.Patients
                 yield return new object[]
                 {
                     CreateCommandResult.Failed_NotFound,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult))
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult)
                 };
 
                 yield return new object[]
                 {
                     CreateCommandResult.Failed_Conflict,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult
-                        && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict))
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult
+                        && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict)
                 };
             }
         }
@@ -992,9 +965,6 @@ namespace Measures.API.Tests.Features.Patients
             actionResult.Should()
                 .NotBeNull().And
                 .Match(actionResultExpectation);
-
-
-
         }
 
         [Fact]
@@ -1012,7 +982,6 @@ namespace Measures.API.Tests.Features.Patients
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreatePatientInfoCommand cmd, CancellationToken ct) =>
                 {
-
                     return Task.FromResult(new PatientInfo
                     {
                         Firstname = cmd.Data.Firstname,
@@ -1040,8 +1009,8 @@ namespace Measures.API.Tests.Features.Patients
                     .BeOfType<Guid>().Which.Should()
                         .NotBeEmpty();
 
-            BrowsableResource<PatientInfo> browsablePatientInfo = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<BrowsableResource<PatientInfo>>().Which;
+            Browsable<PatientInfo> browsablePatientInfo = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<Browsable<PatientInfo>>().Which;
 
             PatientInfo resource = browsablePatientInfo.Resource;
             resource.Should()
@@ -1068,9 +1037,7 @@ namespace Measures.API.Tests.Features.Patients
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={apiOptions.DefaultPageSize}&patientId={resource.Id}");
             linkToSelf.Method.Should()
                 .Be("GET");
-
         }
-
 
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()
@@ -1109,8 +1076,6 @@ namespace Measures.API.Tests.Features.Patients
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
-
         }
-
     }
 }

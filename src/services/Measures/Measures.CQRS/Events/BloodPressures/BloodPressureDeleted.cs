@@ -2,13 +2,11 @@
 
 namespace Measures.CQRS.Events.BloodPressures
 {
-
     /// <summary>
     /// Event that notifies the deletion of a <see cref="BloodPressureInfo"/> resource .
     /// </summary>
     public class BloodPressureDeleted : MeasureDeleted<Guid, Guid>
     {
-        
         /// <summary>
         /// Builds a new <see cref="BloodPressureDeleted"/> instance
         /// </summary>
@@ -16,6 +14,5 @@ namespace Measures.CQRS.Events.BloodPressures
         public BloodPressureDeleted(Guid measureId) : base(Guid.NewGuid(), measureId)
         {
         }
-
     }
 }

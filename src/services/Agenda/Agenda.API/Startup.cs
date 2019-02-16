@@ -26,7 +26,6 @@ namespace Agenda.API
         /// </summary>
         public IHostingEnvironment HostingEnvironment { get; }
 
-
         /// <summary>
         /// Builds a new <see cref="Startup"/> instance.
         /// </summary>
@@ -49,7 +48,7 @@ namespace Agenda.API
             services.AddDataStores();
             services.AddConsul(Configuration);
             services.AddCustomizedDependencyInjection();
-            
+
             if (HostingEnvironment.IsDevelopment())
             {
                 services.AddCustomizedSwagger(HostingEnvironment, Configuration);
@@ -72,7 +71,6 @@ namespace Agenda.API
                 IHostedService hostedService = app.ApplicationServices.GetRequiredService<IHostedService>();
                 await hostedService.StopAsync(default)
                     .ConfigureAwait(false);
-
             });
 
             if (env.IsProduction() || env.IsStaging())
@@ -93,7 +91,7 @@ namespace Agenda.API
                     app.UseSwaggerUI(opt =>
                     {
                         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "Agenda REST API V1");
-                    }); 
+                    });
                 }
             }
 

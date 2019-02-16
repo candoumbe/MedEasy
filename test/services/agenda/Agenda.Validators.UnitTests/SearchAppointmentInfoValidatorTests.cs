@@ -91,7 +91,6 @@ namespace Agenda.Validators.UnitTests
                     $"only {nameof(SearchAppointmentInfo.To)} was explicitely set"
                 };
 
-
                 yield return new object[]
                 {
                     new SearchAppointmentInfo { Sort = "-UnknownProp" },
@@ -154,8 +153,6 @@ namespace Agenda.Validators.UnitTests
                     $@"Sort expression ""--{nameof(AppointmentInfo.EndDate)}"" contains two ""--"""
                 };
 
-
-
             }
         }
 
@@ -166,7 +163,6 @@ namespace Agenda.Validators.UnitTests
             _outputHelper.WriteLine($"criteria : {SerializeObject(search)}");
             // Arrange
 
-
             // Act
             ValidationResult vr = await _sut.ValidateAsync(search)
                 .ConfigureAwait(false);
@@ -175,6 +171,5 @@ namespace Agenda.Validators.UnitTests
             vr.Should()
                 .Match(validationResultExpectation, reason);
         }
-
     }
 }

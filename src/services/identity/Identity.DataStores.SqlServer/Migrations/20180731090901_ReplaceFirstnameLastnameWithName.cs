@@ -21,7 +21,6 @@ namespace Identity.DataStores.SqlServer.Migrations
             migrationBuilder.DropColumn(
                 name: "Lastname",
                 table: "Account");
-
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

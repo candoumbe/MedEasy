@@ -22,7 +22,7 @@ export class ErrorComponent extends React.PureComponent<ErrorComponentProps, {}>
     public render(): JSX.Element {
         return (
             <div className="center-block" >
-                <div className="alert alert-info" role="alert">
+                <div className="alert alert-danger" role="alert">
                     {this.props.text || "An error occured ..."}
                 </div>
             </div>

@@ -41,7 +41,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             _sut = new ConsulHostedService(_server, _consulClient, _consulOptions, logger: _logger);
         }
 
-
         public void Dispose()
         {
             _server = null;
@@ -50,8 +49,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             _logger = null;
             _sut = null;
         }
-
-
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
@@ -67,8 +64,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
                     .CrossJoin(loggers, (tuple, logger) => new { tuple.server, tuple.consulClient, tuple.consulConfig, logger })
                     .Where(tuple => tuple.server == null || tuple.consulClient == null || tuple.consulConfig == null || tuple.logger == null)
                     .Select(tuple => new object[]{ tuple.server, tuple.consulClient, tuple.consulConfig, tuple.logger });
-
-
             }
         }
 
@@ -79,7 +74,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             // Act
             Action action = () => new ConsulHostedService(server, consulClient, consulOptions, logger);
 
-
             // Assert
             action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
@@ -89,7 +83,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
         [Fact]
         public async Task StartAsync()
         {
-
             // Arrange
             string serverAddress = "http://127.0.0.1";
 
@@ -120,17 +113,14 @@ namespace MedEasy.Core.UnitTests.Infrastructure
 
             A.CallTo(() => _consulOptions.Value).Returns(consulConfig);
 
-           
 
             // Act
             await _sut.StartAsync(default)
                 .ConfigureAwait(false);
 
-
             // Assert
             A.CallTo(_logger)
                 .MustHaveHappenedOnceExactly();
-
 
             A.CallTo(() => _consulOptions.Value)
                 .MustHaveHappenedOnceExactly();
@@ -144,7 +134,6 @@ namespace MedEasy.Core.UnitTests.Infrastructure
                     .MustHaveHappenedOnceExactly();
             A.CallTo(() => _consulClient.Agent.ServiceDeregister(A<string>._, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
-
         }
 
         [Fact]
@@ -177,20 +166,16 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             await _sut.StartAsync(default)
                 .ConfigureAwait(false);
 
-
             // Act
             await _sut.StopAsync(default)
                 .ConfigureAwait(false);
-
 
             // Assert
             A.CallTo(_logger)
                 .MustHaveHappenedTwiceExactly();
 
-
             A.CallTo(() => _consulClient.Agent.ServiceDeregister(A<string>.That.IsNotNull(), A<CancellationToken>._))
                 .MustHaveHappenedTwiceExactly();
-
         }
     }
 }

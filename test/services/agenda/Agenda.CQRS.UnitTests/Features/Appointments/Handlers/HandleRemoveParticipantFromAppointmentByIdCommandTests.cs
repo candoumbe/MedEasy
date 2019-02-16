@@ -53,11 +53,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _sut = null;
         }
 
-
         [Fact]
         public async Task GivenNoAppointment_Handles_Returns_NotFound()
         {
-
             // Arrange
             Guid participantId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -77,11 +75,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .Be(DeleteCommandResult.Failed_NotFound);
         }
 
-
         [Fact]
         public async Task GivenNoParticipant_Handles_Returns_NotFound()
         {
-
             // Arrange
             Guid appointmentId = Guid.NewGuid();
             Appointment appointment = new Appointment
@@ -112,11 +108,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .Be(DeleteCommandResult.Failed_NotFound);
         }
 
-
         [Fact]
         public async Task GivenAppointmentAndParticipantExist_Handle_ReturnsDone()
         {
-
             // Arrange
             Guid appointmentId = Guid.NewGuid();
             Appointment appointment = new Appointment
@@ -160,7 +154,5 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .BeTrue("the relation should no longer exists in the datastore");
             }
         }
-        
-        
     }
 }

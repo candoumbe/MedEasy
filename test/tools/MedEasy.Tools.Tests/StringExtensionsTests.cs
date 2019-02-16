@@ -6,7 +6,6 @@ using Xunit.Abstractions;
 
 namespace MedEasy.Tools.Tests
 {
-
     public class StringExtensionsTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
@@ -35,7 +34,6 @@ namespace MedEasy.Tools.Tests
         [InlineData("cyrille-alexandre", "Cyrille-Alexandre")]
         public void ToTitleCase(string input, string expectedString)
             => input?.ToTitleCase()?.Should().Be(expectedString);
-
 
         [Theory]
         [InlineData(null, null)]
@@ -70,10 +68,9 @@ namespace MedEasy.Tools.Tests
             _outputHelper.WriteLine($"pattern : '{pattern}'");
             _outputHelper.WriteLine($"Ignore case : '{ignoreCase}'");
 
-
             // Act
             bool result = input.Like(pattern, ignoreCase);
-                
+
             // Assert
             result.Should().Be(expectedResult);
         }
@@ -90,7 +87,6 @@ namespace MedEasy.Tools.Tests
                 .BeEquivalentTo("input");
         }
 
-
         [Theory]
         [InlineData(null, "test")]
         [InlineData("test", null)]
@@ -105,8 +101,6 @@ namespace MedEasy.Tools.Tests
                 .NotBeNullOrWhiteSpace();
         }
 
-
-
         [Theory]
         [InlineData("firstname", "firstname")]
         [InlineData("firstName", "first-name")]
@@ -116,7 +110,6 @@ namespace MedEasy.Tools.Tests
             _outputHelper.WriteLine($"input : '{input}'");
             input.ToLowerKebabCase().Should().Be(expectedOutput);
         }
-
 
         [Fact]
         public void Decode()
@@ -135,10 +128,7 @@ namespace MedEasy.Tools.Tests
             action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
-
-
 
 }

@@ -20,6 +20,5 @@ namespace MedEasy.Tools.Extensions
             enc = enc.Replace("+", "-");
             return enc.Substring(0, 22);
         }
-
     }
 }

@@ -20,6 +20,5 @@ namespace Measures.CQRS.Events
         protected MeasureDeleted(TId id, TMeasureId measureId) : base(id, measureId)
         {
         }
-
     }
 }

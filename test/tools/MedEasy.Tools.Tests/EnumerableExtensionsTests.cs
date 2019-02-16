@@ -76,7 +76,6 @@ namespace MedEasy.Tools.Tests
                     "Element is present more than one time in collection"
                 };
 
-
                 yield return new object[]
                     {
                     new []{ 1 },
@@ -618,7 +617,5 @@ namespace MedEasy.Tools.Tests
             // Act and assert
             source.None(predicate).Should().Be(expectedResult);
         }
-
-
     }
 }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Forms;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -92,12 +93,12 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
         }
 
         [Fact]
-        public async Task SignInCommand_CanExecute_ShouldBeTrue() => _sut.SignInCommand.CanExecute(null)
+        public void SignInCommand_CanExecute_ShouldBeTrue() => _sut.SignInCommand.CanExecute(null)
             .Should().BeTrue();
 
 
         [Fact]
-        public async Task SignInCommand_NavigatesTo_LoginView()
+        public void SignInCommand_NavigatesTo_LoginView()
         {
             // Arrange
             _navigationServiceMock.Setup(mock => mock.NavigateTo<SignInViewModel>())
@@ -111,55 +112,83 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
         }
 
         [Fact]
-        public async Task SetName_Raise_LoginPropertyChangeEvent()
+        public void SetName_Raise_LoginPropertyChangeEvent()
         {
             // Arrange
-            IMonitor<SignUpViewModel> monitor = _sut.Monitor();
+            IMonitor<SignUpViewModel> vmMonitor = _sut.Monitor();
+            IMonitor<Command> signUpCmdMonitor = _sut.SignUpCommand.Monitor();
 
             // Act
             _sut.Name = "Joker";
 
             // Assert
-
-            monitor.Should().RaisePropertyChangeFor(vm => vm.Name);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.ConfirmPassword);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Username);
+            vmMonitor.Should().RaisePropertyChangeFor(vm => vm.Name);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.ConfirmPassword);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Username);
         }
 
         [Fact]
         public void SetUsername_RaiseUsernamePropertyChangeEvent()
         {
             // Arrange
-            IMonitor<SignUpViewModel> monitor = _sut.Monitor();
-
+            IMonitor<SignUpViewModel> vmMonitor = _sut.Monitor();
+            IMonitor<Command> signUpCmdMonitor = _sut.SignUpCommand.Monitor();
             // Act
             _sut.Username = "thesmile";
 
             // Assert
-            monitor.Should().RaisePropertyChangeFor(vm => vm.Username);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.ConfirmPassword);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Name);
+            vmMonitor.Should().RaisePropertyChangeFor(vm => vm.Username);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.ConfirmPassword);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Name);
+
+            signUpCmdMonitor.Should()
+                .Raise(nameof(Command.CanExecuteChanged));
         }
 
         [Fact]
         public void SetConfirmPassword_RaiseConfirmPasswordPropertyChangeEvent()
         {
             // Arrange
-            IMonitor<SignUpViewModel> monitor = _sut.Monitor();
+            IMonitor<SignUpViewModel> vmMonitor = _sut.Monitor();
+            IMonitor<Command> signUpCmdMonitor = _sut.SignUpCommand.Monitor();
 
             // Act
             _sut.ConfirmPassword = "thesmile";
 
             // Assert
-            monitor.Should().RaisePropertyChangeFor(vm => vm.ConfirmPassword);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Username);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
-            monitor.Should().NotRaisePropertyChangeFor(vm => vm.Name);
+            vmMonitor.Should().RaisePropertyChangeFor(vm => vm.ConfirmPassword);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Username);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Password);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Name);
+
+            signUpCmdMonitor.Should()
+                .Raise(nameof(Command.CanExecuteChanged));
+        }
+
+        [Fact]
+        public void SetPassword_RaisePasswordPropertyChangeEvent()
+        {
+            // Arrange
+            IMonitor<SignUpViewModel> vmMonitor = _sut.Monitor();
+            IMonitor<Command> signUpCmdMonitor = _sut.SignUpCommand.Monitor();
+
+            // Act
+            _sut.Password = "thesmile";
+
+            // Assert
+            vmMonitor.Should().RaisePropertyChangeFor(vm => vm.Password);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Username);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.ConfirmPassword);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Email);
+            vmMonitor.Should().NotRaisePropertyChangeFor(vm => vm.Name);
+
+            signUpCmdMonitor.Should()
+                .Raise(nameof(Command.CanExecuteChanged));
         }
 
         [Fact]
@@ -186,6 +215,7 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
             _sut.ConfirmPassword = _sut.Password;
             _sut.Email = "bruce@wayne-entreprise.com";
             _sut.Name = "Bruce Wayne";
+            _sut.IsBusy = false;
 
             _accountsApiMock.Setup(mock => mock.SignUp(It.IsAny<NewAccountInfo>(), It.IsAny<CancellationToken>()))
                 .Returns((NewAccountInfo newAccountInfo, CancellationToken ct) =>
@@ -196,22 +226,30 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
                         RefreshToken = $"refresh-{newAccountInfo.Username}-{newAccountInfo.Password}"
                     });
                 });
-            _navigationServiceMock.Setup(mock => mock.InsertViewModelBefore<HomeViewModel, SignUpViewModel>());
-            _navigationServiceMock.Setup(mock => mock.PopToRootAsync(It.IsAny<bool>()))
+            //_navigationServiceMock.Setup(mock => mock.InsertViewModelBefore<HomeViewModel, SignUpViewModel>());
+            _navigationServiceMock.Setup(mock => mock.NavigateTo<HomeViewModel>())
                 .Returns(Task.CompletedTask);
+            _navigationServiceMock.Setup(mock => mock.RemoveBackStackAsync())
+                .Returns(Task.CompletedTask);
+            using (IMonitor<SignUpViewModel> vmMonitor = _sut.Monitor())
+            {
+                
+                // Act
+                _sut.SignUpCommand.Execute(null);
 
-            // Act
-            _sut.SignUpCommand.Execute(null);
+                // Assert
+                vmMonitor.Should()
+                    .RaisePropertyChangeFor(vm => vm.IsBusy);
 
-            // Assert
-            _accountsApiMock.Verify(mock => mock.SignUp(It.IsAny<NewAccountInfo>(), It.IsAny<CancellationToken>()), Times.Once);
-            _accountsApiMock.Verify(mock => mock.SignUp(It.Is<NewAccountInfo>(input => input.Username == _sut.Username 
-                && input.Password == _sut.Password && input.Name == _sut.Name && input.Email == _sut.Email
-                && input.ConfirmPassword == _sut.ConfirmPassword), 
-                    It.IsAny<CancellationToken>()), Times.Once);
-            _navigationServiceMock.Verify(mock => mock.InsertViewModelBefore<HomeViewModel, SignUpViewModel>(), Times.Once);
-            _navigationServiceMock.Verify(mock => mock.PopToRootAsync(It.IsAny<bool>()), Times.Once);
+                _accountsApiMock.Verify(mock => mock.SignUp(It.IsAny<NewAccountInfo>(), It.IsAny<CancellationToken>()), Times.Once);
+                _accountsApiMock.Verify(mock => mock.SignUp(It.Is<NewAccountInfo>(input => input.Username == _sut.Username
+                    && input.Password == _sut.Password && input.Name == _sut.Name && input.Email == _sut.Email
+                    && input.ConfirmPassword == _sut.ConfirmPassword),
+                        It.IsAny<CancellationToken>()), Times.Once);
+                _navigationServiceMock.Verify(mock => mock.NavigateTo<HomeViewModel>(), Times.Once);
+                _navigationServiceMock.Verify(mock => mock.RemoveBackStackAsync(), Times.Once);
 
+            }
 
         }
     }

@@ -59,7 +59,7 @@ namespace Identity.API.Features.Accounts
         /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>), Status200OK)]
         public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             IdentityApiOptions apiOptions = _apiOptions.Value;
@@ -70,8 +70,8 @@ namespace Identity.API.Features.Accounts
             Page<AccountInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
-            GenericPagedGetResponse<BrowsableResource<AccountInfo>> result = new GenericPagedGetResponse<BrowsableResource<AccountInfo>>(
-                page.Entries.Select(resource => new BrowsableResource<AccountInfo>
+            GenericPagedGetResponse<Browsable<AccountInfo>> result = new GenericPagedGetResponse<Browsable<AccountInfo>>(
+                page.Entries.Select(resource => new Browsable<AccountInfo>
                 {
                     Resource = resource,
                     Links = new[]
@@ -92,7 +92,6 @@ namespace Identity.API.Features.Accounts
             );
 
             return new OkObjectResult(result);
-
         }
 
         /// <summary>
@@ -160,7 +159,7 @@ namespace Identity.API.Features.Accounts
                        links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId }) });
                    }
 
-                   BrowsableResource<AccountInfo> browsableResource = new BrowsableResource<AccountInfo>
+                   Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
                    {
                        Resource = account,
                        Links = links
@@ -205,7 +204,6 @@ namespace Identity.API.Features.Accounts
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
-
             PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
             {
                 Id = id,
@@ -237,8 +235,6 @@ namespace Identity.API.Features.Accounts
             }
 
             return actionResult;
-
-
         }
 
         /// <summary>
@@ -252,9 +248,9 @@ namespace Identity.API.Features.Accounts
         /// <response code="409">An account with the same <see cref="AccountInfo.Username"/> or <see cref="AccountInfo.Email"/> already exist</response>
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(Browsable<AccountInfo>), Status201Created)]
         public async Task<IActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
         {
-
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
 
             Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
@@ -263,7 +259,7 @@ namespace Identity.API.Features.Accounts
             return optionalAccount.Match(
                 some: account =>
                 {
-                    BrowsableResource<AccountInfo> browsableResource = new BrowsableResource<AccountInfo>
+                    Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
                     {
                         Resource = account,
                         Links = new[]
@@ -279,7 +275,6 @@ namespace Identity.API.Features.Accounts
                     IActionResult actionResult;
                     switch (cmdError)
                     {
-
                         case CreateCommandResult.Failed_Conflict:
                             actionResult = new StatusCodeResult(Status409Conflict);
                             break;
@@ -290,15 +285,12 @@ namespace Identity.API.Features.Accounts
                 });
         }
 
-
         [HttpGet("/search")]
         [HttpHead("/search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
-
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
             IList<IDataFilter> filters = new List<IDataFilter>();
-
 
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
@@ -342,9 +334,9 @@ namespace Identity.API.Features.Accounts
                 .ConfigureAwait(false);
 
             bool hasNextPage = search.Page < searchResult.Count;
-            return new OkObjectResult(new GenericPagedGetResponse<BrowsableResource<SearchAccountInfoResult>>(
+            return new OkObjectResult(new GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>(
 
-                items: searchResult.Entries.Select(x => new BrowsableResource<SearchAccountInfoResult>
+                items: searchResult.Entries.Select(x => new Browsable<SearchAccountInfoResult>
                 {
                     Resource = x,
                     Links = new[]
@@ -360,7 +352,5 @@ namespace Identity.API.Features.Accounts
                 count: searchResult.Total
             ));
         }
-
-       
     }
 }

@@ -29,7 +29,7 @@ namespace MedEasy.CQRS.Core.UnitTests.Queries
 
         public void Dispose()
         {
-            
+
         }
 
         [Fact]
@@ -46,7 +46,6 @@ namespace MedEasy.CQRS.Core.UnitTests.Queries
                 .NotBeEmpty();
             instance.Data.Should()
                 .BeSameAs(info);
-
         }
 
         [Fact]
@@ -62,7 +61,6 @@ namespace MedEasy.CQRS.Core.UnitTests.Queries
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
-            
         }
     }
 }

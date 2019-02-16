@@ -106,7 +106,7 @@ namespace System
             }
             pattern = pattern.Replace("?", ".")
                 .Replace("*", ".*");
-            
+
             return Regex.IsMatch(input, $"{pattern}$", regexOptions);
         }
 
@@ -175,7 +175,6 @@ namespace System
                 }
                 sb.Append(char.ToLower(character));
             }
-            
 
             return sb.ToString();
         }

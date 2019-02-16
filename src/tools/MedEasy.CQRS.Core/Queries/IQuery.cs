@@ -24,6 +24,5 @@ namespace MedEasy.CQRS.Core.Queries
         /// Data the query carries
         /// </summary>
         TData Data { get; }
-
     }
 }

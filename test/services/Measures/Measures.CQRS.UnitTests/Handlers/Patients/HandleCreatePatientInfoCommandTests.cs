@@ -60,7 +60,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _mediatorMock = null;
         }
 
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
@@ -80,7 +79,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 return cases;
             }
         }
-
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
@@ -136,7 +134,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
-
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
@@ -184,7 +181,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
-
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
@@ -214,7 +210,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             // Assert
             action.Should()
                 .Throw<InvalidOperationException>($"{nameof(CreatePatientInfoCommand.Data)} is not valid");
-
         }
     }
 }

@@ -150,7 +150,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 1,
                             expectedPageSize : 10,
                             expetedTotal : 10,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null 
+                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
                                 && items.Count() == 10
                                 && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
                             ))
@@ -159,7 +159,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 }
 
                 {
-
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(x => x.Id, () => 0)
                         .RuleFor(x => x.Location, faker => faker.Address.City())
@@ -200,7 +199,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         .RuleFor(x => x.UUID, () => Guid.NewGuid())
                         .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
                         .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
-                    
+
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
                     SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
                     {
@@ -256,10 +255,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         )
                     };
                 }
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(HandleCases))]
@@ -277,7 +274,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 _outputHelper.WriteLine($"DataStore : {ToString(appointments)}");
                 _outputHelper.WriteLine($"Search criteria : {ToString(searchCriteria)}");
-
             }
 
             SearchAppointmentInfoQuery request = new SearchAppointmentInfoQuery(searchCriteria);

@@ -5,6 +5,7 @@ using MedEasy.Mobile.Core.Apis;
 using MedEasy.Mobile.Core.Services;
 using MedEasy.Mobile.Core.ViewModels;
 using MedEasy.Mobile.Core.ViewModels.Base;
+using MedEasy.Mobile.Core.ViewModels.NavigationData;
 using Moq;
 using System;
 using System.Threading;
@@ -32,7 +33,7 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
 
             _tokenApiMock = new Mock<ITokenApi>(Strict);
             _navigationServiceMock = new Mock<INavigatorService>(Strict);
-            _sut = new SignInViewModel(_tokenApiMock.Object, _navigationServiceMock.Object);
+            _sut = new SignInViewModel(_navigationServiceMock.Object, _tokenApiMock.Object);
             
         }
 
@@ -66,7 +67,7 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
         }
 
         [Fact]
-        public async Task SetLogin_Raise_LoginPropertyChangeEvent()
+        public void SetLogin_Raise_LoginPropertyChangeEvent()
         {
             // Arrange
             IMonitor<SignInViewModel> monitor = _sut.Monitor();
@@ -86,7 +87,7 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
         }
 
         [Fact]
-        public async Task SetPassword_RaisePasswordPropertyChangeEvent()
+        public void SetPassword_RaisePasswordPropertyChangeEvent()
         {
             // Arrange
             IMonitor<SignInViewModel> vmMonitor = _sut.Monitor();
@@ -112,7 +113,7 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
         public void LostPasswordCommand_GoTo_SignUpViewModel(string login)
         {
             // Arrange
-            _navigationServiceMock.Setup(mock => mock.PushModalAsync(It.IsAny<LostPasswordViewModel>()))
+            _navigationServiceMock.Setup(mock => mock.PushModalAsync<LostPasswordViewModel>(It.IsAny<object>()))
                 .Returns(Task.CompletedTask);
 
             _sut.Login = login;
@@ -120,8 +121,8 @@ namespace MedEasy.Mobile.UnitTests.Core.ViewModels
             _sut.LostPasswordCommand.Execute(default);
 
             // Assert
-            _navigationServiceMock.Verify(mock => mock.PushModalAsync(It.IsAny<LostPasswordViewModel>()), Times.Once);
-            _navigationServiceMock.Verify(mock => mock.PushModalAsync(It.Is<LostPasswordViewModel>(model => model.Email == login)), Times.Once);
+            _navigationServiceMock.Verify(mock => mock.PushModalAsync<LostPasswordViewModel>(It.IsAny<object>()), Times.Once);
+            _navigationServiceMock.Verify(mock => mock.PushModalAsync<LostPasswordViewModel>(It.Is<object>(data => data is LostPasswordNavigationData && ((LostPasswordNavigationData)data).Email == _sut.Login)), Times.Once);
 
         }
 

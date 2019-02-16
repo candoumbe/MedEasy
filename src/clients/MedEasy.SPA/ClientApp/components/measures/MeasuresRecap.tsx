@@ -1,6 +1,6 @@
 ﻿
-import { BrowsableResource } from "./../../restObjects/BrowsableResource";
-import * as React from "React";
+import { Browsable } from "./../../restObjects/Browsable";
+import * as React from "react";
 import { BloodPressures } from "./../../components/measures/BloodPressures";
 import { BodyWeights } from "./../../components/measures/BodyWeigths";
 
@@ -38,7 +38,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
                 count={10}
                 resourceName={{ singular: 'blood pressure', plural: 'blood pressures' }}
                 columns={
-                    new Map<string, (item: BrowsableResource<MedEasy.DTO.BloodPressure>) => any>([
+                    new Map<string, (item: Browsable<MedEasy.DTO.BloodPressure>) => any>([
                         ["Value", item => `${item.resource.systolic}/${item.resource.diastolic} mmHg`],
                         ["Date of measure", item => item.resource.dateOfMeasure.toString()],
                         ["", item => {
@@ -60,7 +60,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
                 count={10}
                 resourceName={{ singular: 'body weight', plural: 'body weights' }}
                 columns={
-                    new Map<string, (item: BrowsableResource<MedEasy.DTO.BodyWeight>) => any>([
+                    new Map<string, (item: Browsable<MedEasy.DTO.BodyWeight>) => any>([
                         ["Value", item => `${item.resource.value} kg`],
                         ["Date of measure", item => item.resource.dateOfMeasure],
                         ["", item => {

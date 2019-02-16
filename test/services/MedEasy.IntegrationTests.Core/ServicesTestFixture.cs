@@ -6,7 +6,6 @@
     /// <typeparam name="TStartup">Target project's startup type</typeparam>
     public class ServicesTestFixture<TStartup> : BaseTestFixture<TStartup> where TStartup : class
     {
-        
-    }
 
+    }
 }

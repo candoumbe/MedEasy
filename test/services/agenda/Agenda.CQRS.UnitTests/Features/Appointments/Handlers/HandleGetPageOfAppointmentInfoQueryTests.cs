@@ -65,12 +65,11 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            
+
             _uowFactory = null;
             _dateTimeServiceMock = null;
             _sut = null;
         }
-
 
         public static IEnumerable<object[]> HandleCases
         {
@@ -100,7 +99,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     "DataStore is empty"
                 };
                 {
-
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(x => x.Id, () => 0)
                         .RuleFor(x => x.StartDate, 10.April(2000))
@@ -155,7 +153,5 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             page.Should()
                 .Match(pageExpectation, reason);
         }
-
-
     }
 }

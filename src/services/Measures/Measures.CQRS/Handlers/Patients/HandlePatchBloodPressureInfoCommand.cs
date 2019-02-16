@@ -31,7 +31,6 @@ namespace Measures.CQRS.Handlers.Patients
         /// <param name="mediator">Mediator.</param>
         public HandlePatchPatientInfoCommand(IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator)
         {
-            
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -42,7 +41,7 @@ namespace Measures.CQRS.Handlers.Patients
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 JsonPatchDocument<PatientInfo> patchDocument = command.Data.PatchDocument;
-                
+
                 Guid entityId = command.Data.Id;
                 Option<Patient> source = await uow.Repository<Patient>()
                     .SingleOrDefaultAsync(x => x.UUID == command.Data.Id, ct)

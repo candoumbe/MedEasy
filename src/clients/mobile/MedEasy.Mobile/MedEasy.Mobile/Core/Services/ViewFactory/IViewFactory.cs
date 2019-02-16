@@ -14,8 +14,9 @@ namespace MedEasy.Mobile.Core.Services
         /// <remarks>
         /// </remarks>
         void AddMapping<TViewModel, TView>()
-            where TViewModel : ViewModelBase
+            where TViewModel : IViewModel
             where TView : Page;
+
 
         /// <summary>
         /// Looks for a <see cref="Page"/>
@@ -23,17 +24,15 @@ namespace MedEasy.Mobile.Core.Services
         /// <typeparam name="TViewModel">Type of the view model of the association</typeparam>
         /// <returns></returns>
         Option<Page> Resolve<TViewModel>()
-             where TViewModel : ViewModelBase;
+             where TViewModel : IViewModel;
+
 
         /// <summary>
-        /// Finds the corresponding page mapped to <typeparamref name="TViewModel"/>
+        /// Looks for a <see cref="Page"/>
         /// </summary>
-        /// <typeparam name="TViewModel">Type of the view model</typeparam>
+        /// <typeparam name="TViewModel">Type of the view model of the association</typeparam>
         /// <returns></returns>
-        /// <remarks>
-        /// The page, if any, is rehydrated with <paramref name="data"/>
-        /// </remarks>
-        Option<Page> Resolve<TViewModel>(TViewModel data)
-             where TViewModel : ViewModelBase;
+        Option<Page> Resolve<TViewModel>(object initializationData)
+             where TViewModel : IViewModel;
     }
 }

@@ -14,9 +14,7 @@ namespace System.Linq.Expressions
         /// <returns></returns>
         public static Expression<Func<T, bool>> True<T>() => arg => true;
 
-
-
-        public static Expression<Func<T, T>> Identity<T>() => x => x; 
+        public static Expression<Func<T, T>> Identity<T>() => x => x;
 
         /// <summary>
         /// Combines two expressions <paramref name="first"/> and <paramref name="second"/> as defined in http://en.wikipedia.org/wiki/Function_composition.
@@ -43,13 +41,12 @@ namespace System.Linq.Expressions
 
             ParameterExpression param = Expression.Parameter(typeof(T1), "param");
 
-            Expression newFirst = new ReplaceVisitor(first.Parameters.First(), param).Visit(first.Body);
+            Expression newFirst = new ReplaceVisitor(first.Parameters[0], param).Visit(first.Body);
 
-            Expression newSecond = new ReplaceVisitor(second.Parameters.First(), newFirst).Visit(second.Body);
+            Expression newSecond = new ReplaceVisitor(second.Parameters[0], newFirst).Visit(second.Body);
 
             return Expression.Lambda<Func<T1, T3>>(newSecond, param);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>AND</code>
@@ -70,18 +67,16 @@ namespace System.Linq.Expressions
                 throw new ArgumentNullException("g");
             }
 
-
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(first.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(first.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(first.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(second.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(second.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(second.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>||</code> operator 
@@ -95,15 +90,14 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(expr1.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(expr2.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(expr2.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(expr2.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.OrElse(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>|</code> operator 
@@ -117,10 +111,10 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(expr1.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(expr1.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(expr2.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(expr2.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(expr2.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.Or(left, right), parameter);
@@ -138,10 +132,10 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.And(left, right), parameter);
@@ -159,15 +153,14 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.LessThan(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>&</code> operator 
@@ -181,15 +174,14 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>&</code> operator 
@@ -203,15 +195,14 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>&</code> operator 
@@ -225,15 +216,14 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(left, right), parameter);
         }
-
 
         /// <summary>
         /// Combines two expressions using the logical <code>&</code> operator 
@@ -247,15 +237,13 @@ namespace System.Linq.Expressions
         {
             ParameterExpression parameter = Expression.Parameter(typeof(T));
 
-            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters.First(), parameter);
+            ReplaceVisitor leftVisitor = new ReplaceVisitor(f.Parameters[0], parameter);
             Expression left = leftVisitor.Visit(f.Body);
 
-            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters.First(), parameter);
+            ReplaceVisitor rightVisitor = new ReplaceVisitor(g.Parameters[0], parameter);
             Expression right = rightVisitor.Visit(g.Body);
 
             return Expression.Lambda<Func<T, bool>>(Expression.Equal(left, right), parameter);
         }
     }
-
-   
 }

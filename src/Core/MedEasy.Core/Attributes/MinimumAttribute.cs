@@ -23,6 +23,5 @@ namespace MedEasy.Core.Attributes
         public MinimumAttribute(float minimum) : base(minimum, float.MaxValue)
         {
         }
-        
     }
 }

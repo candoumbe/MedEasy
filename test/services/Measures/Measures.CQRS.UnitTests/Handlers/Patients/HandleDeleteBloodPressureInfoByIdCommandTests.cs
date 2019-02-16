@@ -60,7 +60,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _mediatorMock = null;
         }
 
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
@@ -80,7 +79,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 return cases;
             }
         }
-
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
@@ -142,12 +140,10 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             }
         }
 
-
         public static IEnumerable<object[]> PatientWithMeasuresCases
         {
             get
             {
-
                 {
                     Guid idPatient = Guid.NewGuid();
                     yield return new object[]
@@ -169,7 +165,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                         }
                     };
                 }
-                
             }
         }
 
@@ -183,7 +178,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync().ConfigureAwait(false);
 
-                await measures.ForEachAsync(measure => 
+                await measures.ForEachAsync(measure =>
                 {
                     measure.PatientId = patient.Id;
                     return Task.CompletedTask;
@@ -197,7 +192,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             // Act
             DeleteCommandResult commandResult = await _sut.Handle(new DeletePatientInfoByIdCommand(patient.UUID), default)
                 .ConfigureAwait(false);
-
 
             // Assert
             commandResult.Should()

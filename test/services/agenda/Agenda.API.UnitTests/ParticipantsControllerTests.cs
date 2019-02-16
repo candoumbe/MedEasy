@@ -45,7 +45,6 @@ namespace Agenda.API.UnitTests
         private ParticipantsController _sut;
         private const string _baseUrl = "agenda";
 
-
         public ParticipantsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _urlHelperMock = new Mock<IUrlHelper>(Strict);
@@ -86,14 +85,12 @@ namespace Agenda.API.UnitTests
             _sut = null;
         }
 
-
         public static IEnumerable<object[]> GetAllTestCases
         {
             get
             {
                 int[] pageSizes = { 1, 10, 20 };
                 int[] pages = { 1, 5, 10 };
-
 
                 foreach (int pageSize in pageSizes)
                 {
@@ -131,7 +128,7 @@ namespace Agenda.API.UnitTests
                     .RuleFor(participant => participant.PhoneNumber, faker => faker.Person.Phone);
 
                 IEnumerable<Participant> items = participantFaker.Generate(20);
-                
+
                 yield return new object[]
                 {
                     items,
@@ -173,7 +170,6 @@ namespace Agenda.API.UnitTests
                         last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={ParticipantsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
                     )  // expected link to last page
                };
-
             }
         }
 
@@ -231,9 +227,9 @@ namespace Agenda.API.UnitTests
 
             object value = okObjectResult.Value;
 
-            GenericPagedGetResponse<BrowsableResource<ParticipantInfo>> response = okObjectResult.Value.Should()
+            GenericPagedGetResponse<Browsable<ParticipantInfo>> response = okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<ParticipantInfo>>>().Which;
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<ParticipantInfo>>>().Which;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -255,9 +251,7 @@ namespace Agenda.API.UnitTests
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
             response.Links.Next.Should().Match(linksExpectation.nextPageUrlExpectation);
             response.Links.Last.Should().Match(linksExpectation.lastPageUrlExpectation);
-
         }
-
 
         [Fact]
         public async Task WhenMediatorReturnsNotFound_GetById_ReturnsNotFoundResult()
@@ -277,7 +271,6 @@ namespace Agenda.API.UnitTests
                 .BeAssignableTo<NotFoundResult>();
 
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Option<ParticipantInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
-
         }
     }
 }

@@ -20,6 +20,5 @@ namespace Patients.DTO
         /// </summary>
         [MaxLength(255)]
         public string Lastname { get; set; }
-        
     }
 }

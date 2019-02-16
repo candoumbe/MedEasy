@@ -22,6 +22,5 @@ namespace Identity.DTO.Auth
         /// This token as a longer lifetime than <see cref="RefreshToken"/>
         /// </remarks>
         public string RefreshToken { get; set; }
-
     }
 }

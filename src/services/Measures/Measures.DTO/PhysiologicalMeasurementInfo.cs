@@ -9,7 +9,6 @@ namespace Measures.DTO
     /// </summary>
     public abstract class PhysiologicalMeasurementInfo : Resource<Guid>
     {
-        
         /// <summary>
         /// Id of the <see cref="PatientInfo"/> resource the measure was taken on
         /// </summary>

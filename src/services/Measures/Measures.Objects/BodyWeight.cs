@@ -13,7 +13,5 @@ namespace Measures.Objects
         public decimal Value { get; set; }
 
         public bool Equals(BodyWeight other) => ReferenceEquals(this, other) || (other != null && Value.Equals(other.Value));
-
-
     }
 }

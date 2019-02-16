@@ -11,17 +11,13 @@ namespace Identity.Objects
         /// </summary>
         public string Type { get; set; }
 
-
         /// <summary>
         /// Value of the claim
         /// </summary>
         public string Value { get; set; }
 
-
         public IEnumerable<AccountClaim> Users { get; set; }
-
 
         public IEnumerable<RoleClaim> Roles { get; set; }
     }
-
 }

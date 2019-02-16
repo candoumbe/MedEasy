@@ -22,7 +22,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Queries
                 .Throw<ArgumentNullException>().And
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

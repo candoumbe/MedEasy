@@ -39,6 +39,5 @@ namespace Patients.DTO
         /// Id of the main doctor
         /// </summary>
         public Guid? MainDoctorId { get; set; }
-
     }
 }

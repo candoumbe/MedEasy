@@ -38,7 +38,6 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _validator = new CreateBloodPressureInfoValidator(_uowFactoryMock.Object);
-
         }
 
         public void Dispose()
@@ -48,11 +47,9 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             _validator = null;
         }
 
-
         [Fact]
         public void Should_Implements_AbstractValidator() => _validator.Should()
                 .BeAssignableTo<AbstractValidator<CreateBloodPressureInfo>>();
-
 
         [Fact]
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
@@ -66,7 +63,6 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
-
 
         public static IEnumerable<object[]> ValidateTestCases
         {
@@ -102,8 +98,6 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                     $"because {nameof(CreateBloodPressureInfo.SystolicPressure)} < {nameof(CreateBloodPressureInfo.DiastolicPressure)} " +
                     $"and {nameof(CreateBloodPressureInfo.PatientId)} does not exist."
                 };
-
-
 
                 yield return new object[]
                 {
@@ -146,7 +140,6 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             }
         }
 
-
         [Theory]
         [MemberData(nameof(ValidateTestCases))]
         public async Task ValidateTest(CreateBloodPressureInfo info, IEnumerable<Patient> patients,
@@ -166,6 +159,5 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             vr.Should()
                 .Match(errorMatcher, because);
         }
-
     }
 }

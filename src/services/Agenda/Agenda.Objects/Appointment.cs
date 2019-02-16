@@ -37,7 +37,6 @@ namespace Agenda.Objects
         /// </summary>
         public IEnumerable<AppointmentParticipant> Participants { get => _participants; }
 
-
         public Appointment()
         {
             _participants = new List<AppointmentParticipant>();
@@ -55,7 +54,6 @@ namespace Agenda.Objects
                 participant.UUID = Guid.NewGuid();
             }
             _participants.Add(new AppointmentParticipant { Participant = participant , Appointment = this});
-            
         }
 
         /// <summary>

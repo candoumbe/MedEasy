@@ -3,7 +3,6 @@ using System;
 
 namespace Agenda.DTO.Resources.Search
 {
-
     /// <summary>
     /// Data to search <see cref="AppointmentInfo"/>s
     /// </summary>

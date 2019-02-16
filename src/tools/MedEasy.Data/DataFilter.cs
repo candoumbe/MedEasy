@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 #if !NETSTANDARD1_0
-using Newtonsoft.Json.Schema; 
+using Newtonsoft.Json.Schema;
 #endif
 using static Newtonsoft.Json.JsonConvert;
 using static Newtonsoft.Json.DefaultValueHandling;
@@ -11,7 +11,6 @@ using System.Collections.Generic;
 
 namespace MedEasy.Data
 {
-
     /// <summary>
     /// An instance of this class holds a kendo filter
     /// </summary>
@@ -34,7 +33,6 @@ namespace MedEasy.Data
         /// </summary>
         public const string ValueJsonPropertyName = "value";
 
-
         /// <summary>
         /// <see cref="DataFilterOperator"/>s that required <see cref="Value"/> to be set value to a non null value
         /// </summary>
@@ -49,7 +47,6 @@ namespace MedEasy.Data
         /// <see cref="DataFilterOperator"/>s that required <see cref="Value"/> to be null.
         /// </summary>
         public static IEnumerable<DataFilterOperator> UnaryOperators => _unaryOperators;
-
 
         /// <summary>
         /// Builds a new <see cref="DataFilter"/> instance.
@@ -128,13 +125,11 @@ namespace MedEasy.Data
                         Required = { FieldJsonPropertyName, OperatorJsonPropertyName, ValueJsonPropertyName }
                     };
                     break;
-
             }
             schema.AllowAdditionalProperties = false;
 
             return schema;
-
-        } 
+        }
 #endif
 
         /// <summary>
@@ -171,11 +166,8 @@ namespace MedEasy.Data
 #endif
 
         public bool Equals(DataFilter other)
-            => other != null && 
-            ((ReferenceEquals(other, this) || 
+            => other != null &&
+            ((ReferenceEquals(other, this) ||
             (Equals(other.Field, Field) && Equals(other.Operator, Operator) && Equals(other.Value, Value))));
-
-
     }
-
 }

@@ -3,7 +3,6 @@ using System.Linq;
 
 namespace MedEasy.RestObjects
 {
-
     /// <summary>
     /// Describe an REST endpoint
     /// </summary>

@@ -53,11 +53,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _sut = null;
         }
 
-
         [Fact]
         public async Task GivenNoAppointment_Handles_Returns_NotFound()
         {
-
             // Arrange
             Guid participantId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -77,11 +75,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .Be(ModifyCommandResult.Failed_NotFound);
         }
 
-
         [Fact]
         public async Task GivenNoParticipant_Handles_Returns_NotFound()
         {
-
             // Arrange
             Guid appointmentId = Guid.NewGuid();
             Appointment appointment = new Appointment
@@ -144,7 +140,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             // Assert
             cmdResult.Should()
                 .Be(ModifyCommandResult.Failed_Conflict, "the participant is already associated to the appointement");
-
         }
 
         [Fact]
@@ -182,7 +177,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             // Assert
             cmdResult.Should()
                 .Be(ModifyCommandResult.Done, "the participant is not already associated to the appointement but he exists in the datastore");
-
         }
     }
 }

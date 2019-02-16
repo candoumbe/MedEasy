@@ -21,7 +21,6 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API.Features.Auth
 {
-
     [ApiController]
     [Route("auth/[controller]")]
     [Authorize]
@@ -69,7 +68,7 @@ namespace Identity.API.Features.Auth
                     };
                     AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
                         .ConfigureAwait(false);
-                    
+
                     string accessTokenString;
                     string refreshTokenString;
                     switch (token.AccessToken)
@@ -96,7 +95,7 @@ namespace Identity.API.Features.Auth
                         RefreshToken = refreshTokenString
                     });
                 },
-                none: () => new ValueTask<IActionResult>(new UnauthorizedResult())
+                none: () => new ValueTask<IActionResult>(new BadRequestResult())
             ).ConfigureAwait(false);
         }
 

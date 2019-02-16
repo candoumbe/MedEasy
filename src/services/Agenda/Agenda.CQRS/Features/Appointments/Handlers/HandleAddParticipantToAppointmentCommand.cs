@@ -55,11 +55,9 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                                 }
 
                                 return cmdResult;
-
                             },
                             none: () => Task.FromResult(ModifyCommandResult.Failed_NotFound)
                          );
-
                     },
                     none: () => Task.FromResult(ModifyCommandResult.Failed_NotFound)
                 );

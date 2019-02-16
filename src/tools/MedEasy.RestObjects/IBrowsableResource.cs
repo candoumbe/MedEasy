@@ -19,6 +19,5 @@ namespace MedEasy.RestObjects
         /// The resource
         /// </summary>
         T Resource { get; }
-
     }
 }

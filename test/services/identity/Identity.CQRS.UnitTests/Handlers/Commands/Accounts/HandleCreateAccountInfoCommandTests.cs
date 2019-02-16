@@ -73,7 +73,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _mediatorMock = null;
         }
 
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
@@ -81,7 +80,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
-
 
                 IEnumerable<object[]> cases = uowFactorieCases
                     .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
@@ -94,11 +92,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
 
                 return cases;
-
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
@@ -118,7 +113,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }
-
 
         [Fact]
         public async Task GivenUsernameAlreadyExists_Handler_Returns_Conflict()
@@ -157,7 +151,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 .Returns(Task.CompletedTask);
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newResourceInfo);
 
-
             // Act
             Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
@@ -170,7 +163,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             {
                 cmdError.Should()
                     .Be(CreateCommandResult.Failed_Conflict);
-
             });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
@@ -193,7 +185,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             };
 
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newResourceInfo);
-
 
             // Act
             Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
@@ -264,7 +255,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                             )
                             .ConfigureAwait(false);
 
-
                         return await optionalUser.Match(
                             some: async account =>
                             {
@@ -290,13 +280,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     }
                 });
 
-
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
 
             // Act
             Option<AccountInfo, CreateCommandResult> optionalResult = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
-
 
             // Assert
             optionalResult.HasValue.Should()
@@ -306,7 +294,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 {
                     resource.Name.Should()
                         .Be(newAccount.Name);
-                    
+
                     resource.Username.Should()
                         .Be(newAccount.Username);
                     resource.Email.Should()
@@ -338,8 +326,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                         _mediatorMock.Verify(mock => mock.Send(It.Is<HashPasswordQuery>(query => query.Data == newAccount.Password), It.IsAny<CancellationToken>()), Times.Once);
                         _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Once);
                         _mediatorMock.Verify(mock => mock.Publish(
-                            It.Is<AccountCreated>(evt => evt.Data.Id == resource.Id), 
-                            It.IsAny<CancellationToken>()), 
+                            It.Is<AccountCreated>(evt => evt.Data.Id == resource.Id),
+                            It.IsAny<CancellationToken>()),
                             Times.Once);
                     }
                 });

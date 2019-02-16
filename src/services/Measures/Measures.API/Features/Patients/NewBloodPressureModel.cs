@@ -1,4 +1,5 @@
-﻿using MedEasy.RestObjects;
+﻿using MedEasy.Core.Attributes;
+using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,14 @@ namespace Measures.API.Features.Patients
         /// <summary>
         /// Systolic pressure
         /// </summary>
+        [Minimum(0)]
         [FormField(Min = 0)]
         public float SystolicPressure { get; set; }
 
         /// <summary>
         /// Diastolic pressure
         /// </summary>
+        [Minimum(0)]
         [FormField(Min = 0)]
         public float DiastolicPressure { get; set; }
     }

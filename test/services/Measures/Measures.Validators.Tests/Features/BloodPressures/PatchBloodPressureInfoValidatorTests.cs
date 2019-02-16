@@ -55,16 +55,13 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
-
         }
-
 
         public static IEnumerable<object[]> InvalidPatchDocumentCases
         {
             get
             {
-                yield return new object[] 
+                yield return new object[]
                 {
                     new JsonPatchDocument<BloodPressureInfo>(),
                     ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
@@ -117,17 +114,14 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             }
         }
 
-
         [Theory]
         [MemberData(nameof(InvalidPatchDocumentCases))]
         public async Task Validate(JsonPatchDocument<BloodPressureInfo> changes, Expression<Func<ValidationResult, bool>> expectation, string reason)
         {
-            
             // Act
             _outputHelper.WriteLine($"Input : {SerializeObject(changes)}");
             ValidationResult vr = await _validator.ValidateAsync(changes)
                 .ConfigureAwait(false);
-
 
             // Assert
             vr.Should().Match(expectation, reason);

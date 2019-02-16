@@ -5,7 +5,8 @@ export enum HttpVerb {
     PUT,
     PATCH,
     DELETE,
-    OPTIONS
+    OPTIONS,
+    HEAD
 }
 export class TransportOperation {
     /** endpoint's url where a datasource can get/send its data */

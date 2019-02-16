@@ -22,8 +22,6 @@ namespace Identity.Validators
                 .GreaterThanOrEqualTo(utcNow)
                 .Unless(token => token.ValidTo == default(DateTime));
 
-            
-
         }
     }
 }

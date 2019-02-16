@@ -64,7 +64,6 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             _mediatorMock = null;
         }
 
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
@@ -72,7 +71,6 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
-
 
                 IEnumerable<object[]> cases = uowFactorieCases
                     .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
@@ -85,11 +83,8 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
 
                 return cases;
-
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
@@ -123,10 +118,9 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             };
 
             CreateBloodPressureInfoForPatientIdCommand cmd = new CreateBloodPressureInfoForPatientIdCommand(newResourceInfo);
-            
+
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
-
 
             // Act
             Option<BloodPressureInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
@@ -134,13 +128,12 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 
             // Assert
             optionalCreatedResource.HasValue.Should().BeFalse();
-            optionalCreatedResource.MatchNone((result) => 
+            optionalCreatedResource.MatchNone((result) =>
             {
                 result.Should()
                     .Be(CreateCommandResult.Failed_NotFound, "the patient does not exist.");
             });
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), default), Times.Never, "no measure was created");
-            
         }
 
         [Fact]
@@ -149,7 +142,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             // Arrange
             Guid patientId = Guid.NewGuid();
             Patient patientBeforeCreate = new Patient { Firstname = "Solomon", Lastname = "Grundy", UUID = patientId };
-            
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(patientBeforeCreate);
@@ -175,7 +168,6 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .Returns(Task.CompletedTask);
             CreateBloodPressureInfoForPatientIdCommand cmd = new CreateBloodPressureInfoForPatientIdCommand(newResourceInfo);
 
-
             // Act
             Option<BloodPressureInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
@@ -200,7 +192,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     BloodPressure measureEntity = await uow.Repository<BloodPressure>()
                         .SingleAsync(x => x.UUID == measureInfo.Id)
                         .ConfigureAwait(false);
-                    
+
                     measureEntity.UUID.Should()
                         .Be(measureInfo.Id);
                     measureEntity.SystolicPressure.Should()
@@ -210,10 +202,11 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     measureEntity.DateOfMeasure.Should()
                         .Be(measureInfo.DateOfMeasure);
                 }
-
             });
 
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new measure resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<BloodPressureCreated>(evt => evt.Id != default && evt.Data != default && evt.Data.SystolicPressure == cmd.Data.SystolicPressure && evt.Data.DiastolicPressure == cmd.Data.DiastolicPressure && evt.Data.DateOfMeasure == cmd.Data.DateOfMeasure), It.IsAny<CancellationToken>()),
+                Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new measure resource was created");
         }
     }
 }

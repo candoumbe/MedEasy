@@ -48,15 +48,12 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 context.Database.EnsureCreated();
 
                 return context;
-
             });
 
             _mapperMock = A.Fake<IMapper>(x => x.Wrapping(AutoMapperConfig.Build().CreateMapper()));
             _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>(x => x.Wrapping(_unitOfWorkFactory));
 
             _sut = new HandleCreateAppointmentInfoCommand(_unitOfWorkFactory, _mapperMock);
-
-
         }
 
         public async void Dispose()

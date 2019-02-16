@@ -58,7 +58,7 @@ namespace Measures.API.Features.Patients
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
 
         private readonly ClaimsPrincipal _claimsPrincipal;
-        
+
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -90,7 +90,7 @@ namespace Measures.API.Features.Patients
         [HttpGet]
         [HttpHead]
         [HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
@@ -112,8 +112,8 @@ namespace Measures.API.Features.Patients
                     ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                     : firstPageUrl;
 
-            IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
-                .Select(x => new BrowsableResource<PatientInfo>
+            IEnumerable<Browsable<PatientInfo>> resources = result.Entries
+                .Select(x => new Browsable<PatientInfo>
                 {
                     Resource = x,
                     Links = new[]
@@ -126,7 +126,7 @@ namespace Measures.API.Features.Patients
                     }
                 });
 
-            GenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
+            GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
                 resources,
                 firstPageUrl,
                 previousPageUrl,
@@ -148,7 +148,7 @@ namespace Measures.API.Features.Patients
         [HttpHead("{id}")]
         [HttpOptions("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
         public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
@@ -157,7 +157,7 @@ namespace Measures.API.Features.Patients
             IActionResult actionResult = result.Match<IActionResult>(
                 some: resource =>
                 {
-                    BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+                    Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
                     {
                         Resource = resource,
                         Links = new[]
@@ -196,24 +196,26 @@ namespace Measures.API.Features.Patients
         /// <param name="search">Search criteria</param>
         /// <param name="cancellationToken">Notifies to cancel the execution of the request.</param>
         /// <remarks>
-        /// All criteria are combined as a AND.
-        /// 
+        /// <para>All criteria are combined as a AND.</para>
+        /// <para>
         /// Advanded search :
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
-        /// 
+        /// </para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=Bruce
         ///     will match all resources which have exactly 'Bruce' in the Firstname property
-        ///     
+        /// </para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=B*e
         ///     will match match all resources which starts with 'B' and ends with 'e'.
-        /// 
-        /// '?' : match exactly one charcter in a string property.
-        /// 
-        /// '!' : negate a criteria
-        /// 
+        /// </para>
+        /// <para>'?' : match exactly one charcter in a string property.</para>
+        /// <para>'!' : negate a criteria</para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not "Bruce"
+        /// </para>
         ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
@@ -222,7 +224,7 @@ namespace Measures.API.Features.Patients
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [HttpOptions("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
@@ -268,8 +270,8 @@ namespace Measures.API.Features.Patients
 
             if (searchQuery.Page <= page.Count)
             {
-                GenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
-                        items: page.Entries.Select(x => new BrowsableResource<PatientInfo>
+                GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
+                        items: page.Entries.Select(x => new Browsable<PatientInfo>
                         {
                             Resource = x,
                             Links = new[] {
@@ -281,7 +283,6 @@ namespace Measures.API.Features.Patients
                             }
                             }
                         }),
-                        count: page.Total,
                         first: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = EndpointName,
@@ -326,7 +327,8 @@ namespace Measures.API.Features.Patients
                             page = Math.Max(page.Count, 1),
                             search.PageSize
                         })
-                    );
+,
+                        count: page.Total);
                 actionResult = new OkObjectResult(response);
             }
             else
@@ -420,10 +422,10 @@ namespace Measures.API.Features.Patients
         /// <response code="400"><paramref name="id"/> or body was not provided</response>
         /// <response code="404">unknown <paramref name="id"/> was provided</response>
         [HttpPost("{id}/bloodpressures")]
-        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), Status201Created)]
+        [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status201Created)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody, RequireNonDefault]NewBloodPressureModel newResource, CancellationToken ct = default)
+        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken ct = default)
         {
             CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
             {
@@ -439,7 +441,7 @@ namespace Measures.API.Features.Patients
             return optionalResource.Match(
                 some: (resource) =>
                 {
-                    BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+                    Browsable<BloodPressureInfo> browsableResource = new Browsable<BloodPressureInfo>
                     {
                         Resource = resource,
                         Links = new[]
@@ -473,7 +475,6 @@ namespace Measures.API.Features.Patients
                    return actionResult;
                 }
             );
-
         }
 
         /// <summary>
@@ -484,17 +485,16 @@ namespace Measures.API.Features.Patients
         /// <response code="400">data provided does not allow to create the resource</response>
         /// <returns></returns>
         [HttpPost]
-        [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), Status201Created)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
-
             CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(newPatient);
 
             PatientInfo resource = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+            Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
             {
                 Resource = resource,
                 Links = new[]

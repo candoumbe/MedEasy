@@ -39,7 +39,7 @@ namespace MedEasy.Mobile.Core.Services
         /// <exception cref="ViewModelAlreadyMappedException">if <typeparamref name="TViewModel"/> was already mapped.</exception>
         public void AddMapping<TViewModel, TView>()
             where TView : Page
-            where TViewModel : ViewModelBase
+            where TViewModel : IViewModel
         {
             if (_viewModelToViewMappings.ContainsKey(typeof(TViewModel)))
             {
@@ -56,40 +56,54 @@ namespace MedEasy.Mobile.Core.Services
         /// <typeparam name="TViewModel">Type of the view model</typeparam>
         /// <returns></returns>
         public Option<Page> Resolve<TViewModel>()
-            where TViewModel : ViewModelBase
+            where TViewModel : IViewModel
 
         {
             Option<Page> optionalPage = Option.None<Page>();
             if (_viewModelToViewMappings.TryGetValue(typeof(TViewModel), out Type pageType))
             {
+                TViewModel model = _container.Resolve<TViewModel>();
+
                 if (_container.Resolve(pageType) is Page page)
                 {
-                    page.BindingContext = _container.Resolve<TViewModel>();
-                    optionalPage = page.Some();
+                    TViewModel viewModel = _container.Resolve<TViewModel>();
+                    viewModel.Prepare();
+                    if (viewModel != default)
+                    {
+                        page.BindingContext = viewModel;
+                        optionalPage = page.Some();
+                    }
                 }
             }
 
             return optionalPage;
         }
 
+
         /// <summary>
         /// Finds the corresponding page mapped to <typeparamref name="TViewModel"/>
         /// </summary>
         /// <typeparam name="TViewModel">Type of the view model</typeparam>
         /// <returns></returns>
-        /// <remarks>
-        /// The page, if any, is rehydrated with <paramref name="data"/>
-        /// </remarks>
-        public Option<Page> Resolve<TViewModel>(TViewModel data)
-            where TViewModel : ViewModelBase
+        public Option<Page> Resolve<TViewModel>(object navigationData)
+            where TViewModel : IViewModel
+
         {
             Option<Page> optionalPage = Option.None<Page>();
-            if (_viewModelToViewMappings.TryGetValue(typeof(TViewModel), out Type typePage))
+            if (_viewModelToViewMappings.TryGetValue(typeof(TViewModel), out Type pageType))
             {
-                if (_container.Resolve(typePage) is Page page)
+                TViewModel model = _container.Resolve<TViewModel>();
+
+                if (_container.Resolve(pageType) is Page page)
                 {
-                    page.BindingContext = data;
-                    optionalPage = page.Some();
+                    TViewModel viewModel = _container.Resolve<TViewModel>();
+                    if (viewModel != default)
+                    {
+                        viewModel.Prepare();
+                        viewModel.Prepare(navigationData);
+                        page.BindingContext = viewModel;
+                        optionalPage = page.Some();
+                    }
                 }
             }
 

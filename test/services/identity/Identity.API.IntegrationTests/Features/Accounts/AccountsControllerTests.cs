@@ -41,7 +41,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             _identityApiFixture = identityFixture;
         }
 
-        public async void Dispose()
+        public void Dispose()
         {
             _outputHelper = null;
 
@@ -103,10 +103,10 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
                 JToken jsonToken = JToken.Parse(jsonResponse);
                 JSchema responseSchema = new JSchemaGenerator()
-                    .Generate(typeof(BrowsableResource<AccountInfo>));
+                    .Generate(typeof(Browsable<AccountInfo>));
                 jsonToken.IsValid(responseSchema);
 
-                BrowsableResource<AccountInfo> browsableResource = jsonToken.ToObject<BrowsableResource<AccountInfo>>();
+                Browsable<AccountInfo> browsableResource = jsonToken.ToObject<Browsable<AccountInfo>>();
 
                 IEnumerable<Link> links = browsableResource.Links;
                 links.Should()
@@ -171,7 +171,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
                 JToken jsonToken = JToken.Parse(jsonResponse);
                 JSchema responseSchema = new JSchemaGenerator()
-                    .Generate(typeof(GenericPagedGetResponse<BrowsableResource<AccountInfo>>));
+                    .Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
                 jsonToken.IsValid(responseSchema);
             }
         }

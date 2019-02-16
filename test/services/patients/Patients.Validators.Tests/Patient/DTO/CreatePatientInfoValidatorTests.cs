@@ -1,5 +1,4 @@
 
-
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -43,7 +42,6 @@ namespace Patients.Validators.Tests.Features.Patients
             _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
             _validator = new CreatePatientInfoValidator(_uowFactoryMock.Object);
-
         }
 
         public void Dispose()
@@ -57,7 +55,6 @@ namespace Patients.Validators.Tests.Features.Patients
         public void Should_Implements_AbstractValidator() => _validator.Should()
                 .BeAssignableTo<AbstractValidator<CreatePatientInfo>>();
 
-
         [Fact]
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
         {
@@ -69,12 +66,10 @@ namespace Patients.Validators.Tests.Features.Patients
                 .NotBeNullOrWhiteSpace();
         }
 
-
         public static IEnumerable<object[]> ValidateTestCases
         {
             get
             {
-
                 yield return new object[]
                 {
                     new CreatePatientInfo(),
@@ -118,8 +113,6 @@ namespace Patients.Validators.Tests.Features.Patients
                     )),
                     $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
                 };
-
-
             }
         }
 
@@ -152,7 +145,6 @@ namespace Patients.Validators.Tests.Features.Patients
                         .AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(true));
 
-
             CreatePatientInfo info = new CreatePatientInfo
             {
                 Firstname = "Bruce",
@@ -170,10 +162,7 @@ namespace Patients.Validators.Tests.Features.Patients
                 .Contain(x => x.PropertyName == nameof(CreatePatientInfo.Id));
 
             _uowFactoryMock.Verify(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()), Once);
-
         }
-
-
 
     }
 }

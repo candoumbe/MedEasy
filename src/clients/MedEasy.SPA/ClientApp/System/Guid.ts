@@ -20,6 +20,6 @@ export class Guid {
     }
 
     public toString() {
-        return `<${this.guid}>`
+        return `${this.guid}`
     }
 }

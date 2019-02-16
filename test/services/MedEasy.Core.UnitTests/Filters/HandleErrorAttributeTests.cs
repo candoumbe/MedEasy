@@ -61,12 +61,10 @@ namespace MedEasy.Core.Filters
             await _handleErrorAttribute.OnExceptionAsync(exceptionContext)
                 .ConfigureAwait(false);
 
-
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
             exceptionContext.Result.Should()
                 .BeAssignableTo<BadRequestResult>();
-
 
             exceptionContext.ModelState.Should()
                 .NotBeNull().And
@@ -74,7 +72,6 @@ namespace MedEasy.Core.Filters
                 .Contain(x => x.Key == "prop2");
         }
 
-        
         [Fact]
         public async Task ShouldReturnsBadRequestWhenHandlingQueryNotValidException()
         {
@@ -94,19 +91,15 @@ namespace MedEasy.Core.Filters
             exceptionContext.Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
             await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
 
-
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();
             exceptionContext.Result.Should()
                 .BeAssignableTo<BadRequestResult>();
-
 
             exceptionContext.ModelState.Should()
                 .NotBeNull().And
                 .Contain(x => x.Key == "prop1").And
                 .Contain(x => x.Key == "prop2");
         }
-
-
     }
 }

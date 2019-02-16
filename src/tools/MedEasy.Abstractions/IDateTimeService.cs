@@ -18,6 +18,5 @@ namespace MedEasy.Abstractions
         /// </summary>
         /// <returns></returns>
         DateTime UtcNow();
-
     }
 }

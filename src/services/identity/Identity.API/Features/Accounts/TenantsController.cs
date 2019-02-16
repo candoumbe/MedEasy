@@ -39,7 +39,6 @@ namespace Identity.API.Features.Accounts
             _mediator = mediator;
         }
 
-        
         /// <summary>
         /// Delete the account with the specified <paramref name="id"/>.
         /// </summary>
@@ -97,7 +96,6 @@ namespace Identity.API.Features.Accounts
                            permanent: false,
                            preserveMethod: true)
                 : (IActionResult)new NotFoundResult();
-
         }
 
         /// <summary>
@@ -132,7 +130,6 @@ namespace Identity.API.Features.Accounts
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
-
             PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
             {
                 Id = id,
@@ -164,8 +161,6 @@ namespace Identity.API.Features.Accounts
             }
 
             return actionResult;
-
-
         }
     }
 }

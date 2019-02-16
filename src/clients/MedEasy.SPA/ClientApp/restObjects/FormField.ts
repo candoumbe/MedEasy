@@ -22,6 +22,7 @@ export class FormField {
     public minLength?: number;
     public secret?: boolean;
     public description?: string
+    public value? : string | number | boolean | Date
 
 
 }

@@ -10,7 +10,6 @@ namespace Agenda.CQRS.Features.Participants.Queries
     /// </summary>
     public class GetOneParticipantInfoByIdQuery : GetOneResourceQuery<Guid, Guid, Option<ParticipantInfo>>, IEquatable<GetOneParticipantInfoByIdQuery>
     {
-
         /// <summary>
         /// Builds a new <see cref="GetOneParticipantInfoByIdQuery"/> instance.
         /// </summary>

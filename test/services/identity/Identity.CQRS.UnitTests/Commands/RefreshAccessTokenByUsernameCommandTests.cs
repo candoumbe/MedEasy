@@ -48,7 +48,6 @@ namespace Identity.CQRS.UnitTests.Commands
         [MemberData(nameof(InvalidCtorCases))]
         public void Ctor_Throws_ArgumentNullException(string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions, string reason)
         {
-
             _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, tokenOptions }.Stringify()}");
 
             // Act
@@ -59,7 +58,6 @@ namespace Identity.CQRS.UnitTests.Commands
                 .Throw<ArgumentException>(reason).Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Agenda.API.Resources
         private readonly IUrlHelper _urlHelper;
         private readonly IMediator _mediator;
         private readonly IOptionsSnapshot<AgendaApiOptions> _apiOptions;
-        
+
         /// <summary>
         /// Name of the endpoint
         /// </summary>²
@@ -48,14 +48,13 @@ namespace Agenda.API.Resources
         [HttpGet]
         public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
-
             pageSize = Math.Min(pageSize, _apiOptions.Value.MaxPageSize);
             Page<ParticipantInfo> result = await _mediator.Send(new GetPageOfParticipantInfoQuery(page, pageSize), ct)
                 .ConfigureAwait(false);
 
-            GenericPagedGetResponse<BrowsableResource<ParticipantInfo>> resources = new GenericPagedGetResponse<BrowsableResource<ParticipantInfo>>(
+            GenericPagedGetResponse<Browsable<ParticipantInfo>> resources = new GenericPagedGetResponse<Browsable<ParticipantInfo>>(
 
-                result.Entries.Select(x => new BrowsableResource<ParticipantInfo>
+                result.Entries.Select(x => new Browsable<ParticipantInfo>
                 {
                     Resource = x,
                     Links =new[]
@@ -69,7 +68,7 @@ namespace Agenda.API.Resources
                     }
                 }),
                 first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, pageSize }),
-                previous : result.Count > 2 && page > 1 
+                previous : result.Count > 2 && page > 1
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new {controller = EndpointName, page = page - 1, pageSize })
                     :  null,
                 next: page < result.Count
@@ -80,9 +79,7 @@ namespace Agenda.API.Resources
                 count : result.Total
             );
 
-
             return new OkObjectResult(resources);
-
         }
 
         /// <summary>
@@ -99,11 +96,10 @@ namespace Agenda.API.Resources
             Option<ParticipantInfo> optionalResource = await _mediator.Send(new GetOneParticipantInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
-
             return optionalResource.Match<IActionResult>(
                 some: resource =>
                 {
-                    BrowsableResource<ParticipantInfo> browsableResource = new BrowsableResource<ParticipantInfo>
+                    Browsable<ParticipantInfo> browsableResource = new Browsable<ParticipantInfo>
                     {
                         Resource = resource,
                         Links = new[]
@@ -121,7 +117,6 @@ namespace Agenda.API.Resources
                 },
 
                 none: () => new NotFoundResult());
-            
         }
     }
 }

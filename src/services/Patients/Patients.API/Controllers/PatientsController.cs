@@ -27,7 +27,7 @@ namespace Patients.API.Controllers
     /// <summary>
     /// Endpoint for <see cref="PatientInfo"/> resources.
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class PatientsController : AbstractBaseController<Patient, PatientInfo, Guid>
     {
         private IOptionsSnapshot<PatientsApiOptions> ApiOptions { get; }
@@ -64,7 +64,7 @@ namespace Patients.API.Controllers
         /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or zero</response>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
             using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
@@ -94,8 +94,8 @@ namespace Patients.API.Controllers
                         ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : firstPageUrl;
 
-                IEnumerable<BrowsableResource<PatientInfo>> resources = result.Entries
-                    .Select(x => new BrowsableResource<PatientInfo>
+                IEnumerable<Browsable<PatientInfo>> resources = result.Entries
+                    .Select(x => new Browsable<PatientInfo>
                     {
                         Resource = x,
                         Links = new[]
@@ -108,7 +108,7 @@ namespace Patients.API.Controllers
                         }
                     });
 
-                IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
+                IGenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
                     resources,
                     firstPageUrl,
                     previousPageUrl,
@@ -130,7 +130,7 @@ namespace Patients.API.Controllers
         /// <response code="400"><paramref name="id"/> is not a valid <see cref="Guid"/></response>
         [HttpHead("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
         public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
@@ -150,7 +150,7 @@ namespace Patients.API.Controllers
                     actionResult = result.Match<IActionResult>(
                         some: resource =>
                         {
-                            BrowsableResource<PatientInfo> browsableResource = new BrowsableResource<PatientInfo>
+                            Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
                             {
                                 Resource = resource,
                                 Links = new[]
@@ -187,7 +187,7 @@ namespace Patients.API.Controllers
         /// <response code="201">the resource was created successfully</response>
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
-        [ProducesResponseType(typeof(BrowsableResource<PatientInfo>), 201)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), 201)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken cancellationToken = default)
         {
@@ -207,7 +207,7 @@ namespace Patients.API.Controllers
                 Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 PatientInfo resource = mapEntityToResource.Compile()(patient);
 
-                return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new BrowsableResource<PatientInfo>
+                return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new Browsable<PatientInfo>
                 {
                     Resource = resource,
                     Links = new[]
@@ -258,11 +258,12 @@ namespace Patients.API.Controllers
         /// Partially update a patient resource.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
-        ///
-        ///     // PATCH api/Patients/3594c436-8595-444d-9e6b-2686c4904725
-        ///     
+        /// </para>
+        /// <para>    // PATCH api/Patients/3594c436-8595-444d-9e6b-2686c4904725</para>
+        /// <para>
         ///     [
         ///         {
         ///             "op": "update",
@@ -271,8 +272,8 @@ namespace Patients.API.Controllers
         ///             "value": "John"
         ///       }
         ///     ]
-        /// 
-        /// The set of changes to apply will be applied atomically and in the order they're declared. 
+        /// </para>
+        /// <para>The set of changes to apply will be applied atomically and in the order they're declared. </para>
         /// 
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
@@ -297,7 +298,7 @@ namespace Patients.API.Controllers
                 {
                     Option<Patient> optionalPatient = await uow.Repository<Patient>().SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
                         .ConfigureAwait(false);
-                    
+
                     actionResult = await optionalPatient.Match(
                         some: async (patient) =>
                         {
@@ -315,7 +316,7 @@ namespace Patients.API.Controllers
                             patch.ApplyTo(patient, (error) => {
                                 patchActionResult = new BadRequestObjectResult(new { message = error.ErrorMessage });
                             });
-                            
+
                             await uow.SaveChangesAsync(cancellationToken)
                                 .ConfigureAwait(false);
 
@@ -336,31 +337,33 @@ namespace Patients.API.Controllers
         /// <param name="search">Search criteria</param>
         /// <param name="cancellationToken">Notifies to cancel the execution of the request.</param>
         /// <remarks>
-        /// All criteria are combined as a AND.
-        /// 
+        /// <para>All criteria are combined as a AND.</para>
+        /// <para>
         /// Advanded search :
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
-        /// 
+        /// </para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=Bruce
         ///     will match all resources which have exactly 'Bruce' in the Firstname property
-        ///     
+        /// </para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=B*e
         ///     will match match all resources which starts with 'B' and ends with 'e'.
-        /// 
-        /// '?' : match exactly one charcter in a string property.
-        /// 
-        /// '!' : negate a criteria
-        /// 
+        /// </para>
+        /// <para>'?' : match exactly one charcter in a string property.</para>
+        /// <para>'!' : negate a criteria</para>
+        /// <para>
         ///     // GET api/Doctors/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not "Bruce"
+        /// </para>
         ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<PatientInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
@@ -411,8 +414,8 @@ namespace Patients.API.Controllers
 
             Page<PatientInfo> resources = await Search(searchQuery, cancellationToken).ConfigureAwait(false);
 
-            GenericPagedGetResponse<BrowsableResource<PatientInfo>> page = new GenericPagedGetResponse<BrowsableResource<PatientInfo>>(
-                    items: resources.Entries.Select(x => new BrowsableResource<PatientInfo>
+            GenericPagedGetResponse<Browsable<PatientInfo>> page = new GenericPagedGetResponse<Browsable<PatientInfo>>(
+                    items: resources.Entries.Select(x => new Browsable<PatientInfo>
                     {
                         Resource = x,
                         Links = new[] {

@@ -43,7 +43,6 @@ namespace Measures.Context
         /// </summary>
         public DbSet<Temperature> Temperatures { get; set; }
 
-
         /// <summary>
         /// Builds a new <see cref="MeasuresContext"/> instance.
         /// </summary>
@@ -66,7 +65,6 @@ namespace Measures.Context
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
-
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
 
                     modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
@@ -77,7 +75,6 @@ namespace Measures.Context
 
                     modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
                         .IsConcurrencyToken();
-
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
@@ -91,9 +88,7 @@ namespace Measures.Context
                     modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
                        .ValueGeneratedOnAdd();
                 }
-
             }
-
 
             modelBuilder.Entity<PhysiologicalMeasurement>(entity =>
             {
@@ -111,7 +106,6 @@ namespace Measures.Context
 
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
-
             });
 
             modelBuilder.Entity<BloodPressure>();
@@ -129,7 +123,6 @@ namespace Measures.Context
 #endif
             ;
 
-
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
             {
@@ -145,7 +138,6 @@ namespace Measures.Context
                     auditableEntity.UpdatedDate = now;
                 }
             };
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges()"/>
@@ -165,8 +157,6 @@ namespace Measures.Context
 
             return SaveChanges(acceptAllChangesOnSuccess);
         }
-
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>

@@ -35,6 +35,5 @@ namespace Measures.DTO
         /// Patient's birth date
         /// </summary>
         public DateTime? BirthDate { get; set; }
-
     }
 }

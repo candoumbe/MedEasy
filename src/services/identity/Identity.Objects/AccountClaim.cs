@@ -11,7 +11,6 @@ namespace Identity.Objects
     /// </remarks>
     public class AccountClaim : AuditableEntity<int,AccountClaim>
     {
-
         public int ClaimId { get; set; }
 
         public int AccountId { get; set; }
@@ -21,9 +20,7 @@ namespace Identity.Objects
         /// </summary>
         public string Value { get; set; }
 
-
         public Account Account { get; set; }
-
 
         public Claim Claim { get; set; }
 
@@ -31,7 +28,6 @@ namespace Identity.Objects
         /// When the claim is active for the user
         /// </summary>
         public DateTimeOffset Start { get; set; }
-
 
         /// <summary>
         /// When will the claim ends

@@ -23,7 +23,6 @@ namespace MedEasy.CQRS.Core.UnitTests.Exceptions
                     ((Action)(() => new QueryNotValidException<int>(0, Enumerable.Empty<ErrorInfo>())))
                 };
 
-
                 yield return new object[]
                 {
                     ((Action)(() => new QueryNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ErrorInfo>())))
@@ -42,6 +41,5 @@ namespace MedEasy.CQRS.Core.UnitTests.Exceptions
         [Fact]
         public void InheritValidationException() => typeof(ValidationException).IsAssignableFrom(typeof(QueryNotValidException<>))
             .Should().BeTrue();
-
     }
 }

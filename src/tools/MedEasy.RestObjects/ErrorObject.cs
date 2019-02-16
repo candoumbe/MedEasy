@@ -22,11 +22,9 @@ namespace MedEasy.RestObjects
         /// </summary>
         public IDictionary<string, IEnumerable<string>> Errors { get; set;}
 
-
         public ErrorObject()
         {
             Errors = new Dictionary<string, IEnumerable<string>>();
         }
-
     }
 }

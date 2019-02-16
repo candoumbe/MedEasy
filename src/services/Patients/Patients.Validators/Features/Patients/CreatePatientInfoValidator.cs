@@ -53,7 +53,6 @@ namespace Patients.Validators.Features.Patients.DTO
                 .NotEqual(Guid.Empty)
                 .MustAsync(async (mainDoctorId, cancellationToken) =>
                 {
-                        
                     using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
                         return await uow.Repository<Objects.Doctor>()

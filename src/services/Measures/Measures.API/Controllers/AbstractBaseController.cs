@@ -80,16 +80,15 @@ namespace Measures.API.Controllers
                     .WhereAsync(
                         selector,
                         filter ,
-                        search.Sorts.Select(sort => OrderClause<TResource>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending 
-                            ? MedEasy.DAL.Repositories.SortDirection.Ascending 
+                        search.Sorts.Select(sort => OrderClause<TResource>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
+                            ? MedEasy.DAL.Repositories.SortDirection.Ascending
                             : MedEasy.DAL.Repositories.SortDirection.Descending)),
                         search.PageSize,
                         search.Page,
                         cancellationToken);
-                                
+
                 return resources;
             }
         }
-
     }
 }

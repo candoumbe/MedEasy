@@ -40,6 +40,5 @@ namespace Agenda.DTO
         /// </summary>
         [DataMember]
         public IEnumerable<ParticipantInfo> Participants { get; set; }
-
     }
 }

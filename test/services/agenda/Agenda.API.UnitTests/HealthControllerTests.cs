@@ -46,14 +46,12 @@ namespace Agenda.API.UnitTests
             IActionResult actionResult = await _sut.Status(ct : default)
                 .ConfigureAwait(false);
 
-
             // Assert
             actionResult.Should()
                 .NotBeNull().And
                 .BeAssignableTo<StatusCodeResult>().Which
                 .StatusCode.Should()
                 .Be(Status204NoContent);
-
         }
 
         public static IEnumerable<object[]> ServiceNotAvailableCases
@@ -86,14 +84,12 @@ namespace Agenda.API.UnitTests
             IActionResult actionResult = await _sut.Status(ct: default)
                 .ConfigureAwait(false);
 
-
             // Assert
             actionResult.Should()
                 .NotBeNull().And
                 .BeAssignableTo<StatusCodeResult>().Which
                 .StatusCode.Should()
                 .BeGreaterOrEqualTo(Status500InternalServerError);
-
         }
     }
 }

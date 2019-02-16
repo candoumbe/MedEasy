@@ -44,7 +44,6 @@ namespace Agenda.API.Resources
             }
             catch (Exception)
             {
-
                 actionResult =  new StatusCodeResult(Status500InternalServerError);
             }
 

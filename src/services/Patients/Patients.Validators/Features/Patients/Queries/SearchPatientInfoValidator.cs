@@ -14,7 +14,6 @@ namespace Patients.Validators.Features.Patients.Queries
     /// </summary>
     public class SearchPatientInfoValidator : AbstractValidator<SearchPatientInfo>
     {
-
         /// <summary>
         /// List of properties that can be used to sort results found using a <see cref="SearchPatientInfo"/>
         /// </summary>
@@ -24,11 +23,9 @@ namespace Patients.Validators.Features.Patients.Queries
         nameof(SearchPatientInfo.Lastname),
     };
 
-        
 
         public SearchPatientInfoValidator()
         {
-
             Include(new AbstractSearchInfoValidator<PatientInfo>());
             When(x => string.IsNullOrWhiteSpace(x.Firstname)
                     && string.IsNullOrWhiteSpace(x.Lastname)
@@ -42,5 +39,5 @@ namespace Patients.Validators.Features.Patients.Queries
                     RuleFor(x => x.Sort).NotEmpty();
                 });
         }
-    } 
+    }
 }

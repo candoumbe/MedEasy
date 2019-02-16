@@ -43,7 +43,6 @@ namespace Identity.CQRS.Handlers.Commands
             JwtSecurityToken refreshToken = new JwtSecurityToken(refreshTokenString);
             JwtSecurityToken accessToken = new JwtSecurityToken(expiredAccessTokenString);
 
-
             if (refreshToken.ValidFrom > utcNow || refreshToken.ValidTo <= utcNow)
             {
                 optionalBearer = Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized);
@@ -86,7 +85,6 @@ namespace Identity.CQRS.Handlers.Commands
                                 .ConfigureAwait(false);
 
                             return Option.Some<BearerTokenInfo, RefreshAccessCommandResult>(new BearerTokenInfo { AccessToken = (await newAccessTokenTask).ToString(), RefreshToken = refreshTokenString });
-
                         },
                         none: () => new ValueTask<Option<BearerTokenInfo, RefreshAccessCommandResult>>(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized))
                     )

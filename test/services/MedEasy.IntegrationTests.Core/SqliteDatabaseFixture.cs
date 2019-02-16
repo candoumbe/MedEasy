@@ -22,7 +22,6 @@ namespace MedEasy.IntegrationTests.Core
             Connection.Open();
         }
 
-        
         public void Dispose()
         {
             Connection?.Close();

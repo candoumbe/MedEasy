@@ -14,7 +14,6 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
     [UnitTest]
     public class GetOneParticipantInfoByIdQueryTests
     {
-
         [Fact]
         public void Ctor_Is_Valid()
         {
@@ -42,7 +41,6 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
                 .Throw<ArgumentException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
 
         public static IEnumerable<object[]> EqualsCases
@@ -62,7 +60,6 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
                     };
                 }
             }
-
         }
 
         [Theory]
@@ -76,6 +73,5 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             actualResult.Should()
                 .Be(expectedResult, reason);
         }
-
     }
 }

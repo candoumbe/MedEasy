@@ -1,13 +1,10 @@
 using Identity.API.Features.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static Newtonsoft.Json.JsonConvert;
@@ -16,9 +13,7 @@ namespace Identity.API.Fixtures
 {
     public class IdentityApiFixture : IntegrationFixture<Startup>
     {
-        protected override void ConfigureClient(HttpClient client)
-            => client.BaseAddress = new System.Uri("https://localhost");
-
+        protected override void ConfigureClient(HttpClient client) => client.BaseAddress = new Uri("http://localhost/");
 
         /// <summary>
         /// Register a new account

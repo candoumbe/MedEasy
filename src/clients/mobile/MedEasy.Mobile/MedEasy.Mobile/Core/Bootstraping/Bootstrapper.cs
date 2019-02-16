@@ -33,6 +33,8 @@ namespace MedEasy.Mobile.Core.Bootstraping
             _container.RegisterInstance<IAccountsApi>(RestService.For<IAccountsApi>("http://localhost:5000"));
             _container.RegisterInstance<ITokenApi>(RestService.For<ITokenApi>("http://localhost:5000"));
 
+            _container.RegisterSingleton<IApplicationService, ApplicationService>();
+
             ServiceLocator.SetLocatorProvider(() => new UnityServiceLocator(_container));
             DependencyResolver.ResolveUsing(type => _container.IsRegistered(type) ? _container.Resolve(type) : null);
 

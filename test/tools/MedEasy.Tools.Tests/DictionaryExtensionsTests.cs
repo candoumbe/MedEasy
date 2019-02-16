@@ -23,7 +23,6 @@ namespace MedEasy.Tools.Tests
             _outputHelper = outputHelper;
         }
 
-
         public void Dispose()
         {
             _outputHelper = null;
@@ -39,7 +38,6 @@ namespace MedEasy.Tools.Tests
                     ((Expression<Func<string, bool>>)(x => x == string.Empty))
                 };
 
-                
                 yield return new object[]
                 {
                     new Dictionary<string, object>{},
@@ -86,8 +84,6 @@ namespace MedEasy.Tools.Tests
                     ((Expression<Func<string, bool>>)(x => "limit=1&offset=3".Equals(x)))
                  };
 
-
-
                 yield return new object[]
                  {
                     new Dictionary<string, object>{
@@ -104,13 +100,13 @@ namespace MedEasy.Tools.Tests
                         },
                     },
                     ((Expression<Func<string, bool>>)( queryString =>
-                        queryString != null &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Length == 5 &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[page]")}=1") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[pageSize]")}=3") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][field]")}=firstname") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][op]")}=eq") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][value]")}=Bruce")
+                        queryString != null
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Length == 5
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[page]")}=1")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[pageSize]")}=3")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][field]")}=firstname")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][op]")}=eq")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][value]")}=Bruce")
 
                     ))
                  };
@@ -131,19 +127,18 @@ namespace MedEasy.Tools.Tests
                         },
                     },
                     ((Expression<Func<string, bool>>)( queryString =>
-                        queryString != null &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Length == 5 &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[page]")}=1") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[pageSize]")}=3") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][field]")}=firstname") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][op]")}=EqualTo") &&
-                        queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][value]")}=Bruce")
+                        queryString != null
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Length == 5
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[page]")}=1")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[pageSize]")}=3")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][field]")}=firstname")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][op]")}=EqualTo")
+                        && queryString.Split(new []{ "&"}, RemoveEmptyEntries).Once(x => x == $"{Uri.EscapeDataString("search[filter][value]")}=Bruce")
 
                     ))
                  };
             }
         }
-
 
         /// <summary>
         /// Tests <see cref="System.Collections.Generic.DictionaryExtensions.ToQueryString(IDictionary{string, object})"/>
@@ -157,13 +152,11 @@ namespace MedEasy.Tools.Tests
             _outputHelper.WriteLine($"input : {SerializeObject(input)}");
 
             // Act
-            string queryString = input?.ToQueryString(); 
-            
+            string queryString = input?.ToQueryString();
+
             // Arrange
             queryString?.Should().Match(expectedString);
         }
-
-
 
     }
 }

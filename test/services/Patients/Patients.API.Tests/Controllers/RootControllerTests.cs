@@ -64,10 +64,7 @@ namespace Patients.API.UnitTests.Controllers
             _actionContextAccessor = null;
             _controller = null;
             _optionsMock = null;
-
-
         }
-
 
         [Theory]
         [InlineData("Production")]
@@ -83,7 +80,6 @@ namespace Patients.API.UnitTests.Controllers
             // Act
             IEnumerable<Endpoint> endpoints = _controller.Index();
 
-
             // Assert
             endpoints.Should()
                 .NotBeNullOrEmpty().And
@@ -92,7 +88,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotContain(x => x.Link == null, $"{nameof(Endpoint)}'s {nameof(Endpoint.Link)} must be provided").And
                 .BeInAscendingOrder(x => x.Name).And
                 .Contain(x => x.Name == PatientsController.EndpointName.ToLowerKebabCase());
-            
+
             #region Patients endpoint
             // Patients endpoint
             Endpoint patientsEndpoint = endpoints.Single(x => x.Name == PatientsController.EndpointName.ToLowerKebabCase());
@@ -193,7 +189,6 @@ namespace Patients.API.UnitTests.Controllers
             FormField patientCreateFormMainDoctorIdField = patientsCreateForm.Items.Single(x => x.Name == nameof(PatientInfo.MainDoctorId));
             patientCreateFormMainDoctorIdField.Type.Should().Be(FormFieldType.String);
 
-
             #endregion
             #endregion
 
@@ -206,7 +201,6 @@ namespace Patients.API.UnitTests.Controllers
                 documentationEnpoint.Link.Should()
                     .NotBeNull();
             }
-            
         }
     }
 }

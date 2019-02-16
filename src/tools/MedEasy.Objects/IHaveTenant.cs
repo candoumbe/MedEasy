@@ -4,10 +4,8 @@
 /// </summary>
 public interface IHaveTenant
 {
-
 	/// <summary>
     /// Id of the owner of the resource
     /// </summary>
     Guid TenantId { get; set; }
-
 }

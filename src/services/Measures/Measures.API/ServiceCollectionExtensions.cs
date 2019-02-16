@@ -53,6 +53,7 @@ namespace Measures.API
         /// <param name="configuration"></param>
         public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
         {
+
             services.AddMvc(options =>
             {
                 options.Filters.Add<FormatFilterAttribute>();
@@ -67,7 +68,6 @@ namespace Measures.API
                      .RequireAuthenticatedUser()
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
-
             })
 #if NETCOREAPP2_0
         .SetCompatibilityVersion(CompatibilityVersion.Version_2_0)
@@ -117,49 +117,69 @@ namespace Measures.API
                 options.LowercaseUrls = true;
             });
 
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new MeasuresContext(optionsBuilder.Options);
-            });
         }
-
-        /// <summary>
-        /// Adds required dependencies to access APÏ datastores
-        /// </summary>
-        /// <param name="services"></param>
-        /// 
-        /// 
-        public static void ConfigureDataStores(this IServiceCollection services) => 
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
-            {
-                DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
-                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => new MeasuresContext(options));
-            });
 
         private static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
         {
             IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+            builder.ConfigureWarnings(options =>
+            {
+                options.Default(WarningBehavior.Log);
+            });
+
             if (hostingEnvironment.IsEnvironment("IntegrationTest"))
             {
-                builder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
             }
             else
             {
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 builder.UseSqlServer(
                     configuration.GetConnectionString("Measures"),
-                    options => options.MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
-                );
+                    b => b.MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName));
             }
-            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options =>
-            {
-                options.Default(WarningBehavior.Log);
-            });
+
             return builder;
+        }
+
+        /// <summary>
+        /// Adds required dependencies to access API datastores
+        /// </summary>
+        /// <param name="services"></param>
+        /// 
+        /// 
+        public static void AddDataStores(this IServiceCollection services)
+        {
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new MeasuresContext(optionsBuilder.Options);
+            });
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
+           {
+               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+               DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
+               
+               Func<DbContextOptions<MeasuresContext>, MeasuresContext> contextGenerator;
+
+               if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+               {              
+                   contextGenerator = options =>
+                   {
+                       MeasuresContext context = new MeasuresContext(options);
+                        //context.Database.EnsureCreated();
+                        return context;
+                   };
+               }
+               else
+               {
+                   contextGenerator = (options) => new MeasuresContext(options);
+               }
+               return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, contextGenerator);
+           });
         }
 
         /// <summary>
@@ -170,7 +190,7 @@ namespace Measures.API
         {
             services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
-            services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -190,8 +210,8 @@ namespace Measures.API
 
                 ConnectedAccountInfo connectedAccount = new ConnectedAccountInfo
                 {
-                    Id = Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.AccountId), out Guid accountId) 
-                        ? accountId 
+                    Id = Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.AccountId), out Guid accountId)
+                        ? accountId
                         : Guid.Empty,
                     Username = principal.FindFirstValue(ClaimTypes.NameIdentifier),
                     Email = principal.FindFirstValue(ClaimTypes.Email)
@@ -199,7 +219,6 @@ namespace Measures.API
 
                 return principal;
             });
-
         }
 
         /// <summary>
@@ -242,7 +261,7 @@ namespace Measures.API
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
                     Type = "apiKey"
-                    
+
                 });
 
                 config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
@@ -257,7 +276,7 @@ namespace Measures.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) => 
+        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {

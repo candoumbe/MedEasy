@@ -137,7 +137,6 @@ namespace MedEasy.RestObjects
         /// </summary>
         internal bool IsMaxLengthSet { get; private set; }
 
-
         /// <summary>
         /// Builds a new <see cref="FormFieldAttribute"/>
         /// </summary>
@@ -145,6 +144,5 @@ namespace MedEasy.RestObjects
         {
             Relations = Enumerable.Empty<string>();
         }
-
     }
 }

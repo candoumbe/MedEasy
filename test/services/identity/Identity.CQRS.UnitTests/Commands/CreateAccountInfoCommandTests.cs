@@ -27,11 +27,9 @@ namespace Identity.CQRS.UnitTests.Commands.Accounts
             {
             });
 
-
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Fact]
@@ -45,7 +43,6 @@ namespace Identity.CQRS.UnitTests.Commands.Accounts
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

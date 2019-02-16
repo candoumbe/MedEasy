@@ -1,13 +1,9 @@
 ﻿using Measures.API.Routing;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Runtime.ExceptionServices;
 
 namespace Measures.API
 {
@@ -25,7 +21,6 @@ namespace Measures.API
         /// Provides information about 
         /// </summary>
         public IHostingEnvironment HostingEnvironment { get; }
-
 
         /// <summary>
         /// Builds a new <see cref="Startup"/> instance.
@@ -45,10 +40,16 @@ namespace Measures.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.ConfigureDataStores();
+#if !NETCOREAPP2_0
+            services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = Configuration.GetValue<int>("HttpsPort", 51900);
+                });
+#endif
+            services.AddDataStores();
             services.ConfigureDependencyInjection();
             services.ConfigureAuthentication(Configuration);
-            
+
             if (HostingEnvironment.IsDevelopment())
             {
                 services.ConfigureSwagger(HostingEnvironment, Configuration);
@@ -74,7 +75,10 @@ namespace Measures.API
             app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
-                
+                if (env.IsEnvironment("IntegrationTest"))
+                {
+
+                }
             });
 
             if (env.IsProduction() || env.IsStaging())
@@ -93,12 +97,12 @@ namespace Measures.API
                     app.UseSwaggerUI(opt =>
                     {
                         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
-                    }); 
+                    });
                 }
             }
 
             app.UseCors("AllowAnyOrigin");
-            
+
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");

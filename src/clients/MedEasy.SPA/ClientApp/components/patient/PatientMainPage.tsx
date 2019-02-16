@@ -1,12 +1,17 @@
 ﻿import * as React from "react";
 import { PatientList } from "./PatientList";
-import { Link, NavLink } from "react-router-dom";
-import { BrowsableResource } from "./../../restObjects/BrowsableResource";
+import { Link, NavLink, } from "react-router-dom";
+import { Browsable } from "./../../restObjects/Browsable";
+import { RemoteDataSource } from "./../../System/Data/RemoteDataSource";
+import { HttpVerb } from "./../../System/Data/TransportOperation";
 import { RouteComponentProps } from 'react-router';
+import { Button } from "react-bootstrap";
+import { RestClient } from "./../../System/RestClient";
+
 
 
 interface PatientMainPageProps {
-    endpoint : string
+    restClient: RestClient<string, Browsable<MedEasy.DTO.Patient>>;
 }
 
 export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
@@ -19,21 +24,21 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
      */
     public render(): JSX.Element | null {
 
-        //let dataSource = new  RemoteDataSource<BrowsableResource<MedEasy.DTO.Patient>>(
+        //let dataSource = new RemoteDataSource<Browsable<MedEasy.DTO.Patient>>(
         //    {
         //        create: {
         //            url: this.props.endpoint,
         //            type: HttpVerb.GET,
-        //            contentType : "application/json"
+        //            contentType: "application/json"
         //        }
         //    },
         //    {
         //        model: {
-        //            id: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.id,
+        //            id: (p: Browsable<MedEasy.DTO.Patient>) => p.resource.id,
         //            fields: [
-        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.id },
-        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.firstname },
-        //                { from: (p: BrowsableResource<MedEasy.DTO.Patient>) => p.resource.lastname },
+        //                { from: (p: Browsable<MedEasy.DTO.Patient>) => p.resource.id },
+        //                { from: (p: Browsable<MedEasy.DTO.Patient>) => p.resource.firstname },
+        //                { from: (p: Browsable<MedEasy.DTO.Patient>) => p.resource.lastname },
         //            ]
         //        }
         //    }
@@ -43,22 +48,21 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
 
         return (
             <PatientList
-
-                endpoint={`${this.props.endpoint}/patients`} 
+                restClient={this.props.restClient} 
                 canCreate={true}
                 id={(item) => item.resource.id}
-                columns={new Map<string,(item : BrowsableResource<MedEasy.DTO.Patient>) => any>([
-                    ["Fullname", (item) => <Link to={`/patients/details/${item.resource.id}`} rel="details">{item.resource.fullname}</Link>],
+                columns={new Map<string,(item : Browsable<MedEasy.DTO.Patient>) => any>([
+                    ["Fullname", (item) => <NavLink to={`/patients/details/${item.resource.id}`}>{item.resource.fullname}</NavLink>],
                     ["Birth Place", (item) => item.resource.birthPlace],
                     ["Birth Date", (item) => item.resource.birthDate ? item.resource.birthDate : ""],
                     ["", (item) => (
                         <div>
-                            <button className='btn btn-danger' >
+                            <Button bsStyle="danger" >
                                 <span className="glyphicon glyphicon-trash"></span>
-                            </button>
-                            <button className='btn btn-success'>
+                            </Button>
+                            <Button bsStyle="success">
                                 <span className="glyphicon glyphicon-pencil"></span>
-                            </button>
+                            </Button>
                             <Link to={`/patients/details/${item.resource.id}`} className='btn btn-default'>
                                 <span className="glyphicon glyphicon-eye-open"></span>
                             </Link>

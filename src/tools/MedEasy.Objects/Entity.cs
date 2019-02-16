@@ -15,6 +15,5 @@ namespace MedEasy.Objects
         {
             UUID = Guid.NewGuid();
         }
-
     }
 }

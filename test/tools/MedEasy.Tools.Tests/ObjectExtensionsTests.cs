@@ -27,9 +27,7 @@ namespace MedEasy.Tools.Tests
             _outputHelper = outputHelper;
         }
 
-
         public void Dispose() => _outputHelper = null;
-
 
         public static IEnumerable<object[]> ToQueryStringCases
         {
@@ -123,12 +121,10 @@ namespace MedEasy.Tools.Tests
             ObjectExtensions.ToQueryString(input)?.Should().Be(expectedString);
         }
 
-       
         public static IEnumerable<object[]> ParseAnonymousObjectCases
         {
             get
             {
-
                 yield return new object[]
                 {
                     new {limit = new [] {0, 2, 4}},
@@ -150,8 +146,8 @@ namespace MedEasy.Tools.Tests
                 yield return new object[]
                 {
                     new { propName = "value" },
-                    ((Expression<Func<IDictionary<string, object>, bool>>)(x => 
-                        x != null 
+                    ((Expression<Func<IDictionary<string, object>, bool>>)(x =>
+                        x != null
                         && x.Keys.Count == 1
                         && x.ContainsKey("propName") && Equals(x["propName"], "value")))
                 };
@@ -223,7 +219,7 @@ namespace MedEasy.Tools.Tests
                 }
             }
         }
-        
+
 
         [Theory]
         [MemberData(nameof(ParseAnonymousObjectCases))]
@@ -238,6 +234,5 @@ namespace MedEasy.Tools.Tests
             _outputHelper.WriteLine($"output : {SerializeObject(result)}");
             result.Should().Match(resultExpectation);
         }
-
-    } 
+    }
 }

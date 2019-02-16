@@ -36,8 +36,6 @@ namespace MedEasy.RestObjects.Tests
                 .BeEmpty();
             attribute.Min.Should()
                 .Be(0);
-
-            
         }
 
         [Fact]

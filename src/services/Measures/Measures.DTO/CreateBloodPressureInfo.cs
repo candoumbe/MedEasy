@@ -1,6 +1,8 @@
 ﻿using MedEasy.RestObjects;
 using System;
 using System.ComponentModel.DataAnnotations;
+using static Newtonsoft.Json.JsonConvert;
+using static Newtonsoft.Json.Formatting;
 
 namespace Measures.DTO
 {
@@ -9,7 +11,6 @@ namespace Measures.DTO
     /// </summary>
     public class CreateBloodPressureInfo : CreatePhysiologicalMeasureInfo
     {
-
         [DataType(DataType.DateTime)]
         public DateTimeOffset DateOfMeasure{ get; set; }
 
@@ -19,13 +20,12 @@ namespace Measures.DTO
         [FormField(Min = 0)]
         public float SystolicPressure { get; set; }
 
-
         /// <summary>
         /// The new diastolic blod pressure value
         /// </summary>
         [FormField(Min = 0)]
         public float DiastolicPressure { get; set; }
 
-        
+        public override string ToString() => SerializeObject(this, Indented);
     }
 }

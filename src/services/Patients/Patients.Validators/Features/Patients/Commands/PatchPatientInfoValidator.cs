@@ -23,12 +23,10 @@ namespace Patients.Validators.Features.Patients.Commands
         /// <param name="unitOfWorkFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         public PatchPatientInfoValidator(IUnitOfWorkFactory unitOfWorkFactory)
         {
-
             if (unitOfWorkFactory == null)
             {
                 throw new ArgumentNullException(nameof(unitOfWorkFactory));
             }
-
 
             CascadeMode = StopOnFirstFailure;
 
@@ -100,9 +98,7 @@ namespace Patients.Validators.Features.Patients.Commands
                             }
 
                             return errorMessage;
-
                         });
-
                 });
         }
     }

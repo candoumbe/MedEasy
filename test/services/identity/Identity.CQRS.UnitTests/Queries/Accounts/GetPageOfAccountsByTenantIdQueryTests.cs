@@ -27,7 +27,6 @@ namespace Identity.CQRS.UnitTests.Queries.Accounts
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-            
         }
     }
 }

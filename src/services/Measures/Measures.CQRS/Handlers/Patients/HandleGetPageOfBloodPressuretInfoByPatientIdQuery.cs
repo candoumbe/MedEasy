@@ -34,7 +34,6 @@ namespace Measures.CQRS.Handlers.Patients
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
-
         public async Task<Option<Page<BloodPressureInfo>>> Handle(GetPageOfBloodPressureInfoByPatientIdQuery query, CancellationToken cancellationToken)
         {
             (Guid patientId, PaginationConfiguration pagination) = query.Data;
@@ -53,7 +52,6 @@ namespace Measures.CQRS.Handlers.Patients
                                     pagination.Page,
                                     cancellationToken)
                                 .ConfigureAwait(false));
-
                 }
                 else
                 {
@@ -61,7 +59,6 @@ namespace Measures.CQRS.Handlers.Patients
                 }
 
                 return result;
-                
             }
         }
     }

@@ -30,11 +30,9 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
             {
             });
 
-
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Fact]
@@ -48,7 +46,6 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

@@ -4,16 +4,36 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="MedEasy.Mobile.Views.SignInPage"
     xmlns:vm="clr-namespace:MedEasy.Mobile.Core.ViewModels.Base"
-    BindingContext="{x:Static vm:ViewModelLocator.SignInViewModel}">
-    <StackLayout HorizontalOptions="FillAndExpand"
+    BindingContext="{x:Static vm:ViewModelLocator.SignInViewModel}"
+    Title="Sign in">
+
+    <Grid HorizontalOptions="FillAndExpand"
                  VerticalOptions="CenterAndExpand">
-        <Label Text="Username"/>
-        <Entry Text="{Binding Login}"
-               Keyboard="Email" />
-        <Entry Text="{Binding Password}"
+
+        <Entry Grid.Row="0" Text="{Binding Login}"
+               Placeholder="Login/Email"
+               Keyboard="Email"/>
+        <Entry Grid.Row="1" Text="{Binding Password}"
                Placeholder="Password"
-               IsPassword="True" />
-        <Button Text="Sign in" Command="{Binding SignInCommand }"/>
-        <Button Text="Lost password ?" Command="{Binding LostPasswordCommand}" Style="{StaticResource ButtonAsLabel}"/>
-    </StackLayout>
+               IsPassword="True"/>
+
+        <Button Grid.Row="2" 
+                Text="Sign in" Command="{Binding SignInCommand}"
+                Style="{DynamicResource BtnPrimary}"/>
+
+        <Label Grid.Row="3"
+               Text="Lost password ?" 
+               Style="{DynamicResource LabelAsLink}"
+               HorizontalOptions="Center">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding LostPasswordCommand}" />
+            </Label.GestureRecognizers>
+        </Label>
+        <ActivityIndicator x:Name="Loader"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+            />
+    </Grid>
 </ContentPage>

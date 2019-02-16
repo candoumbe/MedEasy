@@ -66,12 +66,10 @@ namespace MedEasy.RestObjects
         /// </summary>
         internal bool IsTypeSet { get; private set; }
 
-
         /// <summary>
         /// Minimum value of the field
         /// </summary>
         public int? Min { get; set; }
-
 
         /// <summary>
         /// Maximum value of the field
@@ -100,6 +98,5 @@ namespace MedEasy.RestObjects
         /// Indicate if <see cref="MaxLength"/> was explicitely set
         /// </summary>
         internal bool IsMaxLengthSet { get; private set; }
-
     }
 }

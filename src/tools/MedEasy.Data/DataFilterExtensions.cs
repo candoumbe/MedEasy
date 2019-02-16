@@ -166,7 +166,6 @@ namespace MedEasy.Data
                         filterExpression = expression;
                         break;
                     }
-
             }
 
             return filterExpression;
@@ -193,7 +192,6 @@ namespace MedEasy.Data
                 Host = "localhost",
                 Query = queryString
             }.Uri;
-
 
             if (!string.IsNullOrEmpty(queryString))
             {
@@ -289,5 +287,4 @@ namespace MedEasy.Data
             return filter;
         }
     }
-
 }

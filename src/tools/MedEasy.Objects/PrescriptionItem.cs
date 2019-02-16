@@ -3,8 +3,6 @@ namespace MedEasy.Objects
 {
     public class PrescriptionItem : AuditableEntity<int, PrescriptionItem>
     {
-
-
         /// <summary>
         /// Category
         /// </summary>
@@ -14,7 +12,6 @@ namespace MedEasy.Objects
         /// Code of the prescription
         /// </summary>
         public string Code { get; set; }
-
 
         /// <summary>
         /// Name of the prescription

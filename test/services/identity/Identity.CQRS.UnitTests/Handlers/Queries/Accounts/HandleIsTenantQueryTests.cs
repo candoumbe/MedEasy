@@ -24,7 +24,6 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static Newtonsoft.Json.JsonConvert;
 
-
 namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
     [UnitTest]
@@ -80,7 +79,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             }
         }
 
-
         [Fact]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null()
         {
@@ -100,7 +98,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public void IsHandler() => typeof(HandleIsTenantQuery)
             .Should().Implement<IRequestHandler<IsTenantQuery, bool>>();
 
-
         public static IEnumerable<object[]> HandleCases
         {
             get
@@ -116,7 +113,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 }
 
                 {
-
                     yield return new object[]
                     {
                         Enumerable.Empty<Account>(),
@@ -144,7 +140,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                         $"<{Guid.Empty}> is not a tenant id"
                     };
 
-
                     yield return new object[]
                     {
                         accounts,
@@ -161,16 +156,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                         $"Account id <{tenantId}> is a tenant id"
                     };
                 }
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(HandleCases))]
         public async Task Handle(IEnumerable<Account> accounts, Guid accountId, bool expectedResult, string reason)
         {
-
             _outputHelper.WriteLine($"Account datastore : {SerializeObject(accounts, Formatting.Indented)}");
             _outputHelper.WriteLine($"Searched tenant id : {accountId}");
 

@@ -11,7 +11,7 @@ namespace Measures.Validators.Commands.BloodPressures
     /// <summary>
     /// Validator for <see cref="CreateBloodPressureInfo"/> instances.
     /// </summary>
-    public class CreateBloodPressureInfoValidator : AbstractValidator<CreateBloodPressureInfo>, IValidator
+    public class CreateBloodPressureInfoValidator : AbstractValidator<CreateBloodPressureInfo>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
@@ -58,7 +58,6 @@ namespace Measures.Validators.Commands.BloodPressures
                     .LessThan((info) => info.SystolicPressure)
                     .WithSeverity(Error);
             });
-
         }
     }
 }

@@ -64,7 +64,7 @@ namespace MedEasy.Core.UnitTests.Attributes
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
                 new Mock<Controller>());
-            
+
             // Act
             _sut.OnActionExecuting(actionExecutingContext);
 
@@ -88,9 +88,7 @@ namespace MedEasy.Core.UnitTests.Attributes
                 .ContainKey("name").WhichValue.Should()
                     .HaveCount(1).And
                     .HaveElementAt(0, "invalid");
-
         }
-
 
         //public static IEnumerable<object[]> EvaluateActionParametersCases
         //{
@@ -137,15 +135,11 @@ namespace MedEasy.Core.UnitTests.Attributes
         //{
         //    // Arrange
         //    ModelStateDictionary modelState = new ModelStateDictionary();
-            
+
         //    _httpContextMock.SetupGet(mock => mock.Request.Method).Returns(HttpMethods.Get);
-
-
-
 
         //    _controllerActionDescriptorMock.Setup(mock => mock.MethodInfo.GetParameters())
         //        .Returns(parameters.Select(x => x.parameterInfo).ToArray());
-
 
         //    ActionContext actionContext = new ActionContext(
         //       _httpContextMock.Object,

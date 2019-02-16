@@ -112,8 +112,6 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
 
             first.Should()
                 .NotBeSameAs(second);
-            
-
         }
     }
 }

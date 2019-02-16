@@ -28,11 +28,9 @@ namespace Measures.CQRS.UnitTests.Commands.Patients
         {
             DeletePatientInfoByIdCommand instance = new DeletePatientInfoByIdCommand(Guid.NewGuid());
 
-
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Fact]
@@ -46,7 +44,6 @@ namespace Measures.CQRS.UnitTests.Commands.Patients
                 .Throw<ArgumentException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

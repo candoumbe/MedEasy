@@ -42,7 +42,6 @@ namespace Measures.CQRS.Handlers.BloodPressures
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-
         public async Task<Option<BloodPressureInfo, CreateCommandResult>> Handle(CreateBloodPressureInfoForPatientIdCommand cmd, CancellationToken cancellationToken)
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -52,7 +51,6 @@ namespace Measures.CQRS.Handlers.BloodPressures
                     .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == data.PatientId)
                     .ConfigureAwait(false);
 
-                
                 return await optionalPatient.Match(
                     some: async (patient) =>
                     {
@@ -66,11 +64,10 @@ namespace Measures.CQRS.Handlers.BloodPressures
                         await uow.SaveChangesAsync(cancellationToken)
                             .ConfigureAwait(false);
 
-                        
                         BloodPressureInfo createdResource = _mapper.Map<BloodPressure, BloodPressureInfo>(newEntity);
                         createdResource.PatientId = data.PatientId;
-                        
-                        await _mediator.Publish(new BloodPressureCreated(createdResource.Id, createdResource.SystolicPressure, createdResource.DiastolicPressure, createdResource.DateOfMeasure))
+
+                        await _mediator.Publish(new BloodPressureCreated(createdResource), cancellationToken)
                             .ConfigureAwait(false);
 
                         return createdResource.SomeNotNull(CreateCommandResult.Done);
@@ -78,7 +75,6 @@ namespace Measures.CQRS.Handlers.BloodPressures
                     none: () => Task.FromResult(Option.None<BloodPressureInfo, CreateCommandResult>(CreateCommandResult.Failed_NotFound))
                 )
                 .ConfigureAwait(false);
-                
             }
         }
     }

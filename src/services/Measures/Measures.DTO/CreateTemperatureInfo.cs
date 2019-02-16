@@ -16,7 +16,5 @@ namespace Measures.DTO
         /// </summary>
         public float Value { get; set; }
 
-        
-
     }
 }

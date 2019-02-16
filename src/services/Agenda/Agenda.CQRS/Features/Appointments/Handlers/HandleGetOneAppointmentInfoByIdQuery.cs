@@ -40,10 +40,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     .ConfigureAwait(false);
 
                 return optionalAppointment;
-                
             }
-
-            
         }
     }
 }

@@ -9,7 +9,6 @@ namespace Identity.DataStores.SqlServer
     /// </summary>
     public class IdentityContext : DataStore<IdentityContext>
     {
-
         /// <summary>
         /// Collection of <see cref="Accounts"/>s
         /// </summary>
@@ -33,7 +32,6 @@ namespace Identity.DataStores.SqlServer
         {
             base.OnModelCreating(modelBuilder);
 
-
             modelBuilder.Entity<Account>(entity =>
             {
                 entity.Property(x => x.UserName)
@@ -56,12 +54,11 @@ namespace Identity.DataStores.SqlServer
                 entity.Property(x => x.TenantId);
             });
 
-
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.HasIndex(x => x.Code)
                     .IsUnique();
-                    
+
                 entity.Property(x => x.Code)
                     .HasMaxLength(ShortTextLength)
                     .IsRequired();
@@ -69,9 +66,6 @@ namespace Identity.DataStores.SqlServer
                 entity.HasMany(x => x.Claims);
                 entity.HasMany(x => x.Users);
             });
-
-
-
 
             modelBuilder.Entity<Claim>(entity =>
             {
@@ -97,11 +91,6 @@ namespace Identity.DataStores.SqlServer
                 entity.HasOne(x => x.Claim)
                     .WithMany(claim => claim.Users);
             });
-
-
-
-
         }
-
     }
 }

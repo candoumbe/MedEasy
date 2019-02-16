@@ -18,7 +18,6 @@ namespace MedEasy.Validators.Validators
     {
         private static Regex _sortRegex => new Regex(AbstractSearchInfo<T>.SortPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
-
         public AbstractSearchInfoValidator()
         {
             RuleFor(x => x.Page)
@@ -38,10 +37,8 @@ namespace MedEasy.Validators.Validators
 
                     IEnumerable<string> extractUnknownPropertiesNames(IEnumerable<string> fields)
                     {
-
                         IEnumerable<string> sortFields = fields
                                 .Select(fieldName => {
-
                                     string sanitizedFieldName = Regex.Replace(fieldName, @"(-|\+|\!)+", string.Empty);
                                     return sanitizedFieldName.Trim();
                                 });
@@ -50,7 +47,6 @@ namespace MedEasy.Validators.Validators
 
                         return unknownProperties;
                     }
-
 
                     RuleFor(x => x.Sort)
                         .Matches(_sortRegex)
@@ -75,18 +71,14 @@ namespace MedEasy.Validators.Validators
                         .WithSeverity(Error)
                         .WithMessage((x) =>
                         {
-
                             IEnumerable<string> fields = x.Sort.Split(new[] { AbstractSearchInfo<T>.SortSeparator }, RemoveEmptyEntries)
                                 .Where(field => _sortRegex.IsMatch(field));
                             IEnumerable<string> unknownProperties = extractUnknownPropertiesNames(fields);
                             return $"Unknown <{string.Join(", ", unknownProperties)}> propert{(unknownProperties.Count() == 1 ? "y" : "ies")}.";
                         })
                         ;
-
-
                 }
             );
-
         }
     }
 }

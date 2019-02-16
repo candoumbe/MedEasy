@@ -27,18 +27,16 @@ namespace MedEasy.RestObjects.Tests
             public IEnumerable<string> Cities { get; set; }
 
             public DateTime? BirthDate { get; set; }
-            
+
             public DateTime? LastBattleDate { get; set; }
 
             public int? CurrentWinningStreakCount { get; set; }
-
         }
 
         public FormBuilderTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
         }
-
 
         public static IEnumerable<object[]> StronglyTypedBuilderCases
         {
@@ -50,7 +48,7 @@ namespace MedEasy.RestObjects.Tests
                         .AddField(x => x.Nickname),
                     ((Expression<Func<Form, bool>>)(form => form.Items != null && form.Items.Count() == 1
                         && form.Items.Once(field => field.Name == nameof(SuperHero.Nickname)
-                            && field.Type == FormFieldType.String 
+                            && field.Type == FormFieldType.String
                             && field.Label == nameof(SuperHero.Nickname)
                         )
                     ))
@@ -117,10 +115,8 @@ namespace MedEasy.RestObjects.Tests
                         )
                     ))
                 };
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(StronglyTypedBuilderCases))]
@@ -139,6 +135,5 @@ namespace MedEasy.RestObjects.Tests
             form.Should()
                 .Match(formExpectation);
         }
-
     }
 }

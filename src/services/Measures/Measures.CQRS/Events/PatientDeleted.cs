@@ -3,14 +3,11 @@ using System;
 
 namespace Measures.CQRS.Events
 {
-
     /// <summary>
     /// Event that notifies a patient resource was updated.
     /// </summary>
     public class PatientDeleted : NotificationBase<Guid, Guid>
     {
-        
-
         /// <summary>
         /// Builds a new measure
         /// </summary>
@@ -18,6 +15,5 @@ namespace Measures.CQRS.Events
         public PatientDeleted(Guid patientId) : base(Guid.NewGuid(), patientId)
         {
         }
-
     }
 }

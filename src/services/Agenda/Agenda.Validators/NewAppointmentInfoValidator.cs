@@ -42,8 +42,6 @@ namespace Agenda.Validators
                         .GreaterThanOrEqualTo(x => x.StartDate);
                 }
             );
-
-            
         }
     }
 }

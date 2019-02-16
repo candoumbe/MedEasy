@@ -8,7 +8,6 @@ namespace MedEasy.DTO.Search
     /// <typeparam name="T">Type of the searched resources.</typeparam>
     public abstract class AbstractSearchInfo<T>
     {
-
         public const string SortPattern = @"^\s*(-|\+)?(([A-Za-z])\w*)+(\s*,\s*((-|\+)?(([A-Za-z])\w*)+)\s*)*$";
         public const char SortSeparator = ',';
 
@@ -32,7 +31,6 @@ namespace MedEasy.DTO.Search
         /// </summary>
         [FormField(Pattern = SortPattern)]
         public string Sort { get; set; }
-
 
         protected AbstractSearchInfo()
         {

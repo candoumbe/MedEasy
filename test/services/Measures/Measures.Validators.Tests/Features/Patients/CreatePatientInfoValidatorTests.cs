@@ -1,5 +1,4 @@
 
-
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -22,7 +21,6 @@ using static Newtonsoft.Json.JsonConvert;
 
 namespace Measures.Validators.Tests.Features.Patients
 {
-
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>
@@ -42,7 +40,6 @@ namespace Measures.Validators.Tests.Features.Patients
             dbContextOptionsBuilder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
             _validator = new CreatePatientInfoValidator(_uowFactory);
-
         }
 
         public void Dispose()
@@ -56,7 +53,6 @@ namespace Measures.Validators.Tests.Features.Patients
         public void Should_Implements_AbstractValidator() => _validator.Should()
                 .BeAssignableTo<AbstractValidator<NewPatientInfo>>();
 
-
         [Fact]
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
         {
@@ -68,12 +64,10 @@ namespace Measures.Validators.Tests.Features.Patients
                 .NotBeNullOrWhiteSpace();
         }
 
-
         public static IEnumerable<object[]> ValidateTestCases
         {
             get
             {
-
                 yield return new object[]
                 {
                     new NewPatientInfo(),
@@ -128,7 +122,6 @@ namespace Measures.Validators.Tests.Features.Patients
                     )),
                     $"because {nameof(NewPatientInfo.Id)} is set to {Guid.Empty}"
                 };
-
             }
         }
 
@@ -177,9 +170,6 @@ namespace Measures.Validators.Tests.Features.Patients
                 .Contain(x => x.PropertyName == nameof(NewPatientInfo.Id));
         }
 
-
-
     }
-
 }
 

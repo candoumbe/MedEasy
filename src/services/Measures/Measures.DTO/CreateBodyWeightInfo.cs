@@ -16,6 +16,5 @@ namespace Measures.DTO
 
         [DataType(DataType.DateTime)]
         public DateTimeOffset DateOfMeasure { get; set; }
-
     }
 }

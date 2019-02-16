@@ -12,7 +12,6 @@ namespace MedEasy.Data.Converters
     /// </summary>
     public class DataFilterConverter : JsonConverter
     {
-
         private static IImmutableDictionary<string, DataFilterOperator> _operators = new Dictionary<string, DataFilterOperator>
         {
             ["contains"] = DataFilterOperator.Contains,
@@ -32,7 +31,6 @@ namespace MedEasy.Data.Converters
 
         public override bool CanConvert(Type objectType) => objectType == typeof(DataFilter);
 
-
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             DataFilter filter = null;
@@ -47,7 +45,6 @@ namespace MedEasy.Data.Converters
                     if (properties.Any(prop => prop.Name == DataFilter.FieldJsonPropertyName)
                          && properties.Any(prop => prop.Name == DataFilter.OperatorJsonPropertyName))
                     {
-
                         string field = token[DataFilter.FieldJsonPropertyName].Value<string>();
                         DataFilterOperator @operator = _operators[token[DataFilter.OperatorJsonPropertyName].Value<string>()];
                         object value = null;
@@ -56,7 +53,6 @@ namespace MedEasy.Data.Converters
                             value = token[DataFilter.ValueJsonPropertyName]?.Value<string>();
                         }
                         filter = new DataFilter(field, @operator, value);
-                        
                     }
                 }
             }
@@ -89,5 +85,4 @@ namespace MedEasy.Data.Converters
             writer.WriteEnd();
         }
     }
-
 }

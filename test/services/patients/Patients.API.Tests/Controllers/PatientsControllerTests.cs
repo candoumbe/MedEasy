@@ -33,7 +33,6 @@ using static System.StringComparison;
 
 namespace Patients.API.UnitTests.Controllers
 {
-
     [UnitTest]
     [Feature("Patients")]
     public class PatientsControllerTests : IDisposable
@@ -47,7 +46,6 @@ namespace Patients.API.UnitTests.Controllers
         private IExpressionBuilder _expressionBuilder;
         private Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";
-
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -69,17 +67,15 @@ namespace Patients.API.UnitTests.Controllers
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
             _factory = new EFUnitOfWorkFactory<PatientsContext>(dbOptions.Options, (options) => new PatientsContext(options));
 
-
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
-            
+
             _controller = new PatientsController(
                 _loggerMock.Object,
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
                 _expressionBuilder,
                     _factory);
-
         }
 
         public void Dispose()
@@ -95,15 +91,12 @@ namespace Patients.API.UnitTests.Controllers
             _expressionBuilder = null;
         }
 
-
-
         public static IEnumerable<object[]> GetAllTestCases
         {
             get
             {
                 int[] pageSizes = { 1, int.MaxValue };
                 int[] pages = { 10,  1,  int.MaxValue };
-
 
                 foreach (int pageSize in pageSizes)
                 {
@@ -151,7 +144,7 @@ namespace Patients.API.UnitTests.Controllers
                 }
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
-                    
+
                     yield return new object[]
                     {
                         items,
@@ -183,7 +176,6 @@ namespace Patients.API.UnitTests.Controllers
                     };
             }
         }
-
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
@@ -219,10 +211,9 @@ namespace Patients.API.UnitTests.Controllers
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<PatientInfo>>>();
+                    .BeAssignableTo<IGenericPagedGetResponse<Browsable<PatientInfo>>>();
 
-            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> response = (IGenericPagedGetResponse<BrowsableResource<PatientInfo>>)value;
-
+            IGenericPagedGetResponse<Browsable<PatientInfo>> response = (IGenericPagedGetResponse<Browsable<PatientInfo>>)value;
 
             response.Items.Should()
                 .NotBeNull();
@@ -241,9 +232,7 @@ namespace Patients.API.UnitTests.Controllers
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
             response.Links.Next.Should().Match(nextPageUrlExpectation);
             response.Links.Last.Should().Match(lastPageUrlExpectation);
-
         }
-
 
         public static IEnumerable<object[]> SearchCases
         {
@@ -284,7 +273,6 @@ namespace Patients.API.UnitTests.Controllers
                         ))
 
                     };
-
                 }
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
@@ -320,7 +308,6 @@ namespace Patients.API.UnitTests.Controllers
                         )
 
                     };
-
                 }
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
@@ -389,10 +376,8 @@ namespace Patients.API.UnitTests.Controllers
 
                     };
                 }
-
             }
         }
-
 
         [Theory]
         [MemberData(nameof(SearchCases))]
@@ -402,7 +387,6 @@ namespace Patients.API.UnitTests.Controllers
             _outputHelper.WriteLine($"Entries : {SerializeObject(entries)}");
             _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
 
-
             // Arrange
             PatientsApiOptions apiOptions = new PatientsApiOptions { DefaultPageSize = 30, MaxPageSize = 50 };
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
@@ -411,13 +395,12 @@ namespace Patients.API.UnitTests.Controllers
             IActionResult actionResult = await _controller.Search(searchRequest);
 
             // Assert
-            IGenericPagedGetResponse<BrowsableResource<PatientInfo>> content = actionResult.Should()
+            IGenericPagedGetResponse<Browsable<PatientInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<IGenericPagedGetResponse<BrowsableResource<PatientInfo>>>().Which;
-
+                        .BeAssignableTo<IGenericPagedGetResponse<Browsable<PatientInfo>>>().Which;
 
             content.Items.Should()
                 .NotBeNull($"{nameof(IGenericPagedGetResponse<object>.Items)} must not be null").And
@@ -467,7 +450,6 @@ namespace Patients.API.UnitTests.Controllers
                     .ConfigureAwait(false);
             }
 
-
             // Act
             IActionResult actionResult = await _controller.Patch(source.UUID, patchDocument)
                 .ConfigureAwait(false);
@@ -485,15 +467,12 @@ namespace Patients.API.UnitTests.Controllers
             }
         }
 
-
         [Fact]
         public async Task PatchUnknownIdReturnsNotFound()
         {
-
             // Arrange
             JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
             patchDocument.Replace(x => x.Firstname, "John");
-
 
             // Act
             IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), patchDocument);
@@ -504,13 +483,9 @@ namespace Patients.API.UnitTests.Controllers
                 .BeAssignableTo<NotFoundResult>();
         }
 
-
-
-
         [Fact]
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
-
             //Act
             IActionResult actionResult = await _controller.Get(Guid.NewGuid());
 
@@ -519,7 +494,6 @@ namespace Patients.API.UnitTests.Controllers
                 .NotBeNull().And
                 .BeOfType<NotFoundResult>().Which
                     .StatusCode.Should().Be(404);
-
         }
 
         [Fact]
@@ -556,7 +530,7 @@ namespace Patients.API.UnitTests.Controllers
             links.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation), $"Each {nameof(BrowsableResource<PatientInfo>.Links)}'s must have a not null/empty {nameof(Link.Relation)}").And
+                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation), $"Each {nameof(Browsable<PatientInfo>.Links)}'s must have a not null/empty {nameof(Link.Relation)}").And
                 .Contain(x => x.Relation == LinkRelation.Self, "Direct link to the resource must be provided").And
                 .Contain(x => x.Relation == "delete", "Link to delete the resource must be provided");
 
@@ -582,7 +556,6 @@ namespace Patients.API.UnitTests.Controllers
             actualResource.Lastname.Should().Be(expectedResource.Lastname);
 
             _urlHelperMock.Verify();
-
         }
 
         [Fact]
@@ -611,7 +584,6 @@ namespace Patients.API.UnitTests.Controllers
                 .NotBeNull().And
                 .BeOfType<CreatedAtRouteResult>().Which;
 
-
             createdActionResult.RouteName.Should().Be(RouteNames.DefaultGetOneByIdApi);
             createdActionResult.RouteValues.Should()
                 .HaveCount(2).And
@@ -625,11 +597,9 @@ namespace Patients.API.UnitTests.Controllers
                 .BeOfType<string>().Which.Should()
                 .Be(PatientsController.EndpointName);
 
-
             IBrowsableResource<PatientInfo> browsableResource = createdActionResult.Value.Should()
                 .NotBeNull().And
                 .BeAssignableTo<IBrowsableResource<PatientInfo>>().Which;
-
 
             PatientInfo createdResource = browsableResource.Resource;
 
@@ -648,10 +618,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotContainNulls().And
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
                 .Contain(x => x.Relation == "delete");
-
-
         }
-
 
         [Fact]
         public async Task DeletePatientByEmptyIdReturnsBadRequest()

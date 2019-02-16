@@ -108,7 +108,6 @@ namespace Agenda.Validators.UnitTests
                     )),
                     $"{nameof(NewAppointmentInfo.Participants)} is empty"
                 };
-
             }
         }
 
@@ -118,7 +117,6 @@ namespace Agenda.Validators.UnitTests
         {
             _outputHelper.WriteLine($"appointment : {SerializeObject(newAppointmentInfo)}");
             // Arrange
-
 
             // Act
             ValidationResult vr = await _sut.ValidateAsync(newAppointmentInfo)
@@ -141,6 +139,5 @@ namespace Agenda.Validators.UnitTests
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }
-
     }
 }

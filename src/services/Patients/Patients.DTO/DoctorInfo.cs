@@ -29,7 +29,5 @@ namespace Patients.DTO
 
         [JsonProperty(PropertyName = nameof(Fullname))]
         public string Fullname { get; set; }
-
-
     }
 }

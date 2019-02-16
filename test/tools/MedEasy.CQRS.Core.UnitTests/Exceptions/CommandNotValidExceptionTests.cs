@@ -25,7 +25,6 @@ namespace MedEasy.CQRS.Core.UnitTests
                     ((Action)(() => new CommandNotValidException<int>(0, Enumerable.Empty<ErrorInfo>())))
                 };
 
-
                 yield return new object[]
                 {
                     ((Action)(() => new CommandNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ErrorInfo>())))
@@ -45,6 +44,5 @@ namespace MedEasy.CQRS.Core.UnitTests
         [Fact]
         public void InheritValidationException() => typeof(ValidationException).IsAssignableFrom(typeof(CommandNotValidException<>))
             .Should().BeTrue();
-
     }
 }

@@ -110,7 +110,7 @@ namespace Identity.API.UnitTests.Features.Authentication
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Never);
 
             actionResult.Should()
-                .BeAssignableTo<UnauthorizedResult>();
+                .BeAssignableTo<BadRequestResult>("The account with the specified credentials was not found");
         }
 
         [Fact]
@@ -183,8 +183,6 @@ namespace Identity.API.UnitTests.Features.Authentication
             bearerToken.RefreshToken.Should()
                 .NotBeNullOrWhiteSpace().And
                 .NotBe(bearerToken.AccessToken);
-
-
         }
 
         public static IEnumerable<object[]> InvalidateCases
@@ -387,6 +385,5 @@ namespace Identity.API.UnitTests.Features.Authentication
             actionResult.Should()
                 .BeAssignableTo<UnauthorizedResult>();
         }
-
     }
 }

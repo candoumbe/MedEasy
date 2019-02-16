@@ -33,7 +33,6 @@ namespace Agenda.Objects.UnitTests
                 .Throw<ArgumentNullException>();
         }
 
-        
 
         [Theory]
         [InlineData("bruce Wayne", "Bruce Wayne")]
@@ -52,9 +51,6 @@ namespace Agenda.Objects.UnitTests
 
             participant.Appointments.Should()
                 .BeEmpty();
-            
-
         }
-
     }
 }

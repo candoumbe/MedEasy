@@ -34,9 +34,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
         {
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
-
         }
-
 
         [Fact]
         public async Task GivenExpiredAccessToken_Calling_Api_Returns_Unauthorized()
@@ -219,18 +217,19 @@ namespace Identity.API.IntegrationTests.Features.Auth
                     .ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
-                _outputHelper.WriteLine($"Refresh token was revoked");
+                _outputHelper.WriteLine($"Refresh token was successfully revoked");
+
                 HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Patch, $"auth/token/{newAccountInfo.Username}");
                 refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
                 RefreshAccessTokenInfo refreshAccessTokenInfo = new RefreshAccessTokenInfo { AccessToken = tokenInfo.AccessToken, RefreshToken = tokenInfo.RefreshToken };
-                refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter());
+                refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter(), "application/json");
 
                 // Act
                 response = await client.SendAsync(refreshTokenRequest)
                     .ConfigureAwait(false);
 
                 // Assert
-                
+
                 response.StatusCode.Should()
                     .Be(Status401Unauthorized, "The token has expired");
                 response.IsSuccessStatusCode.Should()

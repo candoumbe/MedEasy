@@ -7,12 +7,10 @@ using Xunit.Categories;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
-
     [Feature("Agenda")]
     [UnitTest]
     public class AddParticipantToAppointmentCommandTests
     {
-
         [Fact]
         public void Ctor_Is_Valid()
         {
@@ -43,7 +41,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                 .Throw<ArgumentException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
 
         public static IEnumerable<object[]> EqualsCases
@@ -76,7 +73,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                     };
                 }
             }
-
         }
 
         [Theory]

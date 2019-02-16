@@ -18,6 +18,4 @@ namespace Identity.Objects
         /// </summary>
         public IEnumerable<Account> Users { get; set; }
     }
-
-
 }

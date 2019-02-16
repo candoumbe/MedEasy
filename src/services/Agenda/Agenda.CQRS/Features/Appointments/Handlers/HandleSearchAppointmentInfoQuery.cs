@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using static MedEasy.Data.DataFilterLogic;
 using static MedEasy.Data.DataFilterOperator;
 
-
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
     public class HandleSearchAppointmentInfoQuery : IRequestHandler<SearchAppointmentInfoQuery, Page<AppointmentInfo>>
@@ -62,6 +61,5 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             return await _handleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo), ct)
                 .ConfigureAwait(false);
         }
-        
     }
 }

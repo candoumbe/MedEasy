@@ -33,7 +33,6 @@ namespace MedEasy.Validators.Tests
         [InlineData(10, int.MinValue)]
         public void ValidateTest(int page, int pageSize)
         {
-            
             // Arrange
             PaginationConfiguration pagination = new PaginationConfiguration
             {
@@ -45,10 +44,9 @@ namespace MedEasy.Validators.Tests
 
             // Act
             ValidationResult vr = _validator.Validate(pagination);
-            
+
             // Assert
             vr.IsValid.Should().BeFalse();
-
         }
     }
 }

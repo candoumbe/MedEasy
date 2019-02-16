@@ -43,10 +43,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
                     .ConfigureAwait(false);
 
                 return optionalParticipant;
-                
             }
-
-            
         }
     }
 }

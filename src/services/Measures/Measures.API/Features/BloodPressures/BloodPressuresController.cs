@@ -53,8 +53,6 @@ namespace Measures.API.Features.BloodPressures
         /// </summary>
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
 
-
-
         /// <summary>
         /// Builds a new <see cref="BloodPressuresController"/> instance
         /// </summary>
@@ -68,8 +66,6 @@ namespace Measures.API.Features.BloodPressures
             ApiOptions = apiOptions;
             _mediator = mediator;
         }
-
-
 
         /// <summary>
         /// Gets all the resources of the endpoint
@@ -86,7 +82,7 @@ namespace Measures.API.Features.BloodPressures
         [HttpGet]
         [HttpHead]
         [HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), 200)]
         [Authorize]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
@@ -111,9 +107,8 @@ namespace Measures.API.Features.BloodPressures
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                     : firstPageUrl;
 
-
-            IEnumerable<BrowsableResource<BloodPressureInfo>> resources = result.Entries
-                .Select(x => new BrowsableResource<BloodPressureInfo>
+            IEnumerable<Browsable<BloodPressureInfo>> resources = result.Entries
+                .Select(x => new Browsable<BloodPressureInfo>
                 {
                     Resource = x,
                     Links = new[]
@@ -126,7 +121,7 @@ namespace Measures.API.Features.BloodPressures
                     }
                 });
 
-            IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> response = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+            IGenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
                 resources,
                 firstPageUrl,
                 previousPageUrl,
@@ -134,13 +129,8 @@ namespace Measures.API.Features.BloodPressures
                 lastPageUrl,
                 result.Total);
 
-
             return new OkObjectResult(response);
-
-
         }
-
-
 
         /// <summary>
         /// Gets the <see cref="BloodPressureInfo"/> resource by its <paramref name="id"/>
@@ -153,7 +143,7 @@ namespace Measures.API.Features.BloodPressures
         [HttpOptions("{id}")]
         [HttpHead("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BrowsableResource<BloodPressureInfo>), 200)]
+        [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), 200)]
         public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
@@ -162,7 +152,7 @@ namespace Measures.API.Features.BloodPressures
             IActionResult actionResult = result.Match<IActionResult>(
                 some: bloodPressure =>
                 {
-                    BrowsableResource<BloodPressureInfo> browsableResource = new BrowsableResource<BloodPressureInfo>
+                    Browsable<BloodPressureInfo> browsableResource = new Browsable<BloodPressureInfo>
                     {
                         Resource = bloodPressure,
                         Links = new[]
@@ -209,7 +199,6 @@ namespace Measures.API.Features.BloodPressures
         //    Option<BloodPressureInfo, CreateCommandResult> optionalCreatedResource = await _mediator.Send(new CreateBloodPressureInfoForPatientIdCommand(newBloodPressure), cancellationToken)
         //        .ConfigureAwait(false);
 
-
         //    return optionalCreatedResource.Match(
         //        some: (resource) =>
         //        {
@@ -244,14 +233,10 @@ namespace Measures.API.Features.BloodPressures
         //                    throw new ArgumentOutOfRangeException($"Unexpected <{result}> for {nameof(CreateCommandResult)}");
         //            }
 
-
         //            return actionResult;
         //        });
 
         //}
-
-
-
 
         // DELETE measures/bloodpressures/B2DD169D-1619-407B-8F3E-F3F1D8DB29A3
 
@@ -284,7 +269,6 @@ namespace Measures.API.Features.BloodPressures
             }
 
             return actionResult;
-
         }
 
         /// <summary>
@@ -293,24 +277,26 @@ namespace Measures.API.Features.BloodPressures
         /// <param name="search">Search criteria</param>
         /// <param name="cancellationToken">Notfies to cancel the search operation</param>
         /// <remarks>
-        /// All criteria are combined as a AND.
-        /// 
+        /// <para>All criteria are combined as a AND.</para>
+        /// <para>
         /// Advanded search :
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
-        /// 
+        /// </para>
+        /// <para>
         ///     // GET api/BloodPressures/Search?Firstname=Bruce
         ///     will match all resources which have exactly 'Bruce' in the Firstname property
-        ///     
+        /// </para>
+        /// <para>
         ///     // GET api/BloodPressures/Search?Firstname=B*e
         ///     will match match all resources which starts with 'B' and ends with 'e'.
-        /// 
-        /// '?' : match exactly one charcter in a string property.
-        /// 
-        /// '!' : negate a criteria
-        /// 
+        /// </para>
+        /// <para>'?' : match exactly one charcter in a string property.</para>
+        /// <para>'!' : negate a criteria</para>
+        /// <para>
         ///     // GET api/BloodPressures/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not "Bruce"
+        /// </para>
         ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
@@ -318,7 +304,7 @@ namespace Measures.API.Features.BloodPressures
         /// <response code="404">requested page is out of result bound</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), 200)]
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
@@ -356,7 +342,7 @@ namespace Measures.API.Features.BloodPressures
             {
                 Page = search.Page,
                 PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
-                Filter = filters.Count() == 1
+                Filter = filters.Once()
                     ? filters.Single()
                     : new DataCompositeFilter { Logic = And, Filters = filters },
                 Sorts = (search.Sort ?? $"-{nameof(BloodPressureInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
@@ -386,7 +372,7 @@ namespace Measures.API.Features.BloodPressures
                 int count = pageOfResult.Entries.Count();
                 bool hasPreviousPage = count > 0 && search.Page > 1;
 
-                string firstPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, 
+                string firstPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi,
                     new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort, search.PatientId });
                 string previousPageUrl = hasPreviousPage
                         ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
@@ -397,9 +383,9 @@ namespace Measures.API.Features.BloodPressures
 
                 string lastPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
 
-                IEnumerable<BrowsableResource<BloodPressureInfo>> resources = pageOfResult.Entries
+                IEnumerable<Browsable<BloodPressureInfo>> resources = pageOfResult.Entries
                     .Select(
-                        x => new BrowsableResource<BloodPressureInfo>
+                        x => new Browsable<BloodPressureInfo>
                         {
                             Resource = x,
                             Links = new[]
@@ -413,7 +399,7 @@ namespace Measures.API.Features.BloodPressures
                             }
                         });
 
-                IGenericPagedGetResponse<BrowsableResource<BloodPressureInfo>> reponse = new GenericPagedGetResponse<BrowsableResource<BloodPressureInfo>>(
+                IGenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
                     resources,
                     first: firstPageUrl,
                     previous: previousPageUrl,
@@ -431,16 +417,16 @@ namespace Measures.API.Features.BloodPressures
             return actionResult;
         }
 
-
         /// <summary>
         /// Partially update a blood pressure resource.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
-        ///
-        ///     // PATCH api/BloodPressures/3594c436-8595-444d-9e6b-2686c4904725
-        ///     
+        /// </para>
+        /// <para>    // PATCH api/BloodPressures/3594c436-8595-444d-9e6b-2686c4904725</para>
+        /// <para>
         ///     [
         ///         {
         ///             "op": "update",
@@ -449,8 +435,8 @@ namespace Measures.API.Features.BloodPressures
         ///             "value": "e1aa24f4-69a8-4d3a-aca9-ec15c6910dc9"
         ///       }
         ///     ]
-        /// 
-        /// The set of changes to apply will be applied atomically. 
+        /// </para>
+        /// <para>The set of changes to apply will be applied atomically. </para>
         /// 
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>

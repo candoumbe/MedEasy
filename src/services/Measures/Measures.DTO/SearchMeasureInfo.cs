@@ -5,7 +5,6 @@ using System;
 
 namespace Measures.DTO
 {
-
     /// <summary>
     /// Base class for writing Search classes for 
     /// </summary>

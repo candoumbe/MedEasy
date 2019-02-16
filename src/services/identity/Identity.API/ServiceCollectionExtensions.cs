@@ -15,6 +15,7 @@ using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,7 @@ using System.Linq;
 using System.Text;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API
 {
@@ -51,12 +53,12 @@ namespace Identity.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomMvc(this IServiceCollection services, IConfiguration configuration)
+        public static void AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
             services.AddMvc(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
-                //options.Filters.Add<ValidateModelActionFilter>();
+                config.Filters.Add<ValidateModelActionFilter>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
@@ -68,7 +70,6 @@ namespace Identity.API
                     .Build();
 
                 config.Filters.Add(new AuthorizeFilter(policy));
-
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             .AddFluentValidation(options =>
@@ -98,8 +99,8 @@ namespace Identity.API
             services.AddOptions();
             services.Configure<IdentityApiOptions>((options) =>
             {
-                options.DefaultPageSize = configuration.GetValue("APIOptions:DefaultPageSize", 30);
-                options.MaxPageSize = configuration.GetValue("APIOptions:MaxPageSize", 100);
+                options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 100);
             });
             services.Configure<JwtOptions>((options) =>
             {
@@ -118,6 +119,23 @@ namespace Identity.API
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
+
+            services.AddHsts(options =>
+            {
+                options.Preload = true;
+                if (env.IsDevelopment() || env.IsEnvironment("IntegrationTest"))
+                {
+                    options.ExcludedHosts.Remove("localhost");
+                    options.ExcludedHosts.Remove("127.0.0.1");
+                    options.ExcludedHosts.Remove("[::1]");
+
+                }
+            });
+            services.AddHttpsRedirection(options =>
+            {
+                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 51800);
+                options.RedirectStatusCode = Status307TemporaryRedirect;
+            });
         }
 
         /// <summary>
@@ -126,38 +144,29 @@ namespace Identity.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services) =>
+        /// <summary>
+        /// Adds required dependencies to access API datastores
+        /// </summary>
+        /// <param name="services"></param>
+        /// 
+        /// 
+        public static void AddDataStores(this IServiceCollection services)
+        {
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new IdentityContext(optionsBuilder.Options);
+            });
+
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-                {
-                    IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-                    DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                    builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                    builder.ConfigureWarnings(options =>
-                    {
-                        options.Default(WarningBehavior.Log);
-                    });
+           {
+               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+               DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
 
-                    Func<DbContextOptions<IdentityContext>, IdentityContext> contextGenerator;
-
-                    if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-                    {
-                        string databaseName = $"InMemory_{Guid.NewGuid()}";
-                        builder.UseInMemoryDatabase(databaseName);
-
-                        contextGenerator = options => new IdentityContext(options);
-                    }
-                    else
-                    {
-                        IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                        builder.UseSqlServer(
-                            configuration.GetConnectionString("Identity"),
-                            b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
-
-                        contextGenerator = (options) => new IdentityContext(options);
-
-                    }
-                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, contextGenerator);
-                });
+               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));
+           });
+        }
 
         /// <summary>
         /// Configure dependency injections
@@ -182,27 +191,7 @@ namespace Identity.API
             });
 
             services.AddSingleton<IDateTimeService, DateTimeService>();
-
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new IdentityContext(optionsBuilder.Options);
-            });
         }
-
-        /// <summary>
-        /// Adds required dependencies to access APÏ datastores
-        /// </summary>
-        /// <param name="services"></param>
-        /// 
-        /// 
-        public static void ConfigureDataStores(this IServiceCollection services) => services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-                                                                      {
-                                                                          DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                                                                          return new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) => new IdentityContext(options));
-                                                                      });
 
         private static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
         {
@@ -210,8 +199,7 @@ namespace Identity.API
             DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
             if (hostingEnvironment.IsEnvironment("IntegrationTest"))
             {
-                string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                builder.UseInMemoryDatabase(dbName);
+                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
             }
             else
             {
@@ -236,7 +224,6 @@ namespace Identity.API
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
@@ -248,7 +235,6 @@ namespace Identity.API
 
                                 return securityTokenValidator.Validate(securityToken).IsValid;
                             }
-
                         },
                         RequireExpirationTime = true,
                         ValidateIssuerSigningKey = true,
@@ -268,7 +254,6 @@ namespace Identity.API
         /// <param name="configuration"></param>
         public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
-
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>

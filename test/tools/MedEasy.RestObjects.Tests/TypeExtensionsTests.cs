@@ -7,10 +7,8 @@ namespace MedEasy.RestObjects.Tests
 {
     public class TypeExtensionsTests
     {
-
         private abstract class Person
         {
-
             public string Firstname { get; set; }
 
             public string Lastname { get; set; }
@@ -38,7 +36,6 @@ namespace MedEasy.RestObjects.Tests
                 .Contain(x => x.Name == nameof(CreateHenchman.BirthPlace)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.MinionId)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.BirthDate));
-
 
             FormField firstnameField = f.Items.Single(x => x.Name == nameof(CreateHenchman.Firstname));
             firstnameField.Name.Should().Be(firstnameField.Name);
@@ -89,8 +86,6 @@ namespace MedEasy.RestObjects.Tests
             minionIdField.MaxLength.Should().BeNull();
             minionIdField.Pattern.Should().BeNull();
             minionIdField.Required.Should().BeNull();
-
-
         }
     }
 }

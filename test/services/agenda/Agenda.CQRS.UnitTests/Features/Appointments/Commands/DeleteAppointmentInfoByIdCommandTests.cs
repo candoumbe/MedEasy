@@ -14,8 +14,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
     [UnitTest]
     public class DeleteAppointmentInfoByIdCommandTests
     {
-        
-
         [Fact]
         public void GivenEmptyGuid_Ctor_Throws_ArgumentException()
         {

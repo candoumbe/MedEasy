@@ -49,8 +49,6 @@ namespace MedEasy.RestObjects
         /// </remarks>
         public int Page { get; set; }
 
-
         public override string ToString() => SerializeObject(this);
-
     }
 }

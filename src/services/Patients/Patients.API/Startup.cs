@@ -47,8 +47,6 @@ namespace Patients.API
                 ////options.Filters.Add<EnvelopeFilterAttribute>();
                 //options.Filters.Add<HandleErrorAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-
-
             })
             .AddJsonOptions(options =>
             {
@@ -58,7 +56,6 @@ namespace Patients.API
                 options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
             })
             .AddFluentValidation(options =>
             {
@@ -73,7 +70,6 @@ namespace Patients.API
                 builder.UseSqlServer(Configuration.GetConnectionString("Patients"));
 
                 return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, (options) => new PatientsContext(options));
-
             });
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -84,7 +80,6 @@ namespace Patients.API
 
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
-
 
             services.AddValidators();
 
@@ -134,7 +129,6 @@ namespace Patients.API
                         .AllowAnyOrigin()
                 );
             });
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -145,7 +139,7 @@ namespace Patients.API
                 app.UseResponseCaching();
                 app.UseResponseCompression();
             }
-            else 
+            else
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();

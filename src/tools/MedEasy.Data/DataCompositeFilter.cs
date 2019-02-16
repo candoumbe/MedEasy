@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 #if !NETSTANDARD1_0
-using Newtonsoft.Json.Schema; 
+using Newtonsoft.Json.Schema;
 #endif
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace MedEasy.Data
             },
             Required = { FiltersJsonPropertyName },
             AllowAdditionalProperties = false
-        }; 
+        };
 #endif
 
         /// <summary>
@@ -66,8 +66,5 @@ namespace MedEasy.Data
         public override string ToString() => ToJson();
 #endif
 
-
-
     }
-
 }

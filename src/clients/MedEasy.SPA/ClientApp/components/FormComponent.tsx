@@ -5,11 +5,16 @@ import { FormFieldType } from "./../restObjects/FormFieldType";
 import { FormFieldComponent } from "./FormFieldComponent";
 import * as ReactRouter from "react-router";
 import * as LinQ from "linq";
-import Button from "react-bootstrap/lib/Button";
+import * as Enumerable from "linq";
+import { Alert, Button } from "react-bootstrap";
 
 
 interface FormComponentProps {
-    form: Form
+    form: Form;
+    handleSubmit: React.EventHandler<React.FormEvent<HTMLFormElement>>;
+    onChange?: (name: string, value: any) => void | undefined;
+    onBlur?: (name: string, value: any) => void | undefined;
+    errors?: { [name: string]: string }
 }
 
 /**
@@ -21,14 +26,13 @@ interface FormComponentState {
     data: { [name: string]: any },
     ongoing?: boolean;
     /** Id of the resource created by the submission of the form */
-    resource?: {
-        id?: string;
-        href?: string
-    }
+    resource?: any,
     /** Errors associated with the form */
     errors?: {
         [name: string]: string
-    }
+    },
+
+    isValid: boolean;
 }
 
 
@@ -36,93 +40,60 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
 
     public constructor(props: FormComponentProps) {
         super(props);
-        this.state = { ongoing: false, data: {}, errors: {} };
+        this.state = { ongoing: false, data: {}, errors: {}, isValid: false };
     }
 
-    public handleChange: React.EventHandler<React.FormEvent<HTMLInputElement>> = (event) => {
-        this.setState((prevState, props) => {
-            let newState: FormComponentState = { ...prevState };
-            newState.data = prevState.data || {};
-            newState.data[event.currentTarget.name] = event.currentTarget.value;
-
-            return newState;
-        })
-    }
-
-    public handleSubmit: React.EventHandler<React.FormEvent<HTMLFormElement>> = async (event) => {
-        event.preventDefault();
-
-        const form = this.props.form;
-
-        let { data } = this.state;
-        this.setState({ ongoing: true });
-        let response: Response = await fetch(
-            form.meta.href,
-            {
-                headers: {"content-type" : "application/json"},
-                method: form.meta.method,
-                body: JSON.stringify(data)
-            });
-        if (!response.ok) {
-            let errors = await (response.json() as Promise<Array<MedEasy.DTO.ErrorInfo>>)
-            this.setState((prevState, props) => {
-                return {
-                    ongoing: false,
-                    errors: errors
-                }
-            });
-        } else {
-            let patient = await (response.json() as Promise<MedEasy.DTO.Patient>);
-            this.setState({ resource: patient });
-        }
-    };
-
-
-    private isValid(): boolean {
-        return this.state.data && LinQ.from(this.props.form.items)
-            .where(x => x.required)
-            .all(item => Boolean(this.state.data[item.name]));
-    }
-
-    public render() {
+    public render(): JSX.Element {
         let form: Readonly<Form> = Object.freeze(this.props.form);
-        console.debug("Form to display", form);
+        console.trace("Form to display", form);
+        let errors = this.props.errors || [];
+        let fieldNames = form.items.map(field => field.name);
+        let errorsEnumerable = Enumerable.from(errors);
+        let errorContainer = errorsEnumerable.any(err => err.key === "")
+            ? <Alert bsStyle="alert">
+                <ul>
+                    {
+                        errorsEnumerable.where(e => e.key === "")
+                            .toArray()
+                            .map((item, index) => <li key={index}>{item.value}</li>)
+                    }
+                </ul>
+                <Button className="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </Button>
+            </Alert>
+            : null;
+        return <form role="form" onSubmit={this.props.handleSubmit} action={form.meta.href} method={form.meta.method}>
+            {errorContainer}
+            {
+                // Renders the form fields
+                form.items.map((f) => <FormFieldComponent
+                    key={f.name}
+                    field={f}
+                    errors={
+                        errorsEnumerable
+                            .where(e => e.key == f.name)
+                            .select(e => `${e.value}`)
+                            .distinct()
+                            .toArray()
+                    }
+                    onChange={(value) => {
+                        this.setState((prevState, props) => {
+                            let newState = Object.assign({}, prevState);
+                            newState[f.name] = value;
+                            if (this.props.onChange) {
+                                this.props.onChange(f.name, value);
+                            }
+                            return newState;
+                        })
+                    }}
+                     />
+        )
 
-        let component: JSX.Element;
+    }
 
-        if (this.state.resource) {
-            component = <ReactRouter.Redirect to={`/patients/${this.state.resource.id}`} push={true} />
-        } else {
-            component =
-                <form role="form" onSubmit={this.handleSubmit}>
-                {
-                    // Renders the form fields
-                    form.items.map((f) => <FormFieldComponent
-                        key={f.name}
-                        field={f}
-                        onChange={(value) => {
-                            this.setState((prevState, props) => {
-                                let newState = Object.assign({}, prevState);
-                                newState[f.name] = value;
-                                return newState;
-                            })
-                            this.state.data[f.name] = value;
-                        }} />)
-                }
-
-                <nav className='center-block'>
-                    <button type="submit" className="btn btn-primary btn-xs-12 btn-sm-6" disabled={!this.isValid()}>
-                        <span className="glyphicon glyphicon-save"></span>&nbsp;Create
-                    </button>
-                    <button type="button" className="btn btn-default btn-xs-12 btn-sm-6">
-                        <span className="glyphicon glyphicon-cancel"></span>&nbsp;Cancel
-                    </button>
-                </nav>
-            </form>;
-
-        }
-
-        return component;
+            {this.props.children}
+        </form>;
 
     }
 }

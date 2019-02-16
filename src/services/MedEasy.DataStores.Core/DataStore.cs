@@ -28,12 +28,10 @@ namespace MedEasy.DataStores.Core.Relational
         /// </summary>
         public static readonly int ShortTextLength = 50;
 
-
         public DataStore(DbContextOptions<TContext> options) : base(options)
         {
 
         }
-
 
         /// <summary>
         /// <see cref="DbContext.OnModelCreating(ModelBuilder)"/>
@@ -49,7 +47,6 @@ namespace MedEasy.DataStores.Core.Relational
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
-
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
 
                     modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
@@ -60,7 +57,6 @@ namespace MedEasy.DataStores.Core.Relational
 
                     modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
                         .IsConcurrencyToken();
-
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
@@ -74,7 +70,6 @@ namespace MedEasy.DataStores.Core.Relational
                     modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
                        .ValueGeneratedOnAdd();
                 }
-
             }
         }
 
@@ -87,7 +82,6 @@ namespace MedEasy.DataStores.Core.Relational
             .ToArray()
 #endif
             ;
-
 
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
@@ -104,7 +98,6 @@ namespace MedEasy.DataStores.Core.Relational
                     auditableEntity.UpdatedDate = now;
                 }
             };
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges()"/>
@@ -125,8 +118,6 @@ namespace MedEasy.DataStores.Core.Relational
             return SaveChanges(acceptAllChangesOnSuccess);
         }
 
-
-
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
         /// </summary>
@@ -144,7 +135,7 @@ namespace MedEasy.DataStores.Core.Relational
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
         /// </summary>
-        public override async Task<int> SaveChangesAsync(CancellationToken ct = default) => 
+        public override async Task<int> SaveChangesAsync(CancellationToken ct = default) =>
             await SaveChangesAsync(true, ct)
                 .ConfigureAwait(false);
     }

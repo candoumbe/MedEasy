@@ -24,22 +24,18 @@ namespace Measures.API.IntegrationTests
         private ITestOutputHelper _outputHelper;
         private const string _baseAddress = "https://url/to/services";
 
-
         public RootControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture)
         {
             _outputHelper = outputHelper;
             fixture.Initialize(Path.Combine("..", "..", "..", "..", "src", "services", "Measures"), "Development", "Measures.API");
             _server = fixture.Server;
             _server.BaseAddress = new Uri(_baseAddress);
-
         }
-
 
         public void Dispose()
         {
             _outputHelper = null;
             _server.Dispose();
-
         }
 
         [Theory]
@@ -89,7 +85,6 @@ namespace Measures.API.IntegrationTests
                 UniqueItems = true
             };
 
-
             RequestBuilder rb = _server.CreateRequest(url)
                 .AddHeader("Accept", "application/json")
                 .AddHeader("Accept-Charset", "utf-8");
@@ -104,7 +99,8 @@ namespace Measures.API.IntegrationTests
 
             headers.ContentType.MediaType.Should().BeEquivalentTo("application/json");
 
-            string json = await response.Content.ReadAsStringAsync();
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"json : {json}");
 
@@ -136,7 +132,6 @@ namespace Measures.API.IntegrationTests
             headers.ContentType.MediaType.Should().BeEquivalentTo("application/xml");
         }
 
-
         [Theory]
         [InlineData("/", "GET")]
         [InlineData("/", "OPTIONS")]
@@ -144,11 +139,9 @@ namespace Measures.API.IntegrationTests
         [InlineData("/measures", "OPTIONS")]
         public async Task ShouldReturnsSuccessCode(string url, string method)
         {
-
             // Arrange
             RequestBuilder rb = _server.CreateRequest(url)
                 .And(request => request.Method = new HttpMethod(method));
-
 
             // Act
             HttpResponseMessage response = await rb.GetAsync()
@@ -158,10 +151,7 @@ namespace Measures.API.IntegrationTests
             ((int)response.StatusCode).Should().Be(Status200OK);
 
 
-
-
         }
-
 
         [Theory]
         [InlineData("/", "GET")]
@@ -177,7 +167,6 @@ namespace Measures.API.IntegrationTests
             RequestBuilder rb = _server.CreateRequest(url)
                 .AddHeader("x-http-method-override", methodOverride);
 
-
             // Act
             HttpResponseMessage response = await rb.PostAsync()
                 .ConfigureAwait(false);
@@ -185,6 +174,5 @@ namespace Measures.API.IntegrationTests
             // Assert
             ((int)response.StatusCode).Should().Be(Status200OK);
         }
-
     }
 }

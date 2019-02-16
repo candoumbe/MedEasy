@@ -122,8 +122,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .NotBe(DateTimeOffset.MinValue).And
                     .NotBe(DateTimeOffset.MaxValue);
 
-
-
             });
         }
     }

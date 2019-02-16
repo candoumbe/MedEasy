@@ -42,7 +42,6 @@ namespace Measures.API.Tests.Features
             _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
                 .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
-            
             _optionsMock = new Mock<IOptions<MeasuresApiOptions>>(Strict);
             _optionsMock.Setup(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
 
@@ -57,7 +56,6 @@ namespace Measures.API.Tests.Features
             _optionsMock = null;
         }
 
-
         [Theory]
         [InlineData("Production")]
         [InlineData("Development")]
@@ -71,7 +69,7 @@ namespace Measures.API.Tests.Features
 
             // Act
             IEnumerable<Endpoint> endpoints = _controller.Index();
-            
+
             // Assert
             endpoints.Should()
                 .NotBeNullOrEmpty().And
@@ -127,7 +125,7 @@ namespace Measures.API.Tests.Features
             bloodPressureSearchPageField.Type.Should().Be(Integer);
             bloodPressureSearchPageField.Min.Should().Be(1);
             bloodPressureSearchPageField.Label.Should().Be("Page");
-            
+
 
             FormField bloodPressureSearchPageSizeField = bloodPressureSearchFormItems.Single(x => x.Name == nameof(SearchBloodPressureInfo.PageSize));
             bloodPressureSearchPageSizeField.Description.Should().Be("Number of items per page");
@@ -151,7 +149,6 @@ namespace Measures.API.Tests.Features
                 .Be("Maximum date of measure");
             #endregion
 
-            
             #region Edit form
             Form bloodPressureEditForm = bloodPressuresEndpoint.Forms.Single(x => x.Meta.Relation == LinkRelation.EditForm);
 
@@ -178,7 +175,6 @@ namespace Measures.API.Tests.Features
                 .Be(Integer);
             bloodPressureEditFormDiastolicField.Min.Should().Be(0);
             bloodPressureEditFormDiastolicField.Max.Should().BeNull();
-
 
             FormField bloodPressureEditFormSystolicField = bloodPressureEditForm.Items.Single(x => x.Name == nameof(BloodPressureInfo.SystolicPressure));
             bloodPressureEditFormSystolicField.Type.Should()
@@ -287,7 +283,6 @@ namespace Measures.API.Tests.Features
             bloodPressureDiastolicField.Min.Should().Be(0);
             bloodPressureDiastolicField.Max.Should().BeNull();
 
-
             FormField bloodPressureSystolicField = bloodPressureCreateForm.Items.Single(x => x.Name == nameof(NewBloodPressureModel.SystolicPressure));
             bloodPressureSystolicField.Type.Should()
                 .Be(Integer);
@@ -333,7 +328,6 @@ namespace Measures.API.Tests.Features
                 documentationEnpoint.Link.Should()
                     .NotBeNull();
             }
-            
         }
     }
 }

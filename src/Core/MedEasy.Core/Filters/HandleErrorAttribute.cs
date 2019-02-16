@@ -15,7 +15,7 @@ namespace MedEasy.Core.Filters
     /// </summary>
     public class HandleErrorAttribute : ExceptionFilterAttribute
     {
-        private ILogger<HandleErrorAttribute> _logger;
+        private readonly ILogger<HandleErrorAttribute> _logger;
 
         /// <summary>
         /// Builds a new <see cref="HandleErrorAttribute"/> instance
@@ -59,7 +59,6 @@ namespace MedEasy.Core.Filters
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
 
                     _logger.LogError($"Query <{queryId}> is not valid");
-
                 }
                 foreach (ErrorInfo error in errors)
                 {
@@ -69,11 +68,10 @@ namespace MedEasy.Core.Filters
                 context.Result = new BadRequestResult();
                 context.ExceptionHandled = true;
             }
-            
+
 
             await base.OnExceptionAsync(context)
                 .ConfigureAwait(false);
-
         }
     }
 }

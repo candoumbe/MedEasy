@@ -17,6 +17,5 @@ namespace MedEasy.DTO
         /// Set of changes to apply
         /// </summary>
         public JsonPatchDocument<TResource> PatchDocument { get; set; }
-
     }
 }

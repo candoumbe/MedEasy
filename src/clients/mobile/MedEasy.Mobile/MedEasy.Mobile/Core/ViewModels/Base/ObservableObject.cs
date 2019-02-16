@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace MedEasy.Mobile.Core.ViewModels.Base
 {
     /// <summary>
     /// Observable object with INotifyPropertyChanged implemented
     /// </summary>
-    public class ObservableObject : INotifyPropertyChanged
+    public class ObservableObject : INotifyPropertyChanged, IViewModel
     {
         /// <summary>
         /// Sets the property.
@@ -56,6 +57,24 @@ namespace MedEasy.Mobile.Core.ViewModels.Base
         /// <param name="propertyName">Property name.</param>
         protected virtual void OnPropertyChanged([CallerMemberName]string propertyName = "") =>
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public virtual void Prepare(object navigationData) { }
+
+        public virtual void Prepare() { }
+
+        /// <summary>
+        /// Called when the view which the current instance is bound to is about to appear
+        /// </summary>
+        /// <returns></returns>
+        /// <see cref="Xamarin.Forms.Page.Appearing"/>
+        public virtual Task Appearing() => Task.CompletedTask;
+
+        /// <summary>
+        /// Called when the view which the current instance is bound to is about to disappear
+        /// </summary>
+        /// <returns></returns>
+        /// <see cref="Xamarin.Forms.Page.Disappearing"/>
+        public virtual Task Disappearing() => Task.CompletedTask;
 
     }
 }

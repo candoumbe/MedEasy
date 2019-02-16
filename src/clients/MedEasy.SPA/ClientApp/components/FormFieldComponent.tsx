@@ -1,6 +1,8 @@
 ﻿import * as React from "react";
 import { FormField } from "./../restObjects/FormField";
-import { FormFieldType } from "./../restObjects/FormFieldType";
+import { ErrorComponent } from "./ErrorComponent";
+import { FormGroup } from "react-bootstrap";
+
 
 
 interface FormFieldComponentProps {
@@ -8,18 +10,25 @@ interface FormFieldComponentProps {
     /**
      * 
      */
-    onChange: (value: any) => void;
+    onChange?: (value: any) => void;
+    onBlur?: (value: any) => void;
     /**
      *
      */
     onChanging?: (oldValue: any, newValue: any) => boolean;
+    errors? : Array<string>
 }
 
 interface FormFieldComponentState {
-    value : any
+    value: any,
+    errors? : Array<string>
 }
 
 export class FormFieldComponent extends React.Component<FormFieldComponentProps, FormFieldComponentState>{
+
+    private readonly handleChange: React.EventHandler<React.FormEvent<HTMLInputElement>>;
+    private readonly handleBlur?: React.EventHandler<React.FormEvent<HTMLInputElement>>;
+
 
     /**
      * Builds a new FormFieldComponent instance
@@ -27,8 +36,7 @@ export class FormFieldComponent extends React.Component<FormFieldComponentProps,
      */
     public constructor(props: FormFieldComponentProps) {
         super(props);
-        let currentVal;
-        this.state = undefined;
+        this.state = {value : props.field.value};
         this.handleChange = (event) => {
             if(this.props.onChanging)
             {
@@ -43,46 +51,81 @@ export class FormFieldComponent extends React.Component<FormFieldComponentProps,
                   }
             }
         };
+        
     }
 
 
-    private mapFieldTypeToInputType = new Map<string, string>(
-        [
-            ["String", "text"],
-            ["Date", "date"],
-            ["Boolean", "checkbox"]
-        ]
-    );
+    private mapFieldTypeToInputType: (f: FormField) => string = (f) => {
+        let inputType: string = "text";
 
-    public readonly handleChange: React.EventHandler<React.FormEvent<HTMLInputElement>>;
+        if (f.type) {
+            if (f.secret) {
+                inputType = "password";
+            }
+            else {
+                switch (f.type.toLowerCase()) {
+                    case "string":
+                        inputType = "text";
+                        break;
+                    case "email":
+                        inputType = "email";
+                        break;
+                    case "date":
+                        inputType = "date";
+                        break;
+                    case "boolean":
+                        inputType = "checkbox";
+                        break;
+                }
+            }
+        }
 
+        return inputType;
+
+    };
+
+    
     public render() {
         let f = this.props.field;
-        let attributes: React.HTMLAttributes<HTMLInputElement> = {
-            type: this.mapFieldTypeToInputType.get(f.type) || "text",
+        let attributes : React.InputHTMLAttributes<HTMLInputElement> = {
+            type: this.mapFieldTypeToInputType(f) || "text",
             className: "form-control",
             id: f.name,
             name: f.name,
             minLength: f.minLength,
             maxLength: f.maxLength,
+            
             title: f.description,
             placeholder: f.placeholder,
-            value: this.state && this.state.value ? this.state.value : '',
+            value: this.state && this.state.value
+                ? this.state.value
+                : "",
             required: f.required,
-            pattern: f.pattern
+            pattern: f.pattern,
+            onChange : this.handleChange
         };
 
+        let errorMessage : string |undefined = null;
+        if (this.state.errors) {
+            this.state.errors.forEach(error => errorMessage ? error : `${errorMessage} <br />${error}`);
+        }
+        let errorComponent = errorMessage
+            ? <ErrorComponent text={errorMessage} />
+            : null;
+
         let input = f.type !== "Boolean"
-            ? < div className="form-group" >
-                <label htmlFor={f.name}>{f.label}{f.required ? <span className="text-danger">*</span> : null}</label>
-                <input ref={f.name} {...attributes} onChange={this.handleChange} />
-            </div>
-            : < div className="form-group" >
-                <input ref={f.name} {...attributes} onChange={this.handleChange} />
+            ? <FormGroup>
+                <label htmlFor={f.name}>{f.label}{f.required ? <span className="text-danger">&nbsp;*&nbsp;</span> : null}</label>
+                <input ref={f.name} {...attributes} />
+                {errorComponent}
+            </FormGroup>
+            : <FormGroup>
+                <input ref={f.name} {...attributes}  />
                 <label htmlFor={f.name}>{f.label}</label>
-            </div>;
+                {errorComponent}
+            </FormGroup>;
 
-
+        
         return input;
     }
 }

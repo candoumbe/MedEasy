@@ -2,7 +2,12 @@
 
 namespace MedEasy.Mobile.Core.ViewModels.Base
 {
-    public abstract class ViewModelBase : ObservableObject
+    public abstract class ViewModelBase : ViewModelBase<object>
+    {
+
+    }
+
+    public abstract class ViewModelBase<TNavigationData> : ObservableObject
     {
 
         private bool _isBusy;
@@ -12,5 +17,7 @@ namespace MedEasy.Mobile.Core.ViewModels.Base
             get => _isBusy;
             set => SetProperty(ref _isBusy, value);
         }
+
+
     }
 }

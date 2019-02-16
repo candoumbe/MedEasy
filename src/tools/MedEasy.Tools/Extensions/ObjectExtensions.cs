@@ -78,7 +78,6 @@ namespace System
                             Type valueType = value.GetType();
                             TypeInfo valueTypeInfo = valueType.GetTypeInfo();
 
-
                             if (!(valueTypeInfo.IsEnum || valueTypeInfo.IsPrimitive || valueType == typeof(string) || DictionaryExtensions.PrimitiveTypes.Contains(valueType)))
                             {
                                 value = ParseAnonymousObject(value);
@@ -86,15 +85,13 @@ namespace System
 
                             return value;
                         }
-                    ); 
+                    );
                 }
             }
             return dictionary
                 .OrderBy(x => x.Key)
                 .ToDictionary(x=> x.Key, x => x.Value);
         }
-
-
 
         /// <summary>
         /// Converts an object to its string representation suitable for appending as query string in a url
@@ -103,7 +100,6 @@ namespace System
         /// <returns>the query string representation preceeded with the "?" or an empty string</returns>
         public static string ToQueryString(this object obj)
             => DictionaryExtensions.ToQueryString(obj.ParseAnonymousObject());
-
 
         /// <summary>
         /// Performs a "safe cast" of the specified object to the specified type.
@@ -114,7 +110,6 @@ namespace System
         /// <returns>The "safe cast" result</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="obj"/> is <c>null</c></exception>
         public static TDest As<TSource, TDest>(this TSource obj) => (TDest)As(obj, typeof(TDest));
-
 
         /// <summary>
         /// Performs a "safe cast" of <paramref name="obj"/> to the type <paramref name="targetType"/>.
@@ -157,6 +152,5 @@ namespace System
         /// <param name="obj">The object to stringify</param>
         /// <returns></returns>
         public static string Stringify(this object obj) => SerializeObject(obj, new JsonSerializerSettings { Formatting = Indented, NullValueHandling = Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
     }
 }

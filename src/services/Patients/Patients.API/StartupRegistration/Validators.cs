@@ -17,7 +17,6 @@ namespace Patients.API.StartupRegistration
         public static void AddValidators(this IServiceCollection services)
         {
             services.AddScoped<IValidator<CreatePatientInfo>, CreatePatientInfoValidator>();
-            
         }
     }
 }

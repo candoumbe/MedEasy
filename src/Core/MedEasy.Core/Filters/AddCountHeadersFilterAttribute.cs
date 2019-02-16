@@ -31,7 +31,6 @@ namespace MedEasy.Core.Filters
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
-
             if (context.Result is OkObjectResult okObjectResult && !Equals(okObjectResult.Value, default) && okObjectResult.Value.GetType().IsAssignableToGenericType(_genericPageResponseType))
             {
                 Type resultType = okObjectResult.Value.GetType() ?? typeof(void);
@@ -40,7 +39,7 @@ namespace MedEasy.Core.Filters
                 {
                     pageResponseType = pageResponseType.MakeGenericType(resultType.GetGenericArguments()[0]);
                     IEnumerable<PropertyInfo> properties = pageResponseType.GetProperties();
-                    
+
                     PropertyInfo totalCountProperty = properties.Single(x => x.CanRead && x.Name == nameof(GenericPagedGetResponse<int>.Count));
 
                     object totalCount = totalCountProperty.GetValue(okObjectResult.Value);
@@ -55,7 +54,6 @@ namespace MedEasy.Core.Filters
                     object count = countMethodInfo.Invoke(null, new[] { items });
                     context.HttpContext.Response.Headers.Add(CountHeaderName, new StringValues(count.ToString()));
                 }
-
             }
         }
     }

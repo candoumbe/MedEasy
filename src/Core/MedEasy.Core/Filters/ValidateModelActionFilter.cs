@@ -35,7 +35,7 @@ namespace MedEasy.Core.Filters
                     ;
                 foreach (CustomAttributeData attributeData in validationAttributes)
                 {
-                    Attribute attributeInstance = CustomAttributeExtensions.GetCustomAttribute(parameter, attributeData.AttributeType);
+                    Attribute attributeInstance = parameter.GetCustomAttribute(attributeData.AttributeType);
 
                     if (attributeInstance is ValidationAttribute validationAttribute)
                     {
@@ -47,7 +47,6 @@ namespace MedEasy.Core.Filters
                     }
                 }
             }
-
 
             if (!context.ModelState.IsValid || context.ModelState.ErrorCount > 0)
             {
@@ -68,7 +67,7 @@ namespace MedEasy.Core.Filters
 
                 IDictionary<string, IEnumerable<string>> errors = context.ModelState
                     .Where(element => !string.IsNullOrWhiteSpace(element.Key))
-                    .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage));
+                    .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
 
                 if (errors.Count > 0)
                 {
@@ -83,13 +82,12 @@ namespace MedEasy.Core.Filters
 
                 }
 #if NETCOREAPP2_0
-                BadRequestObjectResult result = new BadRequestObjectResult(errorObject); 
+                BadRequestObjectResult result = new BadRequestObjectResult(errorObject);
 #else
                 BadRequestObjectResult result = new BadRequestObjectResult(validationProblemDetails);
 #endif
                 if (IsPost(context.HttpContext.Request.Method))
                 {
-
                     result.StatusCode = Status422UnprocessableEntity;
                 }
 
@@ -97,5 +95,4 @@ namespace MedEasy.Core.Filters
             }
         }
     }
-
 }

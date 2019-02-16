@@ -14,6 +14,5 @@ namespace MedEasy.Data.Converters
         {
             CamelCaseText = true;
         }
-
     }
 }

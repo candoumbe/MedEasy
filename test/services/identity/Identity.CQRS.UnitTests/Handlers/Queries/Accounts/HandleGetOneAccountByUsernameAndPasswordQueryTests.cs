@@ -69,7 +69,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             GetOneAccountByUsernameAndPasswordQuery query = new GetOneAccountByUsernameAndPasswordQuery(info);
             _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(new DateTimeOffset(2008, 5, 10, 15, 0, 0, TimeSpan.Zero));
 
-
             // Act
             Option<AccountInfo> optionalUser = await _sut.Handle(query, default)
                 .ConfigureAwait(false);
@@ -78,7 +77,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             _dateTimeServiceMock.Verify();
             optionalUser.HasValue.Should()
                 .BeFalse("No user in the store");
-
         }
 
         public static IEnumerable<object[]> GetOneUserByUsernameAndPasswordQueryCases
@@ -105,7 +103,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                         ))
                     };
                 }
-
 
                 {
                     DateTimeOffset utcNow = 1.October(2011).AddHours(12).AddMinutes(30);
@@ -150,7 +147,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             // Act
             Option<AccountInfo> optionalUser = await _sut.Handle(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), default)
                 .ConfigureAwait(false);
-
 
             // Assert
             _dateTimeServiceMock.Verify(mock => mock.UtcNowOffset(), Times.Once);

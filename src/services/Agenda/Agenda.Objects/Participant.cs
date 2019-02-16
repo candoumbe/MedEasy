@@ -32,7 +32,6 @@ namespace Agenda.Objects
         /// </summary>
         public string Email { get; set; }
 
-
         private IList<AppointmentParticipant> _appointments;
 
         public IEnumerable<AppointmentParticipant> Appointments { get => _appointments; }
@@ -47,9 +46,7 @@ namespace Agenda.Objects
             Name = name;
         }
 
-
         public Participant() : this(string.Empty)
         {}
-
     }
 }

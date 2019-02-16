@@ -30,8 +30,6 @@ namespace Patients.API.Context
         /// </summary>
         public DbSet<Patient> Patients { get; set; }
 
-
-
         /// <summary>
         /// Builds a new <see cref="PatientsContext"/> instance.
         /// </summary>
@@ -50,7 +48,6 @@ namespace Patients.API.Context
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
-
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
 
                     modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
@@ -72,7 +69,6 @@ namespace Patients.API.Context
                         .HasIndex(nameof(IEntity<int>.UUID))
                         .IsUnique();
                 }
-
             }
 
             modelBuilder.Entity<Patient>(entity =>
@@ -82,17 +78,13 @@ namespace Patients.API.Context
 
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
-
-            });  
-
-
+            });
         }
 
         private IEnumerable<EntityEntry> GetModifiedEntities()
             => ChangeTracker.Entries()
                 .AsParallel()
                 .Where(x => x.Entity.GetType().IsAssignableFrom(typeof(IAuditableEntity)) && (x.State == EntityState.Added || x.State == EntityState.Modified));
-
 
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
@@ -110,7 +102,6 @@ namespace Patients.API.Context
                     auditableEntity.UpdatedDate = now;
                 }
             };
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges()"/>
@@ -142,7 +133,6 @@ namespace Patients.API.Context
                 .AsParallel()
                 .ForEach(UpdateModifiedEntry);
 
-
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -157,7 +147,6 @@ namespace Patients.API.Context
             entities
                 .AsParallel()
                 .ForEach(UpdateModifiedEntry);
-
 
             return await base.SaveChangesAsync(cancellationToken);
         }

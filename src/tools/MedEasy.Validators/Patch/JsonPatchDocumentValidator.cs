@@ -20,7 +20,6 @@ namespace MedEasy.Validators.Patch
         /// </summary>
         public JsonPatchDocumentValidator()
         {
-
             CascadeMode = StopOnFirstFailure;
 
             RuleFor(x => x.Operations)
@@ -32,7 +31,7 @@ namespace MedEasy.Validators.Patch
                 () =>
                 {
 #if NETSTANDARD2_0
-                    
+
                     RuleFor(x => x.Operations)
                                     .Must(operations => operations.AtLeastOnce(x => x.OperationType == OperationType.Test))
                                     .WithSeverity(Warning)
@@ -63,7 +62,6 @@ namespace MedEasy.Validators.Patch
                     ;
                 }
             );
-
         }
     }
 }

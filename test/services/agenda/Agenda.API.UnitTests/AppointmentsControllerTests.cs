@@ -96,7 +96,6 @@ namespace Agenda.API.UnitTests.Features
             _sut = null;
         }
 
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
@@ -104,7 +103,6 @@ namespace Agenda.API.UnitTests.Features
                 IUrlHelper[] urlHelperCases = { null, Mock.Of<IUrlHelper>() };
                 IOptionsSnapshot<AgendaApiOptions>[] optionsCases = { null, Mock.Of<IOptionsSnapshot<AgendaApiOptions>>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
-
 
                 IEnumerable<object[]> cases = urlHelperCases
                     .CrossJoin(optionsCases, (urlHelper, options) => ((urlHelper, options)))
@@ -115,8 +113,6 @@ namespace Agenda.API.UnitTests.Features
                     .Select(tuple => (new object[] { tuple.urlHelper, tuple.mediator, tuple.options }));
 
                 return cases;
-
-
             }
         }
 
@@ -132,7 +128,6 @@ namespace Agenda.API.UnitTests.Features
                 .Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
 
         [Fact]
@@ -154,13 +149,11 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAppointmentInfoQuery>(q => q.Data.Page == page && q.Data.PageSize == pageSize), It.IsAny<CancellationToken>()), Times.Once);
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
 
-
-            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = actionResult.Should()
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Should()
                 .NotBeNull().And
                 .BeAssignableTo<OkObjectResult>("the request completed successfully").Which
                 .Value.Should()
-                .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>>().Which;
-
+                .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
 
             response.Items.Should()
                 .BeEmpty();
@@ -190,12 +183,7 @@ namespace Agenda.API.UnitTests.Features
             last.Method.Should().Be("GET");
             last.Relation.Should().Be(LinkRelation.Last);
             last.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize={pageSize}");
-
-
         }
-
-
-
 
         [Fact]
         public async Task GivenNoDataFromMediator_GetAppointmentById_Returns_NotFound()
@@ -218,7 +206,6 @@ namespace Agenda.API.UnitTests.Features
                 .BeAssignableTo<NotFoundResult>();
         }
 
-
         [Fact]
         public async Task GivenOneResultFromMediator_GetAppointmentById_Returns_Ok()
         {
@@ -240,7 +227,7 @@ namespace Agenda.API.UnitTests.Features
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Appointment>().Create(appointment);
-                
+
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -261,9 +248,7 @@ namespace Agenda.API.UnitTests.Features
 
                         return Option.Some(appointmentInfo);
                     }
-
                 });
-
 
             // Act
             IActionResult actionResult = await _sut.Get(appointmentId, ct: default)
@@ -272,10 +257,10 @@ namespace Agenda.API.UnitTests.Features
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            BrowsableResource<AppointmentInfo> browsableResource = actionResult.Should()
+            Browsable<AppointmentInfo> browsableResource = actionResult.Should()
                 .BeAssignableTo<OkObjectResult>().Which
                 .Value.Should()
-                .BeOfType<BrowsableResource<AppointmentInfo>>().Which;
+                .BeOfType<Browsable<AppointmentInfo>>().Which;
 
             AppointmentInfo resource = browsableResource.Resource;
             resource.Id.Should()
@@ -300,7 +285,6 @@ namespace Agenda.API.UnitTests.Features
             Link deleteLink = links.Single(link => link.Relation == "delete");
             deleteLink.Method.Should().Be("DELETE");
             deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}");
-
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -309,7 +293,6 @@ namespace Agenda.API.UnitTests.Features
             {
                 int[] pageSizes = { 1, 10, 20 };
                 int[] pages = { 1, 5, 10 };
-
 
                 foreach (int pageSize in pageSizes)
                 {
@@ -346,7 +329,7 @@ namespace Agenda.API.UnitTests.Features
                     .RuleFor(participant => participant.UUID, () => Guid.NewGuid())
                     .RuleFor(participant => participant.Email, faker => faker.Internet.Email())
                     .RuleFor(participant => participant.PhoneNumber, faker => faker.Person.Phone);
-                
+
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(appointment => appointment.Id, 0)
@@ -363,7 +346,6 @@ namespace Agenda.API.UnitTests.Features
                                 appointment.AddParticipant(item);
                             }
                         });
-
 
                     IEnumerable<Appointment> items = appointmentFaker.Generate(20);
 
@@ -428,7 +410,6 @@ namespace Agenda.API.UnitTests.Features
                                 appointment.AddParticipant(item);
                             }
                         });
-
 
                     IEnumerable<Appointment> items = appointmentFaker.Generate(20);
                     yield return new object[]
@@ -509,9 +490,9 @@ namespace Agenda.API.UnitTests.Features
 
             object value = okObjectResult.Value;
 
-            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = okObjectResult.Value.Should()
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>>().Which;
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -533,9 +514,7 @@ namespace Agenda.API.UnitTests.Features
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
             response.Links.Next.Should().Match(linksExpectation.nextPageUrlExpectation);
             response.Links.Last.Should().Match(linksExpectation.lastPageUrlExpectation);
-
         }
-
 
         public static IEnumerable<object[]> SearchCases
         {
@@ -604,7 +583,6 @@ namespace Agenda.API.UnitTests.Features
                         )
                     };
 
-
                     yield return new object[]
                     {
                         new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
@@ -656,7 +634,6 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(page);
 
-
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
@@ -674,9 +651,9 @@ namespace Agenda.API.UnitTests.Features
 
             object value = okObjectResult.Value;
 
-            GenericPagedGetResponse<BrowsableResource<AppointmentInfo>> response = okObjectResult.Value.Should()
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<BrowsableResource<AppointmentInfo>>>().Which;
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -702,9 +679,7 @@ namespace Agenda.API.UnitTests.Features
             response.Links.Last.Should()
                 .NotBeNull().And
                 .Match(linksExpectation.lastPageUrlExpectation);
-
         }
-
 
         [Fact]
         public async Task GivenValidInfo_Post_Returns_CreatedResource()
@@ -747,7 +722,7 @@ namespace Agenda.API.UnitTests.Features
             routeValues.Should()
                 .ContainKey(nameof(AppointmentInfo.Id)).And
                 .ContainKey("controller");
-            
+
             routeValues[nameof(AppointmentInfo.Id)].Should()
                 .BeAssignableTo<Guid>().Which.Should()
                 .NotBeEmpty();
@@ -755,9 +730,8 @@ namespace Agenda.API.UnitTests.Features
                 .BeAssignableTo<string>().Which.Should()
                 .Be(AppointmentsController.EndpointName);
 
-            BrowsableResource<AppointmentInfo> browsableResource = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<BrowsableResource<AppointmentInfo>>().Which;
-
+            Browsable<AppointmentInfo> browsableResource = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<Browsable<AppointmentInfo>>().Which;
 
             AppointmentInfo resource = browsableResource.Resource;
             resource.Should()
@@ -800,8 +774,6 @@ namespace Agenda.API.UnitTests.Features
                 .HaveSameCount(participantsGuids, "Link(s) to GET participant(s) details must be provided").And
                 .OnlyContain(link => link.Method == "GET");
 
-            
-            
         }
 
         public static IEnumerable<object[]> MediatorCompletedCommandToRemoveParticipantsFromAppointmentCases
@@ -856,10 +828,7 @@ namespace Agenda.API.UnitTests.Features
             actionResult.Should()
                 .NotBeNull().And
                 .Match(actionResultExpectation, reason);
-
         }
-
-
 
     }
 }

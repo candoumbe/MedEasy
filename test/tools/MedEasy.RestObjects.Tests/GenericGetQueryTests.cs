@@ -6,7 +6,6 @@ namespace MedEasy.Tests.RestObjects
 {
     public class GenericGetQueryTests
     {
-        
         [Fact]
         public void DefaultCtor()
         {
@@ -15,7 +14,6 @@ namespace MedEasy.Tests.RestObjects
             getQuery.PageSize.Should().Be(PaginationConfiguration.DefaultPageSize);
             getQuery.Page.Should().Be(1);
         }
-
 
         [Theory]
         [InlineData(1)]
@@ -28,9 +26,7 @@ namespace MedEasy.Tests.RestObjects
             PaginationConfiguration query = new PaginationConfiguration { PageSize = input };
             query.PageSize.Should()
                 .Be(input, $"because getting the value of {nameof(PaginationConfiguration.PageSize)} with <{input}> should output <{input}> ");
-
         }
-
 
         [Theory]
         [InlineData(1)]

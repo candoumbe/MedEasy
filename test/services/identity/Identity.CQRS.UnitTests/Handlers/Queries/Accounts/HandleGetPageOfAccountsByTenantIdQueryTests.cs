@@ -71,7 +71,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 TenantId = Guid.NewGuid()
             };
             GetPageOfAccountsByTenantIdQuery query = new GetPageOfAccountsByTenantIdQuery(data);
-            
+
 
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)
@@ -90,7 +90,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             pageOfAccounts.Should()
                 .BeSameAs(Page<AccountInfo>.Default);
         }
-
 
         [Fact]
         public async Task GivenAccounts_Handler_Returns_AccountsThatBelongToTenant()
@@ -119,7 +118,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             };
             GetPageOfAccountsByTenantIdQuery query = new GetPageOfAccountsByTenantIdQuery(data);
 
-
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)
                 .ConfigureAwait(false);
@@ -134,6 +132,5 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 .HaveCount(10).And
                 .OnlyContain(x => x.TenantId == query.Data.TenantId);
         }
-
     }
 }

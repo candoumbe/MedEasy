@@ -35,10 +35,8 @@ namespace MedEasy.Core.Attributes
         };
         public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must have a non default value";
 
-
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-
             ValidationResult validationResult = ValidationResult.Success;
             //try
             //{

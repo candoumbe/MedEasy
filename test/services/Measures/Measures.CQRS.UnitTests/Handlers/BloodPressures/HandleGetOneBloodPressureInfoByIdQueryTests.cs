@@ -42,7 +42,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             });
             _sut = new HandleGetOneBloodPressureInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
-        
+
         public void Dispose()
         {
             _uowFactory = null;
@@ -55,7 +55,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             {
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
-                
+
                 IEnumerable<object[]> cases = uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
@@ -65,14 +65,13 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             }
         }
 
-
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder)
         {
             _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
             _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
-            
+
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleGetOneBloodPressureInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
@@ -97,5 +96,4 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .BeFalse();
         }
     }
-
 }

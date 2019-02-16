@@ -23,6 +23,5 @@ namespace Measures.Objects
         /// Patient's date of birth
         /// </summary>
         public DateTime? BirthDate { get; set; }
-
     }
 }

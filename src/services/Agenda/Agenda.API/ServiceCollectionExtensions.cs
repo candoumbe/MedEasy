@@ -57,7 +57,6 @@ namespace Agenda.API
                 options.Filters.Add<HandleErrorAttribute>();
                 options.Filters.Add<AddCountHeadersFilterAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-
             })
             .AddFluentValidation(options =>
             {
@@ -75,7 +74,6 @@ namespace Agenda.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
             });
 
             services.AddCors(options =>
@@ -118,14 +116,11 @@ namespace Agenda.API
 
                 ConsulClient client = new ConsulClient(config => {
                     config.Address = new Uri(consulConfig.Value.Address);
-                    
                 });
-
 
                 return client;
             });
         }
-
 
         /// <summary>
         /// Adds required dependencies to access API datastores
@@ -156,7 +151,6 @@ namespace Agenda.API
                 });
 
                 return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) => new AgendaContext(options));
-
             });
         }
 
@@ -191,7 +185,7 @@ namespace Agenda.API
         public static void AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             ApplicationEnvironment app = PlatformServices.Default.Application;
-            
+
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new Info

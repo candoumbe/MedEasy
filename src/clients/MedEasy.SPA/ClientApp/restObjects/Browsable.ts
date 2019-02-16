@@ -4,7 +4,7 @@
  * Resource that provides navigation links.
  * @type T type of the resource.
  */
-export class BrowsableResource<T>{
+export class Browsable<T>{
 
     /** Navigation links */
     public readonly links : Array<Link>

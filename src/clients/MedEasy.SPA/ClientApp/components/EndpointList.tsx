@@ -12,14 +12,14 @@ import * as LinQ from "linq";
 import { Endpoint } from "./../restObjects/Endpoint";
 import { Form } from "./../restObjects/Form";
 import { PageOfResult } from "./../restObjects/PageOfResult";
-import { BrowsableResource } from "./../restObjects/BrowsableResource";
+import { Browsable } from "./../restObjects/Browsable";
 import { Guid } from "./../System/Guid";
 
 
 /**
  * Properties of the EndpointList component.
  */
-export interface EndpointListProps<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> {
+export interface EndpointListProps<TResource extends Browsable<MedEasy.DTO.Resource<string>>> {
     /** resources */
     resourceName: {
         singular: string,
@@ -40,7 +40,7 @@ export interface EndpointListProps<TResource extends BrowsableResource<MedEasy.D
     columns: Map<string, (f: TResource) => any>;
 }
 
-interface EndpointListState<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> {
+interface EndpointListState<TResource extends Browsable<MedEasy.DTO.Resource<string>>> {
     results: Array<TResource>;
     count?: number;
     loading: boolean;
@@ -53,7 +53,7 @@ interface EndpointListState<TResource extends BrowsableResource<MedEasy.DTO.Reso
  * Displays a list of resources in a Table.
  * 
  */
-export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resource<string>>> extends React.Component<EndpointListProps<TResource>, EndpointListState<TResource>> {
+export class EndpointList<TResource extends Browsable<MedEasy.DTO.Resource<string>>> extends React.Component<EndpointListProps<TResource>, EndpointListState<TResource>> {
 
     /** Default COUNT */
     public static readonly DEFAULT_COUNT: number = 10;
@@ -185,7 +185,7 @@ export class EndpointList<TResource extends BrowsableResource<MedEasy.DTO.Resour
         return (
             <div>
                 
-                <div id={containerId} name={containerId} ref={containerId}>
+                <div id={containerId} ref={containerId}>
                     <h1>{resourceName.plural}</h1>
                     <div className="row">
                         {this.props.urls.create

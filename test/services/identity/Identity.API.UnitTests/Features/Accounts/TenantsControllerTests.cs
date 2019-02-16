@@ -43,7 +43,6 @@ namespace Identity.API.Tests.Features.Accounts
         private TenantsController _sut;
         private const string _baseUrl = "http://host/api";
 
-
         public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
@@ -83,9 +82,7 @@ namespace Identity.API.Tests.Features.Accounts
             _urlHelperMock = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
-
         }
-
 
         [Fact]
         public async Task When_Id_Stands_For_Tenant_Get_Redirect_To_AccountsEndpoint()
@@ -170,7 +167,7 @@ namespace Identity.API.Tests.Features.Accounts
                 PasswordHash = "a_super_secret_password",
                 Email = "dick.grayson@wayne-entreprise.com",
                 Salt = "salt_and_pepper_for_password",
-                
+
             };
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -202,8 +199,6 @@ namespace Identity.API.Tests.Features.Accounts
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>($"account <{accountId}> is not a tenant");
-
         }
-
     }
 }

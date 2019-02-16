@@ -135,8 +135,8 @@ namespace Agenda.API.IntegrationTests
             Type = JSchemaType.Object,
             Properties =
             {
-                [nameof(BrowsableResource<AppointmentInfo>.Resource).ToLower()] = _appointmentResourceSchema,
-                [nameof(BrowsableResource<AppointmentInfo>.Links).ToLower()] = new JSchema
+                [nameof(Browsable<AppointmentInfo>.Resource).ToLower()] = _appointmentResourceSchema,
+                [nameof(Browsable<AppointmentInfo>.Links).ToLower()] = new JSchema
                 {
                     Type = JSchemaType.Array,
                 }
@@ -160,7 +160,6 @@ namespace Agenda.API.IntegrationTests
             _server.Dispose();
         }
 
-        
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
             get
@@ -226,7 +225,6 @@ namespace Agenda.API.IntegrationTests
             {
                 errorObject.Errors.ContainsKey("pageSize").Should().BeTrue("pageSize <= 0 is not a valid value");
             }
-
         }
 
         public static IEnumerable<object[]> InvalidSearchCases
@@ -334,7 +332,7 @@ namespace Agenda.API.IntegrationTests
                         .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                         .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
                         .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
-                    
+
                     yield return new object[]
                     {
                         appointmentFaker.Generate(count : 10),
@@ -362,7 +360,7 @@ namespace Agenda.API.IntegrationTests
                 _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
             })
             .ConfigureAwait(false);
-            
+
 
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
@@ -411,7 +409,7 @@ namespace Agenda.API.IntegrationTests
 
             NewAppointmentInfo newAppointment = appointmentFaker.Generate();
 
-            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Stringify()}"); 
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Stringify()}");
 
             RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
                 .AddHeader("Accept", "application/json")
@@ -443,7 +441,7 @@ namespace Agenda.API.IntegrationTests
             tokenIsValid.Should()
                 .BeTrue("content returned by the API must conform to appointment jschema");
 
-            BrowsableResource<AppointmentInfo> browsableResource = token.ToObject<BrowsableResource<AppointmentInfo>>();
+            Browsable<AppointmentInfo> browsableResource = token.ToObject<Browsable<AppointmentInfo>>();
             IEnumerable<Link> links = browsableResource.Links;
             Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
 
@@ -486,7 +484,7 @@ namespace Agenda.API.IntegrationTests
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
-            BrowsableResource<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<BrowsableResource<AppointmentInfo>>();
+            Browsable<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<Browsable<AppointmentInfo>>();
 
             _outputHelper.WriteLine($"Resource created : {browsableAppointmentInfo.Stringify()}");
 

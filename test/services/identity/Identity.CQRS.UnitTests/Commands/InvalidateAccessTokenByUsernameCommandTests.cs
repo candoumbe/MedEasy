@@ -27,7 +27,6 @@ namespace Identity.CQRS.UnitTests.Commands
         public void IsCommand() => typeof(InvalidateAccessTokenByUsernameCommand).Should()
             .Implement<ICommand<Guid, string, InvalidateAccessCommandResult>>();
 
-
         [Fact]
         public void Ctor_Is_Valid()
         {
@@ -35,7 +34,6 @@ namespace Identity.CQRS.UnitTests.Commands
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
-
         }
 
         [Theory]
@@ -52,7 +50,6 @@ namespace Identity.CQRS.UnitTests.Commands
                 .Throw<ArgumentException>(reason).Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
-
         }
     }
 }

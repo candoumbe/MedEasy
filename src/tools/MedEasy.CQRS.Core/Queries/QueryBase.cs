@@ -9,7 +9,6 @@ namespace MedEasy.CQRS.Core.Queries
     public abstract class QueryBase<TKey, TData, TResult> : IQuery<TKey, TData, TResult>
         where TKey : IEquatable<TKey>
     {
-
         /// <summary>
         /// Query's identifier. 
         /// 

@@ -6,10 +6,22 @@
     <Application.Resources>
         <ResourceDictionary>
             <vm:ViewModelLocator x:Key="Locator"/>
-            <Style x:Key="ButtonAsLabel" TargetType="Button">
+            <Color x:Key="Blue">Blue</Color>
+
+
+            <Style x:Key="Title" TargetType="Label">
+                <Setter Property="FontSize" Value="Large"/>
+                <Setter Property="HorizontalTextAlignment" Value="Center"/>
                 <Setter Property="HorizontalOptions" Value="Center"/>
-                <Setter Property="FontSize" Value="Small"/>
-                <Setter Property="BorderWidth" Value="0"/>
+            </Style>
+            <Style x:Key="ButtonBase" TargetType="Button">
+                <Setter Property="CornerRadius" Value="10"/>
+            </Style>
+            <Style x:Key="BtnPrimary" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+                <Setter Property="BackgroundColor" Value="{DynamicResource Blue}"/>
+            </Style>
+            <Style x:Key="LabelAsLink" TargetType="Label">
+                <Setter Property="TextColor" Value="Blue"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

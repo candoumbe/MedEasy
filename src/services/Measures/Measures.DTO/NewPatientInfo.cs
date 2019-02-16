@@ -1,4 +1,5 @@
 ﻿using MedEasy.RestObjects;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
@@ -8,7 +9,7 @@ namespace Measures.DTO
     /// <summary>
     /// data to provide when creating a new patient resource
     /// </summary>
-    [DataContract]
+    [JsonObject]
     public class NewPatientInfo
     {
         /// <summary>
@@ -19,7 +20,7 @@ namespace Measures.DTO
         /// <summary>
         /// Patient's firstname
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         [Required]
         [StringLength(255)]
         public string Firstname { get; set; }
@@ -27,7 +28,7 @@ namespace Measures.DTO
         /// <summary>
         /// Patient's lastname
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         [Required]
         [StringLength(255)]
         public string Lastname { get; set; }
@@ -35,8 +36,7 @@ namespace Measures.DTO
         /// <summary>
         /// Patient's birth date
         /// </summary>
-        [DataMember]
+        [JsonProperty]
         public DateTime? BirthDate { get; set; }
-
     }
 }

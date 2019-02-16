@@ -12,7 +12,6 @@ namespace MedEasy.Data.Converters
     /// </summary>
     public class DataCompositeFilterConverter : JsonConverter
     {
-
         private static readonly IImmutableDictionary<string, DataFilterLogic> _logics = new Dictionary<string, DataFilterLogic>
         {
             [nameof(DataFilterLogic.And).ToLower()] = DataFilterLogic.And,
@@ -20,7 +19,6 @@ namespace MedEasy.Data.Converters
         }.ToImmutableDictionary();
 
         public override bool CanConvert(Type objectType) => objectType == typeof(DataCompositeFilter);
-
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
@@ -56,7 +54,6 @@ namespace MedEasy.Data.Converters
                                     }
                                 }
 
-
                                 if (filters.Count() >= 2)
                                 {
                                     kcf = new DataCompositeFilter
@@ -66,13 +63,10 @@ namespace MedEasy.Data.Converters
                                     };
                                 }
                             }
-
                         }
                     }
                 }
             }
-
-
 
             return kcf?.As(objectType);
         }
@@ -97,6 +91,5 @@ namespace MedEasy.Data.Converters
 
             writer.WriteEndObject();
         }
-
     }
 }

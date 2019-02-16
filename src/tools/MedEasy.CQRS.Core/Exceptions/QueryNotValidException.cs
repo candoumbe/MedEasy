@@ -14,7 +14,6 @@ namespace MedEasy.CQRS.Core.Exceptions
         /// </summary>
         public TQueryId QueryId { get; }
 
-
         /// <summary>
         /// Builds a new <see cref="QueryNotValidException{TQueryId}"/> instance
         /// </summary>
@@ -29,6 +28,5 @@ namespace MedEasy.CQRS.Core.Exceptions
             }
             QueryId = queryId;
         }
-
     }
 }

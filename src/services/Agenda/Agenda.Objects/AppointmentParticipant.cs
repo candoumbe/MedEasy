@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Agenda.Objects
 {
-
     /// <summary>
     /// Relation between a <see cref="Participant"/> and an <see cref="Appointment"/>
     /// </summary>
@@ -18,6 +17,5 @@ namespace Agenda.Objects
         public int AppointmentId { get; set; }
 
         public Appointment Appointment { get; set; }
-
     }
 }

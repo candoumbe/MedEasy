@@ -38,8 +38,6 @@ namespace Agenda.DataStores
         /// </summary>
         public DbSet<Appointment> Appointments { get; set; }
 
-
-
         /// <summary>
         /// Builds a new <see cref="AgendaContext"/> instance.
         /// </summary>
@@ -62,7 +60,6 @@ namespace Agenda.DataStores
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
-
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
 
                     modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
@@ -73,7 +70,6 @@ namespace Agenda.DataStores
 
                     modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
                         .IsConcurrencyToken();
-
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
@@ -87,9 +83,7 @@ namespace Agenda.DataStores
                     modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
                        .ValueGeneratedOnAdd();
                 }
-
             }
-
 
             modelBuilder.Entity<AppointmentParticipant>()
                 .HasKey(ap => new { ap.AppointmentId, ap.ParticipantId });
@@ -118,9 +112,7 @@ namespace Agenda.DataStores
 
                 entity.Property(x => x.EndDate)
                     .IsRequired();
-                
             });
-
 
             modelBuilder.Entity<Participant>(entity =>
             {
@@ -133,7 +125,6 @@ namespace Agenda.DataStores
                     .IsRequired()
                     .HasDefaultValue(string.Empty);
             });
-
         }
 
         private IEnumerable<EntityEntry> GetModifiedEntities()
@@ -145,7 +136,6 @@ namespace Agenda.DataStores
             .ToArray()
 #endif
             ;
-
 
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
@@ -162,7 +152,6 @@ namespace Agenda.DataStores
                     auditableEntity.UpdatedDate = now;
                 }
             };
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChanges()"/>
@@ -182,8 +171,6 @@ namespace Agenda.DataStores
 
             return SaveChanges(acceptAllChangesOnSuccess);
         }
-
-
 
         /// <summary>
         /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
