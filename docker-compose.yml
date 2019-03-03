@@ -1,40 +1,57 @@
 version: '3.7'
 
 services:
+
+  eventstore:
+    image: eventstore/eventstore:release-4.1.2
+    
   identity.db:
-    image: microsoft/mssql-server-windows-express
-    environment: 
-      sa_password: P4ss_Word!
-      ACCEPT_EULA: Y
-    ports:
-      - "6000:1433"
-  identity.api:
-    image: ${DOCKER_REGISTRY}identityapi
+    image: ${SQL_SERVER_IMG}
     environment:
-      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;MultipleActiveResultSets=true;User ID=sa;Password=P4ss_Word!
-    build:
-      context: .
-      dockerfile: src\services\identity\Identity.API\Dockerfile
-    ports:
-      - "5000:80"
-    depends_on:
-      - identity.db  
+      ACCEPT_EULA: Y
+      TZ: ${TZ}
   measures.db:
-    image: microsoft/mssql-server-windows-express
+    image: ${SQL_SERVER_IMG}
     environment:
-      sa_password: P4ss_Word!
       ACCEPT_EULA: Y
-    ports:
-      - "6001:1433"
-  measures.api:
-    image: ${DOCKER_REGISTRY}measuresapi
-    environment:
-      - CONNECTIONSTRINGS__MEASURES=Server=measures.db;Database=measures;MultipleActiveResultSets=true;User ID=sa;Password=P4ss_Word!
+      TZ: ${TZ}
+
+
+  identity.api:
+    image: ${DOCKER_REGISTRY-}identityapi
     build:
       context: .
-      dockerfile: src\services\Measures\Measures.API\Dockerfile
+      dockerfile: src/services/identity/Identity.API/Dockerfile
     depends_on:
-      - measures.db
+      - identity.db
+      - eventstore
+
+  patients.api:
+    image: ${DOCKER_REGISTRY-}patientsapi
+    build:
+      context: .
+      dockerfile: src/services/Patients/Patients.API/Dockerfile
+    depends_on:
       - identity.api
-    ports:
-      - "5001:80"
+      - patients.db
+      - eventstore
+
+  measures.api:
+    image: ${DOCKER_REGISTRY-}measuresapi
+    build:
+      context: .
+      dockerfile: src/services/Measures/Measures.API/Dockerfile
+    depends_on:
+      - identity.api
+      - measures.db
+      - eventstore
+
+  medeasy.spa:
+    image: ${DOCKER_REGISTRY-}medeasyspa
+    build:
+      context: .
+      dockerfile: src/clients/web/MedEasy.SPA/Dockerfile
+    depends_on:
+      - identity.api
+      - measures.api
+      - patients.api

@@ -9,7 +9,7 @@ namespace MedEasy.RestObjects
     /// </summary>
     /// <typeparam name="T">Type of the resource that will be wrapped</typeparam>
     [JsonObject]
-    public class Browsable<T> : IBrowsableResource<T>
+    public class Browsable<T>
     {
         private IEnumerable<Link> _links;
 

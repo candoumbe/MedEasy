@@ -3,6 +3,20 @@ using System;
 
 namespace MedEasy.CQRS.Core.Events
 {
+    public abstract class NotificationBase : NotificationBase<Guid, object>
+    {
+        protected NotificationBase(Guid id, object data) : base(id, data)
+        {
+        }
+    }
+
+    public abstract class NotificationBase<TData> : NotificationBase<Guid, TData>
+    {
+        protected NotificationBase(Guid id, TData data) : base(id, data)
+        {
+        }
+    }
+
     /// <summary>
     /// Base class for building events
     /// </summary>
@@ -19,7 +33,7 @@ namespace MedEasy.CQRS.Core.Events
         /// <summary>
         /// Data associated with the event
         /// </summary>
-        public TData Data { get; set; }
+        public TData Data { get; }
 
         /// <summary>
         /// Builds a new <see cref="NotificationBase{T}"/> instance

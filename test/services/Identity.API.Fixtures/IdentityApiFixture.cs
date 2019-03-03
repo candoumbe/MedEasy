@@ -5,6 +5,7 @@ using MedEasy.IntegrationTests.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static Newtonsoft.Json.JsonConvert;
@@ -13,7 +14,11 @@ namespace Identity.API.Fixtures
 {
     public class IdentityApiFixture : IntegrationFixture<Startup>
     {
-        protected override void ConfigureClient(HttpClient client) => client.BaseAddress = new Uri("http://localhost/");
+        protected override void ConfigureClient(HttpClient client)
+        {
+            client.BaseAddress = new Uri("http://localhost/");
+            client.Timeout = TimeSpan.FromMinutes(2);
+        }
 
         /// <summary>
         /// Register a new account
@@ -27,6 +32,10 @@ namespace Identity.API.Fixtures
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync($"/identity/{AccountsController.EndpointName}", newAccount)
                     .ConfigureAwait(false);
+
+                string responseContent = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
+                Debug.WriteLine($"Response : {responseContent}");
 
                 response.EnsureSuccessStatusCode();
 

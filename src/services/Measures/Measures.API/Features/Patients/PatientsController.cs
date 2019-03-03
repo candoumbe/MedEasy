@@ -36,7 +36,7 @@ namespace Measures.API.Features.Patients
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="PatientInfo"/> resources
     /// </summary>
-    [Controller]
+    [ApiController]
     [Route("measures/[controller]")]
     public class PatientsController
     {
@@ -388,7 +388,7 @@ namespace Measures.API.Features.Patients
         /// <returns></returns>
         [HttpGet("{id}/bloodpressures")]
         [HttpHead("{id}/bloodpressures")]
-        public async Task<IActionResult> GetBloodPressures([FromQuery, RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
+        public async Task<IActionResult> GetBloodPressures([RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
         {
             GetPatientInfoByIdQuery query = new GetPatientInfoByIdQuery(id);
             Option<PatientInfo> result = await _mediator.Send(query, ct)
@@ -417,7 +417,7 @@ namespace Measures.API.Features.Patients
         /// </summary>
         /// <param name="id">Patient's id</param>
         /// <param name="newResource">measure of the blood pressure</param>
-        /// <param name="ct">Notifies to cancel the execution of the request</param>
+        /// <param name="cancellationToken">Notifies to cancel the execution of the request</param>
         /// <returns></returns>
         /// <response code="400"><paramref name="id"/> or body was not provided</response>
         /// <response code="404">unknown <paramref name="id"/> was provided</response>
@@ -425,7 +425,7 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status201Created)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken ct = default)
+        public async Task<IActionResult> PostBloodPressure([RequireNonDefault, FromQuery] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
         {
             CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
             {
@@ -435,7 +435,7 @@ namespace Measures.API.Features.Patients
                 SystolicPressure = newResource.SystolicPressure
             };
 
-            Option<BloodPressureInfo, CreateCommandResult> optionalResource = await _mediator.Send(new CreateBloodPressureInfoForPatientIdCommand(createBloodPressureInfo), ct)
+            Option<BloodPressureInfo, CreateCommandResult> optionalResource = await _mediator.Send(new CreateBloodPressureInfoForPatientIdCommand(createBloodPressureInfo), cancellationToken)
                 .ConfigureAwait(false);
 
             return optionalResource.Match(

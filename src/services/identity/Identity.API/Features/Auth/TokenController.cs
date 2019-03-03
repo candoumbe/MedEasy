@@ -71,10 +71,11 @@ namespace Identity.API.Features.Auth
 
                     string accessTokenString;
                     string refreshTokenString;
+                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
                     switch (token.AccessToken)
                     {
                         case JwtSecurityToken jwtToken:
-                            accessTokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+                            accessTokenString = jwtSecurityTokenHandler.WriteToken(jwtToken);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException("Unhandled access token type");
@@ -83,7 +84,7 @@ namespace Identity.API.Features.Auth
                     switch (token.RefreshToken)
                     {
                         case JwtSecurityToken jwtToken:
-                            refreshTokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+                            refreshTokenString = jwtSecurityTokenHandler.WriteToken(jwtToken);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException("Unhandled refresh token type");
@@ -130,7 +131,7 @@ namespace Identity.API.Features.Auth
 
         [HttpPatch("{username}")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> Refresh(string username, [FromBody, BindRequired] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
+        public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;
             JwtInfos jwtInfos = new JwtInfos

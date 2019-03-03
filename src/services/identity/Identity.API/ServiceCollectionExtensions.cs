@@ -37,9 +37,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API
 {
@@ -53,7 +53,7 @@ namespace Identity.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
             services.AddMvc(config =>
             {
@@ -77,6 +77,7 @@ namespace Identity.API
                 options.LocalizationEnabled = true;
 
                 options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
+                options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
             })
             .AddJsonOptions(options =>
             {
@@ -96,23 +97,6 @@ namespace Identity.API
                         .AllowAnyOrigin()
                 );
             });
-            services.AddOptions();
-            services.Configure<IdentityApiOptions>((options) =>
-            {
-                options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 30);
-                options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 100);
-            });
-            services.Configure<JwtOptions>((options) =>
-            {
-                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
-                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
-                options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
-                    .GetChildren()
-                    .Select(x => x.Value);
-                options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
-                options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
-            });
-            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
 
             services.AddRouting(options =>
             {
@@ -136,6 +120,41 @@ namespace Identity.API
                 options.HttpsPort = configuration.GetValue<int>("HttpsPort", 51800);
                 options.RedirectStatusCode = Status307TemporaryRedirect;
             });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds custom options
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddOptions();
+            services.Configure<IdentityApiOptions>((options) =>
+            {
+                options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(IdentityApiOptions.DefaultPageSize)}", 100);
+            });
+            services.Configure<JwtOptions>((options) =>
+            {
+                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
+                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
+                options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
+                    .GetChildren()
+                    .Select(x => x.Value);
+                options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
+                options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
+            });
+            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
+
+
+
+
+            return services;
+
         }
 
         /// <summary>
@@ -150,7 +169,7 @@ namespace Identity.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             services.AddTransient(serviceProvider =>
             {
@@ -166,13 +185,15 @@ namespace Identity.API
 
                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));
            });
+
+            return services;
         }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void AddDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
@@ -191,6 +212,8 @@ namespace Identity.API
             });
 
             services.AddSingleton<IDateTimeService, DateTimeService>();
+
+            return services;
         }
 
         private static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
@@ -218,16 +241,24 @@ namespace Identity.API
             return builder;
         }
 
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
+        /// <summary>
+        /// Adds Authorization and authentication
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAuthorization()
+               .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+               .AddJwtBearer(options =>
+               {
+                   options.TokenValidationParameters = new TokenValidationParameters
+                   {
+                       ValidateIssuer = true,
+                       ValidateAudience = true,
+                       ValidateLifetime = true,
+                       LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
                         {
                             using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
                             {
@@ -236,15 +267,20 @@ namespace Identity.API
                                 return securityTokenValidator.Validate(securityToken).IsValid;
                             }
                         },
-                        RequireExpirationTime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
-                        ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
+                       RequireExpirationTime = true,
+                       ValidateIssuerSigningKey = true,
+                       ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                       ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
                             .GetChildren()
                             .Select(x => x.Value),
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
-                    };
-                });
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
+
+                   };
+                   options.Validate();
+               });
+
+            return services;
+        }
 
         /// <summary>
         /// Adds Swagger middlewares
@@ -252,7 +288,7 @@ namespace Identity.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -292,6 +328,8 @@ namespace Identity.API
                     {"Bearer", Enumerable.Empty<string>() }
                 });
             });
+
+            return services;
         }
     }
 }

@@ -2,24 +2,16 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
-    <DockerTargetOS>Windows</DockerTargetOS>
-    <ProjectGuid>3d791553-b6de-4c4b-b913-1912a2db5d70</ProjectGuid>
-    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerTargetOS>Linux</DockerTargetOS>
+    <ProjectGuid>a8cdd57c-9706-4fb2-9933-2999d1d0557d</ProjectGuid>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
   </PropertyGroup>
   <PropertyGroup>
-    <DockerServiceName>measures.api</DockerServiceName>
+    <DockerServiceName>identity.api;measures.api;patients.api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose - Copier.override.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose - Copier.vs.debug.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
+    <None Include=".env" />
     <None Include="docker-compose.override.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
-    <None Include="docker-compose.vs.debug.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />

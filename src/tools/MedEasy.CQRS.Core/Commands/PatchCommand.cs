@@ -15,8 +15,8 @@ namespace MedEasy.CQRS.Core.Commands
     /// <seealso cref="IPatchCommand{TResourceId, TData}"/>
     [JsonObject]
     public class PatchCommand<TResourceId, TResource, TData> : CommandBase<Guid, TData, ModifyCommandResult>
-        where TData : PatchInfo<TResourceId, TResource>
         where TResource : class
+        where TData : PatchInfo<TResourceId, TResource>
     {
         /// <summary>
         /// Builds a new <see cref="PatchCommand{TResourceId, TData}"/>

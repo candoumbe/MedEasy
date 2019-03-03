@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.categories" Version="2.0.4" />
+    <PackageReference Include="FluentAssertions" Version="5.5.3" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\services\identity\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Context\Measures.Context.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.CQRS\Measures.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.Mapping\Measures.Mapping.csproj" />
+    <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
+    <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+    <ProjectReference Include="..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Queries\Patients\" />
+  </ItemGroup>
+
+</Project>

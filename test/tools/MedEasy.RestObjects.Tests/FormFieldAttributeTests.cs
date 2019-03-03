@@ -3,9 +3,12 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace MedEasy.RestObjects.Tests
 {
+    [UnitTest]
+    [Feature("REST")]
     public class FormFieldAttributeTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

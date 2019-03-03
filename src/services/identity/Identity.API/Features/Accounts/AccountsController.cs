@@ -60,6 +60,7 @@ namespace Identity.API.Features.Accounts
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>), Status200OK)]
+        [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             IdentityApiOptions apiOptions = _apiOptions.Value;
@@ -200,8 +201,12 @@ namespace Identity.API.Features.Accounts
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
+        /// <response code="409">One or more patch operations would result in a invalid state</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), Status400BadRequest)]
+        [ProducesResponseType(Status204NoContent)]
+        [ProducesResponseType(Status409Conflict)]
+        [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
             PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>

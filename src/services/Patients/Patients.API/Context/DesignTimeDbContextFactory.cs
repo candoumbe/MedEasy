@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Patients.Context;
 using System.IO;
 
 namespace Patients.API.Context
@@ -11,11 +12,11 @@ namespace Patients.API.Context
         {
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json")
                 .Build();
             DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
             string connectionString = configuration.GetConnectionString("Patients");
-            builder.UseSqlServer(connectionString);
+            builder.UseSqlServer(connectionString, b => b.MigrationsAssembly(typeof(PatientsContext).Assembly.FullName));
             return new PatientsContext(builder.Options);
         }
     }

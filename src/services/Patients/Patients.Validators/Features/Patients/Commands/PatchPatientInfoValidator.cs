@@ -70,7 +70,8 @@ namespace Patients.Validators.Features.Patients.Commands
                                     using (IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork())
                                     {
                                         valid = await uow.Repository<Objects.Doctor>()
-                                            .AnyAsync(x => x.UUID == mainDoctorId);
+                                            .AnyAsync(x => x.UUID == mainDoctorId)
+                                            .ConfigureAwait(false);
                                     }
                                     break;
                                 default:

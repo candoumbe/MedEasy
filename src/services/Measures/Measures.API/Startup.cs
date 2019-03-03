@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API
 {
@@ -43,7 +44,8 @@ namespace Measures.API
 #if !NETCOREAPP2_0
             services.AddHttpsRedirection(options =>
                 {
-                    options.HttpsPort = Configuration.GetValue<int>("HttpsPort", 51900);
+                    options.HttpsPort = Configuration.GetValue<int>("HttpsPort", 63796);
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
                 });
 #endif
             services.AddDataStores();
@@ -68,8 +70,11 @@ namespace Measures.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseAuthentication();
-#if !NETCOREAPP2_0
-            app.UseHsts();
+#if NETCOREAPP2_1
+            if (env.IsProduction())
+            {
+                app.UseHsts();
+            }
             app.UseHttpsRedirection();
 #endif
             app.UseHttpMethodOverride();

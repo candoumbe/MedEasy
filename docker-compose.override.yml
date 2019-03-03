@@ -1,19 +1,84 @@
 version: '3.7'
 
 services:
+
+  eventstore:
+    ports:
+      - "7000:1113"
+      - "7001:2113"
+  identity.db:
+    environment: 
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: Y
+      TZ: ${TZ}
+    ports:
+      - "6000:1433"
+    volumes:
+      - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
+
   identity.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=51800
+      - CONNECTIONSTRINGS__IDENTITY=${IDENTITY_DB}
     ports:
-      - "5000:80"
+      - "51798:80"
+      - "51800:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+  
+
+  measures.db:
+    environment: 
+      SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "6001:1433"
+    volumes:
+    - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
   measures.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=63796
+      - CONNECTIONSTRINGS__MEASURES=${MEASURES_DB}
     ports:
-      - "5001:80"
+      - "63795:80"
+      - "63796:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+    
 
-networks:
-  default:
-    external:
-      name: nat
+  patients.db:
+    environment: 
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: Y
+      TZ: ${TZ}
+    ports:
+      - "6003:1433"
+    volumes:
+      - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
 
+
+  patients.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=54003
+      - CONNECTIONSTRINGS__PATIENTS=${PATIENTS_DB}
+    ports:
+      - "54002:80"
+      - "54003:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+  
+  medeasy.spa:
+    ports:
+      - "51589:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+  

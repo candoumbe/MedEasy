@@ -4,13 +4,12 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:63794/",
-      "sslPort": 0
+      "sslPort": 63796
     }
   },
   "profiles": {
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": true,
       "launchUrl": "measures/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -18,12 +17,16 @@
     },
     "Measures.API": {
       "commandName": "Project",
-      "launchBrowser": true,
       "launchUrl": "measures/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:63795/"
+      "applicationUrl": "http://localhost:63795/;https://localhost:63796"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/measures/"
     }
   }
 }

@@ -27,8 +27,9 @@ namespace Patients.Mapping
                 .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
                 .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
-                .IncludeBase<Resource<Guid>, IEntity<int>>()
+                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
                 .ReverseMap();
 
             cfg.CreateMap<Patient, PatientInfo>()

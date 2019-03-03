@@ -25,7 +25,8 @@ namespace Identity.Validators
                         return !await uow.Repository<Account>().AnyAsync(x => x.Email == email, ct)
                             .ConfigureAwait(false);
                     }
-                });
+                })
+                .WithMessage(newAccountInfo => $"'{newAccountInfo.Email}' is already associated to another account");
 
             RuleFor(x => x.Password)
                 .NotNull();

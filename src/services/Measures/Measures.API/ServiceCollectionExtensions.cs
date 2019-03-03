@@ -54,7 +54,8 @@ namespace Measures.API
         public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
         {
 
-            services.AddMvc(options =>
+            services
+                .AddMvc(options =>
             {
                 options.Filters.Add<FormatFilterAttribute>();
                 options.Filters.Add<ValidateModelActionFilter>();
@@ -76,6 +77,7 @@ namespace Measures.API
 #endif
             .AddFluentValidation(options =>
             {
+                options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
                 options.LocalizationEnabled = true;
                 options
                     .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()

@@ -87,14 +87,14 @@ namespace Identity.CQRS.Handlers.Commands
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 Account authenticatedAccount = await uow.Repository<Account>()
-                    .SingleAsync(x => x.UUID == accountInfo.Id)
+                    .SingleAsync(x => x.UUID == accountInfo.Id, ct)
                     .ConfigureAwait(false);
 
                 SecurityToken accessToken = await accessTokenTask;
                 SecurityToken refreshToken = await refreshTokenTask;
 
                 authenticatedAccount.RefreshToken = refreshToken.ToString();
-                await uow.SaveChangesAsync()
+                await uow.SaveChangesAsync(ct)
                     .ConfigureAwait(false);
 
                 return new AuthenticationTokenInfo

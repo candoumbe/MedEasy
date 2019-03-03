@@ -7,8 +7,13 @@ namespace Patients.DTO
     /// <summary>
     /// Data to create a new <see cref="PatientInfo"/> resource.
     /// </summary>
-    public class CreatePatientInfo : Resource<Guid>
+    public class CreatePatientInfo 
     {
+        /// <summary>
+        /// Patient's identifier
+        /// </summary>
+        public Guid? Id { get; set; }
+
         /// <summary>
         /// Patient's first name
         /// </summary>
