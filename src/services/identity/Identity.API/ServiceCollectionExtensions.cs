@@ -150,9 +150,6 @@ namespace Identity.API
             });
             services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
 
-
-
-
             return services;
 
         }

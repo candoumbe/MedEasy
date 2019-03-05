@@ -129,8 +129,7 @@ namespace Identity.API.Features.Auth
             return actionResult;
         }
 
-        [HttpPatch("{username}")]
-        [Consumes("application/json", "application/xml")]
+        [HttpPut("{username}")]
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;

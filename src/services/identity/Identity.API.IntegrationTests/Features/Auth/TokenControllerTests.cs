@@ -122,7 +122,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 Username = $"thebatman_{Guid.NewGuid()}",
                 Password = password,
                 ConfirmPassword = password,
-                Email = "bruce.wayne@gotham.com"
+                Email = $"bruce.wayne_{Guid.NewGuid()}@gotham.com"
             };
 
             using (HttpClient client = _identityApiFixture.CreateClient())
@@ -179,7 +179,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
                 Password = password,
                 ConfirmPassword = password,
-                Email = faker.Person.Email
+                Email = faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString())
             };
 
             using (HttpClient client = _identityApiFixture.CreateClient())
@@ -187,6 +187,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 HttpResponseMessage response = await client.PostAsJsonAsync($"{_endpointUrl}/accounts", newAccountInfo)
                     .ConfigureAwait(false);
 
+                _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
                 response.EnsureSuccessStatusCode();
 
                 LoginInfo loginInfo = new LoginInfo
@@ -208,12 +209,8 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 string json = await response.Content.ReadAsStringAsync()
                     .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"HTTP content : '{json}'");
-
                 BearerTokenInfo tokenInfo = JToken.Parse(json)
                     .ToObject<BearerTokenInfo>();
-
-                _outputHelper.WriteLine($"Token to revoke : {tokenInfo.Stringify()}");
 
                 HttpRequestMessage requestInvalidateToken = new HttpRequestMessage(Delete, $"/auth/token/{newAccountInfo.Username}");
                 AuthenticationHeaderValue bearerTokenHeader = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken);
@@ -224,11 +221,11 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 response.EnsureSuccessStatusCode();
                 _outputHelper.WriteLine($"Refresh token was successfully revoked");
 
-                HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Patch, $"auth/token/{newAccountInfo.Username}");
+                HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Put, $"auth/token/{newAccountInfo.Username}");
                 refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
                 RefreshAccessTokenInfo refreshAccessTokenInfo = new RefreshAccessTokenInfo { AccessToken = tokenInfo.AccessToken, RefreshToken = tokenInfo.RefreshToken };
-                refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter(), "application/json+patch");
+                refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter(), "application/json");
                 
                 // Act
                 response = await client.SendAsync(refreshTokenRequest)
@@ -238,10 +235,10 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 _outputHelper.WriteLine($"Response content : {responseContent}");
 
-                response.StatusCode.Should()
-                    .Be(Status401Unauthorized, "The token has expired");
                 response.IsSuccessStatusCode.Should()
                     .BeFalse("The refresh token was revoked and can no longer be used to refresh an access token");
+                response.StatusCode.Should()
+                    .Be(Status401Unauthorized, "The token has expired");
             }
         }
     }

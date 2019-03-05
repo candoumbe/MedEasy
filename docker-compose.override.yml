@@ -8,20 +8,18 @@ services:
       - "7001:2113"
   identity.db:
     environment: 
-      SA_PASSWORD: ${SA_PASSWORD}
+      SA_PASSWORD: P4ssW0rd!
       ACCEPT_EULA: Y
-      TZ: ${TZ}
+      TZ: Europe/Brussels
     ports:
       - "6000:1433"
-    volumes:
-      - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
 
   identity.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=51800
-      - CONNECTIONSTRINGS__IDENTITY=${IDENTITY_DB}
+      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
     ports:
       - "51798:80"
       - "51800:443"
@@ -32,17 +30,16 @@ services:
 
   measures.db:
     environment: 
-      SA_PASSWORD: ${SA_PASSWORD}
+      SA_PASSWORD: P4ssW0rd!
     ports:
       - "6001:1433"
-    volumes:
-    - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
+
   measures.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=63796
-      - CONNECTIONSTRINGS__MEASURES=${MEASURES_DB}
+      - CONNECTIONSTRINGS__MEASURES=Server=measures.db;Database=Measures;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
     ports:
       - "63795:80"
       - "63796:443"
@@ -53,13 +50,11 @@ services:
 
   patients.db:
     environment: 
-      SA_PASSWORD: ${SA_PASSWORD}
+      SA_PASSWORD: P4ssW0rd!
       ACCEPT_EULA: Y
-      TZ: ${TZ}
+      TZ: Europe/Brussels
     ports:
       - "6003:1433"
-    volumes:
-      - ${APPDATA}/MedEasy/Databases/:/var/opt/mssql:rw 
 
 
   patients.api:
@@ -67,18 +62,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=54003
-      - CONNECTIONSTRINGS__PATIENTS=${PATIENTS_DB}
+      - CONNECTIONSTRINGS__PATIENTS=Server=patients.db;Database=Patients;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
     ports:
       - "54002:80"
       - "54003:443"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-  
-  medeasy.spa:
-    ports:
-      - "51589:80"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
-  
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro 

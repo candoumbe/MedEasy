@@ -471,7 +471,7 @@ namespace Measures.API.Tests.Features.BloodPressures
             }
 
             response.Count.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(IGenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(IGenericPagedGetResponse<Browsable<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

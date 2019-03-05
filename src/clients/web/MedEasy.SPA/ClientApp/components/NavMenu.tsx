@@ -22,8 +22,6 @@ export class NavMenu extends React.Component<NavMenuProps, { redirectToSignin: b
         if (this.state.redirectToSignin) {
             component = <Redirect to='/sign-in' />;
         } else {
-
-
             component = <div className='main-nav'>
                 <div className='navbar navbar-inverse'>
                     <div className='navbar-header'>

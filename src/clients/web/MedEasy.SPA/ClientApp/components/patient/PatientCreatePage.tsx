@@ -83,6 +83,9 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
         let onChange: (name: string, value: any) => void = (name, val) => {
             this.setState((prevState, props) => {
                 let newState = prevState;
+                if (name === "Lastname" && val) {
+                    val = String(val).toUpperCase();
+                }
                 newState.formState[name] = val;
                 return newState;
             });

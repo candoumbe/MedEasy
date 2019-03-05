@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
@@ -29,7 +29,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Core\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\services\MedEasy.Core\MedEasy.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -39,11 +39,15 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
                                 <span className="glyphicon glyphicon-trash"></span>
                             </Button>
                             <Button bsStyle="success">
-                                <span className="glyphicon glyphicon-pencil"></span>
+                                <Link to={`/patients/edit/${item.resource.id}`}>
+                                    <span className="glyphicon glyphicon-pencil"></span>
+                                </Link>
                             </Button>
-                            <Link to={`/patients/details/${item.resource.id}`} className='btn btn-default'>
-                                <span className="glyphicon glyphicon-eye-open"></span>
-                            </Link>
+                            <Button>
+                                <Link to={`/patients/details/${item.resource.id}`}>
+                                    <span className="glyphicon glyphicon-eye-open"></span>
+                                </Link>
+                            </Button>
                         </div>
                     )]
                 ])}

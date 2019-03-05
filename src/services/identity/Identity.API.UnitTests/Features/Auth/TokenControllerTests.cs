@@ -265,7 +265,7 @@ namespace Identity.API.UnitTests.Features.Authentication
             MethodInfo invalidateMethod = typeof(TokenController).GetMethod(nameof(TokenController.Refresh));
             invalidateMethod.Should()
                 .BeAsync().And
-                .BeDecoratedWith<HttpPatchAttribute>().Which
+                .BeDecoratedWith<HttpPutAttribute>().Which
                 .Template.Should()
                 .Be("{username}");
 

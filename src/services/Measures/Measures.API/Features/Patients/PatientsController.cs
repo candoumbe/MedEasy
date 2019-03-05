@@ -425,7 +425,7 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status201Created)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> PostBloodPressure([RequireNonDefault, FromQuery] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
         {
             CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
             {

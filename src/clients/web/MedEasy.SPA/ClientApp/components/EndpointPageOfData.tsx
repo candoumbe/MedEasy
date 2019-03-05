@@ -1,11 +1,12 @@
 ﻿import * as React from "react";
-import { Button, Row, Table } from "react-bootstrap";
+import { Button, Row, Table, PageHeader, Pagination } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { Browsable } from "./../restObjects/Browsable";
 import { PageOfResult } from "./../restObjects/PageOfResult";
 import { RestClient } from "./../System/RestClient";
 import { ErrorComponent } from "./ErrorComponent";
 import { LoadingComponent } from "./LoadingComponent";
+
 
 
 /**
@@ -75,11 +76,11 @@ export class EndpointPageOfData<TResource extends Browsable<MedEasy.DTO.Resource
      */
     private async loadData(page: number): Promise<void> {
 
-        let optionalPage = await this.restClient.get<{ page: number, pageSize:number}, PageOfResult<TResource>>({ page, pageSize: this.state.pageSize });
+        let optionalPage = await this.restClient.get<{ page: number, pageSize: number }, PageOfResult<TResource>>({ page, pageSize: this.state.pageSize });
         await optionalPage.match(
             async (pageOfResult) => {
                 let newState: EndpointPageOfDataState<TResource> = {
-                    pageOfResult : (await pageOfResult as PageOfResult<TResource>),
+                    pageOfResult: (await pageOfResult as PageOfResult<TResource>),
                     page: this.state.page,
                     pageSize: this.state.pageSize,
                     loading: false

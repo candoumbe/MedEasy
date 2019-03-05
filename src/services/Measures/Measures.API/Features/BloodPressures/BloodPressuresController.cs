@@ -121,7 +121,7 @@ namespace Measures.API.Features.BloodPressures
                     }
                 });
 
-            IGenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
+            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
                 resources,
                 firstPageUrl,
                 previousPageUrl,
@@ -399,7 +399,7 @@ namespace Measures.API.Features.BloodPressures
                             }
                         });
 
-                IGenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
+                GenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
                     resources,
                     first: firstPageUrl,
                     previous: previousPageUrl,

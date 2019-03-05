@@ -1,5 +1,6 @@
 ﻿using AutoMapper.QueryableExtensions;
 using FluentValidation.Results;
+using MedEasy.Core.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.Data;
@@ -47,10 +48,7 @@ namespace Patients.API.Controllers
         /// <param name="expressionBuilder"></param>
         /// <param name="uowFactory"></param>
         public PatientsController(ILogger<PatientsController> logger, IUrlHelper urlHelper, IOptionsSnapshot<PatientsApiOptions> apiOptions, IExpressionBuilder expressionBuilder, IUnitOfWorkFactory uowFactory)
-            : base(logger, uowFactory, expressionBuilder, urlHelper)
-        {
-            ApiOptions = apiOptions;
-        }
+            : base(logger, uowFactory, expressionBuilder, urlHelper) => ApiOptions = apiOptions;
 
         /// <summary>
         /// Gets all the resources of the endpoint
@@ -85,33 +83,32 @@ namespace Patients.API.Controllers
 
                 int count = result.Entries.Count();
                 bool hasPreviousPage = count > 0 && pagination.Page > 1;
-                IActionResult actionResult;
-                
-                    string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
-                    string previousPageUrl = hasPreviousPage
-                            ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
-                            : null;
 
-                    string nextPageUrl = pagination.Page < result.Count
-                            ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
-                            : null;
-                    string lastPageUrl = result.Count > 0
-                            ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                            : firstPageUrl;
+                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+                string previousPageUrl = hasPreviousPage
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                        : null;
 
-                    IEnumerable<Browsable<PatientInfo>> resources = result.Entries
-                        .Select(x => new Browsable<PatientInfo>
+                string nextPageUrl = pagination.Page < result.Count
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                        : null;
+                string lastPageUrl = result.Count > 0
+                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                        : firstPageUrl;
+
+                IEnumerable<Browsable<PatientInfo>> resources = result.Entries
+                    .Select(x => new Browsable<PatientInfo>
+                    {
+                        Resource = x,
+                        Links = new[]
                         {
-                            Resource = x,
-                            Links = new[]
-                            {
                             new Link
                             {
                                 Relation = LinkRelation.Self,
                                 Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                             }
-                            }
-                        });
+                        }
+                    });
 
                 GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
                         resources,
@@ -121,8 +118,8 @@ namespace Patients.API.Controllers
                         lastPageUrl,
                         result.Total);
 
-                   return new OkObjectResult(response);
-                
+                return new OkObjectResult(response);
+
             }
         }
 
@@ -138,30 +135,23 @@ namespace Patients.API.Controllers
         [HttpGet("{id}")]
         [HttpOptions("{id}")]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
-        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
-
-            if (id == default)
+            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
-                actionResult = new BadRequestResult();
-            }
-            else
-            {
-                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-                {
-                    Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                    Option<PatientInfo> result = await uow.Repository<Patient>()
-                        .SingleOrDefaultAsync(selector, x => x.Id == id).ConfigureAwait(false);
+                Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+                Option<PatientInfo> result = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(selector, x => x.Id == id, cancellationToken).ConfigureAwait(false);
 
-                    actionResult = result.Match<IActionResult>(
-                        some: resource =>
+                actionResult = result.Match<IActionResult>(
+                    some: resource =>
+                    {
+                        Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
                         {
-                            Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
+                            Resource = resource,
+                            Links = new[]
                             {
-                                Resource = resource,
-                                Links = new[]
-                                {
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
@@ -174,13 +164,13 @@ namespace Patients.API.Controllers
                                         Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
                                         Method = "DELETE"
                                     }
-                                }
-                            };
-                            return new OkObjectResult(browsableResource);
-                        },
-                        none: () => new NotFoundResult()
-                    );
-                }
+                            }
+                        };
+                        return new OkObjectResult(browsableResource);
+                    },
+                    none: () => new NotFoundResult()
+                );
+
             }
 
             return actionResult;
@@ -320,7 +310,8 @@ namespace Patients.API.Controllers
                             JsonPatchDocument<Patient> patch = new JsonPatchDocument<Patient>();
                             patch.Operations.AddRange(operations);
 
-                            patch.ApplyTo(patient, (error) => {
+                            patch.ApplyTo(patient, (error) =>
+                            {
                                 patchActionResult = new BadRequestObjectResult(new { message = error.ErrorMessage });
                             });
 
@@ -329,7 +320,7 @@ namespace Patients.API.Controllers
 
                             return patchActionResult;
                         },
-                        none: () => Task.FromResult((IActionResult) new NotFoundResult())
+                        none: () => Task.FromResult((IActionResult)new NotFoundResult())
                     )
                     .ConfigureAwait(false);
                 }

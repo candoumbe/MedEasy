@@ -9,7 +9,7 @@ namespace MedEasy.RestObjects
     /// </summary>
     /// <typeparam name="T">Type of items that will be wrapped in a paged result</typeparam>
     [JsonObject]
-    public class GenericPagedGetResponse<T> : IGenericPagedGetResponse<T>
+    public class GenericPagedGetResponse<T>
     {
         /// <summary>
         /// Links that helps navigated through pages of the result

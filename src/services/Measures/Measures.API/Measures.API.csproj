@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Data\MedEasy.Data.csproj" />

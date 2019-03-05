@@ -1,29 +1,24 @@
-﻿import * as React from "react";
-import { match } from 'react-router-dom';
-import { FormField } from "./../../restObjects/FormField";
-import { FormComponent } from "./../FormComponent"
-import { Form } from "./../../restObjects/Form"
-import { Endpoint } from "./../../restObjects/Endpoint"
-import { LoadingComponent } from "./../LoadingComponent";
-import * as LinQ from "linq";
+﻿import * as LinQ from "linq";
+import * as React from "react";
+import { Button, Col, FormGroup, Grid, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle, Row, Form, FormControl } from "react-bootstrap";
 import { Browsable } from "./../../restObjects/Browsable";
-import { MeasuresRecap } from "./../../components/measures/MeasuresRecap";
-import { NotFoundComponent } from "./../NotFoundComponent";
 import { Guid } from "./../../System/Guid";
 import { RestClient } from "./../../System/RestClient";
-import { Option } from "./../../System/Option_Maybe";
+import { LoadingComponent } from "./../LoadingComponent";
+import { NotFoundComponent } from "./../NotFoundComponent";
 
 interface PatientDetailsComponentProps {
     /** endpoint where to get patient details from */
     restClient: RestClient
     id: string | Guid
-    measuresEndpoint : string
+    measuresEndpoint: string
 }
 
 interface PatientDetailsComponentState {
     /** The patient currently displayed */
     patient: null | Browsable<MedEasy.DTO.Patient>,
-    loading: boolean | undefined
+    loading: boolean | undefined,
+    creatingAppointment: boolean | undefined
 }
 
 /**
@@ -44,7 +39,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
 
     public constructor(props: PatientDetailsComponentProps) {
         super(props);
-        this.state = { loading: true, patient: null };
+        this.state = { loading: true, patient: null, creatingAppointment: false };
 
         this.loadContent()
             .then(() => console.trace("Details loaded"));
@@ -68,7 +63,7 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
     public render(): JSX.Element | null {
 
         let component: JSX.Element | null = null;
-
+        let now: Date = new Date();
         if (this.state.loading) {
             component = <LoadingComponent />
         } else if (this.state.patient) {
@@ -80,21 +75,54 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
                 <div className="page-header">
                     <h1>{browsablePatient.resource.fullname} <small>{browsablePatient.resource.birthDate ? "né(e) le " + browsablePatient.resource.birthDate.toLocaleString() : ""}</small></h1>
                 </div>
-                <MeasuresRecap restClient={this.measuresRestClient} resourceName={"bloodPressures"} />
-                {
 
-                    measures.forEach((measure) => {
-                        switch (measures) {
 
-                            default:
-                                break;
-                        }
+                <Button onClick={() => this.setState({ creatingAppointment: true })}>
+                    Nouveau rendez-vous
+                </Button>
+                <Modal onHide={() => this.setState({ creatingAppointment: false })}
 
-                       
-                })
-            }
+                    animation
+                    show={this.state.creatingAppointment} draggable>
+                    <ModalHeader closeButton>
+                        <ModalTitle>Nouveau rendez-vous</ModalTitle>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Form action="">
+                            <FormGroup>
+                                <label htmlFor={"dateDebut"}>Date</label>
+                                <FormControl type="date" name="startDate" min={new Date().toString()} />
+                                <span>à</span>
+                                <select name={"startHour"} id={"startHour"}>
+                                    {
+                                        LinQ.range(8, 10, 1).toArray()
+                                            .map((hour) => <option value={hour} defaultValue={now.getHours().toString()}>{hour}</option>)
+                                    }
+                                </select>
+                            </FormGroup>
+                                <FormControl type="text" name="title" min={new Date().toString()} />
 
-                
+                            <Row>
+                                <Col lg={2}>
+                                    <label htmlFor={"title"}>Objet</label>
+                                </Col>
+                                <Col>
+                                    <input type="text" name="title" min={new Date().toISOString()} />
+                                </Col>
+                            </Row>
+                        </Form>
+                        <ModalFooter>
+
+                            <Button bsStyle="success" onClick={() => this.setState({ creatingAppointment: false })}>
+                                Enregistrer
+                        </Button>
+                            <Button bsStyle="danger" onClick={() => this.setState({ creatingAppointment: false })}>
+                                Annuler
+                        </Button>
+                        </ModalFooter>
+                    </ModalBody>
+                </Modal>
+
             </div>
         } else {
             component = <NotFoundComponent />;

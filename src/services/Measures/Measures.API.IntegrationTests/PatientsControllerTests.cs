@@ -435,11 +435,15 @@ namespace Measures.API.IntegrationTests
                 };
 
                 // Act
-                response = await client.PostAsJsonAsync($"{_endpointUrl}/{patientId}/bloodpressures", resourceToCreate)
+                string requestUri = $"{_endpointUrl}/{patientId}/bloodpressures";
+                _outputHelper.WriteLine($"Endpoint : {requestUri}");
+                response = await client.PostAsJsonAsync(requestUri, resourceToCreate)
                     .ConfigureAwait(false);
                 _outputHelper.WriteLine($"HTTP create bloodpressure for patient <{patientId}> status code : {response.StatusCode}");
+                _outputHelper.WriteLine($"Response content: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
                 // Assert
+                
                 response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
                 ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
 

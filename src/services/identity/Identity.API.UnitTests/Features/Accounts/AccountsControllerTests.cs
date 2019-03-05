@@ -724,7 +724,7 @@ namespace Identity.API.Tests.Features.Accounts
             }
 
             response.Count.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(IGenericPagedGetResponse<Browsable<SearchAccountInfoResult>>)}.{nameof(IGenericPagedGetResponse<Browsable<SearchAccountInfoResult>>.Count)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>)}.{nameof(GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

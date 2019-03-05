@@ -28,9 +28,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\identity\Identity.DTO\Identity.DTO.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\Measures\Measures.API\Measures.API.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\measures\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
-    <ProjectReference Include="..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>
 
 </Project>

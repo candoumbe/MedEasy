@@ -323,9 +323,9 @@ namespace Measures.API.Tests.Features.Patients
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<IGenericPagedGetResponse<Browsable<PatientInfo>>>();
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>();
 
-            IGenericPagedGetResponse<Browsable<PatientInfo>> response = (IGenericPagedGetResponse<Browsable<PatientInfo>>)value;
+            GenericPagedGetResponse<Browsable<PatientInfo>> response = (GenericPagedGetResponse<Browsable<PatientInfo>>)value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -340,7 +340,7 @@ namespace Measures.API.Tests.Features.Patients
             }
 
             response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(IGenericPagedGetResponse<PatientInfo>)}.{nameof(IGenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);

@@ -27,7 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\services\Agenda\Agenda.API\Agenda.API.csproj" />
     <ProjectReference Include="..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
-    <ProjectReference Include="..\..\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>
 
 </Project>

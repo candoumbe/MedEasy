@@ -7,9 +7,7 @@ export class TokenService {
      * Builds a new instance
      * @param url the endpoint where to ask for new token
      */
-    public constructor(readonly url: string) {
-
-    }
+    public constructor(readonly url: string) {}
 
     /**
      * Requests a new token
@@ -22,7 +20,7 @@ export class TokenService {
             body: JSON.stringify(data)
         });
 
-        let optionalResult: Option<Promise<MedEasy.DTO.BearerTokenInfo>, Promise<{ [key: string]: Array<string> }>>;
+        let optionalResult: Option<Promise<MedEasy.DTO.BearerTokenInfo>, Promise<{ [key: string]: Array<string> }>> = Option.none<Promise<MedEasy.DTO.BearerTokenInfo>, Promise<{ [key: string]: Array<string> }>>(Promise.reject({}));
 
         if (response.ok) {
             optionalResult = Option.some<Promise<MedEasy.DTO.BearerTokenInfo>, Promise<{ [key: string]: Array<string> }>>(await response.json() as Promise<MedEasy.DTO.BearerTokenInfo>)

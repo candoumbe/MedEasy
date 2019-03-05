@@ -1,7 +1,14 @@
 ARG NODE_IMAGE=node:8.11
 FROM microsoft/aspnetcore:2.0 AS base
+RUN apt-get update -yq \
+    && apt-get install curl gnupg -yq \
+    && curl -sL https://deb.nodesource.com/setup_8.x | bash \
+    && apt-get install nodejs npm -yq
+RUN ln -s /usr/bin/nodejs /usr/local/bin/node
+RUN ln -s /usr/bin/npm /usr/local/bin/npm
 WORKDIR /app
 EXPOSE 80
+EXPOSE 5001
 
 FROM ${NODE_IMAGE} as node-build
 WORKDIR /web

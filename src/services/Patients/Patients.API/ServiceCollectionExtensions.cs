@@ -96,9 +96,32 @@ namespace Patients.API
                 options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 30);
                 options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 100);
             });
-            
-            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
 
+            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = (context) =>
+                {
+
+                    IDictionary<string, IEnumerable<string>> errors = context.ModelState
+                        .Where(element => !string.IsNullOrWhiteSpace(element.Key))
+                        .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
+                    ValidationProblemDetails validationProblem = new ValidationProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"{errors.Count} validation's errors",
+                        Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
+                            ? Status400BadRequest
+                            : Status422UnprocessableEntity
+                    };
+                    foreach ((string key, IEnumerable<string> details) in errors)
+                    {
+                        validationProblem.Errors.Add(key, details.ToArray());
+                    }
+
+                    return new BadRequestObjectResult(validationProblem);
+                };
+            });
             services.AddRouting(options =>
             {
                 options.AppendTrailingSlash = false;
@@ -121,7 +144,7 @@ namespace Patients.API
             {
                 options.HttpsPort = configuration.GetValue<int>("HttpsPort", 54003);
                 options.RedirectStatusCode = Status307TemporaryRedirect;
-            }); 
+            });
 #endif
         }
 
@@ -129,7 +152,7 @@ namespace Patients.API
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
-        public static void AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             services.AddTransient(serviceProvider =>
             {
@@ -145,13 +168,15 @@ namespace Patients.API
 
                return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options));
            });
+
+            return services;
         }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void AddDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
@@ -167,6 +192,8 @@ namespace Patients.API
             });
 
             services.AddSingleton<IDateTimeService, DateTimeService>();
+
+            return services;
         }
 
         private static DbContextOptionsBuilder<PatientsContext> BuildDbContextOptions(IServiceProvider serviceProvider)
@@ -207,8 +234,8 @@ namespace Patients.API
                         {
                             using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
                             {
-         //                       IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
-//WARNING Validate the token
+                                //                       IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
+                                //WARNING Validate the token
                                 return true;
                             }
                         },
@@ -219,7 +246,7 @@ namespace Patients.API
                             .GetChildren()
                             .Select(x => x.Value),
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
-                        
+
                     };
                     options.Validate();
                 });
