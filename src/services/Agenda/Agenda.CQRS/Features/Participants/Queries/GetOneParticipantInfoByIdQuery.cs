@@ -23,7 +23,7 @@ namespace Agenda.CQRS.Features.Participants.Queries
             }
         }
 
-        public override bool Equals(object other) => Equals(other as GetOneParticipantInfoByIdQuery);
+        public override bool Equals(object obj) => Equals(obj as GetOneParticipantInfoByIdQuery);
 
         public bool Equals(GetOneParticipantInfoByIdQuery other) => other != null
                 && (ReferenceEquals(this, other) || Equals(Data, other.Data));
