@@ -46,7 +46,6 @@ namespace Agenda.API
             // Add framework services.
             services.AddCustomizedMvc(Configuration);
             services.AddDataStores();
-            services.AddConsul(Configuration);
             services.AddCustomizedDependencyInjection();
 
             if (HostingEnvironment.IsDevelopment())
@@ -66,12 +65,6 @@ namespace Agenda.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseHttpMethodOverride();
-            applicationLifetime.ApplicationStopping.Register(async () =>
-            {
-                IHostedService hostedService = app.ApplicationServices.GetRequiredService<IHostedService>();
-                await hostedService.StopAsync(default)
-                    .ConfigureAwait(false);
-            });
 
             if (env.IsProduction() || env.IsStaging())
             {
