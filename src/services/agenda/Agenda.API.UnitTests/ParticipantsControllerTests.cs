@@ -244,8 +244,8 @@ namespace Agenda.API.UnitTests
                     .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self), "links must contain only self relation");
             }
 
-            response.Count.Should()
-                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<ParticipantInfo>)}.{nameof(GenericPagedGetResponse<ParticipantInfo>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<ParticipantInfo>)}.{nameof(GenericPagedGetResponse<ParticipantInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);

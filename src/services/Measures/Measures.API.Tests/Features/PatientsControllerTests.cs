@@ -339,8 +339,8 @@ namespace Measures.API.Tests.Features.Patients
                     .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self));
             }
 
-            response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);

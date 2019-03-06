@@ -13,6 +13,7 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,12 +27,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -57,7 +62,7 @@ namespace Agenda.API
                 options.Filters.Add<HandleErrorAttribute>();
                 options.Filters.Add<AddCountHeadersFilterAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            })
+            }).SetCompatibilityVersion( CompatibilityVersion.Version_2_1) 
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;
@@ -94,31 +99,35 @@ namespace Agenda.API
             {
                 options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             });
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = (context) =>
+                {
+
+                    IDictionary<string, IEnumerable<string>> errors = context.ModelState
+                        .Where(element => !string.IsNullOrWhiteSpace(element.Key))
+                        .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
+                    ValidationProblemDetails validationProblem = new ValidationProblemDetails
+                    {
+                        Title = "Validation failed",
+                        Detail = $"{errors.Count} validation error{(errors.Count > 1 ? "s" : string.Empty)}",
+                        Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
+                            ? Status400BadRequest
+                            : Status422UnprocessableEntity
+                    };
+                    foreach ((string key, IEnumerable<string> details) in errors)
+                    {
+                        validationProblem.Errors.Add(key, details.ToArray());
+                    }
+
+                    return new BadRequestObjectResult(validationProblem);
+                };
+            });
 
             services.AddRouting(options =>
             {
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
-            });
-        }
-
-        /// <summary>
-        /// Adds required depencies for Consul
-        /// </summary>
-        /// <param name="services"></param>
-        public static void AddConsul(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.Configure<ConsulConfig>(configuration.GetSection("ConsulConfig"));
-            services.AddSingleton<IHostedService, ConsulHostedService>();
-            services.AddSingleton<IConsulClient, ConsulClient>(serviceProvider =>
-            {
-                IOptions<ConsulConfig> consulConfig = serviceProvider.GetRequiredService<IOptions<ConsulConfig>>();
-
-                ConsulClient client = new ConsulClient(config => {
-                    config.Address = new Uri(consulConfig.Value.Address);
-                });
-
-                return client;
             });
         }
 
@@ -184,7 +193,7 @@ namespace Agenda.API
         /// <param name="configuration"></param>
         public static void AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
-            ApplicationEnvironment app = PlatformServices.Default.Application;
+            (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
@@ -203,7 +212,7 @@ namespace Agenda.API
 
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
-                string documentationPath = Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml");
+                string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");
                 if (File.Exists(documentationPath))
                 {
                     config.IncludeXmlComments(documentationPath);
@@ -212,5 +221,26 @@ namespace Agenda.API
                 config.DescribeAllEnumsAsStrings();
             });
         }
+
+        /// <summary>
+        /// Configures the authentication middleware
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
+                        ValidAudience = configuration["Authentication:JwtBearer:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
+                    };
+                });
     }
 }

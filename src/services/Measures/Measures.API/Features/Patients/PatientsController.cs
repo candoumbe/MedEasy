@@ -328,7 +328,7 @@ namespace Measures.API.Features.Patients
                             search.PageSize
                         })
 ,
-                        count: page.Total);
+                        total: page.Total);
                 actionResult = new OkObjectResult(response);
             }
             else

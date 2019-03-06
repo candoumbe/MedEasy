@@ -64,6 +64,14 @@ namespace Agenda.API
         /// <param name="applicationLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
+            
+            if (env.IsProduction())
+            {
+                app.UseHsts();
+            }
+            app.UseHttpsRedirection();
+
+
             app.UseHttpMethodOverride();
 
             if (env.IsProduction() || env.IsStaging())
@@ -76,7 +84,6 @@ namespace Agenda.API
                 loggerFactory.AddDebug();
                 loggerFactory.AddConsole();
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
 
                 if (env.IsDevelopment())
                 {

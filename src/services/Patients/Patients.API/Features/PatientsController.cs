@@ -476,7 +476,7 @@ namespace Patients.API.Controllers
                             search.PageSize
                         })
 ,
-                        count: pageOfResources.Total);
+                        total: pageOfResources.Total);
 
                 actionResult = new OkObjectResult(page);
             }

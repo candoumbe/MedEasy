@@ -20,6 +20,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.Controllers
 {
+    [ApiController]
     [Route("agenda/[controller]")]
     public class AppointmentsController
     {
@@ -53,7 +54,7 @@ namespace Agenda.API.Controllers
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status201Created)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewAppointmentInfo newAppointment, CancellationToken ct = default)
         {
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(newAppointment), ct)
@@ -82,11 +83,12 @@ namespace Agenda.API.Controllers
         /// <param name="ct">Notifies to cancel the execution of the request</param>
         /// <returns></returns>
         /// <response code="200"/>
+        /// <response code="400">Page or pageSize is negative or 0</response>
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentInfo>>), Status200OK)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = pageSize };
             pagination.PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pagination.PageSize);
@@ -115,10 +117,10 @@ namespace Agenda.API.Controllers
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize })
                     : null,
                 last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize }),
-                count: result.Total
+                total: result.Total
             );
 
-            IActionResult actionResult = new OkObjectResult(response);
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = response;
 
             return actionResult;
         }
@@ -137,7 +139,7 @@ namespace Agenda.API.Controllers
         [HttpHead("{id}")]
         [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status200OK)]
         [ProducesResponseType(Status404NotFound)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
             Option<AppointmentInfo> optionalAppointment = await _mediator.Send(new GetOneAppointmentInfoByIdQuery(id), ct)
@@ -195,7 +197,7 @@ namespace Agenda.API.Controllers
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentInfo>>), Status200OK)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery] SearchAppointmentInfo search, CancellationToken ct = default)
         {
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
@@ -220,7 +222,7 @@ namespace Agenda.API.Controllers
                     ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, search.Participant })
                     : null,
                 last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, search.Participant }),
-                count: page.Total
+                total: page.Total
             );
 
             return new OkObjectResult(response);
@@ -242,7 +244,7 @@ namespace Agenda.API.Controllers
         [ProducesResponseType(Status204NoContent)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Delete(Guid appointmentId, Guid participantId, CancellationToken ct = default)
         {
             RemoveParticipantFromAppointmentByIdCommand cmd = new RemoveParticipantFromAppointmentByIdCommand(data : (appointmentId, participantId));

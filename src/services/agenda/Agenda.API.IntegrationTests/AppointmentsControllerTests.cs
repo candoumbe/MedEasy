@@ -10,6 +10,7 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -46,15 +47,16 @@ namespace Agenda.API.IntegrationTests
             Type = JSchemaType.Object,
             Properties =
             {
-                [nameof(ErrorObject.Code).ToLower()] = new JSchema { Type = JSchemaType.String},
-                [nameof(ErrorObject.Description).ToLower()] = new JSchema { Type = JSchemaType.String},
-                [nameof(ErrorObject.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
+                [nameof(ValidationProblemDetails.Title).ToLower()] = new JSchema { Type = JSchemaType.String},
+                [nameof(ValidationProblemDetails.Status).ToLower()] = new JSchema { Type = JSchemaType.Number},
+                [nameof(ValidationProblemDetails.Detail).ToLower()] = new JSchema { Type = JSchemaType.String },
+                [nameof(ValidationProblemDetails.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
             },
             Required =
             {
-                nameof(ErrorObject.Code).ToLower(),
-                nameof(ErrorObject.Description).ToLower(),
-                nameof(ErrorObject.Errors).ToLower()
+                nameof(ValidationProblemDetails.Title).ToLower(),
+                nameof(ValidationProblemDetails.Status).ToLower(),
+
             }
         };
         private static JSchema _pageLink = new JSchema
@@ -76,7 +78,7 @@ namespace Agenda.API.IntegrationTests
             Properties =
             {
                 [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                [nameof(GenericPagedGetResponse<object>.Count).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
+                [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
                 [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
                 {
                     Type = JSchemaType.Object,
@@ -98,7 +100,7 @@ namespace Agenda.API.IntegrationTests
             {
                 nameof(GenericPagedGetResponse<object>.Items).ToLower(),
                 nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                nameof(GenericPagedGetResponse<object>.Count).ToLower()
+                nameof(GenericPagedGetResponse<object>.Total).ToLower()
             }
 
         };
@@ -193,13 +195,13 @@ namespace Agenda.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
-            response.IsSuccessStatusCode.Should().BeFalse("Invalid page and/or pageSize");
-            ((int)response.StatusCode).Should().Be(Status400BadRequest);
-
+            
             string content = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
-
             _outputHelper.WriteLine($"Response content : {content}");
+
+            response.IsSuccessStatusCode.Should().BeFalse("Invalid page and/or pageSize");
+            ((int)response.StatusCode).Should().Be(Status400BadRequest);
 
             content.Should()
                 .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
@@ -208,11 +210,11 @@ namespace Agenda.API.IntegrationTests
             token.IsValid(_errorObjectSchema)
                 .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-            ErrorObject errorObject = token.ToObject<ErrorObject>();
-            errorObject.Code.Should()
-                .Be("BAD_REQUEST");
-            errorObject.Description.Should()
+            ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
+            errorObject.Title.Should()
                 .Be("Validation failed");
+            errorObject.Detail.Should()
+                .MatchEquivalentOf("* validation error*");
             errorObject.Errors.Should()
                 .NotBeEmpty();
 
@@ -234,8 +236,8 @@ namespace Agenda.API.IntegrationTests
                 yield return new object[]
                 {
                     "?page=-1" ,
-                    ((Expression<Func<ErrorObject, bool>>)(err => err.Code == "BAD_REQUEST"
-                        && err.Description == "Validation failed"
+                    ((Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
+                        && err.Title == "Validation failed"
                         && err.Errors != null
                         && err.Errors.ContainsKey("page")
                     )),
@@ -245,8 +247,8 @@ namespace Agenda.API.IntegrationTests
                 yield return new object[]
                 {
                     "?pageSize=-1" ,
-                    ((Expression<Func<ErrorObject, bool>>)(err => err.Code == "BAD_REQUEST"
-                        && err.Description == "Validation failed"
+                    ((Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
+                        && err.Title == "Validation failed"
                         && err.Errors != null
                         && err.Errors.ContainsKey("pageSize")
                     )),
@@ -257,7 +259,7 @@ namespace Agenda.API.IntegrationTests
 
         [Theory]
         [MemberData(nameof(InvalidSearchCases))]
-        public async Task GivenInvalidCriteria_Search_Returns_BadRequest(string queryString, Expression<Func<ErrorObject, bool>> errorObjectExpectation, string reason)
+        public async Task GivenInvalidCriteria_Search_Returns_BadRequest(string queryString, Expression<Func<ValidationProblemDetails, bool>> errorObjectExpectation, string reason)
         {
             _outputHelper.WriteLine($"search query string : {queryString}");
 
@@ -287,8 +289,7 @@ namespace Agenda.API.IntegrationTests
             token.IsValid(_errorObjectSchema)
                 .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
 
-            ErrorObject errorObject = token.ToObject<ErrorObject>();
-
+            ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
             errorObject.Should().Match(errorObjectExpectation, reason);
         }
 
@@ -345,7 +346,7 @@ namespace Agenda.API.IntegrationTests
 
         [Theory]
         [MemberData(nameof(GetCountCases))]
-        public async Task Enpoint_Provides_CountsHeaders(IEnumerable<NewAppointmentInfo> newAppointments, string url, (int total, int count) countHeaders)
+        public async Task Enpoint_Provides_CountsHeaders(IEnumerable<NewAppointmentInfo> newAppointments, string url, (int total, int count) expectedCountHeaders)
         {
             // Arrange
             _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
@@ -383,12 +384,12 @@ namespace Agenda.API.IntegrationTests
             response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
                 .HaveCount(1).And
                 .ContainSingle().And
-                .ContainSingle(value => value == countHeaders.total.ToString());
+                .ContainSingle(value => value == expectedCountHeaders.total.ToString());
 
             response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
                 .HaveCount(1).And
                 .ContainSingle().And
-                .ContainSingle(value => value == countHeaders.count.ToString());
+                .ContainSingle(value => value == expectedCountHeaders.count.ToString());
         }
 
         [Fact]

@@ -269,8 +269,8 @@ namespace Measures.API.Tests.Features.BloodPressures
                 .NotContain(x => x.Resource == null).And
                 .NotContain(x => x.Links == null);
 
-            response.Count.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageLinksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageLinksExpectation.previousPageUrlExpectation);
@@ -470,8 +470,8 @@ namespace Measures.API.Tests.Features.BloodPressures
                     .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self));
             }
 
-            response.Count.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

@@ -141,7 +141,7 @@ namespace Agenda.API.UnitTests.Features
                 .ReturnsAsync(Page<AppointmentInfo>.Default);
 
             // Act
-            IActionResult actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -149,10 +149,10 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAppointmentInfoQuery>(q => q.Data.Page == page && q.Data.PageSize == pageSize), It.IsAny<CancellationToken>()), Times.Once);
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
 
-            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Should()
-                .NotBeNull().And
-                .BeAssignableTo<OkObjectResult>("the request completed successfully").Which
-                .Value.Should()
+            actionResult.Should()
+                .NotBeNull();
+
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Value.Should()
                 .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
 
             response.Items.Should()
@@ -476,7 +476,7 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize)
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize)
                 .ConfigureAwait(false);
 
             // Assert
@@ -484,15 +484,13 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
+                    .NotBeNull();
+            
+            actionResult.Value.Should()
                     .NotBeNull().And
-                    .BeOfType<OkObjectResult>();
-            ObjectResult okObjectResult = (OkObjectResult)actionResult;
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>();
 
-            object value = okObjectResult.Value;
-
-            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = okObjectResult.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
+            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -507,8 +505,8 @@ namespace Agenda.API.UnitTests.Features
                     .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self), "links must contain only self relation");
             }
 
-            response.Count.Should()
-                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
@@ -668,8 +666,8 @@ namespace Agenda.API.UnitTests.Features
                     .OnlyContain(x => x.Links.Once(link => link.Relation == LinkRelation.Self), "links must contain only self relation");
             }
 
-            response.Count.Should()
-                    .Be(page.Total, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Count)}"" property indicates the number of elements");
+            response.Total.Should()
+                    .Be(page.Total, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should()
                 .NotBeNull().And

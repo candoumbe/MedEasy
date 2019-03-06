@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using static Newtonsoft.Json.JsonConvert;
 
@@ -9,7 +10,7 @@ namespace MedEasy.RestObjects
     /// </summary>
     /// <typeparam name="T">Type of items that will be wrapped in a paged result</typeparam>
     [JsonObject]
-    public class GenericPagedGetResponse<T>
+    public class GenericPagedGetResponse<T> : IGenericPagedGetResponse
     {
         /// <summary>
         /// Links that helps navigated through pages of the result
@@ -25,12 +26,12 @@ namespace MedEasy.RestObjects
         /// <param name="previous"><see cref="Link"/> to the previous page of response</param>
         /// <param name="next"><see cref="Link"/> to the next page of response</param>
         /// <param name="last"><see cref="Link"/> to the last page of response</param>
-        /// <param name="count">Total count of items</param>
-        public GenericPagedGetResponse(IEnumerable<T> items, string first = null, string previous = null, string next = null, string last = null, int count = 0)
+        /// <param name="total">Total count of items</param>
+        public GenericPagedGetResponse(IEnumerable<T> items, string first = null, string previous = null, string next = null, string last = null, int total = 0)
         {
             Items = items;
             Links = new PageLinks(first, previous, next, last);
-            Count = count;
+            Total = total;
         }
         /// <summary>
         /// The items of the current page of result
@@ -42,8 +43,10 @@ namespace MedEasy.RestObjects
         /// Number of items in the the result
         /// </summary>
         [JsonProperty]
-        public int Count { get; }
+        public int Total { get; }
 
+        [JsonProperty]
+        public int Count => Items?.Count() ?? 0;
 
         public override string ToString() => SerializeObject(this, Formatting.Indented);
     }

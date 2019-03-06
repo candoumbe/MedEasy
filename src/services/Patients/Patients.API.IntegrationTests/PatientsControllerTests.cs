@@ -91,7 +91,7 @@ namespace Patients.API.IntegrationTests
             Properties =
                 {
                     [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                    [nameof(GenericPagedGetResponse<object>.Count).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
+                    [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
                     [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
                     {
                         Type = JSchemaType.Object,
@@ -113,7 +113,7 @@ namespace Patients.API.IntegrationTests
                 {
                     nameof(GenericPagedGetResponse<object>.Items).ToLower(),
                     nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Count).ToLower()
+                    nameof(GenericPagedGetResponse<object>.Total).ToLower()
                 }
 
         };

@@ -89,7 +89,7 @@ namespace Identity.API.Features.Accounts
                     ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize })
                     : null,
                 last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize }),
-                count: page.Total
+                total: page.Total
             );
 
             return new OkObjectResult(result);
@@ -354,7 +354,7 @@ namespace Identity.API.Features.Accounts
                     ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName })
                     : null,
                 last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
-                count: searchResult.Total
+                total: searchResult.Total
             ));
         }
     }

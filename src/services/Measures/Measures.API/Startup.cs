@@ -70,13 +70,13 @@ namespace Measures.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
             app.UseAuthentication();
-#if NETCOREAPP2_1
+
             if (env.IsProduction())
             {
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
-#endif
+
             app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {

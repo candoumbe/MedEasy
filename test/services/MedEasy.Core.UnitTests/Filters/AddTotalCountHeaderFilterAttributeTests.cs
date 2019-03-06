@@ -60,7 +60,7 @@ namespace MedEasy.Core.UnitTests.Filters
 
                 yield return new object[]
                 {
-                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), count: 20),
+                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
                     (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                         && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
@@ -123,7 +123,7 @@ namespace MedEasy.Core.UnitTests.Filters
             {
                 yield return new object[]
                 {
-                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), count: 20),
+                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
                     (expectedTotalCount : 20, expectedCount : 0)
                 };
                 {
@@ -144,7 +144,7 @@ namespace MedEasy.Core.UnitTests.Filters
                     int resourcesCount = resources.Count();
                     yield return new object[]
                     {
-                        new GenericPagedGetResponse<Browsable<Minion>>(resources, count: resourcesCount),
+                        new GenericPagedGetResponse<Browsable<Minion>>(resources, total: resourcesCount),
                         (expectedTotal : resourcesCount, expectedCount : resourcesCount)
                     };
                 }

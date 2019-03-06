@@ -405,7 +405,7 @@ namespace Measures.API.Features.BloodPressures
                     previous: previousPageUrl,
                     next: nextPageUrl,
                     last: lastPageUrl,
-                    count: pageOfResult.Total);
+                    total: pageOfResult.Total);
 
                 actionResult = new OkObjectResult(reponse);
             }

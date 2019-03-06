@@ -76,7 +76,7 @@ namespace Agenda.API.Resources
                     : null,
 
                 last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = result.Count, pageSize }),
-                count : result.Total
+                total : result.Total
             );
 
             return new OkObjectResult(resources);
