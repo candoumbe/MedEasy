@@ -204,20 +204,19 @@ export class EndpointPageOfData<TResource extends Browsable<MedEasy.DTO.Resource
                 <nav aria-label="Pagination">
                     <ul className="pager">
                         <li>
-                            <button className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
+                            <Button className={`btn btn-default ${pageIndexes.length > 0 ? "" : "hidden"}`}
                                 title={first.title}
                                 disabled={this.state.page === 1}
                                 aria-label="1"
                                 onClick={() => this.loadData(1)}>
                                 <span aria-hidden="true">&laquo;</span>
-                            </button>
+                            </Button>
                             {
                                 pageIndexes.forEach((i) => {
-                                    <button
-                                        className="btn btn-default"
+                                    <Button key={`btn-pager-${i}`}
                                         onClick={() => this.loadData(i)}>
                                         <span aria-hidden="true"></span>&nbsp;{i}
-                                    </button>
+                                    </Button>
                                 })
                             }
                         </li>

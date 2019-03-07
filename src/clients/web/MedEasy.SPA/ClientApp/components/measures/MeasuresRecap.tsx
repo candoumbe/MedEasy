@@ -30,7 +30,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
         
         return (<div>
             <BloodPressures
-                restClient={new RestClient({ host: `${this.props.restClient.options.host}/bloodpressures`, defaultHeaders: this.props.restClient.options.defaultHeaders, beforeRequestCallback: this.props.restClient.options.beforeRequestCallback })}
+                restClient={new RestClient({ baseUrl: `${this.props.restClient.options.baseUrl}/bloodpressures`, defaultHeaders: this.props.restClient.options.defaultHeaders, beforeRequestCallback: this.props.restClient.options.beforeRequestCallback })}
                 capabilities={
                     {
                         create: true,
@@ -60,7 +60,7 @@ export class MeasuresRecap extends React.Component<MeasuresRecapProps, MeasuresR
                         delete: true
                     }
                 }
-                restClient={new RestClient({ host: `${this.props.restClient.options.host}/body-weights`, defaultHeaders: this.props.restClient.options.defaultHeaders, beforeRequestCallback: this.props.restClient.options.beforeRequestCallback })}
+                restClient={new RestClient({ baseUrl: `${this.props.restClient.options.baseUrl}/body-weights`, defaultHeaders: this.props.restClient.options.defaultHeaders, beforeRequestCallback: this.props.restClient.options.beforeRequestCallback })}
                 count={10}
                 resourceName={{ singular: 'body weight', plural: 'body weights' }}
                 columns={

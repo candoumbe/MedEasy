@@ -1,22 +1,5 @@
 ﻿import { Option } from "./Option_Maybe";
-import { PageOfResult } from "./../restObjects/PageOfResult";
-import { TokenService } from "./../services/TokenService"
-import { Browsable } from "ClientApp/restObjects/Browsable";
-
-interface RestClientOptions {
-    /** url of the rest endpoint */
-    readonly host: string,
-    /**
-     * Function to call when computing default headers that will be added to each request made
-     */
-    readonly defaultHeaders?: () => { [key: string]: string },
-    /**
-     * Method to call before performing any request
-     */
-    readonly beforeRequestCallback?: () => Promise<void>
-
-}
-
+import { RestClientOptions } from "./RestClientOptions";
 
 
 export class RestClient {
@@ -25,10 +8,7 @@ export class RestClient {
      * Builds a new RestClient instance
      * @param {RestClientOptions} options 
      */
-    public constructor(public readonly options: RestClientOptions) {
-
-
-    }
+    public constructor(public readonly options: RestClientOptions) {}
 
 
     private buildRequestUrl<TInput>(request: undefined | TInput | { page: number, pageSize: number }) {
@@ -36,12 +16,12 @@ export class RestClient {
         let url: string | undefined;
         if (request) {
             if (request.hasOwnProperty("page") || obj.hasOwnProperty("pageSize")) {
-                url = `${this.options.host}/?page=${request['page']}&pageSize=${request['pageSize']}`
+                url = `${this.options.baseUrl}/?page=${request['page']}&pageSize=${request['pageSize']}`
             } else {
-                url = `${this.options.host}/${request}`;
+                url = `${this.options.baseUrl}/${request}`;
             }
         } else {
-            url = `${this.options.host}/`;
+            url = `${this.options.baseUrl}/`;
         }
 
         return url;
@@ -112,4 +92,27 @@ export class RestClient {
 
 
     }
+
+    /**
+     * Creates a resource
+     * @param data
+     */
+    public async put<TInput, TResult>(data: TInput): Promise<TResult> {
+        if (this.options.beforeRequestCallback) {
+            await this.options.beforeRequestCallback();
+        }
+
+        let response = await fetch(this.buildRequestUrl(null), { method: 'PUT', body: JSON.stringify(data), headers: this.buildRequestDefaultHeaders() });
+        let updated: TResult;
+        if (response.ok) {
+            updated = await response.json() as TResult;
+        }
+
+        return updated;
+
+
+    }
+
+
+
 }

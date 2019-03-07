@@ -37,7 +37,7 @@ export class TokenService {
      */
     public async refresh(username: string, token: MedEasy.DTO.BearerTokenInfo): Promise<Option<Promise<MedEasy.DTO.BearerTokenInfo>, Promise<{ [key: string]: string | Array<string> }>>> {
         let response = await fetch(`${this.url}/${username}`, {
-            method: "PATCH",
+            method: "PUT",
             headers: { "Authorization": `Bearer ${token.accessToken}` },
             body: JSON.stringify(token)
         });

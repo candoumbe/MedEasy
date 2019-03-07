@@ -18,7 +18,12 @@ interface PatientDetailsComponentState {
     /** The patient currently displayed */
     patient: null | Browsable<MedEasy.DTO.Patient>,
     loading: boolean | undefined,
-    creatingAppointment: boolean | undefined
+    creatingAppointment: boolean | undefined,
+    newAppointmentFormState?: {
+        startDate: Date,
+        title: string,
+        doctorId: Guid
+    }
 }
 
 /**
@@ -39,15 +44,14 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
 
     public constructor(props: PatientDetailsComponentProps) {
         super(props);
-        this.state = { loading: true, patient: null, creatingAppointment: false };
+        this.state = {
+            loading: true,
+            patient: null,
+            creatingAppointment: false
+        };
 
         this.loadContent()
             .then(() => console.trace("Details loaded"));
-        this.measuresRestClient = new RestClient({
-            host: `${this.props.measuresEndpoint}/patients/${this.props.id}`,
-            beforeRequestCallback: this.props.restClient.options.beforeRequestCallback,
-            defaultHeaders: this.props.restClient.options.defaultHeaders
-        });
     }
 
     private async loadContent(): Promise<void> {
@@ -68,8 +72,6 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
             component = <LoadingComponent />
         } else if (this.state.patient) {
             let browsablePatient = this.state.patient;
-            let measures = PatientDetails.measures.filter(measure => browsablePatient.links.some((link) => measure.relation == link.relation));
-            let measuresComponents: Array<JSX.Element> = [];
 
             component = <div>
                 <div className="page-header">
@@ -88,42 +90,37 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
                         <ModalTitle>Nouveau rendez-vous</ModalTitle>
                     </ModalHeader>
                     <ModalBody>
-                        <Form action="">
+                        <Form>
+
                             <FormGroup>
                                 <label htmlFor={"dateDebut"}>Date</label>
-                                <FormControl type="date" name="startDate" min={new Date().toString()} />
-                                <span>à</span>
-                                <select name={"startHour"} id={"startHour"}>
+                                <FormControl type="date" name="startDate" min={new Date().toString()} size={6} />
+
+                                <select name={"startHour"} id={"startHour"} className="form-control" contentEditable>
                                     {
                                         LinQ.range(8, 10, 1).toArray()
-                                            .map((hour) => <option value={hour} defaultValue={now.getHours().toString()}>{hour}</option>)
+                                            .map((hour) => <option key={hour} value={hour} selected={now.getHours() == hour}>{hour}</option>)
                                     }
                                 </select>
                             </FormGroup>
-                                <FormControl type="text" name="title" min={new Date().toString()} />
 
-                            <Row>
-                                <Col lg={2}>
-                                    <label htmlFor={"title"}>Objet</label>
-                                </Col>
-                                <Col>
-                                    <input type="text" name="title" min={new Date().toISOString()} />
-                                </Col>
-                            </Row>
+                            <FormGroup>
+                                <label htmlFor={"title"}>Objet</label>
+                                <FormControl type="text" name="title" placeholder="Certificat médical, bilan, ..." />
+                            </FormGroup>
                         </Form>
                         <ModalFooter>
-
-                            <Button bsStyle="success" onClick={() => this.setState({ creatingAppointment: false })}>
+                            <Button bsStyle="success" as="submit" onClick={() => this.setState({ creatingAppointment: false })}>
                                 Enregistrer
-                        </Button>
+                            </Button>
                             <Button bsStyle="danger" onClick={() => this.setState({ creatingAppointment: false })}>
                                 Annuler
-                        </Button>
+                            </Button>
                         </ModalFooter>
                     </ModalBody>
                 </Modal>
 
-            </div>
+            </div >
         } else {
             component = <NotFoundComponent />;
         }

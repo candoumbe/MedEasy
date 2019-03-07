@@ -6,6 +6,7 @@ import { AuthenticationService } from './../services/AuthenticationService';
 import { LoginFailedException } from './../System/Exceptions/LoginFailedException';
 import { BaseAuthenticatedComponentProps } from './BaseAuthenticatedComponent';
 import { FormComponent } from './FormComponent';
+import { Button, InputGroup } from 'react-bootstrap';
 
 /**
  * Renders a form to log into the application
@@ -25,7 +26,7 @@ interface LoginFormProps extends BaseAuthenticatedComponentProps {
 }
 
 export class LoginForm extends React.Component<LoginFormProps, LoginFormState>{
-    
+
     private form: Form;
 
     public constructor(props: LoginFormProps) {
@@ -37,7 +38,7 @@ export class LoginForm extends React.Component<LoginFormProps, LoginFormState>{
             isConnected: false
         };
 
-        let fields : Array<FormField> = [
+        let fields: Array<FormField> = [
             { label: "Email", name: "username", type: "string", required: true },
             { label: "Password", name: "password", type: "string", required: true, secret: true }
         ];
@@ -104,16 +105,19 @@ export class LoginForm extends React.Component<LoginFormProps, LoginFormState>{
                 });
             };
 
-            component = <FormComponent form={this.form} handleSubmit={submit} onChange={handleChange} errors={this.state.errors}>
+            component = (
+                <FormComponent form={this.form} handleSubmit={submit}
+                    onChange={handleChange} errors={this.state.errors}>
 
-                <nav className='center-block'>
-                    <button type="submit" className="btn btn-primary btn-xs-12 btn-sm-6" disabled={!this.isValid() || this.state.isBusy}>
-                        <span className="glyphicon glyphicon-enter"></span>&nbsp;Sign in
-                </button>
-                    <span> or </span>
-                    <Link to={"/sign-up"} replace>create an account</Link>
-                </nav>
-            </FormComponent>
+                    <nav className='center-block'>
+                        <Button as="submit" bsStyle="primary" disabled={!this.isValid() || this.state.isBusy}>
+                            <span className="glyphicon glyphicon-enter" aria-hidden="true"></span>&nbsp;Sign in
+                        </Button>
+                        <span> or </span>
+                        <Link to={"/sign-up"} replace>create an account</Link>
+                    </nav>
+                </FormComponent>
+            );
         }
         return component;
     }

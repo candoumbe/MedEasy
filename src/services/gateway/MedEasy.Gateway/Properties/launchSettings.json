@@ -19,7 +19,7 @@
     "MedEasy.Gateway": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "/hc",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

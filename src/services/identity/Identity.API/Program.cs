@@ -29,13 +29,14 @@ namespace Identity.API
                 IServiceProvider services = scope.ServiceProvider;
                 ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
                 IdentityContext context = services.GetRequiredService<IdentityContext>();
-                logger?.LogInformation("Starting {{ApplicationContext}}", _appName);
+                IHostingEnvironment hostingEnvironment = services.GetRequiredService<IHostingEnvironment>();
+                logger?.LogInformation("Starting {ApplicationContext}", hostingEnvironment.ApplicationName);
 
                 try
                 {
                     if (!context.Database.IsInMemory())
                     {
-                        logger?.LogInformation("Upgrading {{ApplicationContext}}'s store", _appName);
+                        logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
                         // Forces database migrations on startup
                         RetryPolicy policy = Policy
                             .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
@@ -45,7 +46,7 @@ namespace Identity.API
                                 onRetry: (exception, timeSpan, attempt, pollyContext) =>
                                     logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})")
                                 );
-                        logger?.LogInformation("Starting {{ApplictationContext}} database migration", _appName);
+                        logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
 
                         // Forces datastore migration on startup
                         await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
@@ -76,7 +77,7 @@ namespace Identity.API
                 .UseStartup<Startup>()
                 .UseSerilog((hosting, loggerConfig) => loggerConfig
                     .MinimumLevel.Verbose()
-                    .Enrich.WithProperty("ApplicationContext", _appName)
+                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
                     .ReadFrom.Configuration(hosting.Configuration)

@@ -13,11 +13,16 @@ export interface LayoutProps extends BaseAuthenticatedComponentProps {
 
 
 
-export class Layout extends BaseAuthenticatedComponent<LayoutProps, {}> {
+export class Layout extends BaseAuthenticatedComponent<LayoutProps, { connected: boolean}> {
 
 
     public constructor(props: LayoutProps) {
         super(props)
+        this.state = { connected: false };
+    }
+
+    public shouldComponentUpdate(nextProps: Readonly<LayoutProps>, nextState: Readonly<{ connected: boolean }>, nextContext: any) {
+        return this.props.authService.isConnected() != this.state.connected;
     }
 
     public render(): any {
@@ -34,6 +39,6 @@ export class Layout extends BaseAuthenticatedComponent<LayoutProps, {}> {
                 </Row>
             </div>
             )
-            : this.props.children
+            : <LoginForm authService={this.props.authService} history={this.props.history}/>
     }
 }

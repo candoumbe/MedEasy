@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link, NavLink, Redirect } from 'react-router-dom';
 import {
-    Button, Navbar, NavbarBrand, NavbarHeader, NavbarCollapse, ListGroup, ListGroupItem, Nav, NavbarToggle
+    Button, Navbar, NavbarBrand, NavbarHeader, NavbarCollapse, ListGroup, ListGroupItem, Nav, NavbarToggle, ButtonToolbar
 } from "react-bootstrap"
 import { AuthenticationService } from './../services/AuthenticationService';
 
@@ -14,6 +14,14 @@ export class NavMenu extends React.Component<NavMenuProps, { redirectToSignin: b
     public constructor(props) {
         super(props);
         this.state = { redirectToSignin: false };
+    }
+
+    /**
+     * Disconnects the currently connected user and redirect to the login page
+     */
+    private async disconnect(): Promise<void> {
+        await this.props.authService.logout();
+        this.setState({ redirectToSignin: true });
     }
 
     public render(): JSX.Element {
@@ -50,20 +58,22 @@ export class NavMenu extends React.Component<NavMenuProps, { redirectToSignin: b
                             <li>
                                 <NavLink to={'/patients'} activeClassName='active'>
                                     <span className='glyphicon glyphicon-th-list'></span> Patients
-                            </NavLink>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <Button bsStyle="danger" block onClick={async () => await this.disconnect()}>
+                                    <span className="glyphicon glyphicon-off" aria-hidden="true"></span> Disconnect
+                                </Button>
+
                             </li>
                         </ul>
                     </div>
-                    <div className='clearfix'></div>
-                    <div className='navbar-footer'>
-                        <div className="navbar-footer">
-                            <Button bsStyle="danger" onClick={async () => {
-                                await this.props.authService.logout();
-                                this.setState({ redirectToSignin: true });
-                            }}>Disconnect</Button>
 
-                        </div>
+                    <div className="navbar-footer">
+
+
                     </div>
+
                 </div>
             </div>;
         }

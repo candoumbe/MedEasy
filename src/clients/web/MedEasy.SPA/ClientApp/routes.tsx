@@ -12,6 +12,7 @@ import { SignUpForm } from './components/SignUp';
 import { AuthenticationService } from './services/AuthenticationService';
 import { RestClient } from "./System/RestClient";
 
+let rootUrl = "https://localhost:51800";
 let identityUrl = "https://localhost:51800";
 let authService = new AuthenticationService(`${identityUrl}/auth/token`);
 
@@ -35,7 +36,7 @@ const apis = {
     patients: {
         url: "https://localhost:54003",
         client: new RestClient({
-            host: "https://localhost:54003/patients",
+            baseUrl: "https://localhost:54003/patients",
             defaultHeaders: computeDefaultHeaders,
             beforeRequestCallback: fnRenewAccessToken,
         })
