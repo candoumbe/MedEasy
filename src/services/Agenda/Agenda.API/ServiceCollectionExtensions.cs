@@ -62,7 +62,7 @@ namespace Agenda.API
                 options.Filters.Add<HandleErrorAttribute>();
                 options.Filters.Add<AddCountHeadersFilterAttribute>();
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            }).SetCompatibilityVersion( CompatibilityVersion.Version_2_1) 
+            }).SetCompatibilityVersion( CompatibilityVersion.Version_2_2)
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;

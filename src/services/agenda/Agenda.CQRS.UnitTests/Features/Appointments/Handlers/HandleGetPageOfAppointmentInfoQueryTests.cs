@@ -33,7 +33,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
     public class HandleGetPageOfAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;
-        private IMapper _mapper;
         private Mock<IDateTimeService> _dateTimeServiceMock;
         private HandleGetPageOfAppointmentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
@@ -59,8 +58,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
-                uow.Repository<Appointment>().Delete(x => true);
+                uow.Repository<Participant>().Clear();
+                uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -113,10 +112,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         items,
                         10.April(2000),
                         (2, 10),
-                        ((Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 5
+                        (Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 5
                             && page.Total == 50
                             && page.Entries != null && page.Entries.Count() == 10
-                        )),
+                        ),
                         "DataStore contains elements"
                     };
                 }

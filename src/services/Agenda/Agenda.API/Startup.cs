@@ -81,8 +81,7 @@ namespace Agenda.API
             }
             else
             {
-                loggerFactory.AddDebug();
-                loggerFactory.AddConsole();
+
                 app.UseDeveloperExceptionPage();
 
                 if (env.IsDevelopment())

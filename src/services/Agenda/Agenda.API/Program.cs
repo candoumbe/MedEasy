@@ -1,17 +1,16 @@
 ﻿using Agenda.DataStores;
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using Serilog;
 using System;
 using System.Data.SqlClient;
-using Serilog;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 namespace Agenda.API
 {
@@ -19,7 +18,7 @@ namespace Agenda.API
     public class Program
 #pragma warning restore RCS1102 // Make class static.
     {
-        private static string _appName = typeof(Program).Namespace;
+        private static readonly string _appName = typeof(Program).Namespace;
 
         public static async Task Main(string[] args)
         {
@@ -75,6 +74,7 @@ namespace Agenda.API
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
             => WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
                 .UseSerilog((hosting, loggerConfig) => loggerConfig
                     .MinimumLevel.Verbose()
                     .Enrich.WithProperty("ApplicationContext", _appName)
@@ -82,6 +82,10 @@ namespace Agenda.API
                     .WriteTo.Console()
                     .ReadFrom.Configuration(hosting.Configuration)
                 )
+                .ConfigureLogging((hosting, options) => {
+                    options.AddConsole()
+                        .AddDebug();
+                })
                 .ConfigureAppConfiguration((context, builder) =>
 
                     builder
