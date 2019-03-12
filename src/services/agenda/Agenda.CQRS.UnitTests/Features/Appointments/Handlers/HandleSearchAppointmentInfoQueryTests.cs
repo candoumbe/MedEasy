@@ -15,7 +15,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,14 +23,12 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Newtonsoft.Json.Formatting;
-using static Newtonsoft.Json.JsonConvert;
-using static Newtonsoft.Json.NullValueHandling;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
+    [Feature("Search")]
     public class HandleSearchAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
@@ -63,8 +60,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
-                uow.Repository<Appointment>().Delete(x => true);
+                uow.Repository<Participant>().Clear();
+                uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -93,7 +90,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         expectedPageCount : 1,
                         expectedPageSize : 10,
                         expetedTotal : 0,
-                        itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null && !items.Any()))
+                        itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null && !items.Any())
                     )
                 };
                 {
@@ -120,7 +117,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 1,
                             expectedPageSize : 10,
                             expetedTotal : 0,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null && !items.Any()))
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null && !items.Any())
                         )
                     };
                 }
@@ -150,10 +147,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 1,
                             expectedPageSize : 10,
                             expetedTotal : 10,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
                                 && items.Count() == 10
                                 && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
-                            ))
+                            )
                         )
                     };
                 }
@@ -183,10 +180,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 2,
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
                                 && items.Count() == 5
                                 && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
-                            ))
+                            )
                         )
                     };
                 }
@@ -216,10 +213,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 2,
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
                                 && items.Count() == 2
                                 && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
-                            ))
+                            )
                         )
                     };
                 }
@@ -231,7 +228,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
                         .RuleFor(x => x.UUID, () => Guid.NewGuid())
                         .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
-                        .RuleFor(x => x.EndDate, app => 2.January(2010).Add(14.Hours()));
+                        .RuleFor(x => x.EndDate, () => 2.January(2010).Add(14.Hours()));
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
                     SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
@@ -248,10 +245,57 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageCount : 2,
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
-                            itemsExpectation : ((Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
                                 && items.Count() == 2
                                 && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
-                            ))
+                            )
+                        )
+                    };
+                }
+
+                {
+                    Faker<Appointment> appointmentFaker = new Faker<Appointment>()
+                        .RuleFor(x => x.Id, () => 0)
+                        .RuleFor(x => x.Location, faker => faker.Address.City())
+                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
+                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
+                        .RuleFor(x => x.StartDate, 1.January(2010).Add(13.Hours()))
+                        .RuleFor(x => x.EndDate, () => 2.January(2010).Add(14.Hours()));
+
+                    IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
+                    IEnumerable<Participant> participants = new[]
+                    {
+                        new Participant { Id = 1, Name = "Bruce Wayne", UUID = Guid.NewGuid()  },
+                        new Participant { Id = 2, Name = "Damian Wayne", UUID = Guid.NewGuid()  },
+                        new Participant { Id = 3, Name = "Dick Grayson", UUID = Guid.NewGuid()  }
+                    };
+
+                    foreach (Participant participant in participants)
+                    {
+                        appointments
+                            .Last().AddParticipant(participant);
+                    }
+
+                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    {
+                        From = 1.January(2010),
+                        Page = 2,
+                        PageSize = 5,
+                        Participant = "w*"
+                    };
+                    yield return new object[]
+                    {
+                        appointments,
+                        searchAppointmentInfo,
+                        (
+                            expectedPageCount : 1,
+                            expectedPageSize : searchAppointmentInfo.PageSize,
+                            expetedTotal : 1,
+                            itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
+                                && items.Count() == 1
+                                && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
+                                && items.All(x => x.Participants.Any(participant => participant.Name.Like("w*")))
+                            )
                         )
                     };
                 }
@@ -263,8 +307,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         public async Task GivenDataStoreHasRecords_Handle_Returns_Data(IEnumerable<Appointment> appointments, SearchAppointmentInfo searchCriteria,
             (int expectedPageCount, int expectedPageSize, int expectedTotal, Expression<Func<IEnumerable<AppointmentInfo>, bool>> itemsExpectation) expectations)
         {
-            string ToString(object o) => SerializeObject(o, new JsonSerializerSettings { Formatting = Indented, NullValueHandling = Ignore });
-
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -272,8 +314,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"DataStore : {ToString(appointments)}");
-                _outputHelper.WriteLine($"Search criteria : {ToString(searchCriteria)}");
+                _outputHelper.WriteLine($"DataStore : {appointments.Stringify()}");
+                _outputHelper.WriteLine($"Search criteria : {searchCriteria.Stringify()}");
             }
 
             SearchAppointmentInfoQuery request = new SearchAppointmentInfoQuery(searchCriteria);

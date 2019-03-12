@@ -1,12 +1,12 @@
-﻿import * as React from 'react';
-import { Link, Redirect, NavLink } from 'react-router-dom';
+﻿import { Link, Redirect, NavLink } from 'react-router-dom';
 import { Form } from '../restObjects/Form';
 import { FormField } from '../restObjects/FormField';
 import { AuthenticationService } from './../services/AuthenticationService';
 import { LoginFailedException } from './../System/Exceptions/LoginFailedException';
 import { BaseAuthenticatedComponentProps } from './BaseAuthenticatedComponent';
 import { FormComponent } from './FormComponent';
-import { Button, InputGroup } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import * as React from 'react';
 
 /**
  * Renders a form to log into the application
@@ -39,8 +39,8 @@ export class LoginForm extends React.Component<LoginFormProps, LoginFormState>{
         };
 
         let fields: Array<FormField> = [
-            { label: "Email", name: "username", type: "string", required: true },
-            { label: "Password", name: "password", type: "string", required: true, secret: true }
+            { label: "Email", name: "username", type: "string", required: true, mutable : true },
+            { label: "Password", name: "password", type: "string", required: true, secret: true, mutable: true }
         ];
 
         this.form = {
@@ -110,8 +110,8 @@ export class LoginForm extends React.Component<LoginFormProps, LoginFormState>{
                     onChange={handleChange} errors={this.state.errors}>
 
                     <nav className='center-block'>
-                        <Button as="submit" bsStyle="primary" disabled={!this.isValid() || this.state.isBusy}>
-                            <span className="glyphicon glyphicon-enter" aria-hidden="true"></span>&nbsp;Sign in
+                        <Button variant="primary" >
+                            <span className="glyphicon glyphicon-enter" aria-hidden={"true"}></span>&nbsp;Sign in
                         </Button>
                         <span> or </span>
                         <Link to={"/sign-up"} replace>create an account</Link>

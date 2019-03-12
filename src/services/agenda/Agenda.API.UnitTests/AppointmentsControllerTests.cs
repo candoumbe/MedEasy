@@ -82,8 +82,8 @@ namespace Agenda.API.UnitTests.Features
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
-                uow.Repository<Appointment>().Delete(x => true);
+                uow.Repository<Participant>().Clear();
+                uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -448,8 +448,8 @@ namespace Agenda.API.UnitTests.Features
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
-                uow.Repository<Appointment>().Delete(x => true);
+                uow.Repository<Participant>().Clear();
+                uow.Repository<Appointment>().Clear();
                 uow.Repository<Appointment>().Create(items);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);

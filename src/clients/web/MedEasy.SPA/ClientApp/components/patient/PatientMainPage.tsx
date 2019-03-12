@@ -35,10 +35,10 @@ export class PatientMainPage extends React.Component<PatientMainPageProps, {}> {
                     ["Birth Date", (item) => item.resource.birthDate ? item.resource.birthDate : ""],
                     ["", (item) => (
                         <div>
-                            <Button bsStyle="danger" >
+                            <Button variant="danger" >
                                 <span className="glyphicon glyphicon-trash"></span>
                             </Button>
-                            <Button bsStyle="success">
+                            <Button variant="success">
                                 <Link to={`/patients/edit/${item.resource.id}`}>
                                     <span className="glyphicon glyphicon-pencil"></span>
                                 </Link>

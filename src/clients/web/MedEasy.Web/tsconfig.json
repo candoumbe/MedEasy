@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "pretty": true
+  },
+  "exclude": [
+    "bin",
+    "node_modules"
+  ]
+}

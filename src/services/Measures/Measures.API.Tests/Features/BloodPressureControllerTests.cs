@@ -425,8 +425,8 @@ namespace Measures.API.Tests.Features.BloodPressures
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Delete(x => true);
-                uow.Repository<Patient>().Delete(x => true);
+                uow.Repository<BloodPressure>().Clear();
+                uow.Repository<Patient>().Clear();
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
                 uow.Repository<BloodPressure>().Create(items);

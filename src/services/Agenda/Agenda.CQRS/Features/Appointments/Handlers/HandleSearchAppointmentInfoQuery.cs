@@ -46,12 +46,18 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     }
                 });
             }
+
+            if (!string.IsNullOrWhiteSpace(criteria.Participant))
+            {
+                filters.Add(new DataFilter(nameof(Appointment.Participants), @operator: Contains, criteria.Participant));
+            }
+
             SearchQueryInfo<AppointmentInfo> searchQueryInfo = new SearchQueryInfo<AppointmentInfo>
             {
                 Page = criteria.Page,
                 PageSize = criteria.PageSize
             };
-            if (filters.Any())
+            if (filters.Count > 0)
             {
                 searchQueryInfo.Filter = filters.Once()
                     ? filters.Single()

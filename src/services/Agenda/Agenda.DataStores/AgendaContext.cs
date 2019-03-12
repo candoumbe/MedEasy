@@ -10,13 +10,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using MedEasy.DataStores.Core.Relational;
 
 namespace Agenda.DataStores
 {
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>
-    public class AgendaContext : DbContext, IDbContext
+    public class AgendaContext : DataStore<AgendaContext>, IDbContext
     {
         /// <summary>
         /// Usual size for the "normal" text
@@ -53,37 +54,6 @@ namespace Agenda.DataStores
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            foreach (IMutableEntityType entity in modelBuilder.Model.GetEntityTypes())
-            {
-                entity.Relational().TableName = entity.DisplayName();
-
-                if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
-                {
-                    IAuditableEntity auditableEntity = entity as IAuditableEntity;
-
-                    modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
-                        .HasMaxLength(_normalTextLength);
-
-                    modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
-                        .HasMaxLength(_normalTextLength);
-
-                    modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
-                        .IsConcurrencyToken();
-                }
-
-                if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
-                {
-                    modelBuilder.Entity(entity.Name).Property(typeof(Guid), nameof(IEntity<int>.UUID))
-                        .ValueGeneratedOnAdd();
-                    modelBuilder.Entity(entity.Name)
-                        .HasIndex(nameof(IEntity<int>.UUID))
-                        .IsUnique();
-
-                    modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
-                       .ValueGeneratedOnAdd();
-                }
-            }
 
             modelBuilder.Entity<AppointmentParticipant>()
                 .HasKey(ap => new { ap.AppointmentId, ap.ParticipantId });

@@ -197,7 +197,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gateway", "gateway", "{6510
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Gateway", "src\services\gateway\MedEasy.Gateway\MedEasy.Gateway.csproj", "{DC31C6D0-1FBF-47E4-B5A7-86E67CBA98F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MedEasy.Gateway.IntegrationTests", "src\services\gateway\MedEasy.Gateway.IntegrationTests\MedEasy.Gateway.IntegrationTests.csproj", "{0A4D18D6-6067-44CA-95ED-73C265F2B833}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Gateway.IntegrationTests", "src\services\gateway\MedEasy.Gateway.IntegrationTests\MedEasy.Gateway.IntegrationTests.csproj", "{0A4D18D6-6067-44CA-95ED-73C265F2B833}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

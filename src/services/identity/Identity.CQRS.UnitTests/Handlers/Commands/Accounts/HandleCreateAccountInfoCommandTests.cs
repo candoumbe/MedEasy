@@ -63,7 +63,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Account>().Delete(x => true);
+                uow.Repository<Account>().Clear();
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

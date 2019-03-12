@@ -47,7 +47,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Delete(x => true);
+                uow.Repository<Participant>().Clear();
                 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);

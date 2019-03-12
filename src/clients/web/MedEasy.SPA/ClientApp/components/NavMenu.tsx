@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Link, NavLink, Redirect } from 'react-router-dom';
-import {
-    Button, Navbar, NavbarBrand, NavbarHeader, NavbarCollapse, ListGroup, ListGroupItem, Nav, NavbarToggle, ButtonToolbar
-} from "react-bootstrap"
+import Button from "react-bootstrap/Button";
+
 import { AuthenticationService } from './../services/AuthenticationService';
 
 interface NavMenuProps {
@@ -61,7 +60,7 @@ export class NavMenu extends React.Component<NavMenuProps, { redirectToSignin: b
                                 </NavLink>
                             </li>
                             <li>
-                                <Button bsStyle="danger" block onClick={async () => await this.disconnect()}>
+                                <Button variant="danger" block onClick={async () => await this.disconnect()}>
                                     <span className="glyphicon glyphicon-off" aria-hidden="true"></span> Disconnect
                                 </Button>
 

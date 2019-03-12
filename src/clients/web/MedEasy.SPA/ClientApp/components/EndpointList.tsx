@@ -125,7 +125,7 @@ export class EndpointList<TResource extends Browsable<MedEasy.DTO.Resource<strin
         if (capabilities.delete || capabilities.update) {
             cells.push(
                 <td>
-                    <Button bsStyle='danger' onClick={async (event) => {
+                    <Button variant='danger' onClick={async (event) => {
                         await this.deleteItem(item.resource.id);
                     }}>
                         <span className='glyphicon glyphicon-delete' aria-hidden="true"></span>&nbsp;Delete
@@ -186,7 +186,7 @@ export class EndpointList<TResource extends Browsable<MedEasy.DTO.Resource<strin
                         {this.props.capabilities.create
                             ? (
                                 <Row>
-                                    <Button bsStyle='success' onClick={async (event) => await this.addItem()}>
+                                    <Button variant='success' onClick={async (event) => await this.addItem()}>
                                         <span className='glyphicon glyphicon-plus' aria-hidden='true'></span>&nbsp;Add
                                     </Button>
                                 </Row>
@@ -194,7 +194,7 @@ export class EndpointList<TResource extends Browsable<MedEasy.DTO.Resource<strin
                             : null
                         }
                         <Row>
-                            <Table condensed id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
+                            <Table id={`tbl-${resourceName.plural}`} ref={`tbl-${resourceName.plural}`}>
                                 <thead>
                                     <tr>
                                         {headers}
