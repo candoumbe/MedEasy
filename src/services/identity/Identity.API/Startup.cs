@@ -47,9 +47,6 @@ namespace Identity.API
             }
             else
             {
-                loggerFactory.AddDebug();
-                loggerFactory.AddConsole();
-
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();

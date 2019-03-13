@@ -177,7 +177,6 @@ namespace Identity.API
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
            {
-               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
 
                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));

@@ -421,6 +421,11 @@ namespace Agenda.API.IntegrationTests
                 .ConfigureAwait(false);
 
             // Assert
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"content : {json}");
+
             _outputHelper.WriteLine($"Response Status code :  {response.StatusCode}");
             response.IsSuccessStatusCode.Should()
                 .BeTrue("The resource creation must succeed");
@@ -428,11 +433,6 @@ namespace Agenda.API.IntegrationTests
 
             response.Content.Should()
                 .NotBeNull("API must return a content");
-
-            string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            _outputHelper.WriteLine($"content : {json}");
 
             json.Should()
                 .NotBeNullOrWhiteSpace();
@@ -473,7 +473,7 @@ namespace Agenda.API.IntegrationTests
 
             NewAppointmentInfo newAppointmentInfo = appointmentFaker;
 
-            RequestBuilder requestBuilder = new RequestBuilder(_server, $"{_endpointUrl}")
+            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
                 .AddHeader("Accept", "application/json")
                 .And(message => message.Content = new StringContent(newAppointmentInfo.Stringify(), Encoding.UTF8, "application/json"));
 
@@ -481,9 +481,10 @@ namespace Agenda.API.IntegrationTests
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
-
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"Response content : {json}");
 
             Browsable<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<Browsable<AppointmentInfo>>();
 

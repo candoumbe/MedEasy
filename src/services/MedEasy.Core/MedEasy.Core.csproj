@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Consul" Version="0.7.2.4" />
     <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp2.0'" Include="Microsoft.AspNetCore.All" Version="2.0.3" />
-    <PackageReference Condition=" '$(TargetFramework)' == 'netcoreapp2.1'" Include="Microsoft.AspNetCore.App" Version="2.1.3" />
+    <PackageReference Condition=" '$(TargetFramework)' == 'netcoreapp2.1'" Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

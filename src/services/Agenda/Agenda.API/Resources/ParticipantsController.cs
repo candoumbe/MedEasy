@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 namespace Agenda.API.Resources
 {
     [Route("agenda/[controller]")]
+    [ApiController]
     public class ParticipantsController
     {
         private readonly IUrlHelper _urlHelper;
@@ -91,7 +92,8 @@ namespace Agenda.API.Resources
         /// <response code="404"></response>
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+        [HttpHead("{id}")]
+        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
             Option<ParticipantInfo> optionalResource = await _mediator.Send(new GetOneParticipantInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);

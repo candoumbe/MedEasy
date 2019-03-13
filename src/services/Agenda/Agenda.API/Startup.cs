@@ -44,9 +44,10 @@ namespace Agenda.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddCustomizedMvc(Configuration);
-            services.AddDataStores();
-            services.AddCustomizedDependencyInjection();
+            services
+                .AddCustomizedMvc(Configuration)
+                .AddDataStores()
+                .AddCustomizedDependencyInjection();
 
             if (HostingEnvironment.IsDevelopment())
             {
