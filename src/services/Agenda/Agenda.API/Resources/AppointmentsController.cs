@@ -1,4 +1,5 @@
-﻿using Agenda.API.Routing;
+﻿using Agenda.API.Resources;
+using Agenda.API.Routing;
 using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
@@ -52,9 +53,11 @@ namespace Agenda.API.Controllers
         /// <param name="newAppointment">data of the appointment</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="400"></response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        [ProducesResponseType(Status500InternalServerError)]
         public async Task<IActionResult> Post([FromBody] NewAppointmentInfo newAppointment, CancellationToken ct = default)
         {
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(newAppointment), ct)
@@ -65,7 +68,12 @@ namespace Agenda.API.Controllers
             {
                 new Link {Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
             }
-            .Union(participants.Select(participant => new Link { Relation = $"get-participant-{participant.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = "participant", participant.Id }) }));
+            .Concat(participants.Select(p => new Link { Relation = $"get-participant-{p.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = ParticipantsController.EndpointName, p.Id }) }))
+#if DEBUG
+
+            .ToArray()
+#endif
+            ;
 
             Browsable<AppointmentInfo> browsableResource = new Browsable<AppointmentInfo>
             {

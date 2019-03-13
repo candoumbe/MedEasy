@@ -26,10 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
