@@ -3,11 +3,9 @@ using Agenda.DataStores;
 using Agenda.Mapping;
 using Agenda.Validators;
 using AutoMapper;
-using Consul;
 using FluentValidation.AspNetCore;
 using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
-using MedEasy.Core.Infrastructure;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -21,12 +19,12 @@ using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -53,51 +51,55 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddMvc(options =>
-            {
-                options.Filters.Add<FormatFilterAttribute>();
-                options.Filters.Add<ValidateModelActionFilter>();
-                options.Filters.Add<HandleErrorAttribute>();
-                options.Filters.Add<AddCountHeadersFilterAttribute>();
-                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            }).SetCompatibilityVersion( CompatibilityVersion.Version_2_2)
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-                options
-                    .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                    .RegisterValidatorsFromAssemblyContaining<NewAppointmentInfoValidator>()
-                    ;
-            })
-            .AddJsonOptions(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                options.SerializerSettings.DateTimeZoneHandling = Utc;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
+            services
+                .AddCors(options =>
+                {
+                    options.AddPolicy("AllowAnyOrigin", builder =>
+                        builder.AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowAnyOrigin()
+                    );
+                })
+                .AddMvc(options =>
+                {
+                    options.Filters.Add<FormatFilterAttribute>();
+                    options.Filters.Add<ValidateModelActionFilter>();
+                    options.Filters.Add<HandleErrorAttribute>();
+                    options.Filters.Add<AddCountHeadersFilterAttribute>();
+                    options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                    options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAnyOrigin", builder =>
-                    builder.AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowAnyOrigin()
-                );
-            });
+                    // This option is just to fix a breaking change in ASP.NETCORE 2.2 Routing (see https://github.com/aspnet/AspNetCore/issues/5055) 
+                    options.EnableEndpointRouting = false;
+
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddFluentValidation(options =>
+                {
+                    options.LocalizationEnabled = true;
+                    options
+                        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentInfoValidator>()
+                        ;
+                })
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.DateFormatHandling = IsoDateFormat;
+                    options.SerializerSettings.DateTimeZoneHandling = Utc;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                });
+
+
             services.AddOptions();
             services.Configure<AgendaApiOptions>((options) =>
             {
-                options.DefaultPageSize = configuration.GetValue("ApiOptions:DefaultPageSize", 30);
-                options.MaxPageSize = configuration.GetValue("ApiOptions:MaxPageSize", 100);
-            });
-            services.Configure<MvcOptions>(options =>
-            {
-                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
+                options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
             });
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -124,11 +126,13 @@ namespace Agenda.API
                 };
             });
 
-            services.AddRouting(options =>
+            services.Configure<LinkOptions>(options =>
             {
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
+
+            return services;
         }
 
         /// <summary>
@@ -137,7 +141,7 @@ namespace Agenda.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
             {
@@ -161,13 +165,15 @@ namespace Agenda.API
 
                 return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) => new AgendaContext(options));
             });
+
+            return services;
         }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void AddCustomizedDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection AddCustomizedDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(CreateAppointmentInfoCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
@@ -183,6 +189,8 @@ namespace Agenda.API
 
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
+
+            return services;
         }
 
         /// <summary>
@@ -191,7 +199,7 @@ namespace Agenda.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -220,6 +228,8 @@ namespace Agenda.API
                 config.DescribeStringEnumsInCamelCase();
                 config.DescribeAllEnumsAsStrings();
             });
+
+            return services;
         }
 
         /// <summary>
@@ -227,7 +237,8 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
+        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -242,5 +253,10 @@ namespace Agenda.API
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
                     };
                 });
+
+
+            return services;
+        }
+
     }
 }
