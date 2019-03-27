@@ -18,7 +18,6 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
@@ -37,6 +36,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using DataFilters;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
@@ -296,7 +296,7 @@ namespace Measures.API.Tests.Features.Patients
                                 selector,
                                 query.Data.PageSize,
                                 query.Data.Page,
-                                new[] { OrderClause<PatientInfo>.Create(x => x.UpdatedDate) },
+                                new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate)).ToOrderClause(),
                                 cancellationToken)
                             .ConfigureAwait(false);
 
@@ -513,15 +513,13 @@ namespace Measures.API.Tests.Features.Patients
                     {
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
 
-                        Expression<Func<Patient, bool>> filter = query.Data.Filter?.ToExpression<Patient>() ?? (x => true);
+                        Expression<Func<Patient, bool>> filter = query.Data.Filter?.ToExpression<Patient>() ?? (_ => true);
 
                         Page<PatientInfo> resources = await uow.Repository<Patient>()
                             .WhereAsync(
                                 selector,
                                 filter,
-                                query.Data.Sorts.Select(sort => OrderClause<PatientInfo>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
-                                    ? MedEasy.DAL.Repositories.SortDirection.Ascending
-                                    : MedEasy.DAL.Repositories.SortDirection.Descending)),
+                                query.Data.Sort.ToOrderClause(),
                                 query.Data.PageSize,
                                 query.Data.Page,
                                 cancellationToken)
@@ -571,7 +569,7 @@ namespace Measures.API.Tests.Features.Patients
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Page<PatientInfo>.Default);
+                .ReturnsAsync(Page<PatientInfo>.Empty);
 
             // Act
             IActionResult actionResult = await _controller.Search(searchRequest, default)

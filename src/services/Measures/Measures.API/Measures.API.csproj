@@ -27,17 +27,19 @@
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.4" />
+    <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Utilities" Version="2019.3.24.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.Data\MedEasy.Data.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\..\identity\Identity.DTO\Identity.DTO.csproj" />
     <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />

@@ -32,17 +32,15 @@ namespace Agenda.CQRS.Features.Participants.Handlers
             _mapper = mapper;
         }
 
-        public async Task<Option<ParticipantInfo>> Handle(GetOneParticipantInfoByIdQuery request, CancellationToken ct)
+        public async Task<Option<ParticipantInfo>> Handle(GetOneParticipantInfoByIdQuery request, CancellationToken cancellationToken)
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<Participant, ParticipantInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Participant, ParticipantInfo>();
 
-                Option<ParticipantInfo> optionalParticipant = await uow.Repository<Participant>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == request.Data, ct)
+                return await uow.Repository<Participant>()
+                    .SingleOrDefaultAsync(selector, x => x.Id == request.Data, cancellationToken)
                     .ConfigureAwait(false);
-
-                return optionalParticipant;
             }
         }
     }

@@ -1,25 +1,18 @@
 using Agenda.API.Controllers;
-using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.Core.Filters;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -28,7 +21,6 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 
@@ -37,11 +29,12 @@ namespace Agenda.API.IntegrationTests
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IClassFixture<ServicesTestFixture<Startup>>, IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class AppointmentsControllerTests : IClassFixture<IntegrationFixture<Startup>>
     {
-        private TestServer _server;
+        private IntegrationFixture<Startup> _server;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/agenda/appointments";
+
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
@@ -59,51 +52,7 @@ namespace Agenda.API.IntegrationTests
 
             }
         };
-        private static JSchema _pageLink = new JSchema
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
-                [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
-                [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
-            },
-            Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
-            AllowAdditionalProperties = false
-        };
 
-        private static readonly JSchema _pageResponseSchema = new JSchema
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
-                [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
-                {
-                    Type = JSchemaType.Object,
-                    Properties =
-                    {
-                        [nameof(PageLinks.First).ToLower()] = _pageLink,
-                        [nameof(PageLinks.Previous).ToLower()] = _pageLink,
-                        [nameof(PageLinks.Next).ToLower()] = _pageLink,
-                        [nameof(PageLinks.Last).ToLower()] = _pageLink
-                    },
-                    Required =
-                    {
-                        nameof(PageLinks.First).ToLower(),
-                        nameof(PageLinks.Last).ToLower()
-                    }
-                }
-            },
-            Required =
-            {
-                nameof(GenericPagedGetResponse<object>.Items).ToLower(),
-                nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                nameof(GenericPagedGetResponse<object>.Total).ToLower()
-            }
-
-        };
         /// <summary>
         /// Schema of an <see cref="AppointmentInfo"/> resource once translated to json
         /// </summary>
@@ -146,21 +95,12 @@ namespace Agenda.API.IntegrationTests
             }
         };
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, ServicesTestFixture<Startup> fixture, SqliteDatabaseFixture database)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
         {
             _outputHelper = outputHelper;
-            fixture.Initialize(
-                relativeTargetProjectParentDir: Path.Combine("..", "..", "..", "..", "src", "services", "Agenda"),
-                environmentName: "IntegrationTest",
-                applicationName: typeof(Startup).Assembly.GetName().Name);
-            _server = fixture.Server;
+            _server = fixture;
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _server.Dispose();
-        }
 
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
@@ -187,45 +127,45 @@ namespace Agenda.API.IntegrationTests
             // Arrange
             string url = $"{_endpointUrl}?page={page}&pageSize={pageSize}";
             _outputHelper.WriteLine($"Url under test : <{url}>");
-            RequestBuilder rb = _server.CreateRequest(url)
-                .AddHeader("Accept", "application/json");
+
 
             // Act
-            HttpResponseMessage response = await rb.GetAsync()
-                .ConfigureAwait(false);
-
-            // Assert
-            
-            string content = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-            _outputHelper.WriteLine($"Response content : {content}");
-
-            response.IsSuccessStatusCode.Should().BeFalse("Invalid page and/or pageSize");
-            ((int)response.StatusCode).Should().Be(Status400BadRequest);
-
-            content.Should()
-                .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
-
-            JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
-                .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
-
-            ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
-            errorObject.Title.Should()
-                .Be("Validation failed");
-            errorObject.Detail.Should()
-                .MatchEquivalentOf("* validation error*");
-            errorObject.Errors.Should()
-                .NotBeEmpty();
-
-            if (page <= 0)
+            using (HttpClient client = _server.CreateClient())
             {
-                errorObject.Errors.ContainsKey("page").Should().BeTrue("page <= 0 is not a valid value");
-            }
+                HttpResponseMessage response = await client.GetAsync(url)
+                        .ConfigureAwait(false);
 
-            if (pageSize <= 0)
-            {
-                errorObject.Errors.ContainsKey("pageSize").Should().BeTrue("pageSize <= 0 is not a valid value");
+                // Assert
+
+                string content = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
+                _outputHelper.WriteLine($"Response content : {content}");
+
+                response.IsSuccessStatusCode.Should().BeFalse("Invalid page and/or pageSize");
+                ((int)response.StatusCode).Should().Be(Status400BadRequest);
+
+                content.Should()
+                    .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
+
+                JToken token = JToken.Parse(content);
+                token.IsValid(_errorObjectSchema)
+                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
+
+                ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
+                errorObject.Title.Should()
+                    .Be("Validation failed");
+                errorObject.Errors.Should()
+                    .NotBeEmpty();
+
+                if (page <= 0)
+                {
+                    errorObject.Errors.ContainsKey("page").Should().BeTrue("page <= 0 is not a valid value");
+                }
+
+                if (pageSize <= 0)
+                {
+                    errorObject.Errors.ContainsKey("pageSize").Should().BeTrue("pageSize <= 0 is not a valid value");
+                }
             }
         }
 
@@ -247,11 +187,11 @@ namespace Agenda.API.IntegrationTests
                 yield return new object[]
                 {
                     "?pageSize=-1" ,
-                    ((Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
+                    (Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
                         && err.Title == "Validation failed"
                         && err.Errors != null
                         && err.Errors.ContainsKey("pageSize")
-                    )),
+                    ),
                     $"{nameof(SearchAppointmentInfo.PageSize)} must be greater than 1"
                 };
             }
@@ -266,31 +206,33 @@ namespace Agenda.API.IntegrationTests
             // Arrange
             string url = $"{_endpointUrl}/{nameof(AppointmentsController.Search)}{queryString}";
             _outputHelper.WriteLine($"Url under test : <{url}>");
-            RequestBuilder rb = _server.CreateRequest(url)
-                .AddHeader("Accept", "application/json");
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, url);
 
             // Act
-            HttpResponseMessage response = await rb.SendAsync(Get)
-                .ConfigureAwait(false);
+            using (HttpClient client = _server.CreateClient())
+            {
+                HttpResponseMessage response = await client.SendAsync(request)
+                        .ConfigureAwait(false);
 
-            // Assert
-            response.IsSuccessStatusCode.Should().BeFalse("Invalid search criteria");
-            ((int)response.StatusCode).Should().Be(Status400BadRequest);
+                // Assert
+                response.IsSuccessStatusCode.Should().BeFalse("Invalid search criteria");
+                ((int)response.StatusCode).Should().Be(Status400BadRequest);
 
-            string content = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                string content = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"Response content : {content}");
+                _outputHelper.WriteLine($"Response content : {content}");
+                content.Should()
+                    .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
 
-            content.Should()
-                .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
+                JToken token = JToken.Parse(content);
+                token.IsValid(_errorObjectSchema)
+                    .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
 
-            JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
-                .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
-
-            ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
-            errorObject.Should().Match(errorObjectExpectation, reason);
+                ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
+                errorObject.Should().Match(errorObjectExpectation, reason);
+            }
         }
 
         [Theory]
@@ -299,17 +241,25 @@ namespace Agenda.API.IntegrationTests
         public async Task Search_Handles_Verb(string verb)
         {
             // Arrange
-            string url = $"{_endpointUrl}/search?sort=+startDate";
-            RequestBuilder requestBuilder = new RequestBuilder(_server, url)
-                .AddHeader("Accept", "application/json");
+            string url = $"{_endpointUrl}/search?sort={Uri.EscapeDataString("+startDate")}";
 
-            // Act
-            HttpResponseMessage response = await requestBuilder.SendAsync(verb)
-                .ConfigureAwait(false);
+            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(verb), url);
 
-            // Assert
-            response.IsSuccessStatusCode.Should()
-                .BeTrue($"HTTP {response.Version} {verb} /{url} must be supported");
+            using (HttpClient client = _server.CreateClient())
+            {
+                // Act
+                HttpResponseMessage response = await client.SendAsync(request)
+                    .ConfigureAwait(false);
+
+                string content = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
+
+                _outputHelper.WriteLine($"Response content : {content}");
+
+                // Assert
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue($"HTTP {response.Version} {verb} /{url} must be supported");
+            }
         }
 
         public static IEnumerable<object[]> GetCountCases
@@ -332,7 +282,7 @@ namespace Agenda.API.IntegrationTests
                         .RuleFor(x => x.Location, faker => faker.Address.City())
                         .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                         .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
-                        .RuleFor(x => x.EndDate, (faker, appointment) => appointment.StartDate.Add(1.Hours()));
+                        .RuleFor(x => x.EndDate, (_, appointment) => appointment.StartDate.Add(1.Hours()));
 
                     yield return new object[]
                     {
@@ -350,46 +300,51 @@ namespace Agenda.API.IntegrationTests
         {
             // Arrange
             _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
-            await newAppointments.ForEachAsync(async (newAppointment) =>
+            using (HttpClient client = _server.CreateClient())
             {
-                RequestBuilder rb = new RequestBuilder(_server, _endpointUrl)
-                    .And(message => message.Content = new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"));
-
-                HttpResponseMessage createdResponse = await rb.PostAsync()
+                await newAppointments.ForEachAsync(async (newAppointment) =>
+                {
+                    HttpResponseMessage createdResponse = await client.PostAsync(_endpointUrl, new StringContent(newAppointment.Stringify(), Encoding.UTF8, "application/json"))
                     .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
-            })
-            .ConfigureAwait(false);
-
+                    _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
+                })
+                .ConfigureAwait(false);
+            }
 
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
-            RequestBuilder requestBuilder = new RequestBuilder(_server, path);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, path);
 
-            // Act
-            HttpResponseMessage response = await requestBuilder.SendAsync(Head)
-                .ConfigureAwait(false);
+            using (HttpClient client = _server.CreateClient())
+            {
+                // Act
+                HttpResponseMessage response = await client.SendAsync(request)
+                    .ConfigureAwait(false);
 
-            // Assert
-            _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
-            response.IsSuccessStatusCode.Should().BeTrue();
+                // Assert
+                _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+                response.IsSuccessStatusCode.Should().BeTrue();
 
-            _outputHelper.WriteLine($"Response headers :{response.Headers.Stringify()}");
+                _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
+                response.IsSuccessStatusCode.Should().BeTrue();
 
-            response.Headers.Should()
-                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
-                .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
+                _outputHelper.WriteLine($"Response headers :{response.Headers.Stringify()}");
 
-            response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
-                .HaveCount(1).And
-                .ContainSingle().And
-                .ContainSingle(value => value == expectedCountHeaders.total.ToString());
+                response.Headers.Should()
+                    .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
+                    .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
 
-            response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
-                .HaveCount(1).And
-                .ContainSingle().And
-                .ContainSingle(value => value == expectedCountHeaders.count.ToString());
+                response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
+                    .HaveCount(1).And
+                    .ContainSingle().And
+                    .ContainSingle(value => value == expectedCountHeaders.total.ToString());
+
+                response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
+                    .HaveCount(1).And
+                    .ContainSingle().And
+                    .ContainSingle(value => value == expectedCountHeaders.count.ToString());
+            }
         }
 
         [Fact]
@@ -398,11 +353,11 @@ namespace Agenda.API.IntegrationTests
             // Arrange
 
             Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>()
-                .RuleFor(x => x.Name, faker => faker.Name.FullName() )
+                .RuleFor(x => x.Name, faker => faker.Name.FullName())
                 .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent());
 
             Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
-                .RuleFor(x => x.Participants, participantFaker.Generate(count : 3))
+                .RuleFor(x => x.Participants, participantFaker.Generate(count: 3))
                 .RuleFor(x => x.Location, faker => faker.Address.City())
                 .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                 .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
@@ -412,48 +367,48 @@ namespace Agenda.API.IntegrationTests
 
             _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Stringify()}");
 
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .AddHeader("Accept", "application/json")
-                .And(message => message.Content = new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"));
-
             // Act
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
+            using (HttpClient client = _server.CreateClient())
+            {
+                HttpResponseMessage response = await client.PostAsync(_endpointUrl, new StringContent(SerializeObject(newAppointment), Encoding.UTF8, "application/json"))
+                    .ConfigureAwait(false);
 
-            // Assert
-            string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                // Assert
+                string json = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"content : {json}");
+                _outputHelper.WriteLine($"content : {json}");
 
-            _outputHelper.WriteLine($"Response Status code :  {response.StatusCode}");
-            response.IsSuccessStatusCode.Should()
-                .BeTrue("The resource creation must succeed");
-            ((int)response.StatusCode).Should().Be(Status201Created);
+                _outputHelper.WriteLine($"Response Status code :  {response.StatusCode}");
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue("The resource creation must succeed");
+                ((int)response.StatusCode).Should().Be(Status201Created);
 
-            response.Content.Should()
-                .NotBeNull("API must return a content");
+                response.Content.Should()
+                    .NotBeNull("API must return a content");
 
-            json.Should()
-                .NotBeNullOrWhiteSpace();
+                json.Should()
+                    .NotBeNullOrWhiteSpace();
 
-            JToken token = JToken.Parse(json);
-            bool tokenIsValid = token.IsValid(_browsableResourceSchema, out IList<string> errors);
-            tokenIsValid.Should()
-                .BeTrue("content returned by the API must conform to appointment jschema");
+                JToken token = JToken.Parse(json);
+                bool tokenIsValid = token.IsValid(_browsableResourceSchema, out IList<string> errors);
+                tokenIsValid.Should()
+                    .BeTrue("content returned by the API must conform to appointment jschema");
 
-            Browsable<AppointmentInfo> browsableResource = token.ToObject<Browsable<AppointmentInfo>>();
-            IEnumerable<Link> links = browsableResource.Links;
-            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+                Browsable<AppointmentInfo> browsableResource = token.ToObject<Browsable<AppointmentInfo>>();
+                IEnumerable<Link> links = browsableResource.Links;
+                Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
 
-            Uri location = response.Headers.Location;
-            linkToSelf.Href.Should().Be(location.ToString());
+                Uri location = response.Headers.Location;
+                linkToSelf.Href.Should().Be(location.ToString());
 
-            response = await new RequestBuilder(_server, $"{location}").SendAsync(Head)
-                .ConfigureAwait(false);
+                response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, location))
+                    .ConfigureAwait(false);
 
-            response.IsSuccessStatusCode.Should()
-                .BeTrue($"location <{location}> must point to the created resource");
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue($"location <{location}> must point to the created resource");
+
+            }
         }
 
         [Fact]
@@ -473,48 +428,48 @@ namespace Agenda.API.IntegrationTests
 
             NewAppointmentInfo newAppointmentInfo = appointmentFaker;
 
-            RequestBuilder requestBuilder = new RequestBuilder(_server, _endpointUrl)
-                .AddHeader("Accept", "application/json")
-                .And(message => message.Content = new StringContent(newAppointmentInfo.Stringify(), Encoding.UTF8, "application/json"));
 
-            HttpResponseMessage response = await requestBuilder.PostAsync()
-                .ConfigureAwait(false);
+            using (HttpClient client = _server.CreateClient())
+            {
+                HttpResponseMessage response = await client.PostAsync(_endpointUrl, new StringContent(newAppointmentInfo.Stringify(), Encoding.UTF8, "application/json"))
+                        .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
-            string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
+                string json = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"Response content : {json}");
+                _outputHelper.WriteLine($"Response content : {json}");
 
-            Browsable<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<Browsable<AppointmentInfo>>();
+                Browsable<AppointmentInfo> browsableAppointmentInfo = JToken.Parse(json).ToObject<Browsable<AppointmentInfo>>();
 
-            _outputHelper.WriteLine($"Resource created : {browsableAppointmentInfo.Stringify()}");
+                _outputHelper.WriteLine($"Resource created : {browsableAppointmentInfo.Stringify()}");
 
-            AppointmentInfo resource = browsableAppointmentInfo.Resource;
-            IEnumerable<ParticipantInfo> participants = resource.Participants;
-            int participantCountBeforeDelete = participants.Count();
+                AppointmentInfo resource = browsableAppointmentInfo.Resource;
+                IEnumerable<ParticipantInfo> participants = resource.Participants;
+                int participantCountBeforeDelete = participants.Count();
 
-            ParticipantInfo participantToDelete = new Faker().PickRandom(participants);
+                ParticipantInfo participantToDelete = new Faker().PickRandom(participants);
 
-            Guid appointmentId = resource.Id;
-            Guid participantId = participantToDelete.Id;
-            string deletePath = $"{_endpointUrl}/{appointmentId}/participants/{participantId}";
+                Guid appointmentId = resource.Id;
+                Guid participantId = participantToDelete.Id;
+                string deletePath = $"{_endpointUrl}/{appointmentId}/participants/{participantId}";
 
-            _outputHelper.WriteLine($"delete url : <{deletePath}>");
-            requestBuilder = new RequestBuilder(_server, deletePath);
-            // Act
-            response = await requestBuilder.SendAsync(Delete)
-                .ConfigureAwait(false);
+                _outputHelper.WriteLine($"delete url : <{deletePath}>");
 
-            // Assert
-            _outputHelper.WriteLine("Starting assertions");
-            _outputHelper.WriteLine($"Delete status code : {response.StatusCode}");
+                // Act
+                response = await client.DeleteAsync(deletePath)
+                    .ConfigureAwait(false);
 
-            response.IsSuccessStatusCode.Should()
-                .BeTrue($"Appointment <{appointmentId}> and Participant <{participantId}> exist.");
+                // Assert
+                _outputHelper.WriteLine("Starting assertions");
+                _outputHelper.WriteLine($"Delete status code : {response.StatusCode}");
 
-            ((int)response.StatusCode).Should()
-                .Be(Status204NoContent);
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue($"Appointment <{appointmentId}> and Participant <{participantId}> exist.");
+
+                ((int)response.StatusCode).Should()
+                    .Be(Status204NoContent);
+            }
         }
     }
 }

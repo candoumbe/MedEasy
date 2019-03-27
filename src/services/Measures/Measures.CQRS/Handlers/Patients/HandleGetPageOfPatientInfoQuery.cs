@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Objects;
@@ -44,7 +45,7 @@ namespace Measures.CQRS.Handlers.Patients
                         selector,
                         pagination.PageSize,
                         pagination.Page,
-                        new[] { OrderClause<PatientInfo>.Create(x => x.UpdatedDate) },
+                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending).ToOrderClause(),
                         cancellationToken)
                     .ConfigureAwait(false);
 

@@ -12,6 +12,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -51,7 +52,7 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
             services
                 .AddCors(options =>
@@ -78,6 +79,7 @@ namespace Agenda.API
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
                 .AddFluentValidation(options =>
                 {
+                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
                     options.LocalizationEnabled = true;
                     options
                         .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
@@ -93,7 +95,6 @@ namespace Agenda.API
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 });
-
 
             services.AddOptions();
             services.Configure<AgendaApiOptions>((options) =>
@@ -132,8 +133,51 @@ namespace Agenda.API
                 options.LowercaseUrls = true;
             });
 
+            services.AddHsts(options =>
+            {
+                options.Preload = true;
+                if (env.IsDevelopment() || env.IsEnvironment("IntegrationTest"))
+                {
+                    options.ExcludedHosts.Remove("localhost");
+                    options.ExcludedHosts.Remove("127.0.0.1");
+                    options.ExcludedHosts.Remove("[::1]");
+
+                }
+            });
+            services.AddHttpsRedirection(options =>
+            {
+                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 53172);
+                options.RedirectStatusCode = Status307TemporaryRedirect;
+            });
+
             return services;
         }
+
+        private static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+        {
+            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+            DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
+            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+            {
+                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+            }
+            else
+            {
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                builder.UseSqlServer(
+                    configuration.GetConnectionString("Agenda"),
+                    options => options.EnableRetryOnFailure(5)
+                        .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
+                );
+            }
+            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+            builder.ConfigureWarnings(options =>
+            {
+                options.Default(WarningBehavior.Log);
+            });
+            return builder;
+        }
+
 
         /// <summary>
         /// Adds required dependencies to access API datastores
@@ -143,27 +187,43 @@ namespace Agenda.API
         /// 
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
+            DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                 DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    string dbName = $"InMemoryDb_{Guid.NewGuid()}";
-                    builder.UseInMemoryDatabase(dbName);
+                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
                 }
                 else
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(configuration.GetConnectionString("Agenda"), b => b.MigrationsAssembly("Agenda.API"));
+                    builder.UseSqlServer(
+                        configuration.GetConnectionString("Agenda"),
+                        options => options.EnableRetryOnFailure(5)
+                            .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
+                    );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
                 builder.ConfigureWarnings(options =>
                 {
                     options.Default(WarningBehavior.Log);
                 });
+                return builder;
+            }
 
-                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) => new AgendaContext(options));
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new AgendaContext(optionsBuilder.Options);
+            });
+
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
+            {
+                DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider);
+
+                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options));
             });
 
             return services;

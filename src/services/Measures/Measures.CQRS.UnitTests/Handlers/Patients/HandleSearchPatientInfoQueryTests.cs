@@ -11,7 +11,6 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
@@ -26,8 +25,11 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static MedEasy.Data.DataFilterOperator;
+using static DataFilters.FilterLogic;
+using static DataFilters.FilterOperator;
 using static Moq.MockBehavior;
+using DataFilters;
+using DataFilters.Expressions;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
@@ -78,14 +80,14 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     Enumerable.Empty<Patient>(),
                     new SearchQueryInfo<PatientInfo>
                     {
-                        Filter = new DataFilter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
+                        Filter = new Filter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
                         PageSize = 3
                     },
-                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null &&
-                        !x.Entries.Any() &&
-                        x.Count == 1 &&
-                        x.Size == 3))
+                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                        && !x.Entries.Any()
+                        && x.Count == 1
+                        && x.Size == 3))
                 };
 
 
@@ -102,15 +104,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
-                            Filter = new DataFilter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
+                            Filter = new Filter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
                             Page = 3,
                             PageSize = 1
                         },
-                        ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null &&
-                            x.Entries.Count() == 1 &&
-                            x.Entries.ElementAt(0).Id == patientId &&
-                            x.Count == 3 &&
-                            x.Size == 1))
+                        ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                            && x.Entries.Count() == 1
+                            && x.Entries.ElementAt(0).Id == patientId
+                            && x.Count == 3
+                            && x.Size == 1))
                        };
                 }
             }
@@ -152,8 +154,8 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                             Expression<Func<Patient, bool>> filter = query.Data.Filter.ToExpression<Patient>();
                             Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                                 .GetMapExpression<Patient, PatientInfo>();
-                            IEnumerable<OrderClause<PatientInfo>> sorts = query.Data.Sorts
-                                .Select(x => OrderClause<PatientInfo>.Create(x.Expression, x.Direction == MedEasy.Data.SortDirection.Ascending ? MedEasy.DAL.Repositories.SortDirection.Ascending : MedEasy.DAL.Repositories.SortDirection.Descending));
+                            IEnumerable<OrderClause<PatientInfo>> sorts = (query.Data.Sort?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending))
+                                .ToOrderClause();
 
                             return await uow.Repository<Patient>()
                                 .WhereAsync(selector, filter, sorts, query.Data.PageSize, query.Data.Page, ct)

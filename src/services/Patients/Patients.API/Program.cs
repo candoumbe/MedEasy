@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Patients.Context;
-using System;
-using System.Threading.Tasks;
 using Polly;
 using Polly.Retry;
-using Microsoft.Extensions.Configuration;
+using Serilog;
+using System;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace Patients.API
 {
@@ -21,7 +22,7 @@ namespace Patients.API
         /// </summary>
         public static async Task Main(string[] args)
         {
-            IWebHost host = 
+            IWebHost host =
                 CreateWebHostBuilder(args)
                 .Build();
 
@@ -29,14 +30,16 @@ namespace Patients.API
             {
                 IServiceProvider services = scope.ServiceProvider;
                 ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+                IHostingEnvironment environment = services.GetRequiredService<IHostingEnvironment>();
                 PatientsContext context = services.GetRequiredService<PatientsContext>();
-                logger?.LogInformation($"Starting Patients.API");
+
+                logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
 
                 try
                 {
                     if (!context.Database.IsInMemory())
                     {
-                        logger?.LogInformation("Upgrading Patients store");
+                        logger?.LogInformation("Upgrading {ApplicationContext} store", environment.ApplicationName);
                         // Forces database migrations on startup
                         RetryPolicy policy = Policy
                             .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
@@ -46,18 +49,18 @@ namespace Patients.API
                                 onRetry: (exception, timeSpan, attempt, pollyContext) =>
                                     logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
                                 );
-                        logger?.LogInformation("Starting patients database migration");
+                        logger?.LogInformation("Starting {ApplicationContext} migration", environment.ApplicationName);
 
                         // Forces datastore migration on startup
                         await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
                             .ConfigureAwait(false);
 
-                        logger?.LogInformation($"Patients database updated");
+                        logger?.LogInformation("{ApplicationContext} store updated", environment.ApplicationName);
                     }
                     await host.RunAsync()
                         .ConfigureAwait(false);
 
-                    logger?.LogInformation($"Patients.API started");
+                    logger?.LogInformation("{ApplicationContext} started", environment.ApplicationName);
                 }
                 catch (Exception ex)
                 {
@@ -74,14 +77,28 @@ namespace Patients.API
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder(args)
                .UseStartup<Startup>()
-               .ConfigureAppConfiguration((context, builder) =>
+               .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                .UseSerilog((hosting, loggerConfig) => loggerConfig
+                    .MinimumLevel.Verbose()
+                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console()
+                    .ReadFrom.Configuration(hosting.Configuration)
+                )
+                .ConfigureLogging((options) =>
+                {
+                    options.ClearProviders() // removes all default providers
+                        .AddSerilog()
+                        .AddConsole();
+                })
+            .ConfigureAppConfiguration((context, builder) =>
 
                    builder
-                       .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)
+                       .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                        .AddEnvironmentVariables()
                        .AddCommandLine(args)
-               ); 
+               );
 #endif
     }
 }

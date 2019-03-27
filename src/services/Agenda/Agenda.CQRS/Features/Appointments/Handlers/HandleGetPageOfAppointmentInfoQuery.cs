@@ -3,6 +3,7 @@ using Agenda.DTO;
 using Agenda.Objects;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using DataFilters;
 using MedEasy.Abstractions;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.Interfaces;
@@ -45,7 +46,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     .WhereAsync(
                         selector,
                         (AppointmentInfo x) =>  (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
-                        new[] { OrderClause<AppointmentInfo>.Create(x => x.StartDate)  },
+                        new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate)).ToOrderClause(),
                         request.Data.PageSize,
                         request.Data.Page,
                         ct)

@@ -12,21 +12,20 @@ namespace Agenda.DTO.Resources.Search
         /// Min start or end date
         /// </summary>
         public DateTimeOffset? From { get; set; }
+
         /// <summary>
         /// Max start or end date
         /// </summary>
         public DateTimeOffset? To { get; set; }
+
         /// <summary>
         /// Subject of the appointments
         /// </summary>
         public string Subject { get; set; }
+
         /// <summary>
         /// Location of the appointment
         /// </summary>
         public string Location { get; set; }
-        /// <summary>
-        /// Participant names
-        /// </summary>
-        public string Participant { get; set; }
     }
 }

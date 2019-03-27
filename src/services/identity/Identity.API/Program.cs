@@ -18,7 +18,6 @@ namespace Identity.API
     public class Program
 #pragma warning restore RCS1102 // Make class static.
     {
-        private static string _appName = typeof(Program).Namespace;
 
         public static async Task Main(string[] args)
         {
@@ -82,6 +81,11 @@ namespace Identity.API
                     .WriteTo.Console()
                     .ReadFrom.Configuration(hosting.Configuration)
                 )
+                .ConfigureLogging((options) => {
+                    options.ClearProviders() // removes all default providers
+                        .AddSerilog()
+                        .AddConsole();
+                })
                 .ConfigureAppConfiguration((context, builder) =>
 
                     builder

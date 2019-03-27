@@ -45,7 +45,7 @@ namespace Agenda.API
         {
             // Add framework services.
             services
-                .AddCustomizedMvc(Configuration)
+                .AddCustomizedMvc(Configuration, HostingEnvironment)
                 .AddDataStores()
                 .AddCustomizedDependencyInjection();
 

@@ -17,7 +17,7 @@ namespace Agenda.DataStores
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>
-    public class AgendaContext : DataStore<AgendaContext>, IDbContext
+    public class AgendaContext : DataStore<AgendaContext>
     {
         /// <summary>
         /// Usual size for the "normal" text
@@ -96,70 +96,5 @@ namespace Agenda.DataStores
                     .HasDefaultValue(string.Empty);
             });
         }
-
-        private IEnumerable<EntityEntry> GetModifiedEntities()
-            => ChangeTracker.Entries()
-                .AsParallel()
-                .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType())
-                    && (x.State == EntityState.Added || x.State == EntityState.Modified))
-#if DEBUG
-            .ToArray()
-#endif
-            ;
-
-        private Action<EntityEntry> UpdateModifiedEntry
-            => x =>
-            {
-                IAuditableEntity auditableEntity = (IAuditableEntity)(x.Entity);
-                DateTimeOffset now = DateTimeOffset.UtcNow;
-                if (x.State == EntityState.Added)
-                {
-                    auditableEntity.CreatedDate = now;
-                    auditableEntity.UpdatedDate = now;
-                }
-                else if (x.State == EntityState.Modified)
-                {
-                    auditableEntity.UpdatedDate = now;
-                }
-            };
-
-        /// <summary>
-        /// <see cref="DbContext.SaveChanges()"/>
-        /// </summary>
-        /// <returns></returns>
-        public override int SaveChanges() => SaveChanges(true);
-
-        /// <summary>
-        /// <see cref="DbContext.SaveChanges(bool)"/>
-        /// </summary>
-        public override int SaveChanges(bool acceptAllChangesOnSuccess)
-        {
-            IEnumerable<EntityEntry> entities = GetModifiedEntities();
-            entities
-                .AsParallel()
-                .ForEach(UpdateModifiedEntry);
-
-            return SaveChanges(acceptAllChangesOnSuccess);
-        }
-
-        /// <summary>
-        /// <see cref="DbContext.SaveChangesAsync(bool, CancellationToken)"/>
-        /// </summary>
-        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-        {
-            IEnumerable<EntityEntry> entities = GetModifiedEntities();
-
-            entities
-                .ForEach(UpdateModifiedEntry);
-
-            return await base.SaveChangesAsync(true, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
-        /// </summary>
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => await SaveChangesAsync(true, cancellationToken)
-                .ConfigureAwait(false);
     }
 }

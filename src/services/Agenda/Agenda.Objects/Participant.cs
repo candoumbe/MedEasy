@@ -32,9 +32,9 @@ namespace Agenda.Objects
         /// </summary>
         public string Email { get; set; }
 
-        private IList<AppointmentParticipant> _appointments;
+        private readonly IList<AppointmentParticipant> _appointments;
 
-        public IEnumerable<AppointmentParticipant> Appointments { get => _appointments; }
+        public IEnumerable<AppointmentParticipant> Appointments => _appointments;
 
         /// <summary>
         /// Builds a new <see cref="Participant"/> instance

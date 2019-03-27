@@ -72,7 +72,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             };
             GetPageOfAccountsByTenantIdQuery query = new GetPageOfAccountsByTenantIdQuery(data);
 
-
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)
                 .ConfigureAwait(false);
@@ -88,7 +87,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 .BeEmpty("Account store is empty element");
 
             pageOfAccounts.Should()
-                .BeSameAs(Page<AccountInfo>.Default);
+                .BeSameAs(Page<AccountInfo>.Empty);
         }
 
         [Fact]

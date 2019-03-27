@@ -1,5 +1,6 @@
 using AutoMapper.QueryableExtensions;
 using Bogus;
+using DataFilters;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Measures.API.Features.BloodPressures;
@@ -18,7 +19,6 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
@@ -41,7 +41,6 @@ using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using Newtonsoft.Json.Schema;
 
 namespace Measures.API.Tests.Features.BloodPressures
 {
@@ -534,15 +533,13 @@ namespace Measures.API.Tests.Features.BloodPressures
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         SearchQueryInfo<BloodPressureInfo> search = request.Data;
-                        Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (x => true);
+                        Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (_ => true);
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                         Page<BloodPressureInfo> resources = await uow.Repository<BloodPressure>()
                             .WhereAsync(
                                 selector,
                                 filter,
-                                search.Sorts.Select(sort => OrderClause<BloodPressureInfo>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
-                                    ? MedEasy.DAL.Repositories.SortDirection.Ascending
-                                    : MedEasy.DAL.Repositories.SortDirection.Descending)),
+                                search.Sort.ToOrderClause(),
                                 search.PageSize,
                                 search.Page,
                                 cancellationToken)

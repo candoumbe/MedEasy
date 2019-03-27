@@ -19,11 +19,8 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
     <PackageReference Include="Optional" Version="4.0.0" />
+    <PackageReference Include="Utilities" Version="2019.3.24.1" />
   
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 
 </Project>

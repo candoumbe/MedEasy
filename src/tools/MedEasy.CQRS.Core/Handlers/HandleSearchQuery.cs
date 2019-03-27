@@ -1,8 +1,9 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters.Expressions;
+using DataFilters;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,21 +41,20 @@ namespace MedEasy.CQRS.Core.Handlers
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="searchQuery"></param>
-        /// <param name="ct"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken ct = default) where TEntity : class
+        public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<TResult, bool>> filter = searchQuery.Data.Filter?.ToExpression<TResult>() ?? True<TResult>();
                 int page = searchQuery.Data.Page;
                 int pageSize = searchQuery.Data.PageSize;
-                IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sorts
-                    .Select(x => OrderClause<TResult>.Create(x.Expression, x.Direction == Data.SortDirection.Ascending ? DAL.Repositories.SortDirection.Ascending : DAL.Repositories.SortDirection.Descending));
+                IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sort.ToOrderClause();
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
 
                 return await uow.Repository<TEntity>()
-                    .WhereAsync(selector, filter, sorts, pageSize, page, ct)
+                    .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

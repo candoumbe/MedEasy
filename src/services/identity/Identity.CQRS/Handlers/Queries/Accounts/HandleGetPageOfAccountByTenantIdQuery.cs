@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
@@ -10,7 +11,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.DAL.Repositories.SortDirection;
 
 namespace Identity.CQRS.Handlers.Queries.Accounts
 {
@@ -41,18 +41,15 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                 GetPageOfAccountInfoByTenantIdInfo data = request.Data;
                 Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account,AccountInfo>();
                 Page<AccountInfo> result = await uow.Repository<Account>()
-                    .WhereAsync(
+                    .ReadPageAsync(
                         selector: selector,
-                        predicate: (Account x) => x.TenantId == data.TenantId,
-                        orderBy: new[] {
-                            OrderClause<AccountInfo>.Create(x => x.Id, Descending)
-                        },
                         pageSize: data.PageSize,
                         page: data.Page,
+                        orderBy: new Sort<AccountInfo>(nameof(AccountInfo.UpdatedDate), SortDirection.Descending).ToOrderClause(),
                         ct)
                     .ConfigureAwait(false);
 
-                return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Default);
+                return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Empty);
             }
         }
     }

@@ -34,7 +34,7 @@ namespace Patients.Validators.Tests.Search
             _validator = null;
         }
 
-        public static IEnumerable<object[]> InvalidCases
+        public static IEnumerable<object[]> ValidateCases
         {
             get
             {
@@ -145,12 +145,28 @@ namespace Patients.Validators.Tests.Search
                     )),
                     $"{nameof(SearchPatientInfo.Sort)} contains a sort expression with two or more consecutive hyphens"
                 };
+
+                yield return new object[]
+                {
+                    new SearchPatientInfo { Sort = " Firstname"},
+                    ((Expression<Func<ValidationResult, bool>>)
+                        (vr => vr.IsValid)),
+                    $"Sorting by a property with the same case"
+                };
+
+                yield return new object[]
+                {
+                    new SearchPatientInfo { Sort = " firstname"},
+                    ((Expression<Func<ValidationResult, bool>>)
+                        (vr => vr.IsValid)),
+                    $"Sorting by a property with different case"
+                };
             }
         }
 
         [Theory]
-        [MemberData(nameof(InvalidCases))]
-        public async Task Should_Not_Be_Valid(SearchPatientInfo search, Expression<Func<ValidationResult, bool>> validationResultExpectation, string reason)
+        [MemberData(nameof(ValidateCases))]
+        public async Task TestValidate(SearchPatientInfo search, Expression<Func<ValidationResult, bool>> expectation, string reason)
         {
             _outputHelper.WriteLine($"search : {SerializeObject(search)}");
 
@@ -159,7 +175,8 @@ namespace Patients.Validators.Tests.Search
                 .ConfigureAwait(false);
 
             // Assert
-            result.Should().Match(validationResultExpectation, reason);
+            result.Should()
+                .Match(expectation, reason);
         }
 
     }

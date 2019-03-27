@@ -5,17 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DataFilters" Version="2019.3.23.1" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.1.1" />
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Utilities" Version="2019.3.24.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MedEasy.Data\MedEasy.Data.csproj" />
     <ProjectReference Include="..\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
-    <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 
 </Project>

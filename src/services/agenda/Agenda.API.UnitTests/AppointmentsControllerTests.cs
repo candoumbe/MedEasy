@@ -10,6 +10,7 @@ using Agenda.Mapping;
 using Agenda.Objects;
 using AutoMapper.QueryableExtensions;
 using Bogus;
+using DataFilters;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -138,7 +139,7 @@ namespace Agenda.API.UnitTests.Features
             int pageSize = 10;
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new AgendaApiOptions { MaxPageSize = 200, DefaultPageSize = 30 });
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Page<AppointmentInfo>.Default);
+                .ReturnsAsync(Page<AppointmentInfo>.Empty);
 
             // Act
             ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
@@ -465,7 +466,7 @@ namespace Agenda.API.UnitTests.Features
                             .WhereAsync(
                                 selector,
                                 (AppointmentInfo x) => (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
-                                new[] { OrderClause<AppointmentInfo>.Create(x => x.StartDate) },
+                                new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate)).ToOrderClause(),
                                 query.Data.PageSize,
                                 query.Data.Page,
                                 ct)
@@ -520,7 +521,7 @@ namespace Agenda.API.UnitTests.Features
             {
                 yield return new object[]
                 {
-                    Page<AppointmentInfo>.Default,
+                    Page<AppointmentInfo>.Empty,
                     new SearchAppointmentInfo { Page = 1, PageSize = 10},
                     (defaultPageSize : 20, maxPageSize : 50),
                     (

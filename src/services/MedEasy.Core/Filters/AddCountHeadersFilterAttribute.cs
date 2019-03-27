@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using static Microsoft.AspNetCore.Http.HttpMethods;
+using System;
 
 namespace MedEasy.Core.Filters
 {
@@ -20,37 +21,82 @@ namespace MedEasy.Core.Filters
         /// <summary>
         /// Name of the header that holds the total number of resources
         /// </summary>
-        public static readonly string TotalCountHeaderName = "X-Total-Count";
+        public const string TotalCountHeaderName = "X-Total-Count";
 
         /// <summary>
         /// Name of the header that holds the number of resources returned by the current result.
         /// </summary>
-        public static readonly string CountHeaderName = "X-Count";
+        public const string CountHeaderName = "X-Count";
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
-            int? count= null;
-            int? totalCount = null;
-            switch (context.Result)
-            {
-                case ObjectResult okObjectResult when okObjectResult.Value is IGenericPagedGetResponse genericPagedGetResponse:
-                    totalCount = genericPagedGetResponse.Total;
-                    count = genericPagedGetResponse.Count;
-                    break;
+            string method = context.HttpContext.Request.Method;
 
-                case IGenericPagedGetResponse genericPagedGetResponse:
-                    totalCount = genericPagedGetResponse.Total;
-                    count = genericPagedGetResponse.Count;
-                    break;
+            (int total, int count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
+            (int total, int count) ComputeCountsFromEnumerable(in IEnumerable collection)
+            {
+                IEnumerator enumerator = collection.GetEnumerator();
+                int count = 0;
+                while (enumerator.MoveNext())
+                {
+                    count++;
+                }
+
+                return (total: count, count);
             }
 
-            if (totalCount.HasValue)
+            if (IsGet(method) || IsHead(method) || IsOptions(method))
             {
-                context.HttpContext.Response.Headers.Add(TotalCountHeaderName, new StringValues(totalCount.Value.ToString()));
-            }
-            if (count.HasValue)
-            {
-                context.HttpContext.Response.Headers.Add(CountHeaderName, new StringValues(count.Value.ToString()));
+                int? count = null;
+                int? totalCount = null;
+                switch (context.Result)
+                {
+                    case ObjectResult okObjectResult:
+                        
+                        switch (okObjectResult.Value)
+                        {
+                            case IGenericPagedGetResponse genericPagedGetResponse:
+                                {
+                                    (int total, int count) counts = ComputeCountsFromPage(genericPagedGetResponse);
+                                    count = counts.count;
+                                    totalCount = counts.total;
+                                }
+                                break;
+
+                            case IEnumerable collection:
+                                {
+                                    (int total, int count) counts = ComputeCountsFromEnumerable(collection);
+                                    count = counts.count;
+                                    totalCount = counts.total;
+                                }
+                                break;
+                        }
+                        break;
+                    case IGenericPagedGetResponse genericPagedGetResponse:
+                        {
+                            (int total, int count) counts = ComputeCountsFromPage(genericPagedGetResponse);
+                            count = counts.count;
+                            totalCount = counts.total;
+                        }
+                        break;
+
+                    case IEnumerable collection:
+                        {
+                            (int total, int count) counts = ComputeCountsFromEnumerable(collection);
+                            count = counts.count;
+                            totalCount = counts.total;
+                        }
+                        break;
+                }
+
+                if (totalCount.HasValue)
+                {
+                    context.HttpContext.Response.Headers.Add(TotalCountHeaderName, new StringValues(totalCount.Value.ToString()));
+                }
+                if (count.HasValue)
+                {
+                    context.HttpContext.Response.Headers.Add(CountHeaderName, new StringValues(count.Value.ToString()));
+                }
             }
         }
     }

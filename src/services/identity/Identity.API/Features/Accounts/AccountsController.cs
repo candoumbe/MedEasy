@@ -1,4 +1,5 @@
-﻿using Identity.API.Routing;
+﻿using DataFilters;
+using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
@@ -6,7 +7,6 @@ using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
@@ -290,12 +290,19 @@ namespace Identity.API.Features.Accounts
                 });
         }
 
+
+        /// <summary>
+        /// Search for accounts
+        /// </summary>
+        /// <param name="search"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         [HttpGet("/search")]
         [HttpHead("/search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
-            IList<IDataFilter> filters = new List<IDataFilter>();
+            IList<IFilter> filters = new List<IFilter>();
 
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
@@ -311,28 +318,10 @@ namespace Identity.API.Features.Accounts
                 Page = search.Page,
                 PageSize = search.PageSize,
                 Filter = filters.Skip(1).Any()
-                    ? new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters }
+                    ? new CompositeFilter { Logic = FilterLogic.And, Filters = filters }
                     : filters.Single(),
 
-                Sorts = (search.Sort ?? $"-{nameof(SearchAccountInfoResult.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x =>
-                        {
-                            x = x.Trim();
-                            Sort sort;
-#pragma warning disable RCS1179 // Use return instead of assignment.
-                            if (x.StartsWith("-"))
-                            {
-                                x = x.Substring(1);
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Descending, Expression = x.ToLambda<SearchAccountInfoResult>() };
-                            }
-                            else
-                            {
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Ascending, Expression = x.ToLambda<SearchAccountInfoResult>() };
-                            }
-#pragma warning restore RCS1179 // Use return instead of assignment.
-
-                            return sort;
-                        })
+                Sort = search.Sort?.ToSort<SearchAccountInfoResult>() ?? new Sort<SearchAccountInfoResult>(nameof(SearchAccountInfoResult.UpdatedDate), SortDirection.Descending)
             };
 
             Page<SearchAccountInfoResult> searchResult = await _mediator.Send(new SearchQuery<SearchAccountInfoResult>(searchQuery), ct)

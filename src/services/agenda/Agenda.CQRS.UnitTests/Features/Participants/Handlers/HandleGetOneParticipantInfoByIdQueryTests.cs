@@ -65,7 +65,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             GetOneParticipantInfoByIdQuery request = new GetOneParticipantInfoByIdQuery(Guid.NewGuid());
 
             // Act
-            Option<ParticipantInfo> optionalParticipant = await _sut.Handle(request, ct: default)
+            Option<ParticipantInfo> optionalParticipant = await _sut.Handle(request, cancellationToken: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -82,7 +82,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                 UUID = participantId,
                 Name = "Bruce Wayne"
             };
-            
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Participant>().Create(participant);

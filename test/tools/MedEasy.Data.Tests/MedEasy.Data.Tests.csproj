@@ -27,8 +27,4 @@
 
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\tools\MedEasy.Data\MedEasy.Data.csproj" />
-  </ItemGroup>
-
 </Project>
