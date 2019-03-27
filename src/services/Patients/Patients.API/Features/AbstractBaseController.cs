@@ -1,7 +1,7 @@
 ﻿using AutoMapper.QueryableExtensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
+using DataFilters;
 using MedEasy.DTO.Search;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
@@ -74,15 +74,13 @@ namespace Patients.API.Controllers
         {
             using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
-                Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (x => true);
+                Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (_ => true);
                 Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
                 Page<TResource> resources = await uow.Repository<TEntity>()
                     .WhereAsync(
                         selector,
                         filter ,
-                        search.Sorts.Select(sort => OrderClause<TResource>.Create(sort.Expression, sort.Direction == MedEasy.Data.SortDirection.Ascending
-                            ? MedEasy.DAL.Repositories.SortDirection.Ascending
-                            : MedEasy.DAL.Repositories.SortDirection.Descending)),
+                        search.Sort.ToOrderClause(),
                         search.Page,
                         search.PageSize,
                         cancellationToken);

@@ -1,6 +1,8 @@
 ﻿import * as LinQ from "linq";
 import * as React from "react";
-import { Button, Col, FormGroup, Grid, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle, Row, Form, FormControl } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 import { Browsable } from "./../../restObjects/Browsable";
 import { Guid } from "./../../System/Guid";
 import { RestClient } from "./../../System/RestClient";
@@ -86,15 +88,14 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
 
                     animation
                     show={this.state.creatingAppointment} draggable>
-                    <ModalHeader closeButton>
-                        <ModalTitle>Nouveau rendez-vous</ModalTitle>
-                    </ModalHeader>
-                    <ModalBody>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Nouveau rendez-vous</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
                         <Form>
-
-                            <FormGroup>
-                                <label htmlFor={"dateDebut"}>Date</label>
-                                <FormControl type="date" name="startDate" min={new Date().toString()} size={6} />
+                            <Form.Group>
+                                <Form.Label htmlFor={"dateDebut"}>Date</Form.Label>
+                                <Form.Control type="date" name="startDate" min={new Date().toString()}  />
 
                                 <select name={"startHour"} id={"startHour"} className="form-control" contentEditable>
                                     {
@@ -102,22 +103,22 @@ export class PatientDetails extends React.Component<PatientDetailsComponentProps
                                             .map((hour) => <option key={hour} value={hour} selected={now.getHours() == hour}>{hour}</option>)
                                     }
                                 </select>
-                            </FormGroup>
+                            </Form.Group>
 
-                            <FormGroup>
+                            <Form.Group>
                                 <label htmlFor={"title"}>Objet</label>
-                                <FormControl type="text" name="title" placeholder="Certificat médical, bilan, ..." />
-                            </FormGroup>
+                                <Form.Control type="text" name="title" placeholder="Certificat médical, bilan, ..." />
+                            </Form.Group>
                         </Form>
-                        <ModalFooter>
-                            <Button bsStyle="success" as="submit" onClick={() => this.setState({ creatingAppointment: false })}>
+                        <Modal.Footer>
+                            <Button variant="success" type="submit"  onClick={() => this.setState({ creatingAppointment: false })}>
                                 Enregistrer
                             </Button>
-                            <Button bsStyle="danger" onClick={() => this.setState({ creatingAppointment: false })}>
+                            <Button variant="danger" onClick={() => this.setState({ creatingAppointment: false })}>
                                 Annuler
                             </Button>
-                        </ModalFooter>
-                    </ModalBody>
+                        </Modal.Footer>
+                    </Modal.Body>
                 </Modal>
 
             </div >

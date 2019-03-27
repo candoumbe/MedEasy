@@ -42,8 +42,8 @@ namespace Patients.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddCustomMvc(_configuration, _hostingEnvironment);
-            services.AddDataStores();
+            services.AddCustomMvc(_configuration, _hostingEnvironment)
+                .AddDataStores();
             services.AddAuthorization();
             services.AddDependencyInjection();
             services.ConfigureSwagger(_hostingEnvironment, _configuration);

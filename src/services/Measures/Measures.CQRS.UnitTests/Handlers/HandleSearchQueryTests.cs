@@ -1,5 +1,4 @@
-﻿
-using AutoMapper.QueryableExtensions;
+﻿using AutoMapper.QueryableExtensions;
 using FluentAssertions;
 using Measures.DTO;
 using Measures.Mapping;
@@ -7,7 +6,6 @@ using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO.Search;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -21,8 +19,11 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static MedEasy.Data.DataFilterOperator;
 using static Moq.MockBehavior;
+using static DataFilters.FilterLogic;
+using static DataFilters.FilterOperator;
+using DataFilters;
+using DataFilters.Expressions;
 
 namespace Measures.CQRS.UnitTests.Handlers
 {
@@ -69,7 +70,7 @@ namespace Measures.CQRS.UnitTests.Handlers
                     Enumerable.Empty<Objects.Patient>(),
                     new SearchQueryInfo<PatientInfo>
                     {
-                        Filter = new DataFilter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
+                        Filter = new Filter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
                         PageSize = 3
                     },
@@ -93,7 +94,7 @@ namespace Measures.CQRS.UnitTests.Handlers
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
-                            Filter = new DataFilter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
+                            Filter = new Filter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
                             Page = 3,
                             PageSize = 1
                         },

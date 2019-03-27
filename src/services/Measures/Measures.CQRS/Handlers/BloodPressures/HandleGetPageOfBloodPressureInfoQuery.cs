@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
@@ -45,7 +46,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
                         selector,
                         pagination.PageSize,
                         pagination.Page,
-                        new[] { OrderClause<BloodPressureInfo>.Create(x => x.DateOfMeasure) },
+                        new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending).ToOrderClause(),
                         cancellationToken)
                     .ConfigureAwait(false);
             }

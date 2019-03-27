@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
@@ -11,7 +12,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.DAL.Repositories.SortDirection;
 
 namespace Identity.CQRS.Handlers.Queries.Accounts
 {
@@ -46,14 +46,11 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                         selector: selector,
                         pageSize: data.PageSize,
                         page: data.Page,
-                        orderBy: new[]
-                        {
-                            OrderClause<Account>.Create(x => x.CreatedDate, Descending)
-                        },
+                        orderBy: new Sort<Account>(nameof(Account.Id), SortDirection.Descending).ToOrderClause(),
                         ct: ct)
                     .ConfigureAwait(false);
 
-                return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Default)
+                return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Empty)
                     .ConfigureAwait(false); 
             }
         }

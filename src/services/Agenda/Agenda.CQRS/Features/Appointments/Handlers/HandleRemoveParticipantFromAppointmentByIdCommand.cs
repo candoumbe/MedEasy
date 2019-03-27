@@ -25,23 +25,26 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             _unitOfWorkFactory = unitOfWorkFactory ?? throw new ArgumentNullException(nameof(unitOfWorkFactory));
         }
 
-        public async Task<DeleteCommandResult> Handle(RemoveParticipantFromAppointmentByIdCommand request, CancellationToken ct)
+        public async Task<DeleteCommandResult> Handle(RemoveParticipantFromAppointmentByIdCommand request, CancellationToken cancellationToken)
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 var optionalAppointment = await uow.Repository<AppointmentParticipant>()
-                                 .SingleOrDefaultAsync(ap => new { ap.AppointmentId, ap.ParticipantId  }, ap => ap.Appointment.UUID == request.Data.appointmentId && ap.Participant.UUID == request.Data.participantId)
+                                 .SingleOrDefaultAsync(
+                                    ap => new { ap.AppointmentId, ap.ParticipantId  }, 
+                                    ap => ap.Appointment.UUID == request.Data.appointmentId && ap.Participant.UUID == request.Data.participantId, cancellationToken)
                                  .ConfigureAwait(false);
 
                 return await optionalAppointment.Match(
                     some: async (appointment) =>
                     {
                         uow.Repository<AppointmentParticipant>().Delete(ap => ap.ParticipantId == appointment.ParticipantId && ap.AppointmentId == ap.AppointmentId);
-                        await uow.SaveChangesAsync().ConfigureAwait(false);
+                        await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         return DeleteCommandResult.Done;
                     },
                     none: () => Task.FromResult(DeleteCommandResult.Failed_NotFound)
-                 );
+                 )
+                 .ConfigureAwait(false);
             }
         }
     }

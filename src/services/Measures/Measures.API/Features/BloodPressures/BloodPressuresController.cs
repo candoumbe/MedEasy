@@ -1,4 +1,5 @@
-﻿using Measures.API.Features.Patients;
+﻿using DataFilters;
+using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
@@ -8,7 +9,6 @@ using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.Data.DataFilterLogic;
-using static MedEasy.Data.DataFilterOperator;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using static DataFilters.FilterOperator;
+using static DataFilters.FilterLogic;
 
 namespace Measures.API.Features.BloodPressures
 {
@@ -308,34 +308,34 @@ namespace Measures.API.Features.BloodPressures
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
-            IList<IDataFilter> filters = new List<IDataFilter>();
+            IList<IFilter> filters = new List<IFilter>();
 
             if (search.From.HasValue)
             {
-                filters.Add(new DataCompositeFilter
+                filters.Add(new CompositeFilter
                 {
                     Logic = Or,
                     Filters = new[] {
-                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value),
-                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value)
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value)
                     }
                 });
             }
             if (search.To.HasValue)
             {
-                filters.Add(new DataCompositeFilter
+                filters.Add(new CompositeFilter
                 {
                     Logic = Or,
                     Filters = new[] {
-                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value),
-                        new DataFilter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value)
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value)
                     }
                 });
             }
 
             if (search.PatientId.HasValue)
             {
-                filters.Add(new DataFilter(field: nameof(BloodPressureInfo.PatientId), @operator: EqualTo, value: search.PatientId.Value));
+                filters.Add(new Filter(field: nameof(BloodPressureInfo.PatientId), @operator: EqualTo, value: search.PatientId.Value));
             }
 
             SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
@@ -344,23 +344,8 @@ namespace Measures.API.Features.BloodPressures
                 PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
                 Filter = filters.Once()
                     ? filters.Single()
-                    : new DataCompositeFilter { Logic = And, Filters = filters },
-                Sorts = (search.Sort ?? $"-{nameof(BloodPressureInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x =>
-                        {
-                            x = x.Trim();
-                            Sort sort;
-                            if (x.StartsWith("-"))
-                            {
-                                x = x.Substring(1);
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Descending, Expression = x.ToLambda<BloodPressureInfo>() };
-                            }
-                            else
-                            {
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Ascending, Expression = x.ToLambda<BloodPressureInfo>() };
-                            }
-                            return sort;
-                        })
+                    : new CompositeFilter { Logic = And, Filters = filters },
+                Sort = search.Sort?.ToSort<BloodPressureInfo>() ?? new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending)
             };
 
             Page<BloodPressureInfo> pageOfResult = await _mediator.Send(new SearchQuery<BloodPressureInfo>(searchQueryInfo), cancellationToken)

@@ -29,9 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\tools\MedEasy.Data\MedEasy.Data.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
-    <ProjectReference Include="..\..\..\src\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

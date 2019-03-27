@@ -168,6 +168,31 @@ namespace Identity.API
         /// 
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
+            DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            {
+                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                {
+                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                }
+                else
+                {
+                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                    builder.UseSqlServer(
+                        configuration.GetConnectionString("Identity"),
+                        options => options.EnableRetryOnFailure(5)
+                            .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
+                    );
+                }
+                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                builder.ConfigureWarnings(options =>
+                {
+                    options.Default(WarningBehavior.Log);
+                });
+                return builder;
+            }
+
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -177,7 +202,6 @@ namespace Identity.API
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
            {
-               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
 
                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));
@@ -213,31 +237,7 @@ namespace Identity.API
             return services;
         }
 
-        private static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
-        {
-            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-            {
-                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            }
-            else
-            {
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                builder.UseSqlServer(
-                    configuration.GetConnectionString("Identity"),
-                    options => options.EnableRetryOnFailure(5)
-                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
-                );
-            }
-            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options =>
-            {
-                options.Default(WarningBehavior.Log);
-            });
-            return builder;
-        }
-
+        
         /// <summary>
         /// Adds Authorization and authentication
         /// </summary>

@@ -18,7 +18,6 @@ namespace Agenda.API
     public class Program
 #pragma warning restore RCS1102 // Make class static.
     {
-        private static readonly string _appName = typeof(Program).Namespace;
 
         public static async Task Main(string[] args)
         {
@@ -28,14 +27,15 @@ namespace Agenda.API
             {
                 IServiceProvider services = scope.ServiceProvider;
                 ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+                IHostingEnvironment env = services.GetRequiredService<IHostingEnvironment>();
                 AgendaContext context = services.GetRequiredService<AgendaContext>();
-                logger?.LogInformation("Starting {{ApplicationContext}}", _appName);
+                logger?.LogInformation("Starting {ApplicationContext}", env.ApplicationName);
 
                 try
                 {
                     if (!context.Database.IsInMemory())
                     {
-                        logger?.LogInformation("Upgrading {{ApplicationContext}}'s store", _appName);
+                        logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
                         // Forces database migrations on startup
                         RetryPolicy policy = Policy
                             .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
@@ -45,18 +45,18 @@ namespace Agenda.API
                                 onRetry: (exception, timeSpan, attempt, pollyContext) =>
                                     logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})")
                                 );
-                        logger?.LogInformation("Starting {{ApplictationContext}} database migration", _appName);
+                        logger?.LogInformation("Starting {ApplictationContext} database migration", env.ApplicationName);
 
                         // Forces datastore migration on startup
                         await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
                             .ConfigureAwait(false);
 
-                        logger?.LogInformation($"Agenda database updated");
+                        logger?.LogInformation("{ApplicationContext} updated", env.ApplicationName);
                     }
                     await host.RunAsync()
                         .ConfigureAwait(false);
 
-                    logger?.LogInformation($"Agenda.API started");
+                    logger?.LogInformation("{ApplicationContext} started", env.ApplicationName);
                 }
                 catch (Exception ex)
                 {
@@ -77,14 +77,15 @@ namespace Agenda.API
                 .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
                 .UseSerilog((hosting, loggerConfig) => loggerConfig
                     .MinimumLevel.Verbose()
-                    .Enrich.WithProperty("ApplicationContext", _appName)
+                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
                     .ReadFrom.Configuration(hosting.Configuration)
                 )
-                .ConfigureLogging((hosting, options) => {
-                    options.AddConsole()
-                        .AddDebug();
+                .ConfigureLogging((options) => {
+                    options.ClearProviders() // removes all default providers
+                        .AddSerilog()
+                        .AddConsole();
                 })
                 .ConfigureAppConfiguration((context, builder) =>
 

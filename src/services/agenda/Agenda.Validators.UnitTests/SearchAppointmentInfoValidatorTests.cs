@@ -82,6 +82,13 @@ namespace Agenda.Validators.UnitTests
                     )),
                     $"only {nameof(SearchAppointmentInfo.From)} was explicitely set"
                 };
+                yield return new object[]
+                {
+                    new SearchAppointmentInfo { Sort = "+startDate" },
+                    ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid
+                    )),
+                    $"only {nameof(SearchAppointmentInfo.Sort)} was explicitely set"
+                };
 
                 yield return new object[]
                 {
@@ -160,7 +167,7 @@ namespace Agenda.Validators.UnitTests
         [MemberData(nameof(ValidateCases))]
         public async Task ValidateSearchAppointmentInfo(SearchAppointmentInfo search, Expression<Func<ValidationResult, bool>> validationResultExpectation, string reason)
         {
-            _outputHelper.WriteLine($"criteria : {SerializeObject(search)}");
+            _outputHelper.WriteLine($"criteria : {search.Stringify()}");
             // Arrange
 
             // Act

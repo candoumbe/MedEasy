@@ -1,11 +1,7 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
-import { BaseAuthenticatedComponent } from './BaseAuthenticatedComponent';
-import { Grid } from 'react-bootstrap';
 
 export class Home extends React.Component<RouteComponentProps<{}>, {}> {
-
-
 
     public render() {
         return <div>

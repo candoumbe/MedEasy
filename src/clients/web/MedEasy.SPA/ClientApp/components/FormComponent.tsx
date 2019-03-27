@@ -6,7 +6,8 @@ import { FormFieldComponent } from "./FormFieldComponent";
 import * as ReactRouter from "react-router";
 import * as LinQ from "linq";
 import * as Enumerable from "linq";
-import { Alert, Button } from "react-bootstrap";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 
 
 interface FormComponentProps {
@@ -50,7 +51,7 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
         let fieldNames = form.items.map(field => field.name);
         let errorsEnumerable = Enumerable.from(errors);
         let errorContainer = errorsEnumerable.any(err => err.key === "")
-            ? <Alert bsStyle="alert">
+            ? <Alert variant="danger" closeLabel="Close">
                 <ul>
                     {
                         errorsEnumerable.where(e => e.key === "")
@@ -58,7 +59,7 @@ export class FormComponent extends React.Component<FormComponentProps, FormCompo
                             .map((item, index) => <li key={index}>{item.value}</li>)
                     }
                 </ul>
-                <Button className="close" data-dismiss="alert" aria-label="Close">
+                <Button data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </Button>
             </Alert>

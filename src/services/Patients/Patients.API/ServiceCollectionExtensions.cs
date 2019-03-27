@@ -48,7 +48,8 @@ namespace Patients.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        /// <param name="env"></param>
+        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
             services.AddMvc(config =>
             {
@@ -146,6 +147,7 @@ namespace Patients.API
                 options.RedirectStatusCode = Status307TemporaryRedirect;
             });
 #endif
+            return services;
         }
 
         /// <summary>

@@ -10,11 +10,6 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  
-  <ItemGroup>
-    <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -22,6 +17,10 @@
     </PackageReference>
     <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MedEasy.Tools\MedEasy.Tools.csproj" />
   </ItemGroup>
 
 </Project>

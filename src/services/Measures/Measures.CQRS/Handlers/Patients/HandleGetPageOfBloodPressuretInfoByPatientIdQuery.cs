@@ -1,4 +1,5 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
@@ -47,7 +48,7 @@ namespace Measures.CQRS.Handlers.Patients
                                 .WhereAsync(
                                     selector,
                                     (BloodPressure x) => x.UUID == patientId,
-                                    new[] { OrderClause<BloodPressureInfo>.Create(x => x.UpdatedDate) },
+                                    new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.UpdatedDate), SortDirection.Descending).ToOrderClause(),
                                     pagination.PageSize,
                                     pagination.Page,
                                     cancellationToken)

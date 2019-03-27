@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace MedEasy.Tools
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class GenericEqualityComparer<T> : EqualityComparer<T>
     {
         private readonly Func<T, int> _hashFunc;

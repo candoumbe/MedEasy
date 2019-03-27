@@ -8,8 +8,9 @@ import { RestClient } from "./../../System/RestClient";
 import { Guid } from "./../../System/Guid";
 import { LoadingComponent } from "./../LoadingComponent";
 import * as LinQ from "linq";
-import { Container } from "react-bootstrap/lib/Tab";
-import { Nav, Button } from "react-bootstrap";
+import Container from "react-bootstrap/Container";
+import Button from "react-bootstrap/Button";
+import Nav from "react-bootstrap/Nav";
 import { Redirect } from "react-router";
 
 
@@ -93,7 +94,7 @@ export class PatientCreatePage extends React.Component<PatientCreateComponentPro
         let content: JSX.Element;
         if (this.state.form) {
             content = <FormComponent form={this.state.form} handleSubmit={submit} onChange={onChange}>
-                <Button type='submit' bsStyle="success">Create</Button>
+                <Button type='submit' variant="success">Create</Button>
             </FormComponent>;
         } else if (this.state.loading) {
             content = <LoadingComponent />

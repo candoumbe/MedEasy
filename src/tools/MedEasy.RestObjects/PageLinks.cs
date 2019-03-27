@@ -14,8 +14,8 @@ namespace MedEasy.RestObjects
         /// <param name="last">link to the last page</param>
         public PageLinks(string first, string previous, string next, string last)
         {
-            First = first != null 
-                ? new Link { Href = first, Relation = LinkRelation.First, Method = "GET" } 
+            First = first != null
+                ? new Link { Href = first, Relation = LinkRelation.First, Method = "GET" }
                 : null;
             Next = next != null
                 ? new Link { Href = next, Relation = LinkRelation.Next, Method = "GET" }
@@ -26,21 +26,23 @@ namespace MedEasy.RestObjects
             Previous = previous != null
                 ? new Link { Href = previous, Relation = LinkRelation.Previous, Method = "GET" }
                 : null;
-            ;
         }
 
         /// <summary>
         /// <see cref="Link"/> to the first page of result
         /// </summary>
         public Link First { get;  }
+
         /// <summary>
         /// <see cref="Link"/> to the next page of result
         /// </summary>
         public Link Next { get; }
+
         /// <summary>
         /// <see cref="Link"/> to the last page of result
         /// </summary>
         public Link Last { get; }
+
         /// <summary>
         /// <see cref="Link"/> to the previous page of result
         /// </summary>

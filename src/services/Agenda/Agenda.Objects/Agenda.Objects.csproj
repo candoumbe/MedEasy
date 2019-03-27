@@ -11,6 +11,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Utilities" Version="2019.3.24.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />

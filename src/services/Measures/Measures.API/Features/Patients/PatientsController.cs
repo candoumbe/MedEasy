@@ -1,4 +1,5 @@
-﻿using Measures.API.Features.BloodPressures;
+﻿using DataFilters;
+using Measures.API.Features.BloodPressures;
 using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
@@ -11,7 +12,6 @@ using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
@@ -58,7 +58,6 @@ namespace Measures.API.Features.Patients
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
 
         private readonly ClaimsPrincipal _claimsPrincipal;
-
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
@@ -228,41 +227,25 @@ namespace Measures.API.Features.Patients
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-            IList<IDataFilter> filters = new List<IDataFilter>();
+            IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
             {
-                filters.Add($"{(nameof(search.Firstname))}={search.Firstname}".ToFilter<PatientInfo>());
+                filters.Add($"{nameof(search.Firstname)}={search.Firstname}".ToFilter<PatientInfo>());
             }
 
             if (!string.IsNullOrEmpty(search.Lastname))
             {
-                filters.Add($"{(nameof(search.Lastname))}={search.Lastname}".ToFilter<PatientInfo>());
+                filters.Add($"{nameof(search.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
             }
 
             SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
             {
                 Filter = filters.Count == 1
                     ? filters.Single()
-                    : new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters },
+                    : new CompositeFilter { Logic = FilterLogic.And, Filters = filters },
                 Page = search.Page,
                 PageSize = search.PageSize,
-                Sorts = (search.Sort ?? $"-{nameof(PatientInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x =>
-                        {
-                            x = x.Trim();
-                            Sort sort;
-                            if (x.StartsWith("-"))
-                            {
-                                x = x.Substring(1);
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Descending, Expression = x.ToLambda<PatientInfo>() };
-                            }
-                            else
-                            {
-                                sort = new Sort { Direction = MedEasy.Data.SortDirection.Ascending, Expression = x.ToLambda<PatientInfo>() };
-                            }
-
-                            return sort;
-                        })
+                Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending)
             };
             Page<PatientInfo> page = await _mediator.Send(new SearchQuery<PatientInfo>(searchQuery), cancellationToken)
                 .ConfigureAwait(false);
@@ -395,7 +378,7 @@ namespace Measures.API.Features.Patients
                 .ConfigureAwait(false);
 
             return result.Match<IActionResult>(
-                some: (patient) =>
+                some: _ =>
                 {
                     pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
                     return new RedirectToRouteResult(RouteNames.DefaultSearchResourcesApi, new
@@ -502,7 +485,6 @@ namespace Measures.API.Features.Patients
                     new Link { Relation = LinkRelation.Self, Method = "GET", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {resource.Id}) },
                     new Link { Relation = "bloodpressures", Method = "GET", Href = UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = BloodPressuresController.EndpointName, patientId = resource.Id, page = 1, pageSize = ApiOptions.Value.DefaultPageSize }) }
                 }
-
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { resource.Id }, browsableResource);

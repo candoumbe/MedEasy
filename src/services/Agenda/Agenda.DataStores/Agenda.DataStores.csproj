@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
+    <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
     <ProjectReference Include="..\Agenda.Objects\Agenda.Objects.csproj" />
   </ItemGroup>
 

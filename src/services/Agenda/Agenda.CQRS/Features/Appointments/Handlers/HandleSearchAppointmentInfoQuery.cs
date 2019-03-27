@@ -2,18 +2,19 @@
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
 using Agenda.Objects;
+using DataFilters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MediatR;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.Data.DataFilterLogic;
-using static MedEasy.Data.DataFilterOperator;
+using static DataFilters.FilterOperator;
+using static DataFilters.FilterLogic;
+using System;
 
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
@@ -32,30 +33,45 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
         public async Task<Page<AppointmentInfo>> Handle(SearchAppointmentInfoQuery request, CancellationToken ct)
         {
-            IList<IDataFilter> filters = new List<IDataFilter>();
+            IList<IFilter> filters = new List<IFilter>();
             SearchAppointmentInfo criteria = request.Data;
             if (criteria.From.HasValue)
             {
-                filters.Add(new DataCompositeFilter
+                filters.Add(new CompositeFilter
                 {
                     Logic = Or,
                     Filters = new[]
                     {
-                        new DataFilter(field: nameof(Appointment.StartDate), @operator: GreaterThanOrEqual, value : criteria.From.Value),
-                        new DataFilter(field: nameof(Appointment.EndDate), @operator: GreaterThanOrEqual, value : criteria.From.Value)
+                        new Filter(field: nameof(Appointment.StartDate), @operator: GreaterThanOrEqual, value : criteria.From.Value),
+                        new Filter(field: nameof(Appointment.EndDate), @operator: GreaterThanOrEqual, value : criteria.From.Value)
                     }
                 });
             }
+
+            if (criteria.To.HasValue)
+            {
+                filters.Add(new CompositeFilter
+                {
+                    Logic = Or,
+                    Filters = new[]
+                    {
+                        new Filter(field: nameof(Appointment.StartDate), @operator: LessThanOrEqualTo, value : criteria.To.Value),
+                        new Filter(field: nameof(Appointment.EndDate), @operator: LessThanOrEqualTo, value : criteria.To.Value)
+                    }
+                });
+            }
+
             SearchQueryInfo<AppointmentInfo> searchQueryInfo = new SearchQueryInfo<AppointmentInfo>
             {
                 Page = criteria.Page,
-                PageSize = criteria.PageSize
+                PageSize = criteria.PageSize,
+                Sort = criteria.Sort?.ToSort<AppointmentInfo>() ?? new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate))
             };
-            if (filters.Any())
+            if (filters.Count > 0)
             {
                 searchQueryInfo.Filter = filters.Once()
                     ? filters.Single()
-                    : new DataCompositeFilter { Logic = And, Filters = filters };
+                    : new CompositeFilter { Logic = And, Filters = filters };
             }
 
             return await _handleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo), ct)

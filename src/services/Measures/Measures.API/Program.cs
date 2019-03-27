@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using Serilog;
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
@@ -34,13 +35,15 @@ namespace Measures.API
                 IServiceProvider services = scope.ServiceProvider;
                 ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
                 MeasuresContext context = services.GetRequiredService<MeasuresContext>();
-                logger?.LogInformation($"Starting Measures.API");
+                IHostingEnvironment environment = services.GetRequiredService<IHostingEnvironment>();
+
+                logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
 
                 try
                 {
                     if (!context.Database.IsInMemory())
                     {
-                        logger?.LogInformation($"Upgrading Measures store");
+                        logger?.LogInformation("Upgrading {ApplicationContext}' store", environment.ApplicationName);
                         // Forces database migrations on startup
                         RetryPolicy policy = Policy
                             .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
@@ -50,18 +53,18 @@ namespace Measures.API
                                 onRetry: (exception, timeSpan, attempt, pollyContext) =>
                                     logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
                                 );
-                        logger?.LogInformation("Starting measures database migration");
+                        logger?.LogInformation("Starting {ApplicationContext}' store migration", environment.ApplicationName);
 
                         // Forces datastore migration on startup
                         await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
                             .ConfigureAwait(false);
 
-                        logger?.LogInformation($"Measures database updated");
+                        logger?.LogInformation("{ApplicationContext} store upgraded", environment.ApplicationName);
                     }
                     await host.RunAsync()
                         .ConfigureAwait(false);
 
-                    logger?.LogInformation($"Measures.API started");
+                    logger?.LogInformation("{ApplicationContext} started", environment.ApplicationName);
                 }
                 catch (Exception ex)
                 {
@@ -77,7 +80,20 @@ namespace Measures.API
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder(args)
                .UseStartup<Startup>()
-               .ConfigureAppConfiguration((context, builder) =>
+               .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+               .UseSerilog((hosting, loggerConfig) => loggerConfig
+                    .MinimumLevel.Verbose()
+                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console()
+                    .ReadFrom.Configuration(hosting.Configuration)
+                )
+            .ConfigureLogging((options) => {
+                   options.ClearProviders() // removes all default providers
+                       .AddSerilog()
+                       .AddConsole();
+               })
+            .ConfigureAppConfiguration((context, builder) =>
 
                    builder
                        .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)

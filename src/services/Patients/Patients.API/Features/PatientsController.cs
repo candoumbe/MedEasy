@@ -1,9 +1,9 @@
 ﻿using AutoMapper.QueryableExtensions;
+using DataFilters;
 using FluentValidation.Results;
 using MedEasy.Core.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Data;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
@@ -23,7 +23,8 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
-
+using static DataFilters.FilterLogic;
+using static DataFilters.FilterOperator;
 namespace Patients.API.Controllers
 {
     /// <summary>
@@ -78,7 +79,7 @@ namespace Patients.API.Controllers
                         selector,
                         pagination.PageSize,
                         pagination.Page,
-                        new[] { OrderClause<PatientInfo>.Create(x => x.UpdatedDate) },
+                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate),  SortDirection.Descending).ToOrderClause(),
                         cancellationToken).ConfigureAwait(false);
 
                 int count = result.Entries.Count();
@@ -365,7 +366,7 @@ namespace Patients.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-            IList<IDataFilter> filters = new List<IDataFilter>();
+            IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
             {
                 filters.Add($"{nameof(search.Firstname)}={search.Firstname}".ToFilter<PatientInfo>());
@@ -380,34 +381,10 @@ namespace Patients.API.Controllers
             {
                 Filter = filters.Count == 1
                     ? filters.Single()
-                    : new DataCompositeFilter { Logic = DataFilterLogic.And, Filters = filters },
+                    : new CompositeFilter { Logic = FilterLogic.And, Filters = filters },
                 Page = search.Page,
                 PageSize = search.PageSize,
-                Sorts = (search.Sort ?? $"-{nameof(PatientInfo.UpdatedDate)}").Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x =>
-                        {
-                            x = x.Trim();
-                            Sort sort;
-                            if (x.StartsWith("-"))
-                            {
-                                x = x.Substring(1);
-                                sort = new Sort
-                                {
-                                    Direction = MedEasy.Data.SortDirection.Descending,
-                                    Expression = x.ToLambda<PatientInfo>()
-                                };
-                            }
-                            else
-                            {
-                                sort = new Sort
-                                {
-                                    Direction = MedEasy.Data.SortDirection.Ascending,
-                                    Expression = x.ToLambda<PatientInfo>()
-                                };
-                            }
-
-                            return sort;
-                        })
+                Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending)
             };
 
             Page<PatientInfo> pageOfResources = await Search(searchQuery, cancellationToken).ConfigureAwait(false);

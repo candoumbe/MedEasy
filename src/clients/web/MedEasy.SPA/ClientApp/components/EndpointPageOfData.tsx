@@ -1,5 +1,7 @@
 ﻿import * as React from "react";
-import { Button, Row, Table, PageHeader, Pagination } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
+import Row from "react-bootstrap/Row";
+import Table from "react-bootstrap/Table";
 import { Link } from "react-router-dom";
 import { Browsable } from "./../restObjects/Browsable";
 import { PageOfResult } from "./../restObjects/PageOfResult";

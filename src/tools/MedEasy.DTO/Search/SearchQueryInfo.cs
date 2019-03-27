@@ -1,7 +1,7 @@
-﻿using MedEasy.Data;
+﻿using DataFilters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace MedEasy.DTO.Search
 {
@@ -15,7 +15,7 @@ namespace MedEasy.DTO.Search
         /// <summary>
         /// Defines how to sort the result of the search
         /// </summary>
-        public IEnumerable<Sort> Sorts { get; set; }
+        public ISort<T> Sort { get; set; }
 
         /// <summary>
         /// Page of result to see
@@ -30,24 +30,9 @@ namespace MedEasy.DTO.Search
         /// <summary>
         /// Filter to apply when searching for result
         /// </summary>
-        public IDataFilter Filter { get; set; }
+        public IFilter Filter { get; set; }
 
-        /// <summary>
-        /// Builds a new <see cref="SearchQueryInfo{T}"/> instance.
-        /// </summary>
-        public SearchQueryInfo()
-        {
-            Sorts = Enumerable.Empty<Sort>();
-        }
 
-        public override string ToString()
-            =>
-            //$"{nameof(Filter)} : {SerializeObject(Filter)}," + Environment.NewLine +
-            $"{nameof(Page)}: {Page}" + Environment.NewLine
-            +
-            $"{nameof(PageSize)}: {PageSize}" + Environment.NewLine
-            //+
-            //$"{nameof(Sorts)} : {string.Join(",", Sorts.Select(x => new { Expression = x.Expression.Body.ToString(), x.Direction }))}"
-            ;
+        public override string ToString() => this.Stringify();
     }
 }

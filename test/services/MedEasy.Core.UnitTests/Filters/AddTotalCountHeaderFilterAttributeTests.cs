@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+using FluentAssertions;
 using MedEasy.Core.Filters;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
@@ -16,11 +17,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static System.StringComparison;
-using static Newtonsoft.Json.JsonConvert;
-using static Newtonsoft.Json.NullValueHandling;
-using static Newtonsoft.Json.Formatting;
-using Newtonsoft.Json;
-using Bogus;
 
 namespace MedEasy.Core.UnitTests.Filters
 {
@@ -48,54 +44,67 @@ namespace MedEasy.Core.UnitTests.Filters
         {
             get
             {
-                yield return new object[]
+
+
+                foreach (string method in new[] { "GET", "HEAD", "OPTIONS" })
                 {
-                    new { page = 1},
-                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
-                        && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                    yield return new object[]
+                    {
+                        method,
+                        new { page = 1},
+                        (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                            && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                        ),
+                        "value is an anonymous object"
+                    };
 
-                    ),
-                    "value is an anonymous object"
-                };
+                    yield return new object[]
+                    {
+                        method,
+                        new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
+                        (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                            && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                yield return new object[]
-                {
-                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
-                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
-                        && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                        ),
+                        $"value is a {nameof(GenericPagedGetResponse<object>)}"
+                    };
 
-                    ),
-                    $"value is a {nameof(GenericPagedGetResponse<object>)}"
-                };
+                    yield return new object[]
+                    {
+                        method,
+                        Enumerable.Empty<Minion>(),
+                        (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                            && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                yield return new object[]
-                {
-                    Enumerable.Empty<Minion>(),
-                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
-                        && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                        ),
+                        $"value is a collection"
+                    };
 
-                    ),
-                    $"value is a collection"
-                };
+                    yield return new object[]
+                    {
+                        method,
+                        new List<Minion>(),
+                        (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
+                            && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
-                yield return new object[]
-                {
-                    new List<Minion>(),
-                    (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.None(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
-                        && headers.None(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
-
-                    ),
-                    $"value is a list"
-                };
+                        ),
+                        $"value is a list"
+                    };
+                }
             }
         }
 
         [Theory]
         [MemberData(nameof(AddHeadersDependingOnValueCases))]
-        public void GivenOkObjectResult_Filter_AddCountHeaders_DependingValue(object value, Expression<Func<IHeaderDictionary, bool>> headersExpectation, string reason)
+        public void GivenOkObjectResult_Filter_AddCountHeaders_DependingValue(string method, object value, Expression<Func<IHeaderDictionary, bool>> headersExpectation, string reason)
         {
+            _outputHelper.WriteLine($"{nameof(method)}: '{method}'");
+            _outputHelper.WriteLine($"{nameof(value)}: {value.Stringify()}");
+            _outputHelper.WriteLine($"Value type: {value.GetType()}");
+
             // Arrange
             DefaultHttpContext httpContext = new DefaultHttpContext();
+            httpContext.Request.Method = method;
             ActionContext actionContext = new ActionContext(
                httpContext,
                new Mock<RouteData>().Object,
@@ -121,42 +130,48 @@ namespace MedEasy.Core.UnitTests.Filters
         {
             get
             {
-                yield return new object[]
+                foreach (string method in new []{ "GET", "HEAD", "OPTIONS" })
                 {
-                    new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
-                    (expectedTotalCount : 20, expectedCount : 0)
-                };
-                {
-                    IEnumerable<Minion> minions = new Faker<Minion>()
-                        .RuleFor(minion => minion.Name, faker => faker.Name.FullName())
-                        .Generate(10);
-
-                    IEnumerable<Browsable<Minion>> resources = minions
-                        .Select(minion => new Browsable<Minion>
-                        {
-                            Resource = minion,
-                            Links = new[]
-                            {
-                                new Link { Relation = LinkRelation.Self, Method = "GET", Href = new Faker().Internet.Url() }
-                            }
-                        });
-
-                    int resourcesCount = resources.Count();
                     yield return new object[]
                     {
-                        new GenericPagedGetResponse<Browsable<Minion>>(resources, total: resourcesCount),
-                        (expectedTotal : resourcesCount, expectedCount : resourcesCount)
+                        method,
+                        new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
+                        (expectedTotalCount : 20, expectedCount : 0)
                     };
+                    {
+                        IEnumerable<Minion> minions = new Faker<Minion>()
+                            .RuleFor(minion => minion.Name, faker => faker.Name.FullName())
+                            .Generate(10);
+
+                        IEnumerable<Browsable<Minion>> resources = minions
+                            .Select(minion => new Browsable<Minion>
+                            {
+                                Resource = minion,
+                                Links = new[]
+                                {
+                                new Link { Relation = LinkRelation.Self, Method = "GET", Href = new Faker().Internet.Url() }
+                                }
+                            });
+
+                        int resourcesCount = resources.Count();
+                        yield return new object[]
+                        {
+                            method,
+                            new GenericPagedGetResponse<Browsable<Minion>>(resources, total: resourcesCount),
+                            (expectedTotal : resourcesCount, expectedCount : resourcesCount)
+                        };
+                    }
                 }
             }
         }
 
         [Theory]
         [MemberData(nameof(ActionResultWithCollectionOfElementCases))]
-        public void GivenOkObjectResultWithData_FilterAddHeaders(object okResultValue, (int expectedTotalCount, int expectedCount) headersCountExpectation)
+        public void GivenOkObjectResultWithData_FilterAddHeaders(string method, object okResultValue, (int expectedTotalCount, int expectedCount) headersCountExpectation)
         {
             // Arrange
             DefaultHttpContext httpContext = new DefaultHttpContext();
+            httpContext.Request.Method = method;
             ActionContext actionContext = new ActionContext(
                httpContext,
                new Mock<RouteData>().Object,

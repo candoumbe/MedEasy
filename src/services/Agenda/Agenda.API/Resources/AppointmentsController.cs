@@ -1,4 +1,5 @@
-﻿using Agenda.API.Routing;
+﻿using Agenda.API.Resources;
+using Agenda.API.Routing;
 using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
@@ -52,9 +53,11 @@ namespace Agenda.API.Controllers
         /// <param name="newAppointment">data of the appointment</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="400"></response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<AppointmentInfo>), Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        [ProducesResponseType(Status500InternalServerError)]
         public async Task<IActionResult> Post([FromBody] NewAppointmentInfo newAppointment, CancellationToken ct = default)
         {
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(newAppointment), ct)
@@ -65,7 +68,12 @@ namespace Agenda.API.Controllers
             {
                 new Link {Relation = LinkRelation.Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
             }
-            .Union(participants.Select(participant => new Link { Relation = $"get-participant-{participant.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = "participant", participant.Id }) }));
+            .Concat(participants.Select(p => new Link { Relation = $"get-participant-{p.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = ParticipantsController.EndpointName, p.Id }) }))
+#if DEBUG
+
+            .ToArray()
+#endif
+            ;
 
             Browsable<AppointmentInfo> browsableResource = new Browsable<AppointmentInfo>
             {
@@ -172,24 +180,26 @@ namespace Agenda.API.Controllers
         /// <param name="search">Search criteria</param>
         /// <param name="cancellationToken">Notfies to cancel the search operation</param>
         /// <remarks>
-        /// All criteria are combined as a AND.
-        /// 
+        /// <para>All criteria are combined as a AND.</para>
+        /// <para>
         /// Advanded search :
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
-        /// 
+        /// </para>
+        /// <para>
         ///     // GET api/appointments/search?location=Gotham
         ///     will match all resources which have exactly 'Gotham' in the `location` property
-        ///     
+        /// </para>
+        /// <para>
         ///     // GET api/appointments/search?location=C*tral
         ///     will match match all resources which starts with 'C' and ends with 'tral'.
-        /// 
-        /// '?' : match exactly one charcter in a string property.
-        /// 
-        /// '!' : negate a criterion
-        /// 
+        /// </para>
+        /// <para>'?' : match exactly one charcter in a string property.</para>
+        /// <para>'!' : negate a criterion</para>
+        /// <para>
         ///     // GET api/appointments/search?location=!Gotham
         ///     will match all resources where "location" is not "Gotham"
+        /// </para>
         ///     
         /// </remarks>
         /// <response code="200">"page" of resources that matches <paramref name="search"/> criteria.</response>
@@ -214,14 +224,14 @@ namespace Agenda.API.Controllers
                         new Link { Relation = LinkRelation.Self, Method = "GET", Href =_urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })}
                     }
                 }),
-                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, search.Participant }),
+                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize}),
                 previous: page.Count > 1 && search.Page > 1
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, search.Participant })
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize })
                     : null,
                 next: search.Page < page.Count
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, search.Participant })
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, search.Participant }),
+                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize }),
                 total: page.Total
             );
 

@@ -84,7 +84,7 @@ export class DoctorQuickCreateComponent extends React.Component<DoctorCreateComp
                     this.state.form
                         ? <FormComponent form={this.state.form} handleSubmit={this.submit} onChange={this.handleChange}>
                             <Row>
-                                <Button as="submit" />
+                                <Button type="submit" value="Enregistrer" />
                             </Row>
                         </FormComponent>
                         : <LoadingComponent />

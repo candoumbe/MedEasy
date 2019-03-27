@@ -1,7 +1,8 @@
 ﻿import * as React from "react";
 import { FormField } from "./../restObjects/FormField";
 import { ErrorComponent } from "./ErrorComponent";
-import { FormGroup, Overlay, Col } from "react-bootstrap";
+import Form from "react-bootstrap/Form";
+import Col from "react-bootstrap/Col";
 
 
 
@@ -90,7 +91,7 @@ export class FormFieldComponent extends React.Component<FormFieldComponentProps,
     public render() {
         let f = this.props.field;
         let attributes: React.InputHTMLAttributes<HTMLInputElement> = {
-            type: this.mapFieldTypeToInputType(f) || "text",
+            type:  "text",
             className: "form-control",
             id: f.name,
             name: f.name,
@@ -118,18 +119,18 @@ export class FormFieldComponent extends React.Component<FormFieldComponentProps,
             : null;
 
         let input = f.type !== "Boolean"
-            ? <FormGroup>
+            ? <Form.Group>
                 <Col xs={2} lg={2}>
                     <label htmlFor={f.name}>{f.label}{f.required ? <span className="text-danger">&nbsp;*&nbsp;</span> : null}</label>
                 </Col>
                 <input ref={f.name} {...attributes} />
                 {errorComponent}
-            </FormGroup>
-            : <FormGroup>
+            </Form.Group>
+            : <Form.Group>
                 <input ref={f.name} {...attributes} />
                 <label htmlFor={f.name}>{f.label}</label>
                 {errorComponent}
-            </FormGroup>;
+            </Form.Group>;
 
 
         return input;

@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.Tools\MedEasy.Tools.csproj" />
     <ProjectReference Include="..\Measures.Objects\Measures.Objects.csproj" />
   </ItemGroup>
 
