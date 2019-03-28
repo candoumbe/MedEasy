@@ -21,10 +21,7 @@ namespace MedEasy.Core.Filters
         /// Builds a new <see cref="HandleErrorAttribute"/> instance
         /// </summary>
         /// <param name="logger"></param>
-        public HandleErrorAttribute(ILogger<HandleErrorAttribute> logger)
-        {
-            _logger = logger;
-        }
+        public HandleErrorAttribute(ILogger<HandleErrorAttribute> logger) => _logger = logger;
 
         public override async Task OnExceptionAsync(ExceptionContext context)
         {
@@ -68,7 +65,6 @@ namespace MedEasy.Core.Filters
                 context.Result = new BadRequestResult();
                 context.ExceptionHandled = true;
             }
-
 
             await base.OnExceptionAsync(context)
                 .ConfigureAwait(false);

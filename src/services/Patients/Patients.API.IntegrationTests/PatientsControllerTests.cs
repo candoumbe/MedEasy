@@ -35,24 +35,6 @@ namespace Patients.API.IntegrationTests
         private IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/patients";
 
-#if NETCOREAPP2_0
-        private static readonly JSchema _errorObjectSchema = new JSchema
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(ErrorObject.Code).ToLower()] = new JSchema { Type = JSchemaType.String},
-                [nameof(ErrorObject.Description).ToLower()] = new JSchema { Type = JSchemaType.String},
-                [nameof(ErrorObject.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
-            },
-            Required =
-            {
-                nameof(ErrorObject.Code).ToLower(),
-                nameof(ErrorObject.Description).ToLower(),
-                nameof(ErrorObject.Errors).ToLower()
-            }
-        };
-#elif NETCOREAPP2_1
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
@@ -70,7 +52,6 @@ namespace Patients.API.IntegrationTests
 
             }
         };
-#endif
 
         private static readonly JSchema _pageLink = new JSchema
         {
@@ -292,20 +273,7 @@ namespace Patients.API.IntegrationTests
 
                     JToken token = JToken.Parse(content);
                     token.IsValid(_errorObjectSchema)
-#if NETCOREAPP2_0
-                                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-                    ErrorObject errorObject = token.ToObject<ErrorObject>();
-                    errorObject.Code.Should()
-                        .Be("BAD_REQUEST");
-                    errorObject.Description.Should()
-                        .Be("Validation failed");
-                    errorObject.Errors.Should()
-                        .HaveCount(1).And
-                        .ContainKey("id").WhichValue.Should()
-                            .HaveCount(1).And
-                            .HaveElementAt(0, $"'id' must have a non default value"); 
-#elif NETCOREAPP2_1
                         .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
                     ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
@@ -316,7 +284,6 @@ namespace Patients.API.IntegrationTests
                         .ContainKey("id").WhichValue.Should()
                             .HaveCount(1).And
                             .HaveElementAt(0, "'id' must have a non default value");
-#endif
                 }
             }
         }

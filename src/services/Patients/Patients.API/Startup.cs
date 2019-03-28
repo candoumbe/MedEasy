@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Patients.Context;
 using Patients.API.Controllers;
@@ -55,13 +54,13 @@ namespace Patients.API
         {
             app.UseAuthentication();
             app.UseHttpMethodOverride();
-#if NETCOREAPP2_1
+
             if (env.IsProduction())
             {
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
-#endif
+
             applicationLifetime.ApplicationStopping.Register(() =>
             {
 
@@ -74,9 +73,7 @@ namespace Patients.API
             }
             else
             {
-                loggerFactory.AddDebug();
-                loggerFactory.AddConsole();
-
+                
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();

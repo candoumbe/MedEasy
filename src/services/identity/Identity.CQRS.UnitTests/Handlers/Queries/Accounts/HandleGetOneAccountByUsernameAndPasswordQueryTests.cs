@@ -97,10 +97,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                         bruceWayne,
                         1.October(2011).AddHours(12).AddMinutes(30),
                         new LoginInfo {Username = bruceWayne.UserName, Password = bruceWayne.PasswordHash},
-                        ((Expression<Func<AccountInfo, bool>>)(info => info.Username == bruceWayne.UserName
+                        (Expression<Func<AccountInfo, bool>>)(info => info.Username == bruceWayne.UserName
                             && info.Name == bruceWayne.Name
                             && !info.Claims.Any()
-                        ))
+                        )
                     };
                 }
 
@@ -120,11 +120,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                         clarkKent,
                         utcNow,
                         new LoginInfo {Username = clarkKent.UserName, Password = clarkKent.PasswordHash},
-                        ((Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.UserName
+                        (Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.UserName
                             && info.Name == clarkKent.UserName
                             && info.Claims.Once()
                             && info.Claims.Once(claim => claim.Type == "superstrength" && claim.Value == "150")
-                        ))
+                        )
                     };
                 }
             }

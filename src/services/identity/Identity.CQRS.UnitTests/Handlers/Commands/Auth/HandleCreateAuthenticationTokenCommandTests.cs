@@ -72,7 +72,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             {
                 uow.Repository<Objects.Claim>().Clear();
                 uow.Repository<Account>().Clear();
-                await uow.SaveChangesAsync();
+                await uow.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
             _handleCreateSecurityTokenCommandMock = null;
             _uowFactory = null;

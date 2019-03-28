@@ -69,7 +69,6 @@ namespace Patients.API
             }
         }
 
-#if NETCOREAPP2_1
         /// <summary>
         /// Configures the host
         /// </summary>
@@ -99,6 +98,5 @@ namespace Patients.API
                        .AddEnvironmentVariables()
                        .AddCommandLine(args)
                );
-#endif
     }
 }

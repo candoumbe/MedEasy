@@ -1,12 +1,15 @@
-﻿using Measures.API.Routing;
+﻿using Agenda.API.Routing;
+using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using static Microsoft.AspNetCore.Http.StatusCodes;
+using IApplicationLifetime = Microsoft.AspNetCore.Hosting.IApplicationLifetime;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace Measures.API
+namespace Agenda.API
 {
     /// <summary>
     /// Startup class
@@ -19,7 +22,7 @@ namespace Measures.API
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// Provides information about 
+        /// Provides information about the host
         /// </summary>
         public IHostingEnvironment HostingEnvironment { get; }
 
@@ -41,22 +44,15 @@ namespace Measures.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-#if !NETCOREAPP2_0
-            services.AddHttpsRedirection(options =>
-                {
-                    options.HttpsPort = Configuration.GetValue<int>("HttpsPort", 63796);
-                    options.RedirectStatusCode = Status307TemporaryRedirect;
-                });
-#endif
-            services.AddDataStores();
-            services.ConfigureDependencyInjection();
-            services.ConfigureAuthentication(Configuration);
+            services
+                .AddCustomizedMvc(Configuration, HostingEnvironment)
+                .AddDataStores()
+                .AddCustomizedDependencyInjection();
 
             if (HostingEnvironment.IsDevelopment())
             {
-                services.ConfigureSwagger(HostingEnvironment, Configuration);
+                services.AddCustomizedSwagger(HostingEnvironment, Configuration);
             }
-            services.ConfigureMvc(Configuration);
         }
 
         /// <summary>
@@ -65,11 +61,10 @@ namespace Measures.API
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="applicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
-            app.UseAuthentication();
-
             if (env.IsProduction())
             {
                 app.UseHsts();
@@ -77,13 +72,6 @@ namespace Measures.API
             app.UseHttpsRedirection();
 
             app.UseHttpMethodOverride();
-            applicationLifetime.ApplicationStopping.Register(() =>
-            {
-                if (env.IsEnvironment("IntegrationTest"))
-                {
-
-                }
-            });
 
             if (env.IsProduction() || env.IsStaging())
             {
@@ -92,27 +80,28 @@ namespace Measures.API
             }
             else
             {
-                
+
+                app.UseDeveloperExceptionPage();
+
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
-                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "Agenda REST API V1");
                     });
                 }
             }
 
             app.UseCors("AllowAnyOrigin");
-
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "measures/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "measures/{controller}/");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "measures/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "measures/{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "measures/{controller}/search/");
+                routeBuilder.MapRoute(RouteNames.Default, "agenda/{controller=health}/{action=status}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "agenda/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "agenda/{controller}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "agenda/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "agenda/{controller}/{id}/{action}");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "agenda/{controller}/search");
             });
         }
     }

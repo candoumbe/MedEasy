@@ -157,11 +157,12 @@ namespace Identity.API.IntegrationTests.Features.Accounts
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken);
 
                 // Act
-                HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts")
+                HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts?page=1")
                     .ConfigureAwait(false);
 
                 // Assert
                 _outputHelper.WriteLine($"Response : {response}");
+                _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
                 response.IsSuccessStatusCode.Should().BeTrue();
                 response.StatusCode.Should().Be(Status200OK);

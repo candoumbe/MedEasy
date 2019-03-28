@@ -3,10 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using static Microsoft.AspNetCore.Http.HttpMethods;
-using System;
 
 namespace MedEasy.Core.Filters
 {

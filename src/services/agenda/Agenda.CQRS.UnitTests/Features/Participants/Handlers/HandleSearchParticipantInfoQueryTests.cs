@@ -60,10 +60,8 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             _sut = new HandleSearchParticipantInfoQuery(handleSearch : _handleSearchQueryMock.Object);
         }
 
-        public async void Dispose()
+        public void Dispose()
         {
-
-
             _handleSearchQueryMock = null;
             _mapper = null;
             _uowFactory = null;

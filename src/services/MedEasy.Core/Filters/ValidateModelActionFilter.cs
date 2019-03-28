@@ -1,5 +1,4 @@
-﻿using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
@@ -50,20 +49,11 @@ namespace MedEasy.Core.Filters
 
             if (!context.ModelState.IsValid || context.ModelState.ErrorCount > 0)
             {
-#if NETCOREAPP2_1
                 ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails
                 {
                     Title = "Validation failed",
                     Status = Status400BadRequest
                 };
-#else
-                ErrorObject errorObject = new ErrorObject
-
-                {
-                    Code = "BAD_REQUEST",
-                    Description = "Validation failed",
-                };
-#endif
 
                 IDictionary<string, IEnumerable<string>> errors = context.ModelState
                     .Where(element => !string.IsNullOrWhiteSpace(element.Key))
@@ -71,21 +61,14 @@ namespace MedEasy.Core.Filters
 
                 if (errors.Count > 0)
                 {
-#if NETCOREAPP2_0
-                    errorObject.Errors = errors;
-#else 
                     foreach (KeyValuePair<string, IEnumerable<string>> item in errors)
                     {
                         validationProblemDetails.Errors.Add(item.Key, item.Value.ToArray());
                     }
-#endif
-
                 }
-#if NETCOREAPP2_0
-                BadRequestObjectResult result = new BadRequestObjectResult(errorObject);
-#else
+
                 BadRequestObjectResult result = new BadRequestObjectResult(validationProblemDetails);
-#endif
+
                 if (IsPost(context.HttpContext.Request.Method))
                 {
                     result.StatusCode = Status422UnprocessableEntity;

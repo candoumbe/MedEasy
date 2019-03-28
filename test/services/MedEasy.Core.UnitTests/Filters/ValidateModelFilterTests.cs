@@ -76,12 +76,10 @@ namespace MedEasy.Core.UnitTests.Attributes
             badRequest.StatusCode.Should()
                 .Be(Status400BadRequest);
 
-            ErrorObject errorOBject = badRequest.Value.Should()
-                .BeOfType<ErrorObject>().Which;
+            ValidationProblemDetails errorOBject = badRequest.Value.Should()
+                .BeOfType<ValidationProblemDetails>().Which;
 
-            errorOBject.Code.Should()
-                .Be("BAD_REQUEST");
-            errorOBject.Description.Should()
+            errorOBject.Title.Should()
                 .Be("Validation failed");
             errorOBject.Errors.Should()
                 .NotBeNull().And

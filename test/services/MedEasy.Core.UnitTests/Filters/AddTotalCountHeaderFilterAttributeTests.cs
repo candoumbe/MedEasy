@@ -149,7 +149,7 @@ namespace MedEasy.Core.UnitTests.Filters
                                 Resource = minion,
                                 Links = new[]
                                 {
-                                new Link { Relation = LinkRelation.Self, Method = "GET", Href = new Faker().Internet.Url() }
+                                    new Link { Relation = LinkRelation.Self, Method = "GET", Href = new Faker().Internet.Url() }
                                 }
                             });
 
