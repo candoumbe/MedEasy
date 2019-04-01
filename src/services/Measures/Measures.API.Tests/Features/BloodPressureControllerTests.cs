@@ -539,7 +539,7 @@ namespace Measures.API.Tests.Features.BloodPressures
                             .WhereAsync(
                                 selector,
                                 filter,
-                                search.Sort.ToOrderClause(),
+                                search.Sort,
                                 search.PageSize,
                                 search.Page,
                                 cancellationToken)

@@ -11,6 +11,8 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Linq.Expressions.ExpressionExtensions;
+using System.Diagnostics;
+using MedEasy.DTO.Search;
 
 namespace MedEasy.CQRS.Core.Handlers
 {
@@ -45,16 +47,18 @@ namespace MedEasy.CQRS.Core.Handlers
         /// <returns></returns>
         public async Task<Page<TResult>> Search<TEntity, TResult>(SearchQuery<TResult> searchQuery, CancellationToken cancellationToken = default) where TEntity : class
         {
+            SearchQueryInfo<TResult> data = searchQuery.Data;
+            Debug.Assert(data.Sort != null, "Sort expression should have been provided");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Expression<Func<TResult, bool>> filter = searchQuery.Data.Filter?.ToExpression<TResult>() ?? True<TResult>();
-                int page = searchQuery.Data.Page;
-                int pageSize = searchQuery.Data.PageSize;
-                IEnumerable<OrderClause<TResult>> sorts = searchQuery.Data.Sort.ToOrderClause();
+                Expression<Func<TResult, bool>> filter = data.Filter?.ToExpression<TResult>() ?? True<TResult>();
+                int page = data.Page;
+                int pageSize = data.PageSize;
+                
                 Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
 
                 return await uow.Repository<TEntity>()
-                    .WhereAsync(selector, filter, sorts, pageSize, page, cancellationToken)
+                    .WhereAsync(selector, filter, data.Sort, pageSize, page, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

@@ -80,7 +80,7 @@ namespace Patients.API.Controllers
                     .WhereAsync(
                         selector,
                         filter ,
-                        search.Sort.ToOrderClause(),
+                        search.Sort,
                         search.Page,
                         search.PageSize,
                         cancellationToken);

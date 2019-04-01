@@ -40,16 +40,17 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             {
                 GetPageOfAccountInfoByTenantIdInfo data = request.Data;
                 Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account,AccountInfo>();
-                Page<AccountInfo> result = await uow.Repository<Account>()
-                    .ReadPageAsync(
-                        selector: selector,
+                Page<Account> result = await uow.Repository<Account>()
+                    .WhereAsync(
+                        //selector: selector,
+                        predicate : (Account account) => account.TenantId == data.TenantId,
+                        orderBy: new Sort<Account>(nameof(Account.UpdatedDate), SortDirection.Descending),
                         pageSize: data.PageSize,
                         page: data.Page,
-                        orderBy: new Sort<AccountInfo>(nameof(AccountInfo.UpdatedDate), SortDirection.Descending).ToOrderClause(),
                         ct)
                     .ConfigureAwait(false);
 
-                return await new ValueTask<Page<AccountInfo>>(result.Entries.Any() ? result : Page<AccountInfo>.Empty);
+                return await new ValueTask<Page<AccountInfo>>(new Page<AccountInfo>(result.Entries.Select(selector.Compile()), result.Total, result.Size));
             }
         }
     }

@@ -85,9 +85,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             pageOfAccounts.Entries.Should()
                 .NotBeNull().And
                 .BeEmpty("Account store is empty element");
-
-            pageOfAccounts.Should()
-                .BeSameAs(Page<AccountInfo>.Empty);
         }
 
         [Fact]

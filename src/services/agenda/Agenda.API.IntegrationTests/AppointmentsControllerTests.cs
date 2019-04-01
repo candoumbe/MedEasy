@@ -48,8 +48,7 @@ namespace Agenda.API.IntegrationTests
             Required =
             {
                 nameof(ValidationProblemDetails.Title).ToLower(),
-                nameof(ValidationProblemDetails.Status).ToLower(),
-
+                nameof(ValidationProblemDetails.Status).ToLower()
             }
         };
 
@@ -268,50 +267,21 @@ namespace Agenda.API.IntegrationTests
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<NewAppointmentInfo>(),
                     "?page=1&pageSize=10",
-                    (total : 0, count : 0)
                 };
 
+                yield return new object[]
                 {
-                    Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>("en")
-                        .RuleFor(x => x.Name, faker => faker.Name.FullName());
-
-                    Faker<NewAppointmentInfo> appointmentFaker = new Faker<NewAppointmentInfo>("en")
-                        .RuleFor(x => x.Participants, (faker) => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)))
-                        .RuleFor(x => x.Location, faker => faker.Address.City())
-                        .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
-                        .RuleFor(x => x.StartDate, faker => faker.Date.Future(refDate: 1.January(DateTimeOffset.UtcNow.Year + 1).Add(1.Hours())))
-                        .RuleFor(x => x.EndDate, (_, appointment) => appointment.StartDate.Add(1.Hours()));
-
-                    yield return new object[]
-                    {
-                        appointmentFaker.Generate(count : 10),
-                        $"/search?{new { page=1, pageSize=10, from = 1.January(DateTimeOffset.UtcNow.Year)}.ToQueryString()}",
-                        (total : 10, count : 10)
-                    };
-                }
+                    $"/search?{new { page=1, pageSize=10, from = 1.January(DateTimeOffset.UtcNow.Year)}.ToQueryString()}",
+                };
             }
         }
 
         [Theory]
         [MemberData(nameof(GetCountCases))]
-        public async Task Enpoint_Provides_CountsHeaders(IEnumerable<NewAppointmentInfo> newAppointments, string url, (int total, int count) expectedCountHeaders)
+        public async Task Enpoint_Provides_CountsHeaders(string url)
         {
             // Arrange
-            _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
-            using (HttpClient client = _server.CreateClient())
-            {
-                await newAppointments.ForEachAsync(async (newAppointment) =>
-                {
-                    HttpResponseMessage createdResponse = await client.PostAsync(_endpointUrl, new StringContent(newAppointment.Stringify(), Encoding.UTF8, "application/json"))
-                    .ConfigureAwait(false);
-
-                    _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
-                })
-                .ConfigureAwait(false);
-            }
-
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, path);
@@ -323,7 +293,6 @@ namespace Agenda.API.IntegrationTests
                     .ConfigureAwait(false);
 
                 // Assert
-                _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
                 response.IsSuccessStatusCode.Should().BeTrue();
 
                 _outputHelper.WriteLine($"Response status code : {response.StatusCode}");
@@ -336,14 +305,10 @@ namespace Agenda.API.IntegrationTests
                     .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
 
                 response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
-                    .HaveCount(1).And
-                    .ContainSingle().And
-                    .ContainSingle(value => value == expectedCountHeaders.total.ToString());
+                    .HaveCount(1, $"{AddCountHeadersFilterAttribute.TotalCountHeaderName} must contain only a single value");
 
                 response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
-                    .HaveCount(1).And
-                    .ContainSingle().And
-                    .ContainSingle(value => value == expectedCountHeaders.count.ToString());
+                    .HaveCount(1, $"{AddCountHeadersFilterAttribute.CountHeaderName} must contain only a single value");
             }
         }
 
@@ -407,6 +372,10 @@ namespace Agenda.API.IntegrationTests
 
                 response.IsSuccessStatusCode.Should()
                     .BeTrue($"location <{location}> must point to the created resource");
+
+                // Cleanup
+                await client.DeleteAsync(location)
+                    .ConfigureAwait(false);
 
             }
         }

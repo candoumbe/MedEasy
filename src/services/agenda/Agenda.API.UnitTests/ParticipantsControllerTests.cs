@@ -211,7 +211,7 @@ namespace Agenda.API.UnitTests
                                 selector,
                                 query.Data.PageSize,
                                 query.Data.Page,
-                                new Sort<ParticipantInfo>(nameof(ParticipantInfo.UpdatedDate)).ToOrderClause(),
+                                new Sort<ParticipantInfo>(nameof(ParticipantInfo.UpdatedDate)),
                                 ct)
                             .ConfigureAwait(false);
                     }

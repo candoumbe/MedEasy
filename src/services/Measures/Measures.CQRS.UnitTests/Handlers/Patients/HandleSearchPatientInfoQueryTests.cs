@@ -154,11 +154,10 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                             Expression<Func<Patient, bool>> filter = query.Data.Filter.ToExpression<Patient>();
                             Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                                 .GetMapExpression<Patient, PatientInfo>();
-                            IEnumerable<OrderClause<PatientInfo>> sorts = (query.Data.Sort?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending))
-                                .ToOrderClause();
+                            ISort<PatientInfo> sort = (query.Data.Sort?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending));
 
                             return await uow.Repository<Patient>()
-                                .WhereAsync(selector, filter, sorts, query.Data.PageSize, query.Data.Page, ct)
+                                .WhereAsync(selector, filter, sort, query.Data.PageSize, query.Data.Page, ct)
                                 .ConfigureAwait(false);
                         }
                     }

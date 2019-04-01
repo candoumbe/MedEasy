@@ -296,7 +296,7 @@ namespace Measures.API.Tests.Features.Patients
                                 selector,
                                 query.Data.PageSize,
                                 query.Data.Page,
-                                new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate)).ToOrderClause(),
+                                new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate)),
                                 cancellationToken)
                             .ConfigureAwait(false);
 
@@ -519,7 +519,7 @@ namespace Measures.API.Tests.Features.Patients
                             .WhereAsync(
                                 selector,
                                 filter,
-                                query.Data.Sort.ToOrderClause(),
+                                query.Data.Sort,
                                 query.Data.PageSize,
                                 query.Data.Page,
                                 cancellationToken)

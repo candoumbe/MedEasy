@@ -48,7 +48,7 @@ namespace Measures.CQRS.Handlers.Patients
                                 .WhereAsync(
                                     selector,
                                     (BloodPressure x) => x.UUID == patientId,
-                                    new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.UpdatedDate), SortDirection.Descending).ToOrderClause(),
+                                    new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.UpdatedDate), SortDirection.Descending),
                                     pagination.PageSize,
                                     pagination.Page,
                                     cancellationToken)

@@ -2,6 +2,7 @@
 using Agenda.DTO;
 using Agenda.Objects;
 using AutoMapper.QueryableExtensions;
+using DataFilters;
 using DataFilters.Expressions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
@@ -33,7 +34,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
                     .ReadPageAsync(selector,
                         pageSize: request.Data.PageSize,
                         request.Data.Page,
-                        orderBy: new[] {OrderClause<ParticipantInfo>.Create(x => x.Name)},
+                        orderBy: new Sort<ParticipantInfo>(nameof(ParticipantInfo.Name)),
                         ct: default)
                     .ConfigureAwait(false);
             }

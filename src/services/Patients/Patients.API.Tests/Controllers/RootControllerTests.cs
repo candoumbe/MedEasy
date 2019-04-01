@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 using static Moq.MockBehavior;
 using static MedEasy.RestObjects.FormFieldType;
 using Xunit.Categories;
+using Endpoint = MedEasy.RestObjects.Endpoint;
 
 namespace Patients.API.UnitTests.Controllers
 {

@@ -72,12 +72,15 @@ namespace Measures.CQRS.UnitTests.Handlers
                     {
                         Filter = new Filter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
-                        PageSize = 3
+                        PageSize = 3,
+                        Sort = new MultiSort<PatientInfo>()
+                            .Add(new Sort<PatientInfo>(nameof(PatientInfo.Firstname)))
+                            .Add(new Sort<PatientInfo>(nameof(PatientInfo.Lastname)))
                     },
-                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null &&
-                        !x.Entries.Any() &&
-                        x.Count == 1 &&
-                        x.Size == 3))
+                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                        && !x.Entries.Any()
+                        && x.Count == 1
+                        && x.Size == 3))
                 };
 
 
@@ -96,13 +99,16 @@ namespace Measures.CQRS.UnitTests.Handlers
                         {
                             Filter = new Filter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
                             Page = 3,
-                            PageSize = 1
+                            PageSize = 1,
+                            Sort = new MultiSort<PatientInfo>()
+                                .Add(new Sort<PatientInfo>(nameof(PatientInfo.Firstname)))
+                                .Add(new Sort<PatientInfo>(nameof(PatientInfo.Lastname)))
                         },
-                        ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null &&
-                            x.Entries.Count() == 1 &&
-                            x.Entries.ElementAt(0).Id == patientId &&
-                            x.Count == 3 &&
-                            x.Size == 1))
+                        ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                            && x.Entries.Count() == 1
+                            && x.Entries.ElementAt(0).Id == patientId
+                            && x.Count == 3
+                            && x.Size == 1))
                        };
                 }
             }
@@ -120,8 +126,8 @@ namespace Measures.CQRS.UnitTests.Handlers
                .Returns((Type sourceType, Type destinationType, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(sourceType, destinationType, parameters, membersToExpand));
 
             _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
-                It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<IEnumerable<OrderClause<PatientInfo>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, IEnumerable<OrderClause<PatientInfo>> sorts, int pageSize, int page, CancellationToken cancellationToken)
+                It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<ISort<PatientInfo>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, ISort<PatientInfo> sorts, int pageSize, int page, CancellationToken cancellationToken)
                     =>
                     {
                         IEnumerable<PatientInfo> results = patients.Select(selector.Compile())
@@ -137,7 +143,8 @@ namespace Measures.CQRS.UnitTests.Handlers
 
             // Act
             SearchQuery<PatientInfo> searchQuery = new SearchQuery<PatientInfo>(search);
-            Page<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Objects.Patient, PatientInfo>(searchQuery);
+            Page<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Objects.Patient, PatientInfo>(searchQuery)
+                .ConfigureAwait(false);
 
             // Assert
             pageOfResult.Should()

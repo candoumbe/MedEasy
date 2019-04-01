@@ -51,13 +51,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseSqlite(databaseFixture.Connection);
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
             {
                 IdentityContext context = new IdentityContext(options);
-                context.Database.EnsureCreated();
-
+                
                 return context;
             });
             _handleCreateSecurityTokenCommandMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);

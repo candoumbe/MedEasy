@@ -46,7 +46,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
                         selector,
                         pagination.PageSize,
                         pagination.Page,
-                        new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending).ToOrderClause(),
+                        new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending),
                         cancellationToken)
                     .ConfigureAwait(false);
             }

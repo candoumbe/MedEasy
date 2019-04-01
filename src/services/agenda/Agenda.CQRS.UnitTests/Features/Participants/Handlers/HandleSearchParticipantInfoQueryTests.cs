@@ -122,7 +122,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                             .WhereAsync(
                                 selector,
                                 predicate : request.Data.Filter?.ToExpression<ParticipantInfo>(),
-                                request.Data.Sort.ToOrderClause(),
+                                request.Data.Sort,
                                 pageSize: request.Data.PageSize,
                                 page : request.Data.Page,
                                 ct)

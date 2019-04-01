@@ -79,7 +79,7 @@ namespace Patients.API.Controllers
                         selector,
                         pagination.PageSize,
                         pagination.Page,
-                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate),  SortDirection.Descending).ToOrderClause(),
+                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate),  SortDirection.Descending),
                         cancellationToken).ConfigureAwait(false);
 
                 int count = result.Entries.Count();

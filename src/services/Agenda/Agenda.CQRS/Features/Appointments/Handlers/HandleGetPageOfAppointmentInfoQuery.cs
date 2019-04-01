@@ -46,7 +46,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     .WhereAsync(
                         selector,
                         (AppointmentInfo x) =>  (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
-                        new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate)).ToOrderClause(),
+                        new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate)),
                         request.Data.PageSize,
                         request.Data.Page,
                         ct)

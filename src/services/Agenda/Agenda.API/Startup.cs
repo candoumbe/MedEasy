@@ -65,13 +65,11 @@ namespace Agenda.API
         /// <param name="applicationLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
-            
             if (env.IsProduction())
             {
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
-
 
             app.UseHttpMethodOverride();
 

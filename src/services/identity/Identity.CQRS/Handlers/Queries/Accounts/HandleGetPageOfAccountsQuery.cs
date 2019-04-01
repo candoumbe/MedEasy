@@ -46,7 +46,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                         selector: selector,
                         pageSize: data.PageSize,
                         page: data.Page,
-                        orderBy: new Sort<Account>(nameof(Account.Id), SortDirection.Descending).ToOrderClause(),
+                        orderBy: new Sort<Account>(nameof(Account.Id), SortDirection.Descending),
                         ct: ct)
                     .ConfigureAwait(false);
 
