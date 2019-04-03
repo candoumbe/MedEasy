@@ -11,7 +11,8 @@ namespace Agenda.Objects
     /// </summary>
     public class Appointment : AuditableEntity<int, Appointment>
     {
-        private IList<AppointmentParticipant> _participants;
+        private readonly IList<AppointmentAttendee> _attendees;
+
         /// <summary>
         /// Location of the appointment
         /// </summary>
@@ -35,37 +36,34 @@ namespace Agenda.Objects
         /// <summary>
         /// Participants of the <see cref="Appointment"/>
         /// </summary>
-        public IEnumerable<AppointmentParticipant> Participants { get => _participants; }
+        public IEnumerable<AppointmentAttendee> Attendees => _attendees;
 
-        public Appointment()
-        {
-            _participants = new List<AppointmentParticipant>();
-        }
+        public Appointment() => _attendees = new List<AppointmentAttendee>();
 
         /// <summary>
-        /// Adds a participant to the current <see cref=""/>
+        /// Adds an attendee to the current <see cref=""/>
         /// </summary>
-        /// <param name="participant">The participant to add</param>
+        /// <param name="attendee">The participant to add</param>
         /// <returns><c>true</c> if <see cref="participant"/> was successfully added and <c>false</c> otherwise</returns>
-        public void AddParticipant(Participant participant)
+        public void AddAttendee(Attendee attendee)
         {
-            if (participant.UUID == default)
+            if (attendee.UUID == default)
             {
-                participant.UUID = Guid.NewGuid();
+                attendee.UUID = Guid.NewGuid();
             }
-            _participants.Add(new AppointmentParticipant { Participant = participant , Appointment = this});
+            _attendees.Add(new AppointmentAttendee { Attendee = attendee , Appointment = this});
         }
 
         /// <summary>
         /// Remove a participant
         /// </summary>
-        /// <param name="participantId"></param>
-        public void RemoveParticipant(Guid participantId)
+        /// <param name="attendeeId"></param>
+        public void RemoveAttendee(Guid attendeeId)
         {
-            Option<AppointmentParticipant> optionalParticipant = _participants.SingleOrDefault(x => x.Participant.UUID == participantId)
+            Option<AppointmentAttendee> optionalParticipant = _attendees.SingleOrDefault(x => x.Attendee.UUID == attendeeId)
                 .SomeNotNull();
 
-            optionalParticipant.MatchSome((participant) => _participants.Remove(participant));
+            optionalParticipant.MatchSome((participant) => _attendees.Remove(participant));
         }
     }
 }

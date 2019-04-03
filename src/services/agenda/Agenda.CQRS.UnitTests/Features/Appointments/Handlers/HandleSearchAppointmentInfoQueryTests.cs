@@ -60,7 +60,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()

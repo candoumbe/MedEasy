@@ -40,100 +40,100 @@ namespace Agenda.Validators.UnitTests
             {
                 yield return new object[]
                 {
-                    new SearchParticipantInfo(),
+                    new SearchAttendeeInfo(),
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
                     "no property set"
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Page = -1 },
+                    new SearchAttendeeInfo { Page = -1 },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Page) && err.Severity == Error)
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Page) && err.Severity == Error)
                     ),
-                    $"{nameof(SearchParticipantInfo.Page)} is negative"
+                    $"{nameof(SearchAttendeeInfo.Page)} is negative"
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { PageSize = -1 },
+                    new SearchAttendeeInfo { PageSize = -1 },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.PageSize) && err.Severity == Error)
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.PageSize) && err.Severity == Error)
                     ),
-                    $"{nameof(SearchParticipantInfo.PageSize)} is negative"
+                    $"{nameof(SearchAttendeeInfo.PageSize)} is negative"
                 };
 
                 
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = "-UnknownProp" },
+                    new SearchAttendeeInfo { Sort = "-UnknownProp" },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Sort) && err.Severity == Error
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Sort) && err.Severity == Error
                             && "Unknown <UnknownProp> property.".Equals(err.ErrorMessage))
                     ),
-                    $@"{nameof(SearchParticipantInfo.Sort)} value contains an unknown sort clause ""-UnknownProp"""
+                    $@"{nameof(SearchAttendeeInfo.Sort)} value contains an unknown sort clause ""-UnknownProp"""
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = "+UnknownProp" },
+                    new SearchAttendeeInfo { Sort = "+UnknownProp" },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Sort) && err.Severity == Error
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Sort) && err.Severity == Error
                             && "Unknown <UnknownProp> property.".Equals(err.ErrorMessage))
                     ),
-                    $@"{nameof(SearchParticipantInfo.Sort)} value contains an unknown sort clause ""+UnknownProp"""
+                    $@"{nameof(SearchAttendeeInfo.Sort)} value contains an unknown sort clause ""+UnknownProp"""
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = $"{nameof(ParticipantInfo.Name)},+UnknownProp" },
+                    new SearchAttendeeInfo { Sort = $"{nameof(AttendeeInfo.Name)},+UnknownProp" },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Sort) && err.Severity == Error
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Sort) && err.Severity == Error
                             && "Unknown <UnknownProp> property.".Equals(err.ErrorMessage))
                     ),
-                    $@"{nameof(SearchParticipantInfo.Sort)} value contains an unknown sort clause ""+UnknownProp"""
+                    $@"{nameof(SearchAttendeeInfo.Sort)} value contains an unknown sort clause ""+UnknownProp"""
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = $"{nameof(ParticipantInfo.Name).ToLowerInvariant()}" },
+                    new SearchAttendeeInfo { Sort = $"{nameof(AttendeeInfo.Name).ToLowerInvariant()}" },
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
-                    $"{nameof(SearchParticipantInfo.Sort)} properties are not case sensitive"
+                    $"{nameof(SearchAttendeeInfo.Sort)} properties are not case sensitive"
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = $"++{nameof(ParticipantInfo.Name)}" },
+                    new SearchAttendeeInfo { Sort = $"++{nameof(AttendeeInfo.Name)}" },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Sort) && err.Severity == Error
-                            && $@"{nameof(SearchParticipantInfo.Sort)} expression ""++{nameof(ParticipantInfo.Name)}"" does not match ""{AbstractSearchInfo<ParticipantInfo>.SortPattern}"".".Equals(err.ErrorMessage))
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Sort) && err.Severity == Error
+                            && $@"{nameof(SearchAttendeeInfo.Sort)} expression ""++{nameof(AttendeeInfo.Name)}"" does not match ""{AbstractSearchInfo<AttendeeInfo>.SortPattern}"".".Equals(err.ErrorMessage))
                     ),
-                    $@"{nameof(SearchParticipantInfo.Sort)} expression ""++{nameof(ParticipantInfo.Name)}"" contains two ""+"""
+                    $@"{nameof(SearchAttendeeInfo.Sort)} expression ""++{nameof(AttendeeInfo.Name)}"" contains two ""+"""
                 };
 
                 yield return new object[]
                 {
-                    new SearchParticipantInfo { Sort = $"--{nameof(ParticipantInfo.Name)}" },
+                    new SearchAttendeeInfo { Sort = $"--{nameof(AttendeeInfo.Name)}" },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchParticipantInfo.Sort) && err.Severity == Error
-                            && $@"{nameof(SearchParticipantInfo.Sort)} expression ""--{nameof(ParticipantInfo.Name)}"" does not match ""{AbstractSearchInfo<ParticipantInfo>.SortPattern}"".".Equals(err.ErrorMessage))
+                        && vr.Errors.Once(err => err.PropertyName == nameof(SearchAttendeeInfo.Sort) && err.Severity == Error
+                            && $@"{nameof(SearchAttendeeInfo.Sort)} expression ""--{nameof(AttendeeInfo.Name)}"" does not match ""{AbstractSearchInfo<AttendeeInfo>.SortPattern}"".".Equals(err.ErrorMessage))
                     ),
-                    $@"{nameof(SearchParticipantInfo.Sort)} expression ""--{nameof(ParticipantInfo.Name)}"" contains two ""-"""
+                    $@"{nameof(SearchAttendeeInfo.Sort)} expression ""--{nameof(AttendeeInfo.Name)}"" contains two ""-"""
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValidateCases))]
-        public async Task ValidateSearchParticipantInfo(SearchParticipantInfo search, Expression<Func<ValidationResult, bool>> validationResultExpectation, string reason)
+        public async Task ValidateSearchParticipantInfo(SearchAttendeeInfo search, Expression<Func<ValidationResult, bool>> validationResultExpectation, string reason)
         {
             _outputHelper.WriteLine($"criteria : {search.Stringify()}");
             // Arrange

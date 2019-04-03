@@ -37,7 +37,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
     {
         private readonly ITestOutputHelper _outputHelper;
         private Mock<IHandleSearchQuery> _handleSearchQueryMock;
-        private HandleSearchParticipantInfoQuery _sut;
+        private HandleSearchAttendeeInfoQuery _sut;
         private IUnitOfWorkFactory _uowFactory;
         private IMapper _mapper;
 
@@ -57,7 +57,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             _mapper = AutoMapperConfig.Build().CreateMapper();
             _handleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
 
-            _sut = new HandleSearchParticipantInfoQuery(handleSearch : _handleSearchQueryMock.Object);
+            _sut = new HandleSearchAttendeeInfoQuery(handleSearch : _handleSearchQueryMock.Object);
         }
 
         public void Dispose()
@@ -71,10 +71,10 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         [Fact]
         public void IsHandler()
         {
-            Type handlerType = typeof(HandleSearchParticipantInfoQuery);
+            Type handlerType = typeof(HandleSearchAttendeeInfoQuery);
             handlerType.Should()
                 .NotBeAbstract().And
-                .Implement<IRequestHandler<SearchParticipantInfoQuery, Page<ParticipantInfo>>>();
+                .Implement<IRequestHandler<SearchAttendeeInfoQuery, Page<AttendeeInfo>>>();
         }
 
         public static IEnumerable<object[]> SearchCases
@@ -83,26 +83,26 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<Participant>(),
-                    new SearchParticipantInfo
+                    Enumerable.Empty<Attendee>(),
+                    new SearchAttendeeInfo
                     {
                         Page = 1,
                         Name = "*Bat*",
                         Sort= "+name"
                     },
-                    (Expression<Func<Page<ParticipantInfo>, bool>>)(page => page == Page<ParticipantInfo>.Empty)
+                    (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page == Page<AttendeeInfo>.Empty)
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(SearchCases))]
-        public async Task Search(IEnumerable<Participant> participants, SearchParticipantInfo data, Expression<Func<Page<ParticipantInfo>, bool>> expectation)
+        public async Task Search(IEnumerable<Attendee> participants, SearchAttendeeInfo data, Expression<Func<Page<AttendeeInfo>, bool>> expectation)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Create(participants);
+                uow.Repository<Attendee>().Create(participants);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 
@@ -110,18 +110,18 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                 _outputHelper.WriteLine($"Search : {data.Stringify()}");
             }
 
-            _handleSearchQueryMock.Setup(mock => mock.Search<Participant, ParticipantInfo>(It.IsAny<SearchQuery<ParticipantInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (SearchQuery<ParticipantInfo> request, CancellationToken ct) =>
+            _handleSearchQueryMock.Setup(mock => mock.Search<Attendee, AttendeeInfo>(It.IsAny<SearchQuery<AttendeeInfo>>(), It.IsAny<CancellationToken>()))
+                .Returns(async (SearchQuery<AttendeeInfo> request, CancellationToken ct) =>
                 {
-                    Expression<Func<Participant, ParticipantInfo>> selector = AutoMapperConfig.Build().CreateMapper()
-                        .ConfigurationProvider.ExpressionBuilder.GetMapExpression<Participant, ParticipantInfo>();
+                    Expression<Func<Attendee, AttendeeInfo>> selector = AutoMapperConfig.Build().CreateMapper()
+                        .ConfigurationProvider.ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
 
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
-                        return await uow.Repository<Participant>()
+                        return await uow.Repository<Attendee>()
                             .WhereAsync(
                                 selector,
-                                predicate : request.Data.Filter?.ToExpression<ParticipantInfo>(),
+                                predicate : request.Data.Filter?.ToExpression<AttendeeInfo>(),
                                 request.Data.Sort,
                                 pageSize: request.Data.PageSize,
                                 page : request.Data.Page,
@@ -130,14 +130,14 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     }
                 });
 
-            SearchParticipantInfoQuery query = new SearchParticipantInfoQuery(data);
+            SearchAttendeeInfoQuery query = new SearchAttendeeInfoQuery(data);
 
             // Act
-            Page<ParticipantInfo> page = await _sut.Handle(query, default)
+            Page<AttendeeInfo> page = await _sut.Handle(query, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _handleSearchQueryMock.Verify(mock => mock.Search<Participant, ParticipantInfo>(It.IsAny<SearchQuery<ParticipantInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
+            _handleSearchQueryMock.Verify(mock => mock.Search<Attendee, AttendeeInfo>(It.IsAny<SearchQuery<AttendeeInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
             _handleSearchQueryMock.VerifyNoOtherCalls();
 
             page.Should()

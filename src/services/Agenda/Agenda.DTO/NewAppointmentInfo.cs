@@ -43,12 +43,12 @@ namespace Agenda.DTO
         /// Participants of the appointment
         /// </summary>
         [JsonProperty]
-        public IEnumerable<ParticipantInfo> Participants { get; set; }
+        public IEnumerable<AttendeeInfo> Attendees { get; set; }
 
 
         public NewAppointmentInfo()
         {
-            Participants = Enumerable.Empty<ParticipantInfo>();
+            Attendees = Enumerable.Empty<AttendeeInfo>();
         }
 
         public override bool Equals(object obj) => Equals(obj as NewAppointmentInfo);
@@ -57,7 +57,7 @@ namespace Agenda.DTO
             && Subject == other.Subject 
             && StartDate.Equals(other.StartDate) 
             && EndDate.Equals(other.EndDate) 
-            && EqualityComparer<IEnumerable<ParticipantInfo>>.Default.Equals(Participants, other.Participants);
+            && EqualityComparer<IEnumerable<AttendeeInfo>>.Default.Equals(Attendees, other.Attendees);
 
         public override int GetHashCode()
         {
@@ -66,7 +66,7 @@ namespace Agenda.DTO
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Subject);
             hashCode = hashCode * -1521134295 + EqualityComparer<DateTimeOffset>.Default.GetHashCode(StartDate);
             hashCode = hashCode * -1521134295 + EqualityComparer<DateTimeOffset>.Default.GetHashCode(EndDate);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<ParticipantInfo>>.Default.GetHashCode(Participants);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<AttendeeInfo>>.Default.GetHashCode(Attendees);
             return hashCode;
         }
 

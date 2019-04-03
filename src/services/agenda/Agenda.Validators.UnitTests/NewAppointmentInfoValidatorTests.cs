@@ -23,13 +23,13 @@ namespace Agenda.Validators.UnitTests
     {
         private static ITestOutputHelper _outputHelper;
         private Mock<IDateTimeService> _datetimeServiceMock;
-        private NewAppointmentInfoValidator _sut;
+        private NewAppointmentModelValidator _sut;
 
         public NewAppointmentInfoValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
-            _sut = new NewAppointmentInfoValidator(_datetimeServiceMock.Object);
+            _sut = new NewAppointmentModelValidator(_datetimeServiceMock.Object);
         }
 
         public void Dispose()
@@ -51,7 +51,7 @@ namespace Agenda.Validators.UnitTests
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.StartDate) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Location) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Subject) && error.Severity == Error)
-                        && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Participants) && error.Severity == Error)
+                        && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Attendees) && error.Severity == Error)
                     )),
                     "no property set"
                 };
@@ -64,9 +64,9 @@ namespace Agenda.Validators.UnitTests
                         Subject = "Classified",
                         StartDate = 1.February(2005).AddHours(12).AddMinutes(30),
                         EndDate = 1.February(2005).AddHours(12).AddMinutes(30),
-                        Participants = new []
+                        Attendees = new []
                         {
-                            new ParticipantInfo { Name = "Ed Nigma" }
+                            new AttendeeInfo { Name = "Ed Nigma" }
                         }
                     },
                     ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
@@ -81,9 +81,9 @@ namespace Agenda.Validators.UnitTests
                         Subject = "Classified",
                         StartDate = 1.February(2005).AddHours(12).AddMinutes(30),
                         EndDate = 1.February(2005).AddHours(12),
-                        Participants = new []
+                        Attendees = new []
                         {
-                            new ParticipantInfo { Name = "Ed Nigma" }
+                            new AttendeeInfo { Name = "Ed Nigma" }
                         }
                     },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
@@ -104,9 +104,9 @@ namespace Agenda.Validators.UnitTests
                     },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(error => nameof(NewAppointmentInfo.Participants) == error.PropertyName && error.Severity == Error)
+                        && vr.Errors.Once(error => nameof(NewAppointmentInfo.Attendees) == error.PropertyName && error.Severity == Error)
                     )),
-                    $"{nameof(NewAppointmentInfo.Participants)} is empty"
+                    $"{nameof(NewAppointmentInfo.Attendees)} is empty"
                 };
             }
         }
@@ -131,7 +131,7 @@ namespace Agenda.Validators.UnitTests
         public void GivenParameterIsNull_Ctor_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new NewAppointmentInfoValidator(null);
+            Action action = () => new NewAppointmentModelValidator(null);
 
             // Assert
             action.Should()

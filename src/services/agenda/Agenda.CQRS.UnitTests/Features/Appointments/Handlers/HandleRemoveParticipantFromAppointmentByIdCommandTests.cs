@@ -20,14 +20,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleRemoveParticipantFromAppointmentByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleRemoveAttendeeFromAppointmentByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
-        private HandleRemoveParticipantFromAppointmentByIdCommand _sut;
+        private HandleRemoveAttendeeFromAppointmentByIdCommand _sut;
         private DatabaseFacade _databaseFacade;
 
-        public HandleRemoveParticipantFromAppointmentByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleRemoveAttendeeFromAppointmentByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
@@ -43,7 +43,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 _databaseFacade.EnsureCreated();
                 return context;
             });
-            _sut = new HandleRemoveParticipantFromAppointmentByIdCommand(_uowFactory);
+            _sut = new HandleRemoveAttendeeFromAppointmentByIdCommand(_uowFactory);
         }
 
         public async void Dispose()
@@ -60,14 +60,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             Guid participantId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Create(new Participant("Dick Grayson") { UUID = participantId });
+                uow.Repository<Attendee>().Create(new Attendee("Dick Grayson") { UUID = participantId });
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
             (Guid appointmentId, Guid participantId) data = (appointmentId: Guid.NewGuid(), participantId);
 
             // Act
-            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveParticipantFromAppointmentByIdCommand(data), default)
+            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveAttendeeFromAppointmentByIdCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -76,7 +76,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         }
 
         [Fact]
-        public async Task GivenNoParticipant_Handles_Returns_NotFound()
+        public async Task GivenNoAttendee_Handles_Returns_NotFound()
         {
             // Arrange
             Guid appointmentId = Guid.NewGuid();
@@ -87,9 +87,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 EndDate = 17.July(2016).Add(13.Hours().Add(45.Minutes())),
                 Subject = "Confidential",
                 Location = "Somewhere in Gotham"
-
             };
-            appointment.AddParticipant(new Participant("Dick Grayson") { UUID = Guid.NewGuid() });
+            appointment.AddAttendee(new Attendee("Dick Grayson") { UUID = Guid.NewGuid() });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -100,7 +99,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             (Guid appointmentId, Guid participantId) data = (appointmentId, participantId: Guid.NewGuid());
 
             // Act
-            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveParticipantFromAppointmentByIdCommand(data), default)
+            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveAttendeeFromAppointmentByIdCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -109,7 +108,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         }
 
         [Fact]
-        public async Task GivenAppointmentAndParticipantExist_Handle_ReturnsDone()
+        public async Task GivenAppointmentAndAttendeeExist_Handle_ReturnsDone()
         {
             // Arrange
             Guid appointmentId = Guid.NewGuid();
@@ -120,13 +119,12 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 EndDate = 17.July(2016).Add(13.Hours().Add(45.Minutes())),
                 Subject = "Confidential",
                 Location = "Somewhere in Gotham"
-
             };
-            Participant dickGrayson = new Participant("Dick Grayson") { UUID = Guid.NewGuid() };
-            appointment.AddParticipant(dickGrayson);
+            Attendee dickGrayson = new Attendee("Dick Grayson") { UUID = Guid.NewGuid() };
+            appointment.AddAttendee(dickGrayson);
 
-            Participant bruceWayne = new Participant("Bruce Wayne") { UUID = Guid.NewGuid() };
-            appointment.AddParticipant(bruceWayne);
+            Attendee bruceWayne = new Attendee("Bruce Wayne") { UUID = Guid.NewGuid() };
+            appointment.AddAttendee(bruceWayne);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -137,7 +135,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             (Guid appointmentId, Guid participantId) data = (appointmentId, participantId: bruceWayne.UUID);
 
             // Act
-            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveParticipantFromAppointmentByIdCommand(data), default)
+            DeleteCommandResult cmdResult = await _sut.Handle(new RemoveAttendeeFromAppointmentByIdCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -146,8 +144,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                bool participantRemoved = !await uow.Repository<AppointmentParticipant>()
-                    .AnyAsync(x => x.Appointment.UUID == data.appointmentId && x.Participant.UUID == data.participantId)
+                bool participantRemoved = !await uow.Repository<AppointmentAttendee>()
+                    .AnyAsync(x => x.Appointment.UUID == data.appointmentId && x.Attendee.UUID == data.participantId)
                     .ConfigureAwait(false);
 
                 participantRemoved.Should()

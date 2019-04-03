@@ -1,7 +1,7 @@
 ﻿using Agenda.API.Routing;
-using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,8 +47,8 @@ namespace Agenda.API
             services
                 .AddCustomizedMvc(Configuration, HostingEnvironment)
                 .AddDataStores()
-                .AddCustomizedDependencyInjection();
-
+                .AddCustomizedDependencyInjection()
+                .AddCustomApiVersioning();
             if (HostingEnvironment.IsDevelopment())
             {
                 services.AddCustomizedSwagger(HostingEnvironment, Configuration);
@@ -63,8 +63,9 @@ namespace Agenda.API
         /// <param name="env"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="applicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseApiVersioning();
             if (env.IsProduction())
             {
                 app.UseHsts();
@@ -80,7 +81,6 @@ namespace Agenda.API
             }
             else
             {
-
                 app.UseDeveloperExceptionPage();
 
                 if (env.IsDevelopment())
@@ -88,7 +88,13 @@ namespace Agenda.API
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
-                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "Agenda REST API V1");
+                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                        {
+                            if (!description.IsDeprecated)
+                            {
+                                opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Agenda REST API {description.GroupName}");
+                            }
+                        }
                     });
                 }
             }
@@ -96,12 +102,12 @@ namespace Agenda.API
             app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "agenda/{controller=health}/{action=status}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "agenda/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "agenda/{controller}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "agenda/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "agenda/{controller}/{id}/{action}");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "agenda/{controller}/search");
+                routeBuilder.MapRoute(RouteNames.Default, "agenda/v{version:apiVersion}/{controller=health}/{action=status}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "agenda/v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "agenda/v{version:apiVersion}/{controller}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "agenda/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "agenda/v{version:apiVersion}/{controller}/{id}/{action}");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "agenda/v{version:apiVersion}/{controller}/search");
             });
         }
     }

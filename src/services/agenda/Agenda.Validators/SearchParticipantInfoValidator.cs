@@ -8,16 +8,16 @@ using System;
 namespace Agenda.Validators
 {
     /// <summary>
-    /// Validates <see cref="SearchParticipantInfo"/> instances.
+    /// Validates <see cref="SearchAttendeeInfo"/> instances.
     /// </summary>
-    public class SearchParticipantInfoValidator : AbstractValidator<SearchParticipantInfo>
+    public class SearchParticipantInfoValidator : AbstractValidator<SearchAttendeeInfo>
     {
         /// <summary>
         /// Builds a new <see cref="SearchParticipantInfoValidator"/> instance
         /// </summary>
         public SearchParticipantInfoValidator()
         {
-            Include(new AbstractSearchInfoValidator<ParticipantInfo>());
+            Include(new AbstractSearchInfoValidator<AttendeeInfo>());
         }
     }
 }

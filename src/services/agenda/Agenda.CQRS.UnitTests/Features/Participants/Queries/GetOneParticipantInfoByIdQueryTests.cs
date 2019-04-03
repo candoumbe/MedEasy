@@ -21,7 +21,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             Guid participantId = Guid.NewGuid();
 
             // Act
-            GetOneParticipantInfoByIdQuery instance = new GetOneParticipantInfoByIdQuery(participantId);
+            GetOneAttendeeInfoByIdQuery instance = new GetOneAttendeeInfoByIdQuery(participantId);
 
             // Assert
             instance.Id.Should()
@@ -34,7 +34,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
         public void Ctor_Throws_ArgumentException()
         {
             // Act
-            Action action = () => new GetOneParticipantInfoByIdQuery(default);
+            Action action = () => new GetOneAttendeeInfoByIdQuery(default);
 
             // Assert
             action.Should()
@@ -53,10 +53,10 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
 
                     yield return new object[]
                     {
-                        new GetOneParticipantInfoByIdQuery(participantId),
-                        new GetOneParticipantInfoByIdQuery(participantId),
+                        new GetOneAttendeeInfoByIdQuery(participantId),
+                        new GetOneAttendeeInfoByIdQuery(participantId),
                         true,
-                        $"two different {nameof(GetOneParticipantInfoByIdQuery)} with same data"
+                        $"two different {nameof(GetOneAttendeeInfoByIdQuery)} with same data"
                     };
                 }
             }
@@ -64,7 +64,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
 
         [Theory]
         [MemberData(nameof(EqualsCases))]
-        public void AreEquals(GetOneParticipantInfoByIdQuery first, object second, bool expectedResult, string reason)
+        public void AreEquals(GetOneAttendeeInfoByIdQuery first, object second, bool expectedResult, string reason)
         {
             // Act
             bool actualResult = first.Equals(second);

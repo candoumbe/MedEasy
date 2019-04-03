@@ -30,10 +30,10 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Appointment appointment = _mapper.Map<NewAppointmentInfo, Appointment>(request.Data);
-                foreach (ParticipantInfo participantInfo in request.Data.Participants)
+                foreach (AttendeeInfo participantInfo in request.Data.Attendees)
                 {
-                    Participant participant = _mapper.Map<ParticipantInfo, Participant>(participantInfo);
-                    appointment.AddParticipant(participant);
+                    Attendee participant = _mapper.Map<AttendeeInfo, Attendee>(participantInfo);
+                    appointment.AddAttendee(participant);
                 }
                 uow.Repository<Appointment>().Create(appointment);
                 await uow.SaveChangesAsync()

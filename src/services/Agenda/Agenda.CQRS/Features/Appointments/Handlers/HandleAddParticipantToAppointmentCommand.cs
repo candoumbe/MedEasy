@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
-    public class HandleAddParticipantToAppointmentCommand : IRequestHandler<AddParticipantToAppointmentCommand, ModifyCommandResult>
+    public class HandleAddParticipantToAppointmentCommand : IRequestHandler<AddAttendeeToAppointmentCommand, ModifyCommandResult>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
@@ -19,12 +19,12 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             _unitOfWorkFactory = unitOfWorkFactory ?? throw new ArgumentNullException(nameof(unitOfWorkFactory));
         }
 
-        public async Task<ModifyCommandResult> Handle(AddParticipantToAppointmentCommand request, CancellationToken ct)
+        public async Task<ModifyCommandResult> Handle(AddAttendeeToAppointmentCommand request, CancellationToken ct)
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                var optionalParticipant = await uow.Repository<Participant>()
-                                .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == request.Data.participantId)
+                var optionalParticipant = await uow.Repository<Attendee>()
+                                .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == request.Data.attendeeId)
                                 .ConfigureAwait(false);
 
                 return await optionalParticipant.Match(
@@ -39,13 +39,13 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                             {
                                 ModifyCommandResult cmdResult;
 
-                                bool associationAlreadyExists = await uow.Repository<AppointmentParticipant>()
-                                     .AnyAsync(ap => ap.ParticipantId == participant.Id && ap.AppointmentId == appointment.Id)
+                                bool associationAlreadyExists = await uow.Repository<AppointmentAttendee>()
+                                     .AnyAsync(ap => ap.AttendeeId == participant.Id && ap.AppointmentId == appointment.Id)
                                      .ConfigureAwait(false);
 
                                 if (!associationAlreadyExists)
                                 {
-                                    uow.Repository<AppointmentParticipant>().Create(new AppointmentParticipant { AppointmentId = appointment.Id, ParticipantId = participant.Id });
+                                    uow.Repository<AppointmentAttendee>().Create(new AppointmentAttendee { AppointmentId = appointment.Id, AttendeeId = participant.Id });
                                     await uow.SaveChangesAsync().ConfigureAwait(false);
                                     cmdResult = ModifyCommandResult.Done;
                                 }

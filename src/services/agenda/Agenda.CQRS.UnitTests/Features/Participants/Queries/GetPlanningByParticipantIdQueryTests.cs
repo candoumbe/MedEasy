@@ -49,7 +49,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             _outputHelper.WriteLine($"Data : {data}");
 
             // Act
-            Action action = () => new GetPlanningByParticipantIdQuery(data.participantId, data.from, data.to);
+            Action action = () => new GetPlanningByAttendeeIdQuery(data.participantId, data.from, data.to);
 
             // Assert
             action.Should()
@@ -59,7 +59,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
         }
 
         [Fact]
-        public void IsQuery() => typeof(GetPlanningByParticipantIdQuery).Should()
+        public void IsQuery() => typeof(GetPlanningByAttendeeIdQuery).Should()
             .Implement<IRequest<Option<IEnumerable<AppointmentInfo>>>>();
     }
 }

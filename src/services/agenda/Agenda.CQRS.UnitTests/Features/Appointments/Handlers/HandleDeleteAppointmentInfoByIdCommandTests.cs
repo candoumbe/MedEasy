@@ -76,8 +76,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             Guid firstParticipantId = Guid.NewGuid();
             Guid secondParticipantId = Guid.NewGuid();
-            appointment.AddParticipant(new Participant ("Dick Grayson"){ UUID = firstParticipantId });
-            appointment.AddParticipant(new Participant ("Bruce Wayne") { UUID = secondParticipantId });
+            appointment.AddAttendee(new Attendee ("Dick Grayson"){ UUID = firstParticipantId });
+            appointment.AddAttendee(new Attendee ("Bruce Wayne") { UUID = secondParticipantId });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -102,7 +102,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 deleteOk.Should()
                     .BeTrue("deleted resource must not be prensent in the datastore");
 
-                bool participantsNotDeleted = await uow.Repository<Participant>()
+                bool participantsNotDeleted = await uow.Repository<Attendee>()
                     .AnyAsync(x => new[] { firstParticipantId, secondParticipantId }.Contains(x.UUID))
                     .ConfigureAwait(false);
 

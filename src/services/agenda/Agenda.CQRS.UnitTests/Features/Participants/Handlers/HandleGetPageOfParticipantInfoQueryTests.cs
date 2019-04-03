@@ -33,7 +33,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
     public class HandleGetPageOfParticipantInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;
-        private HandleGetPageOfParticipantInfoQuery _sut;
+        private HandleGetPageOfAttendeeInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
 
         public HandleGetPageOfParticipantInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
@@ -49,7 +49,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                 return context;
             });
 
-            _sut = new HandleGetPageOfParticipantInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetPageOfAttendeeInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
             _outputHelper = outputHelper;
         }
 
@@ -57,7 +57,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -73,9 +73,9 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<Participant>(),
+                    Enumerable.Empty<Attendee>(),
                     (1, 10),
-                    (Expression<Func<Page<ParticipantInfo>, bool>>)(page => page.Count == 1
+                    (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
                         && page.Entries != null && !page.Entries.Any()
                     ),
@@ -84,27 +84,27 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 
                 yield return new object[]
                 {
-                    Enumerable.Empty<Participant>(),
+                    Enumerable.Empty<Attendee>(),
                     (page:2, pageSize: 10),
-                    (Expression<Func<Page<ParticipantInfo>, bool>>)(page => page.Count == 1
+                    (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
                         && page.Entries != null && page.Entries.Count() == 0
                     ),
                     "DataStore is empty"
                 };
                 {
-                    Faker<Participant> appointmentFaker = new Faker<Participant>()
+                    Faker<Attendee> appointmentFaker = new Faker<Attendee>()
                         .RuleFor(x => x.Id, () => 0)
                         .RuleFor(x => x.UUID, () => Guid.NewGuid())
                         .RuleFor(x => x.Name, (faker) => faker.Person.FullName)
                         ;
 
-                    IEnumerable<Participant> items = appointmentFaker.Generate(50);
+                    IEnumerable<Attendee> items = appointmentFaker.Generate(50);
                     yield return new object[]
                     {
                         items,
                         (page: 2, pageSize: 10),
-                        (Expression<Func<Page<ParticipantInfo>, bool>>)(page => page.Count == 5
+                        (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page.Count == 5
                             && page.Total == 50
                             && page.Entries != null && page.Entries.Count() == 10
                         ),
@@ -116,7 +116,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 
         [Theory]
         [MemberData(nameof(HandleCases))]
-        public async Task TestHandle(IEnumerable<Participant> appointments, (int page, int pageSize) pagination, Expression<Func<Page<ParticipantInfo>, bool>> pageExpectation, string reason)
+        public async Task TestHandle(IEnumerable<Attendee> appointments, (int page, int pageSize) pagination, Expression<Func<Page<AttendeeInfo>, bool>> pageExpectation, string reason)
         {
             // Arrange
             _outputHelper.WriteLine($"page : {pagination.page}");
@@ -124,19 +124,19 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Create(appointments);
+                uow.Repository<Attendee>().Create(appointments);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 
-                int appointmentsCount = await uow.Repository<Participant>().CountAsync()
+                int appointmentsCount = await uow.Repository<Attendee>().CountAsync()
                     .ConfigureAwait(false);
                 _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
             }
             
-            GetPageOfParticipantInfoQuery request = new GetPageOfParticipantInfoQuery(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
+            GetPageOfAttendeeInfoQuery request = new GetPageOfAttendeeInfoQuery(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
 
             // Act
-            Page<ParticipantInfo> page = await _sut.Handle(request, cancellationToken: default)
+            Page<AttendeeInfo> page = await _sut.Handle(request, cancellationToken: default)
                 .ConfigureAwait(false);
 
             // Assert

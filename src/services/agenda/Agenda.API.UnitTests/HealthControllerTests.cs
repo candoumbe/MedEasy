@@ -40,7 +40,7 @@ namespace Agenda.API.UnitTests
         public async Task GivenNoError_Status_Returns_NoContent()
         {
             // Arrange
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Participant>().AnyAsync(It.IsAny<CancellationToken>()))
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Attendee>().AnyAsync(It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(true));
             // Act
             IActionResult actionResult = await _sut.Status(ct : default)
@@ -77,7 +77,7 @@ namespace Agenda.API.UnitTests
         public async Task GivenError_Status_Returns_InternalServerError(Exception exception)
         {
             // Arrange
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Participant>().AnyAsync(It.IsAny<CancellationToken>()))
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Attendee>().AnyAsync(It.IsAny<CancellationToken>()))
                 .Throws(exception);
 
             // Act

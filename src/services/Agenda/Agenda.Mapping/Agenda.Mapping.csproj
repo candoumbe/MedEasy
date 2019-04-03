@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Mapping\MedEasy.Mapping.csproj" />
     <ProjectReference Include="..\Agenda.DTO\Agenda.DTO.csproj" />
+    <ProjectReference Include="..\Agenda.Models\Agenda.Models.csproj" />
     <ProjectReference Include="..\Agenda.Objects\Agenda.Objects.csproj" />
   </ItemGroup>
 

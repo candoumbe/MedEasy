@@ -12,6 +12,7 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +31,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,16 +76,15 @@ namespace Agenda.API
 
                     // This option is just to fix a breaking change in ASP.NETCORE 2.2 Routing (see https://github.com/aspnet/AspNetCore/issues/5055) 
                     options.EnableEndpointRouting = false;
-
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
                 .AddFluentValidation(options =>
                 {
-                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
+                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
                     options.LocalizationEnabled = true;
                     options
                         .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentInfoValidator>()
+                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
                         ;
                 })
                 .AddJsonOptions(options =>
@@ -106,7 +107,6 @@ namespace Agenda.API
             {
                 options.InvalidModelStateResponseFactory = (context) =>
                 {
-
                     IDictionary<string, IEnumerable<string>> errors = context.ModelState
                         .Where(element => !string.IsNullOrWhiteSpace(element.Key))
                         .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
@@ -141,7 +141,6 @@ namespace Agenda.API
                     options.ExcludedHosts.Remove("localhost");
                     options.ExcludedHosts.Remove("127.0.0.1");
                     options.ExcludedHosts.Remove("[::1]");
-
                 }
             });
             services.AddHttpsRedirection(options =>
@@ -171,13 +170,9 @@ namespace Agenda.API
                 );
             }
             builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options =>
-            {
-                options.Default(WarningBehavior.Log);
-            });
+            builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
             return builder;
         }
-
 
         /// <summary>
         /// Adds required dependencies to access API datastores
@@ -205,10 +200,7 @@ namespace Agenda.API
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
-                });
+                builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
 
@@ -237,7 +229,7 @@ namespace Agenda.API
         {
             services.AddMediatR(typeof(CreateAppointmentInfoCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
-            services.AddSingleton(provider => AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
             services.AddSingleton<IDateTimeService, DateTimeService>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -265,17 +257,25 @@ namespace Agenda.API
 
             services.AddSwaggerGen(config =>
             {
-                config.SwaggerDoc("v1", new Info
+                Contact contact = new Contact
                 {
+                    Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
+                    Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
+                    Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
+                };
+                config.SwaggerDoc("v1", new Info
+                    {
                     Title = hostingEnvironment.ApplicationName,
                     Description = "REST API for Agenda API",
                     Version = "v1",
-                    Contact = new Contact
-                    {
-                        Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
-                        Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
-                        Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
-                    }
+                    Contact = contact
+                    });
+                config.SwaggerDoc("v2", new Info
+                {
+                    Title = hostingEnvironment.ApplicationName,
+                    Description = "Agenda REST API v2",
+                    Version = "v2",
+                    Contact = contact
                 });
 
                 config.IgnoreObsoleteActions();
@@ -314,9 +314,46 @@ namespace Agenda.API
                     };
                 });
 
+            return services;
+        }
+
+        /// <summary>
+        /// Adds version
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options => {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.UseApiBehavior = true;
+                options.ReportApiVersions = true;
+            });
+            services.AddVersionedApiExplorer(
+                options =>
+                {
+                    // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                    // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                    options.GroupNameFormat = "'v'VVV";
+
+                    // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                    // can also be used to control the format of the API version in route templates
+                    options.SubstituteApiVersionInUrl = true;
+                });
 
             return services;
         }
 
+        /// <summary>
+        /// Adds custom healthcheck
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomHealthCheck(this IServiceCollection services)
+        {
+            services.AddHealthChecks();
+
+            return services;
+        }
     }
 }

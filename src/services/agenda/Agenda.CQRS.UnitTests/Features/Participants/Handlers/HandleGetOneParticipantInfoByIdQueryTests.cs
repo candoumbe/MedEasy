@@ -47,7 +47,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -62,10 +62,10 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         public async Task GivenEmptyDataStore_Handle_Returns_None()
         {
             // Arrange
-            GetOneParticipantInfoByIdQuery request = new GetOneParticipantInfoByIdQuery(Guid.NewGuid());
+            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(Guid.NewGuid());
 
             // Act
-            Option<ParticipantInfo> optionalParticipant = await _sut.Handle(request, cancellationToken: default)
+            Option<AttendeeInfo> optionalParticipant = await _sut.Handle(request, cancellationToken: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -77,7 +77,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             // Arrange
             Guid participantId = Guid.NewGuid();
-            Participant participant = new Participant
+            Attendee participant = new Attendee
             {
                 UUID = participantId,
                 Name = "Bruce Wayne"
@@ -85,16 +85,16 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Create(participant);
+                uow.Repository<Attendee>().Create(participant);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
-            GetOneParticipantInfoByIdQuery request = new GetOneParticipantInfoByIdQuery(participantId);
+            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(participantId);
 
             // Act
-            Option<ParticipantInfo> optionalParticipant = await _sut.Handle(request, default)
+            Option<AttendeeInfo> optionalParticipant = await _sut.Handle(request, default)
                 .ConfigureAwait(false);
 
             // Assert

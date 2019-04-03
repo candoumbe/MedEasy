@@ -32,7 +32,7 @@ namespace Agenda.DataStores
         /// <summary>
         /// Collection of <see cref="BloodPressure"/>s
         /// </summary>
-        public DbSet<Participant> Participants { get; set; }
+        public DbSet<Attendee> Participants { get; set; }
 
         /// <summary>
         /// Collection of <see cref="Appointment"/>
@@ -55,18 +55,18 @@ namespace Agenda.DataStores
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AppointmentParticipant>()
-                .HasKey(ap => new { ap.AppointmentId, ap.ParticipantId });
+            modelBuilder.Entity<AppointmentAttendee>()
+                .HasKey(ap => new { ap.AppointmentId, ap.AttendeeId });
 
-            modelBuilder.Entity<AppointmentParticipant>()
+            modelBuilder.Entity<AppointmentAttendee>()
                 .HasOne(ap => ap.Appointment)
-                .WithMany(a => a.Participants)
+                .WithMany(a => a.Attendees)
                 .HasForeignKey(ap => ap.AppointmentId);
 
-            modelBuilder.Entity<AppointmentParticipant>()
-                .HasOne(ap => ap.Participant)
+            modelBuilder.Entity<AppointmentAttendee>()
+                .HasOne(ap => ap.Attendee)
                 .WithMany(a => a.Appointments)
-                .HasForeignKey(ap => ap.ParticipantId);
+                .HasForeignKey(ap => ap.AttendeeId);
 
             modelBuilder.Entity<Appointment>(entity =>
             {
@@ -84,7 +84,7 @@ namespace Agenda.DataStores
                     .IsRequired();
             });
 
-            modelBuilder.Entity<Participant>(entity =>
+            modelBuilder.Entity<Attendee>(entity =>
             {
                 entity.Property(x => x.Name)
                     .HasMaxLength(_normalTextLength)

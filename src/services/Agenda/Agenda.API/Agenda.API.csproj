@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="3.2.0" />
     <PackageReference Include="Polly" Version="6.1.0" />
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -25,14 +26,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
+    <ProjectReference Include="..\..\MedEasy.Attributes\MedEasy.Attributes.csproj" />
+    <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\Agenda.CQRS\Agenda.CQRS.csproj" />
     <ProjectReference Include="..\Agenda.DataStores\Agenda.DataStores.csproj" />
     <ProjectReference Include="..\Agenda.Mapping\Agenda.Mapping.csproj" />
+    <ProjectReference Include="..\Agenda.Models\Agenda.Models.csproj" />
     <ProjectReference Include="..\Agenda.Validators\Agenda.Validators.csproj" />
   </ItemGroup>
 

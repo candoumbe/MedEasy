@@ -36,7 +36,7 @@ namespace Agenda.API.Resources
             {
                 using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                 {
-                    await uow.Repository<Participant>().AnyAsync(ct)
+                    await uow.Repository<Attendee>().AnyAsync(ct)
                         .ConfigureAwait(false);
 
                     actionResult = new NoContentResult();

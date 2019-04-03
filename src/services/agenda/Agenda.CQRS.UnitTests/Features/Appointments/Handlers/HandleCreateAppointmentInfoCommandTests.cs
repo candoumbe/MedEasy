@@ -60,7 +60,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
@@ -77,7 +77,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             get
             {
                 Person person = new Person();
-                Faker<ParticipantInfo> participantFaker = new Faker<ParticipantInfo>()
+                Faker<AttendeeInfo> participantFaker = new Faker<AttendeeInfo>()
                     .RuleFor(x => x.Id, () => Guid.NewGuid())
                     .RuleFor(x => x.Name, faker => new Person().FullName )
                     .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
@@ -88,7 +88,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(30.Minutes()))
                     .RuleFor(x => x.Location, faker => faker.Address.City())
                     .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
-                    .RuleFor(x => x.Participants, faker => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)));
+                    .RuleFor(x => x.Attendees, faker => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)));
                 {
                     NewAppointmentInfo data = newAppointmentFaker.Generate();
                     yield return new object[]
@@ -99,7 +99,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             && app.EndDate == data.EndDate
                             && app.Subject == data.Subject
                             && app.Location == data.Location
-                            && app.Participants.Count() == data.Participants.Count()
+                            && app.Participants.Count() == data.Attendees.Count()
                         ))
                     };
                 }
@@ -124,8 +124,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .NotBeNull().And
                 .Match(createdResourceExpectation);
 
-            A.CallTo(() => _mapperMock.Map<ParticipantInfo, Participant>(A<ParticipantInfo>.Ignored))
-                .MustHaveHappened(info.Participants.Count(), Times.Exactly);
+            A.CallTo(() => _mapperMock.Map<AttendeeInfo, Attendee>(A<AttendeeInfo>.Ignored))
+                .MustHaveHappened(info.Attendees.Count(), Times.Exactly);
             A.CallTo(() => _unitOfWorkFactory.NewUnitOfWork()).MustHaveHappenedOnceExactly();
 
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())

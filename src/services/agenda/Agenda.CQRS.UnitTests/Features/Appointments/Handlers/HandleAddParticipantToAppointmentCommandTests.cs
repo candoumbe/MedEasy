@@ -60,14 +60,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             Guid participantId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Create(new Participant("Dick Grayson") { UUID = participantId });
+                uow.Repository<Attendee>().Create(new Attendee("Dick Grayson") { UUID = participantId });
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
             (Guid appointmentId, Guid participantId) data = (appointmentId: Guid.NewGuid(), participantId);
 
             // Act
-            ModifyCommandResult cmdResult = await _sut.Handle(new AddParticipantToAppointmentCommand(data), default)
+            ModifyCommandResult cmdResult = await _sut.Handle(new AddAttendeeToAppointmentCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -89,7 +89,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 Location = "Somewhere in Gotham"
 
             };
-            appointment.AddParticipant(new Participant("Dick Grayson") { UUID = Guid.NewGuid() });
+            appointment.AddAttendee(new Attendee("Dick Grayson") { UUID = Guid.NewGuid() });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -100,7 +100,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             (Guid appointmentId, Guid participantId) data = (appointmentId, participantId: Guid.NewGuid());
 
             // Act
-            ModifyCommandResult cmdResult = await _sut.Handle(new AddParticipantToAppointmentCommand(data), default)
+            ModifyCommandResult cmdResult = await _sut.Handle(new AddAttendeeToAppointmentCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -123,8 +123,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             };
 
-            Participant participant = new Participant("Dick Grayson") { UUID = Guid.NewGuid() };
-            appointment.AddParticipant(participant);
+            Attendee participant = new Attendee("Dick Grayson") { UUID = Guid.NewGuid() };
+            appointment.AddAttendee(participant);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -134,7 +134,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             }
             (Guid appointmentId, Guid participantId) data = (appointmentId, participantId: participant.UUID);
             // Act
-            ModifyCommandResult cmdResult = await _sut.Handle(new AddParticipantToAppointmentCommand(data), default)
+            ModifyCommandResult cmdResult = await _sut.Handle(new AddAttendeeToAppointmentCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -154,24 +154,23 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 EndDate = 17.July(2016).Add(13.Hours().Add(45.Minutes())),
                 Subject = "Confidential",
                 Location = "Somewhere in Gotham"
-
             };
 
-            Participant dickGrayson = new Participant("Dick Grayson") { UUID = Guid.NewGuid() };
-            Participant bruceWayne = new Participant("Bruce Wayne") { UUID = Guid.NewGuid() };
-            appointment.AddParticipant(dickGrayson);
+            Attendee dickGrayson = new Attendee("Dick Grayson") { UUID = Guid.NewGuid() };
+            Attendee bruceWayne = new Attendee("Bruce Wayne") { UUID = Guid.NewGuid() };
+            appointment.AddAttendee(dickGrayson);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Appointment>().Create(appointment);
-                uow.Repository<Participant>().Create(bruceWayne);
+                uow.Repository<Attendee>().Create(bruceWayne);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            (Guid appointmentId, Guid participantId) data = (appointmentId, participantId: bruceWayne.UUID);
+            (Guid appointmentId, Guid attendeeId) data = (appointmentId, attendeeId: bruceWayne.UUID);
             // Act
-            ModifyCommandResult cmdResult = await _sut.Handle(new AddParticipantToAppointmentCommand(data), default)
+            ModifyCommandResult cmdResult = await _sut.Handle(new AddAttendeeToAppointmentCommand(data), default)
                 .ConfigureAwait(false);
 
             // Assert

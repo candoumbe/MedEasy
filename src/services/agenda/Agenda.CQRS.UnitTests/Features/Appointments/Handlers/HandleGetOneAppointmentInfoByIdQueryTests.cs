@@ -49,7 +49,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
@@ -88,7 +88,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 StartDate = 1.April(2018).AddHours(15),
                 EndDate = 1.April(2018).AddHours(16)
             };
-            appointment.AddParticipant(new Participant("Bruce Wayne"));
+            appointment.AddAttendee(new Attendee("Bruce Wayne"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -114,10 +114,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 appointmentInfo.StartDate.Should().Be(appointment.StartDate);
                 appointmentInfo.EndDate.Should().Be(appointment.EndDate);
                 appointmentInfo.Participants.Should()
-                    .HaveSameCount(appointment.Participants);
+                    .HaveSameCount(appointment.Attendees);
 
-                ParticipantInfo participantInfo = appointmentInfo.Participants.ElementAt(0);
-                participantInfo.Name.Should().Be(appointment.Participants.ElementAt(0).Participant.Name);
+                AttendeeInfo participantInfo = appointmentInfo.Participants.ElementAt(0);
+                participantInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Attendee.Name);
                 participantInfo.UpdatedDate.Should()
                     .NotBe(DateTimeOffset.MinValue).And
                     .NotBe(DateTimeOffset.MaxValue);

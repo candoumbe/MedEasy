@@ -1,4 +1,5 @@
-using Agenda.API.Controllers;
+using Agenda.API.Resources.v1;
+using Agenda.API.Resources.v1.Appointments;
 using Agenda.API.Routing;
 using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.CQRS.Features.Appointments.Handlers;
@@ -7,7 +8,10 @@ using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
 using Agenda.Mapping;
+using Agenda.Models.v1.Appointments;
+using Agenda.Models.v1.Attendees;
 using Agenda.Objects;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Bogus;
 using DataFilters;
@@ -54,6 +58,7 @@ namespace Agenda.API.UnitTests.Features
         private Mock<IMediator> _mediatorMock;
         private AppointmentsController _sut;
         private const string _baseUrl = "agenda";
+        private Mock<IMapper> _mapperMock;
 
         public AppointmentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -76,14 +81,28 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock = new Mock<IOptionsSnapshot<AgendaApiOptions>>(Strict);
 
             _mediatorMock = new Mock<IMediator>(Strict);
-            _sut = new AppointmentsController(_urlHelperMock.Object, _mediatorMock.Object, _apiOptionsMock.Object);
+
+            _mapperMock = new Mock<IMapper>(Strict);
+
+            IMapper mapper = AutoMapperConfig.Build().CreateMapper();
+            _mapperMock.Setup(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()))
+                .Returns((IEnumerable<AppointmentInfo> input) => mapper.Map<IEnumerable<AppointmentModel>>(input));
+            _mapperMock.Setup(mock => mock.Map<AppointmentModel>(It.IsAny<AppointmentInfo>()))
+                .Returns((AppointmentInfo input) => mapper.Map<AppointmentModel>(input));
+            _mapperMock.Setup(mock => mock.Map<SearchAppointmentInfo>(It.IsAny<SearchAppointmentModel>()))
+                .Returns((SearchAppointmentModel input) => mapper.Map<SearchAppointmentInfo>(input));
+
+            _mapperMock.Setup(mock => mock.Map<NewAppointmentInfo>(It.IsAny<NewAppointmentModel>()))
+                .Returns((NewAppointmentModel input) => mapper.Map<NewAppointmentInfo>(input));
+
+            _sut = new AppointmentsController(_urlHelperMock.Object, _mediatorMock.Object, _apiOptionsMock.Object, _mapperMock.Object);
         }
 
         public async void Dispose()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
@@ -104,14 +123,16 @@ namespace Agenda.API.UnitTests.Features
                 IUrlHelper[] urlHelperCases = { null, Mock.Of<IUrlHelper>() };
                 IOptionsSnapshot<AgendaApiOptions>[] optionsCases = { null, Mock.Of<IOptionsSnapshot<AgendaApiOptions>>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
+                IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
 
                 IEnumerable<object[]> cases = urlHelperCases
-                    .CrossJoin(optionsCases, (urlHelper, options) => ((urlHelper, options)))
+                    .CrossJoin(optionsCases, (urlHelper, options) => (urlHelper, options))
                     .Select((tuple) => new { tuple.urlHelper, tuple.options })
-                    .CrossJoin(mediatorCases, (tuple, mediator) => ((tuple.urlHelper, tuple.options, mediator)))
+                    .CrossJoin(mediatorCases, (tuple, mediator) => (tuple.urlHelper, tuple.options, mediator))
                     .Select((tuple) => new { tuple.urlHelper, tuple.options, tuple.mediator })
-                    .Where(tuple => tuple.urlHelper == null || tuple.options == null || tuple.mediator == null)
-                    .Select(tuple => (new object[] { tuple.urlHelper, tuple.mediator, tuple.options }));
+                    .CrossJoin(mapperCases, (tuple, mapper) => (tuple.urlHelper, tuple.options, tuple.mediator, mapper))
+                    .Where(tuple => tuple.urlHelper == null || tuple.options == null || tuple.mediator == null || tuple.mapper == null)
+                    .Select(tuple => (new object[] { tuple.urlHelper, tuple.mediator, tuple.options, tuple.mapper }));
 
                 return cases;
             }
@@ -119,10 +140,15 @@ namespace Agenda.API.UnitTests.Features
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
-        public void GivenNullParameter_Ctor_ThrowsArgumentNullException(IUrlHelper urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions)
+        public void GivenNullParameter_Ctor_ThrowsArgumentNullException(IUrlHelper urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper)
         {
+            _outputHelper.WriteLine($"{nameof(urlHelper)} is null : {urlHelper == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
+            _outputHelper.WriteLine($"{nameof(apiOptions)} is null : {apiOptions == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {mapper == null}");
+
             // Act
-            Action action = () => new AppointmentsController(urlHelper, mediator, apiOptions);
+            Action action = () => new AppointmentsController(urlHelper, mediator, apiOptions, mapper);
 
             // Assert
             action.Should()
@@ -137,24 +163,31 @@ namespace Agenda.API.UnitTests.Features
             // Arrange
             int page = 1;
             int pageSize = 10;
+
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new AgendaApiOptions { MaxPageSize = 200, DefaultPageSize = 30 });
+
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Page<AppointmentInfo>.Empty);
 
+
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Page<AppointmentInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAppointmentInfoQuery>(q => q.Data.Page == page && q.Data.PageSize == pageSize), It.IsAny<CancellationToken>()), Times.Once);
+
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _apiOptionsMock.VerifyNoOtherCalls();
+
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
+            _mapperMock.VerifyNoOtherCalls();
 
             actionResult.Should()
                 .NotBeNull();
 
-            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Value.Should()
-                .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
+            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
 
             response.Items.Should()
                 .BeEmpty();
@@ -196,14 +229,17 @@ namespace Agenda.API.UnitTests.Features
                 .ReturnsAsync(Option.None<AppointmentInfo>());
 
             // Act
-            IActionResult actionResult = await _sut.Get(id: appointmentId, ct: default)
+            ActionResult<Browsable<AppointmentModel>> actionResult = await _sut.Get(id: appointmentId, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Option<AppointmentInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            actionResult.Should()
+            _mapperMock.Verify(mock => mock.Map<AppointmentModel>(It.IsAny<AppointmentInfo>()), Times.Never);
+            _mapperMock.VerifyNoOtherCalls();
+
+            actionResult.Result.Should()
                 .BeAssignableTo<NotFoundResult>();
         }
 
@@ -222,8 +258,8 @@ namespace Agenda.API.UnitTests.Features
                 EndDate = 12.July(2013).AddHours(14).AddMinutes(45)
             };
 
-            appointment.AddParticipant(new Participant("Bruce Wayne") { UUID = Guid.NewGuid() });
-            appointment.AddParticipant(new Participant("Dick Grayson") { UUID = Guid.NewGuid() });
+            appointment.AddAttendee(new Attendee("Bruce Wayne") { UUID = Guid.NewGuid() });
+            appointment.AddAttendee(new Attendee("Dick Grayson") { UUID = Guid.NewGuid() });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -252,18 +288,18 @@ namespace Agenda.API.UnitTests.Features
                 });
 
             // Act
-            IActionResult actionResult = await _sut.Get(appointmentId, ct: default)
+            ActionResult<Browsable<AppointmentModel>> actionResult = await _sut.Get(appointmentId, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            Browsable<AppointmentInfo> browsableResource = actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                .BeOfType<Browsable<AppointmentInfo>>().Which;
+            Browsable<AppointmentModel> browsableResource = actionResult.Value;
 
-            AppointmentInfo resource = browsableResource.Resource;
+            browsableResource.Should()
+                .NotBeNull();
+
+            AppointmentModel resource = browsableResource.Resource;
             resource.Id.Should()
                 .Be(appointmentId);
             resource.StartDate.Should()
@@ -271,7 +307,7 @@ namespace Agenda.API.UnitTests.Features
             resource.EndDate.Should()
                 .Be(appointment.EndDate);
             resource.Participants.Should()
-                .HaveCount(appointment.Participants.Count());
+                .HaveCount(appointment.Attendees.Count());
 
             IEnumerable<Link> links = browsableResource.Links;
             links.Should()
@@ -324,8 +360,8 @@ namespace Agenda.API.UnitTests.Features
                     }
                 }
 
-                Faker<Participant> participantFaker = new Faker<Participant>()
-                    .CustomInstantiator(faker => new Participant(faker.Person.FullName))
+                Faker<Attendee> participantFaker = new Faker<Attendee>()
+                    .CustomInstantiator(faker => new Attendee(faker.Person.FullName))
                     .RuleFor(participant => participant.Id, 0)
                     .RuleFor(participant => participant.UUID, () => Guid.NewGuid())
                     .RuleFor(participant => participant.Email, faker => faker.Internet.Email())
@@ -341,10 +377,10 @@ namespace Agenda.API.UnitTests.Features
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
                         .FinishWith((faker, appointment) =>
                         {
-                            IEnumerable<Participant> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
-                            foreach (Participant item in participants)
+                            IEnumerable<Attendee> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
+                            foreach (Attendee item in participants)
                             {
-                                appointment.AddParticipant(item);
+                                appointment.AddAttendee(item);
                             }
                         });
 
@@ -358,10 +394,10 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2015),
                         20,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
 
@@ -373,10 +409,10 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2016),
                         20,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
 
@@ -388,10 +424,10 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2017),
                         0,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x == null )), // expected link to next page
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x == null ), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
                 }
@@ -405,10 +441,10 @@ namespace Agenda.API.UnitTests.Features
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
                         .FinishWith((faker, appointment) =>
                         {
-                            IEnumerable<Participant> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
-                            foreach (Participant item in participants)
+                            IEnumerable<Attendee> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
+                            foreach (Attendee item in participants)
                             {
-                                appointment.AddParticipant(item);
+                                appointment.AddAttendee(item);
                             }
                         });
 
@@ -421,11 +457,11 @@ namespace Agenda.API.UnitTests.Features
                         10.January(2016).Add(10.Hours().Add(30.Minutes())),
                         20,    //expected total
                         (
-                            first : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
-                            previous : ((Expression<Func<Link, bool>>) (x => x == null)), // expected link to previous page
-                            next : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))), // expected link to first page
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
 
-                            last : ((Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)))
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
                 }
@@ -449,7 +485,7 @@ namespace Agenda.API.UnitTests.Features
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Participant>().Clear();
+                uow.Repository<Attendee>().Clear();
                 uow.Repository<Appointment>().Clear();
                 uow.Repository<Appointment>().Create(items);
                 await uow.SaveChangesAsync()
@@ -477,21 +513,27 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentInfo>>> actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize)
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize)
                 .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"{nameof(AppointmentsController)}.{nameof(AppointmentsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
+            _apiOptionsMock.VerifyNoOtherCalls();
+
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Exactly(actionResult.Value != null ? 1 : 0));
+            _mapperMock.VerifyNoOtherCalls();
 
             actionResult.Should()
                     .NotBeNull();
-            
+
             actionResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>();
+                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentModel>>>();
 
-            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = actionResult.Value;
+            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -522,17 +564,17 @@ namespace Agenda.API.UnitTests.Features
                 yield return new object[]
                 {
                     Page<AppointmentInfo>.Empty,
-                    new SearchAppointmentInfo { Page = 1, PageSize = 10},
+                    new SearchAppointmentModel { Page = 1, PageSize = 10},
                     (defaultPageSize : 20, maxPageSize : 50),
                     (
-                        firstPageUrlExpectation : ((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
+                        firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                        )),
-                        previousPageUrl : ((Expression<Func<Link, bool>>)(link => link == null)),
-                        nextPageUrl : ((Expression<Func<Link, bool>>)(link => link == null)),
-                        lastPageUrlExpectation :((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
+                        ),
+                        previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
+                        nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
+                        lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                        ))
+                        )
                     )
                 };
 
@@ -548,73 +590,73 @@ namespace Agenda.API.UnitTests.Features
                     yield return new object[]
                     {
                         new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
-                        new SearchAppointmentInfo { Page = 1, PageSize = 10},
+                        new SearchAppointmentModel { Page = 1, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
-                            firstPageUrlExpectation : ((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            )),
-                            previousPageUrl : ((Expression<Func<Link, bool>>)(link => link == null)),
-                            nextPageUrl : ((Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Next
-                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=2&pageSize=10".Equals(link.Href, OrdinalIgnoreCase))),
-                            lastPageUrlExpectation :((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
+                            ),
+                            previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
+                            nextPageUrl : (Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Next
+                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=2&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            ))
+                            )
                         )
                     };
 
                     yield return new object[]
                     {
                         new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
-                        new SearchAppointmentInfo { Page = 2, PageSize = 10},
+                        new SearchAppointmentModel { Page = 2, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
-                            firstPageUrlExpectation : ((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            )),
-                            previousPageUrl : ((Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
-                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase))),
-                            nextPageUrl : ((Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Next
-                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=3&pageSize=10".Equals(link.Href, OrdinalIgnoreCase))),
-                            lastPageUrlExpectation :((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
+                            ),
+                            previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
+                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                            nextPageUrl : (Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Next
+                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=3&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            ))
+                            )
                         )
                     };
 
                     yield return new object[]
                     {
                         new Page<AppointmentInfo>(appointmentFaker.Generate(10), total : 50, size :10),
-                        new SearchAppointmentInfo { Page = 5, PageSize = 10},
+                        new SearchAppointmentModel { Page = 5, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
-                            firstPageUrlExpectation : ((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            )),
-                            previousPageUrl : ((Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
-                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase))),
-                            nextPageUrl : ((Expression<Func<Link, bool>>)(link => link == null )),
-                            lastPageUrlExpectation :((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
+                            ),
+                            previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
+                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                            nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null ),
+                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            ))
+                            )
                         )
                     };
 
                     yield return new object[]
                     {
                         new Page<AppointmentInfo>(appointmentFaker.Generate(5), total : 45, size :10),
-                        new SearchAppointmentInfo { Page = 5, PageSize = 10},
+                        new SearchAppointmentModel { Page = 5, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
-                            firstPageUrlExpectation : ((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.First
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            )),
-                            previousPageUrl : ((Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
-                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase))),
-                            nextPageUrl : ((Expression<Func<Link, bool>>)(link => link == null )),
-                            lastPageUrlExpectation :((Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
+                            ),
+                            previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null && link.Method == "GET" && link.Relation == LinkRelation.Previous
+                                && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                            nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null ),
+                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET" && link.Relation == LinkRelation.Last
                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
-                            ))
+                            )
                         )
                     };
                 }
@@ -623,7 +665,7 @@ namespace Agenda.API.UnitTests.Features
 
         [Theory]
         [MemberData(nameof(SearchCases))]
-        public async Task GivenMediatorReturnsData_Search_ReturnsOk(Page<AppointmentInfo> page, SearchAppointmentInfo search,
+        public async Task GivenMediatorReturnsData_Search_ReturnsOk(Page<AppointmentInfo> page, SearchAppointmentModel search,
             (int defaultPageSize, int maxPageSize) pagingOptions,
             (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
@@ -636,23 +678,23 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _sut.Search(search, ct: default)
+            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Search(search, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"{nameof(AppointmentsController)}.{nameof(AppointmentsController.Search)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
+            _apiOptionsMock.VerifyNoOtherCalls();
+
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
 
-            actionResult.Should()
-                    .NotBeNull().And
-                    .BeOfType<OkObjectResult>();
-            ObjectResult okObjectResult = (OkObjectResult)actionResult;
+            _mapperMock.Verify(mock => mock.Map<SearchAppointmentInfo>(It.IsAny<SearchAppointmentModel>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
+            _mapperMock.VerifyNoOtherCalls();
 
-            object value = okObjectResult.Value;
 
-            GenericPagedGetResponse<Browsable<AppointmentInfo>> response = okObjectResult.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentInfo>>>().Which;
+            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -668,7 +710,7 @@ namespace Agenda.API.UnitTests.Features
             }
 
             response.Total.Should()
-                    .Be(page.Total, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Total)}"" property indicates the number of elements");
+                    .Be(page.Total, $@"the ""{nameof(GenericPagedGetResponse<AppointmentModel>)}.{nameof(GenericPagedGetResponse<AppointmentModel>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should()
                 .NotBeNull().And
@@ -684,16 +726,16 @@ namespace Agenda.API.UnitTests.Features
         public async Task GivenValidInfo_Post_Returns_CreatedResource()
         {
             // Arrange
-            NewAppointmentInfo newAppointment = new NewAppointmentInfo
+            NewAppointmentModel newAppointment = new NewAppointmentModel
             {
                 StartDate = 23.July(2012).Add(13.Hours().Add(30.Minutes())),
                 EndDate = 23.July(2012).Add(14.Hours().Add(30.Minutes())),
                 Subject = "Confidential",
                 Location = "Gotham",
-                Participants = new[]
+                Attendees = new[]
                 {
-                    new ParticipantInfo { Id = Guid.NewGuid(), Name = "Dick Grayson", UpdatedDate = 10.January(2005) },
-                    new ParticipantInfo { Id = Guid.NewGuid(), Name = "Bruce Wayne", UpdatedDate = 10.January(2005) }
+                    new AttendeeModel { Id = Guid.NewGuid(), Name = "Dick Grayson", UpdatedDate = 10.January(2005) },
+                    new AttendeeModel { Id = Guid.NewGuid(), Name = "Bruce Wayne", UpdatedDate = 10.January(2005) }
                 }
             };
 
@@ -705,6 +747,7 @@ namespace Agenda.API.UnitTests.Features
                         .ConfigureAwait(false);
                 });
 
+            
             _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment}");
 
             // Act
@@ -712,6 +755,10 @@ namespace Agenda.API.UnitTests.Features
                 .ConfigureAwait(false);
 
             // Assert
+            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(It.IsAny<NewAppointmentModel>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(It.Is<NewAppointmentModel>(input => input == newAppointment)), Times.Once);
+            _mapperMock.VerifyNoOtherCalls();
+
             CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
                 .BeAssignableTo<CreatedAtRouteResult>().Which;
 
@@ -746,18 +793,18 @@ namespace Agenda.API.UnitTests.Features
                 .Be(newAppointment.Subject);
             resource.Location.Should()
                 .Be(newAppointment.Location);
-            IEnumerable<ParticipantInfo> participants = resource.Participants;
+            IEnumerable<AttendeeInfo> participants = resource.Participants;
             participants.Should()
-                .HaveSameCount(newAppointment.Participants).And
+                .HaveSameCount(newAppointment.Attendees).And
                 .OnlyContain(item => item.Id != default).And
-                .OnlyContain(item => newAppointment.Participants.Select(x => x.Name).Contains(item.Name));
+                .OnlyContain(item => newAppointment.Attendees.Select(x => x.Name).Contains(item.Name));
 
             IEnumerable<Link> links = browsableResource.Links;
             links.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
                 .NotContain(link => string.IsNullOrWhiteSpace(link.Href)).And
-                .HaveCount(1 + newAppointment.Participants.Count()).And
+                .HaveCount(1 + newAppointment.Attendees.Count()).And
                 .ContainSingle(link => link.Relation == LinkRelation.Self).And
                 .Contain(link => link.Relation.StartsWith("get-participant-"));
 
@@ -782,27 +829,27 @@ namespace Agenda.API.UnitTests.Features
                 yield return new object[]
                 {
                     DeleteCommandResult.Done,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NoContentResult)),
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NoContentResult),
                     "appointment <=> participant association was sucessfully deleted"
                 };
                 yield return new object[]
                 {
                     DeleteCommandResult.Failed_NotFound,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult)),
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NotFoundResult),
                     "Appointment/Participant was not found"
                 };
 
                 yield return new object[]
                 {
                     DeleteCommandResult.Failed_Unauthorized,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is UnauthorizedResult)),
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is UnauthorizedResult),
                     "Removing participant from the appointment is not allowed"
                 };
 
                 yield return new object[]
                 {
                     DeleteCommandResult.Failed_Conflict,
-                    ((Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict)),
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is StatusCodeResult && ((StatusCodeResult)actionResult).StatusCode == Status409Conflict),
                     "Removing participant from the appointment is not allowed"
                 };
             }
@@ -816,7 +863,7 @@ namespace Agenda.API.UnitTests.Features
             Guid appointmentId = Guid.NewGuid();
             Guid participantId = Guid.NewGuid();
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RemoveParticipantFromAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RemoveAttendeeFromAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cmdResult);
 
             // Act
