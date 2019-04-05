@@ -45,8 +45,5 @@ namespace Agenda.Objects
             _appointments = new List<AppointmentAttendee>();
             Name = name;
         }
-
-        public Attendee() : this(string.Empty)
-        {}
     }
 }

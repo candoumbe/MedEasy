@@ -30,7 +30,7 @@ namespace Agenda.DataStores.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Participant",
+                name: "Attendee",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -46,29 +46,29 @@ namespace Agenda.DataStores.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Participant", x => x.Id);
+                    table.PrimaryKey("PK_Attendee", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AppointmentParticipant",
+                name: "AppointmentAttendee",
                 columns: table => new
                 {
-                    ParticipantId = table.Column<int>(nullable: false),
+                    AttendeeId = table.Column<int>(nullable: false),
                     AppointmentId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AppointmentParticipant", x => new { x.AppointmentId, x.ParticipantId });
+                    table.PrimaryKey("PK_AppointmentAttendee", x => new { x.AppointmentId, x.AttendeeId });
                     table.ForeignKey(
-                        name: "FK_AppointmentParticipant_Appointment_AppointmentId",
+                        name: "FK_AppointmentAttendee_Appointment_AppointmentId",
                         column: x => x.AppointmentId,
                         principalTable: "Appointment",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AppointmentParticipant_Participant_ParticipantId",
-                        column: x => x.ParticipantId,
-                        principalTable: "Participant",
+                        name: "FK_AppointmentAttendee_Attendee_AttendeeId",
+                        column: x => x.AttendeeId,
+                        principalTable: "Attendee",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -80,13 +80,13 @@ namespace Agenda.DataStores.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AppointmentParticipant_ParticipantId",
-                table: "AppointmentParticipant",
-                column: "ParticipantId");
+                name: "IX_AppointmentAttendee_AttendeeId",
+                table: "AppointmentAttendee",
+                column: "AttendeeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Participant_UUID",
-                table: "Participant",
+                name: "IX_Attendee_UUID",
+                table: "Attendee",
                 column: "UUID",
                 unique: true);
         }
@@ -94,13 +94,13 @@ namespace Agenda.DataStores.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AppointmentParticipant");
+                name: "AppointmentAttendee");
 
             migrationBuilder.DropTable(
                 name: "Appointment");
 
             migrationBuilder.DropTable(
-                name: "Participant");
+                name: "Attendee");
         }
     }
 }

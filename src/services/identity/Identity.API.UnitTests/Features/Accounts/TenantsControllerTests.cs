@@ -166,8 +166,7 @@ namespace Identity.API.Tests.Features.Accounts
                 UserName = "robin",
                 PasswordHash = "a_super_secret_password",
                 Email = "dick.grayson@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password",
-
+                Salt = "salt_and_pepper_for_password"
             };
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

@@ -1,7 +1,7 @@
 ﻿using AutoMapper.QueryableExtensions;
 using DataFilters;
 using FluentValidation.Results;
-using MedEasy.Core.Attributes;
+using MedEasy.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO.Search;
@@ -23,8 +23,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static DataFilters.FilterLogic;
-using static DataFilters.FilterOperator;
+
 namespace Patients.API.Controllers
 {
     /// <summary>

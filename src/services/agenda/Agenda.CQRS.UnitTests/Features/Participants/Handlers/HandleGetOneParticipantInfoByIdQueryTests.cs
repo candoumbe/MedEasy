@@ -76,35 +76,34 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         public async Task GivenRecordExistsInDataStore_Get_Returns_Some()
         {
             // Arrange
-            Guid participantId = Guid.NewGuid();
-            Attendee participant = new Attendee
+            Guid attendeeId = Guid.NewGuid();
+            Attendee attendee = new Attendee("Bruce Wayne")
             {
-                UUID = participantId,
-                Name = "Bruce Wayne"
+                UUID = attendeeId
             };
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Attendee>().Create(participant);
+                uow.Repository<Attendee>().Create(attendee);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
-            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(participantId);
+            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(attendeeId);
 
             // Act
-            Option<AttendeeInfo> optionalParticipant = await _sut.Handle(request, default)
+            Option<AttendeeInfo> optionalAttendee = await _sut.Handle(request, default)
                 .ConfigureAwait(false);
 
             // Assert
-            optionalParticipant.HasValue.Should().BeTrue($"the record <{participantId}> exists in the datastore");
-            optionalParticipant.MatchSome((participantInfo) =>
+            optionalAttendee.HasValue.Should().BeTrue($"the record <{attendeeId}> exists in the datastore");
+            optionalAttendee.MatchSome((attendeeInfo) =>
             {
-                participantInfo.Id.Should().Be(participant.UUID);
-                participantInfo.Name.Should().Be(participant.Name);
-                participantInfo.PhoneNumber.Should().Be(participant.PhoneNumber);
-                participantInfo.Email.Should().Be(participant.Email);
+                attendeeInfo.Id.Should().Be(attendee.UUID);
+                attendeeInfo.Name.Should().Be(attendee.Name);
+                attendeeInfo.PhoneNumber.Should().Be(attendee.PhoneNumber);
+                attendeeInfo.Email.Should().Be(attendee.Email);
             });
         }
     }

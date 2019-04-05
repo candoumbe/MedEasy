@@ -4,7 +4,7 @@ using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
-using MedEasy.Core.Attributes;
+using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static DataFilters.FilterOperator;
 using static DataFilters.FilterLogic;
+using static DataFilters.FilterOperator;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.Features.BloodPressures
 {

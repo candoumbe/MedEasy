@@ -1,11 +1,5 @@
-﻿using MedEasy.Core.Attributes;
+﻿using MedEasy.Attributes;
 using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Measures.API.Features.Patients
 {

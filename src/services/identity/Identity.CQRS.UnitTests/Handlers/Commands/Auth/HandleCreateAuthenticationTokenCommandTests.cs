@@ -100,7 +100,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 Name = "Bruce Wayne",
                 PasswordHash = new Faker().Lorem.Word(),
                 Salt = new Faker().Lorem.Word(),
-
             };
 
             account.AddOrUpdateClaim(type: "batarangs", value: "10", utcNow);
@@ -195,7 +194,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 nameClaim.Value.Should()
                     .Be(account.Name);
 
-
                 Claim accountIdClaim = jwtAccessToken.Claims.Single(claim => claim.Type == CustomClaimTypes.AccountId);
                 accountIdClaim.Value.Should()
                     .Be(account.UUID.ToString());
@@ -243,7 +241,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .ContainSingle(claim => claim.Type == CustomClaimTypes.AccountId).And
                 .ContainSingle(claim => claim.Type == CustomClaimTypes.Location).And
                 .ContainSingle(claim => claim.Type == ClaimTypes.Email);
-
 
             {
                 Claim nameIdentifierClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == ClaimTypes.NameIdentifier);

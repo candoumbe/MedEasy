@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -18,6 +19,7 @@ namespace MedEasy.RestObjects
         [JsonProperty(Required = Required.Always)]
         public PageLinks Links { get; }
 
+
         /// <summary>
         /// Builds a new <see cref="GenericPagedGetResponse{T}"/> instance. 
         /// </summary>
@@ -32,6 +34,8 @@ namespace MedEasy.RestObjects
             Items = items;
             Links = new PageLinks(first, previous, next, last);
             Total = total;
+
+            
         }
         /// <summary>
         /// The items of the current page of result
@@ -45,8 +49,21 @@ namespace MedEasy.RestObjects
         [JsonProperty]
         public int Total { get; }
 
+        private int? _count;
+
         [JsonProperty]
-        public int Count => Items?.Count() ?? 0;
+        public int Count
+        {
+            get
+            {
+                if (!_count.HasValue)
+                {
+                    _count = Items?.Count() ?? 0;
+                }
+
+                return _count ?? 0;
+            }
+        }
 
         public override string ToString() => SerializeObject(this, Formatting.Indented);
     }

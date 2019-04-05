@@ -1,7 +1,7 @@
 ﻿namespace MedEasy.CQRS.Core.Commands.Results
 {
     /// <summary>
-    /// Type of result expected for  PATCH|PUT operation
+    /// Type of result expected for command that modify resources
     /// </summary>
     public enum ModifyCommandResult
     {

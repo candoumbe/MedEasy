@@ -37,7 +37,6 @@ namespace Measures.API.IntegrationTests
         private IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/measures/patients";
 
-
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
             Type = JSchemaType.Object,
@@ -578,6 +577,8 @@ namespace Measures.API.IntegrationTests
                             .ConfigureAwait(false);
 
                         // Assert
+                        _outputHelper.WriteLine($"HEAD Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+
                         _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
                         response.IsSuccessStatusCode.Should()
                             .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");

@@ -13,16 +13,15 @@ namespace Agenda.CQRS.Features.Appointments.Queries
     /// <summary>
     /// A query to get a page of <see cref="AppointmentInfo"/>
     /// </summary>
-    public class GetPageOfAppointmentInfoQuery : IWantPageOf<Guid, AppointmentInfo>
+    public class GetPageOfAppointmentInfoQuery : QueryBase<Guid, PaginationConfiguration, Page<AppointmentInfo>>
     {
-        public Guid Id { get; }
-
-        public PaginationConfiguration Data { get; }
-
         /// <summary>
         /// Builds a new <see cref="GetPageOfAppointmentInfoQuery"/> instance.
         /// </summary>
         /// <param name="pagination"></param>
-        public GetPageOfAppointmentInfoQuery(PaginationConfiguration pagination) => Data = pagination;
+        public GetPageOfAppointmentInfoQuery(PaginationConfiguration pagination): base(Guid.NewGuid(), pagination)
+        {
+
+        }
     }
 }

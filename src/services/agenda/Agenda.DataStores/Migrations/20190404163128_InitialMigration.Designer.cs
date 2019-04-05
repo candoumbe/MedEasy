@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Agenda.DataStores.Migrations
 {
     [DbContext(typeof(AgendaContext))]
-    [Migration("20190315101237_InitialMigration")]
+    [Migration("20190404163128_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,20 +60,20 @@ namespace Agenda.DataStores.Migrations
                     b.ToTable("Appointment");
                 });
 
-            modelBuilder.Entity("Agenda.Objects.AppointmentParticipant", b =>
+            modelBuilder.Entity("Agenda.Objects.AppointmentAttendee", b =>
                 {
                     b.Property<int>("AppointmentId");
 
-                    b.Property<int>("ParticipantId");
+                    b.Property<int>("AttendeeId");
 
-                    b.HasKey("AppointmentId", "ParticipantId");
+                    b.HasKey("AppointmentId", "AttendeeId");
 
-                    b.HasIndex("ParticipantId");
+                    b.HasIndex("AttendeeId");
 
-                    b.ToTable("AppointmentParticipant");
+                    b.ToTable("AppointmentAttendee");
                 });
 
-            modelBuilder.Entity("Agenda.Objects.Participant", b =>
+            modelBuilder.Entity("Agenda.Objects.Attendee", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -110,19 +110,19 @@ namespace Agenda.DataStores.Migrations
                     b.HasIndex("UUID")
                         .IsUnique();
 
-                    b.ToTable("Participant");
+                    b.ToTable("Attendee");
                 });
 
-            modelBuilder.Entity("Agenda.Objects.AppointmentParticipant", b =>
+            modelBuilder.Entity("Agenda.Objects.AppointmentAttendee", b =>
                 {
                     b.HasOne("Agenda.Objects.Appointment", "Appointment")
-                        .WithMany("Participants")
+                        .WithMany("Attendees")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Agenda.Objects.Participant", "Participant")
+                    b.HasOne("Agenda.Objects.Attendee", "Attendee")
                         .WithMany("Appointments")
-                        .HasForeignKey("ParticipantId")
+                        .HasForeignKey("AttendeeId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

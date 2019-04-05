@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Bogus" Version="23.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Consul" Version="0.7.2.4" />
     <PackageReference Include="FakeItEasy" Version="4.8.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Moq" Version="4.10.1" />
@@ -25,10 +24,7 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="5.6.0" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-
   </ItemGroup>
-
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\MedEasy.Core\MedEasy.Core.csproj" />
   </ItemGroup>

@@ -55,15 +55,15 @@ namespace Agenda.Objects
         }
 
         /// <summary>
-        /// Remove a participant
+        /// Removes the <see cref="Attendee"/> with the specified <see cref="Attendee.UUID"/>
         /// </summary>
-        /// <param name="attendeeId"></param>
+        /// <param name="attendeeId">ID of the attendee to remove</param>
         public void RemoveAttendee(Guid attendeeId)
         {
-            Option<AppointmentAttendee> optionalParticipant = _attendees.SingleOrDefault(x => x.Attendee.UUID == attendeeId)
+            Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.UUID == attendeeId)
                 .SomeNotNull();
 
-            optionalParticipant.MatchSome((participant) => _attendees.Remove(participant));
+            optionalAttendeee.MatchSome((participant) => _attendees.Remove(participant));
         }
     }
 }

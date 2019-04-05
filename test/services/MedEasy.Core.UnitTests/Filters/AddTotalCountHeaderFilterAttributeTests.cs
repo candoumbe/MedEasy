@@ -44,8 +44,6 @@ namespace MedEasy.Core.UnitTests.Filters
         {
             get
             {
-
-
                 foreach (string method in new[] { "GET", "HEAD", "OPTIONS" })
                 {
                     yield return new object[]

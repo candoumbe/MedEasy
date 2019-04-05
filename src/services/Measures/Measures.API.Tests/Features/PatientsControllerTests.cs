@@ -383,8 +383,6 @@ namespace Measures.API.Tests.Features.Patients
                                 $"&page=1" +
                                 $"&pageSize=30" +
                                 $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)))
-
-
                     };
                 }
                 {

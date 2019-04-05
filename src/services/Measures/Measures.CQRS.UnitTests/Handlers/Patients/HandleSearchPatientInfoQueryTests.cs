@@ -90,7 +90,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                         && x.Size == 3))
                 };
 
-
                 {
                     Guid patientId = Guid.NewGuid();
                     yield return new object[]
@@ -100,7 +99,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                             new Patient {Id = 1, Firstname = "bruce", Lastname = "wayne" },
                             new Patient {Id = 2, Firstname = "dick", Lastname = "grayson" },
                             new Patient {Id = 3, Firstname = "damian", Lastname = "wayne", UUID = patientId },
-
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
