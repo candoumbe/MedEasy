@@ -99,7 +99,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             && app.EndDate == data.EndDate
                             && app.Subject == data.Subject
                             && app.Location == data.Location
-                            && app.Participants.Count() == data.Attendees.Count()
+                            && app.Attendees.Count() == data.Attendees.Count()
                         ))
                     };
                 }

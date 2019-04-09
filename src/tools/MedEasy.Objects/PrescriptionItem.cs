@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace MedEasy.Objects
 {
     public class PrescriptionItem : AuditableEntity<int, PrescriptionItem>
@@ -27,5 +29,10 @@ namespace MedEasy.Objects
         /// Additional note
         /// </summary>
         public string Notes { get; set; }
+
+        public PrescriptionItem(Guid uuid) : base(uuid)
+        {
+
+        }
     }
 }

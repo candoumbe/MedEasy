@@ -11,46 +11,51 @@ namespace Agenda.Objects
     /// </summary>
     public class Appointment : AuditableEntity<int, Appointment>
     {
-        private readonly IList<AppointmentAttendee> _attendees;
+        private readonly HashSet<AppointmentAttendee> _attendees;
 
         /// <summary>
         /// Location of the appointment
         /// </summary>
-        public string Location { get; set; }
+        public string Location { get; }
 
         /// <summary>
         /// Subject of the <see cref="Appointment"/>
         /// </summary>
-        public string Subject { get; set; }
+        public string Subject { get; private set; }
 
         /// <summary>
         /// Start date of the appointment
         /// </summary>
-        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset StartDate { get; private set; }
 
         /// <summary>
         /// End date of the <see cref="Appointment"/>
         /// </summary>
-        public DateTimeOffset EndDate { get; set; }
+        public DateTimeOffset EndDate { get; private set; }
 
         /// <summary>
         /// Participants of the <see cref="Appointment"/>
         /// </summary>
         public IEnumerable<AppointmentAttendee> Attendees => _attendees;
 
-        public Appointment() => _attendees = new List<AppointmentAttendee>();
+        public AppointmentStatus Status { get; }
+
+        
+        public Appointment(Guid uuid, string subject, string location, DateTimeOffset startDate, DateTimeOffset endDate) : base(uuid)
+        {
+            Subject = subject;
+            Location = location ?? string.Empty;
+            StartDate = startDate;
+            EndDate = endDate;
+            _attendees = new HashSet<AppointmentAttendee>();
+        }
 
         /// <summary>
         /// Adds an attendee to the current <see cref=""/>
         /// </summary>
         /// <param name="attendee">The participant to add</param>
-        /// <returns><c>true</c> if <see cref="participant"/> was successfully added and <c>false</c> otherwise</returns>
         public void AddAttendee(Attendee attendee)
         {
-            if (attendee.UUID == default)
-            {
-                attendee.UUID = Guid.NewGuid();
-            }
             _attendees.Add(new AppointmentAttendee { Attendee = attendee , Appointment = this});
         }
 
@@ -63,7 +68,25 @@ namespace Agenda.Objects
             Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.UUID == attendeeId)
                 .SomeNotNull();
 
-            optionalAttendeee.MatchSome((participant) => _attendees.Remove(participant));
+            optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
+        }
+
+        /// <summary>
+        /// Update the <see cref="Subject"/> of the <see cref="Appointment"/>
+        /// </summary>
+        /// <param name="newSubject">The new subject</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="newSubject"/> is <c>null</c></exception>
+        public void ChangeSubjectTo(string newSubject) => Subject = newSubject ?? throw new ArgumentNullException(nameof(newSubject));
+
+        /// <summary>
+        /// Changes the <see cref="StartDate"/> and <see cref="EndDate"/> of the <see cref="Appointment"/>
+        /// </summary>
+        /// <param name="newStartDate"></param>
+        /// <param name="newEndDate"></param>
+        public void Reschedule(DateTimeOffset newStartDate, DateTimeOffset newEndDate)
+        {
+            StartDate = newStartDate;
+            EndDate = newEndDate;
         }
     }
 }

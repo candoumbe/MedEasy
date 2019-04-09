@@ -40,6 +40,6 @@ namespace Agenda.Models.v1.Appointments
         /// Participants
         /// </summary>
         [DataMember]
-        public IEnumerable<AttendeeModel> Participants { get; set; }
+        public IEnumerable<AttendeeModel> Attendees { get; set; }
     }
 }

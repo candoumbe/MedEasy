@@ -93,18 +93,19 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     (2, 10),
                     ((Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
-                        && page.Entries != null && page.Entries.Count() == 0
+                        && page.Entries != null && !page.Entries.Any()
                     )),
                     "DataStore is empty"
                 };
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .RuleFor(x => x.Id, () => 0)
-                        .RuleFor(x => x.StartDate, 10.April(2000))
-                        .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(10.Hours()))
-                        .RuleFor(x => x.Location, faker=> faker.Address.City())
-                        .RuleFor(x => x.Subject, faker=> faker.Lorem.Sentence(wordCount : 5))
-                        ;
+                        .CustomInstantiator(faker => new Appointment(
+                            uuid: Guid.NewGuid(),
+                            subject: faker.Lorem.Sentence(),
+                            location: faker.Address.City(),
+                            startDate: 10.April(2000).At(13.Hours()),
+                            endDate: 10.April(2000).At(14.Hours())));
+
 
                     IEnumerable<Appointment> items = appointmentFaker.Generate(50);
                     yield return new object[]

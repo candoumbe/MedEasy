@@ -146,11 +146,7 @@ namespace Agenda.API.UnitTests
                 }
 
                 Faker<Attendee> attendeeFaker = new Faker<Attendee>()
-                    .CustomInstantiator(faker => new Attendee(faker.Person.FullName))
-                    .RuleFor(attendee => attendee.Id, 0)
-                    .RuleFor(attendee => attendee.UUID, () => Guid.NewGuid())
-                    .RuleFor(attendee => attendee.Email, faker => faker.Internet.Email())
-                    .RuleFor(attendee => attendee.PhoneNumber, faker => faker.Person.Phone);
+                    .CustomInstantiator(faker => new Attendee(Guid.NewGuid(), faker.Person.FullName));
 
                 IEnumerable<Attendee> items = attendeeFaker.Generate(20);
 
@@ -326,7 +322,7 @@ namespace Agenda.API.UnitTests
                 .RuleFor(x => x.StartDate, () => 13.January(2010).Add(14.Hours()))
                 .RuleFor(x => x.EndDate, (_, current) => current.StartDate.Add(1.Hours()))
                 .RuleFor(x => x.CreatedDate, (faker) => faker.Date.Recent())
-                .RuleFor(x => x.Participants, _ => new[] {
+                .RuleFor(x => x.Attendees, _ => new[] {
                     new AttendeeInfo {Name = "Hugo strange", Id = attendeeId },
                     new AttendeeInfo {Name = "Joker", Id = Guid.NewGuid()}
                 })
@@ -375,7 +371,7 @@ namespace Agenda.API.UnitTests
 
                     yield return new object[]
                     {
-                        Page<AttendeeInfo>.Empty,
+                        Page<AttendeeInfo>.Empty(30),
                         searchInfo,
                         pagingOptions,
                         0,
@@ -543,7 +539,7 @@ namespace Agenda.API.UnitTests
                 (int defaultPageSize, int maxPageSize) pagingOptions = (defaultPageSize: 10, maxPageSize: 300);
                 yield return new object[]
                 {
-                    Page<AttendeeInfo>.Empty,
+                    Page<AttendeeInfo>.Empty(pagingOptions.defaultPageSize),
                     pagingOptions,
                     new SearchAttendeeModel { Page = 2, Name = "Bruce*" },
                     (Expression<Func<PageLinks, bool>>)(pageLinks => pageLinks.First != null

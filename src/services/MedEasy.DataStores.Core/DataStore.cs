@@ -61,13 +61,16 @@ namespace MedEasy.DataStores.Core.Relational
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
                 {
-                    modelBuilder.Entity(entity.Name).Property(typeof(Guid), nameof(IEntity<int>.UUID))
-                        .ValueGeneratedOnAdd();
                     modelBuilder.Entity(entity.Name)
-                        .HasIndex(nameof(IEntity<int>.UUID))
+                        .Property(typeof(Guid), "_uuid");
+                    modelBuilder.Entity(entity.Name)
+                        .HasIndex("_uuid")
                         .IsUnique();
 
-                    modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
+                    modelBuilder.Entity(entity.Name)
+                        .HasKey("_id");
+                    modelBuilder.Entity(entity.Name)
+                        .Property(typeof(int), "_id")
                        .ValueGeneratedOnAdd();
                 }
             }

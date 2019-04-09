@@ -11,5 +11,7 @@ namespace MedEasy.Objects
         public DateTimeOffset UpdatedDate { get; set; }
 
         public string UpdatedBy { get; set; }
+
+        protected AuditableEntity(Guid uuid) : base(uuid) {}
     }
 }

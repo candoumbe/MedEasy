@@ -29,11 +29,11 @@ namespace MedEasy.Core.Filters
         {
             string method = context.HttpContext.Request.Method;
 
-            (int total, int count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
-            (int total, int count) ComputeCountsFromEnumerable(in IEnumerable collection)
+            (long total, long count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
+            (long total, long count) ComputeCountsFromEnumerable(in IEnumerable collection)
             {
                 IEnumerator enumerator = collection.GetEnumerator();
-                int count = 0;
+                long count = 0;
                 while (enumerator.MoveNext())
                 {
                     count++;
@@ -44,8 +44,8 @@ namespace MedEasy.Core.Filters
 
             if (IsGet(method) || IsHead(method) || IsOptions(method))
             {
-                int? count = null;
-                int? totalCount = null;
+                long? count = null;
+                long? totalCount = null;
                 switch (context.Result)
                 {
                     case ObjectResult okObjectResult:
@@ -54,7 +54,7 @@ namespace MedEasy.Core.Filters
                         {
                             case IGenericPagedGetResponse genericPagedGetResponse:
                                 {
-                                    (int total, int count) counts = ComputeCountsFromPage(genericPagedGetResponse);
+                                    (long total, long count) counts = ComputeCountsFromPage(genericPagedGetResponse);
                                     count = counts.count;
                                     totalCount = counts.total;
                                 }
@@ -62,7 +62,7 @@ namespace MedEasy.Core.Filters
 
                             case IEnumerable collection:
                                 {
-                                    (int total, int count) counts = ComputeCountsFromEnumerable(collection);
+                                    (long total, long count) counts = ComputeCountsFromEnumerable(collection);
                                     count = counts.count;
                                     totalCount = counts.total;
                                 }
@@ -71,7 +71,7 @@ namespace MedEasy.Core.Filters
                         break;
                     case IGenericPagedGetResponse genericPagedGetResponse:
                         {
-                            (int total, int count) counts = ComputeCountsFromPage(genericPagedGetResponse);
+                            (long total, long count) counts = ComputeCountsFromPage(genericPagedGetResponse);
                             count = counts.count;
                             totalCount = counts.total;
                         }
@@ -79,7 +79,7 @@ namespace MedEasy.Core.Filters
 
                     case IEnumerable collection:
                         {
-                            (int total, int count) counts = ComputeCountsFromEnumerable(collection);
+                            (long total, long count) counts = ComputeCountsFromEnumerable(collection);
                             count = counts.count;
                             totalCount = counts.total;
                         }

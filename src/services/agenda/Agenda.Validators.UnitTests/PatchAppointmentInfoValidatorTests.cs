@@ -111,7 +111,12 @@ namespace Agenda.Validators.UnitTests
                     {
                         new[]
                         {
-                            new Appointment { UUID = appointmentId, StartDate = 12.January(2019).Add(10.Hours()), EndDate = 12.January(2019).Add(10.Hours().Add(30.Minutes())) }
+                            new Appointment(
+                                uuid:  appointmentId,
+                                startDate: 12.January(2019).At(10.Hours()),
+                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
+                                subject: string.Empty,
+                                location: string.Empty)
                         },
                         new PatchInfo<Guid, AppointmentInfo>
                         {
@@ -137,7 +142,12 @@ namespace Agenda.Validators.UnitTests
                     {
                         new[]
                         {
-                            new Appointment { UUID = appointmentId, StartDate = 12.January(2019).Add(10.Hours()), EndDate = 12.January(2019).Add(10.Hours().Add(30.Minutes())) }
+                            new Appointment(
+                                uuid: appointmentId,
+                                startDate : 12.January(2019).At(10.Hours()),
+                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
+                                location: "Somewhere in metropolis",
+                                subject: "unknown")
                         },
                         new PatchInfo<Guid, AppointmentInfo>
                         {
@@ -163,10 +173,12 @@ namespace Agenda.Validators.UnitTests
                         new[]
                         {
                             new Appointment
-                            {
-                                UUID = appointmentId,
-                                StartDate = 12.January(2019).Add(10.Hours()),
-                                EndDate = 12.January(2019).Add(10.Hours().Add(30.Minutes())) }
+                            (
+                                uuid: appointmentId,
+                                startDate: 12.January(2019).Add(10.Hours()),
+                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
+                                subject: string.Empty,
+                                location: string.Empty)
                         },
                         new PatchInfo<Guid, AppointmentInfo>
                         {
@@ -187,7 +199,13 @@ namespace Agenda.Validators.UnitTests
                     {
                         new[]
                         {
-                            new Appointment { UUID = appointmentId, StartDate = 12.January(2019).Add(10.Hours()), EndDate = 12.January(2019).Add(10.Hours().Add(30.Minutes())) }
+                             new Appointment
+                            (
+                                uuid: appointmentId,
+                                startDate: 12.January(2019).Add(10.Hours()),
+                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
+                                subject: string.Empty,
+                                location: string.Empty)
                         },
                         new PatchInfo<Guid, AppointmentInfo>
                         {

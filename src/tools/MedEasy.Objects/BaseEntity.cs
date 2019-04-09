@@ -20,10 +20,7 @@ namespace MedEasy.Objects
         /// true si les objets spécifiés sont égaux ; sinon, false.
         /// </returns>
         /// <param name="x">Premier objet de type <paramref name="T"/> à comparer.</param><param name="y">Deuxième objet de type <paramref name="T"/> à comparer.</param>
-        public virtual bool Equals(T x, T y)
-        {
-            return x == y;
-        }
+        public virtual bool Equals(T x, T y) => x.Equals(y);
 
         /// <summary>
         /// Retourne un code de hachage pour l'objet spécifié.
@@ -32,10 +29,7 @@ namespace MedEasy.Objects
         /// Code de hachage pour l'objet spécifié.
         /// </returns>
         /// <param name="obj"><see cref="T:System.Object"/> pour lequel un code de hachage doit être retourné.</param><exception cref="T:System.ArgumentNullException">Le type de <paramref name="obj"/> est un type référence et <paramref name="obj"/> est null.</exception>
-        public virtual int GetHashCode(T obj)
-        {
-            return obj?.GetHashCode() ?? 0;
-        }
+        public virtual int GetHashCode(T obj) => obj?.GetHashCode() ?? 0;
 
         #endregion
 
@@ -48,10 +42,7 @@ namespace MedEasy.Objects
         /// true si l'objet en cours est égal au paramètre <paramref name="other"/> ; sinon, false.
         /// </returns>
         /// <param name="other">Objet à comparer avec cet objet.</param>
-        public virtual bool Equals(T other)
-        {
-            return Equals(this, other);
-        }
+        public virtual bool Equals(T other) => Equals(this, other);
 
         #endregion
     }

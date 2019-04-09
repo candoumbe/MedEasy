@@ -22,13 +22,18 @@ namespace Agenda.Mapping
         {
             cfg.CreateCoreMapping();
             cfg.CreateMap<NewAppointmentInfo, Appointment>()
-                .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
+                .IgnoreAllPropertiesWithAnInaccessibleSetter()
+                .ConstructUsing((dto) => new Appointment(uuid: Guid.NewGuid(),
+                                                         startDate: dto.StartDate,
+                                                         endDate: dto.EndDate,
+                                                         subject: dto.Subject,
+                                                         location: dto.Location))
                 .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
+                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.Ignore())
-                ;
+                .ForMember(entity => entity.Id, opt => opt.Ignore())
+                .ReverseMap();
 
             cfg.CreateMap<NewAppointmentModel, NewAppointmentInfo>()
                .ReverseMap();
@@ -46,7 +51,7 @@ namespace Agenda.Mapping
 
             cfg.CreateMap<Appointment, AppointmentInfo>()
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
-                .ForMember(dto => dto.Participants, opt => opt.MapFrom(entity => entity.Attendees));
+                .ForMember(dto => dto.Attendees, opt => opt.MapFrom(entity => entity.Attendees));
 
             cfg.CreateMap<AppointmentModel, AppointmentInfo>()
                 .ReverseMap();
@@ -55,10 +60,12 @@ namespace Agenda.Mapping
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
                 .ReverseMap()
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
+                .ConstructUsing(dto => new Attendee(dto.Id, dto.Name, dto.Email, dto.PhoneNumber))
                 ;
 
             cfg.CreateMap<AttendeeModel, AttendeeInfo>()
                 .ReverseMap();
+
 
             cfg.CreateMap<SearchAppointmentInfo, SearchAppointmentModel>()
                 .ReverseMap();

@@ -167,7 +167,7 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new AgendaApiOptions { MaxPageSize = 200, DefaultPageSize = 30 });
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Page<AppointmentInfo>.Empty);
+                .Returns((GetPageOfAppointmentInfoQuery request, CancellationToken ct) => Task.FromResult(Page<AppointmentInfo>.Empty(request.Data.PageSize)));
 
 
             // Act
@@ -249,17 +249,18 @@ namespace Agenda.API.UnitTests.Features
             // Arrange
             Guid appointmentId = Guid.NewGuid();
 
-            Appointment appointment = new Appointment
-            {
-                UUID = appointmentId,
-                Location = "Wayne Tower",
-                Subject = "Confidential",
-                StartDate = 12.July(2013).AddHours(14).AddMinutes(30),
-                EndDate = 12.July(2013).AddHours(14).AddMinutes(45)
-            };
+            Appointment appointment = new Appointment(
 
-            appointment.AddAttendee(new Attendee("Bruce Wayne") { UUID = Guid.NewGuid() });
-            appointment.AddAttendee(new Attendee("Dick Grayson") { UUID = Guid.NewGuid() });
+                uuid: appointmentId,
+                location : "Wayne Tower",
+                subject : "Confidential",
+                startDate : 12.July(2013).AddHours(14).AddMinutes(30),
+                endDate : 12.July(2013).AddHours(14).AddMinutes(45)
+
+            );
+
+            appointment.AddAttendee(new Attendee(uuid: Guid.NewGuid(), name:"Bruce Wayne"));
+            appointment.AddAttendee(new Attendee(uuid: Guid.NewGuid(), name:"Dick Grayson"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -306,7 +307,7 @@ namespace Agenda.API.UnitTests.Features
                 .Be(appointment.StartDate);
             resource.EndDate.Should()
                 .Be(appointment.EndDate);
-            resource.Participants.Should()
+            resource.Attendees.Should()
                 .HaveCount(appointment.Attendees.Count());
 
             IEnumerable<Link> links = browsableResource.Links;
@@ -361,24 +362,22 @@ namespace Agenda.API.UnitTests.Features
                 }
 
                 Faker<Attendee> participantFaker = new Faker<Attendee>()
-                    .CustomInstantiator(faker => new Attendee(faker.Person.FullName))
-                    .RuleFor(participant => participant.Id, 0)
-                    .RuleFor(participant => participant.UUID, () => Guid.NewGuid())
-                    .RuleFor(participant => participant.Email, faker => faker.Internet.Email())
-                    .RuleFor(participant => participant.PhoneNumber, faker => faker.Person.Phone);
+                    .CustomInstantiator(faker => new Attendee(Guid.NewGuid(), faker.Person.FullName));
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .RuleFor(appointment => appointment.Id, 0)
-                        .RuleFor(appointment => appointment.UUID, () => Guid.NewGuid())
-                        .RuleFor(appointment => appointment.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
-                        .RuleFor(appointment => appointment.Location, faker => faker.Address.City())
-                        .RuleFor(appointment => appointment.StartDate, 10.January(2016).Add(10.Hours()))
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
+                        .CustomInstantiator((faker) => new Appointment(
+                            uuid: Guid.NewGuid(),
+                            startDate: 10.January (2016).At(10.Hours()),
+                            endDate: 10.January(2016).At(10.Hours().And(30.Minutes())),
+                            subject: string.Empty,
+                            location: string.Empty
+                            ))
                         .FinishWith((faker, appointment) =>
                         {
-                            IEnumerable<Attendee> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
-                            foreach (Attendee item in participants)
+                            IEnumerable<Attendee> attendees = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
+                            foreach (Attendee item in attendees)
                             {
                                 appointment.AddAttendee(item);
                             }
@@ -433,12 +432,12 @@ namespace Agenda.API.UnitTests.Features
                 }
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .RuleFor(appointment => appointment.Id, 0)
-                        .RuleFor(appointment => appointment.UUID, () => Guid.NewGuid())
-                        .RuleFor(appointment => appointment.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
-                        .RuleFor(appointment => appointment.Location, faker => faker.Address.City())
-                        .RuleFor(appointment => appointment.StartDate, 10.January(2016).Add(10.Hours()))
-                        .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
+                        .CustomInstantiator((faker) => new Appointment(
+                            uuid: Guid.NewGuid(),
+                            subject: faker.Lorem.Sentence(wordCount: 5),
+                            location: faker.Address.City(),
+                            startDate : 10.January(2016).At(10.Hours()),
+                            endDate : 10.January(2016).At(11.Hours())))
                         .FinishWith((faker, appointment) =>
                         {
                             IEnumerable<Attendee> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
@@ -563,7 +562,7 @@ namespace Agenda.API.UnitTests.Features
             {
                 yield return new object[]
                 {
-                    Page<AppointmentInfo>.Empty,
+                    Page<AppointmentInfo>.Empty(10),
                     new SearchAppointmentModel { Page = 1, PageSize = 10},
                     (defaultPageSize : 20, maxPageSize : 50),
                     (
@@ -793,7 +792,7 @@ namespace Agenda.API.UnitTests.Features
                 .Be(newAppointment.Subject);
             resource.Location.Should()
                 .Be(newAppointment.Location);
-            IEnumerable<AttendeeInfo> participants = resource.Participants;
+            IEnumerable<AttendeeInfo> participants = resource.Attendees;
             participants.Should()
                 .HaveSameCount(newAppointment.Attendees).And
                 .OnlyContain(item => item.Id != default).And

@@ -1,4 +1,6 @@
-﻿namespace MedEasy.Objects
+﻿using System;
+
+namespace MedEasy.Objects
 {
     /// <summary>
     /// An instance of this type defines a category of prescriptions' item
@@ -6,5 +8,10 @@
     public class PrescriptionItemCategory: AuditableEntity<int, PrescriptionItemCategory>
     {
         public string Code { get; set; }
+
+        public PrescriptionItemCategory(Guid uuid): base(uuid)
+        {
+
+        }
     }
 }

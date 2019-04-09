@@ -81,14 +81,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             // Arrange
             Guid appointmentId = Guid.NewGuid();
             Appointment appointment = new Appointment
-            {
-                UUID = appointmentId,
-                Location = "Wayne Tower",
-                Subject = "Contengency",
-                StartDate = 1.April(2018).AddHours(15),
-                EndDate = 1.April(2018).AddHours(16)
-            };
-            appointment.AddAttendee(new Attendee("Bruce Wayne"));
+            (
+                uuid: appointmentId,
+                location : "Wayne Tower",
+                subject :"Contengency",
+                startDate : 1.April(2018).AddHours(15),
+                endDate : 1.April(2018).AddHours(16)
+            );
+            Attendee bruce = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
+            appointment.AddAttendee(bruce);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -113,15 +114,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 appointmentInfo.Subject.Should().Be(appointment.Subject);
                 appointmentInfo.StartDate.Should().Be(appointment.StartDate);
                 appointmentInfo.EndDate.Should().Be(appointment.EndDate);
-                appointmentInfo.Participants.Should()
+                appointmentInfo.Attendees.Should()
                     .HaveSameCount(appointment.Attendees);
 
-                AttendeeInfo participantInfo = appointmentInfo.Participants.ElementAt(0);
-                participantInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Attendee.Name);
-                participantInfo.UpdatedDate.Should()
+                AttendeeInfo attendeeInfo = appointmentInfo.Attendees.ElementAt(0);
+                attendeeInfo.Id.Should().Be(bruce.UUID);
+                attendeeInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Attendee.Name);
+                attendeeInfo.UpdatedDate.Should()
                     .NotBe(DateTimeOffset.MinValue).And
                     .NotBe(DateTimeOffset.MaxValue);
-
             });
         }
     }

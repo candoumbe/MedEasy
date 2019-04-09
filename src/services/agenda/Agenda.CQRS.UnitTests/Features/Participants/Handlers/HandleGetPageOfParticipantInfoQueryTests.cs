@@ -93,13 +93,10 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     "DataStore is empty"
                 };
                 {
-                    Faker<Attendee> appointmentFaker = new Faker<Attendee>()
-                        .RuleFor(x => x.Id, () => 0)
-                        .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                        .RuleFor(x => x.Name, (faker) => faker.Person.FullName)
-                        ;
+                    Faker<Attendee> attendeeFaker = new Faker<Attendee>()
+                        .CustomInstantiator((faker) => new Attendee(Guid.NewGuid(), faker.Person.FullName));
 
-                    IEnumerable<Attendee> items = appointmentFaker.Generate(50);
+                    IEnumerable<Attendee> items = attendeeFaker.Generate(50);
                     yield return new object[]
                     {
                         items,

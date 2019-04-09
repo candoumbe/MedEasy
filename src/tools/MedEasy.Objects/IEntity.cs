@@ -11,13 +11,13 @@ namespace MedEasy.Objects
         /// <summary>
         /// Identifier of the entity.
         /// </summary>
-        TKey Id { get; set; }
+        TKey Id { get; }
 
         /// <summary>
         /// Unique identifier associated with the entity
         /// </summary>
         /// <remarks>
         /// </remarks>
-        Guid UUID { get; set; }
+        Guid UUID { get; }
     }
 }

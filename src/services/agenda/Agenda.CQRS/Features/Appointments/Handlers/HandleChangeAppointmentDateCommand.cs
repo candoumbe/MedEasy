@@ -81,8 +81,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                         {
                             result = Failed_Conflict;
                         } else {
-                            appointment.StartDate = request.Data.start;
-                            appointment.EndDate = request.Data.end;
+                            appointment.Reschedule(request.Data.start, request.Data.end);
 
                             await uow.SaveChangesAsync(cancellationToken)
                                 .ConfigureAwait(false);

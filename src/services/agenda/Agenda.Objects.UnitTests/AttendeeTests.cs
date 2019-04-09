@@ -1,7 +1,8 @@
+using FluentAssertions;
 using System;
 using Xunit;
 using Xunit.Categories;
-using FluentAssertions;
+
 namespace Agenda.Objects.UnitTests
 {
     [Feature("Agenda")]
@@ -9,47 +10,67 @@ namespace Agenda.Objects.UnitTests
     public class AttendeeTests
     {
         [Fact]
-        public void GivenNullParameter_Ctor_Throws_ArgumentNullException()
+        public void ChangingAttendee_Name_ToNull_Throws_ArgumentNullException()
         {
+            // Arrange
+            Attendee attendee = new Attendee(Guid.NewGuid(), "Bruce");
+
             // Act
-            Action action = () => new Attendee(null);
+            Action action = () => attendee.ChangeNameTo(null);
 
             // Assert
             action.Should()
-                .Throw<ArgumentNullException>();
+                .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be changed to null");
         }
 
         [Fact]
-        public void GivenNullParameter_NameSetter_Throws_ArgumentNullException()
+        public void CreatingAttendee_With_Null_Name_Throws_ArgumentNullException()
         {
-            // Arrange
-            Attendee participant = new Attendee("Bruce");
-
             // Act
-            Action action = () => participant.Name = null;
+            Action action = () => new Attendee(Guid.NewGuid(),  null);
 
             // Assert
             action.Should()
-                .Throw<ArgumentNullException>();
+                .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be null");
         }
 
+        [Fact]
+        public void CreatingAttendee_With_Empty_UUID_Throws_ArgumentException()
+        {
+            // Arrange
+            Guid uuid = Guid.Empty;
+
+            // Act
+            Action action = () => new Attendee(uuid, "Bruce Wayne");
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentException>($"Cannot create an {nameof(Attendee)} instance with empty {nameof(Attendee.UUID)}");
+
+        }
 
         [Theory]
         [InlineData("bruce Wayne", "Bruce Wayne")]
+        [InlineData("Cyrille-alexandre", "Cyrille-Alexandre")]
         public void Ctor_Builds_ValidObject(string name, string expectedName)
         {
+            // Arrange
+            Guid uuid = Guid.NewGuid();
+
             // Act
-            Attendee participant = new Attendee(name);
+            Attendee attendee = new Attendee(uuid, name);
 
             // Assert
-            participant.Name.Should()
+            attendee.UUID.Should()
+                .Be(uuid);
+            attendee.Name.Should()
                 .Be(expectedName);
-            participant.PhoneNumber.Should()
+            attendee.PhoneNumber.Should()
                 .BeNull();
-            participant.Email.Should()
+            attendee.Email.Should()
                 .BeNull();
 
-            participant.Appointments.Should()
+            attendee.Appointments.Should()
                 .BeEmpty();
         }
     }

@@ -34,38 +34,38 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         public async Task<Page<AppointmentInfo>> Handle(SearchAppointmentInfoQuery request, CancellationToken ct)
         {
             IList<IFilter> filters = new List<IFilter>();
-            SearchAppointmentInfo criteria = request.Data;
-            if (criteria.From.HasValue)
+            SearchAppointmentInfo searchCriteria = request.Data;
+            if (searchCriteria.From.HasValue)
             {
                 filters.Add(new CompositeFilter
                 {
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(Appointment.StartDate), @operator: GreaterThanOrEqual, value : criteria.From.Value),
-                        new Filter(field: nameof(Appointment.EndDate), @operator: GreaterThanOrEqual, value : criteria.From.Value)
+                        new Filter(field: nameof(Appointment.StartDate), @operator: GreaterThanOrEqual, value : searchCriteria.From.Value),
+                        new Filter(field: nameof(Appointment.EndDate), @operator: GreaterThanOrEqual, value : searchCriteria.From.Value)
                     }
                 });
             }
 
-            if (criteria.To.HasValue)
+            if (searchCriteria.To.HasValue)
             {
                 filters.Add(new CompositeFilter
                 {
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(Appointment.StartDate), @operator: LessThanOrEqualTo, value : criteria.To.Value),
-                        new Filter(field: nameof(Appointment.EndDate), @operator: LessThanOrEqualTo, value : criteria.To.Value)
+                        new Filter(field: nameof(Appointment.StartDate), @operator: LessThanOrEqualTo, value : searchCriteria.To.Value),
+                        new Filter(field: nameof(Appointment.EndDate), @operator: LessThanOrEqualTo, value : searchCriteria.To.Value)
                     }
                 });
             }
 
             SearchQueryInfo<AppointmentInfo> searchQueryInfo = new SearchQueryInfo<AppointmentInfo>
             {
-                Page = criteria.Page,
-                PageSize = criteria.PageSize,
-                Sort = criteria.Sort?.ToSort<AppointmentInfo>() ?? new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate))
+                Page = searchCriteria.Page,
+                PageSize = searchCriteria.PageSize,
+                Sort = searchCriteria.Sort?.ToSort<AppointmentInfo>() ?? new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate))
             };
             if (filters.Count > 0)
             {

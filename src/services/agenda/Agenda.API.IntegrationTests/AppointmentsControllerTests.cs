@@ -65,7 +65,7 @@ namespace Agenda.API.IntegrationTests
                 [nameof(AppointmentModel.StartDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
                 [nameof(AppointmentModel.EndDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
                 [nameof(AppointmentModel.UpdatedDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String, },
-                [nameof(AppointmentModel.Participants).ToCamelCase()] = new JSchema { Type = JSchemaType.Array,  MinimumItems = 1}
+                [nameof(AppointmentModel.Attendees).ToCamelCase()] = new JSchema { Type = JSchemaType.Array,  MinimumItems = 1}
             },
             Required =
             {
@@ -74,7 +74,7 @@ namespace Agenda.API.IntegrationTests
                 nameof(AppointmentModel.Location).ToCamelCase(),
                 nameof(AppointmentModel.StartDate).ToCamelCase(),
                 nameof(AppointmentModel.EndDate).ToCamelCase(),
-                nameof(AppointmentModel.Participants).ToCamelCase(),
+                nameof(AppointmentModel.Attendees).ToCamelCase(),
             }
         };
 
@@ -313,6 +313,7 @@ namespace Agenda.API.IntegrationTests
             // Arrange
 
             Faker<AttendeeModel> participantFaker = new Faker<AttendeeModel>()
+                .RuleFor(x => x.Id, () => Guid.NewGuid())
                 .RuleFor(x => x.Name, faker => faker.Name.FullName())
                 .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent());
 
@@ -408,7 +409,7 @@ namespace Agenda.API.IntegrationTests
                 _outputHelper.WriteLine($"Resource created : {browsableAppointmentModel.Stringify()}");
 
                 AppointmentModel resource = browsableAppointmentModel.Resource;
-                IEnumerable<AttendeeModel> attendees = resource.Participants;
+                IEnumerable<AttendeeModel> attendees = resource.Attendees;
                 int participantCountBeforeDelete = attendees.Count();
 
                 AttendeeModel attendeeToDelete = new Faker().PickRandom(attendees);

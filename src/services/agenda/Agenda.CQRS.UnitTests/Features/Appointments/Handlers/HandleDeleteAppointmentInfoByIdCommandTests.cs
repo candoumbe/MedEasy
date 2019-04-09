@@ -65,19 +65,19 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             // Arrange
             Guid appointmentUuid = Guid.NewGuid();
-            Appointment appointment = new Appointment
-            {
-                UUID = appointmentUuid,
-                StartDate = 16.July(2016).Add(15.Hours().Add(30.Minutes())),
-                EndDate = 16.July(2016).Add(15.Hours().Add(45.Minutes())),
-                Subject = "Confidential",
-                Location = "Wayne Tower"
-            };
+            Appointment appointment = new Appointment(
+                uuid: appointmentUuid,
+                startDate : 16.July(2016).At(15.Hours().And(30.Minutes())),
+                endDate : 16.July(2016).At(15.Hours().And(45.Minutes())),
+                subject : "Confidential",
+                location : "Wayne Tower"
+            );
 
             Guid firstParticipantId = Guid.NewGuid();
             Guid secondParticipantId = Guid.NewGuid();
-            appointment.AddAttendee(new Attendee ("Dick Grayson"){ UUID = firstParticipantId });
-            appointment.AddAttendee(new Attendee ("Bruce Wayne") { UUID = secondParticipantId });
+
+            appointment.AddAttendee(new Attendee(uuid: firstParticipantId, name: "Dick Grayson"));
+            appointment.AddAttendee(new Attendee(uuid:secondParticipantId, name: "Bruce Wayne"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

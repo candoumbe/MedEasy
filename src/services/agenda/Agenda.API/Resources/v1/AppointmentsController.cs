@@ -71,7 +71,7 @@ namespace Agenda.API.Resources.v1
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(info), ct)
                 .ConfigureAwait(false);
 
-            IEnumerable<AttendeeInfo> participants = newResource.Participants;
+            IEnumerable<AttendeeInfo> participants = newResource.Attendees;
             IEnumerable<Link> links = new List<Link>(1 + participants.Count())
             {
                 new Link {Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}

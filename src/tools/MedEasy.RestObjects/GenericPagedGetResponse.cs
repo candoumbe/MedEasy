@@ -29,7 +29,7 @@ namespace MedEasy.RestObjects
         /// <param name="next"><see cref="Link"/> to the next page of response</param>
         /// <param name="last"><see cref="Link"/> to the last page of response</param>
         /// <param name="total">Total count of items</param>
-        public GenericPagedGetResponse(IEnumerable<T> items, string first = null, string previous = null, string next = null, string last = null, int total = 0)
+        public GenericPagedGetResponse(in IEnumerable<T> items, in string first = null, in string previous = null, in string next = null, string last = null, in long total = 0)
         {
             Items = items;
             Links = new PageLinks(first, previous, next, last);
@@ -47,12 +47,12 @@ namespace MedEasy.RestObjects
         /// Number of items in the the result
         /// </summary>
         [JsonProperty]
-        public int Total { get; }
+        public long Total { get; }
 
-        private int? _count;
+        private long? _count;
 
         [JsonProperty]
-        public int Count
+        public long Count
         {
             get
             {
@@ -65,6 +65,6 @@ namespace MedEasy.RestObjects
             }
         }
 
-        public override string ToString() => SerializeObject(this, Formatting.Indented);
+        public override string ToString() => this.Stringify();
     }
 }

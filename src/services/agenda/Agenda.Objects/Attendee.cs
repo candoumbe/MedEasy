@@ -3,6 +3,7 @@ using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Agenda.Objects
 {
@@ -19,18 +20,18 @@ namespace Agenda.Objects
         public string Name
         {
             get => _name;
-            set => _name = value?.ToTitleCase() ?? throw new ArgumentNullException(nameof(value));
+            private set => _name = value?.ToTitleCase() ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>
         /// Phone number of the participant
         /// </summary>
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; private set; }
 
         /// <summary>
         /// Email of the participant
         /// </summary>
-        public string Email { get; set; }
+        public string Email { get; private set; }
 
         private readonly IList<AppointmentAttendee> _appointments;
 
@@ -40,10 +41,28 @@ namespace Agenda.Objects
         /// Builds a new <see cref="Attendee"/> instance
         /// </summary>
         /// <param name="name">Name of the participant</param>
-        public Attendee(string name)
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c></exception>
+        /// <exception cref="ArgumentException"><paramref name="uuid"/> is <c>Guid.Empty</c></exception>
+        public Attendee(Guid uuid, string name, string email = null, string phoneNumber = null) : base(uuid)
         {
-            _appointments = new List<AppointmentAttendee>();
             Name = name;
+            Email = email;
+            PhoneNumber = phoneNumber;
+            _appointments = new List<AppointmentAttendee>();
         }
+
+        /// <summary>
+        /// Changes attendee's name
+        /// </summary>
+        /// <param name="newName"></param>
+        /// <exception cref="ArgumentNullException">if <paramref name="newName"/> is <c>null</c></exception>
+        public void ChangeNameTo(string newName) => Name = newName;
+
+
+        /// <summary>
+        /// Changes <see cref="Attendee"/>'s <see cref="Email"/>
+        /// </summary>
+        /// <param name="newEmail">new email</param>
+        public void ChangeEmail(string newEmail) => Email = newEmail;
     }
 }

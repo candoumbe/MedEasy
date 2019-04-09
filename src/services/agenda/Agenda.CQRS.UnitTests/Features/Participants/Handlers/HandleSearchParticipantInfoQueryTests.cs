@@ -81,17 +81,23 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             get
             {
-                yield return new object[]
                 {
-                    Enumerable.Empty<Attendee>(),
-                    new SearchAttendeeInfo
+                    SearchAttendeeInfo searchAttendeeInfo = new SearchAttendeeInfo
                     {
                         Page = 1,
                         Name = "*Bat*",
-                        Sort= "+name"
-                    },
-                    (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page == Page<AttendeeInfo>.Empty)
-                };
+                        Sort = "+name"
+                    };
+                    yield return new object[]
+                    {
+                        Enumerable.Empty<Attendee>(),
+                        searchAttendeeInfo,
+                        (Expression<Func<Page<AttendeeInfo>, bool>>)(page => !page.Entries.Any()
+                            && page.Count == 1
+                            && page.Total == 0
+                            && page.Size == searchAttendeeInfo.PageSize)
+                    };
+                }
             }
         }
 

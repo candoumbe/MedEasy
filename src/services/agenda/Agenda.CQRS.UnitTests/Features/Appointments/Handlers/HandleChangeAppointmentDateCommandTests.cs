@@ -138,15 +138,16 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 };
                 {
                     Appointment appointment = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours()),
-                        EndDate = 25.April(2012).Add(14.Hours().Add(15.Minutes())),
-                        Subject = "JLA relocation"
-                    };
+                    (
+                        uuid: Guid.NewGuid(),
+                        startDate: 25.April(2012).At(14.Hours()),
+                        endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
+                        subject: "JLA relocation",
+                        location: "None"
+                    );
 
-                    Attendee batman = new Attendee("Bruce Wayne");
-                    Attendee superman = new Attendee("Clark Kent");
+                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name:"Bruce Wayne");
+                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
 
                     appointment.AddAttendee(batman);
                     appointment.AddAttendee(superman);
@@ -162,28 +163,30 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Appointment appointmentRelocation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours()),
-                        EndDate = 25.April(2012).Add(14.Hours().Add(15.Minutes())),
-                        Subject = "JLA relocation"
-                    };
+                    (
+                        uuid: Guid.NewGuid(),
+                        startDate: 25.April(2012).At(14.Hours()),
+                        endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
+                        subject: "JLA relocation",
+                        location: "None"
+                    );
 
-                    Attendee batman = new Attendee("Bruce Wayne");
-                    Attendee superman = new Attendee("Clark Kent");
+                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
+                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
                     Appointment appointmentEmancipation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours().Add(30.Minutes())),
-                        EndDate = 25.April(2012).Add(15.Hours()),
-                        Subject = "I want to leave"
-                    };
+                    (
+                        uuid: Guid.NewGuid(),
+                        startDate: 25.April(2012).At(13.Hours()),
+                        endDate: 25.April(2012).At(14.Hours().And(5.Minutes())),
+                        subject: "I want to leave the JLA",
+                        location: "None"
+                    );
 
-                    Attendee robin = new Attendee("Dick grayson");
+                    Attendee robin = new Attendee(uuid: Guid.NewGuid(), name: "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -199,28 +202,31 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Appointment appointmentRelocation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours()),
-                        EndDate = 25.April(2012).Add(14.Hours().Add(15.Minutes())),
-                        Subject = "JLA relocation"
-                    };
+                    (
+                        uuid: Guid.NewGuid(),
+                        startDate: 25.April(2012).At(14.Hours()),
+                        endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
+                        subject: "JLA relocation",
+                        location: "None"
+                    );
 
-                    Attendee batman = new Attendee("Bruce Wayne");
-                    Attendee superman = new Attendee("Clark Kent");
+                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
+                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
                     Appointment appointmentEmancipation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours().Add(30.Minutes())),
-                        EndDate = 25.April(2012).Add(15.Hours()),
-                        Subject = "I want to leave"
-                    };
-                    
-                    Attendee robin = new Attendee("Dick grayson");
+                    (
+                        uuid: Guid.NewGuid(),
+                        startDate: 25.April(2012).At(13.Hours()),
+                        endDate: 25.April(2012).At(14.Hours().And(5.Minutes())),
+                        subject: "I want to leave the JLA",
+                        location: "None"
+                    );
+
+
+                    Attendee robin = new Attendee(uuid: Guid.NewGuid(), "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -231,43 +237,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         new ChangeAppointmentDateCommand((appointmentEmancipation.UUID, start: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
                         ModifyCommandResult.Failed_Conflict,
                         "The appointment would start whilst another appointment is ongoing"
-                    };
-                }
-
-                {
-                    Appointment appointmentRelocation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours()),
-                        EndDate = 25.April(2012).Add(14.Hours().Add(15.Minutes())),
-                        Subject = "JLA relocation"
-                    };
-
-                    Attendee batman = new Attendee("Bruce Wayne");
-                    Attendee superman = new Attendee("Clark Kent");
-
-                    appointmentRelocation.AddAttendee(batman);
-                    appointmentRelocation.AddAttendee(superman);
-
-                    Appointment appointmentEmancipation = new Appointment
-                    {
-                        UUID = Guid.NewGuid(),
-                        StartDate = 25.April(2012).Add(14.Hours().Add(30.Minutes())),
-                        EndDate = 25.April(2012).Add(15.Hours()),
-                        Subject = "I want to leave"
-                    };
-
-                    Attendee robin = new Attendee("Dick grayson");
-
-                    appointmentEmancipation.AddAttendee(batman);
-                    appointmentEmancipation.AddAttendee(robin);
-
-                    yield return new object[]
-                    {
-                        new []{ appointmentRelocation, appointmentEmancipation },
-                        new ChangeAppointmentDateCommand((appointmentEmancipation.UUID, start: faker.Date.RecentOffset(refDate : appointmentRelocation.StartDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
-                        ModifyCommandResult.Failed_Conflict,
-                        "The appointment would start before and end after another appointment is ongoing"
                     };
                 }
             }
