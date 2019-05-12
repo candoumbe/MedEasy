@@ -1,3 +1,4 @@
+using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using System;
@@ -15,41 +16,70 @@ namespace Identity.Objects.Tests
     [Feature("Accounts")]
     public class AccountTests
     {
+        private Faker<Account> _accountFaker;
+
+        public AccountTests()
+        {
+            _accountFaker = new Faker<Account>()
+                    .CustomInstantiator((faker) => new Account(
+                        uuid: Guid.NewGuid(),
+                        username: faker.Internet.UserName(),
+                        email: faker.Internet.Email(),
+                        passwordHash: faker.Internet.Password(),
+                        locked: faker.PickRandom(new[] { true, false }),
+                        isActive: faker.PickRandom(new[] { true, false }),
+                        salt: faker.Lorem.Word(),
+                        tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                        refreshToken: faker.Lorem.Word()
+                    ));
+        }
+
         public static IEnumerable<object[]> AddOrUpdateClaimCases
         {
             get
             {
+                Faker<Account> accountFaker = new Faker<Account>()
+                    .CustomInstantiator((faker) => new Account(
+                        uuid: Guid.NewGuid(),
+                        username: faker.Internet.UserName(),
+                        email: faker.Internet.Email(),
+                        passwordHash: faker.Internet.Password(),
+                        locked: faker.PickRandom(new[] {true, false}),
+                        isActive: faker.PickRandom(new[] {true, false}),
+                        salt: faker.Lorem.Word(),
+                        tenantId: faker.PickRandom(new[] {Guid.NewGuid(), default}),
+                        refreshToken: faker.Lorem.Word()
+                    ));
                 {
                     DateTimeOffset utcNow = 12.December(2010);
                     yield return new object[]
                     {
-                        new Account(),
+                        accountFaker.Generate(),
                         (type : "create", value : "1",  start : utcNow, end :  (DateTimeOffset?)null),
-                        ((Expression<Func<Account, bool>>)(account => account.Claims.Once()
-                            && account.Claims.Once(userClaim => userClaim.Claim.Type == "create" && userClaim.Value == "1"
-                                && userClaim.Start == 12.December(2010)
-                                && userClaim.End == default
+                        (Expression<Func<Account, bool>>)(account => account.Claims.Once()
+                            && account.Claims.Once(userClaim => userClaim.Key == "create" && userClaim.Value.value == "1"
+                                && userClaim.Value.start == 12.December(2010)
+                                && userClaim.Value.end == default
                             )
-
-                        ))
+                        )
                     };
                 }
 
                 {
                     DateTimeOffset utcNow = 12.December(2010);
-                    Account account = new Account();
+                    Account account = accountFaker.Generate();
+
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     yield return new object[]
                     {
                         account,
                         (type : "create", value : "0",  start : utcNow, end :  (DateTimeOffset?)null),
-                        ((Expression<Func<Account, bool>>)(acc => acc.Claims.Once()
-                            && acc.Claims.Once(userClaim => userClaim.Value == "0"
-                                && userClaim.Start == 12.December(2010)
-                                && userClaim.End == default
+                        (Expression<Func<Account, bool>>)(acc => acc.Claims.Once()
+                            && acc.Claims.Once(userClaim => userClaim.Value.value == "0"
+                                && userClaim.Value.start == 12.December(2010)
+                                && userClaim.Value.end == default
                             )
-
-                        ))
+                        )
                     };
                 }
             }
@@ -71,11 +101,24 @@ namespace Identity.Objects.Tests
         {
             get
             {
+                Faker<Account> accountFaker = new Faker<Account>()
+                    .CustomInstantiator((faker) => new Account(
+                        uuid: Guid.NewGuid(),
+                        username: faker.Internet.UserName(),
+                        email: faker.Internet.Email(),
+                        passwordHash: faker.Internet.Password(),
+                        locked: faker.PickRandom(new[] { true, false }),
+                        isActive: faker.PickRandom(new[] { true, false }),
+                        salt: faker.Lorem.Word(),
+                        tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                        refreshToken: faker.Lorem.Word()
+                    ));
                 {
                     DateTimeOffset utcNow = 12.December(2010);
+
                     yield return new object[]
                     {
-                        new Account(),
+                        accountFaker.Generate(),
                         "create",
                         ((Expression<Func<Account, bool>>)(account => !account.Claims.Any())),
                         "Account has no claim"
@@ -84,7 +127,7 @@ namespace Identity.Objects.Tests
 
                 {
                     DateTimeOffset utcNow = 12.December(2010);
-                    Account account = new Account();
+                    Account account = accountFaker.Generate();
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     yield return new object[]
                     {
@@ -97,16 +140,16 @@ namespace Identity.Objects.Tests
 
                 {
                     DateTimeOffset utcNow = 12.December(2010);
-                    Account account = new Account();
+                    Account account = accountFaker;
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     account.AddOrUpdateClaim(type: "delete", value: "1", start: utcNow);
                     yield return new object[]
                     {
                         account,
                         "create",
-                        ((Expression<Func<Account, bool>>)(acc =>
+                        (Expression<Func<Account, bool>>)(acc =>
                             acc.Claims.Count() == 1
-                            && !acc.Claims.Any(uc => uc.Claim.Type == "create"))),
+                            && !acc.Claims.Any(uc => uc.Key == "create")),
                         "The corresponding claim must no longer exists"
                     };
                 }
@@ -128,8 +171,9 @@ namespace Identity.Objects.Tests
         [Fact]
         public void GivenNullParameter_RemoveClaim_Throws_ArgumentNullException()
         {
+            
             // Arrange
-            Account account = new Account();
+            Account account = _accountFaker.Generate();
             account.AddOrUpdateClaim(type: "create", value: "1", start: 12.July(2003));
 
             // Act
@@ -146,7 +190,7 @@ namespace Identity.Objects.Tests
         public void GivenNullParameter_AddOrUpdateClaim_Throws_ArgumentNullException()
         {
             // Arrange
-            Account account = new Account();
+            Account account = _accountFaker.Generate();
 
             // Act
             Action action = () => account.AddOrUpdateClaim(type: null, value: "0", start: 12.April(1998), end: 15.May(2008));
@@ -162,7 +206,7 @@ namespace Identity.Objects.Tests
         public void GivenEndDateBeforeStartDate_AddOrUpdateClaim_Throws_ArgumentOutOfRangeException()
         {
             // Arrange
-            Account account = new Account();
+            Account account = _accountFaker.Generate();
 
             // Act
             Action action = () => account.AddOrUpdateClaim(type: "claimType", value: "0", start: 2.January(2002), end: 1.January(2002));
@@ -170,6 +214,22 @@ namespace Identity.Objects.Tests
             // Assert
             action.Should()
                 .Throw<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+        public void Changing_TenantId_To_Empty_Throws_ArgumentNullException()
+        {
+            // Arrange
+            Account account = _accountFaker.Generate();
+
+            // Act
+            Action action = () => account.SetTenant(Guid.Empty);
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentOutOfRangeException>().Which
+                .ParamName.Should()
+                .NotBeNullOrWhiteSpace();
         }
     }
 }

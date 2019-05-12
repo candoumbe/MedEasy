@@ -42,7 +42,7 @@ namespace Identity.Validators
                     logger?.LogDebug($"Validating username <{username}>");
                     using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
-                        bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.UserName == username, ct)
+                        bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.Username == username, ct)
                             .ConfigureAwait(false);
 
                         logger?.LogDebug($"Username <{username}> {(alreadyUsed ? string.Empty:"not ")}already used");

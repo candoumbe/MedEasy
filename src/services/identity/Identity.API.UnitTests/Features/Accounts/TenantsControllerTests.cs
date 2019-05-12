@@ -90,23 +90,23 @@ namespace Identity.API.Tests.Features.Accounts
             // Arrange
             Guid tenantId = Guid.NewGuid();
             Account tenant = new Account
-            {
-                UUID = tenantId,
-                UserName = "thebatman",
-                PasswordHash = "a_super_secret_password",
-                Email = "bruce@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password",
-                TenantId = Guid.NewGuid()
-            };
+            (
+                uuid: tenantId,
+                username: "thebatman",
+                passwordHash: "a_super_secret_password",
+                email : "bruce@wayne-entreprise.com",
+                salt : "salt_and_pepper_for_password",
+                tenantId : Guid.NewGuid()
+            );
             Account newAccount = new Account
-            {
-                UUID = Guid.NewGuid(),
-                UserName = "robin",
-                PasswordHash = "a_super_secret_password",
-                Email = "dick.grayson@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password",
-                TenantId = tenant.UUID
-            };
+            (
+                uuid: Guid.NewGuid(),
+                username: "robin",
+                passwordHash : "a_super_secret_password",
+                email : "dick.grayson@wayne-entreprise.com",
+                salt : "salt_and_pepper_for_password",
+                tenantId : tenant.UUID
+            );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -161,13 +161,13 @@ namespace Identity.API.Tests.Features.Accounts
             // Arrange
             Guid accountId = Guid.NewGuid();
             Account newAccount = new Account
-            {
-                UUID = accountId,
-                UserName = "robin",
-                PasswordHash = "a_super_secret_password",
-                Email = "dick.grayson@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password"
-            };
+            (
+                uuid: accountId,
+                username: "robin",
+                passwordHash : "a_super_secret_password",
+                email : "dick.grayson@wayne-entreprise.com",
+                salt : "salt_and_pepper_for_password"
+            );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

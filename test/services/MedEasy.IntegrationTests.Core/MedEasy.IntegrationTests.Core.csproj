@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Condition="'$(TargetFramework)' == 'netcoreapp2.1'" Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.1.2" />
-    
+    <PackageReference Include="RavenDB.TestDriver" Version="4.1.4" />
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

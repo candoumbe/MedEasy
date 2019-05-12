@@ -9,15 +9,24 @@ namespace Identity.Objects
         /// <summary>
         /// Type of claim
         /// </summary>
-        public string Type { get; set; }
+        public string Type { get; private set; }
 
         /// <summary>
         /// Value of the claim
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
         public IEnumerable<AccountClaim> Users { get; set; }
 
         public IEnumerable<RoleClaim> Roles { get; set; }
+
+        public Claim(Guid uuid, string type, string value) : base(uuid)
+        {
+            Type = type;
+            Value = value;
+        }
+
+
+        public void ChangeValueTo(string newValue) => Value = newValue;
     }
 }

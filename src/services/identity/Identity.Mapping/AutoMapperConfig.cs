@@ -7,6 +7,7 @@ using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
+using System.Linq;
 
 namespace Identity.Mapping
 {
@@ -24,7 +25,9 @@ namespace Identity.Mapping
             cfg.CreateCoreMapping();
             cfg.CreateMap<Account, AccountInfo>()
                 .IncludeBase<IEntity<int>, Resource<Guid>>()
-                .ReverseMap();
+                .ForMember(dto => dto.Claims, opt => opt.MapFrom(entity => entity.Claims.Select(kv => new ClaimInfo { Type = kv.Key, Value = kv.Value.value })))
+                .ReverseMap()
+                .ForMember(entity => entity.Claims, opt => opt.Ignore() );
 
             cfg.CreateMap<Account, SearchAccountInfoResult>()
                .IncludeBase<IEntity<int>, Resource<Guid>>();
@@ -34,6 +37,20 @@ namespace Identity.Mapping
                 .ForMember(dto => dto.Value, opt => opt.MapFrom(entity => entity.Claim.Value));
 
             cfg.CreateMap<NewAccountInfo, Account>()
+                .ConstructUsing(dto =>
+                {
+                    Account account = new Account(uuid: Guid.NewGuid(),
+                                          username: dto.Username,
+                                          tenantId: dto.TenantId,
+                                          name: dto.Name,
+                                          email: dto.Email,
+                                          passwordHash: null,
+                                          salt: null);
+
+                    return account;
+
+                }
+                )
                 .ForMember(entity => entity.Salt, opt => opt.Ignore())
                 .ForMember(entity => entity.PasswordHash, opt => opt.Ignore())
                 .ForMember(entity => entity.EmailConfirmed, opt => opt.Ignore())

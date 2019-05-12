@@ -4,6 +4,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 namespace Identity.Objects
 {
@@ -13,33 +15,33 @@ namespace Identity.Objects
         /// <summary>
         /// Login used to authenticate
         /// </summary>
-        public string UserName { get; set; }
+        public string Username { get; private set; }
 
         /// <summary>
         /// Salt used when computing <see cref="PasswordHash"/>
         /// </summary>
-        public string Salt { get; set; }
+        public string Salt { get; private set; }
 
         /// <summary>
         /// Hash of the user's password
         /// </summary>
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; private set; }
 
         /// <summary>
         /// Email associated with the account
         /// </summary>
-        public string Email { get; set; }
+        public string Email { get; private set; }
 
         public string Name { get; set; }
 
-        public bool EmailConfirmed { get; set; }
+        public bool EmailConfirmed { get; private set; }
 
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; private set; }
 
         /// <summary>
         /// Indicates if the account can be used to authenticate a user
         /// </summary>
-        public bool IsActive { get; set; }
+        public bool IsActive { get; private set; }
 
         /// <summary>
         /// Indicates if <see cref="Account"/> is locked out.
@@ -47,29 +49,59 @@ namespace Identity.Objects
         /// <remarks>
         /// A locked <see cref="Account"/> cannot log in.
         /// </remarks>
-        public bool Locked { get; set; }
+        public bool Locked { get; private set; }
 
         /// <summary>
         /// Id of the owner of the element
         /// </summary>
-        public Guid? TenantId { get; set; }
+        public Guid? TenantId { get; private set; }
 
         private readonly IDictionary<string, Role> _roles;
 
-        private readonly IDictionary<string, AccountClaim> _claims;
+        private readonly IDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)> _claims;
 
         public IEnumerable<Role> Roles => _roles.Values;
 
-        public IEnumerable<AccountClaim> Claims => _claims.Values;
+        public IReadOnlyDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)> Claims => new ReadOnlyDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)>(_claims);
 
         /// <summary>
         /// Builds a new <see cref="Account"/> instance
         /// </summary>
-        public Account()
+        public Account(Guid uuid, string username, string email, string passwordHash, string salt, string name="", bool locked = false, bool isActive = false, Guid? tenantId = null, string refreshToken = null) : base(uuid)
         {
+            Username = username;
+            Name = name;
+            Email = email;
+            PasswordHash = passwordHash;
+            Salt = salt;
+            Locked = locked;
+            IsActive = isActive;
+            TenantId = tenantId;
+            RefreshToken = refreshToken;
             _roles = new ConcurrentDictionary<string, Role>();
-            _claims = new ConcurrentDictionary<string, AccountClaim>();
+            _claims = new ConcurrentDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)>();
         }
+
+        /// <summary>
+        /// Set password
+        /// </summary>
+        /// <param name="passwordHash"></param>
+        /// <param name="salt"></param>
+        public void SetPassword(string passwordHash, string salt)
+        {
+            PasswordHash = passwordHash;
+            Salt = salt;
+        }
+
+        public void ChangeRefreshToken(string refreshToken)
+        {
+            RefreshToken = refreshToken;
+        }
+
+        /// <summary>
+        /// Removes the <see cref="RefreshToken"/> previously associated with the current <see cref="Account"/>.
+        /// </summary>
+        public void DeleteRefreshToken() => RefreshToken = null;
 
         /// <summary>
         /// Adds a claim to the current <see cref="Account"/> instance.
@@ -84,11 +116,7 @@ namespace Identity.Objects
         /// </exception>
         public void AddOrUpdateClaim(string type, string value, DateTimeOffset start, DateTimeOffset? end = null)
         {
-            if (type == default)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
+            
             if (end != default && start > end)
             {
                 throw new ArgumentOutOfRangeException(nameof(start), "start > end");
@@ -96,11 +124,13 @@ namespace Identity.Objects
 
             if (_claims.ContainsKey(type))
             {
-                _claims[type].Value = value;
+                (string value, DateTimeOffset start, DateTimeOffset? end) claim = _claims[type];
+                _claims.Remove(type);
+                _claims.Add(type, (value, claim.start, claim.end));
             }
             else
             {
-                _claims.Add(type, new AccountClaim { Start = start, End = end, Value = value, Claim = new Claim { Type = type, Value = value } });
+                _claims.Add(type, (value, start, end));
             }
         }
 
@@ -117,6 +147,20 @@ namespace Identity.Objects
             }
 
             _claims.Remove(type);
+        }
+
+        /// <summary>
+        /// Defines the tenant of the current element
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
+        public void SetTenant(Guid? tenantId)
+        {
+            if (tenantId == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(tenantId));
+            }
+            TenantId = tenantId;
         }
     }
 }

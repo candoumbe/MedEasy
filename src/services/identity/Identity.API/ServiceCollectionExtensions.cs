@@ -2,7 +2,8 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Identity.API.Features.Auth;
-using Identity.CQRS.Handlers.Commands;
+using Identity.CQRS.Handlers;
+using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.Mapping;
@@ -216,7 +217,10 @@ namespace Identity.API
         /// <param name="services"></param>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly);
+            services.AddMediatR(
+                typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly,
+                typeof(HandleCreateAccountInfoCommand).Assembly
+            );
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());

@@ -11,27 +11,39 @@ namespace Identity.Objects
     /// </remarks>
     public class AccountClaim : AuditableEntity<int,AccountClaim>
     {
-        public int ClaimId { get; set; }
+        public int ClaimId { get; private set; }
 
-        public int AccountId { get; set; }
+        public int AccountId { get; private set;  }
 
         /// <summary>
         /// Overrides the <see cref="Claim"/>'s <see cref="Claim.Value"/> for the current <see cref="Account"/>
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
-        public Account Account { get; set; }
+        public Account Account { get; private set; }
 
-        public Claim Claim { get; set; }
+        public Claim Claim { get; private set; }
 
         /// <summary>
         /// When the claim is active for the user
         /// </summary>
-        public DateTimeOffset Start { get; set; }
+        public DateTimeOffset Start { get; private set; }
 
         /// <summary>
         /// When will the claim ends
         /// </summary>
-        public DateTimeOffset? End { get; set; }
+        public DateTimeOffset? End { get; }
+
+        public AccountClaim(Guid uuid, int accountId, int claimId, string value, DateTimeOffset start, DateTimeOffset? end)
+            : base(uuid)
+        {
+            Value = value;
+            Start = start;
+            End = end;
+            ClaimId = claimId;
+            AccountId = accountId;
+        }
+
+        public void ChangeValueTo(string newValue) => Value = newValue;
     }
 }

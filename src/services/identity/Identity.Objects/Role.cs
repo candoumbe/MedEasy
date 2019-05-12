@@ -17,5 +17,15 @@ namespace Identity.Objects
         /// <see cref="Account"/>s associated with the current role
         /// </summary>
         public IEnumerable<Account> Users { get; set; }
+
+        /// <summary>
+        /// Builds a new <see cref="Role"/> instance.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <param name="code"></param>
+        public Role(Guid uuid, string code): base(uuid)
+        {
+            Code = code;
+        }
     }
 }

@@ -45,6 +45,8 @@ namespace Identity.Validators.UnitTests
                 return context;
             });
             _loggerMock = new Mock<ILogger<NewAccountInfoValidator>>();
+            
+
             _sut = new NewAccountInfoValidator(_uowFactory, _loggerMock.Object);
         }
 
@@ -59,6 +61,7 @@ namespace Identity.Validators.UnitTests
             _uowFactory = null;
             _outputHelper = null;
             _loggerMock = null;
+            _sut = null;
         }
 
 
@@ -89,14 +92,11 @@ namespace Identity.Validators.UnitTests
 
                 {
                     Faker faker = new Faker();
-                    Account account = new Account
-                    {
-                        UserName = faker.Person.UserName,
-                        PasswordHash = faker.Lorem.Word(),
-                        Salt = faker.Lorem.Word(),
-                        Email = faker.Internet.Email("joker"),
-                        UUID = Guid.NewGuid()
-                    };
+                    Account account = new Account(uuid: Guid.NewGuid(),
+                                                  username: faker.Person.UserName,
+                                                  passwordHash: faker.Lorem.Word(),
+                                                  salt: faker.Lorem.Word(),
+                                                  email: faker.Internet.Email("joker"));
                     yield return new object[]
                     {
                         new[] {account},
@@ -106,7 +106,7 @@ namespace Identity.Validators.UnitTests
                             Email = "joker@card-city.com",
                             Password = "smile",
                             ConfirmPassword = "smile",
-                            Username = account.UserName
+                            Username = account.Username
                         },
                         (Expression<Func<ValidationResult, bool>>)(vr =>
                             vr.Errors.Count == 1
@@ -119,13 +119,13 @@ namespace Identity.Validators.UnitTests
                 {
                     Faker faker = new Faker();
                     Account account = new Account
-                    {
-                        UserName = "joker",
-                        PasswordHash = faker.Lorem.Word(),
-                        Salt = faker.Lorem.Word(),
-                        Email = faker.Internet.Email("joker"),
-                        UUID = Guid.NewGuid()
-                    };
+                    (
+                        username: "joker",
+                        passwordHash: faker.Lorem.Word(),
+                        salt: faker.Lorem.Word(),
+                        email: faker.Internet.Email("joker"),
+                        uuid: Guid.NewGuid()
+                    );
                     yield return new object[]
                     {
                         new[] {account},
@@ -149,13 +149,14 @@ namespace Identity.Validators.UnitTests
                 {
                     Faker faker = new Faker();
                     Account account = new Account
-                    {
-                        UserName = "joker",
-                        PasswordHash = faker.Lorem.Word(),
-                        Salt = faker.Lorem.Word(),
-                        Email = "joker@card-city.com",
-                        UUID = Guid.NewGuid()
-                    };
+                    (
+                        username: "joker",
+                        passwordHash: faker.Lorem.Word(),
+                        salt: faker.Lorem.Word(),
+                        email: "joker@card-city.com",
+                        uuid: Guid.NewGuid()
+                    );
+                    
                     yield return new object[]
                     {
                         new[] {account},

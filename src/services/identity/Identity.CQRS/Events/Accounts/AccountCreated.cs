@@ -14,6 +14,7 @@ namespace Identity.CQRS.Events.Accounts
         /// </summary>
         /// <param name="accountInfo">the created account</param>
         public AccountCreated(AccountInfo accountInfo) : base(Guid.NewGuid(), accountInfo)
-        { }
+        {
+        }
     }
 }

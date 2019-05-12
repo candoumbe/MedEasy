@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Identity.CQRS.Queries.Accounts
 {
     /// <summary>
-    /// Query to check if a <see cref="Guid"/> stands for an tenant
+    /// Query to check if a <see cref="Guid"/> stands for an "tenant"
     /// </summary>
     public class IsTenantQuery : QueryBase<Guid, Guid, bool>
     {

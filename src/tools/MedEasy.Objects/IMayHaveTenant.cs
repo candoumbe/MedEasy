@@ -11,6 +11,13 @@ namespace MedEasy.Objects
     /// </summary>
     public interface IMayHaveTenant
     {
-        Guid? TenantId { get; set; }
+        Guid? TenantId { get; }
+
+        /// <summary>
+        /// Defines the <see cref="Tenantid"/>
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
+        void SetTenant(Guid? tenantId);
     }
 }

@@ -34,14 +34,14 @@ namespace Identity.DataStores.SqlServer
 
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.Property(x => x.UserName)
+                entity.Property(x => x.Username)
                     .HasMaxLength(NormalTextLength)
                     .IsRequired();
 
                 entity.Property(x => x.Name)
                     .HasMaxLength(NormalTextLength);
 
-                entity.HasIndex(x => x.UserName)
+                entity.HasIndex(x => x.Username)
                     .IsUnique();
                 entity.Property(x => x.Salt)
                     .IsRequired();
@@ -84,12 +84,10 @@ namespace Identity.DataStores.SqlServer
 
             modelBuilder.Entity<AccountClaim>(entity =>
             {
-                entity.HasOne(x => x.Account)
-                    .WithMany(x => x.Claims)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(x => x.Claim)
-                    .WithMany(claim => claim.Users);
+                entity.Property(x => x.ClaimId);
+                entity.Property(x => x.AccountId);
+                entity.Property(x => x.Start);
+                entity.Property(x => x.End);
             });
         }
     }

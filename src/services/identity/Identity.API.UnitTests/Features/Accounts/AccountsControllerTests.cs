@@ -129,11 +129,12 @@ namespace Identity.API.Tests.Features.Accounts
                 }
 
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .RuleFor(x => x.Id, 0)
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.UserName, faker => faker.Internet.UserName())
-                    .RuleFor(x => x.Email, faker => faker.Person.Email);
-
+                    .CustomInstantiator(faker => new Account(uuid: Guid.NewGuid(),
+                        username: faker.Internet.UserName(),
+                        email: faker.Internet.Email(),
+                        passwordHash: string.Empty,
+                        salt: string.Empty
+                    ));
                 {
                     IEnumerable<Account> items = accountFaker.Generate(400);
                     yield return new object[]
@@ -188,7 +189,7 @@ namespace Identity.API.Tests.Features.Accounts
                 .Returns((GetPageOfAccountsQuery query, CancellationToken cancellationToken) =>
                 {
                     PaginationConfiguration pagination = query.Data;
-                    Expression<Func<Account, AccountInfo>> expression = x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.UserName };
+                    Expression<Func<Account, AccountInfo>> expression = x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username };
                     Func<Account, AccountInfo> selector = expression.Compile();
                     _outputHelper.WriteLine($"Selector : {selector}");
 
@@ -262,14 +263,14 @@ namespace Identity.API.Tests.Features.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(new Account
-                {
-                    UUID = accountId,
-                    UserName = "thebatman",
-                    PasswordHash = "a_super_secret_password",
-                    Email = "bruce@wayne-entreprise.com",
-                    Salt = "salt_and_pepper_for_password"
+                (
+                    uuid : accountId,
+                    username: "thebatman",
+                    passwordHash:  "a_super_secret_password",
+                    email : "bruce@wayne-entreprise.com",
+                    salt : "salt_and_pepper_for_password"
 
-                });
+                ));
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -282,7 +283,7 @@ namespace Identity.API.Tests.Features.Accounts
                     {
                         Option<AccountInfo> result = await uow.Repository<Account>()
                             .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.UserName },
+                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username },
                                 (Account x) => x.UUID == query.Data,
                                 ct)
                             .ConfigureAwait(false);
@@ -337,23 +338,23 @@ namespace Identity.API.Tests.Features.Accounts
             Guid accountId = Guid.NewGuid();
 
             Account tenant = new Account
-            {
-                UUID = Guid.NewGuid(),
-                UserName = "thebatman",
-                PasswordHash = "a_super_secret_password",
-                Email = "bruce@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password",
-                TenantId = Guid.NewGuid()
-            };
+            (
+                uuid:  Guid.NewGuid(),
+                username:  "thebatman",
+                passwordHash : "a_super_secret_password",
+                email : "bruce@wayne-entreprise.com",
+                salt : "salt_and_pepper_for_password",
+                tenantId : Guid.NewGuid()
+            );
             Account newAccount = new Account
-            {
-                UUID = accountId,
-                UserName = "robin",
-                PasswordHash = "a_super_secret_password",
-                Email = "dick.grayson@wayne-entreprise.com",
-                Salt = "salt_and_pepper_for_password",
-                TenantId = tenant.UUID
-            };
+            (
+                uuid : accountId,
+                username: "robin",
+                passwordHash: "a_super_secret_password",
+                email: "dick.grayson@wayne-entreprise.com",
+                salt: "salt_and_pepper_for_password",
+                tenantId: tenant.UUID
+            );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -370,7 +371,7 @@ namespace Identity.API.Tests.Features.Accounts
                     {
                         Option<AccountInfo> result = await uow.Repository<Account>()
                             .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.UserName, TenantId = x.TenantId },
+                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
                                 (Account x) => x.UUID == query.Data,
                                 ct)
                             .ConfigureAwait(false);
@@ -419,7 +420,7 @@ namespace Identity.API.Tests.Features.Accounts
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             resource.Id.Should().Be(accountId);
-            resource.Username.Should().Be(newAccount.UserName);
+            resource.Username.Should().Be(newAccount.Username);
             resource.Email.Should().Be(newAccount.Email);
             resource.TenantId.Should().Be(newAccount.TenantId);
         }
@@ -609,17 +610,13 @@ namespace Identity.API.Tests.Features.Accounts
             get
             {
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .RuleFor(x => x.Id, 0)
-                    .RuleFor(x => x.Name, faker => $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne")
-                    .RuleFor(x => x.Email, (faker, account) => faker.Internet.ExampleEmail(account.Name))
-                    .RuleFor(x => x.PasswordHash, faker => faker.Lorem.Word())
-                    .RuleFor(x => x.UserName, faker => faker.Internet.UserName())
-                    .RuleFor(x => x.Salt, faker => faker.Lorem.Word())
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.CreatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.UpdatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.CreatedDate, faker => faker.Date.Recent(days: 5))
-                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent(days: 2))
+                    .CustomInstantiator(faker => new Account(
+                        uuid: Guid.NewGuid(),
+                        name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
+                        email: faker.Internet.ExampleEmail(),
+                        passwordHash: faker.Lorem.Word(),
+                        username:faker.Internet.UserName(),
+                        salt: faker.Lorem.Word()))
                     ;
                 {
                     IEnumerable<Account> items = accountFaker.Generate(40);
