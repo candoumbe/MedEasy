@@ -36,7 +36,11 @@ namespace Identity.CQRS.Handlers.RavenDb.Accounts
             using (IAsyncDocumentSession session = _store.OpenAsyncSession())
             {
                 Option<AccountInfo, CreateCommandResult> response;
-                if (await session.Query<Account>().AnyAsync(acc => acc.Username == request.Data.Username).ConfigureAwait(false))
+                if (request.Data.Password != request.Data.ConfirmPassword)
+                {
+                    response = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
+                }
+                else if (await session.Query<Account>().AnyAsync(acc => acc.Username == request.Data.Username).ConfigureAwait(false))
                 {
                     response = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
                 }

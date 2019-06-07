@@ -104,7 +104,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
                 {
                     DateTimeOffset utcNow = 1.October(2011).AddHours(12).AddMinutes(30);
-                    Role superHero = new Role(Guid.NewGuid(), code: "SuperHero");
+
                     Account clarkKent = new Account
                     (
                         uuid: Guid.NewGuid(),
@@ -120,7 +120,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                         utcNow,
                         new LoginInfo {Username = clarkKent.Username, Password = clarkKent.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.Username
-                            && info.Name == clarkKent.Username
+                            && info.Email == clarkKent.Email
                             && info.Claims.Once()
                             && info.Claims.Once(claim => claim.Type == "superstrength" && claim.Value == "150")
                         )

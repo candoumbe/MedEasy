@@ -57,8 +57,12 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                 return await optionalUser.Match(
                     some: async account =>
                     {
-                        //IEnumerable<ClaimInfo> accountClaims = await uow.Repository<AccountClaim>()
-                        //    .WhereAsync(ac => ac.Clai)
+                        IEnumerable<ClaimInfo> accountClaims = await uow.Repository<AccountClaim>()
+                            .WhereAsync(
+                                userClaimToClaimInfoSelector,
+                                ac => ac.Account.UUID == account.Id, 
+                                ct)
+                            .ConfigureAwait(false);
                         //IEnumerable<ClaimInfo> claimsFromRoles = await uow.Repository<RoleClaim>()
                         //    .WhereAsync(
                         //        roleClaimToClaimInfoSelector,
@@ -73,7 +77,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                             Name = account.Name ?? account.Username,
                             Username = account.Username,
                             Email = account.Email,
-                            Claims = Enumerable.Empty<ClaimInfo>()
+                            Claims = accountClaims
                         };
                         return Option.Some(accountInfo);
                     },

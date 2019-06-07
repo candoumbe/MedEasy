@@ -117,7 +117,12 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
                 passwordHash: "fjeiozfjzfdcvqcnjifozjffkjioj",
                 salt: "some_salt_and_pepper"
             );
-            
+
+            using (IDocumentSession session = _documentStore.OpenSession())
+            {
+                session.Store(existingAccount, existingAccount.UUID.ToString());
+                session.SaveChanges();
+            }
            
             NewAccountInfo newResourceInfo = new NewAccountInfo
             {
@@ -127,14 +132,6 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
                 Email = "b.wayne@gotham.com"
             };
 
-            _mapperMock.Setup(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()))
-                .Returns((NewAccountInfo newResource) => AutoMapperConfig.Build().CreateMapper().Map<NewAccountInfo, Account>(newResource));
-
-            _mapperMock.Setup(mock => mock.Map<Account, AccountInfo>(It.IsAny<Account>()))
-                .Returns((Account newEntity) => AutoMapperConfig.Build().CreateMapper().Map<Account, AccountInfo>(newEntity));
-
-            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newResourceInfo);
 
             // Act
@@ -151,8 +148,6 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
                     .Be(CreateCommandResult.Failed_Conflict);
             });
 
-            _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
-
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Never,
                 "No resource created");
         }
@@ -164,6 +159,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
             _mediatorMock.Setup(mock => mock.Send<(string, string)>(It.IsAny<HashPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((HashPasswordQuery request, CancellationToken cancellation) => (request.Data, "salt"));
 
+            
             NewAccountInfo newResourceInfo = new NewAccountInfo
             {
                 Username = "thebatman",
@@ -188,8 +184,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
                     .Be(CreateCommandResult.Failed_Conflict);
             });
 
-            _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
-
+            
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Never,
                 "No resource created");
         }
@@ -207,11 +202,11 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
                 Email = "b.wayne@gotham.com"
             };
 
-            _mapperMock.Setup(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()))
-                .Returns((NewAccountInfo newResource) => AutoMapperConfig.Build().CreateMapper().Map<NewAccountInfo, Account>(newResource));
+            //_mapperMock.Setup(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()))
+            //    .Returns((NewAccountInfo newResource) => AutoMapperConfig.Build().CreateMapper().Map<NewAccountInfo, Account>(newResource));
 
-            _mapperMock.Setup(mock => mock.Map<Account, AccountInfo>(It.IsAny<Account>()))
-                .Returns((Account newEntity) => AutoMapperConfig.Build().CreateMapper().Map<Account, AccountInfo>(newEntity));
+            //_mapperMock.Setup(mock => mock.Map<Account, AccountInfo>(It.IsAny<Account>()))
+            //    .Returns((Account newEntity) => AutoMapperConfig.Build().CreateMapper().Map<Account, AccountInfo>(newEntity));
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -251,7 +246,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
 
             });
 
-            _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Once);
+            //_mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Once);
         }
     }
 }

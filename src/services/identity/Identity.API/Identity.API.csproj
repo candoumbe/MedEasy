@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App"/>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="3.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.2105168" />
@@ -33,7 +33,7 @@
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
-    <ProjectReference Include="..\Identity.CQRS\Identity.CQRS.csproj" />
+    <ProjectReference Include="..\Identity.CQRS.Handlers.EFCore\Identity.CQRS.Handlers.EFCore.csproj" />
     <ProjectReference Include="..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
     <ProjectReference Include="..\Identity.Mapping\Identity.Mapping.csproj" />
     <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
