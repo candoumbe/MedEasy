@@ -66,7 +66,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             // Arrange
             Guid appointmentUuid = Guid.NewGuid();
             Appointment appointment = new Appointment(
-                uuid: appointmentUuid,
+                id: appointmentUuid,
                 startDate : 16.July(2016).At(15.Hours().And(30.Minutes())),
                 endDate : 16.July(2016).At(15.Hours().And(45.Minutes())),
                 subject : "Confidential",
@@ -76,8 +76,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             Guid firstParticipantId = Guid.NewGuid();
             Guid secondParticipantId = Guid.NewGuid();
 
-            appointment.AddAttendee(new Attendee(uuid: firstParticipantId, name: "Dick Grayson"));
-            appointment.AddAttendee(new Attendee(uuid:secondParticipantId, name: "Bruce Wayne"));
+            appointment.AddAttendee(new Attendee(id: firstParticipantId, name: "Dick Grayson"));
+            appointment.AddAttendee(new Attendee(id:secondParticipantId, name: "Bruce Wayne"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -97,13 +97,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                bool deleteOk = !await uow.Repository<Appointment>().AnyAsync(x => x.UUID == appointmentUuid);
+                bool deleteOk = !await uow.Repository<Appointment>().AnyAsync(x => x.Id == appointmentUuid)
+                    .ConfigureAwait(false);
 
                 deleteOk.Should()
                     .BeTrue("deleted resource must not be prensent in the datastore");
 
                 bool participantsNotDeleted = await uow.Repository<Attendee>()
-                    .AnyAsync(x => new[] { firstParticipantId, secondParticipantId }.Contains(x.UUID))
+                    .AnyAsync(x => new[] { firstParticipantId, secondParticipantId }.Contains(x.Id))
                     .ConfigureAwait(false);
 
                 participantsNotDeleted.Should()

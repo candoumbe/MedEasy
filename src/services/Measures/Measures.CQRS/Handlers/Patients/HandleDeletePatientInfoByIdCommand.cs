@@ -41,18 +41,18 @@ namespace Measures.CQRS.Handlers.Patients
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 DeleteCommandResult result = DeleteCommandResult.Done;
-                if (await uow.Repository<PhysiologicalMeasurement>().AnyAsync(x => x.Patient.UUID == cmd.Data, cancellationToken).ConfigureAwait(false))
+                if (await uow.Repository<PhysiologicalMeasurement>().AnyAsync(x => x.Patient.Id == cmd.Data, cancellationToken).ConfigureAwait(false))
                 {
                     result = DeleteCommandResult.Failed_Conflict;
                 }
                 else if (!await uow.Repository<Patient>()
-                    .AnyAsync(x => x.UUID == cmd.Data, cancellationToken).ConfigureAwait(false))
+                    .AnyAsync(x => x.Id == cmd.Data, cancellationToken).ConfigureAwait(false))
                 {
                     result = DeleteCommandResult.Failed_NotFound;
                 }
                 else
                 {
-                    uow.Repository<Patient>().Delete(x => x.UUID == cmd.Data);
+                    uow.Repository<Patient>().Delete(x => x.Id == cmd.Data);
                     await uow.SaveChangesAsync(cancellationToken)
                         .ConfigureAwait(false);
 

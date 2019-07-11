@@ -105,8 +105,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             // Arrange
             NewPatientInfo resourceInfo = new NewPatientInfo
             {
-                Firstname = "victor",
-                Lastname = "zsasz",
+                Name = "victor zsasz",
             };
 
             CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(resourceInfo);
@@ -127,17 +126,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 .NotBeNull();
             createdResource.Id.Should()
                 .NotBeEmpty();
-            createdResource.Firstname.Should()
-                .Be(resourceInfo.Firstname?.ToTitleCase());
-            createdResource.Lastname.Should()
-                .Be(resourceInfo.Lastname?.ToUpperInvariant());
+            createdResource.Name.Should()
+                .Be(resourceInfo.Name?.ToTitleCase());
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.UUID == createdResource.Id)
+                    .AnyAsync(x => x.Id == createdResource.Id)
                     .ConfigureAwait(false);
 
                 createSuccessful.Should().BeTrue("element should be present after handling the create command");
@@ -151,8 +148,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             Guid desiredId = Guid.NewGuid();
             NewPatientInfo resourceInfo = new NewPatientInfo
             {
-                Firstname = "victor",
-                Lastname = "zsasz",
+                Name = "victor zsasz",
                 Id = desiredId
             };
 
@@ -174,17 +170,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 .NotBeNull();
             createdResource.Id.Should()
                 .Be(desiredId, $"handler must use value of {nameof(NewPatientInfo)}.{nameof(NewPatientInfo.Id)} when that value is not null");
-            createdResource.Firstname.Should()
-                .Be(resourceInfo.Firstname?.ToTitleCase());
-            createdResource.Lastname.Should()
-                .Be(resourceInfo.Lastname?.ToUpperInvariant());
+            createdResource.Name.Should()
+                .Be(resourceInfo.Name?.ToTitleCase());
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.UUID == createdResource.Id)
+                    .AnyAsync(x => x.Id == createdResource.Id)
                     .ConfigureAwait(false);
 
                 createSuccessful.Should().BeTrue("element should be present after handling the create command");
@@ -197,7 +191,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             // Arrange
             NewPatientInfo data = new NewPatientInfo
             {
-                Lastname = "Grundy",
+                Name = "Grundy",
                 Id = Guid.Empty
             };
 

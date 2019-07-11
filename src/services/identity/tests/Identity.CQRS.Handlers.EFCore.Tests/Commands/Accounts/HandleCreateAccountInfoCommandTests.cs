@@ -121,7 +121,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             Guid resourceId = Guid.NewGuid();
             Account existingAccount = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 username : "thebatman",
                 email: "thecaped@crusader.com",
                 passwordHash : "fjeiozfjzfdcvqcnjifozjffkjioj",
@@ -238,22 +238,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         DateTimeOffset now = 10.January(2010).At(10.Hours().And(37.Minutes()));
-                        var optionalUser = await uow.Repository<Account>()
-                            .SingleOrDefaultAsync(
-                                x => new
-                                {
-                                    x.Id,
-                                    UserName=x.Username,
-                                    x.Email,
-                                    Roles = x.Roles
-                                        .Select(r => r.Id)
-                                        .ToList(),
-                                },
-                                (Account x) => x.UUID == query.Data,
-                                ct
-                            )
+                        Option<Account> optionalAccount = await uow.Repository<Account>()
+                            .SingleOrDefaultAsync(x => x.Id == query.Data,ct)
                             .ConfigureAwait(false);
-                        return await optionalUser.Match(
+
+                        return await optionalAccount.Match(
                             some: async account =>
                             {
                                 IEnumerable<ClaimInfo> claimsOverride = await uow.Repository<AccountClaim>()
@@ -272,7 +261,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
 
                                 AccountInfo accountInfo = new AccountInfo
                                 {
-                                    Username = account.UserName,
+                                    Username = account.Name,
                                     Email = account.Email,
                                     Claims = claimsOverride
                                         .Concat(claimsFromRoles)
@@ -317,8 +306,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                             .NotBe(newAccount.Password);
                         newEntity.Salt.Should()
                             .NotBeNullOrWhiteSpace();
-                        newEntity.UUID.Should()
-                            .NotBeEmpty("UUID must not be empty");
+                        newEntity.Id.Should()
+                            .NotBeEmpty("Id must not be empty");
                         newEntity.Email.Should()
                             .Be(resource.Email);
                         newEntity.EmailConfirmed.Should()

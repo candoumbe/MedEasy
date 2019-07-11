@@ -79,12 +79,6 @@ namespace Measures.Context
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
                 {
-                    modelBuilder.Entity(entity.Name).Property(typeof(Guid), nameof(IEntity<int>.UUID))
-                        .ValueGeneratedOnAdd();
-                    modelBuilder.Entity(entity.Name)
-                        .HasIndex(nameof(IEntity<int>.UUID))
-                        .IsUnique();
-
                     modelBuilder.Entity(entity.Name).Property(nameof(IEntity<int>.Id))
                        .ValueGeneratedOnAdd();
                 }
@@ -94,6 +88,7 @@ namespace Measures.Context
             {
                 entity.HasKey(x => x.Id);
                 entity.HasOne(x => x.Patient);
+                
             });
 
             modelBuilder.Entity<PhysiologicalMeasurement>()
@@ -101,14 +96,15 @@ namespace Measures.Context
 
             modelBuilder.Entity<Patient>(entity =>
             {
-                entity.Property(x => x.Firstname)
-                    .HasMaxLength(_normalTextLength);
-
-                entity.Property(x => x.Lastname)
+                entity.Property(x => x.Name)
                     .HasMaxLength(_normalTextLength);
             });
 
-            modelBuilder.Entity<BloodPressure>();
+            modelBuilder.Entity<BloodPressure>(entity => {
+
+                entity.Property(x => x.SystolicPressure);
+                entity.Property(x => x.DiastolicPressure);
+            });
 
             modelBuilder.Entity<Temperature>();
         }

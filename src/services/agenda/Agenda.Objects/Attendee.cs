@@ -10,7 +10,7 @@ namespace Agenda.Objects
     /// <summary>
     /// Participant of a <see cref="Appointment"/>
     /// </summary>
-    public class Attendee : AuditableEntity<int, Attendee>
+    public class Attendee : AuditableEntity<Guid, Attendee>
     {
         private string _name;
 
@@ -42,8 +42,8 @@ namespace Agenda.Objects
         /// </summary>
         /// <param name="name">Name of the participant</param>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c></exception>
-        /// <exception cref="ArgumentException"><paramref name="uuid"/> is <c>Guid.Empty</c></exception>
-        public Attendee(Guid uuid, string name, string email = null, string phoneNumber = null) : base(uuid)
+        /// <exception cref="ArgumentException"><paramref name="id"/> is <c>Guid.Empty</c></exception>
+        public Attendee(Guid id, string name, string email = null, string phoneNumber = null) : base(id)
         {
             Name = name;
             Email = email;

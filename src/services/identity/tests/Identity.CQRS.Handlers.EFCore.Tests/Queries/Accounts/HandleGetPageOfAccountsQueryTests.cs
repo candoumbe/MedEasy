@@ -92,7 +92,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             // Arrange
             Guid tenantId = Guid.NewGuid();
             IEnumerable<Account> accounts = new Faker<Account>()
-                .CustomInstantiator(faker => new Account(uuid: Guid.NewGuid(),
+                .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
                                                          tenantId: tenantId,
                                                          email: faker.Internet.Email(),
                                                          username: faker.Person.UserName,

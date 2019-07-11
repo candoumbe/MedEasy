@@ -38,14 +38,14 @@ namespace Agenda.Objects.UnitTests
         public void CreatingAttendee_With_Empty_UUID_Throws_ArgumentException()
         {
             // Arrange
-            Guid uuid = Guid.Empty;
+            Guid id = Guid.Empty;
 
             // Act
-            Action action = () => new Attendee(uuid, "Bruce Wayne");
+            Action action = () => new Attendee(id, "Bruce Wayne");
 
             // Assert
             action.Should()
-                .Throw<ArgumentException>($"Cannot create an {nameof(Attendee)} instance with empty {nameof(Attendee.UUID)}");
+                .Throw<ArgumentException>($"Cannot create an {nameof(Attendee)} instance with empty {nameof(Attendee.Id)}");
 
         }
 
@@ -55,14 +55,14 @@ namespace Agenda.Objects.UnitTests
         public void Ctor_Builds_ValidObject(string name, string expectedName)
         {
             // Arrange
-            Guid uuid = Guid.NewGuid();
+            Guid id = Guid.NewGuid();
 
             // Act
-            Attendee attendee = new Attendee(uuid, name);
+            Attendee attendee = new Attendee(id, name);
 
             // Assert
-            attendee.UUID.Should()
-                .Be(uuid);
+            attendee.Id.Should()
+                .Be(id);
             attendee.Name.Should()
                 .Be(expectedName);
             attendee.PhoneNumber.Should()

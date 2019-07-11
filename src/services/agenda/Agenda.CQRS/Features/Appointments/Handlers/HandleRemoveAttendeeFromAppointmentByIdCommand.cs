@@ -32,7 +32,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                 var optionalAppointment = await uow.Repository<AppointmentAttendee>()
                                  .SingleOrDefaultAsync(
                                     selector: ap => new { ap.AppointmentId, ap.AttendeeId  },
-                                    predicate : ap => ap.Appointment.UUID == request.Data.appointmentId && ap.Attendee.UUID == request.Data.attendeeId, cancellationToken)
+                                    predicate : (AppointmentAttendee ap) => ap.AppointmentId == request.Data.appointmentId && ap.AttendeeId == request.Data.attendeeId, cancellationToken)
                                  .ConfigureAwait(false);
 
                 return await optionalAppointment.Match(

@@ -92,7 +92,7 @@ namespace Identity.Validators.UnitTests
 
                 {
                     Faker faker = new Faker();
-                    Account account = new Account(uuid: Guid.NewGuid(),
+                    Account account = new Account(id: Guid.NewGuid(),
                                                   username: faker.Person.UserName,
                                                   passwordHash: faker.Lorem.Word(),
                                                   salt: faker.Lorem.Word(),
@@ -124,7 +124,7 @@ namespace Identity.Validators.UnitTests
                         passwordHash: faker.Lorem.Word(),
                         salt: faker.Lorem.Word(),
                         email: faker.Internet.Email("joker"),
-                        uuid: Guid.NewGuid()
+                        id: Guid.NewGuid()
                     );
                     yield return new object[]
                     {
@@ -154,7 +154,7 @@ namespace Identity.Validators.UnitTests
                         passwordHash: faker.Lorem.Word(),
                         salt: faker.Lorem.Word(),
                         email: "joker@card-city.com",
-                        uuid: Guid.NewGuid()
+                        id: Guid.NewGuid()
                     );
                     
                     yield return new object[]

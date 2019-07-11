@@ -9,7 +9,7 @@ namespace Agenda.Objects
     /// <summary>
     /// An meeting wih a location and a subject
     /// </summary>
-    public class Appointment : AuditableEntity<int, Appointment>
+    public class Appointment : AuditableEntity<Guid, Appointment>
     {
         private readonly HashSet<AppointmentAttendee> _attendees;
 
@@ -41,7 +41,7 @@ namespace Agenda.Objects
         public AppointmentStatus Status { get; }
 
         
-        public Appointment(Guid uuid, string subject, string location, DateTimeOffset startDate, DateTimeOffset endDate) : base(uuid)
+        public Appointment(Guid id, string subject, string location, DateTimeOffset startDate, DateTimeOffset endDate) : base(id)
         {
             Subject = subject;
             Location = location ?? string.Empty;
@@ -65,7 +65,7 @@ namespace Agenda.Objects
         /// <param name="attendeeId">ID of the attendee to remove</param>
         public void RemoveAttendee(Guid attendeeId)
         {
-            Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.UUID == attendeeId)
+            Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.Id == attendeeId)
                 .SomeNotNull();
 
             optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));

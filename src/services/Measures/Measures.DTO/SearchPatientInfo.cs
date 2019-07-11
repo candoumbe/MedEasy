@@ -10,14 +10,9 @@ namespace Measures.DTO
     public class SearchPatientInfo : AbstractSearchInfo<PatientInfo>
     {
         /// <summary>
-        /// Searched <see cref="Firstname"/>
+        /// Searched <see cref="Name"/>
         /// </summary>
-        public string Firstname { get; set; }
-
-        /// <summary>
-        /// Searched <see cref="Lastname"/>
-        /// </summary>
-        public string Lastname { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Searched <see cref="BirthDate"/>

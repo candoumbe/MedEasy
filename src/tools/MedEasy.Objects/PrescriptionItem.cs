@@ -3,7 +3,7 @@ using System;
 
 namespace MedEasy.Objects
 {
-    public class PrescriptionItem : AuditableEntity<int, PrescriptionItem>
+    public class PrescriptionItem : AuditableEntity<Guid, PrescriptionItem>
     {
         /// <summary>
         /// Category
@@ -30,7 +30,7 @@ namespace MedEasy.Objects
         /// </summary>
         public string Notes { get; set; }
 
-        public PrescriptionItem(Guid uuid) : base(uuid)
+        public PrescriptionItem(Guid id) : base(id)
         {
 
         }

@@ -22,7 +22,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                uow.Repository<Appointment>().Delete(x => x.UUID == request.Data);
+                uow.Repository<Appointment>().Delete(x => x.Id == request.Data);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 

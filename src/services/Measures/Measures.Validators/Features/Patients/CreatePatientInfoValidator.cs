@@ -23,11 +23,6 @@ namespace Measures.Validators.Features.Patients.DTO
                 throw new ArgumentNullException(nameof(uowFactory));
             }
 
-            When(x => !string.IsNullOrWhiteSpace(x.Lastname), () =>
-            {
-                RuleFor(x => x.Firstname)
-                    .NotEmpty().WithSeverity(Warning);
-            });
             When(x => x.Id.HasValue, () =>
             {
                 RuleFor(x => x.Id)
@@ -39,19 +34,15 @@ namespace Measures.Validators.Features.Patients.DTO
                         using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                         {
                             return !await uow.Repository<Objects.Patient>()
-                                .AnyAsync(p => p.UUID == id, ct)
+                                .AnyAsync(p => p.Id == id, ct)
                                 .ConfigureAwait(false);
                         }
                     })
                     .WithErrorCode("BAD_REQUEST")
                     .When(x => x.Id.Value != default);
             });
-            
 
-            RuleFor(x => x.Firstname)
-                .MaximumLength(255);
-
-            RuleFor(x => x.Lastname)
+            RuleFor(x => x.Name)
                 .NotEmpty()
                 .MaximumLength(255);
         }

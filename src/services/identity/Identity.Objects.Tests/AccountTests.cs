@@ -22,7 +22,7 @@ namespace Identity.Objects.Tests
         {
             _accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         username: faker.Internet.UserName(),
                         email: faker.Internet.Email(),
                         passwordHash: faker.Internet.Password(),
@@ -40,7 +40,7 @@ namespace Identity.Objects.Tests
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         username: faker.Internet.UserName(),
                         email: faker.Internet.Email(),
                         passwordHash: faker.Internet.Password(),
@@ -103,7 +103,7 @@ namespace Identity.Objects.Tests
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         username: faker.Internet.UserName(),
                         email: faker.Internet.Email(),
                         passwordHash: faker.Internet.Password(),

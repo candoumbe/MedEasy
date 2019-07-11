@@ -1,4 +1,6 @@
-﻿namespace Measures.Objects
+﻿using System;
+
+namespace Measures.Objects
 {
     /// <summary>
     /// Defines a blood pressure measure.
@@ -11,11 +13,22 @@
         /// <summary>
         /// Gets/sets the blood pressure
         /// </summary>
-        public float DiastolicPressure { get; set; }
+        public float DiastolicPressure { get; private set; }
 
         /// <summary>
         /// Get/set the blood pressure
         /// </summary>
-        public float SystolicPressure { get; set; }
+        public float SystolicPressure { get; private set; }
+
+
+        public BloodPressure(Guid id, Guid patientId, DateTimeOffset dateOfMeasure, float diastolicPressure, float systolicPressure)
+            : base (id, patientId, dateOfMeasure)
+        {
+            DiastolicPressure = diastolicPressure;
+            SystolicPressure = systolicPressure;
+        }
+
+
+
     }
 }

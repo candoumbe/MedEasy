@@ -142,7 +142,7 @@ namespace Patients.API.Controllers
             {
                 Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 Option<PatientInfo> result = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == id, cancellationToken).ConfigureAwait(false);
+                    .SingleOrDefaultAsync(selector, (Patient x) =>  x.Id == id, cancellationToken).ConfigureAwait(false);
 
                 actionResult = result.Match<IActionResult>(
                     some: resource =>
@@ -194,9 +194,10 @@ namespace Patients.API.Controllers
             }
             using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
-                Expression<Func<CreatePatientInfo, Patient>> mapFunc = ExpressionBuilder.GetMapExpression<CreatePatientInfo, Patient>();
-                Func<CreatePatientInfo, Patient> funcConverter = mapFunc.Compile();
-                Patient patient = funcConverter(newPatient);
+
+                Patient patient = new Patient(newPatient.Id.GetValueOrDefault(Guid.NewGuid()), newPatient.Firstname, newPatient.Lastname)
+                    .WasBornIn(newPatient.BirthPlace)
+                    .WasBornOn(newPatient.BirthDate);
 
                 patient = uow.Repository<Patient>().Create(patient);
 
@@ -242,7 +243,7 @@ namespace Patients.API.Controllers
             {
                 using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
-                    uow.Repository<Patient>().Delete(x => x.UUID == id);
+                    uow.Repository<Patient>().Delete(x => x.Id == id);
                     await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                     actionResult = new NoContentResult();
                 }
@@ -285,6 +286,14 @@ namespace Patients.API.Controllers
         {
             IActionResult actionResult;
 
+            IDictionary<string, Action<Patient, object>> patchActions = new Dictionary<string, Action<Patient, object>>
+            {
+                [$"/{nameof(Patient.Firstname)}"] = (patient, value) => patient.ChangeFirstnameTo(value?.ToString()),
+                [$"/{nameof(Patient.Lastname)}"] = (patient, value) => patient.ChangeLastnameTo(value?.ToString()),
+                [$"/{nameof(Patient.BirthPlace)}"] = (patient, value) => patient.WasBornIn(value?.ToString()),
+            };
+            
+
             if (id == default)
             {
                 actionResult = new BadRequestResult();
@@ -293,27 +302,46 @@ namespace Patients.API.Controllers
             {
                 using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
                 {
-                    Option<Patient> optionalPatient = await uow.Repository<Patient>().SingleOrDefaultAsync(x => x.UUID == id, cancellationToken)
+                    Option<Patient> optionalPatient = await uow.Repository<Patient>()
+                        .SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
                         .ConfigureAwait(false);
 
                     actionResult = await optionalPatient.Match(
                         some: async (patient) =>
                         {
                             IActionResult patchActionResult = new NoContentResult();
+
                             Func<Operation<PatientInfo>, Operation<Patient>> converter = ExpressionBuilder.GetMapExpression<Operation<PatientInfo>, Operation<Patient>>().Compile();
-                            IEnumerable<Operation<Patient>> operations =
+                            Operation<Patient>[] operations =
                                  changes.Operations
                                  .AsParallel()
                                  .Select(converter)
                                  .ToArray();
 
-                            JsonPatchDocument<Patient> patch = new JsonPatchDocument<Patient>();
-                            patch.Operations.AddRange(operations);
+                            bool canKeepPatching = true;
+                            int currentOperationIndex = 0;
 
-                            patch.ApplyTo(patient, (error) =>
+                            while (canKeepPatching && currentOperationIndex < operations.Count())
                             {
-                                patchActionResult = new BadRequestObjectResult(new { message = error.ErrorMessage });
-                            });
+                                Operation<Patient> currentOperation = operations[currentOperationIndex];
+
+                                switch (currentOperation.OperationType)
+                                {
+                                    case OperationType.Add:
+                                    case OperationType.Replace:
+                                        if (patchActions.TryGetValue(currentOperation.path, out Action<Patient, object> actionToTake))
+                                        {
+                                            actionToTake.Invoke(patient, currentOperation.value);
+                                        }
+                                        break;
+                                    default:
+                                        canKeepPatching = false;
+                                        actionResult = new BadRequestObjectResult($"Unsupported {currentOperation.OperationType} on {currentOperation.path}");
+                                        break;
+                                }
+
+                                currentOperationIndex++;
+                            }
 
                             await uow.SaveChangesAsync(cancellationToken)
                                 .ConfigureAwait(false);

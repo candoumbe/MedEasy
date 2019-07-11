@@ -225,14 +225,9 @@ namespace Measures.API.Features.Patients
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
-            if (!string.IsNullOrEmpty(search.Firstname))
+            if (!string.IsNullOrEmpty(search.Name))
             {
-                filters.Add($"{nameof(search.Firstname)}={search.Firstname}".ToFilter<PatientInfo>());
-            }
-
-            if (!string.IsNullOrEmpty(search.Lastname))
-            {
-                filters.Add($"{nameof(search.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
+                filters.Add($"{nameof(search.Name)}={search.Name}".ToFilter<PatientInfo>());
             }
 
             SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
@@ -266,8 +261,7 @@ namespace Measures.API.Features.Patients
                         first: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = EndpointName,
-                            search.Firstname,
-                            search.Lastname,
+                            search.Name,
                             search.BirthDate,
                             search.Sort,
                             page = 1,
@@ -277,8 +271,7 @@ namespace Measures.API.Features.Patients
                             ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = EndpointName,
-                                search.Firstname,
-                                search.Lastname,
+                                search.Name,
                                 search.BirthDate,
                                 search.Sort,
                                 page = search.Page - 1,
@@ -289,8 +282,7 @@ namespace Measures.API.Features.Patients
                             ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = EndpointName,
-                                search.Firstname,
-                                search.Lastname,
+                                search.Name,
                                 search.BirthDate,
                                 search.Sort,
                                 page = search.Page + 1,
@@ -300,8 +292,7 @@ namespace Measures.API.Features.Patients
                         last: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = EndpointName,
-                            search.Firstname,
-                            search.Lastname,
+                            search.Name,
                             search.BirthDate,
                             search.Sort,
                             page = Math.Max(page.Count, 1),

@@ -80,7 +80,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     Enumerable.Empty<Patient>(),
                     new SearchQueryInfo<PatientInfo>
                     {
-                        Filter = new Filter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
+                        Filter = new Filter(field : nameof(PatientInfo.Name), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
                         PageSize = 3
                     },
@@ -96,13 +96,13 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                    {
                         new []
                         {
-                            new Patient {Id = 1, Firstname = "bruce", Lastname = "wayne" },
-                            new Patient {Id = 2, Firstname = "dick", Lastname = "grayson" },
-                            new Patient {Id = 3, Firstname = "damian", Lastname = "wayne", UUID = patientId },
+                            new Patient(Guid.NewGuid()).ChangeNameTo("bruce wayne"),
+                            new Patient(Guid.NewGuid()).ChangeNameTo("dick grayson"),
+                            new Patient(patientId).ChangeNameTo("damian wayne"),
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
-                            Filter = new Filter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
+                            Filter = new Filter(field : nameof(PatientInfo.Name), @operator : Contains, value : "y"),
                             Page = 3,
                             PageSize = 1
                         },

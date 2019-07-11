@@ -35,11 +35,9 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             {
                 Expression<Func<Appointment, AppointmentInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
 
-                Option<AppointmentInfo> optionalAppointment = await uow.Repository<Appointment>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == request.Data, ct)
+                return (Option<AppointmentInfo>)await uow.Repository<Appointment>()
+                    .SingleOrDefaultAsync(selector, (Appointment x) => x.Id == request.Data, ct)
                     .ConfigureAwait(false);
-
-                return optionalAppointment;
             }
         }
     }

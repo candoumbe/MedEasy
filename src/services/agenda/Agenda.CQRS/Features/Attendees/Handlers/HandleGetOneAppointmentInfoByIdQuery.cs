@@ -39,7 +39,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
                 Expression<Func<Attendee, AttendeeInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
 
                 return await uow.Repository<Attendee>()
-                    .SingleOrDefaultAsync(selector, x => x.Id == request.Data, cancellationToken)
+                    .SingleOrDefaultAsync(selector, (Attendee x) => x.Id == request.Data, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

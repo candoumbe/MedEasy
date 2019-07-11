@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Identity.Objects
 {
-    public class Role : AuditableEntity<int, Role>
+    public class Role : AuditableEntity<Guid, Role>
     {
         public string Code { get; set; }
 
@@ -21,9 +21,9 @@ namespace Identity.Objects
         /// <summary>
         /// Builds a new <see cref="Role"/> instance.
         /// </summary>
-        /// <param name="uuid"></param>
+        /// <param name="id"></param>
         /// <param name="code"></param>
-        public Role(Guid uuid, string code): base(uuid)
+        public Role(Guid id, string code): base(id)
         {
             Code = code;
         }

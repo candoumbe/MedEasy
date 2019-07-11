@@ -50,10 +50,9 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
             using (IDocumentSession session = _documentStore.OpenSession())
             {
                 IEnumerable<string> ids = session.Query<Account>()
-                    .Select(x => x.UUID.ToString());
+                    .Select(x => x.Id.ToString());
 
                 ids.ForEach(id => session.Delete(id));
-
             }
 
             _mediatorMock = null;
@@ -111,7 +110,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
             Guid resourceId = Guid.NewGuid();
             Account existingAccount = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 username: "thebatman",
                 email: "thecaped@crusader.com",
                 passwordHash: "fjeiozfjzfdcvqcnjifozjffkjioj",
@@ -120,7 +119,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Tests.Accounts
 
             using (IDocumentSession session = _documentStore.OpenSession())
             {
-                session.Store(existingAccount, existingAccount.UUID.ToString());
+                session.Store(existingAccount, existingAccount.Id.ToString());
                 session.SaveChanges();
             }
            

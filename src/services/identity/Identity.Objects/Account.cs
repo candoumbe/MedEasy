@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 
 namespace Identity.Objects
 {
-    public class Account : AuditableEntity<int, Account>, IMayHaveTenant
+    public class Account : AuditableEntity<Guid, Account>, IMayHaveTenant
 
     {
         /// <summary>
@@ -67,7 +67,7 @@ namespace Identity.Objects
         /// <summary>
         /// Builds a new <see cref="Account"/> instance
         /// </summary>
-        public Account(Guid uuid, string username, string email, string passwordHash, string salt, string name="", bool locked = false, bool isActive = false, Guid? tenantId = null, string refreshToken = null) : base(uuid)
+        public Account(Guid id, string username, string email, string passwordHash, string salt, string name="", bool locked = false, bool isActive = false, Guid? tenantId = null, string refreshToken = null) : base(id)
         {
             Username = username;
             Name = name;

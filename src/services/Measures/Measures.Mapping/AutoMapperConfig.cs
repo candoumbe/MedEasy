@@ -7,6 +7,8 @@ using MedEasy.RestObjects;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
+using System.Linq;
+using static System.StringSplitOptions;
 
 namespace Measures.Mapping
 {
@@ -22,60 +24,18 @@ namespace Measures.Mapping
         public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
         {
             cfg.CreateCoreMapping();
-            cfg.CreateMap<NewPatientInfo, Patient>()
-                .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.Ignore())
-                ;
-
+            
             cfg.CreateMap<Patient, PatientInfo>()
-                .ForMember(dest => dest.Fullname, opt => opt.Ignore())
-                .IncludeBase<IEntity<int>, Resource<Guid>>()
-                .ReverseMap()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
-                ;
+                .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Name))
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>();
 
             cfg.CreateMap<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
-                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
-                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.Patient.UUID))
-                .ReverseMap()
-                .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))
-                .ForMember(entity => entity.Patient, opt => opt.Ignore())
-                .ForMember(entity => entity.PatientId, opt => opt.Ignore())
-                ;
-
-            cfg.CreateMap<CreateBloodPressureInfo, BloodPressure>()
-                .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.Ignore())
-                .ForMember(entity => entity.Patient, opt => opt.Ignore())
-                .ForMember(entity => entity.PatientId, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore());
+                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.Patient.Id))
+                .ReverseMap();
 
             cfg.CreateMap<BloodPressure, BloodPressureInfo>()
                 .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
-                .ReverseMap()
-                ;
-
-            cfg.CreateMap<CreateTemperatureInfo, Temperature>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.UUID, opt => opt.ResolveUsing((source, dest) => Guid.NewGuid()))
-                .ForMember(dest => dest.PatientId, opt => opt.Ignore())
-                .ForMember(dest => dest.Patient, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore());
+                .ReverseMap();
 
             cfg.CreateMap<Temperature, TemperatureInfo>()
                 .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()

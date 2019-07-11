@@ -6,26 +6,85 @@ namespace Patients.Objects
     /// <summary>
     /// Patient entity
     /// </summary>
-    public class Patient : AuditableEntity<int, Patient>
+    public class Patient : AuditableEntity<Guid, Patient>
     {
         /// <summary>
         /// Firstname
         /// </summary>
-        public string Firstname { get; set; }
-        
+        public string Firstname { get; private set; }
+
         /// <summary>
         /// Lastname
         /// </summary>
-        public string Lastname { get; set; }
+        public string Lastname { get; private set; }
 
         /// <summary>
         /// When the patient was born
         /// </summary>
-        public DateTime? BirthDate { get; set; }
+        public DateTime? BirthDate { get; private set; }
 
         /// <summary>
         /// Where the patient was born
         /// </summary>
-        public string BirthPlace { get; set; }
+        public string BirthPlace { get; private set; }
+
+        /// <summary>
+        /// Builds a new <see cref="Patient"/> instance.
+        /// </summary>
+        /// <param name="id">Id of the instance. Should uniquely identity the instance</param>
+        /// <param name="firstname"></param>
+        /// <param name="lastname"></param>
+        /// <param name="birthplace"></param>
+        /// <param name="birthDate"></param>
+        public Patient(Guid id, string firstname, string lastname)
+            : base(id)
+        {
+            Firstname = firstname;
+            Lastname = lastname;
+        }
+
+        /// <summary>
+        /// Defines the birthdate
+        /// </summary>
+        /// <param name="birthDate"></param>
+        /// <returns></returns>
+        public Patient WasBornOn(DateTime? birthDate)
+        {
+            BirthDate = birthDate;
+            return this;
+        }
+        
+        /// <summary>
+        /// Defines where the patient was born
+        /// </summary>
+        /// <param name="birthPlace"></param>
+        /// <returns></returns>
+        public Patient WasBornIn(string birthPlace)
+        {
+            BirthPlace = birthPlace;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the <see cref="Patient"/>'s <see cref="Firstname"/>
+        /// </summary>
+        /// <param name="newFirstname"></param>
+        /// <returns></returns>
+        public Patient ChangeFirstnameTo(string newFirstname)
+        {
+            Lastname = newFirstname;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the <see cref="Patient"/>'s <see cref="Firstname"/>
+        /// </summary>
+        /// <param name="newLastname"></param>
+        /// <returns></returns>
+        public Patient ChangeLastnameTo(string newLastname)
+        {
+            Lastname = newLastname;
+            return this;
+        }
     }
 }

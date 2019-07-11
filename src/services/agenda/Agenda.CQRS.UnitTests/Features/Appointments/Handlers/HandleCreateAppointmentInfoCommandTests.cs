@@ -130,7 +130,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                bool createdInDatastore = await uow.Repository<Appointment>().AnyAsync(x => x.UUID == appointment.Id)
+                bool createdInDatastore = await uow.Repository<Appointment>().AnyAsync(x => x.Id == appointment.Id)
                     .ConfigureAwait(false);
                 createdInDatastore.Should()
                     .BeTrue();

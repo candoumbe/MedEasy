@@ -47,19 +47,15 @@ namespace Measures.CQRS.Handlers.BloodPressures
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 CreateBloodPressureInfo data = cmd.Data;
-                var optionalPatient = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == data.PatientId)
+                Option<Patient> optionalPatient = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(x => x.Id == data.PatientId)
                     .ConfigureAwait(false);
 
                 return await optionalPatient.Match(
-                    some: async (patient) =>
+                    some: async _ =>
                     {
-                        BloodPressure newEntity = _mapper.Map<CreateBloodPressureInfo, BloodPressure>(data);
-                        newEntity.PatientId = patient.Id;
-                        newEntity.UUID = newEntity.UUID == default
-                            ? Guid.NewGuid()
-                            : newEntity.UUID;
-
+                        BloodPressure newEntity = new BloodPressure(Guid.NewGuid(), data.PatientId, data.DateOfMeasure, data.DiastolicPressure, data.SystolicPressure);
+                        
                         uow.Repository<BloodPressure>().Create(newEntity);
                         await uow.SaveChangesAsync(cancellationToken)
                             .ConfigureAwait(false);

@@ -95,7 +95,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             DateTime utcNow = 10.January(2014).AsUtc();
             Account account = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 username: "thebatman",
                 email: "bwayne@wayne-enterprise.com",
                 name: "Bruce Wayne",
@@ -197,7 +197,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
                 Claim accountIdClaim = jwtAccessToken.Claims.Single(claim => claim.Type == CustomClaimTypes.AccountId);
                 accountIdClaim.Value.Should()
-                    .Be(account.UUID.ToString());
+                    .Be(account.Id.ToString());
 
                 Claim emailClaim = jwtAccessToken.Claims.Single(claim => claim.Type == ClaimTypes.Email);
                 emailClaim.Value.Should()
@@ -255,7 +255,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
                 Claim accountIdClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == CustomClaimTypes.AccountId);
                 accountIdClaim.Value.Should()
-                    .Be(account.UUID.ToString());
+                    .Be(account.Id.ToString());
 
                 Claim emailClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == ClaimTypes.Email);
                 emailClaim.Value.Should()
@@ -268,7 +268,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 string refreshTokenSaved = await uow.Repository<Account>()
-                    .SingleAsync(x => x.RefreshToken, x => x.UUID == account.UUID)
+                    .SingleAsync(x => x.RefreshToken, x => x.Id == account.Id)
                     .ConfigureAwait(false);
 
                 refreshTokenSaved.Should()
@@ -286,7 +286,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             Faker faker = new Faker();
             Account account = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 username: "thebatman",
                 email: "bwayne@wayne-enterprise.com",
                 name: "Bruce Wayne",

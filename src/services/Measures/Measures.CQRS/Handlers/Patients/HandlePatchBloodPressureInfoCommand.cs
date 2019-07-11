@@ -7,8 +7,11 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Optional;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,14 +47,17 @@ namespace Measures.CQRS.Handlers.Patients
 
                 Guid entityId = command.Data.Id;
                 Option<Patient> source = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id, ct)
+                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id, ct)
                     .ConfigureAwait(false);
 
                 ModifyCommandResult result = ModifyCommandResult.Failed_NotFound;
                 source.MatchSome(async entity =>
                     {
                         JsonPatchDocument<Patient> changes = _mapper.Map<JsonPatchDocument<PatientInfo>, JsonPatchDocument<Patient>>(patchDocument);
-                        changes.ApplyTo(entity);
+                        if (changes.Operations.Once(op => op.OperationType !=  OperationType.Test && op.path == $"/{nameof(Patient.Name)}"))
+                        {
+                            entity.ChangeNameTo(changes.Operations.Single(op => op.path == $"/{nameof(Patient.Name)}").value?.ToString());
+                        }
                         await uow.SaveChangesAsync(ct)
                             .ConfigureAwait(false);
 

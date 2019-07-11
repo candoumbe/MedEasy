@@ -124,11 +124,7 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                             PatientId = patientId
                         },
                         new []{
-                            new Patient
-                            {
-                                UUID = patientId,
-                                Lastname = "Freeze"
-                            }
+                            new Patient(patientId).ChangeNameTo("Freeze")
                         },
                         ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
                         $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)} exists and " +
@@ -150,7 +146,7 @@ namespace Measures.Validators.Tests.Features.BloodPressures
 
             // Arrange
             _uowFactoryMock.Setup(mock =>  mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns(new ValueTask<bool>(patients.Any(x => x.UUID == info.PatientId)));
+                .Returns(new ValueTask<bool>(patients.Any(x => x.Id == info.PatientId)));
 
             // Act
             ValidationResult vr = await _validator.ValidateAsync(info);

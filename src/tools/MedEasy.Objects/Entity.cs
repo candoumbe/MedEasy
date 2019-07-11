@@ -10,23 +10,18 @@ namespace MedEasy.Objects
 
         public TKey Id => _id;
 
-#pragma warning disable IDE0044 // Ajouter un modificateur readonly
-        private Guid _uuid;
-#pragma warning restore IDE0044 // Ajouter un modificateur readonly
-
-        public Guid UUID => _uuid;
 
         /// <summary>
         /// Builds a new <see cref="Entity{TKey, TEntry}"/>
         /// </summary>
-        /// <exception cref="ArgumentException"><paramref name="uuid"/> is <c>Guid.Empty</c></exception>
-        protected Entity(Guid uuid)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <c>Guid.Empty</c></exception>
+        protected Entity(TKey id)
         {
-            if (uuid == default)
+            if (Equals(id,default(TKey)))
             {
-                throw new ArgumentException(nameof(uuid));
+                throw new ArgumentOutOfRangeException(nameof(id));
             }
-            _uuid = uuid;
+            _id = id;
         }
     }
 }

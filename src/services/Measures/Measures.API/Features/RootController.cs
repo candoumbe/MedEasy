@@ -92,7 +92,6 @@ namespace Measures.API.Features
                                 Relation = LinkRelation.EditForm,
                                 Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = BloodPressuresController.EndpointName, id = $"{{{nameof(BloodPressureInfo.Id)}}}"})
                             })
-
                     }
                 },
 
@@ -110,14 +109,12 @@ namespace Measures.API.Features
                     {
                         new FormBuilder<NewPatientInfo>(new Link { Relation = LinkRelation.CreateForm, Href = "_", Method = "POST" })
                             .AddField(x => x.Id)
-                            .AddField(x => x.Firstname, new FormFieldAttributeOverrides { MaxLength = 255 })
-                            .AddField(x => x.Lastname, new FormFieldAttributeOverrides { MaxLength = 255 })
+                            .AddField(x => x.Name, new FormFieldAttributeOverrides { MaxLength = 255 })
                             .AddField(x => x.BirthDate, new FormFieldAttributeOverrides {Type = Date })
                             .Build(),
                         new FormBuilder<SearchPatientInfo>(new Link { Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = PatientsController.EndpointName, page, pageSize }), Relation = LinkRelation.Search, Method = "GET" })
                             .AddField(x => x.BirthDate)
-                            .AddField(x => x.Firstname)
-                            .AddField(x => x.Lastname)
+                            .AddField(x => x.Name)
                             .AddField(x => x.Page)
                             .AddField(x => x.PageSize, new FormFieldAttributeOverrides { Max = maxPageSize })
                             .AddField(x => x.Sort)

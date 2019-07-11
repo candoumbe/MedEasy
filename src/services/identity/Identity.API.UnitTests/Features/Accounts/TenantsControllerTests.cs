@@ -91,7 +91,7 @@ namespace Identity.API.Tests.Features.Accounts
             Guid tenantId = Guid.NewGuid();
             Account tenant = new Account
             (
-                uuid: tenantId,
+                id: tenantId,
                 username: "thebatman",
                 passwordHash: "a_super_secret_password",
                 email : "bruce@wayne-entreprise.com",
@@ -100,12 +100,12 @@ namespace Identity.API.Tests.Features.Accounts
             );
             Account newAccount = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 username: "robin",
                 passwordHash : "a_super_secret_password",
                 email : "dick.grayson@wayne-entreprise.com",
                 salt : "salt_and_pepper_for_password",
-                tenantId : tenant.UUID
+                tenantId : tenant.Id
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -162,7 +162,7 @@ namespace Identity.API.Tests.Features.Accounts
             Guid accountId = Guid.NewGuid();
             Account newAccount = new Account
             (
-                uuid: accountId,
+                id: accountId,
                 username: "robin",
                 passwordHash : "a_super_secret_password",
                 email : "dick.grayson@wayne-entreprise.com",

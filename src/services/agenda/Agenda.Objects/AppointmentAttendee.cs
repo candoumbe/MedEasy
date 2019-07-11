@@ -13,9 +13,9 @@ namespace Agenda.Objects
     {
         public Attendee Attendee { get; set; }
 
-        public int AttendeeId { get; set; }
+        public Guid AttendeeId { get; set; }
 
-        public int AppointmentId { get; set; }
+        public Guid AppointmentId { get; set; }
 
         public Appointment Appointment { get; set; }
     }

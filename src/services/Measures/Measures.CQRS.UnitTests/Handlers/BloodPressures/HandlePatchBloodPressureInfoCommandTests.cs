@@ -8,6 +8,7 @@ using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
@@ -109,29 +110,27 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         {
             // Arrange
             Guid idToPatch = Guid.NewGuid();
-            BloodPressure measure = new BloodPressure
-            {
-                UUID = idToPatch,
-                SystolicPressure = 120,
-                DiastolicPressure = 80,
-                DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())),
-                Patient = new Patient
-                {
-                    Firstname = "victor",
-                    Lastname = "zsasz",
-                }
 
-            };
+            Patient patient = new Patient(Guid.NewGuid())
+                .ChangeNameTo("victor zsasz");
+            const float systolic = 120;
+            const float diastolic = 80;
+            patient.AddBloodPressure(
+                measureId : idToPatch,
+                dateOfMeasure: 23.August(2003).Add(15.Hours().Add(30.Minutes())),
+                systolic, diastolic
+            );
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Create(measure);
+                uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-
+            float systolicNewValue = 130;
             JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
-            patchDocument.Replace(x => x.SystolicPressure, 130);
-            
+            patchDocument.Replace(x => x.SystolicPressure, systolicNewValue);
+
             PatchInfo<Guid, BloodPressureInfo> patchInfo = new PatchInfo<Guid, BloodPressureInfo>
             {
                 Id = idToPatch,
@@ -143,21 +142,24 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _sut.Handle(cmd, default)
+            ModifyCommandResult result = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
+            result.Should()
+                .Be(ModifyCommandResult.Done);
+
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureUpdated>(), default), Times.Once, $"{nameof(HandlePatchBloodPressureInfoCommand)} must notify suscribers that a resource was patched.");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 BloodPressure actualMeasure = await uow.Repository<BloodPressure>()
-                     .SingleAsync(x => x.UUID == idToPatch)
+                     .SingleAsync(x => x.Id == idToPatch)
                      .ConfigureAwait(false);
 
-                actualMeasure.SystolicPressure.Should().Be(130);
-                actualMeasure.DiastolicPressure.Should().Be(measure.DiastolicPressure);
+                actualMeasure.SystolicPressure.Should().Be(systolicNewValue);
+                actualMeasure.DiastolicPressure.Should().Be(diastolic);
             }
         }
     }

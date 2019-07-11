@@ -4,6 +4,7 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Objects;
 using MediatR;
+using Optional;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,15 +24,15 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
-                var optionalParticipant = await uow.Repository<Attendee>()
-                                .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == request.Data.attendeeId)
+                Option<Attendee> optionalParticipant = await uow.Repository<Attendee>()
+                                .SingleOrDefaultAsync(x => x.Id == request.Data.attendeeId)
                                 .ConfigureAwait(false);
 
                 return await optionalParticipant.Match(
                     some: async (participant) =>
                     {
-                        var optionalAppointment = await uow.Repository<Appointment>()
-                                 .SingleOrDefaultAsync(x => new { x.Id }, x => x.UUID == request.Data.appointmentId)
+                        Option<Appointment> optionalAppointment = await uow.Repository<Appointment>()
+                                 .SingleOrDefaultAsync(x => x.Id == request.Data.appointmentId)
                                  .ConfigureAwait(false);
 
                         return await optionalAppointment.Match(

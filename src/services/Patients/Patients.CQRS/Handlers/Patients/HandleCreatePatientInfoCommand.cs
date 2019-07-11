@@ -50,13 +50,12 @@ namespace Patients.CQRS.Handlers.Patients
             {
                 CreatePatientInfo newResourceInfo = cmd.Data;
                 
-                Expression<Func<CreatePatientInfo, Patient>> mapDtoToEntityExpression = _expressionBuilder.GetMapExpression<CreatePatientInfo, Patient>();
-                Patient entity = mapDtoToEntityExpression.Compile().Invoke(cmd.Data);
+                Patient entity = new Patient(
+                    newResourceInfo.Id.GetValueOrDefault(Guid.NewGuid()),
+                    firstname : newResourceInfo.Firstname?.ToTitleCase(),
+                    lastname : newResourceInfo.Lastname?.ToUpperInvariant()
+                );
 
-                entity.Firstname = cmd.Data.Firstname?.ToTitleCase();
-                entity.Lastname = cmd.Data.Lastname.ToUpperInvariant();
-                entity.UUID = newResourceInfo.Id.GetValueOrDefault(Guid.NewGuid());
-                
                 uow.Repository<Patient>().Create(entity);
                 await uow.SaveChangesAsync(cancellationToken)
                     .ConfigureAwait(false);

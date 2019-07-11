@@ -48,16 +48,15 @@ namespace Measures.CQRS.Handlers.Patients
                 {
                     throw new InvalidOperationException();
                 }
-                Expression<Func<NewPatientInfo, Patient>> mapDtoToEntityExpression = _expressionBuilder.GetMapExpression<NewPatientInfo, Patient>();
-                Patient entity = mapDtoToEntityExpression.Compile().Invoke(cmd.Data);
+                NewPatientInfo data = cmd.Data;
+                Patient entity = new Patient(data.Id.GetValueOrDefault(Guid.NewGuid()))
+                    .ChangeNameTo(data.Name)
+                    .WasBornIn(data.BirthDate);
 
-                entity.Firstname = cmd.Data.Firstname?.ToTitleCase();
-                entity.Lastname = cmd.Data.Lastname.ToUpperInvariant();
-                entity.UUID = newResourceInfo.Id.GetValueOrDefault(Guid.NewGuid());
                 DateTimeOffset now = DateTimeOffset.UtcNow;
                 entity.UpdatedDate = now;
                 entity.CreatedDate = now;
-                
+
                 uow.Repository<Patient>().Create(entity);
                 await uow.SaveChangesAsync(ct)
                     .ConfigureAwait(false);
@@ -65,7 +64,6 @@ namespace Measures.CQRS.Handlers.Patients
                 Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
 
                 PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
-
 
                 await _mediator.Publish(new PatientCreated(patientInfo), ct);
 

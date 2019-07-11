@@ -54,7 +54,7 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
                     await uow.SaveChangesAsync(ct)
                         .ConfigureAwait(false);
 
-                    Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.UUID), ct)
+                    Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.Id), ct)
                         .ConfigureAwait(false);
 
                     optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));

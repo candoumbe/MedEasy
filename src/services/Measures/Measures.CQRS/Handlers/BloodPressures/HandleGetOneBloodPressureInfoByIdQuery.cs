@@ -38,15 +38,12 @@ namespace Measures.CQRS.Handlers.BloodPressures
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
+                return await uow.Repository<BloodPressure>()
                     .SingleOrDefaultAsync(
                         selector,
-                        (BloodPressure x) => x.UUID == query.Data,
+                        (BloodPressure x) => x.Id == query.Data,
                         cancellationToken)
                     .ConfigureAwait(false);
-
-
-                return result;
             }
         }
     }

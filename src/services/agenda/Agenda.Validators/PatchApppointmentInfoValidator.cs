@@ -79,13 +79,13 @@ namespace Agenda.Validators
                                         if (replaceStartDate != default && replaceStartDate.value is DateTimeOffset newStartDate)
                                         {
                                             valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.UUID == context.Id && x.EndDate <= newStartDate, cancellationToken)
+                                                .AnyAsync(x => x.Id == context.Id && x.EndDate <= newStartDate, cancellationToken)
                                                 .ConfigureAwait(false);
                                         }
                                         else if (replaceEndDate.value is DateTimeOffset newEndDate)
                                         {
                                             valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.UUID == context.Id && x.StartDate >= newEndDate, cancellationToken)
+                                                .AnyAsync(x => x.Id == context.Id && x.StartDate >= newEndDate, cancellationToken)
                                                 .ConfigureAwait(false);
                                         }
                                     }

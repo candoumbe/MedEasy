@@ -124,7 +124,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 {
                     Guid tenantId = Guid.NewGuid();
                     Faker<Account> accountFaker = new Faker<Account>()
-                        .CustomInstantiator(faker => new Account(uuid: Guid.NewGuid(),
+                        .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
                             name: faker.Person.FullName,
                             username: faker.Person.UserName,
                             email: faker.Internet.Email(),

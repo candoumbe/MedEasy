@@ -8,8 +8,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		core.props = core.props
 		global.json = global.json
 		Nuget.config = Nuget.config
+		tests.props = tests.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2DE6B2C5-6D75-4C76-B529-6B0A1849CC58}"
@@ -213,6 +215,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.CQRS.Handlers.EFCore.Tests", "src\services\identity\tests\Identity.CQRS.Handlers.EFCore.Tests\Identity.CQRS.Handlers.EFCore.Tests.csproj", "{FD9FB81E-E6C5-45B7-B697-0054277E092C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0FBBE9AC-2864-45B6-A2A6-CD50EE8CD0DC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2167DF53-F1FB-4E54-A5A1-3F8934E9D43B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Objects.UnitTests", "src\services\measures\tests\unit-tests\Measures.Objects.Tests\Measures.Objects.UnitTests.csproj", "{217FDA46-716E-4BBD-B326-DD528C77215E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1564,6 +1570,22 @@ Global
 		{FD9FB81E-E6C5-45B7-B697-0054277E092C}.Release|x64.Build.0 = Release|Any CPU
 		{FD9FB81E-E6C5-45B7-B697-0054277E092C}.Release|x86.ActiveCfg = Release|Any CPU
 		{FD9FB81E-E6C5-45B7-B697-0054277E092C}.Release|x86.Build.0 = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|ARM.Build.0 = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|x64.Build.0 = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Debug|x86.Build.0 = Debug|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|ARM.ActiveCfg = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|ARM.Build.0 = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|x64.ActiveCfg = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|x64.Build.0 = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|x86.ActiveCfg = Release|Any CPU
+		{217FDA46-716E-4BBD-B326-DD528C77215E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1667,6 +1689,8 @@ Global
 		{DBE30C02-9C2D-452E-9042-78D21F76A294} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
 		{FD9FB81E-E6C5-45B7-B697-0054277E092C} = {0FBBE9AC-2864-45B6-A2A6-CD50EE8CD0DC}
 		{0FBBE9AC-2864-45B6-A2A6-CD50EE8CD0DC} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
+		{2167DF53-F1FB-4E54-A5A1-3F8934E9D43B} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
+		{217FDA46-716E-4BBD-B326-DD528C77215E} = {2167DF53-F1FB-4E54-A5A1-3F8934E9D43B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

@@ -50,7 +50,7 @@ namespace Identity.CQRS.Handlers.RavenDb.Accounts
                             .ConfigureAwait(false);
 
                     Account newAccount = new Account(
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         username: request.Data.Username,
                         name: request.Data.Name ?? request.Data.Username,
                         passwordHash: passwordHash,

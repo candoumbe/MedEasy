@@ -23,19 +23,10 @@ namespace Patients.Mapping
         {
             cfg.CreateCoreMapping();
 
-            cfg.CreateMap<CreatePatientInfo, Patient>()
-                .ForMember(entity => entity.UUID, opt => opt.MapFrom(dto => dto.Id))
-                .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
-                .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
-                .ReverseMap();
-
             cfg.CreateMap<Patient, PatientInfo>()
-                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.UUID))
+                .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.Id))
                 .ForMember(dto => dto.MainDoctorId, opt => opt.Ignore())
-                .IncludeBase<IEntity<int>, Resource<Guid>>()
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
                 .ReverseMap()
                 .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())

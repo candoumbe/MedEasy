@@ -160,7 +160,7 @@ namespace Patients.CQRS.UnitTests.Handlers
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.UUID == createdResource.Id)
+                    .AnyAsync(x => x.Id == createdResource.Id)
                     .ConfigureAwait(false);
 
                 createSuccessful.Should().BeTrue("element should be present after handling the create command");
@@ -220,7 +220,7 @@ namespace Patients.CQRS.UnitTests.Handlers
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.UUID == createdResource.Id)
+                    .AnyAsync(x => x.Id == createdResource.Id)
                     .ConfigureAwait(false);
 
                 createSuccessful.Should().BeTrue("element should be present after handling the create command");

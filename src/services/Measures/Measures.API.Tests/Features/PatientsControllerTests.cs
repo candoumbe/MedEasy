@@ -97,6 +97,7 @@ namespace Measures.API.Tests.Features.Patients
         {
             get
             {
+                Faker faker = new Faker();
                 yield return new object[]
                 {
                     Enumerable.Empty<BloodPressure>(),
@@ -108,7 +109,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     new []
                     {
-                        new BloodPressure { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
+                        new BloodPressure(Guid.NewGuid(), patientId: Guid.NewGuid(), dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
 
@@ -121,7 +122,7 @@ namespace Measures.API.Tests.Features.Patients
                     {
                         new []
                         {
-                            new BloodPressure { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
+                           new BloodPressure(Guid.NewGuid(), patientId, dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
                         (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
@@ -145,7 +146,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     new []
                     {
-                        new Temperature { PatientId = 2, CreatedDate = DateTimeOffset.UtcNow }
+                        new Temperature(Guid.NewGuid(), Guid.NewGuid(), dateOfMeasure: 18.August(2003), value : 37)
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
                     (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any())
@@ -156,7 +157,7 @@ namespace Measures.API.Tests.Features.Patients
                     {
                         new []
                         {
-                            new Temperature { PatientId = 1, CreatedDate = DateTimeOffset.UtcNow, Patient = new Patient { UUID = patientId } }
+                            new Temperature(Guid.NewGuid(), patientId, dateOfMeasure: 18.August(2003), value : 37)
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
                         (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
@@ -203,13 +204,16 @@ namespace Measures.API.Tests.Features.Patients
                 }
 
                 Faker<Patient> patientFaker = new Faker<Patient>()
-                    .RuleFor(x => x.Id, 0)
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
-                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
+                    .CustomInstantiator(faker =>
+                    {
+                        Patient patient = new Patient(Guid.NewGuid());
+                        patient.ChangeNameTo(faker.Person.FullName);
+
+                        return patient;
+                    });
                 {
                     IEnumerable<Patient> items =patientFaker.Generate(400);
-                    items.ForEach(item => item.Id = default);
+
                     yield return new object[]
                     {
                         items,
@@ -242,11 +246,12 @@ namespace Measures.API.Tests.Features.Patients
                     };
                 }
 
-                yield return new object[]
+                {
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.ChangeNameTo("Bruce Wayne");
+                    yield return new object[]
                     {
-                        new [] {
-                            new Patient { Id = 1, Firstname = "Bruce",  Lastname = "Wayne" }
-                        },
+                        new [] { patient },
                         (pageSize : PaginationConfiguration.DefaultPageSize, page : 1), // request
                         (defaultPageSize : 30, maxPageSize : 200),
                         1,    //expected total
@@ -262,6 +267,7 @@ namespace Measures.API.Tests.Features.Patients
                             last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
                         ), // expected link to last page
                     };
+                }
             }
         }
 
@@ -355,7 +361,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
                     {
-                        Firstname = "bruce",
+                        Name = "bruce",
                         Page = 1,
                         PageSize = 30,
                         Sort = "-birthdate"
@@ -370,7 +376,7 @@ namespace Measures.API.Tests.Features.Patients
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
-                                $"&firstname={searchInfo.Firstname}"+
+                                $"&name={searchInfo.Name}"+
                                 $"&page=1&pageSize=30" +
                                 $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         (Expression<Func<Link, bool>>)(previous => previous == null),
@@ -379,7 +385,7 @@ namespace Measures.API.Tests.Features.Patients
                             && x.Relation == LinkRelation.Last
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
-                                $"&firstname={searchInfo.Firstname}"+
+                                $"&name={searchInfo.Name}"+
                                 $"&page=1" +
                                 $"&pageSize=30" +
                                 $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)))
@@ -388,23 +394,24 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
                     {
-                        Lastname = "!wayne",
+                        Name = "!wayne",
                         Page = 1,
                         PageSize = 30,
                         Sort = "-birthdate"
                     };
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.ChangeNameTo("Bruce wayne");
+
                     yield return new object[]
                     {
-                        new [] {
-                            new Patient { Firstname = "Bruce", Lastname = "Wayne" }
-                        },
+                        new [] { patient },
                         searchInfo,
                         (
                            (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
-                                $"&lastname={Uri.EscapeDataString(searchInfo.Lastname)}"+
+                                $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 $"&page=1&pageSize=30" +
                                 $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)),
                             (Expression<Func<Link, bool>>)(previous => previous == null),
@@ -413,7 +420,7 @@ namespace Measures.API.Tests.Features.Patients
                                 && x.Relation == LinkRelation.Last
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
-                                    $"&lastname={Uri.EscapeDataString(searchInfo.Lastname)}"+
+                                    $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30" +
                                     $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))
                         )
@@ -422,22 +429,23 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
                     {
-                        Firstname = "bruce",
+                        Name = "bruce",
                         Page = 1,
                         PageSize = 30,
                     };
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.ChangeNameTo("Bruce");
+
                     yield return new object[]
                     {
-                        new[] {
-                            new Patient{ Firstname = "bruce" }
-                        },
+                        new [] { patient },
                         searchInfo,
                         (
                             (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == LinkRelation.First
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
-                                    $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
+                                    $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             (Expression<Func<Link, bool>>)(previous => previous == null),
                             (Expression<Func<Link, bool>>)(next => next == null),
@@ -445,7 +453,7 @@ namespace Measures.API.Tests.Features.Patients
                                 && x.Relation == LinkRelation.Last
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={PatientsController.EndpointName}" +
-                                    $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
+                                    $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))
                         )
 
@@ -455,23 +463,25 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     SearchPatientInfo searchInfo = new SearchPatientInfo
                     {
-                        Firstname = "bruce",
+                        Name = "bruce",
                         Page = 1,
                         PageSize = 30,
                         BirthDate = 31.July(2010)
                     };
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.ChangeNameTo("Bruce wayne");
+                    patient.WasBornIn(31.July(2010));
+
                     yield return new object[]
                     {
-                        new[] {
-                            new Patient { Firstname = "bruce", BirthDate = 31.July(2010) }
-                        },
+                        new [] { patient },
                         searchInfo,
                         ( (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
                                 $"&Controller={PatientsController.EndpointName}" +
-                                $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
+                                $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         (Expression<Func<Link, bool>>)(previous => previous == null),
                         (Expression<Func<Link, bool>>)(next => next == null),
@@ -480,7 +490,7 @@ namespace Measures.API.Tests.Features.Patients
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
                                 $"&Controller={PatientsController.EndpointName}" +
-                                $"&firstname={Uri.EscapeDataString(searchInfo.Firstname)}"+
+                                $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)))
 
                     };
@@ -563,11 +573,11 @@ namespace Measures.API.Tests.Features.Patients
             {
                 Page = 2,
                 PageSize = 10,
-                Lastname = "*e*"
+                Name = "*e*"
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Page<PatientInfo>.Empty);
+                .ReturnsAsync(Page<PatientInfo>.Empty(pageSize: 10));
 
             // Act
             IActionResult actionResult = await _controller.Search(searchRequest, default)
@@ -585,12 +595,13 @@ namespace Measures.API.Tests.Features.Patients
             {
                 {
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-                    patchDocument.Replace(x => x.Firstname, "Bruce");
+                    patchDocument.Replace(x => x.Name, "Bruce");
+                    Guid patientId = Guid.NewGuid();
                     yield return new object[]
                     {
-                        new Patient { Id = 1, },
+                        new Patient(Guid.NewGuid()),
                         patchDocument,
-                        (Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Firstname == "Bruce")
+                        (Expression<Func<Patient, bool>>)(x => x.Id == patientId && x.Name == "Bruce")
                     };
                 }
             }
@@ -607,7 +618,10 @@ namespace Measures.API.Tests.Features.Patients
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                             .GetMapExpression<Patient, PatientInfo>();
 
-                        return await uow.Repository<Patient>().SingleOrDefaultAsync(selector, x => x.UUID == query.Data, ct)
+                        return await uow.Repository<Patient>().SingleOrDefaultAsync(
+                            selector,
+                            (Patient x) => x.Id == query.Data,
+                            ct)
                             .ConfigureAwait(false);
                     }
                 });
@@ -629,23 +643,19 @@ namespace Measures.API.Tests.Features.Patients
         public async Task Get()
         {
             //Arrange
-            Guid patientId = Guid.NewGuid();
+            Patient patient = new Patient(Guid.NewGuid());
+            patient.ChangeNameTo("Bruce Wayne");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient
-                {
-                    UUID = patientId,
-                    Firstname = "Bruce",
-                    Lastname = "Wayne"
-                });
+                
+                uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
             PatientInfo expectedResource = new PatientInfo
             {
-                Id = patientId,
-                Firstname = "Bruce",
-                Lastname = "Wayne"
+                Id = patient.Id,
+                Name = "Bruce Wayne"
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPatientInfoByIdQuery>(), It.IsAny<CancellationToken>()))
@@ -656,13 +666,13 @@ namespace Measures.API.Tests.Features.Patients
                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                            .GetMapExpression<Patient, PatientInfo>();
 
-                       return await uow.Repository<Patient>().SingleOrDefaultAsync(selector, x => x.UUID == query.Data, ct)
+                       return await uow.Repository<Patient>().SingleOrDefaultAsync(selector, (Patient x) => x.Id == query.Data, ct)
                            .ConfigureAwait(false);
                    }
                });
 
             //Act
-            IActionResult actionResult = await _controller.Get(patientId)
+            IActionResult actionResult = await _controller.Get(patient.Id)
                 .ConfigureAwait(false);
 
             //Assert
@@ -688,7 +698,7 @@ namespace Measures.API.Tests.Features.Patients
             Link self = links.Single(x => x.Relation == LinkRelation.Self);
             self.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={patientId}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={expectedResource.Id}");
             self.Relation.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo(LinkRelation.Self);
@@ -710,8 +720,7 @@ namespace Measures.API.Tests.Features.Patients
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
             actualResource.Id.Should().Be(expectedResource.Id);
-            actualResource.Firstname.Should().Be(expectedResource.Firstname);
-            actualResource.Lastname.Should().Be(expectedResource.Lastname);
+            actualResource.Name.Should().Be(expectedResource.Name);
 
             _urlHelperMock.Verify();
             _mediatorMock.Verify();
@@ -969,8 +978,7 @@ namespace Measures.API.Tests.Features.Patients
             // Arrange
             NewPatientInfo newPatient = new NewPatientInfo
             {
-                Firstname = "Solomon",
-                Lastname = "Grundy"
+                Name = "Solomon Grundy"
             };
 
             MeasuresApiOptions apiOptions = new MeasuresApiOptions { DefaultPageSize = 25, MaxPageSize = 10 };
@@ -980,8 +988,7 @@ namespace Measures.API.Tests.Features.Patients
                 {
                     return Task.FromResult(new PatientInfo
                     {
-                        Firstname = cmd.Data.Firstname,
-                        Lastname = cmd.Data.Lastname,
+                        Name = cmd.Data.Name,
                         BirthDate = cmd.Data.BirthDate,
                         Id = Guid.NewGuid()
                     });
@@ -1039,7 +1046,7 @@ namespace Measures.API.Tests.Features.Patients
         public async Task Patch_UnknownEntity_Returns_NotFound()
         {
             JsonPatchDocument<PatientInfo> changes = new JsonPatchDocument<PatientInfo>();
-            changes.Replace(x => x.Lastname, string.Empty);
+            changes.Replace(x => x.Name, string.Empty);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Failed_NotFound);
@@ -1058,7 +1065,7 @@ namespace Measures.API.Tests.Features.Patients
         {
             // Arrange
             JsonPatchDocument<PatientInfo> changes = new JsonPatchDocument<PatientInfo>();
-            changes.Replace(x => x.Lastname, string.Empty);
+            changes.Replace(x => x.Name, string.Empty);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, PatientInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Done);

@@ -225,17 +225,13 @@ namespace Measures.API.Tests.Features
                 .NotBeNull().And
                 .NotContainNulls().And
                 .OnlyContain(x => !string.IsNullOrWhiteSpace(x.Name)).And
-                .ContainSingle(x => x.Name == nameof(SearchPatientInfo.Firstname)).And
-                .ContainSingle(x => x.Name == nameof(SearchPatientInfo.Lastname)).And
+                .ContainSingle(x => x.Name == nameof(SearchPatientInfo.Name)).And
                 .ContainSingle(x => x.Name == nameof(SearchPatientInfo.BirthDate)).And
                 .ContainSingle(x => x.Name == nameof(SearchPatientInfo.Page)).And
                 .ContainSingle(x => x.Name == nameof(SearchPatientInfo.PageSize));
 
-            FormField patientFirstnameField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Firstname));
-            patientFirstnameField.Type.Should().Be(FormFieldType.String);
-
-            FormField patientLastnameField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Lastname));
-            patientLastnameField.Type.Should().Be(FormFieldType.String);
+            FormField patientNameField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Name));
+            patientNameField.Type.Should().Be(FormFieldType.String);
 
             FormField patientBirthDateField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.BirthDate));
             patientBirthDateField.Type.Should().Be(Date);
@@ -295,21 +291,14 @@ namespace Measures.API.Tests.Features
             patientsCreateForm.Items.Should()
                 .NotBeNullOrEmpty().And
                 .NotContainNulls().And
-                .ContainSingle(field => field.Name == nameof(NewPatientInfo.Firstname)).And
-                .ContainSingle(field => field.Name == nameof(NewPatientInfo.Lastname)).And
+                .ContainSingle(field => field.Name == nameof(NewPatientInfo.Name)).And
                 .ContainSingle(field => field.Name == nameof(NewPatientInfo.BirthDate))
                 ;
 
-            FormField createPatientFirstnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.Firstname));
-            createPatientFirstnameField.Type.Should()
+            FormField createPatientNameField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.Name));
+            createPatientNameField.Type.Should()
                 .Be(FormFieldType.String);
-            createPatientFirstnameField.MaxLength.Should()
-                .Be(255);
-
-            FormField createPatientLastnameField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.Lastname));
-            createPatientLastnameField.Type.Should()
-                .Be(FormFieldType.String);
-            createPatientLastnameField.MaxLength.Should()
+            createPatientNameField.MaxLength.Should()
                 .Be(255);
 
             FormField createPatientBirthDateField = patientsCreateForm.Items.Single(field => field.Name == nameof(NewPatientInfo.BirthDate));

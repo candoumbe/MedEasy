@@ -23,15 +23,7 @@ namespace Measures.DTO
         [JsonProperty]
         [Required]
         [StringLength(255)]
-        public string Firstname { get; set; }
-
-        /// <summary>
-        /// Patient's lastname
-        /// </summary>
-        [JsonProperty]
-        [Required]
-        [StringLength(255)]
-        public string Lastname { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Patient's birth date

@@ -461,8 +461,7 @@ namespace Measures.API.IntegrationTests
             // Arrange
             NewPatientInfo newPatientInfo = new NewPatientInfo
             {
-                Firstname = "Solomon",
-                Lastname = "Grundy"
+                Name = "Solomon Grundy"
             };
             string username = $"batman_{Guid.NewGuid()}";
             NewAccountInfo newAccountInfo = new NewAccountInfo
@@ -524,8 +523,7 @@ namespace Measures.API.IntegrationTests
             // Arrange
             NewPatientInfo newPatient = new NewPatientInfo
             {
-                Firstname = "Victor",
-                Lastname = "Freeze"
+                Name = "Victor Freeze"
             };
 
             string username = $"batman_{Guid.NewGuid()}";

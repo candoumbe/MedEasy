@@ -125,29 +125,22 @@ namespace Measures.API.Tests.Features.BloodPressures
                 }
 
                 Faker<Patient> patientFaker = new Faker<Patient>()
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
-                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
-
-                int patientId = 0;
-                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
-                    .RuleFor(x => x.Id, 0)
-                    .RuleFor(x => x.SystolicPressure, faker => faker.Random.Int(min: 120, max: 160))
-                    .RuleFor(x => x.DiastolicPressure, (faker, measure) => measure.SystolicPressure - 40)
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.DateOfMeasure, faker => faker.Date.Recent(days : 7))
-                    .RuleFor(x => x.CreatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.UpdatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.CreatedDate, faker => faker.Date.Recent())
-                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
-                    .RuleFor(x => x.Patient, () =>
+                    .CustomInstantiator(faker =>
                     {
-                        Patient p = patientFaker.Generate();
-                        patientId++;
-                        p.Id = patientId;
-                        return p;
-                    })
-                    ;
+                        Patient patient = new Patient(Guid.NewGuid());
+
+                        patient.ChangeNameTo(faker.Person.FullName);
+
+                        return patient;
+                    });
+
+                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
+                    .CustomInstantiator(faker => new BloodPressure(
+                            Guid.NewGuid(),
+                            patientId: Guid.NewGuid(),
+                            dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
+                            systolicPressure: 120, diastolicPressure: 80
+                        ));
                 {
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     yield return new object[]
@@ -169,12 +162,8 @@ namespace Measures.API.Tests.Features.BloodPressures
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((item, pos) =>
                     {
-                        item.Id = default;
-                        item.Patient = new Patient
-                        {
-                            Id = pos,
-                            UUID = Guid.NewGuid()
-                        };
+
+                        item.Patient = new Patient(Guid.NewGuid());
                     });
 
                     yield return new object[]
@@ -194,13 +183,12 @@ namespace Measures.API.Tests.Features.BloodPressures
                 yield return new object[]
                 {
                     new [] {
-                        new BloodPressure { Id = 1, SystolicPressure = 120, DiastolicPressure = 80, Patient = new Patient
-                        {
-                            Id = 1,
-                            UUID = Guid.NewGuid()
-                        }
-
-                    }
+                        new BloodPressure(
+                            Guid.NewGuid(),
+                            patientId : Guid.NewGuid(),
+                            dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
+                            systolicPressure : 120, diastolicPressure : 80
+                        )
                     },
                     PaginationConfiguration.DefaultPageSize, 1, // request
                     1,    //expected total
@@ -282,28 +270,28 @@ namespace Measures.API.Tests.Features.BloodPressures
             get
             {
                 Faker<Patient> patientFaker = new Faker<Patient>()
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
-                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
-
-                int patId = 0;
-                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
-                    .RuleFor(x => x.Id, 0)
-                    .RuleFor(x => x.SystolicPressure, faker => faker.Random.Int(min: 120, max: 160))
-                    .RuleFor(x => x.DiastolicPressure, (faker, measure) => measure.SystolicPressure - 40)
-                    .RuleFor(x => x.DateOfMeasure, faker => faker.Date.Between(start : 1.January(2001), end: 31.January(2001)))
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.CreatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.UpdatedBy, faker => faker.Person.UserName)
-                    .RuleFor(x => x.CreatedDate, faker => faker.Date.Recent())
-                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
-                    .RuleFor(x => x.Patient, () =>
+                    .CustomInstantiator(faker =>
                     {
-                        Patient p = patientFaker.Generate();
-                        patId++;
-                        p.Id = patId;
-                        return p;
+                        Patient patient = new Patient(Guid.NewGuid());
+
+                        patient.ChangeNameTo(faker.Person.FullName);
+
+                        return patient;
                     });
+                Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
+                    .CustomInstantiator(faker =>
+                    {
+                        BloodPressure measure = new BloodPressure(
+                            Guid.NewGuid(),
+                            patientId: Guid.NewGuid(),
+                            dateOfMeasure: faker.Date.Between(start: 1.January(2001), end: 31.January(2001)),
+                            diastolicPressure : 80,
+                            systolicPressure : 120
+                        );
+
+                        return measure;
+                    });
+
                 {
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
 
@@ -340,27 +328,27 @@ namespace Measures.API.Tests.Features.BloodPressures
                 yield return new object[]
                 {
                     new [] {
-                        new BloodPressure
-                        {
-                            UUID = Guid.NewGuid(),
-                            SystolicPressure = 120,
-                            DiastolicPressure = 80,
-                            DateOfMeasure = 23.June(2012).Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0)),
-                            Patient = new Patient { UUID = Guid.NewGuid() }
-                        }
+                        new BloodPressure(
+
+                            id: Guid.NewGuid(),
+                            patientId : Guid.NewGuid(),
+                            dateOfMeasure : 23.June(2012).Add(10.Hours().Add(30.Minutes())),
+                            diastolicPressure : 80,
+                            systolicPressure : 120
+                        )
                     },
                     new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
-                    (maxPageSize : 200, pageSize : 30),
+                    (maxPageSize: 200, pageSize: 30),
                     (
-                        count : 1,
-                        items :
+                        count: 1,
+                        items:
                           (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                            resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure )),
-                        links : (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                            previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                            resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure)),
+                        links: (
+                            firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previousPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to previous page
+                            nextPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to next page
+                            lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                         )
                     )
                 };
@@ -370,17 +358,7 @@ namespace Measures.API.Tests.Features.BloodPressures
                     yield return new object[]
                     {
                         new [] {
-                            new BloodPressure
-                            {
-                                UUID = Guid.NewGuid(),
-                                SystolicPressure = 120,
-                                DiastolicPressure = 80,
-                                DateOfMeasure = 23.June(2012).Add(new TimeSpan(hours : 10, minutes : 30, seconds : 0)),
-                                Patient = new Patient
-                                {
-                                    UUID = patientId
-                                }
-                            }
+                            new BloodPressure(Guid.NewGuid(), patientId, dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes()) ), systolicPressure:120, diastolicPressure: 80)
                         },
                         new SearchBloodPressureInfo { PatientId = patientId }, // request
                         (maxPageSize : 200, pageSize : 30),
@@ -496,13 +474,7 @@ namespace Measures.API.Tests.Features.BloodPressures
                         new SearchBloodPressureInfo { Page = 2, PageSize = 30 },
                         (maxPageSize : 30, defaultPageSize : 30),
                         new [] {
-                            new BloodPressure
-                            {
-                                UUID = Guid.NewGuid(),
-                                DiastolicPressure = 80,
-                                SystolicPressure = 120,
-                                Patient = new Patient { UUID = Guid.NewGuid() }
-                            }
+                            new BloodPressure(Guid.NewGuid(), Guid.NewGuid(), 22.January(1987), diastolicPressure : 80, systolicPressure: 120)
                         },
                         "page index is not 1 and there's no result for the search query"
                     };
@@ -535,7 +507,8 @@ namespace Measures.API.Tests.Features.BloodPressures
                         SearchQueryInfo<BloodPressureInfo> search = request.Data;
                         Expression<Func<BloodPressure, bool>> filter = search.Filter?.ToExpression<BloodPressure>() ?? (_ => true);
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                        Page<BloodPressureInfo> resources = await uow.Repository<BloodPressure>()
+
+                        return await uow.Repository<BloodPressure>()
                             .WhereAsync(
                                 selector,
                                 filter,
@@ -544,8 +517,6 @@ namespace Measures.API.Tests.Features.BloodPressures
                                 search.Page,
                                 cancellationToken)
                             .ConfigureAwait(false);
-
-                        return resources;
                     }
                 });
             // Act
@@ -582,20 +553,21 @@ namespace Measures.API.Tests.Features.BloodPressures
         {
             // Arrange
             Guid measureId = Guid.NewGuid();
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Create(new BloodPressure
-                {
-                    SystolicPressure = 150,
-                    DiastolicPressure = 90,
-                    UUID = measureId,
-                    Patient = new Patient
-                    {
-                        Firstname = "Bruce",
-                        Lastname = "Wayne",
-                        UUID = Guid.NewGuid()
-                    }
-                });
+                Patient patient = new Patient(Guid.NewGuid());
+                patient.ChangeNameTo("Bruce Wayne");
+
+                BloodPressure measure = new BloodPressure(
+                    Guid.NewGuid(),
+                    patient.Id,
+                    dateOfMeasure: 24.April(1997),
+                    systolicPressure : 150,
+                    diastolicPressure : 90
+                    
+                );
+                uow.Repository<BloodPressure>().Create(measure);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -610,7 +582,7 @@ namespace Measures.API.Tests.Features.BloodPressures
                         Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
                             .SingleOrDefaultAsync(
                                 selector,
-                                (BloodPressure x) => x.UUID == query.Data,
+                                (BloodPressure x) => x.Id == query.Data,
                                 cancellationToken)
                             .ConfigureAwait(false);
 

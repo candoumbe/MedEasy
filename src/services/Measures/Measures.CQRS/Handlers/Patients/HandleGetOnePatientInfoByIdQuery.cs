@@ -41,7 +41,7 @@ namespace Measures.CQRS.Handlers.Patients
                 Option<PatientInfo> result = await uow.Repository<Patient>()
                     .SingleOrDefaultAsync(
                         selector,
-                        (Patient x) => x.UUID == query.Data,
+                        (Patient x) => x.Id == query.Data,
                         cancellationToken)
                     .ConfigureAwait(false);
 

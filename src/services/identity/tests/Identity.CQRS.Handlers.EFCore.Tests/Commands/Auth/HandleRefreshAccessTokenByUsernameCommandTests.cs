@@ -171,7 +171,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
            );
             Account account = new Account
             (
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 name : faker.Person.FullName,
                 email : faker.Person.Email,
                 passwordHash : faker.Lorem.Word(),

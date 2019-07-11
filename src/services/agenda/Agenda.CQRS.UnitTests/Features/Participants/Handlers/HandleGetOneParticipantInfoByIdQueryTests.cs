@@ -77,7 +77,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             // Arrange
             Guid attendeeId = Guid.NewGuid();
-            Attendee attendee = new Attendee(uuid: attendeeId, name: "Bruce Wayne");
+            Attendee attendee = new Attendee(id: attendeeId, name: "Bruce Wayne");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -98,7 +98,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                 .BeTrue($"the record <{attendeeId}> exists in the datastore");
             optionalAttendee.MatchSome((attendeeInfo) =>
             {
-                attendeeInfo.Id.Should().Be(attendee.UUID);
+                attendeeInfo.Id.Should().Be(attendee.Id);
                 attendeeInfo.Name.Should().Be(attendee.Name);
                 attendeeInfo.PhoneNumber.Should().Be(attendee.PhoneNumber);
                 attendeeInfo.Email.Should().Be(attendee.Email);

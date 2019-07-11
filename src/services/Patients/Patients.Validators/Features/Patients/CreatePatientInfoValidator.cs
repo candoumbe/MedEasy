@@ -37,7 +37,8 @@ namespace Patients.Validators.Features.Patients.DTO
                     using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
                         return !await uow.Repository<Objects.Patient>()
-                            .AnyAsync(p => p.UUID == id);
+                            .AnyAsync(p => p.Id == id)
+                            .ConfigureAwait(false);
                     }
                 })
                 .When(x => x.Id != default);
@@ -56,7 +57,7 @@ namespace Patients.Validators.Features.Patients.DTO
                     using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
                     {
                         return await uow.Repository<Objects.Doctor>()
-                                .AnyAsync(doc => doc.UUID == mainDoctorId, cancellationToken)
+                                .AnyAsync(doc => doc.Id == mainDoctorId, cancellationToken)
                                 .ConfigureAwait(false);
                     }
                 })

@@ -42,9 +42,9 @@ namespace Measures.CQRS.Handlers.BloodPressures
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 DeleteCommandResult result = DeleteCommandResult.Done;
-                if (await uow.Repository<BloodPressure>().AnyAsync(x => x.UUID == cmd.Data).ConfigureAwait(false))
+                if (await uow.Repository<BloodPressure>().AnyAsync(x => x.Id == cmd.Data).ConfigureAwait(false))
                 {
-                    uow.Repository<BloodPressure>().Delete(x => x.UUID == cmd.Data);
+                    uow.Repository<BloodPressure>().Delete(x => x.Id == cmd.Data);
                     await uow.SaveChangesAsync(cancellationToken)
                         .ConfigureAwait(false);
 

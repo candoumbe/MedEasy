@@ -107,7 +107,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             Guid idToDelete = Guid.NewGuid();
             Account entity = new Account
             (
-                uuid: idToDelete,
+                id: idToDelete,
                 name: "victor zsasz",
                 username: "victorzsasz",
                 email: "victor_zsasz@gotham.fr",
@@ -141,7 +141,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = !await uow.Repository<Account>()
-                     .AnyAsync(x => x.UUID == idToDelete)
+                     .AnyAsync(x => x.Id == idToDelete)
                      .ConfigureAwait(false);
 
                 deleteSuccessfull.Should().BeTrue("element should not be present after handling the delete command");
@@ -161,7 +161,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             Guid idToDelete = Guid.NewGuid();
             Account tenant = new Account
            (
-               uuid: Guid.NewGuid(),
+               id: Guid.NewGuid(),
                name: "victor zsasz",
                username: "victorzsasz",
                email: "victor_zsasz@gotham.fr",
@@ -171,13 +171,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
 
             Account account = new Account
             (
-                uuid: idToDelete,
+                id: idToDelete,
                 name: "victor zsasz",
                 username: "victorzsasz_minion",
                 email: "victor_zsasz_minion@gotham.fr",
                 salt: "knife",
                 passwordHash: "cut_up",
-                tenantId: tenant.UUID
+                tenantId: tenant.Id
             );
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -186,7 +186,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .ConfigureAwait(false);
             }
 
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(tenant.UUID);
+            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(tenant.Id);
 
             // Act
             DeleteCommandResult result = await _sut.Handle(cmd, default)
@@ -199,7 +199,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = !await uow.Repository<Account>()
-                     .AnyAsync(x => x.UUID == idToDelete)
+                     .AnyAsync(x => x.Id == idToDelete)
                      .ConfigureAwait(false);
 
                 deleteSuccessfull.Should().BeFalse("acouunt to delete is a tenant");

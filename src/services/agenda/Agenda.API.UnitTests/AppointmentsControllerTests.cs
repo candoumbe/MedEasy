@@ -251,7 +251,7 @@ namespace Agenda.API.UnitTests.Features
 
             Appointment appointment = new Appointment(
 
-                uuid: appointmentId,
+                id: appointmentId,
                 location : "Wayne Tower",
                 subject : "Confidential",
                 startDate : 12.July(2013).AddHours(14).AddMinutes(30),
@@ -259,8 +259,8 @@ namespace Agenda.API.UnitTests.Features
 
             );
 
-            appointment.AddAttendee(new Attendee(uuid: Guid.NewGuid(), name:"Bruce Wayne"));
-            appointment.AddAttendee(new Attendee(uuid: Guid.NewGuid(), name:"Dick Grayson"));
+            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name:"Bruce Wayne"));
+            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name:"Dick Grayson"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -281,7 +281,7 @@ namespace Agenda.API.UnitTests.Features
                         _outputHelper.WriteLine($"selector : {selector}");
 
                         AppointmentInfo appointmentInfo = await uow.Repository<Appointment>()
-                            .SingleAsync(selector, x => x.UUID == query.Data, ct)
+                            .SingleAsync(selector, x => x.Id == query.Data, ct)
                             .ConfigureAwait(false);
 
                         return Option.Some(appointmentInfo);
@@ -368,7 +368,7 @@ namespace Agenda.API.UnitTests.Features
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(appointment => appointment.EndDate, (faker, appointment) => appointment.StartDate.Add(11.Hours()))
                         .CustomInstantiator((faker) => new Appointment(
-                            uuid: Guid.NewGuid(),
+                            id: Guid.NewGuid(),
                             startDate: 10.January (2016).At(10.Hours()),
                             endDate: 10.January(2016).At(10.Hours().And(30.Minutes())),
                             subject: string.Empty,
@@ -433,7 +433,7 @@ namespace Agenda.API.UnitTests.Features
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator((faker) => new Appointment(
-                            uuid: Guid.NewGuid(),
+                            id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(wordCount: 5),
                             location: faker.Address.City(),
                             startDate : 10.January(2016).At(10.Hours()),

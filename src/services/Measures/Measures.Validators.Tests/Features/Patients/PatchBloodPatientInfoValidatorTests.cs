@@ -127,9 +127,9 @@ namespace Measures.Validators.Tests.Features.Patients
                     return sb.ToString(0, desiredLength);
                 }
                 {
-                    string lastnameIsTooLong = computeLongString(101);
+                    string nameIsTooLong = computeLongString(101);
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-                    patchDocument.Replace(x => x.Lastname, lastnameIsTooLong);
+                    patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
                     {
@@ -138,19 +138,19 @@ namespace Measures.Validators.Tests.Features.Patients
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase)
                                 && error.Severity == Error))),
-                        $"new {nameof(PatientInfo.Lastname)} cannot contain more than 100 characters."
+                        $"new {nameof(PatientInfo.Name)} cannot contain more than 100 characters."
                     };
                 }
                 {
-                    string lastnameIsTooLong = computeLongString(100);
+                    string nameIsTooLong = computeLongString(100);
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-                    patchDocument.Replace(x => x.Lastname, lastnameIsTooLong);
+                    patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
                     {
                         patchDocument,
                         ((Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid)),
-                        $"new {nameof(PatientInfo.Lastname)} is 100 characters long."
+                        $"new {nameof(PatientInfo.Name)} is 100 characters long."
                     };
                 }
             }

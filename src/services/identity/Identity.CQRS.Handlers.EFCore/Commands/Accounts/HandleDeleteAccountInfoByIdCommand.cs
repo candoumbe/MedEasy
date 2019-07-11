@@ -41,9 +41,9 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
                 {
                     cmdResult = DeleteCommandResult.Failed_Conflict;
                 }
-                else if(await uow.Repository<Account>().AnyAsync(x => x.UUID == idToDelete, ct).ConfigureAwait(false))
+                else if(await uow.Repository<Account>().AnyAsync(x => x.Id == idToDelete, ct).ConfigureAwait(false))
                 {
-                    uow.Repository<Account>().Delete(x => x.UUID == idToDelete);
+                    uow.Repository<Account>().Delete(x => x.Id == idToDelete);
                     await uow.SaveChangesAsync(ct)
                         .ConfigureAwait(false);
 

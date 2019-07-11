@@ -100,7 +100,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator(faker => new Appointment(
-                            uuid: Guid.NewGuid(),
+                            id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
                             startDate: 10.April(2000).At(13.Hours()),

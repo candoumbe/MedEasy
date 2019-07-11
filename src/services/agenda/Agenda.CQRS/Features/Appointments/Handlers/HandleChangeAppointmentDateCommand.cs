@@ -65,7 +65,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 Option<Appointment> optionalAppointment = await uow.Repository<Appointment>()
-                    .SingleOrDefaultAsync(app => app.UUID == appointmentId, cancellationToken).ConfigureAwait(false);
+                    .SingleOrDefaultAsync(app => app.Id == appointmentId, cancellationToken).ConfigureAwait(false);
 
                 return await optionalAppointment.Match(
                     some : async (appointment) =>
@@ -73,7 +73,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                         ModifyCommandResult result;
 
                         bool willOverlapAnotherAppointment = await uow.Repository<Appointment>()
-                            .AnyAsync(app => app.UUID != appointmentId
+                            .AnyAsync(app => app.Id != appointmentId
                                 && ((start <= app.StartDate && app.StartDate <= end) || (start <= app.EndDate && app.EndDate <= end))   // another appointment starts before and end after
                             );
 

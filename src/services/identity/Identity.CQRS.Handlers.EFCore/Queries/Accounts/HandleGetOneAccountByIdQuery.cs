@@ -36,17 +36,9 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                var optionalAccount = await uow.Repository<Account>()
-                    .SingleOrDefaultAsync(x => new
-                    {
-                        Name = x.Name ?? x.Username, 
-                        x.Username,
-                        Id = x.UUID,
-                        x.UpdatedDate,
-                        x.Email
-
-                    },
-                    x => x.UUID == query.Data,
+                // TODO use a selector
+                Option<Account> optionalAccount = await uow.Repository<Account>()
+                    .SingleOrDefaultAsync(x => x.Id== query.Data,
                     ct)
                     .ConfigureAwait(false);
 

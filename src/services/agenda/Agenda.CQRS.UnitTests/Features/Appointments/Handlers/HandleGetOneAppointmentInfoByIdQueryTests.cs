@@ -82,13 +82,13 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             Guid appointmentId = Guid.NewGuid();
             Appointment appointment = new Appointment
             (
-                uuid: appointmentId,
+                id: appointmentId,
                 location : "Wayne Tower",
                 subject :"Contengency",
                 startDate : 1.April(2018).AddHours(15),
                 endDate : 1.April(2018).AddHours(16)
             );
-            Attendee bruce = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
+            Attendee bruce = new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne");
             appointment.AddAttendee(bruce);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -109,7 +109,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             optionalAppointment.HasValue.Should().BeTrue($"the record <{appointmentId}> exists in the datastore");
             optionalAppointment.MatchSome((appointmentInfo) =>
             {
-                appointmentInfo.Id.Should().Be(appointment.UUID);
+                appointmentInfo.Id.Should().Be(appointment.Id);
                 appointmentInfo.Location.Should().Be(appointment.Location);
                 appointmentInfo.Subject.Should().Be(appointment.Subject);
                 appointmentInfo.StartDate.Should().Be(appointment.StartDate);
@@ -118,7 +118,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .HaveSameCount(appointment.Attendees);
 
                 AttendeeInfo attendeeInfo = appointmentInfo.Attendees.ElementAt(0);
-                attendeeInfo.Id.Should().Be(bruce.UUID);
+                attendeeInfo.Id.Should().Be(bruce.Id);
                 attendeeInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Attendee.Name);
                 attendeeInfo.UpdatedDate.Should()
                     .NotBe(DateTimeOffset.MinValue).And

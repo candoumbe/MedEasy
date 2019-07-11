@@ -112,7 +112,7 @@ namespace Agenda.Validators.UnitTests
                         new[]
                         {
                             new Appointment(
-                                uuid:  appointmentId,
+                                id:  appointmentId,
                                 startDate: 12.January(2019).At(10.Hours()),
                                 endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
                                 subject: string.Empty,
@@ -143,7 +143,7 @@ namespace Agenda.Validators.UnitTests
                         new[]
                         {
                             new Appointment(
-                                uuid: appointmentId,
+                                id: appointmentId,
                                 startDate : 12.January(2019).At(10.Hours()),
                                 endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
                                 location: "Somewhere in metropolis",
@@ -174,7 +174,7 @@ namespace Agenda.Validators.UnitTests
                         {
                             new Appointment
                             (
-                                uuid: appointmentId,
+                                id: appointmentId,
                                 startDate: 12.January(2019).Add(10.Hours()),
                                 endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
                                 subject: string.Empty,
@@ -201,7 +201,7 @@ namespace Agenda.Validators.UnitTests
                         {
                              new Appointment
                             (
-                                uuid: appointmentId,
+                                id: appointmentId,
                                 startDate: 12.January(2019).Add(10.Hours()),
                                 endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
                                 subject: string.Empty,

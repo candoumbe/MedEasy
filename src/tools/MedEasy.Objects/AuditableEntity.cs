@@ -12,6 +12,6 @@ namespace MedEasy.Objects
 
         public string UpdatedBy { get; set; }
 
-        protected AuditableEntity(Guid uuid) : base(uuid) {}
+        protected AuditableEntity(TKey id) : base(id) {}
     }
 }

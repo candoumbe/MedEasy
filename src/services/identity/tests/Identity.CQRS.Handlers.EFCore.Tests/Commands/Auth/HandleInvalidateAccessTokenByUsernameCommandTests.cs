@@ -102,7 +102,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
                 passwordHash : faker.Lorem.Word(),
                 salt : faker.Lorem.Word(),
                 name : "Victor Jones",
-                uuid: Guid.NewGuid(),
+                id: Guid.NewGuid(),
                 email: "victor.jones@home.dc"
             );
             account.ChangeRefreshToken(securityToken.ToString());
@@ -127,7 +127,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 string refreshTokenInStore = await uow.Repository<Account>()
-                    .SingleAsync(x => x.RefreshToken, x => x.UUID == account.UUID)
+                    .SingleAsync(x => x.RefreshToken, x => x.Id == account.Id)
                     .ConfigureAwait(false);
 
                 refreshTokenInStore.Should()

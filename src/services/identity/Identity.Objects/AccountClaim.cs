@@ -9,11 +9,11 @@ namespace Identity.Objects
     /// <remarks>
     /// This association takes precedence over a <see cref="RoleClaim"/> association for a given <see cref="Claim"/>.
     /// </remarks>
-    public class AccountClaim : AuditableEntity<int,AccountClaim>
+    public class AccountClaim : AuditableEntity<Guid,AccountClaim>
     {
-        public int ClaimId { get; private set; }
+        public Guid ClaimId { get; private set; }
 
-        public int AccountId { get; private set;  }
+        public Guid AccountId { get; private set;  }
 
         /// <summary>
         /// Overrides the <see cref="Claim"/>'s <see cref="Claim.Value"/> for the current <see cref="Account"/>
@@ -34,8 +34,8 @@ namespace Identity.Objects
         /// </summary>
         public DateTimeOffset? End { get; }
 
-        public AccountClaim(Guid uuid, int accountId, int claimId, string value, DateTimeOffset start, DateTimeOffset? end)
-            : base(uuid)
+        public AccountClaim(Guid id, Guid accountId, Guid claimId, string value, DateTimeOffset start, DateTimeOffset? end)
+            : base(id)
         {
             Value = value;
             Start = start;

@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Patients.API.Context;
 using Patients.API.Controllers;
 using Patients.API.Routing;
 using Patients.Context;
@@ -108,7 +107,7 @@ namespace Patients.API.UnitTests.Controllers
                             Enumerable.Empty<Patient>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
-                            (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First 
+                            (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First
                                 &&
                                 ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                 $"Controller={PatientsController.EndpointName}" +
@@ -127,13 +126,11 @@ namespace Patients.API.UnitTests.Controllers
                 }
 
                 Faker<Patient> patientFaker = new Faker<Patient>()
-                    .RuleFor(x => x.UUID, () => Guid.NewGuid())
-                    .RuleFor(x => x.Firstname, faker => faker.Person.FirstName)
-                    .RuleFor(x => x.Lastname, faker => faker.Person.LastName);
+                    .CustomInstantiator(faker => new Patient(Guid.NewGuid(), faker.Person.FirstName, faker.Person.LastName));
 
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
-                    items.ForEach(item => item.Id = default);
+                    
                     yield return new object[]
                     {
                         items,
@@ -163,7 +160,7 @@ namespace Patients.API.UnitTests.Controllers
                 yield return new object[]
                     {
                         new [] {
-                            new Patient { Id = 1, Firstname = "Bruce",  Lastname = "Wayne" }
+                            new Patient(Guid.NewGuid(), firstname: "Bruce",  lastname: "Wayne")
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
@@ -428,11 +425,13 @@ namespace Patients.API.UnitTests.Controllers
                     JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
                     patchDocument.Add(x => x.Lastname, "Grayson");
 
+                    Guid patientId = Guid.NewGuid();
                     yield return new object[]
                     {
-                        new Patient { Id = 1, UUID = Guid.NewGuid(), Lastname = "Wayne", BirthDate = 14.June(1960) },
+                        new Patient(patientId, firstname: null,  lastname: "Wayne")
+                            .WasBornOn(14.June(1960)),
                         patchDocument,
-                        (Expression<Func<Patient, bool>>)(x => x.Id == 1 && x.Lastname == "Grayson")
+                        (Expression<Func<Patient, bool>>)(x => x.Id == patientId && x.Lastname == "Grayson")
                     };
                 }
             }
@@ -454,7 +453,7 @@ namespace Patients.API.UnitTests.Controllers
             }
 
             // Act
-            IActionResult actionResult = await _sut.Patch(source.UUID, patchDocument)
+            IActionResult actionResult = await _sut.Patch(source.Id, patchDocument)
                 .ConfigureAwait(false);
 
             // Assert
@@ -464,7 +463,7 @@ namespace Patients.API.UnitTests.Controllers
 
             using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
-                Patient sourceAfterPatch = await uow.Repository<Patient>().SingleAsync(x => x.UUID == source.UUID)
+                Patient sourceAfterPatch = await uow.Repository<Patient>().SingleAsync(x => x.Id == source.Id)
                     .ConfigureAwait(false);
                 sourceAfterPatch.Should().Match(patchResultExpectation);
             }
@@ -515,7 +514,7 @@ namespace Patients.API.UnitTests.Controllers
 
             using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient { UUID = patientId, Firstname = "Bruce", Lastname = "Wayne" });
+                uow.Repository<Patient>().Create(new Patient(patientId, firstname: "Bruce", lastname: "Wayne")) ;
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

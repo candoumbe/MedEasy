@@ -9,6 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Optional;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
         private IUnitOfWorkFactory _uowFactory;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+        private readonly IDictionary<string, Action<BloodPressure, object>> _actions;
 
         /// <summary>
         /// Builds a new <see cref="HandlePatchBloodPressureInfoCommand"/> instance.
@@ -34,6 +36,12 @@ namespace Measures.CQRS.Handlers.BloodPressures
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            //_actions = new Dictionary<string, Action<BloodPressure, object>>
+            //{
+            //    [$"/{nameof(BloodPressure.SystolicPressure)}"] = (instance, newValue) => instance.ChangeSystolicTo((float)newValue),
+            //    [$"/{nameof(BloodPressure.DiastolicPressure)}"] = (instance, newValue) => instance.ChangeDiastolicTo((float)newValue),
+            //    [$"/{nameof(BloodPressure.DateOfMeasure)}"] = (instance, newValue) => instance.ChangeDateOfMeasure((DateTime)newValue)
+            //};
         }
 
         public async Task<ModifyCommandResult> Handle(PatchCommand<Guid, BloodPressureInfo> command, CancellationToken cancellationToken)
@@ -44,7 +52,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
                 Guid entityId = command.Data.Id;
                 Option<BloodPressure> source = await uow.Repository<BloodPressure>()
-                    .SingleOrDefaultAsync(x => x.UUID == command.Data.Id, cancellationToken)
+                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id, cancellationToken)
                     .ConfigureAwait(false);
 
                 ModifyCommandResult result = ModifyCommandResult.Failed_NotFound;
@@ -52,7 +60,7 @@ namespace Measures.CQRS.Handlers.BloodPressures
                     {
                         JsonPatchDocument<BloodPressure> changes = _mapper.Map<JsonPatchDocument<BloodPressureInfo>, JsonPatchDocument<BloodPressure>>(patchDocument);
                         changes.ApplyTo(entity);
-                        await uow.SaveChangesAsync()
+                        await uow.SaveChangesAsync(cancellationToken)
                             .ConfigureAwait(false);
 
                         await _mediator.Publish(new BloodPressureUpdated(entityId), cancellationToken)

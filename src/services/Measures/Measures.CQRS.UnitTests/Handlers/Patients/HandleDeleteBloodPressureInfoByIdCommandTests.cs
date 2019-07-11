@@ -1,5 +1,6 @@
 ﻿using AutoMapper.QueryableExtensions;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Measures.Context;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Events;
@@ -104,15 +105,11 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             // Arrange
             Guid idToDelete = Guid.NewGuid();
-            Patient measure = new Patient
-            {
-                UUID = idToDelete,
-                Firstname = "victor",
-                Lastname = "zsasz",
-            };
+            Patient patient = new Patient(idToDelete)
+                .ChangeNameTo("victor zsasz");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(measure);
+                uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -127,13 +124,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 .ConfigureAwait(false);
 
             // Assert
+            result.Should()
+                .Be(DeleteCommandResult.Done);
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientDeleted>(), default), Times.Once, $"{nameof(HandleDeletePatientInfoByIdCommand)} must notify suscribers that a resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = !await uow.Repository<Patient>()
-                     .AnyAsync(x => x.UUID == idToDelete)
+                     .AnyAsync(x => x.Id == idToDelete)
                      .ConfigureAwait(false);
 
                 deleteSuccessfull.Should().BeTrue("element should not be present after handling the delete command");
@@ -148,20 +147,16 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     Guid idPatient = Guid.NewGuid();
                     yield return new object[]
                     {
-                        new Patient
-                        {
-                            UUID = Guid.NewGuid(),
-                            Firstname = "Solomon",
-
-                        },
+                        new Patient(idPatient).ChangeNameTo("Solomon"),
 
                         new PhysiologicalMeasurement[]
                         {
-                            new BloodPressure
-                            {
-                                SystolicPressure = 120,
-                                DiastolicPressure = 80
-                            }
+                            new BloodPressure(Guid.NewGuid(),
+                                idPatient,
+                                dateOfMeasure: 30.September(2007),
+                                systolicPressure : 120,
+                                diastolicPressure : 80
+                            )
                         }
                     };
                 }
@@ -190,7 +185,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             }
 
             // Act
-            DeleteCommandResult commandResult = await _sut.Handle(new DeletePatientInfoByIdCommand(patient.UUID), default)
+            DeleteCommandResult commandResult = await _sut.Handle(new DeletePatientInfoByIdCommand(patient.Id), default)
                 .ConfigureAwait(false);
 
             // Assert

@@ -45,7 +45,7 @@ namespace Measures.Validators.Commands.BloodPressures
                             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                             {
                                 return await uow.Repository<Patient>()
-                                    .AnyAsync(x => x.UUID == patientId, ct)
+                                    .AnyAsync(x => x.Id == patientId, ct)
                                     .ConfigureAwait(false);
                             }
                         });

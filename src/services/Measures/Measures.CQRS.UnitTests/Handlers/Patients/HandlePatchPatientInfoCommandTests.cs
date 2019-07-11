@@ -7,6 +7,7 @@ using Measures.DTO;
 using Measures.Mapping;
 using Measures.Objects;
 using MedEasy.CQRS.Core.Commands;
+using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
@@ -109,12 +110,8 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             // Arrange
             Guid idToPatch = Guid.NewGuid();
-            Patient entity = new Patient
-            {
-                Firstname = "victor",
-                Lastname = "zsasz",
-                UUID = idToPatch
-            };
+            Patient entity = new Patient(idToPatch)
+                .ChangeNameTo("victor zsasz");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -124,7 +121,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             }
 
             JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-            patchDocument.Replace(x => x.Lastname, "Darkseid");
+            patchDocument.Replace(x => x.Name, "Darkseid");
 
             PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
             {
@@ -137,20 +134,24 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _sut.Handle(cmd, default)
+            ModifyCommandResult patchResult = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
+            patchResult.Should()
+                .Be(ModifyCommandResult.Done);
+
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientUpdated>(), default), Times.Once, $"{nameof(HandlePatchPatientInfoCommand)} must notify suscribers that a resource was patched.");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Patient actualMeasure = await uow.Repository<Patient>()
-                     .SingleAsync(x => x.UUID == idToPatch)
+                     .SingleAsync(x => x.Id == idToPatch)
                      .ConfigureAwait(false);
 
-                actualMeasure.Lastname.Should().Be("Darkseid");
+                actualMeasure.Name.Should()
+                    .Be("Darkseid");
             }
         }
     }

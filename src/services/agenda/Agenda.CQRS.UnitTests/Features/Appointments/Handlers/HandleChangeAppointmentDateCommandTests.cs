@@ -139,15 +139,15 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Appointment appointment = new Appointment
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         startDate: 25.April(2012).At(14.Hours()),
                         endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
                         subject: "JLA relocation",
                         location: "None"
                     );
 
-                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name:"Bruce Wayne");
-                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new Attendee(id: Guid.NewGuid(), name:"Bruce Wayne");
+                    Attendee superman = new Attendee(id: Guid.NewGuid(), name: "Clark Kent");
 
                     appointment.AddAttendee(batman);
                     appointment.AddAttendee(superman);
@@ -155,7 +155,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointment },
-                        new ChangeAppointmentDateCommand((appointment.UUID, start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
+                        new ChangeAppointmentDateCommand((appointment.Id, start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
                         ModifyCommandResult.Done,
                         "The appointment exists and the change won't overlap with any existing appointment"
                     };
@@ -164,29 +164,29 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Appointment appointmentRelocation = new Appointment
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         startDate: 25.April(2012).At(14.Hours()),
                         endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
                         subject: "JLA relocation",
                         location: "None"
                     );
 
-                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
-                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne");
+                    Attendee superman = new Attendee(id: Guid.NewGuid(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
                     Appointment appointmentEmancipation = new Appointment
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         startDate: 25.April(2012).At(13.Hours()),
                         endDate: 25.April(2012).At(14.Hours().And(5.Minutes())),
                         subject: "I want to leave the JLA",
                         location: "None"
                     );
 
-                    Attendee robin = new Attendee(uuid: Guid.NewGuid(), name: "Dick grayson");
+                    Attendee robin = new Attendee(id: Guid.NewGuid(), name: "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -194,7 +194,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointmentRelocation, appointmentEmancipation },
-                        new ChangeAppointmentDateCommand((appointmentEmancipation.UUID, start: faker.Date.RecentOffset(refDate: appointmentRelocation.StartDate), end: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate))),
+                        new ChangeAppointmentDateCommand((appointmentEmancipation.Id, start: faker.Date.RecentOffset(refDate: appointmentRelocation.StartDate), end: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate))),
                         ModifyCommandResult.Failed_Conflict,
                         "The appointment would end when another appointemtn is ongoing"
                     };
@@ -203,22 +203,22 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Appointment appointmentRelocation = new Appointment
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         startDate: 25.April(2012).At(14.Hours()),
                         endDate: 25.April(2012).At(14.Hours().And(15.Minutes())),
                         subject: "JLA relocation",
                         location: "None"
                     );
 
-                    Attendee batman = new Attendee(uuid: Guid.NewGuid(), name: "Bruce Wayne");
-                    Attendee superman = new Attendee(uuid: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne");
+                    Attendee superman = new Attendee(id: Guid.NewGuid(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
                     Appointment appointmentEmancipation = new Appointment
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         startDate: 25.April(2012).At(13.Hours()),
                         endDate: 25.April(2012).At(14.Hours().And(5.Minutes())),
                         subject: "I want to leave the JLA",
@@ -226,7 +226,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     );
 
 
-                    Attendee robin = new Attendee(uuid: Guid.NewGuid(), "Dick grayson");
+                    Attendee robin = new Attendee(id: Guid.NewGuid(), "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -234,7 +234,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointmentRelocation, appointmentEmancipation },
-                        new ChangeAppointmentDateCommand((appointmentEmancipation.UUID, start: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
+                        new ChangeAppointmentDateCommand((appointmentEmancipation.Id, start: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
                         ModifyCommandResult.Failed_Conflict,
                         "The appointment would start whilst another appointment is ongoing"
                     };
@@ -273,7 +273,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
                 {
                     bool changesOk = await uow.Repository<Appointment>()
-                        .AnyAsync(app => app.UUID == cmd.Data.appointmentId && app.StartDate == cmd.Data.start && app.EndDate == cmd.Data.end).ConfigureAwait(false);
+                        .AnyAsync(app => app.Id == cmd.Data.appointmentId && app.StartDate == cmd.Data.start && app.EndDate == cmd.Data.end)
+                        .ConfigureAwait(false);
 
                     changesOk.Should()
                         .BeTrue("Changes must reflect in the datastore");

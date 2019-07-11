@@ -6,11 +6,11 @@ namespace Identity.Objects
     /// <summary>
     /// Association between a <see cref="Claim"/> and a <see cref="Role"/>
     /// </summary>
-    public class RoleClaim : AuditableEntity<int, RoleClaim>
+    public class RoleClaim : AuditableEntity<Guid, RoleClaim>
     {
-        public int RoleId { get; set; }
+        public Guid RoleId { get; set; }
 
-        public int ClaimId { get; set; }
+        public Guid ClaimId { get; set; }
 
         /// <summary>
         /// Role of the association
@@ -22,7 +22,7 @@ namespace Identity.Objects
         /// </summary>
         public Claim Claim { get; set; }
 
-        public RoleClaim(Guid uuid, Role role, Claim claim) : base(uuid)
+        public RoleClaim(Guid id, Role role, Claim claim) : base(id)
         {
             Role = role;
             Claim = claim;
@@ -30,7 +30,7 @@ namespace Identity.Objects
             RoleId = role.Id;
         }
 
-        public RoleClaim(Guid uuid, int roleId, int claimId) : base(uuid)
+        public RoleClaim(Guid id, Guid roleId, Guid claimId) : base(id)
         {
             ClaimId = claimId;
             RoleId = roleId;

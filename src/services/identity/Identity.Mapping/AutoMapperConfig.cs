@@ -14,7 +14,7 @@ namespace Identity.Mapping
     /// <summary>
     /// Contains mappings configuration
     /// </summary>
-    public class AutoMapperConfig
+    public static class AutoMapperConfig
     {
         /// <summary>
         /// Creates a new <see cref="MapperConfiguration"/>
@@ -24,32 +24,26 @@ namespace Identity.Mapping
         {
             cfg.CreateCoreMapping();
             cfg.CreateMap<Account, AccountInfo>()
-                .IncludeBase<IEntity<int>, Resource<Guid>>()
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
                 .ForMember(dto => dto.Claims, opt => opt.MapFrom(entity => entity.Claims.Select(kv => new ClaimInfo { Type = kv.Key, Value = kv.Value.value })))
                 .ReverseMap()
                 .ForMember(entity => entity.Claims, opt => opt.Ignore() );
 
             cfg.CreateMap<Account, SearchAccountInfoResult>()
-               .IncludeBase<IEntity<int>, Resource<Guid>>();
+               .IncludeBase<IEntity<Guid>, Resource<Guid>>();
 
             cfg.CreateMap<AccountClaim, ClaimInfo>()
                 .ForMember(dto => dto.Type, opt => opt.MapFrom(entity => entity.Claim.Type))
                 .ForMember(dto => dto.Value, opt => opt.MapFrom(entity => entity.Claim.Value));
 
             cfg.CreateMap<NewAccountInfo, Account>()
-                .ConstructUsing(dto =>
-                {
-                    Account account = new Account(uuid: Guid.NewGuid(),
+                .ConstructUsing(dto => new Account(id: Guid.NewGuid(),
                                           username: dto.Username,
                                           tenantId: dto.TenantId,
                                           name: dto.Name,
                                           email: dto.Email,
                                           passwordHash: null,
-                                          salt: null);
-
-                    return account;
-
-                }
+                                          salt: null)
                 )
                 .ForMember(entity => entity.Salt, opt => opt.Ignore())
                 .ForMember(entity => entity.PasswordHash, opt => opt.Ignore())
@@ -60,10 +54,8 @@ namespace Identity.Mapping
                 .ForMember(entity => entity.UpdatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
-                .ForMember(entity => entity.UUID, opt => opt.Ignore())
                 .ForMember(entity => entity.IsActive, opt => opt.UseValue(false))
                 .ForMember(entity => entity.RefreshToken, opt => opt.Ignore())
-
                 ;
 
             cfg.CreateMap<Claim, ClaimInfo>();

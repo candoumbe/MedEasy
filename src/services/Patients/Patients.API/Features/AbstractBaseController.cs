@@ -20,7 +20,7 @@ namespace Patients.API.Controllers
     /// </summary>
     [ApiController]
     public abstract class AbstractBaseController<TEntity, TResource, TResourceId>
-        where TEntity : class, IEntity<int>
+        where TEntity : class, IEntity<Guid>
         where TResource : Resource<TResourceId>
         where TResourceId : IEquatable<TResourceId>
     {
@@ -76,16 +76,16 @@ namespace Patients.API.Controllers
             {
                 Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (_ => true);
                 Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
-                Page<TResource> resources = await uow.Repository<TEntity>()
+
+                return await uow.Repository<TEntity>()
                     .WhereAsync(
                         selector,
                         filter ,
                         search.Sort,
                         search.Page,
                         search.PageSize,
-                        cancellationToken);
-
-                return resources;
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }

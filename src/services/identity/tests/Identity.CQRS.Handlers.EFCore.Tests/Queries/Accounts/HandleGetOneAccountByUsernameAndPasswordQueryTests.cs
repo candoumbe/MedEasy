@@ -83,7 +83,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     Account bruceWayne = new Account
                     (
                         name: "Bruce Wayne",
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         email: "Bruce@wayne-entreprise.com",
                         username: "Batman",
                         passwordHash: "CapedCrusader",
@@ -107,7 +107,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
                     Account clarkKent = new Account
                     (
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         email: "clark.kent@smallville.com",
                         username: "Superman",
                         passwordHash: "StrongestManAlive",

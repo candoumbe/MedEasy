@@ -70,12 +70,9 @@ namespace Measures.CQRS.UnitTests.Handlers
                     Enumerable.Empty<Objects.Patient>(),
                     new SearchQueryInfo<PatientInfo>
                     {
-                        Filter = new Filter(field : nameof(PatientInfo.Firstname), @operator : EqualTo, value : "Bruce"),
+                        Filter = new Filter(field : nameof(PatientInfo.Name), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
-                        PageSize = 3,
-                        Sort = new MultiSort<PatientInfo>()
-                            .Add(new Sort<PatientInfo>(nameof(PatientInfo.Firstname)))
-                            .Add(new Sort<PatientInfo>(nameof(PatientInfo.Lastname)))
+                        PageSize = 3
                     },
                     ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                         && !x.Entries.Any()
@@ -83,26 +80,21 @@ namespace Measures.CQRS.UnitTests.Handlers
                         && x.Size == 3))
                 };
 
-
                 {
                     Guid patientId = Guid.NewGuid();
                     yield return new object[]
                    {
                         new []
                         {
-                            new Objects.Patient {Id = 1, Firstname = "bruce", Lastname = "wayne" },
-                            new Objects.Patient {Id = 2, Firstname = "dick", Lastname = "grayson" },
-                            new Objects.Patient {Id = 3, Firstname = "damian", Lastname = "wayne", UUID = patientId },
-
+                            new Objects.Patient(Guid.NewGuid()).ChangeNameTo("bruce wayne"),
+                            new Objects.Patient(Guid.NewGuid()).ChangeNameTo("dick grayson"),
+                            new Objects.Patient(patientId).ChangeNameTo("damian wayne")
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
-                            Filter = new Filter(field : nameof(PatientInfo.Lastname), @operator : Contains, value : "y"),
+                            Filter = new Filter(field : nameof(PatientInfo.Name), @operator : Contains, value : "y"),
                             Page = 3,
-                            PageSize = 1,
-                            Sort = new MultiSort<PatientInfo>()
-                                .Add(new Sort<PatientInfo>(nameof(PatientInfo.Firstname)))
-                                .Add(new Sort<PatientInfo>(nameof(PatientInfo.Lastname)))
+                            PageSize = 1
                         },
                         ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                             && x.Entries.Count() == 1

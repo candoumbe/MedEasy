@@ -2,7 +2,7 @@
 
 namespace MedEasy.Objects
 {
-    public class CategoryOfMeasure : AuditableEntity<int, CategoryOfMeasure>
+    public class CategoryOfMeasure : AuditableEntity<Guid, CategoryOfMeasure>
     {
         /// <summary>
         /// Name of the category
@@ -10,7 +10,7 @@ namespace MedEasy.Objects
         public string Name { get; set; }
 
 
-        public CategoryOfMeasure(Guid uuid) : base(uuid)
+        public CategoryOfMeasure(Guid id) : base(id)
         {
 
         }

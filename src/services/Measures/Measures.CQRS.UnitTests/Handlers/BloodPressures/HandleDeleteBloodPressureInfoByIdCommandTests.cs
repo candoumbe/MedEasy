@@ -108,26 +108,25 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         {
             // Arrange
             Guid idToDelete = Guid.NewGuid();
-            BloodPressure measure = new BloodPressure
-            {
-                UUID = idToDelete,
-                SystolicPressure = 120,
-                DiastolicPressure = 80,
-                DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())),
-                Patient = new Patient
-                {
-                    Firstname = "victor",
-                    Lastname = "zsasz",
-                }
+            Patient patient = new Patient(Guid.NewGuid())
+                .ChangeNameTo("Bruce Wayne");
 
-            };
+            BloodPressure measure = new BloodPressure(
+                idToDelete,
+                patientId: patient.Id,
+                systolicPressure: 120,
+                diastolicPressure: 80,
+                dateOfMeasure: 23.August(2003).Add(15.Hours().Add(30.Minutes()))
+            );
+
+            patient.AddBloodPressure(measure.Id, measure.DateOfMeasure, measure.SystolicPressure, measure.DiastolicPressure);
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Create(measure);
+                uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            
 
             DeleteBloodPressureInfoByIdCommand cmd = new DeleteBloodPressureInfoByIdCommand(idToDelete);
 
@@ -139,13 +138,15 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .ConfigureAwait(false);
 
             // Assert
+            result.Should()
+                .Be(DeleteCommandResult.Done);
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureDeleted>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscribers that blood pressure resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 bool deleteSuccessfull = ! await uow.Repository<BloodPressure>()
-                     .AnyAsync(x => x.UUID == idToDelete)
+                     .AnyAsync(x => x.Id == idToDelete)
                      .ConfigureAwait(false);
 
                 deleteSuccessfull.Should().BeTrue("element should not be present after handling the delete command");

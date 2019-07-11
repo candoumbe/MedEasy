@@ -12,24 +12,8 @@ namespace Measures.DTO
     [DataContract]
     public class PatientInfo : Resource<Guid>
     {
-        /// <summary>
-        /// Patient's firstname
-        /// </summary>
-        [DataMember(Name = nameof(Firstname))]
-        [Required]
-        [StringLength(100)]
-        public string Firstname { get; set; }
-
-        /// <summary>
-        /// Patient's lastname
-        /// </summary>
-        [DataMember(Name = nameof(Lastname))]
-        [Required]
-        [StringLength(100)]
-        public string Lastname { get; set; }
-
-        [DataMember(Name = nameof(Fullname))]
-        public string Fullname { get; set; }
+        [DataMember(Name = nameof(Name))]
+        public string Name { get; set; }
 
         /// <summary>
         /// Patient's birth date

@@ -87,7 +87,7 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 Account authenticatedAccount = await uow.Repository<Account>()
-                    .SingleAsync(x => x.UUID == accountInfo.Id, ct)
+                    .SingleAsync(x => x.Id == accountInfo.Id, ct)
                     .ConfigureAwait(false);
 
                 SecurityToken accessToken = await accessTokenTask;

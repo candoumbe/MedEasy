@@ -74,47 +74,21 @@ namespace Measures.Validators.Tests.Features.Patients
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Name).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     )),
                     $"because no {nameof(NewPatientInfo)}'s data set."
                 };
 
                 yield return new object[]
                 {
-                    new NewPatientInfo() { Firstname = "Bruce" },
-                    ((Expression<Func<ValidationResult, bool>>)
-                        (vr => !vr.IsValid
-                            && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
-                    $"because {nameof(NewPatientInfo.Firstname)} is set and {nameof(NewPatientInfo.Lastname)} is not"
+                    new NewPatientInfo() { Name = "Wayne" },
+                    (Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid),
+                    $"because {nameof(NewPatientInfo.Name)} is set"
                 };
 
                 yield return new object[]
                 {
-                    new NewPatientInfo() { Lastname = "Wayne" },
-                    ((Expression<Func<ValidationResult, bool>>)
-                        (vr => !vr.IsValid
-                            && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
-                    )),
-                    $"because {nameof(NewPatientInfo.Lastname)} is set and {nameof(NewPatientInfo.Firstname)} is not"
-                };
-
-                yield return new object[]
-                {
-                    new NewPatientInfo() { Lastname = "Wayne" },
-                    ((Expression<Func<ValidationResult, bool>>)
-                        (vr => !vr.IsValid
-                            && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
-                    )),
-                    $"because {nameof(NewPatientInfo.Lastname)} is set and {nameof(NewPatientInfo.Firstname)} is not"
-                };
-
-                yield return new object[]
-                {
-                    new NewPatientInfo() { Lastname = "Wayne", Firstname = "Bruce", Id = Guid.Empty },
+                    new NewPatientInfo() { Name = "Bruce Wayne", Id = Guid.Empty },
                     ((Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
@@ -134,7 +108,8 @@ namespace Measures.Validators.Tests.Features.Patients
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
 
             // Act
-            ValidationResult vr = await _validator.ValidateAsync(info);
+            ValidationResult vr = await _validator.ValidateAsync(info)
+                .ConfigureAwait(false);
 
             // Assert
             vr.Should()
@@ -148,15 +123,14 @@ namespace Measures.Validators.Tests.Features.Patients
             Guid patientId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient { Lastname = "Grundy", UUID = patientId });
+                uow.Repository<Patient>().Create(new Patient(patientId).ChangeNameTo("Grundy"));
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
             NewPatientInfo info = new NewPatientInfo
             {
-                Firstname = "Bruce",
-                Lastname = "Wayne",
+                Name = "Bruce Wayne",
                 Id = patientId
             };
 

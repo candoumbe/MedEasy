@@ -37,13 +37,13 @@ namespace Measures.Validators.Commands.Patients
                             !ops.Any(op => $"/{nameof(PatientInfo.Id)}".Equals(op.path, OrdinalIgnoreCase))
                         );
 
-                    When(x => x.Operations.Any(op => $"/{nameof(PatientInfo.Lastname)}".Equals(op.path, OrdinalIgnoreCase)),
+                    When(x => x.Operations.Any(op => $"/{nameof(PatientInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)),
                         () =>
                         {
                             RuleFor(x => x.Operations)
-                                .Must(ops => !ops.Any(op => $"/{nameof(PatientInfo.Lastname)}".Equals(op.path, OrdinalIgnoreCase)
+                                .Must(ops => !ops.Any(op => $"/{nameof(PatientInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)
                                     && op.value != null && op.value.ToString().Length > 100))
-                                    .WithMessage($"{nameof(PatientInfo.Lastname)} must have a length of 100 characters at most.");
+                                    .WithMessage($"{nameof(PatientInfo.Name)} must have a length of 100 characters at most.");
                         });
                 }
             );

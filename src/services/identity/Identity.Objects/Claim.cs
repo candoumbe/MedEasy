@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Identity.Objects
 {
-    public class Claim : AuditableEntity<int, Claim>
+    public class Claim : AuditableEntity<Guid, Claim>
     {
         /// <summary>
         /// Type of claim
@@ -20,7 +20,7 @@ namespace Identity.Objects
 
         public IEnumerable<RoleClaim> Roles { get; set; }
 
-        public Claim(Guid uuid, string type, string value) : base(uuid)
+        public Claim(Guid id, string type, string value) : base(id)
         {
             Type = type;
             Value = value;

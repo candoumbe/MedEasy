@@ -23,7 +23,7 @@ namespace Agenda.Objects.UnitTests
         public void ChangingAppointment_Subject_ToNull_Throws_ArgumentNullException()
         {
             // Arrange
-            Appointment attendee = new Appointment(uuid : Guid.NewGuid(), subject :"JLA", location : "Wayne Manor", 12.July(2018).At(12.Hours()), 12.July(2018).At(12.Hours().And(30.Minutes())));
+            Appointment attendee = new Appointment(id : Guid.NewGuid(), subject :"JLA", location : "Wayne Manor", 12.July(2018).At(12.Hours()), 12.July(2018).At(12.Hours().And(30.Minutes())));
 
             // Act
             Action action = () => attendee.ChangeSubjectTo(null);
@@ -38,7 +38,7 @@ namespace Agenda.Objects.UnitTests
             get
             {
                 Appointment appointment = new Appointment(
-                    uuid: Guid.NewGuid(),
+                    id: Guid.NewGuid(),
                     subject: "Daily meeting",
                     location: "My office",
                     startDate: 12.April(2017).At(14.Hours()),

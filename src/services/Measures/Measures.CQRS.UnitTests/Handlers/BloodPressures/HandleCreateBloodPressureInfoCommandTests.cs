@@ -141,7 +141,8 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         {
             // Arrange
             Guid patientId = Guid.NewGuid();
-            Patient patientBeforeCreate = new Patient { Firstname = "Solomon", Lastname = "Grundy", UUID = patientId };
+            Patient patientBeforeCreate = new Patient(patientId);
+            patientBeforeCreate.ChangeNameTo("Solomon Grundy");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -190,10 +191,10 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                 {
                     BloodPressure measureEntity = await uow.Repository<BloodPressure>()
-                        .SingleAsync(x => x.UUID == measureInfo.Id)
+                        .SingleAsync(x => x.Id == measureInfo.Id)
                         .ConfigureAwait(false);
 
-                    measureEntity.UUID.Should()
+                    measureEntity.Id.Should()
                         .Be(measureInfo.Id);
                     measureEntity.SystolicPressure.Should()
                         .Be(measureInfo.SystolicPressure);

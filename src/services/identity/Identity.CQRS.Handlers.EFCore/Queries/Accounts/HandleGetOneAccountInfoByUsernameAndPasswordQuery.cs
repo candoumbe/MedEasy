@@ -40,7 +40,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                     .SingleOrDefaultAsync(
                         x => new
                         {
-                            Id = x.UUID,
+                            x.Id,
                             x.Name,
                             x.Username,
                             x.Email,
@@ -60,7 +60,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                         IEnumerable<ClaimInfo> accountClaims = await uow.Repository<AccountClaim>()
                             .WhereAsync(
                                 userClaimToClaimInfoSelector,
-                                ac => ac.Account.UUID == account.Id, 
+                                ac => ac.AccountId == account.Id, 
                                 ct)
                             .ConfigureAwait(false);
                         //IEnumerable<ClaimInfo> claimsFromRoles = await uow.Repository<RoleClaim>()

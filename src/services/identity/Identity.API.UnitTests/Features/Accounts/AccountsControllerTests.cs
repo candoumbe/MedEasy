@@ -129,7 +129,7 @@ namespace Identity.API.Tests.Features.Accounts
                 }
 
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator(faker => new Account(uuid: Guid.NewGuid(),
+                    .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
                         username: faker.Internet.UserName(),
                         email: faker.Internet.Email(),
                         passwordHash: string.Empty,
@@ -189,7 +189,7 @@ namespace Identity.API.Tests.Features.Accounts
                 .Returns((GetPageOfAccountsQuery query, CancellationToken cancellationToken) =>
                 {
                     PaginationConfiguration pagination = query.Data;
-                    Expression<Func<Account, AccountInfo>> expression = x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username };
+                    Expression<Func<Account, AccountInfo>> expression = x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username };
                     Func<Account, AccountInfo> selector = expression.Compile();
                     _outputHelper.WriteLine($"Selector : {selector}");
 
@@ -264,7 +264,7 @@ namespace Identity.API.Tests.Features.Accounts
             {
                 uow.Repository<Account>().Create(new Account
                 (
-                    uuid : accountId,
+                    id : accountId,
                     username: "thebatman",
                     passwordHash:  "a_super_secret_password",
                     email : "bruce@wayne-entreprise.com",
@@ -283,8 +283,8 @@ namespace Identity.API.Tests.Features.Accounts
                     {
                         Option<AccountInfo> result = await uow.Repository<Account>()
                             .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username },
-                                (Account x) => x.UUID == query.Data,
+                                x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username },
+                                (Account x) => x.Id == query.Data,
                                 ct)
                             .ConfigureAwait(false);
 
@@ -339,7 +339,7 @@ namespace Identity.API.Tests.Features.Accounts
 
             Account tenant = new Account
             (
-                uuid:  Guid.NewGuid(),
+                id:  Guid.NewGuid(),
                 username:  "thebatman",
                 passwordHash : "a_super_secret_password",
                 email : "bruce@wayne-entreprise.com",
@@ -348,12 +348,12 @@ namespace Identity.API.Tests.Features.Accounts
             );
             Account newAccount = new Account
             (
-                uuid : accountId,
+                id : accountId,
                 username: "robin",
                 passwordHash: "a_super_secret_password",
                 email: "dick.grayson@wayne-entreprise.com",
                 salt: "salt_and_pepper_for_password",
-                tenantId: tenant.UUID
+                tenantId: tenant.Id
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -371,8 +371,8 @@ namespace Identity.API.Tests.Features.Accounts
                     {
                         Option<AccountInfo> result = await uow.Repository<Account>()
                             .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.UUID, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
-                                (Account x) => x.UUID == query.Data,
+                                x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
+                                (Account x) => x.Id == query.Data,
                                 ct)
                             .ConfigureAwait(false);
 
@@ -611,7 +611,7 @@ namespace Identity.API.Tests.Features.Accounts
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator(faker => new Account(
-                        uuid: Guid.NewGuid(),
+                        id: Guid.NewGuid(),
                         name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
                         email: faker.Internet.ExampleEmail(),
                         passwordHash: faker.Lorem.Word(),

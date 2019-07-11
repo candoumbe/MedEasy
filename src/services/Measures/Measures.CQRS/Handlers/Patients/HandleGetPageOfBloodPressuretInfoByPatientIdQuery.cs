@@ -41,13 +41,13 @@ namespace Measures.CQRS.Handlers.Patients
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 Option<Page<BloodPressureInfo>> result;
-                if (await uow.Repository<Patient>().AnyAsync(x => x.UUID == patientId).ConfigureAwait(false))
+                if (await uow.Repository<Patient>().AnyAsync(x => x.Id == patientId).ConfigureAwait(false))
                 {
                     Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                     result = Option.Some( await uow.Repository<BloodPressure>()
                                 .WhereAsync(
                                     selector,
-                                    (BloodPressure x) => x.UUID == patientId,
+                                    (BloodPressure x) => x.Id == patientId,
                                     new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.UpdatedDate), SortDirection.Descending),
                                     pagination.PageSize,
                                     pagination.Page,
