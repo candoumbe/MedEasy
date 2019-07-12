@@ -350,8 +350,7 @@ namespace Measures.API.IntegrationTests
 
             NewPatientModel newPatient = new NewPatientModel
             {
-                Firstname = "Victor",
-                Lastname = "Freeze"
+                Name = "Victor Freeze"
             };
             using (HttpClient client = _server.CreateClient())
             {
@@ -362,6 +361,8 @@ namespace Measures.API.IntegrationTests
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue("Creating the resource should succeed");
 
                 string json = await response.Content.ReadAsStringAsync()
                     .ConfigureAwait(false);

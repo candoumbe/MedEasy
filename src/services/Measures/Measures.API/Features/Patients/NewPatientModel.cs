@@ -6,14 +6,8 @@
     public class NewPatientModel
     {
         /// <summary>
-        /// Patient's firstname
+        /// Name of the patient
         /// </summary>
-        public string Firstname { get; set; }
-
-
-        /// <summary>
-        /// Patient's lastname
-        /// </summary>
-        public string Lastname { get; set; }
+        public string Name { get; set; }
     }
 }

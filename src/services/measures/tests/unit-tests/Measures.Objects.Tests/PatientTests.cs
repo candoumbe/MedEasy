@@ -87,7 +87,7 @@ namespace Measures.Objects.Tests
 
         [Theory]
         [MemberData(nameof(AddBloodPressureCases))]
-        public void AddBloodPressure_Should_AddMeasure(Guid measureId, DateTimeOffset dateOfMeasure, float systolic, float diastolic)
+        public void AddingBloodPressure_Should_AddMeasure(Guid measureId, DateTimeOffset dateOfMeasure, float systolic, float diastolic)
         {
             // Arrange
             Patient patient = new Patient(Guid.NewGuid());
@@ -97,7 +97,7 @@ namespace Measures.Objects.Tests
 
             // Assert
             BloodPressure measure = patient.Measures.Should()
-                .HaveCount(1, "The collection was empty and we only added one measure").And
+                .HaveCount(1, "The collection was empty before adding one measure").And
                 .ContainSingle().Which.Should()
                     .BeOfType<BloodPressure>().Which;
 
@@ -110,7 +110,7 @@ namespace Measures.Objects.Tests
         }
 
         [Fact]
-        public void AddBloodPressureWithNoId_Throws_ArgumentOutOfRangeException()
+        public void AddingBloodPressureWithNoId_Throws_ArgumentOutOfRangeException()
         {
             // Arrange
             Patient patient = new Patient(Guid.NewGuid());
@@ -124,7 +124,7 @@ namespace Measures.Objects.Tests
         }
 
         [Fact]
-        public void AddBloodPressureWithExistingId_Throws_DuplicateIdException()
+        public void AddingBloodPressureWithExistingId_Throws_DuplicateIdException()
         {
             // Arrange
             Patient patient = new Patient(Guid.NewGuid());
@@ -139,7 +139,6 @@ namespace Measures.Objects.Tests
             addMeasureWithDuplicateId.Should()
                 .ThrowExactly<DuplicateIdException>("a measure with the same id already exists");
         }
-
 
         [Fact]
         public void RemoveExistingBloodPressure_Should_Remove_TheMeasure()

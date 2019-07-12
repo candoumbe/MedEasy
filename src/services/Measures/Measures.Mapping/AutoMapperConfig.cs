@@ -30,7 +30,7 @@ namespace Measures.Mapping
                 .IncludeBase<IEntity<Guid>, Resource<Guid>>();
 
             cfg.CreateMap<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
-                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.Patient.Id))
+                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.PatientId))
                 .ReverseMap();
 
             cfg.CreateMap<BloodPressure, BloodPressureInfo>()

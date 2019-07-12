@@ -111,7 +111,7 @@ namespace Measures.API.Tests.Features.BloodPressures
                     {
                         yield return new object[]
                         {
-                            Enumerable.Empty<BloodPressure>(), // Current store state
+                            Enumerable.Empty<Patient>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
                             (
@@ -124,15 +124,6 @@ namespace Measures.API.Tests.Features.BloodPressures
                     }
                 }
 
-                Faker<Patient> patientFaker = new Faker<Patient>()
-                    .CustomInstantiator(faker =>
-                    {
-                        Patient patient = new Patient(Guid.NewGuid());
-
-                        patient.ChangeNameTo(faker.Person.FullName);
-
-                        return patient;
-                    });
 
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(faker => new BloodPressure(
@@ -141,11 +132,17 @@ namespace Measures.API.Tests.Features.BloodPressures
                             dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
                             systolicPressure: 120, diastolicPressure: 80
                         ));
+
                 {
-                    IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
+                    Patient patient = new Patient(Guid.NewGuid());
+
+                    foreach (BloodPressure measure in bloodPressureFaker.Generate(400))
+                    {
+                        patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours(48.Minutes())), systolic: 120, diastolic: 80);
+                    }
                     yield return new object[]
                     {
-                        items,
+                        new [] { patient },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
                         (
@@ -159,16 +156,16 @@ namespace Measures.API.Tests.Features.BloodPressures
                     };
                 }
                 {
+                    Patient patient = new Patient(Guid.NewGuid());
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
-                    items.ForEach((item, pos) =>
+                    items.ForEach((measure) =>
                     {
-
-                        item.Patient = new Patient(Guid.NewGuid());
+                        patient.AddBloodPressure(measure.Id, measure.DateOfMeasure, systolic: measure.SystolicPressure, measure.DiastolicPressure);
                     });
 
                     yield return new object[]
                     {
-                        items,
+                        new []{ patient },
                         10, 1, // request
                         400,    //expected total
                         (
@@ -179,59 +176,59 @@ namespace Measures.API.Tests.Features.BloodPressures
                         )
                     };
                 }
-
-                yield return new object[]
                 {
-                    new [] {
-                        new BloodPressure(
-                            Guid.NewGuid(),
-                            patientId : Guid.NewGuid(),
-                            dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
-                            systolicPressure : 120, diastolicPressure : 80
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours(48.Minutes())),
+                                systolic: 120, diastolic: 80);
+                    yield return new object[]
+                    {
+                        new [] { patient },
+                        PaginationConfiguration.DefaultPageSize, 1, // request
+                        1,    //expected total
+                        (
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                         )
-                    },
-                    PaginationConfiguration.DefaultPageSize, 1, // request
-                    1,    //expected total
-                    (
-                        firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                        nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                        lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
-                    )
-                };
+                    };
+                }
             }
         }
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<BloodPressure> items, int pageSize, int page,
+        public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,
             int expectedCount,
             (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) pageLinksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(BloodPressuresController.Get)}({nameof(PaginationConfiguration)})");
             _outputHelper.WriteLine($"Page size : {pageSize}");
             _outputHelper.WriteLine($"Page : {page}");
-            _outputHelper.WriteLine($"store items count: {items.Count()}");
+            _outputHelper.WriteLine($"store items count: {items.SelectMany(x => x.Measures).OfType<BloodPressure>().Count()}");
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(_apiOptions);
 
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfBloodPressureInfoQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((GetPageOfBloodPressureInfoQuery query, CancellationToken cancellationToken) =>
-                {
-                    PaginationConfiguration pagination = query.Data;
-                    Func<BloodPressure, BloodPressureInfo> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>().Compile();
-                    _outputHelper.WriteLine($"Selector : {selector}");
+                    .Returns((GetPageOfBloodPressureInfoQuery query, CancellationToken _) =>
+                    {
+                        PaginationConfiguration pagination = query.Data;
+                        Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
+                        _outputHelper.WriteLine($"Selector : {selector}");
 
-                    IEnumerable<BloodPressureInfo> results = items.Select(selector)
-                        .ToArray();
+                        IEnumerable<BloodPressure> measures = items.SelectMany(x => x.Measures).OfType<BloodPressure>();
 
-                    results = results.Skip(pagination.PageSize * (pagination.Page == 1 ? 0 : pagination.Page - 1))
-                         .Take(pagination.PageSize)
-                         .ToArray();
+                        int total = measures.Count();
+                        _outputHelper.WriteLine($"Measures count : {measures.Count()}");
 
-                    return Task.FromResult(new Page<BloodPressureInfo>(results, items.Count(), pagination.PageSize));
-                });
+                        IEnumerable<BloodPressureInfo> results = measures.Select(selector.Compile())
+                            .Skip(pagination.PageSize * (pagination.Page == 1 ? 0 : pagination.Page - 1))
+                            .Take(pagination.PageSize)
+                            .ToArray();
+
+                        return Task.FromResult(new Page<BloodPressureInfo>(results, measures.Count(), pagination.PageSize));
+                    });
 
             // Act
             IActionResult actionResult = await _controller.Get(new PaginationConfiguration { PageSize = pageSize, Page = page })
@@ -251,10 +248,10 @@ namespace Measures.API.Tests.Features.BloodPressures
                         .BeAssignableTo<GenericPagedGetResponse<Browsable<BloodPressureInfo>>>().Which;
 
             response.Items.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .NotContain(x => x.Resource == null).And
-                .NotContain(x => x.Links == null);
+                    .NotBeNull().And
+                    .NotContainNulls().And
+                    .NotContain(x => x.Resource == null).And
+                    .NotContain(x => x.Links == null);
 
             response.Total.Should()
                     .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
@@ -281,24 +278,26 @@ namespace Measures.API.Tests.Features.BloodPressures
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(faker =>
                     {
-                        BloodPressure measure = new BloodPressure(
+                        return new BloodPressure(
                             Guid.NewGuid(),
                             patientId: Guid.NewGuid(),
                             dateOfMeasure: faker.Date.Between(start: 1.January(2001), end: 31.January(2001)),
-                            diastolicPressure : 80,
-                            systolicPressure : 120
+                            diastolicPressure: 80,
+                            systolicPressure: 120
                         );
-
-                        return measure;
                     });
 
                 {
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
-
+                    Patient patient = patientFaker.Generate();
+                    foreach (BloodPressure measure in items)
+                    {
+                        patient.AddBloodPressure(measure.Id, measure.DateOfMeasure, measure.SystolicPressure, measure.DiastolicPressure);
+                    }
 
                     yield return new object[]
                     {
-                        items,
+                        new [] { patient },
                         new SearchBloodPressureInfo
                         {
                             From = 1.January(2001),
@@ -325,53 +324,53 @@ namespace Measures.API.Tests.Features.BloodPressures
                     };
                 }
 
-                yield return new object[]
                 {
-                    new [] {
-                        new BloodPressure(
-
-                            id: Guid.NewGuid(),
-                            patientId : Guid.NewGuid(),
-                            dateOfMeasure : 23.June(2012).Add(10.Hours().Add(30.Minutes())),
-                            diastolicPressure : 80,
-                            systolicPressure : 120
-                        )
-                    },
-                    new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
-                    (maxPageSize: 200, pageSize: 30),
-                    (
-                        count: 1,
-                        items:
-                          (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                            resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure)),
-                        links: (
-                            firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                            previousPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to previous page
-                            nextPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to next page
-                            lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
-                        )
-                    )
-                };
-
-                {
-                    Guid patientId = Guid.NewGuid();
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.AddBloodPressure(
+                        Guid.NewGuid(),
+                        dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())),
+                        diastolic: 80,
+                        systolic: 120
+                    );
                     yield return new object[]
                     {
-                        new [] {
-                            new BloodPressure(Guid.NewGuid(), patientId, dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes()) ), systolicPressure:120, diastolicPressure: 80)
-                        },
-                        new SearchBloodPressureInfo { PatientId = patientId }, // request
+                        new [] { patient },
+                        new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
+                        (maxPageSize: 200, pageSize: 30),
+                        (
+                            count: 1,
+                            items:
+                              (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
+                                resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure)),
+                            links: (
+                                firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                previousPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to previous page
+                                nextPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to next page
+                                lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                            )
+                        )
+                    };
+                }
+
+                {
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.AddBloodPressure(Guid.NewGuid(), dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())), systolic: 120, diastolic: 80);
+
+                    yield return new object[]
+                    {
+                        new [] { patient },
+                        new SearchBloodPressureInfo { PatientId = patient.Id }, // request
                         (maxPageSize : 200, pageSize : 30),
                         (
                             count : 1,
                             items :
                               (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                                resources.Count() == 1 && resources.All(x => x.Resource.PatientId == patientId)),
+                                resources.Count() == 1 && resources.All(x => x.Resource.PatientId == patient.Id)),
                             links : (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patientId}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patientId}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(LinkRelation.Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                             )
                         )
                     };
@@ -382,7 +381,7 @@ namespace Measures.API.Tests.Features.BloodPressures
         [Theory]
         [MemberData(nameof(SearchTestCases))]
         [Feature("Search")]
-        public async Task Search(IEnumerable<BloodPressure> items, SearchBloodPressureInfo searchQuery,
+        public async Task Search(IEnumerable<Patient> patients, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
                 int count,
@@ -397,16 +396,15 @@ namespace Measures.API.Tests.Features.BloodPressures
         {
             _outputHelper.WriteLine($"Testing {nameof(BloodPressuresController.Search)}({nameof(SearchBloodPressureInfo)})");
             _outputHelper.WriteLine($"Search : {SerializeObject(searchQuery)}");
-            _outputHelper.WriteLine($"store items count: {items.Count()}");
+            _outputHelper.WriteLine($"store items count: {patients.Count()}");
 
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Clear();
                 uow.Repository<Patient>().Clear();
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
-                uow.Repository<BloodPressure>().Create(items);
+                uow.Repository<Patient>().Create(patients);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -464,17 +462,20 @@ namespace Measures.API.Tests.Features.BloodPressures
                 {
                     new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013) },
                     (maxPageSize : 30, defaultPageSize : 30),
-                    Enumerable.Empty<BloodPressure>(),
+                    new [] { new Patient( Guid.NewGuid()) },
                     "page index is not 1 and there's no result for the search query"
                 };
 
                 {
+                    Patient patient = new Patient(Guid.NewGuid());
+                    patient.AddBloodPressure(Guid.NewGuid(), 22.January(1987), systolic: 120, diastolic: 80);
+
                     yield return new object[]
                     {
                         new SearchBloodPressureInfo { Page = 2, PageSize = 30 },
                         (maxPageSize : 30, defaultPageSize : 30),
                         new [] {
-                            new BloodPressure(Guid.NewGuid(), Guid.NewGuid(), 22.January(1987), diastolicPressure : 80, systolicPressure: 120)
+                            patient
                         },
                         "page index is not 1 and there's no result for the search query"
                     };
@@ -488,12 +489,12 @@ namespace Measures.API.Tests.Features.BloodPressures
         public async Task Search_With_OutOfBound_PagingConfiguration_Returns_NotFound(
             SearchBloodPressureInfo query,
             (int maxPageSize, int defaultPageSize) apiOptions,
-            IEnumerable<BloodPressure> measures, string reason)
+            IEnumerable<Patient> patients, string reason)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<BloodPressure>().Create(measures);
+                uow.Repository<Patient>().Create(patients);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -556,18 +557,16 @@ namespace Measures.API.Tests.Features.BloodPressures
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient patient = new Patient(Guid.NewGuid());
-                patient.ChangeNameTo("Bruce Wayne");
+                Patient patient = new Patient(Guid.NewGuid())
+                    .ChangeNameTo("Bruce Wayne");
 
-                BloodPressure measure = new BloodPressure(
-                    Guid.NewGuid(),
-                    patient.Id,
-                    dateOfMeasure: 24.April(1997),
-                    systolicPressure : 150,
-                    diastolicPressure : 90
-                    
+                patient.AddBloodPressure(
+                        measureId,
+                        dateOfMeasure: 24.April(1997),
+                        systolic: 150,
+                        diastolic: 90
                 );
-                uow.Repository<BloodPressure>().Create(measure);
+                uow.Repository<Patient>().Create(patient);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -579,14 +578,13 @@ namespace Measures.API.Tests.Features.BloodPressures
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                        Option<BloodPressureInfo> result = await uow.Repository<BloodPressure>()
+
+                        return await uow.Repository<BloodPressure>()
                             .SingleOrDefaultAsync(
                                 selector,
                                 (BloodPressure x) => x.Id == query.Data,
                                 cancellationToken)
                             .ConfigureAwait(false);
-
-                        return result;
                     }
                 });
 
