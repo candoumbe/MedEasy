@@ -2,9 +2,6 @@
 using FluentAssertions.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -30,7 +27,7 @@ namespace Agenda.Objects.UnitTests
 
             // Assert
             action.Should()
-                .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be changed to null");
+                .Throw<ArgumentNullException>($"{nameof(Appointment)}'s {nameof(Appointment.Subject)} cannot be changed to null");
         }
 
         public static IEnumerable<object[]> ComputeStatusCases
