@@ -115,6 +115,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 .ChangeNameTo("victor zsasz");
             const float systolic = 120;
             const float diastolic = 80;
+
             patient.AddBloodPressure(
                 measureId : idToPatch,
                 dateOfMeasure: 23.August(2003).Add(15.Hours().Add(30.Minutes())),

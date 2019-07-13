@@ -20,7 +20,7 @@ namespace Measures.Objects
         /// <summary>
         /// Patient's date of birth
         /// </summary>
-        public DateTime? BirthDate { get; set; }
+        public DateTime? BirthDate { get; private set; }
 
         private IList<PhysiologicalMeasurement> _measures;
 

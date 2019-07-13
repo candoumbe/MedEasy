@@ -7,9 +7,11 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Optional;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,12 +38,12 @@ namespace Measures.CQRS.Handlers.BloodPressures
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            //_actions = new Dictionary<string, Action<BloodPressure, object>>
-            //{
-            //    [$"/{nameof(BloodPressure.SystolicPressure)}"] = (instance, newValue) => instance.ChangeSystolicTo((float)newValue),
-            //    [$"/{nameof(BloodPressure.DiastolicPressure)}"] = (instance, newValue) => instance.ChangeDiastolicTo((float)newValue),
-            //    [$"/{nameof(BloodPressure.DateOfMeasure)}"] = (instance, newValue) => instance.ChangeDateOfMeasure((DateTime)newValue)
-            //};
+            _actions = new Dictionary<string, Action<BloodPressure, object>>
+            {
+                [$"/{nameof(BloodPressure.SystolicPressure)}"] = (instance, newValue) => instance.ChangeSystolicTo((float)newValue),
+                [$"/{nameof(BloodPressure.DiastolicPressure)}"] = (instance, newValue) => instance.ChangeDiastolicTo((float)newValue),
+                [$"/{nameof(BloodPressure.DateOfMeasure)}"] = (instance, newValue) => instance.ChangeDateOfMeasure((DateTime)newValue)
+            };
         }
 
         public async Task<ModifyCommandResult> Handle(PatchCommand<Guid, BloodPressureInfo> command, CancellationToken cancellationToken)
@@ -55,21 +57,37 @@ namespace Measures.CQRS.Handlers.BloodPressures
                     .SingleOrDefaultAsync(x => x.Id == command.Data.Id, cancellationToken)
                     .ConfigureAwait(false);
 
-                ModifyCommandResult result = ModifyCommandResult.Failed_NotFound;
-                source.MatchSome(async entity =>
-                    {
-                        JsonPatchDocument<BloodPressure> changes = _mapper.Map<JsonPatchDocument<BloodPressureInfo>, JsonPatchDocument<BloodPressure>>(patchDocument);
-                        changes.ApplyTo(entity);
-                        await uow.SaveChangesAsync(cancellationToken)
-                            .ConfigureAwait(false);
+                return await source.Match(
+                    some: async entity =>
+                   {
+                       JsonPatchDocument<BloodPressure> changes = _mapper.Map<JsonPatchDocument<BloodPressureInfo>, JsonPatchDocument<BloodPressure>>(patchDocument);
 
-                        await _mediator.Publish(new BloodPressureUpdated(entityId), cancellationToken)
-                            .ConfigureAwait(false);
+                       bool continueChange = true;
+                       int currentChangeIndex = 0;
+                       Operation<BloodPressure>[] operations = changes.Operations.Where(op => op.OperationType != OperationType.Test)
+                           .ToArray();
+                       while (currentChangeIndex < operations.Length && continueChange)
+                       {
+                           Operation<BloodPressure> op = operations[currentChangeIndex];
 
-                        result = ModifyCommandResult.Done;
-                    });
+                           if (_actions.TryGetValue(op.path, out Action<BloodPressure, object> action))
+                           {
+                               action.Invoke(entity, op.value);
+                           }
 
-                return result;
+                           currentChangeIndex++;
+                       }
+
+                       await uow.SaveChangesAsync(cancellationToken)
+                           .ConfigureAwait(false);
+
+                       await _mediator.Publish(new BloodPressureUpdated(entityId), cancellationToken)
+                           .ConfigureAwait(false);
+
+                       return ModifyCommandResult.Done;
+                   },
+                   none: () => Task.FromResult(ModifyCommandResult.Failed_NotFound)
+                );
             }
         }
     }

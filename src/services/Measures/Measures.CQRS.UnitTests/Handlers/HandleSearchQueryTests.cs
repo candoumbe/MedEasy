@@ -72,12 +72,13 @@ namespace Measures.CQRS.UnitTests.Handlers
                     {
                         Filter = new Filter(field : nameof(PatientInfo.Name), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
-                        PageSize = 3
+                        PageSize = 3,
+                        Sort = new Sort<PatientInfo>(nameof(PatientInfo.Name))
                     },
-                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                    (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                         && !x.Entries.Any()
                         && x.Count == 1
-                        && x.Size == 3))
+                        && x.Size == 3)
                 };
 
                 {
@@ -94,13 +95,14 @@ namespace Measures.CQRS.UnitTests.Handlers
                         {
                             Filter = new Filter(field : nameof(PatientInfo.Name), @operator : Contains, value : "y"),
                             Page = 3,
-                            PageSize = 1
+                            PageSize = 1,
+                            Sort = new Sort<PatientInfo>(nameof(PatientInfo.Name))
                         },
-                        ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                        (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                             && x.Entries.Count() == 1
                             && x.Entries.ElementAt(0).Id == patientId
                             && x.Count == 3
-                            && x.Size == 1))
+                            && x.Size == 1)
                        };
                 }
             }

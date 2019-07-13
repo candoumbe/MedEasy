@@ -28,7 +28,8 @@ namespace Measures.Objects
             SystolicPressure = systolicPressure;
         }
 
-
-
+        public void ChangeSystolicTo(float newValue) => SystolicPressure = newValue;
+        public void ChangeDiastolicTo(float newValue) => throw new NotImplementedException();
+        public void ChangeDateOfMeasure(DateTime newValue) => throw new NotImplementedException();
     }
 }
