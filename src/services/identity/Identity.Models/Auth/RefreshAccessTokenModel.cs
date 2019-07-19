@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Identity.API.Features.Auth
+﻿namespace Identity.Models.Auth
 {
     public class RefreshAccessTokenModel
     {

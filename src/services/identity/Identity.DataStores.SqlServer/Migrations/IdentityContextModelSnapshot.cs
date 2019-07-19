@@ -15,15 +15,14 @@ namespace Identity.DataStores.SqlServer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
+                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("Identity.Objects.Account", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
@@ -46,15 +45,12 @@ namespace Identity.DataStores.SqlServer.Migrations
 
                     b.Property<string>("RefreshToken");
 
-                    b.Property<int?>("RoleId");
+                    b.Property<Guid?>("RoleId");
 
                     b.Property<string>("Salt")
                         .IsRequired();
 
                     b.Property<Guid?>("TenantId");
-
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
@@ -62,7 +58,7 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.Property<DateTimeOffset>("UpdatedDate")
                         .IsConcurrencyToken();
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(255);
 
@@ -70,10 +66,7 @@ namespace Identity.DataStores.SqlServer.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.HasIndex("UUID")
-                        .IsUnique();
-
-                    b.HasIndex("UserName")
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Account");
@@ -81,13 +74,12 @@ namespace Identity.DataStores.SqlServer.Migrations
 
             modelBuilder.Entity("Identity.Objects.AccountClaim", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<int>("AccountId");
+                    b.Property<Guid>("AccountId");
 
-                    b.Property<int>("ClaimId");
+                    b.Property<Guid>("ClaimId");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
@@ -97,9 +89,6 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.Property<DateTimeOffset?>("End");
 
                     b.Property<DateTimeOffset>("Start");
-
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
@@ -115,17 +104,13 @@ namespace Identity.DataStores.SqlServer.Migrations
 
                     b.HasIndex("ClaimId");
 
-                    b.HasIndex("UUID")
-                        .IsUnique();
-
                     b.ToTable("AccountClaim");
                 });
 
             modelBuilder.Entity("Identity.Objects.Claim", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
@@ -135,9 +120,6 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50);
-
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
@@ -154,19 +136,15 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.HasIndex("Type")
                         .IsUnique();
 
-                    b.HasIndex("UUID")
-                        .IsUnique();
-
                     b.ToTable("Claim");
                 });
 
             modelBuilder.Entity("Identity.Objects.Role", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("AccountId");
+                    b.Property<Guid?>("AccountId");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -176,9 +154,6 @@ namespace Identity.DataStores.SqlServer.Migrations
                         .HasMaxLength(255);
 
                     b.Property<DateTimeOffset>("CreatedDate");
-
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
@@ -193,29 +168,22 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.HasIndex("UUID")
-                        .IsUnique();
-
                     b.ToTable("Role");
                 });
 
             modelBuilder.Entity("Identity.Objects.RoleClaim", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<int>("ClaimId");
+                    b.Property<Guid>("ClaimId");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
 
                     b.Property<DateTimeOffset>("CreatedDate");
 
-                    b.Property<int>("RoleId");
-
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
+                    b.Property<Guid>("RoleId");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
@@ -228,9 +196,6 @@ namespace Identity.DataStores.SqlServer.Migrations
                     b.HasIndex("ClaimId");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("UUID")
-                        .IsUnique();
 
                     b.ToTable("RoleClaim");
                 });
@@ -245,7 +210,7 @@ namespace Identity.DataStores.SqlServer.Migrations
             modelBuilder.Entity("Identity.Objects.AccountClaim", b =>
                 {
                     b.HasOne("Identity.Objects.Account", "Account")
-                        .WithMany("Claims")
+                        .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade);
 

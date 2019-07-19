@@ -36,6 +36,7 @@
     <ProjectReference Include="..\Identity.CQRS.Handlers.EFCore\Identity.CQRS.Handlers.EFCore.csproj" />
     <ProjectReference Include="..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
     <ProjectReference Include="..\Identity.Mapping\Identity.Mapping.csproj" />
+    <ProjectReference Include="..\Identity.Models\Identity.Models.csproj" />
     <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
     <ProjectReference Include="..\Identity.Validators\Identity.Validators.csproj" />
   </ItemGroup>

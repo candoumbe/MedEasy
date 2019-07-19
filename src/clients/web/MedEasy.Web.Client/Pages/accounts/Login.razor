@@ -1,0 +1,44 @@
+@page "/login"
+@using Identity.Models.Auth
+@using MedEasy.Web.Client.Services.Identity
+
+@inject HttpClient  HttpClient
+@inject TokenService TokenService
+@inject IUriHelper UriHelper
+@inject IIdentityApi IdentityApi
+
+<h3>Login</h3>
+
+<EditForm Model="LoginModel">
+    <BlazorForm OnSubmit="Submit">
+        <FormGroup>
+            <BlazorLabel For="username">Email address</BlazorLabel>
+            <BlazorInput Id="username" @bind-Value="LoginModel.Username" InputType="InputType.Email" PlaceHolder="Enter email or username" />
+            <small id="emailHelp" class="form-text text-muted">We will never share your email with anyone else.</small>
+            <ValidationMessage For="(() => LoginModel.Username)" />
+        </FormGroup>
+        <FormGroup>
+            <BlazorLabel For="password">Password</BlazorLabel>
+            <BlazorInput @bind-Value="LoginModel.Password" Id="password" InputType="InputType.Password" PlaceHolder="Password" />
+            <ValidationMessage For="(() => LoginModel.Password)" />
+        </FormGroup>
+        <BlazorButton Color="Color.Primary" ButtonType="ButtonType.Submit">Log in</BlazorButton>
+        <FormGroup>
+            No account ? <BlazorNavLink href="/register">Create a new account</BlazorNavLink>
+        </FormGroup>
+    </BlazorForm>
+</EditForm>
+
+@code {
+
+
+    private LoginModel LoginModel { get; set; } = new LoginModel();
+
+    protected async Task Submit()
+    {
+        BearerTokenModel token = await IdentityApi.Login(LoginModel);
+        await TokenService.SaveToken(token);
+        UriHelper.NavigateTo("/");
+    }
+
+}
