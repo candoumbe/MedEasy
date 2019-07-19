@@ -2,6 +2,7 @@
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.DTO.Auth;
+using Identity.Models.Auth;
 using MedEasy.CQRS.Core.Commands.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -90,7 +91,7 @@ namespace Identity.API.Features.Auth
                             throw new ArgumentOutOfRangeException("Unhandled refresh token type");
                     }
 
-                    return new OkObjectResult( new BearerTokenInfo
+                    return new OkObjectResult( new BearerTokenModel
                     {
                         AccessToken = accessTokenString,
                         RefreshToken = refreshTokenString

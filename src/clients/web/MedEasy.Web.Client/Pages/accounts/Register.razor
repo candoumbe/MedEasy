@@ -1,0 +1,57 @@
+@page "/register"
+@using Identity.Models.Auth
+@using Identity.Models.Accounts
+@using MedEasy.Web.Client.Services.Identity
+
+@inject TokenService TokenService
+@inject IUriHelper UriHelper
+@inject IIdentityApi IdentityApi
+
+<h3>Create an account</h3>
+
+<EditForm Model="NewAccount">
+    <Card CardType="CardType.Body">
+        <BlazorForm OnSubmit="Submit">
+            <FormGroup>
+                <BlazorLabel For="name">Account</BlazorLabel>
+                <BlazorInput Id="name" @bind-Value="NewAccount.Name" InputType="InputType.Text" PlaceHolder="Name of the account" />
+                <ValidationMessage For="(() => NewAccount.Name)" />
+            </FormGroup>
+            <FormGroup>
+                <BlazorLabel For="email">Account</BlazorLabel>
+                <BlazorInput Id="email" @bind-Value="NewAccount.Email" InputType="InputType.Text" PlaceHolder="Enter email or username" />
+                <small id="emailHelp" class="form-text text-muted">We will never share your email with anyone else.</small>
+                <ValidationMessage For="(() => NewAccount.Email)" />
+            </FormGroup>
+            <FormGroup>
+                <BlazorLabel For="new-password">New password</BlazorLabel>
+                <BlazorInput @bind-Value="NewAccount.Password" autocomplete="new-password" Id="new-password" InputType="InputType.Password" PlaceHolder="Password" />
+                <ValidationMessage For="(() => NewAccount.Password)" />
+            </FormGroup>
+
+            <FormGroup>
+                <BlazorLabel For="confirm-password">Confirm password</BlazorLabel>
+                <BlazorInput @bind-Value="NewAccount.ConfirmPassword" autocomplete="confirm-password" Id="confirm-password" InputType="InputType.Password" PlaceHolder="ConirmPassword" />
+                <ValidationMessage For="(() => NewAccount.ConfirmPassword)" />
+            </FormGroup>
+
+            <BlazorButton Color="Color.Primary" ButtonType="ButtonType.Submit">Create my account</BlazorButton>
+        </BlazorForm>
+
+
+    </Card>
+</EditForm>
+
+@code {
+
+
+    private NewAccountModel NewAccount { get; set; } = new NewAccountModel();
+
+    async Task Submit()
+    {
+        BearerTokenModel token = await IdentityApi.Register(NewAccount, default);
+        await TokenService.SaveToken(token);
+        UriHelper.NavigateTo("/");
+    }
+
+}

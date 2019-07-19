@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+@using MedEasy.Web.Client.Services.Identity
+@using Identity.Models.Auth
+
+@inject TokenService TokenService;
+@inject IIdentityApi  IdentityApi
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+        <AuthorizeView>
+            <Authorized>
+                Bienvenue @context.User.Identity.Name
+                <BlazorButton ButtonType="ButtonType.Link" OnClick="(async () => await LogOut(context.User.Identity.Name))">Log out</BlazorButton>
+            </Authorized>
+            <NotAuthorized>
+                <BlazorNavLink href="/login">Log in</BlazorNavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+@code
+{
+private async Task LogOut(string username)
+{
+    BearerTokenModel token = await TokenService.GetToken();
+    await IdentityApi.LogOut($"Bearer {token.AccessToken}", username);
+    await TokenService.DeleteToken();
+}
+
+}

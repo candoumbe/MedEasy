@@ -5,6 +5,7 @@ using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
 using Identity.DTO.Auth;
+using Identity.Models.Auth;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -173,10 +174,10 @@ namespace Identity.API.UnitTests.Features.Authentication
 
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
 
-            BearerTokenInfo bearerToken = actionResult.Should()
+            BearerTokenModel bearerToken = actionResult.Should()
                 .BeOfType<OkObjectResult>().Which
                 .Value.Should()
-                .BeOfType<BearerTokenInfo>().Which;
+                .BeOfType<BearerTokenModel>().Which;
 
             bearerToken.AccessToken.Should()
                 .NotBeNullOrWhiteSpace();
