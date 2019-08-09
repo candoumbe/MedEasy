@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MedEasy.Web.Client.Services
 {
-    public class TokenService
+    public class TokenService : ITokenService
     {
         private const string TOKEN = "token";
         private readonly SessionStorage _sessionStorage;

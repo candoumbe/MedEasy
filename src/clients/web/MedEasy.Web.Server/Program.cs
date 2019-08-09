@@ -15,6 +15,7 @@ namespace MedEasy.Web.Server
             WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(new ConfigurationBuilder()
                     .AddCommandLine(args)
+                    .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)
                     .Build())
                 .UseStartup<Startup>()
                 .Build();
