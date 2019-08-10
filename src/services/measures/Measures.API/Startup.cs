@@ -1,6 +1,7 @@
 ﻿using Measures.API.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -48,9 +49,10 @@ namespace Measures.API
                     options.RedirectStatusCode = Status307TemporaryRedirect;
                 });
 #endif
-            services.AddDataStores();
-            services.ConfigureDependencyInjection();
-            services.ConfigureAuthentication(Configuration);
+            services.AddDataStores()
+                .ConfigureDependencyInjection()
+                .ConfigureAuthentication(Configuration)
+                .AddCustomApiVersioning();
 
             if (HostingEnvironment.IsDevelopment())
             {
@@ -66,8 +68,9 @@ namespace Measures.API
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="applicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
         {
+            app.UseApiVersioning();
             app.UseAuthentication();
 
             if (env.IsProduction())
@@ -98,7 +101,13 @@ namespace Measures.API
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
-                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "MedEasy REST API V1");
+                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                        {
+                            if (!description.IsDeprecated)
+                            {
+                                opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Agenda REST API {description.GroupName}");
+                            }
+                        }
                     });
                 }
             }
@@ -107,12 +116,11 @@ namespace Measures.API
 
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "measures/{controller=root}/{action=index}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "measures/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "measures/{controller}/");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "measures/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "measures/{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "measures/{controller}/search/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search/");
             });
         }
     }

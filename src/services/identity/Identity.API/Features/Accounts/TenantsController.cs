@@ -21,12 +21,13 @@ namespace Identity.API.Features.Accounts
     /// <summary>
     /// Handles <see cref="Account"/>s resources
     /// </summary>
-    [Route("identity/[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     [Authorize]
     public class TenantsController
     {
-        public static string EndpointName => nameof(AccountsController)
+        public static string EndpointName => nameof(TenantsController)
             .Replace(nameof(Controller), string.Empty);
         private readonly IUrlHelper _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
@@ -50,6 +51,9 @@ namespace Identity.API.Features.Accounts
         /// <response code="409">Resource cannot be deleted</response>
         /// <response code="403"></response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(Status409Conflict)]
+        [ProducesResponseType(Status409Conflict)]
+        [ProducesResponseType(Status204NoContent)]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
         {
             DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(id);
@@ -106,7 +110,7 @@ namespace Identity.API.Features.Accounts
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
         /// </para>
-        /// <para>    // PATCH api/tenants/3594c436-8595-444d-9e6b-2686c4904725</para>
+        /// <para>    // HTTP 1.1 PATCH /api/tenants/3594c436-8595-444d-9e6b-2686c4904725</para>
         /// <para>
         ///     [
         ///         {
@@ -122,7 +126,7 @@ namespace Identity.API.Features.Accounts
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>

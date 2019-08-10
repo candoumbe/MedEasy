@@ -23,7 +23,7 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static Moq.MockBehavior;
 
-namespace Identity.API.Tests.Features.Accounts
+namespace Identity.API.UnitTests.Features.v1.Accounts
 {
     /// <summary>
     /// Unit tests for <see cref="TenantsController"/>
@@ -94,18 +94,18 @@ namespace Identity.API.Tests.Features.Accounts
                 id: tenantId,
                 username: "thebatman",
                 passwordHash: "a_super_secret_password",
-                email : "bruce@wayne-entreprise.com",
-                salt : "salt_and_pepper_for_password",
-                tenantId : Guid.NewGuid()
+                email: "bruce@wayne-entreprise.com",
+                salt: "salt_and_pepper_for_password",
+                tenantId: Guid.NewGuid()
             );
             Account newAccount = new Account
             (
                 id: Guid.NewGuid(),
                 username: "robin",
-                passwordHash : "a_super_secret_password",
-                email : "dick.grayson@wayne-entreprise.com",
-                salt : "salt_and_pepper_for_password",
-                tenantId : tenant.Id
+                passwordHash: "a_super_secret_password",
+                email: "dick.grayson@wayne-entreprise.com",
+                salt: "salt_and_pepper_for_password",
+                tenantId: tenant.Id
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -122,7 +122,7 @@ namespace Identity.API.Tests.Features.Accounts
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         return await uow.Repository<Account>()
-                            .AnyAsync((Account x) => x.TenantId == query.Data, ct)
+                            .AnyAsync((x) => x.TenantId == query.Data, ct)
                             .ConfigureAwait(false);
                     }
                 });
@@ -164,9 +164,9 @@ namespace Identity.API.Tests.Features.Accounts
             (
                 id: accountId,
                 username: "robin",
-                passwordHash : "a_super_secret_password",
-                email : "dick.grayson@wayne-entreprise.com",
-                salt : "salt_and_pepper_for_password"
+                passwordHash: "a_super_secret_password",
+                email: "dick.grayson@wayne-entreprise.com",
+                salt: "salt_and_pepper_for_password"
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -183,7 +183,7 @@ namespace Identity.API.Tests.Features.Accounts
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
                         return await uow.Repository<Account>()
-                            .AnyAsync((Account x) => x.TenantId == query.Data,ct)
+                            .AnyAsync((x) => x.TenantId == query.Data, ct)
                             .ConfigureAwait(false);
                     }
                 });

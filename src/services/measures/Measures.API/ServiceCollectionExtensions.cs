@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -118,8 +119,37 @@ namespace Measures.API
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
-
         }
+
+        /// <summary>
+        /// Adds version
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.UseApiBehavior = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+            });
+            services.AddVersionedApiExplorer(
+                options =>
+                {
+                    // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                    // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                    options.GroupNameFormat = "'v'VVV";
+
+                    // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                    // can also be used to control the format of the API version in route templates
+                    options.SubstituteApiVersionInUrl = true;
+                });
+
+            return services;
+        }
+
 
         private static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
         {
@@ -152,7 +182,7 @@ namespace Measures.API
         /// <param name="services"></param>
         /// 
         /// 
-        public static void AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             services.AddTransient(serviceProvider =>
             {
@@ -164,16 +194,16 @@ namespace Measures.API
            {
                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
-               
+
                Func<DbContextOptions<MeasuresContext>, MeasuresContext> contextGenerator;
 
                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-               {              
+               {
                    contextGenerator = options =>
                    {
                        MeasuresContext context = new MeasuresContext(options);
-                        //context.Database.EnsureCreated();
-                        return context;
+                       //context.Database.EnsureCreated();
+                       return context;
                    };
                }
                else
@@ -182,13 +212,15 @@ namespace Measures.API
                }
                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, contextGenerator);
            });
+
+            return services;
         }
 
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static void ConfigureDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection ConfigureDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
@@ -221,6 +253,8 @@ namespace Measures.API
 
                 return principal;
             });
+
+            return services;
         }
 
         /// <summary>
@@ -229,7 +263,7 @@ namespace Measures.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             ApplicationEnvironment app = PlatformServices.Default.Application;
 
@@ -271,6 +305,8 @@ namespace Measures.API
                     {"Bearer", Enumerable.Empty<string>() }
                 });
             });
+
+            return services;
         }
 
         /// <summary>
@@ -278,20 +314,25 @@ namespace Measures.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
+        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
-                        ValidAudience = configuration["Authentication:JwtBearer:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
-                    };
-                });
+               .AddJwtBearer(options =>
+               {
+                   options.TokenValidationParameters = new TokenValidationParameters
+                   {
+                       ValidateIssuer = true,
+                       ValidateAudience = true,
+                       ValidateLifetime = true,
+                       ValidateIssuerSigningKey = true,
+                       ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
+                       ValidAudience = configuration["Authentication:JwtBearer:Audience"],
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
+                   };
+               });
+
+            return services;
+        }
+
     }
 }

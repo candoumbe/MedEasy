@@ -23,6 +23,7 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
+using Identity.DTO.v1;
 
 namespace Patients.API.IntegrationTests
 {

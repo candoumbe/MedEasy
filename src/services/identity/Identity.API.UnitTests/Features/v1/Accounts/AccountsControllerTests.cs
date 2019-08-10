@@ -40,7 +40,7 @@ using static System.StringComparison;
 using static MedEasy.RestObjects.LinkRelation;
 using static System.Uri;
 
-namespace Identity.API.Tests.Features.Accounts
+namespace Identity.API.UnitTests.Features.v1.Accounts
 {
     /// <summary>
     /// Unit tests for <see cref="AccountsController"/>
@@ -264,11 +264,11 @@ namespace Identity.API.Tests.Features.Accounts
             {
                 uow.Repository<Account>().Create(new Account
                 (
-                    id : accountId,
+                    id: accountId,
                     username: "thebatman",
-                    passwordHash:  "a_super_secret_password",
-                    email : "bruce@wayne-entreprise.com",
-                    salt : "salt_and_pepper_for_password"
+                    passwordHash: "a_super_secret_password",
+                    email: "bruce@wayne-entreprise.com",
+                    salt: "salt_and_pepper_for_password"
 
                 ));
 
@@ -339,16 +339,16 @@ namespace Identity.API.Tests.Features.Accounts
 
             Account tenant = new Account
             (
-                id:  Guid.NewGuid(),
-                username:  "thebatman",
-                passwordHash : "a_super_secret_password",
-                email : "bruce@wayne-entreprise.com",
-                salt : "salt_and_pepper_for_password",
-                tenantId : Guid.NewGuid()
+                id: Guid.NewGuid(),
+                username: "thebatman",
+                passwordHash: "a_super_secret_password",
+                email: "bruce@wayne-entreprise.com",
+                salt: "salt_and_pepper_for_password",
+                tenantId: Guid.NewGuid()
             );
             Account newAccount = new Account
             (
-                id : accountId,
+                id: accountId,
                 username: "robin",
                 passwordHash: "a_super_secret_password",
                 email: "dick.grayson@wayne-entreprise.com",
@@ -615,7 +615,7 @@ namespace Identity.API.Tests.Features.Accounts
                         name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
                         email: faker.Internet.ExampleEmail(),
                         passwordHash: faker.Lorem.Word(),
-                        username:faker.Internet.UserName(),
+                        username: faker.Internet.UserName(),
                         salt: faker.Lorem.Word()))
                     ;
                 {

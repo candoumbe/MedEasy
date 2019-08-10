@@ -24,8 +24,9 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Measures.API;
+using Identity.DTO.v1;
 
-namespace Measures.API.IntegrationTests
+namespace Measures.API.IntegrationTests.v1
 {
     [IntegrationTest]
     [Feature("Patients")]
@@ -35,7 +36,8 @@ namespace Measures.API.IntegrationTests
         private IntegrationFixture<Startup> _server;
         private ITestOutputHelper _outputHelper;
         private IdentityApiFixture _identityServer;
-        private const string _endpointUrl = "/measures/patients";
+        private const string _version = "v1";
+        private readonly static string _baseUrl = $"/{_version}/patients";
 
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
@@ -141,7 +143,7 @@ namespace Measures.API.IntegrationTests
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
                 // Act
-                HttpResponseMessage response = await client.GetAsync("/measures/patients")
+                HttpResponseMessage response = await client.GetAsync(_baseUrl)
                     .ConfigureAwait(false);
 
                 // Assert
@@ -162,7 +164,7 @@ namespace Measures.API.IntegrationTests
         {
             get
             {
-                const string url = "/measures/patients";
+                const string url = "/v1/patients";
                 yield return new object[] { url, Head };
                 yield return new object[] { url, Get };
                 yield return new object[] { url, Options };
@@ -226,7 +228,7 @@ namespace Measures.API.IntegrationTests
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
-            string url = $"{_endpointUrl}/{Guid.Empty.ToString()}";
+            string url = $"{_baseUrl}/{Guid.Empty.ToString()}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
@@ -292,7 +294,7 @@ namespace Measures.API.IntegrationTests
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
             // Arrange
-            string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
+            string url = $"{_baseUrl}/search?page=2&page10&firstname=Bruce";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
@@ -357,7 +359,7 @@ namespace Measures.API.IntegrationTests
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
                 // Act
-                HttpResponseMessage response = await client.PostAsJsonAsync("/measures/patients", newPatient)
+                HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
@@ -402,7 +404,7 @@ namespace Measures.API.IntegrationTests
                 };
 
                 // Act
-                string requestUri = $"{_endpointUrl}/{patientId}/bloodpressures";
+                string requestUri = $"{_baseUrl}/{patientId}/bloodpressures";
                 _outputHelper.WriteLine($"Endpoint : {requestUri}");
                 response = await client.PostAsJsonAsync(requestUri, resourceToCreate)
                     .ConfigureAwait(false);
@@ -485,7 +487,7 @@ namespace Measures.API.IntegrationTests
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-                HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newPatientInfo)
+                HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatientInfo)
                     .ConfigureAwait(false);
 
                 string json = await response.Content.ReadAsStringAsync()
@@ -495,7 +497,7 @@ namespace Measures.API.IntegrationTests
 
                 // Act
                 _outputHelper.WriteLine($"Invalid resource : {invalidResource}");
-                response = await client.PostAsJsonAsync($"{_endpointUrl}/{patientInfo.Id}/bloodpressures", invalidResource)
+                response = await client.PostAsJsonAsync($"{_baseUrl}/{patientInfo.Id}/bloodpressures", invalidResource)
                     .ConfigureAwait(false);
 
                 // Assert
@@ -549,7 +551,7 @@ namespace Measures.API.IntegrationTests
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-                HttpResponseMessage response = await client.PostAsJsonAsync("/measures/patients", newPatient)
+                HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");

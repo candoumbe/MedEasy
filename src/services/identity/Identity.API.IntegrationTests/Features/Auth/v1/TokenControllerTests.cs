@@ -5,6 +5,7 @@ using Identity.API.Features.Accounts;
 using Identity.API.Fixtures;
 using Identity.DTO;
 using Identity.DTO.Auth;
+using Identity.DTO.v1;
 using MedEasy.RestObjects;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -13,7 +14,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -22,7 +22,7 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
 
-namespace Identity.API.IntegrationTests.Features.Auth
+namespace Identity.API.IntegrationTests.Features.Auth.v1
 {
     [IntegrationTest]
     [Feature("Authentication")]
@@ -30,7 +30,8 @@ namespace Identity.API.IntegrationTests.Features.Auth
     {
         private ITestOutputHelper _outputHelper;
         private IdentityApiFixture _identityApiFixture;
-        private readonly string _endpointUrl = "/identity";
+        private const string _version = "v1";
+        private readonly string _endpointUrl = $"/{_version}";
 
         public TokenControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
@@ -63,7 +64,8 @@ namespace Identity.API.IntegrationTests.Features.Auth
                     Password = newAccountInfo.Password
                 };
 
-                HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token", loginInfo)
+
+                HttpResponseMessage response = await client.PostAsJsonAsync($"/auth/{_version}/token", loginInfo)
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -94,7 +96,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
 
                 _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
 
-                string path = $"/identity/accounts/?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
+                string path = $"/{_version}/{AccountsController.EndpointName}?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
                 _outputHelper.WriteLine($"Test URL : <{path}>");
 
                 HttpRequestMessage request = new HttpRequestMessage(Head, path);
@@ -137,7 +139,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 };
 
                 // Act
-                HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token", loginInfo)
+                HttpResponseMessage response = await client.PostAsJsonAsync($"/auth/{_version}/token", loginInfo)
                     .ConfigureAwait(false);
 
                 // Assert
@@ -196,7 +198,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                     Password = newAccountInfo.Password
                 };
 
-                response = await client.PostAsJsonAsync("/auth/token", loginInfo)
+                response = await client.PostAsJsonAsync($"/auth/{_version}/token", loginInfo)
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -212,7 +214,7 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 BearerTokenInfo tokenInfo = JToken.Parse(json)
                     .ToObject<BearerTokenInfo>();
 
-                HttpRequestMessage requestInvalidateToken = new HttpRequestMessage(Delete, $"/auth/token/{newAccountInfo.Username}");
+                HttpRequestMessage requestInvalidateToken = new HttpRequestMessage(Delete, $"/auth/{_version}/token/{newAccountInfo.Username}");
                 AuthenticationHeaderValue bearerTokenHeader = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken);
                 requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
                 response = await client.SendAsync(requestInvalidateToken)
@@ -221,12 +223,12 @@ namespace Identity.API.IntegrationTests.Features.Auth
                 response.EnsureSuccessStatusCode();
                 _outputHelper.WriteLine($"Refresh token was successfully revoked");
 
-                HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Put, $"auth/token/{newAccountInfo.Username}");
+                HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Put, $"auth/{_version}/token/{newAccountInfo.Username}");
                 refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
                 RefreshAccessTokenInfo refreshAccessTokenInfo = new RefreshAccessTokenInfo { AccessToken = tokenInfo.AccessToken, RefreshToken = tokenInfo.RefreshToken };
                 refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter(), "application/json");
-                
+
                 // Act
                 response = await client.SendAsync(refreshTokenRequest)
                     .ConfigureAwait(false);

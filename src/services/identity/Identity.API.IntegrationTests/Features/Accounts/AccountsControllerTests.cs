@@ -23,6 +23,7 @@ using System.Net.Http.Headers;
 using Identity.API.Features.Accounts;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Bogus;
+using Identity.DTO.v1;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
@@ -33,7 +34,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
     {
         private IdentityApiFixture _identityApiFixture;
         private ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/identity";
+        private const string _endpointUrl = "/v1";
 
         public AccountsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
@@ -135,6 +136,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
         }
 
         [Fact]
+
         public async Task GivenValidToken_Get_Returns_ListOfAccounts()
         {
             // Arrange
@@ -148,6 +150,8 @@ namespace Identity.API.IntegrationTests.Features.Accounts
                 ConfirmPassword = password,
                 Email = faker.Person.Email
             };
+
+            _outputHelper.WriteLine($"Registering account {newAccount}");
 
             BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
                 .ConfigureAwait(false);

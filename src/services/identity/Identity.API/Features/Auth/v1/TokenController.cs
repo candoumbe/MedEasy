@@ -2,6 +2,7 @@
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.DTO.Auth;
+using Identity.DTO.v1;
 using MedEasy.CQRS.Core.Commands.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -19,10 +20,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Identity.API.Features.Auth
+namespace Identity.API.Features.Auth.v1
 {
+    /// <summary>
+    /// Endpoint to handle authentication, token.
+    /// </summary>
     [ApiController]
-    [Route("auth/[controller]")]
+    [Route("auth/v{version:apiVersion}/[controller]")]
     [Authorize]
     public class TokenController
     {
@@ -43,8 +47,12 @@ namespace Identity.API.Features.Auth
         /// <param name="model"></param>
         /// <param name="ct">Notifies to abort the action execution</param>
         /// <returns></returns>
+        /// <response code="404">The login/password was not found</response>
+        [ApiVersion("1.0")]
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
         public async ValueTask<IActionResult> Post([FromBody, BindRequired]LoginModel model, CancellationToken ct = default)
         {
             LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
@@ -64,7 +72,6 @@ namespace Identity.API.Features.Auth
                         Audiences = jwtOptions.Audiences,
                         AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
                         RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
-
                     };
                     AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
                         .ConfigureAwait(false);
@@ -90,17 +97,29 @@ namespace Identity.API.Features.Auth
                             throw new ArgumentOutOfRangeException("Unhandled refresh token type");
                     }
 
-                    return new OkObjectResult( new BearerTokenInfo
+                    return new OkObjectResult(new BearerTokenInfo
                     {
                         AccessToken = accessTokenString,
                         RefreshToken = refreshTokenString
                     });
                 },
-                none: () => new ValueTask<IActionResult>(new BadRequestResult())
+                none: () => new ValueTask<IActionResult>(new NotFoundResult())
             ).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Invalidates a refresh token previously obtained after a successfull login.
+        /// </summary>
+        /// <param name="username">Username of the account to invalidate.</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <reponse code="204">The token was successfully invalidated</reponse>
+        /// <reponse code="401">The token sent alongside the request has expired</reponse>
+        /// <reponse code="409">The request tries to invalidate </reponse>
         [HttpDelete("{username}")]
+        [ApiVersion("1.0")]
+        [ApiVersion("2.0")]
+        [ProducesResponseType(Status204NoContent)]
         public async Task<IActionResult> Invalidate(string username, CancellationToken ct = default)
         {
             InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand(username);
@@ -129,7 +148,17 @@ namespace Identity.API.Features.Auth
             return actionResult;
         }
 
+        /// <summary>
+        /// Renews access token
+        /// </summary>
+        /// <param name="username">Username of the account to renew access token for</param>
+        /// <param name="refreshAccessToken">Access token and refresh token to renew</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         [HttpPut("{username}")]
+        [ApiVersion("1.0")]
+        [ApiVersion("2.0")]
+        [ProducesResponseType(typeof(BearerTokenInfo), Status200OK)]
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;

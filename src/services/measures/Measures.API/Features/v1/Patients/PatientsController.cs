@@ -1,5 +1,6 @@
 ﻿using DataFilters;
-using Measures.API.Features.BloodPressures;
+using Measures.API.Features.Patients;
+using Measures.API.Features.v1.BloodPressures;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
@@ -28,13 +29,13 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace Measures.API.Features.Patients
+namespace Measures.API.Features.v1.Patients
 {
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="PatientInfo"/> resources
     /// </summary>
     [ApiController]
-    [Route("measures/[controller]")]
+    [Route("/v{version:apiVersion}/[controller]")]
     public class PatientsController
     {
         private readonly IMediator _mediator;
@@ -427,23 +428,23 @@ namespace Measures.API.Features.Patients
                 },
                 none: (createResult) =>
                 {
-                   IActionResult actionResult;
-                   switch (createResult)
-                   {
-                       case CreateCommandResult.Failed_Conflict:
-                           actionResult = new StatusCodeResult(Status409Conflict);
-                           break;
-                       case CreateCommandResult.Failed_NotFound:
-                           actionResult = new NotFoundResult();
-                           break;
-                       case CreateCommandResult.Failed_Unauthorized:
-                           actionResult = new UnauthorizedResult();
-                           break;
-                       default:
-                           throw new ArgumentOutOfRangeException($"Unexpected result <{createResult}> when creating a blood pressure resource");
-                   }
+                    IActionResult actionResult;
+                    switch (createResult)
+                    {
+                        case CreateCommandResult.Failed_Conflict:
+                            actionResult = new StatusCodeResult(Status409Conflict);
+                            break;
+                        case CreateCommandResult.Failed_NotFound:
+                            actionResult = new NotFoundResult();
+                            break;
+                        case CreateCommandResult.Failed_Unauthorized:
+                            actionResult = new UnauthorizedResult();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Unexpected result <{createResult}> when creating a blood pressure resource");
+                    }
 
-                   return actionResult;
+                    return actionResult;
                 }
             );
         }

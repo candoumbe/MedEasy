@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,7 +114,6 @@ namespace Identity.API
                     options.ExcludedHosts.Remove("localhost");
                     options.ExcludedHosts.Remove("127.0.0.1");
                     options.ExcludedHosts.Remove("[::1]");
-
                 }
             });
             services.AddHttpsRedirection(options =>
@@ -152,7 +152,6 @@ namespace Identity.API
             services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
 
             return services;
-
         }
 
         /// <summary>
@@ -207,6 +206,35 @@ namespace Identity.API
 
                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));
            });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds version
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.UseApiBehavior = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+            });
+            services.AddVersionedApiExplorer(
+                options =>
+                {
+                    // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                    // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                    options.GroupNameFormat = "'v'VVV";
+
+                    // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                    // can also be used to control the format of the API version in route templates
+                    options.SubstituteApiVersionInUrl = true;
+                });
 
             return services;
         }
@@ -275,7 +303,6 @@ namespace Identity.API
                             .GetChildren()
                             .Select(x => x.Value),
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
-
                    };
                    options.Validate();
                });

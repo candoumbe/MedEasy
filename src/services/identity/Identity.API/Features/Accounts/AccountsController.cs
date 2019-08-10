@@ -30,8 +30,9 @@ namespace Identity.API.Features.Accounts
     /// <summary>
     /// Handles <see cref="Account"/>s resources
     /// </summary>
-    [Route("identity/[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     [Authorize]
     public class AccountsController
     {

@@ -3,8 +3,8 @@ using Bogus;
 using DataFilters;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Measures.API.Features.BloodPressures;
-using Measures.API.Features.Patients;
+using Measures.API.Features.v1.BloodPressures;
+using Measures.API.Features.v1.Patients;
 using Measures.API.Routing;
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
@@ -42,7 +42,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 
-namespace Measures.API.Tests.Features.BloodPressures
+namespace Measures.API.Tests.Features.v1.BloodPressures
 {
     /// <summary>
     /// Unit tests for <see cref="BloodPressuresController"/>

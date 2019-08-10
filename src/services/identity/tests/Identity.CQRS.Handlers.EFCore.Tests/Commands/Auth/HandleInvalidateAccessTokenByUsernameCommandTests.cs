@@ -60,16 +60,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
         public async Task InvalidateUnknownUsername_Returns_NotFound()
         {
             // Arrange
-            SecurityToken securityToken = new JwtSecurityToken(
-                issuer: "server",
-                audience: "api",
-                claims: new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.UniqueName, "administrator")
-                }
-            );
-
             InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand("thejoker");
 
             // Act

@@ -1,0 +1,337 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Identity.API</name>
+    </assembly>
+    <members>
+        <member name="T:Identity.API.Context.DesignTimeDbContextFactory">
+            <summary>
+            Factory class to create <see cref="T:Identity.DataStores.SqlServer.IdentityContext"/> during design time.
+            </summary>
+        </member>
+        <member name="M:Identity.API.Context.DesignTimeDbContextFactory.CreateDbContext(System.String[])">
+            <summary>
+            Creates a new <see cref="T:Identity.DataStores.SqlServer.IdentityContext"/> instance.
+            </summary>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Identity.API.Features.Accounts.AccountsController">
+            <summary>
+            Handles <see cref="!:Account"/>s resources
+            </summary>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Get(MedEasy.RestObjects.PaginationConfiguration,System.Threading.CancellationToken)">
+            <summary>
+            Gets a subset of accounts resources
+            </summary>
+            <param name="paginationConfiguration">paging configuration</param>
+            <param name="ct">Notification to abort request execution</param>
+            <returns></returns>
+            <response code="200">A collection of resource</response>
+            <response code="400">page or pageSize is negative or zero</response>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete the account with the specified <paramref name="id"/>.
+            </summary>
+            <param name="id">id of the resource to delete.</param>
+            <param name="ct">Notifies to abort the request execution.</param>
+            <returns></returns>
+            <response code="204">The resource was successfully deleted.</response>
+            <response code="404">Resource to delete was not found</response>
+            <response code="409">Resource cannot be deleted</response>
+            <response code="403"></response>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Get(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete the specified account
+            </summary>
+            <param name="id">id of the account to delete</param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Patch(System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{Identity.DTO.AccountInfo},System.Threading.CancellationToken)">
+            <summary>
+            Partially update an account resource.
+            </summary>
+            <remarks>
+            <para>
+            Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
+            Only the declared modifications will be applied to the resource.
+            </para>
+            <para>    // PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725</para>
+            <para>
+                [
+                    {
+                        "op": "update",
+                        "path": "/Email",
+                        "from": "string",
+                        "value": "bruce@wayne-entreprise.com"
+                  }
+                ]
+            </para>
+            <para>The set of changes to apply will be applied atomically. </para>
+            
+            </remarks>
+            <param name="id">id of the resource to update.</param>
+            <param name="changes">set of changes to apply to the resource.</param>
+            <param name="ct"></param>
+            <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+            <response code="204">The resource was successfully patched.</response>
+            <response code="400">Changes are not valid for the selected resource.</response>
+            <response code="404">Resource to "PATCH" not found</response>
+            <response code="409">One or more patch operations would result in a invalid state</response>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Post(Identity.DTO.NewAccountInfo,System.Threading.CancellationToken)">
+            <summary>
+            Creates an account resource.
+            </summary>
+            <param name="newAccount">Data of the new account</param>
+            <param name="ct"></param>
+            <returns></returns>
+            <response code="201">The resource was  created successfully.</response>
+            <response code="400">Changes are not valid for the selected resource.</response>
+            <response code="409">An account with the same <see cref="P:Identity.DTO.AccountInfo.Username"/> or <see cref="P:Identity.DTO.AccountInfo.Email"/> already exist</response>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.AccountsController.Search(Identity.DTO.SearchAccountInfo,System.Threading.CancellationToken)">
+            <summary>
+            Search for accounts
+            </summary>
+            <param name="search"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Identity.API.Features.Accounts.TenantsController">
+            <summary>
+            Handles <see cref="!:Account"/>s resources
+            </summary>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.TenantsController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete the account with the specified <paramref name="id"/>.
+            </summary>
+            <param name="id">id of the resource to delete.</param>
+            <param name="ct">Notifies to abort the request execution.</param>
+            <returns></returns>
+            <response code="204">The resource was successfully deleted.</response>
+            <response code="404">Resource to delete was not found</response>
+            <response code="409">Resource cannot be deleted</response>
+            <response code="403"></response>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.TenantsController.Get(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Get the specified account
+            </summary>
+            <param name="id">id of the tenant to delete</param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Identity.API.Features.Accounts.TenantsController.Patch(System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{Identity.DTO.AccountInfo},System.Threading.CancellationToken)">
+            <summary>
+            Partially update an account resource.
+            </summary>
+            <remarks>
+            <para>
+            Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
+            Only the declared modifications will be applied to the resource.
+            </para>
+            <para>    // HTTP 1.1 PATCH /api/tenants/3594c436-8595-444d-9e6b-2686c4904725</para>
+            <para>
+                [
+                    {
+                        "op": "update",
+                        "path": "/Email",
+                        "from": "string",
+                        "value": "bruce@wayne-entreprise.com"
+                  }
+                ]
+            </para>
+            <para>The set of changes to apply will be applied atomically. </para>
+            
+            </remarks>
+            <param name="id">id of the resource to update.</param>
+            <param name="changes">set of changes to apply to the resource.</param>
+            <param name="ct">Notifies lower layers about the request abortion</param>
+            <response code="204">The resource was successfully patched.</response>
+            <response code="400">Changes are not valid for the selected resource.</response>
+            <response code="404">Resource to "PATCH" not found</response>
+        </member>
+        <member name="P:Identity.API.Features.Auth.JwtOptions.AccessTokenLifetime">
+            <summary>
+            Access token lifetime (in minutes)
+            </summary>
+        </member>
+        <member name="P:Identity.API.Features.Auth.JwtOptions.RefreshTokenLifetime">
+            <summary>
+            Refresh token lifetime (in minutes)
+            </summary>
+        </member>
+        <member name="P:Identity.API.Features.Auth.JwtOptions.Key">
+            <summary>
+            Key used to signed a token
+            </summary>
+        </member>
+        <member name="T:Identity.API.Features.Auth.TokenController">
+            <summary>
+            Endpoint to handle authentication, token.
+            </summary>
+        </member>
+        <member name="M:Identity.API.Features.Auth.TokenController.Post(Identity.Models.Auth.LoginModel,System.Threading.CancellationToken)">
+            <summary>
+            Generates a token for the specified user
+            </summary>
+            <param name="model"></param>
+            <param name="ct">Notifies to abort the action execution</param>
+            <returns></returns>
+            <response code="404">The login/password was not found</response>
+        </member>
+        <member name="M:Identity.API.Features.Auth.TokenController.Invalidate(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Invalidates a refresh token previously obtained after a successfull login.
+            </summary>
+            <param name="username">Username of the account to invalidate.</param>
+            <param name="ct"></param>
+            <returns></returns>
+            <reponse code="204">The token was successfully invalidated</reponse>
+            <reponse code="401">The token sent alongside the request has expired</reponse>
+            <reponse code="409">The request tries to invalidate </reponse>
+        </member>
+        <member name="T:Identity.API.Features.RootController">
+            <summary>
+            Controller that describe 
+            </summary>
+        </member>
+        <member name="M:Identity.API.Features.RootController.#ctor(Microsoft.AspNetCore.Hosting.IHostingEnvironment,Microsoft.AspNetCore.Mvc.IUrlHelper,Microsoft.Extensions.Options.IOptions{Identity.API.IdentityApiOptions})">
+            <summary>
+            Builds a new <see cref="T:Identity.API.Features.RootController"/> instance
+            </summary>
+            <param name="hostingEnvironment">Gives access to hosting environment</param>
+            <param name="urlHelper"></param>
+            <param name="apiOptions">Gives access to the API configuration</param>
+            
+        </member>
+        <member name="M:Identity.API.Features.RootController.Index">
+             <summary>
+             Describes all endpoints
+             </summary>
+             <remarks>
+             
+                 API clients should only relies on link's relation to navigate through all 
+                 resources returned by this API
+            
+             </remarks>
+             <response code="200"></response>
+        </member>
+        <member name="M:Identity.API.Program.CreateWebHostBuilder(System.String[])">
+            <summary>
+            Builds the host
+            </summary>
+            <param name="args">command line arguments</param>
+            <returns></returns>
+        </member>
+        <member name="T:Identity.API.Routing.RouteNames">
+            <summary>
+            Wrapper for strongly typed routenames.
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.Default">
+            <summary>
+            Name of the route to the root 
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.Status">
+            <summary>
+            Name of the route to the /status (aka healthcheck) endpoint
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.DefaultGetAllApi">
+            <summary>
+            Name of the route that returns all resources (i.e. "api/{resource}/")
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.DefaultGetOneByIdApi">
+            <summary>
+            Name of the route to get a resource by it's id (i.e. "api/{resource}/{id}")
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.DefaultGetAllSubResourcesByResourceIdApi">
+            <summary>
+            Name of the route to get subresources by it's parent resource's id (i.e. "api/{controller}/{id}/{action}")
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.DefaultSearchResourcesApi">
+            <summary>
+            Name of the route to search resources at a specified endpoint ("api/{resource}/search").
+            </summary>
+        </member>
+        <member name="F:Identity.API.Routing.RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi">
+            <summary>
+            Name of the route to get one subresource by it's parent resource's id (ex "api/{controller}/{id}/{action}/{subResourceId}")
+            </summary>
+        </member>
+        <member name="T:Identity.API.ServiceCollectionExtensions">
+            <summary>
+            Provide extension method used to configure services collection
+            </summary>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddCustomMvc(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration,Microsoft.AspNetCore.Hosting.IHostingEnvironment)">
+            <summary>
+            Configure service for MVC
+            </summary>
+            <param name="services"></param>
+            <param name="configuration"></param>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddCustomOptions(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds custom options
+            </summary>
+            <param name="services"></param>
+            <param name="configuration"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddDataStores(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds required dependencies to access APÏ datastores
+            </summary>
+            <param name="services"></param>
+            
+            
+            <summary>
+            Adds required dependencies to access API datastores
+            </summary>
+            <param name="services"></param>
+            
+            
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddCustomApiVersioning(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds version
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddDependencyInjection(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Configure dependency injections
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddCustomAuthentication(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds Authorization and authentication
+            </summary>
+            <param name="services"></param>
+            <param name="configuration"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Identity.API.ServiceCollectionExtensions.AddSwagger(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.AspNetCore.Hosting.IHostingEnvironment,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds Swagger middlewares
+            </summary>
+            <param name="services"></param>
+            <param name="hostingEnvironment"></param>
+            <param name="configuration"></param>
+        </member>
+    </members>
+</doc>

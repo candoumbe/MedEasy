@@ -1,10 +1,12 @@
 using FluentAssertions;
 using Identity.API.Features.Auth;
+using Identity.API.Features.Auth.v1;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
 using Identity.DTO.Auth;
+using Identity.DTO.v1;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -33,7 +35,7 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 
-namespace Identity.API.UnitTests.Features.Authentication
+namespace Identity.API.UnitTests.Features.v1.Auth
 {
     [UnitTest]
     [Feature("Identity")]
@@ -94,7 +96,7 @@ namespace Identity.API.UnitTests.Features.Authentication
         }
 
         [Fact]
-        public async Task GivenNoAccount_Post_Returns_Unauthorized()
+        public async Task GivenAccountDoesNotExist_Post_Returns_NotFound()
         {
             // Arrange
             LoginModel model = new LoginModel { Username = "Bruce", Password = "CapedCrusader" };
@@ -111,7 +113,7 @@ namespace Identity.API.UnitTests.Features.Authentication
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Never);
 
             actionResult.Should()
-                .BeAssignableTo<BadRequestResult>("The account with the specified credentials was not found");
+                .BeAssignableTo<NotFoundResult>("The account with the specified credentials was not found");
         }
 
         [Fact]
@@ -186,7 +188,7 @@ namespace Identity.API.UnitTests.Features.Authentication
                 .NotBe(bearerToken.AccessToken);
 
             SecurityToken accessToken = new JwtSecurityToken(bearerToken.AccessToken);
-            
+
         }
 
         public static IEnumerable<object[]> InvalidateCases

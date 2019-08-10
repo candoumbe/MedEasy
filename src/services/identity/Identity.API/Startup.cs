@@ -1,6 +1,7 @@
 ﻿using Identity.API.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,13 +26,15 @@ namespace Identity.API
                 .AddDataStores()
                 .AddCustomOptions(_configuration)
                 .AddCustomAuthentication(_configuration)
+                .AddCustomApiVersioning()
                 .AddDependencyInjection()
                 .AddSwagger(_hostingEnvironment, _configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseApiVersioning();
             app.UseAuthentication();
             app.UseHttpMethodOverride();
             if (env.IsProduction())
@@ -52,21 +55,26 @@ namespace Identity.API
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
-                        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity API V1");
-                    })
-                    ;
+                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                        {
+                            if (!description.IsDeprecated)
+                            {
+                                opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Agenda REST API {description.GroupName}");
+                            }
+                        }
+                    });
                 }
             }
 
             app.UseCors("AllowAnyOrigin");
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "identity/{controller=root}/{action=index}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "identity/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "identity/{controller}/");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "identity/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "identity/{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "identity/{controller}/search/");
+                routeBuilder.MapRoute(RouteNames.Default, "identity/v{version:apiVersion}/{controller=root}/{action=index}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "identity/v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "identity/v{version:apiVersion}/{controller}/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "identity/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "identity/v{version:apiVersion}/{controller}/{id}/{action}/");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "identity/v{version:apiVersion}/{controller}/search/");
             });
         }
     }

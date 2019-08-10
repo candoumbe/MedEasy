@@ -1,4 +1,5 @@
 ﻿using Identity.DTO;
+using Identity.DTO.v1;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using Optional;

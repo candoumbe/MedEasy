@@ -6,6 +6,7 @@ using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.Commands;
 using Identity.DataStores.SqlServer;
 using Identity.DTO;
+using Identity.DTO.v1;
 using Identity.Objects;
 using MedEasy.Abstractions;
 using MedEasy.CQRS.Core.Commands.Results;

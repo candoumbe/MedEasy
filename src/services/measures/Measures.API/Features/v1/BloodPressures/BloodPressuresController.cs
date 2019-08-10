@@ -1,5 +1,5 @@
 ﻿using DataFilters;
-using Measures.API.Features.Patients;
+using Measures.API.Features.v1.Patients;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
@@ -28,12 +28,12 @@ using static DataFilters.FilterLogic;
 using static DataFilters.FilterOperator;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Measures.API.Features.BloodPressures
+namespace Measures.API.Features.v1.BloodPressures
 {
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources
     /// </summary>
-    [Route("measures/[controller]")]
+    [Route("/v{version:apiVersion}/[controller]")]
     public class BloodPressuresController
     {
         private readonly IMediator _mediator;

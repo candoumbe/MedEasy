@@ -2,6 +2,7 @@ using Bogus;
 using FluentAssertions;
 using Identity.API.Fixtures;
 using Identity.DTO;
+using Identity.DTO.v1;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,7 +23,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 
-namespace Measures.API.IntegrationTests
+namespace Measures.API.IntegrationTests.v1
 {
     [IntegrationTest]
     [Feature("Blood pressures")]
@@ -32,7 +33,7 @@ namespace Measures.API.IntegrationTests
         private IntegrationFixture<Startup> _sut;
         private IdentityApiFixture _identityServer;
         private ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/measures/bloodpressures";
+        private const string _endpointUrl = "/v1/bloodpressures";
         private static readonly JSchema _validationProblemDetailsSchema = new JSchemaGenerator()
             .Generate(typeof(ValidationProblemDetails));
 

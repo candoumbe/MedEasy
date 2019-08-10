@@ -2,7 +2,6 @@
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Measures.API.Features.BloodPressures;
 using Measures.API.Features.Patients;
 using Measures.API.Routing;
 using Measures.Context;
@@ -41,8 +40,10 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
+using Measures.API.Features.v1.BloodPressures;
+using Measures.API.Features.v1.Patients;
 
-namespace Measures.API.Tests.Features.Patients
+namespace Measures.API.Tests.Features.v1.Patients
 {
     [Feature("Patients")]
     public class PatientsControllerTests : IDisposable
