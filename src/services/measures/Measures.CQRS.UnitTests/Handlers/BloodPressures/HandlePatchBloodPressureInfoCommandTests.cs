@@ -111,8 +111,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             // Arrange
             Guid idToPatch = Guid.NewGuid();
 
-            Patient patient = new Patient(Guid.NewGuid())
-                .ChangeNameTo("victor zsasz");
+            Patient patient = new Patient(Guid.NewGuid(), "victor zsasz");
             const float systolic = 120;
             const float diastolic = 80;
 

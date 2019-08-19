@@ -22,23 +22,27 @@ namespace Measures.Objects
         /// </summary>
         public DateTime? BirthDate { get; private set; }
 
-        private IList<PhysiologicalMeasurement> _measures;
+        private IList<BloodPressure> _bloodPressures;
 
-        public IEnumerable<PhysiologicalMeasurement> Measures => _measures;
+        public IEnumerable<BloodPressure> BloodPressures => _bloodPressures;
 
+        private IList<Temperature> _temperatures;
+
+        public IEnumerable<Temperature> Temperatures => _temperatures;
+
+
+        
         /// <summary>
         /// Builds a new <see cref="Patient"/> instance.
         /// </summary>
         /// <param name="id">instance unique identitifer</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="Guid.Empty"/></exception>
-        public Patient(Guid id) : base(id)
+        public Patient(Guid id, string name, DateTime? birthDate = null) : base(id)
         {
-            if (id == default)
-            {
-                throw new ArgumentOutOfRangeException(nameof(id));
-            }
-            Name = $"patient-{id}";
-            _measures = new List<PhysiologicalMeasurement>();
+            Name = name?.Trim().ToTitleCase();
+            BirthDate = birthDate;
+            _bloodPressures = new List<BloodPressure>();
+            _temperatures = new List<Temperature>();
         }
 
         /// <summary>
@@ -65,23 +69,51 @@ namespace Measures.Objects
         /// <param name="diastolic"></param>
         public void AddBloodPressure(Guid measureId, DateTimeOffset dateOfMeasure, float systolic, float diastolic)
         {
-            if (_measures.AtLeastOnce(m => m.Id == measureId))
+            if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
                 throw new DuplicateIdException();
             }
-            _measures.Add(new BloodPressure(measureId, Id, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
+            _bloodPressures.Add(new BloodPressure(measureId, Id, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
         }
 
         /// <summary>
-        /// Removes the <see cref="PhysiologicalMeasurement"/> with the specified id
+        /// Removes the <see cref="BloodPressure"/> with the specified id
         /// </summary>
         /// <param name="measureId">id of the measure to delete</param>
-        public void DeleteMeasure(Guid measureId)
+        public void DeleteBloodPressure(Guid measureId)
         {
-            Option<PhysiologicalMeasurement> optionalMeasureToDelete = _measures.SingleOrDefault(m => m.Id == measureId)
+            Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrDefault(m => m.Id == measureId)
                 .SomeNotNull();
 
-            optionalMeasureToDelete.MatchSome(measure => _measures.Remove(measure));
+            optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
+        }
+        
+        /// <summary>
+        /// Adds a new <see cref="Temperature"/> measure
+        /// </summary>
+        /// <param name="measureId">id of the measure. this could later be used to retrieve the created measure.</param>
+        /// <param name="dateOfMeasure"></param>
+        /// <param name="systolic"></param>
+        /// <param name="diastolic"></param>
+        public void AddTemperature(Guid measureId, DateTimeOffset dateOfMeasure, float value)
+        {
+            if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
+            {
+                throw new DuplicateIdException();
+            }
+            _temperatures.Add(new Temperature(measureId, Id, dateOfMeasure, value));
+        }
+
+        /// <summary>
+        /// Removes the <see cref="BloodPressure"/> with the specified id
+        /// </summary>
+        /// <param name="measureId">id of the measure to delete</param>
+        public void DeleteTemperature(Guid measureId)
+        {
+            Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrDefault(m => m.Id == measureId)
+                .SomeNotNull();
+
+            optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
 
         public Patient WasBornIn(DateTime? birthDate)

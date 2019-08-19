@@ -96,9 +96,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                    {
                         new []
                         {
-                            new Patient(Guid.NewGuid()).ChangeNameTo("bruce wayne"),
-                            new Patient(Guid.NewGuid()).ChangeNameTo("dick grayson"),
-                            new Patient(patientId).ChangeNameTo("damian wayne"),
+                            new Patient(Guid.NewGuid(), "bruce wayne"),
+                            new Patient(Guid.NewGuid(), "dick grayson"),
+                            new Patient(patientId, "damian wayne"),
                         },
                         new SearchQueryInfo<PatientInfo>
                         {

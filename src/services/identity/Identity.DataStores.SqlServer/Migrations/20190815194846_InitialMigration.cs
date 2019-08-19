@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
-using System.Collections.Generic;
 
 namespace Identity.DataStores.SqlServer.Migrations
 {
@@ -13,14 +11,12 @@ namespace Identity.DataStores.SqlServer.Migrations
                 name: "Claim",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    Type = table.Column<string>(maxLength: 50, nullable: false),
-                    UUID = table.Column<Guid>(nullable: false),
-                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
                     UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
+                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Type = table.Column<string>(maxLength: 50, nullable: false),
                     Value = table.Column<string>(maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -32,22 +28,21 @@ namespace Identity.DataStores.SqlServer.Migrations
                 name: "AccountClaim",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AccountId = table.Column<int>(nullable: false),
-                    ClaimId = table.Column<int>(nullable: false),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    ClaimId = table.Column<Guid>(nullable: false),
+                    AccountId = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    End = table.Column<DateTimeOffset>(nullable: true),
-                    Start = table.Column<DateTimeOffset>(nullable: false),
-                    UUID = table.Column<Guid>(nullable: false),
-                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
                     UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    Value = table.Column<string>(nullable: true)
+                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Value = table.Column<string>(nullable: true),
+                    Start = table.Column<DateTimeOffset>(nullable: false),
+                    End = table.Column<DateTimeOffset>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AccountClaim", x => x.Id);
+                    table.PrimaryKey("PK_AccountClaim", x => new { x.AccountId, x.ClaimId });
+                    table.UniqueConstraint("AK_AccountClaim_Id", x => x.Id);
                     table.ForeignKey(
                         name: "FK_AccountClaim_Claim_ClaimId",
                         column: x => x.ClaimId,
@@ -60,15 +55,13 @@ namespace Identity.DataStores.SqlServer.Migrations
                 name: "Role",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AccountId = table.Column<int>(nullable: true),
-                    Code = table.Column<string>(maxLength: 50, nullable: false),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    UUID = table.Column<Guid>(nullable: false),
+                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
                     UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
-                    UpdatedDate = table.Column<DateTimeOffset>(nullable: false)
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    AccountId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -79,23 +72,22 @@ namespace Identity.DataStores.SqlServer.Migrations
                 name: "Account",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    Email = table.Column<string>(nullable: true),
-                    EmailConfirmed = table.Column<bool>(nullable: false),
-                    Firstname = table.Column<string>(nullable: true),
-                    IsActive = table.Column<bool>(nullable: false),
-                    Lastname = table.Column<string>(nullable: true),
-                    Locked = table.Column<bool>(nullable: false),
-                    PasswordHash = table.Column<string>(nullable: false),
-                    RoleId = table.Column<int>(nullable: true),
-                    Salt = table.Column<string>(nullable: false),
-                    UUID = table.Column<Guid>(nullable: false),
-                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
                     UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    UserName = table.Column<string>(maxLength: 255, nullable: false)
+                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    Username = table.Column<string>(maxLength: 255, nullable: false),
+                    Salt = table.Column<string>(nullable: false),
+                    PasswordHash = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: true),
+                    Name = table.Column<string>(maxLength: 255, nullable: true),
+                    EmailConfirmed = table.Column<bool>(nullable: false),
+                    RefreshToken = table.Column<string>(nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    Locked = table.Column<bool>(nullable: false),
+                    TenantId = table.Column<Guid>(nullable: true),
+                    RoleId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -112,19 +104,18 @@ namespace Identity.DataStores.SqlServer.Migrations
                 name: "RoleClaim",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    ClaimId = table.Column<int>(nullable: false),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    RoleId = table.Column<Guid>(nullable: false),
+                    ClaimId = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
-                    RoleId = table.Column<int>(nullable: false),
-                    UUID = table.Column<Guid>(nullable: false),
-                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
-                    UpdatedDate = table.Column<DateTimeOffset>(nullable: false)
+                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
+                    UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
+                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleClaim", x => x.Id);
+                    table.PrimaryKey("PK_RoleClaim", x => new { x.RoleId, x.ClaimId });
+                    table.UniqueConstraint("AK_RoleClaim_Id", x => x.Id);
                     table.ForeignKey(
                         name: "FK_RoleClaim_Claim_ClaimId",
                         column: x => x.ClaimId,
@@ -145,21 +136,10 @@ namespace Identity.DataStores.SqlServer.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Account_UUID",
+                name: "IX_Account_Username",
                 table: "Account",
-                column: "UUID",
+                column: "Username",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Account_UserName",
-                table: "Account",
-                column: "UserName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AccountClaim_AccountId",
-                table: "AccountClaim",
-                column: "AccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AccountClaim_ClaimId",
@@ -167,21 +147,16 @@ namespace Identity.DataStores.SqlServer.Migrations
                 column: "ClaimId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccountClaim_UUID",
+                name: "IX_AccountClaim_AccountId_ClaimId_Start_End",
                 table: "AccountClaim",
-                column: "UUID",
-                unique: true);
+                columns: new[] { "AccountId", "ClaimId", "Start", "End" },
+                unique: true,
+                filter: "[End] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Claim_Type",
                 table: "Claim",
                 column: "Type",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Claim_UUID",
-                table: "Claim",
-                column: "UUID",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -196,26 +171,9 @@ namespace Identity.DataStores.SqlServer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Role_UUID",
-                table: "Role",
-                column: "UUID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_RoleClaim_ClaimId",
                 table: "RoleClaim",
                 column: "ClaimId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RoleClaim_RoleId",
-                table: "RoleClaim",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RoleClaim_UUID",
-                table: "RoleClaim",
-                column: "UUID",
-                unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AccountClaim_Account_AccountId",

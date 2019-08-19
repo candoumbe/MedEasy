@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

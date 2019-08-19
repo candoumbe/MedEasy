@@ -124,7 +124,7 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                             PatientId = patientId
                         },
                         new []{
-                            new Patient(patientId).ChangeNameTo("Freeze")
+                            new Patient(patientId, "Freeze")
                         },
                         ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
                         $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)} exists and " +

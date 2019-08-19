@@ -108,8 +108,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         {
             // Arrange
             Guid idToDelete = Guid.NewGuid();
-            Patient patient = new Patient(Guid.NewGuid())
-                .ChangeNameTo("Bruce Wayne");
+            Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
 
             BloodPressure measure = new BloodPressure(
                 idToDelete,

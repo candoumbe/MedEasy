@@ -6,6 +6,7 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,10 +39,18 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<DeleteCommandResult> Handle(DeletePatientInfoByIdCommand cmd, CancellationToken cancellationToken)
         {
+            IEnumerable<Task<bool>> anyMesureTask = new[]{
+                    _uowFactory.NewUnitOfWork().Repository<BloodPressure>().AnyAsync(x => x.Patient.Id == cmd.Data, cancellationToken).AsTask(),
+                    _uowFactory.NewUnitOfWork().Repository<Temperature>().AnyAsync(x => x.Patient.Id == cmd.Data, cancellationToken).AsTask(),
+            };
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 DeleteCommandResult result = DeleteCommandResult.Done;
-                if (await uow.Repository<PhysiologicalMeasurement>().AnyAsync(x => x.Patient.Id == cmd.Data, cancellationToken).ConfigureAwait(false))
+
+                await Task.WhenAll(anyMesureTask).ConfigureAwait(false);
+
+                if (anyMesureTask.AtLeastOnce(anyMesure => anyMesure.Result))
                 {
                     result = DeleteCommandResult.Failed_Conflict;
                 }

@@ -123,7 +123,7 @@ namespace Measures.Validators.Tests.Features.Patients
             Guid patientId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient(patientId).ChangeNameTo("Grundy"));
+                uow.Repository<Patient>().Create(new Patient(patientId, "Grundy"));
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

@@ -105,8 +105,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             // Arrange
             Guid idToDelete = Guid.NewGuid();
-            Patient patient = new Patient(idToDelete)
-                .ChangeNameTo("victor zsasz");
+            Patient patient = new Patient(idToDelete, "victor zsasz");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(patient);
@@ -147,7 +146,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     Guid idPatient = Guid.NewGuid();
                     yield return new object[]
                     {
-                        new Patient(idPatient).ChangeNameTo("Solomon"),
+                        new Patient(idPatient, "Solomon"),
 
                         new PhysiologicalMeasurement[]
                         {

@@ -110,8 +110,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             // Arrange
             Guid idToPatch = Guid.NewGuid();
-            Patient entity = new Patient(idToPatch)
-                .ChangeNameTo("victor zsasz");
+            Patient entity = new Patient(idToPatch, "victor zsasz");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

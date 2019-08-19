@@ -62,18 +62,14 @@ namespace MedEasy.DataStores.Core.Relational
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
                 {
                     modelBuilder.Entity(entity.Name)
-                        .HasKey("_id");
-                    modelBuilder.Entity(entity.Name)
-                        .Property(typeof(Guid), "_id");
+                                .HasKey(nameof(IEntity<object>.Id));
                 }
             }
         }
 
-        private IEnumerable<EntityEntry> GetModifiedEntities()
-     => ChangeTracker.Entries()
-         .AsParallel()
-         .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType())
-             && (x.State == EntityState.Added || x.State == EntityState.Modified))
+        private IEnumerable<EntityEntry> GetModifiedEntities() => ChangeTracker.Entries()
+            .AsParallel()
+            .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType()) && (x.State == EntityState.Added || x.State == EntityState.Modified))
 #if DEBUG
             .ToArray()
 #endif

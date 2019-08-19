@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Agenda.DataStores.Migrations
@@ -12,9 +11,7 @@ namespace Agenda.DataStores.Migrations
                 name: "Appointment",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    UUID = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
                     CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
                     UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
@@ -33,9 +30,7 @@ namespace Agenda.DataStores.Migrations
                 name: "Attendee",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    UUID = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(nullable: false),
                     CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
                     UpdatedDate = table.Column<DateTimeOffset>(nullable: false),
@@ -53,8 +48,8 @@ namespace Agenda.DataStores.Migrations
                 name: "AppointmentAttendee",
                 columns: table => new
                 {
-                    AttendeeId = table.Column<int>(nullable: false),
-                    AppointmentId = table.Column<int>(nullable: false)
+                    AttendeeId = table.Column<Guid>(nullable: false),
+                    AppointmentId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -74,21 +69,9 @@ namespace Agenda.DataStores.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Appointment_UUID",
-                table: "Appointment",
-                column: "UUID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AppointmentAttendee_AttendeeId",
                 table: "AppointmentAttendee",
                 column: "AttendeeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Attendee_UUID",
-                table: "Attendee",
-                column: "UUID",
-                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

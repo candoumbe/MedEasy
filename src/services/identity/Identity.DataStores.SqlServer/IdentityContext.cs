@@ -84,10 +84,19 @@ namespace Identity.DataStores.SqlServer
 
             modelBuilder.Entity<AccountClaim>(entity =>
             {
-                entity.Property(x => x.ClaimId);
-                entity.Property(x => x.AccountId);
-                entity.Property(x => x.Start);
-                entity.Property(x => x.End);
+                entity.HasKey(x => new { x.AccountId, x.ClaimId });
+                entity.HasIndex(x => new
+                {
+                    x.AccountId,
+                    x.ClaimId,
+                    x.Start,
+                    x.End
+                }).IsUnique();
+            });
+
+            modelBuilder.Entity<RoleClaim>(entity =>
+            {
+                entity.HasKey(x => new { x.RoleId, x.ClaimId });
             });
         }
     }

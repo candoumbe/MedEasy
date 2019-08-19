@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Agenda.DataStores.Migrations
 {
     [DbContext(typeof(AgendaContext))]
-    [Migration("20190404163128_InitialMigration")]
+    [Migration("20190815202737_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,9 +23,8 @@ namespace Agenda.DataStores.Migrations
 
             modelBuilder.Entity("Agenda.Objects.Appointment", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
@@ -43,9 +42,6 @@ namespace Agenda.DataStores.Migrations
                         .IsRequired()
                         .HasMaxLength(255);
 
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
-
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
 
@@ -54,17 +50,14 @@ namespace Agenda.DataStores.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UUID")
-                        .IsUnique();
-
                     b.ToTable("Appointment");
                 });
 
             modelBuilder.Entity("Agenda.Objects.AppointmentAttendee", b =>
                 {
-                    b.Property<int>("AppointmentId");
+                    b.Property<Guid>("AppointmentId");
 
-                    b.Property<int>("AttendeeId");
+                    b.Property<Guid>("AttendeeId");
 
                     b.HasKey("AppointmentId", "AttendeeId");
 
@@ -75,9 +68,8 @@ namespace Agenda.DataStores.Migrations
 
             modelBuilder.Entity("Agenda.Objects.Attendee", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255);
@@ -96,9 +88,6 @@ namespace Agenda.DataStores.Migrations
                         .HasMaxLength(255)
                         .HasDefaultValue("");
 
-                    b.Property<Guid>("UUID")
-                        .ValueGeneratedOnAdd();
-
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255);
 
@@ -106,9 +95,6 @@ namespace Agenda.DataStores.Migrations
                         .IsConcurrencyToken();
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UUID")
-                        .IsUnique();
 
                     b.ToTable("Attendee");
                 });

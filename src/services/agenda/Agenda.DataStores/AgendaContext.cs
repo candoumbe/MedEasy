@@ -1,16 +1,6 @@
 ﻿using Agenda.Objects;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MedEasy.DataStores.Core.Relational;
+using Microsoft.EntityFrameworkCore;
 
 namespace Agenda.DataStores
 {
@@ -30,7 +20,7 @@ namespace Agenda.DataStores
         private const int _shortTextLength = 50;
 
         /// <summary>
-        /// Collection of <see cref="BloodPressure"/>s
+        /// Collection of <see cref="Attendee"/>s
         /// </summary>
         public DbSet<Attendee> Participants { get; set; }
 

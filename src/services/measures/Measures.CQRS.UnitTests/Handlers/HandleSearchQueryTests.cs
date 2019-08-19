@@ -87,9 +87,9 @@ namespace Measures.CQRS.UnitTests.Handlers
                    {
                         new []
                         {
-                            new Objects.Patient(Guid.NewGuid()).ChangeNameTo("bruce wayne"),
-                            new Objects.Patient(Guid.NewGuid()).ChangeNameTo("dick grayson"),
-                            new Objects.Patient(patientId).ChangeNameTo("damian wayne")
+                            new Objects.Patient(Guid.NewGuid(), "bruce wayne"),
+                            new Objects.Patient(Guid.NewGuid(), "dick grayson"),
+                            new Objects.Patient(patientId, "damian wayne")
                         },
                         new SearchQueryInfo<PatientInfo>
                         {

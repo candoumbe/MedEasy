@@ -49,8 +49,7 @@ namespace Measures.CQRS.Handlers.Patients
                     throw new InvalidOperationException();
                 }
                 NewPatientInfo data = cmd.Data;
-                Patient entity = new Patient(data.Id.GetValueOrDefault(Guid.NewGuid()))
-                    .ChangeNameTo(data.Name)
+                Patient entity = new Patient(data.Id.GetValueOrDefault(Guid.NewGuid()), data.Name)
                     .WasBornIn(data.BirthDate);
 
                 DateTimeOffset now = DateTimeOffset.UtcNow;

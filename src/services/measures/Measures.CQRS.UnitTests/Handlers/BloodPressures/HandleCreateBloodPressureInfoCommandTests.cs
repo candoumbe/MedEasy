@@ -141,8 +141,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         {
             // Arrange
             Guid patientId = Guid.NewGuid();
-            Patient patientBeforeCreate = new Patient(patientId);
-            patientBeforeCreate.ChangeNameTo("Solomon Grundy");
+            Patient patientBeforeCreate = new Patient(patientId, "Solomon Grundy");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
