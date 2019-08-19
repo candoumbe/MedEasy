@@ -104,7 +104,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             {
                 int[] pageSizes = { 1, 10, 500 };
                 int[] pages = { 1, 10, 500 };
-
+                Faker faker = new Faker();
                 foreach (int pageSize in pageSizes)
                 {
                     foreach (int page in pages)
@@ -126,7 +126,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
 
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
-                    .CustomInstantiator(faker => new BloodPressure(
+                    .CustomInstantiator(_ => new BloodPressure(
                             Guid.NewGuid(),
                             patientId: Guid.NewGuid(),
                             dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
@@ -134,7 +134,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                         ));
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
 
                     foreach (BloodPressure measure in bloodPressureFaker.Generate(400))
                     {
@@ -156,7 +156,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((measure) =>
                     {
@@ -177,7 +177,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
                     patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours(48.Minutes())),
                                 systolic: 120, diastolic: 80);
                     yield return new object[]
@@ -205,7 +205,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _outputHelper.WriteLine($"Testing {nameof(BloodPressuresController.Get)}({nameof(PaginationConfiguration)})");
             _outputHelper.WriteLine($"Page size : {pageSize}");
             _outputHelper.WriteLine($"Page : {page}");
-            _outputHelper.WriteLine($"store items count: {items.SelectMany(x => x.Measures).OfType<BloodPressure>().Count()}");
+            _outputHelper.WriteLine($"store items count: {items.SelectMany(x => x.BloodPressures).OfType<BloodPressure>().Count()}");
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(_apiOptions);
 
@@ -217,7 +217,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                         Expression<Func<BloodPressure, BloodPressureInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                         _outputHelper.WriteLine($"Selector : {selector}");
 
-                        IEnumerable<BloodPressure> measures = items.SelectMany(x => x.Measures).OfType<BloodPressure>();
+                        IEnumerable<BloodPressure> measures = items.SelectMany(x => x.BloodPressures).OfType<BloodPressure>();
 
                         int total = measures.Count();
                         _outputHelper.WriteLine($"Measures count : {measures.Count()}");
@@ -269,7 +269,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 Faker<Patient> patientFaker = new Faker<Patient>()
                     .CustomInstantiator(faker =>
                     {
-                        Patient patient = new Patient(Guid.NewGuid());
+                        Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
 
                         patient.ChangeNameTo(faker.Person.FullName);
 
@@ -325,7 +325,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 }
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+                    Patient patient =  patientFaker.Generate();
                     patient.AddBloodPressure(
                         Guid.NewGuid(),
                         dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())),
@@ -353,7 +353,8 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 }
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+
+                    Patient patient = patientFaker.Generate();
                     patient.AddBloodPressure(Guid.NewGuid(), dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())), systolic: 120, diastolic: 80);
 
                     yield return new object[]
@@ -462,12 +463,13 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
                     new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013) },
                     (maxPageSize : 30, defaultPageSize : 30),
-                    new [] { new Patient( Guid.NewGuid()) },
+                    new [] { new Patient( Guid.NewGuid(), "Starr", 18.August(1983)) },
                     "page index is not 1 and there's no result for the search query"
                 };
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
+
+                    Patient patient = new Patient(Guid.NewGuid(), "Homelander", 18.August(1983));
                     patient.AddBloodPressure(Guid.NewGuid(), 22.January(1987), systolic: 120, diastolic: 80);
 
                     yield return new object[]
@@ -557,8 +559,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient patient = new Patient(Guid.NewGuid())
-                    .ChangeNameTo("Bruce Wayne");
+                Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne", 12.December(1953));
 
                 patient.AddBloodPressure(
                         measureId,

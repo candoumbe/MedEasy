@@ -15,7 +15,7 @@ namespace Measures.Objects.Tests
         public void Ctor_Should_Throws_ArgumentOutRangeException_When_UUID_IsEmpty()
         {
             // Act
-            Action ctor = () => new Patient(Guid.Empty);
+            Action ctor = () => new Patient(Guid.Empty, "John Doe");
 
             // Assert
             ctor.Should()
@@ -27,17 +27,18 @@ namespace Measures.Objects.Tests
         {
             // Arrange
             Guid id = Guid.NewGuid();
+            string initialName = "John Doe";
 
             // Act
-            Patient expected = new Patient(id);
+            Patient expected = new Patient(id, initialName);
 
             // Assert
             expected.Id.Should()
                 .Be(id);
             expected.Name.Should()
-                .Be($"patient-{id}", $"{nameof(Patient)}.{nameof(Patient.Name)} must be computed by default");
+                .Be(initialName);
 
-            expected.Measures.Should()
+            expected.BloodPressures.Should()
                 .BeEmpty();
         }
 
@@ -50,7 +51,7 @@ namespace Measures.Objects.Tests
         public void ChangeName_Set_Name_Property(string newName, string expected, string reason)
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             // Act
             patient.ChangeNameTo(newName);
@@ -64,8 +65,7 @@ namespace Measures.Objects.Tests
         public void ChangingName_To_Null_Throws_ArgumentNullException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
-            patient.ChangeNameTo("clark kent");
+            Patient patient = new Patient(Guid.NewGuid(), "clark kent");
 
             // Act
             Action changingName = () => patient.ChangeNameTo(null);
@@ -90,13 +90,13 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressure_Should_AddMeasure(Guid measureId, DateTimeOffset dateOfMeasure, float systolic, float diastolic)
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             // Act
             patient.AddBloodPressure(measureId, dateOfMeasure , systolic, diastolic);
 
             // Assert
-            BloodPressure measure = patient.Measures.Should()
+            BloodPressure measure = patient.BloodPressures.Should()
                 .HaveCount(1, "The collection was empty before adding one measure").And
                 .ContainSingle().Which.Should()
                     .BeOfType<BloodPressure>().Which;
@@ -113,7 +113,7 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithNoId_Throws_ArgumentOutOfRangeException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             // Act
             Action addWithNoId = () => patient.AddBloodPressure(Guid.Empty, 22.April(2014), systolic: 150, diastolic: 80);
@@ -127,7 +127,7 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithExistingId_Throws_DuplicateIdException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             Guid measureId = Guid.NewGuid();
             patient.AddBloodPressure(measureId, 18.April(2012), systolic: 120, diastolic: 50);
@@ -144,16 +144,16 @@ namespace Measures.Objects.Tests
         public void RemoveExistingBloodPressure_Should_Remove_TheMeasure()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid());
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
             Guid measureId = Guid.NewGuid();
 
             patient.AddBloodPressure(measureId, 10.April(2014), systolic : 120, diastolic : 80);
 
             // Act
-            patient.DeleteMeasure(measureId);
+            patient.DeleteBloodPressure(measureId);
 
             // Assert
-            patient.Measures.Should()
+            patient.BloodPressures.Should()
                 .BeEmpty("The corresponding measure should have been removed");
         }
     }

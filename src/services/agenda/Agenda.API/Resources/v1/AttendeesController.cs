@@ -23,7 +23,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 namespace Agenda.API.Resources.v1
 {
     [ApiVersion("1.0")]
-    [Route("agenda/v{version:apiVersion}/[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
     [ProducesResponseType(Status400BadRequest)]
     public class AttendeesController

@@ -207,8 +207,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 Faker<Patient> patientFaker = new Faker<Patient>()
                     .CustomInstantiator(faker =>
                     {
-                        Patient patient = new Patient(Guid.NewGuid());
-                        patient.ChangeNameTo(faker.Person.FullName);
+                        Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName);
 
                         return patient;
                     });
@@ -248,8 +247,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 }
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid());
-                    patient.ChangeNameTo("Bruce Wayne");
+                    Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
                     yield return new object[]
                     {
                         new [] { patient },
@@ -400,8 +398,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                         PageSize = 30,
                         Sort = "-birthdate"
                     };
-                    Patient patient = new Patient(Guid.NewGuid());
-                    patient.ChangeNameTo("Bruce wayne");
+                    Patient patient = new Patient(Guid.NewGuid(), "Bruce wayne");
 
                     yield return new object[]
                     {
@@ -434,8 +431,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                         Page = 1,
                         PageSize = 30,
                     };
-                    Patient patient = new Patient(Guid.NewGuid());
-                    patient.ChangeNameTo("Bruce");
+                    Patient patient = new Patient(Guid.NewGuid(), "Bruce");
 
                     yield return new object[]
                     {
@@ -469,9 +465,8 @@ namespace Measures.API.Tests.Features.v1.Patients
                         PageSize = 30,
                         BirthDate = 31.July(2010)
                     };
-                    Patient patient = new Patient(Guid.NewGuid());
-                    patient.ChangeNameTo("Bruce wayne");
-                    patient.WasBornIn(31.July(2010));
+                    Patient patient = new Patient(Guid.NewGuid(), "Bruce wayne")
+                        .WasBornIn(31.July(2010));
 
                     yield return new object[]
                     {
@@ -600,7 +595,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                     Guid patientId = Guid.NewGuid();
                     yield return new object[]
                     {
-                        new Patient(Guid.NewGuid()),
+                        new Patient(Guid.NewGuid(), "John Doe"),
                         patchDocument,
                         (Expression<Func<Patient, bool>>)(x => x.Id == patientId && x.Name == "Bruce")
                     };
@@ -644,8 +639,7 @@ namespace Measures.API.Tests.Features.v1.Patients
         public async Task Get()
         {
             //Arrange
-            Patient patient = new Patient(Guid.NewGuid());
-            patient.ChangeNameTo("Bruce Wayne");
+            Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 

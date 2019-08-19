@@ -23,7 +23,7 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Agenda.API.IntegrationTests
+namespace Agenda.API.IntegrationTests.v1
 {
     [IntegrationTest]
     [Feature("Agenda")]
@@ -32,7 +32,7 @@ namespace Agenda.API.IntegrationTests
     {
         private IntegrationFixture<Startup> _server;
         private ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/agenda/v1/appointments";
+        private const string _endpointUrl = "/v1/appointments";
 
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
@@ -170,11 +170,11 @@ namespace Agenda.API.IntegrationTests
                 yield return new object[]
                 {
                     "?page=-1" ,
-                    ((Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
+                    (Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
                         && err.Title == "Validation failed"
                         && err.Errors != null
                         && err.Errors.ContainsKey("page")
-                    )),
+                    ),
                     $"{nameof(SearchAppointmentModel.Page)} must be greater than 1"
                 };
 

@@ -26,7 +26,7 @@ namespace Agenda.API.Resources.v1
 {
     [ApiVersion("1.0")]
     [ApiController]
-    [Route("agenda/v{version:apiVersion}/[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class AppointmentsController
     {
         private readonly IUrlHelper _urlHelper;
@@ -121,7 +121,7 @@ namespace Agenda.API.Resources.v1
                     }
                 });
 
-            GenericPagedGetResponse<Browsable<AppointmentModel>> response = new GenericPagedGetResponse<Browsable<AppointmentModel>>(
+            return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 entries,
                 first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize }),
                 previous: pagination.Page > 1 && result.Count > 1
@@ -134,10 +134,6 @@ namespace Agenda.API.Resources.v1
                 last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize }),
                 total: result.Total
             );
-
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = response;
-
-            return actionResult;
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace Identity.DTO
     /// <summary>
     /// Custom claims that can be used throughout the application
     /// </summary>
-    public class CustomClaimTypes
+    public static class CustomClaimTypes
     {
         /// <summary>
         /// Name of the claim that holds the account id

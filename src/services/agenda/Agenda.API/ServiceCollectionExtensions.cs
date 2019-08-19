@@ -41,6 +41,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Agenda.API
 {
@@ -328,6 +329,7 @@ namespace Agenda.API
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
             });
             services.AddVersionedApiExplorer(
                 options =>

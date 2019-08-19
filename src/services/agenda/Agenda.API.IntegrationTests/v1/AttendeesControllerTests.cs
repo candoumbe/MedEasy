@@ -23,7 +23,7 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 
-namespace Agenda.API.IntegrationTests
+namespace Agenda.API.IntegrationTests.v1
 {
     [IntegrationTest]
     [Feature("Agenda")]
@@ -32,7 +32,7 @@ namespace Agenda.API.IntegrationTests
     {
         private readonly IntegrationFixture<Startup> _server;
         private ITestOutputHelper _outputHelper;
-        private const string _rootEndpointUrl = "/agenda/v1";
+        private const string _rootEndpointUrl = "/v1";
         private const string _endpointUrl = _rootEndpointUrl + "/attendees";
 
         private static readonly JSchema _errorObjectSchema = new JSchema
@@ -171,11 +171,11 @@ namespace Agenda.API.IntegrationTests
                 yield return new object[]
                 {
                     "?pageSize=-1" ,
-                    ((Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
+                    (Expression<Func<ValidationProblemDetails, bool>>)(err => err.Status == Status400BadRequest
                         && err.Title == "Validation failed"
                         && err.Errors != null
                         && err.Errors.ContainsKey("pageSize")
-                    )),
+                    ),
                     $"{nameof(SearchAppointmentModel.PageSize)} must be greater than 1"
                 };
             }

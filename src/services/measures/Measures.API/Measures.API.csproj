@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\..\identity\Identity.DTO\Identity.DTO.csproj" />
+    <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
     <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
