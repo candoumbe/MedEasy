@@ -1,8 +1,8 @@
 ﻿using DataFilters;
-using Identity.API.Routing;
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
+using Documents.CQRS.Commands;
+using Documents.CQRS.Queries;
+using Documents.DTO;
+using Documents.DTO.v1;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
@@ -11,7 +11,6 @@ using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,31 +18,26 @@ using Microsoft.Extensions.Options;
 using Optional;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static MedEasy.RestObjects.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Identity.API.Features.Accounts
+namespace Documents.API.Features.v1
 {
-    /// <summary>
-    /// Handles <see cref="Account"/>s resources
-    /// </summary>
-    [Route("v{version:apiVersion}/[controller]")]
-    [ApiController]
-    [ApiVersion("1.0")]
-    [Authorize]
-    public class AccountsController
+    [Route("{v:apiVersion}/[controller]")]
+    public class DocumentsController
     {
-        public static string EndpointName => nameof(AccountsController)
+        public static string EndpointName => nameof(DocumentsController)
             .Replace(nameof(Controller), string.Empty);
 
         private readonly IUrlHelper _urlHelper;
-        private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
+        private readonly IOptionsSnapshot<DocumentsApiOptions> _apiOptions;
         private readonly IMediator _mediator;
 
-        public AccountsController(IUrlHelper urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
+        public DocumentsController(IUrlHelper urlHelper, IOptionsSnapshot<DocumentsApiOptions> apiOptions, IMediator mediator)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
@@ -51,7 +45,7 @@ namespace Identity.API.Features.Accounts
         }
 
         /// <summary>
-        /// Gets a subset of accounts resources
+        /// Gets a subset of documents resources
         /// </summary>
         /// <param name="paginationConfiguration">paging configuration</param>
         /// <param name="ct">Notification to abort request execution</param>
@@ -60,20 +54,20 @@ namespace Identity.API.Features.Accounts
         /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<DocumentInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
-            IdentityApiOptions apiOptions = _apiOptions.Value;
+            DocumentsApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
 
-            GetPageOfAccountsQuery query = new GetPageOfAccountsQuery(paginationConfiguration);
+            GetPageOfDocumentInfoQuery query = new GetPageOfDocumentInfoQuery(paginationConfiguration);
 
-            Page<AccountInfo> page = await _mediator.Send(query, ct)
+            Page<DocumentInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
-            GenericPagedGetResponse<Browsable<AccountInfo>> result = new GenericPagedGetResponse<Browsable<AccountInfo>>(
-                page.Entries.Select(resource => new Browsable<AccountInfo>
+            GenericPagedGetResponse<Browsable<DocumentInfo>> result = new GenericPagedGetResponse<Browsable<DocumentInfo>>(
+                page.Entries.Select(resource => new Browsable<DocumentInfo>
                 {
                     Resource = resource,
                     Links = new[]
@@ -109,7 +103,7 @@ namespace Identity.API.Features.Accounts
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
         {
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(id);
+            DeleteDocumentInfoByIdCommand cmd = new DeleteDocumentInfoByIdCommand(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -144,32 +138,46 @@ namespace Identity.API.Features.Accounts
         [HttpHead("{id}")]
         public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
         {
-            Option<AccountInfo> optionalAccount = await _mediator.Send(new GetOneAccountByIdQuery(id), ct)
+            Option<DocumentInfo> optionalDocument = await _mediator.Send(new GetOneDocumentInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
-            return optionalAccount.Match(
-                some: account =>
-               {
-                   IList<Link> links = new List<Link>
+            return optionalDocument.Match(
+                some: document =>
+                {
+                    IList<Link> links = new List<Link>
                    {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
+                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File) }) }
                    };
 
-                   if (account.TenantId.HasValue)
-                   {
-                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId }) });
-                   }
 
-                   Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
-                   {
-                       Resource = account,
-                       Links = links
-                   };
 
-                   return new OkObjectResult(browsableResource);
-               },
+                    Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
+                    {
+                        Resource = document,
+                        Links = links
+                    };
+
+                    return new OkObjectResult(browsableResource);
+                },
                 none: () => (IActionResult)new NotFoundResult()
+            );
+        }
+
+        [HttpGet("{id}/file")]
+        public async Task<IActionResult> File(Guid id, CancellationToken ct = default)
+        {
+            Option<DocumentFileInfo> optionalFile = await _mediator.Send(new GetOneDocumentFileInfoByIdQuery(id), ct)
+                .ConfigureAwait(false);
+
+            return optionalFile.Match<IActionResult>(
+                fileInfo => new FileStreamResult(new MemoryStream(fileInfo.Content), fileInfo.MimeType) { 
+                    EnableRangeProcessing = true, 
+                    FileDownloadName = fileInfo.Name,
+                    LastModified = fileInfo.UpdatedDate
+                },
+                () => (IActionResult)new NotFoundResult()
             );
         }
 
@@ -181,14 +189,14 @@ namespace Identity.API.Features.Accounts
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
         /// </para>
-        /// <para>    // PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725</para>
+        /// <para>    // PATCH api/documents/3594c436-8595-444d-9e6b-2686c4904725</para>
         /// <para>
         ///     [
         ///         {
         ///             "op": "update",
-        ///             "path": "/Email",
+        ///             "path": "/Name",
         ///             "from": "string",
-        ///             "value": "bruce@wayne-entreprise.com"
+        ///             "value": "new file name.jpg"
         ///       }
         ///     ]
         /// </para>
@@ -208,14 +216,14 @@ namespace Identity.API.Features.Accounts
         [ProducesResponseType(Status204NoContent)]
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
+        public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<DocumentInfo> changes, CancellationToken ct = default)
         {
-            PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
+            PatchInfo<Guid, DocumentInfo> data = new PatchInfo<Guid, DocumentInfo>
             {
                 Id = id,
                 PatchDocument = changes
             };
-            PatchCommand<Guid, AccountInfo> cmd = new PatchCommand<Guid, AccountInfo>(data);
+            PatchCommand<Guid, DocumentInfo> cmd = new PatchCommand<Guid, DocumentInfo>(data);
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
@@ -246,26 +254,25 @@ namespace Identity.API.Features.Accounts
         /// <summary>
         /// Creates an account resource.
         /// </summary>
-        /// <param name="newAccount">Data of the new account</param>
+        /// <param name="newDocument">Data of the new account</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <response code="201">The resource was  created successfully.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
-        /// <response code="409">An account with the same <see cref="AccountInfo.Username"/> or <see cref="AccountInfo.Email"/> already exist</response>
+        /// <response code="409">An account with the same <see cref="DocumentInfo.Username"/> or <see cref="DocumentInfo.Email"/> already exist</response>
         [HttpPost]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(Browsable<AccountInfo>), Status201Created)]
-        public async Task<IActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
+        [ProducesResponseType(typeof(Browsable<DocumentInfo>), Status201Created)]
+        public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default)
         {
-            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
+            CreateDocumentInfoCommand cmd = new CreateDocumentInfoCommand(newDocument);
 
-            Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
+            Option<DocumentInfo, CreateCommandResult> optionalDocument = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            return optionalAccount.Match(
+            return optionalDocument.Match(
                 some: account =>
                 {
-                    Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
+                    Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
                     {
                         Resource = account,
                         Links = new[]
@@ -293,29 +300,29 @@ namespace Identity.API.Features.Accounts
 
 
         /// <summary>
-        /// Search for accounts
+        /// Search for documents
         /// </summary>
         /// <param name="search"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpGet("/search")]
         [HttpHead("/search")]
-        public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
+        public async Task<IActionResult> Search([BindRequired, FromQuery] SearchDocumentInfo search, CancellationToken ct = default)
         {
-        
+
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
             IList<IFilter> filters = new List<IFilter>();
 
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
-                filters.Add($"{nameof(AccountInfo.Name)}={search.Name}".ToFilter<AccountInfo>());
+                filters.Add($"{nameof(DocumentInfo.Name)}={search.Name}".ToFilter<DocumentInfo>());
             }
-            if (!string.IsNullOrWhiteSpace(search.Email))
+            if (!string.IsNullOrWhiteSpace(search.MimeType))
             {
-                filters.Add($"{nameof(AccountInfo.Email)}={search.Email}".ToFilter<AccountInfo>());
+                filters.Add($"{nameof(DocumentInfo.MimeType)}={search.MimeType}".ToFilter<DocumentInfo>());
             }
 
-            SearchQueryInfo<SearchAccountInfoResult> searchQuery = new SearchQueryInfo<SearchAccountInfoResult>
+            SearchQueryInfo<DocumentInfo> searchQuery = new SearchQueryInfo<DocumentInfo>
             {
                 Page = search.Page,
                 PageSize = search.PageSize,
@@ -323,16 +330,16 @@ namespace Identity.API.Features.Accounts
                     ? new CompositeFilter { Logic = FilterLogic.And, Filters = filters }
                     : filters.Single(),
 
-                Sort = search.Sort?.ToSort<SearchAccountInfoResult>() ?? new Sort<SearchAccountInfoResult>(nameof(SearchAccountInfoResult.UpdatedDate), SortDirection.Descending)
+                Sort = search.Sort?.ToSort<DocumentInfo>() ?? new Sort<DocumentInfo>(nameof(DocumentInfo.UpdatedDate), SortDirection.Descending)
             };
 
-            Page<SearchAccountInfoResult> searchResult = await _mediator.Send(new SearchQuery<SearchAccountInfoResult>(searchQuery), ct)
+            Page<DocumentInfo> searchResult = await _mediator.Send(new SearchQuery<DocumentInfo>(searchQuery), ct)
                 .ConfigureAwait(false);
 
             bool hasNextPage = search.Page < searchResult.Count;
-            return new OkObjectResult(new GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>(
+            return new OkObjectResult(new GenericPagedGetResponse<Browsable<DocumentInfo>>(
 
-                items: searchResult.Entries.Select(x => new Browsable<SearchAccountInfoResult>
+                items: searchResult.Entries.Select(x => new Browsable<DocumentInfo>
                 {
                     Resource = x,
                     Links = new[]
@@ -340,11 +347,11 @@ namespace Identity.API.Features.Accounts
                         new Link { Relation = Self, Method = "GET" }
                     }
                 }),
-                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName }),
                 next: hasNextPage
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName })
+                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName }),
                 total: searchResult.Total
             ));
         }

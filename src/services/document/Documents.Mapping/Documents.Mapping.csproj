@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Mapping\MedEasy.Mapping.csproj" />
+    <ProjectReference Include="..\Documents.DTO\Documents.DTO.csproj" />
+    <ProjectReference Include="..\Documents.Objects\Documents.Objects.csproj" />
+  </ItemGroup>
+
+</Project>

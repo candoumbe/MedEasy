@@ -1,4 +1,5 @@
-﻿using Agenda.CQRS.Features.Appointments.Queries;
+﻿
+using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
 using Agenda.Objects;
 using AutoMapper;

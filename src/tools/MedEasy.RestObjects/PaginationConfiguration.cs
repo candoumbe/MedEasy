@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.RestObjects
@@ -10,7 +11,7 @@ namespace MedEasy.RestObjects
     /// Both <see cref="PageSize"/> and <see cref="Page"/> returns <c>null</c> or positive integer
     /// </remarks>
     [JsonObject]
-    public class PaginationConfiguration
+    public class PaginationConfiguration : IEquatable<PaginationConfiguration>
     {
         /// <summary>
         /// Size of a page if none provided
@@ -49,6 +50,12 @@ namespace MedEasy.RestObjects
         /// </remarks>
         public int Page { get; set; }
 
+        public override bool Equals(object obj) => Equals(obj as PaginationConfiguration);
+
+        public override int GetHashCode() => (Page, PageSize).GetHashCode();
+
+        public bool Equals(PaginationConfiguration other) => (Page, PageSize) == (other?.Page, other?.PageSize);
+        
         public override string ToString() => SerializeObject(this);
     }
 }

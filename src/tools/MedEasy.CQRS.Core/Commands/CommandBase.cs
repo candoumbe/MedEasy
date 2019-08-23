@@ -16,7 +16,7 @@ namespace MedEasy.CQRS.Core.Commands
     /// <typeparam name="TData">Type of data the command will carry</typeparam>
     /// <typeparam name="TResult">Type of the result the commands outputs once handled.</typeparam>
     [DataContract]
-    public abstract class CommandBase<TKey, TData, TResult> : ICommand<TKey, TData, TResult>
+    public abstract class CommandBase<TKey, TData, TResult> : ICommand<TKey, TData, TResult>, IEquatable<CommandBase<TKey, TData, TResult>>
         where TKey : IEquatable<TKey>
     {
         /// <summary>
@@ -55,6 +55,14 @@ namespace MedEasy.CQRS.Core.Commands
 
 
         public override string ToString() => SerializeObject(this);
+
+        public override bool Equals(object obj) => Equals(obj as CommandBase<TKey, TData, TResult>);
+
+        public bool Equals(CommandBase<TKey, TData, TResult> other)
+            => other != null && Data.Equals(other.Data);
+
+        public override int GetHashCode() => Data.GetHashCode();
+
     }
 
 
