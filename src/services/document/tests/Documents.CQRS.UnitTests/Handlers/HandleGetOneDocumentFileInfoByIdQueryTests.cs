@@ -25,7 +25,7 @@ namespace Documents.CQRS.UnitTests.Features.Documents.Handlers
     public class HandleGetOneDocumentFileInfoByIdQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;
-        private HandleGetOneDocumentInfoByIdQuery _sut;
+        private HandleGetOneDocumentFileInfoByIdQuery _sut;
 
         public HandleGetOneDocumentFileInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -39,7 +39,7 @@ namespace Documents.CQRS.UnitTests.Features.Documents.Handlers
                 return context;
             });
 
-            _sut = new HandleGetOneDocumentInfoByIdQuery(_uowFactory);
+            _sut = new HandleGetOneDocumentFileInfoByIdQuery(_uowFactory);
         }
 
         public async void Dispose()
@@ -63,7 +63,7 @@ namespace Documents.CQRS.UnitTests.Features.Documents.Handlers
             GetOneDocumentFileInfoByIdQuery request = new GetOneDocumentFileInfoByIdQuery(Guid.NewGuid());
 
             // Act
-            Option<(DocumentInfo, byte[])> optionalDocument = await _sut.Handle(request, cancellationToken: default)
+            Option<DocumentFileInfo> optionalDocument = await _sut.Handle(request, cancellationToken: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -91,10 +91,10 @@ namespace Documents.CQRS.UnitTests.Features.Documents.Handlers
                     .ConfigureAwait(false);
             }
             
-            GetOneDocumentInfoByIdQuery request = new GetOneDocumentInfoByIdQuery(documentId);
+            GetOneDocumentFileInfoByIdQuery request = new GetOneDocumentFileInfoByIdQuery(documentId);
 
             // Act
-            Option<DocumentInfo> optionalDocument = await _sut.Handle(request, default)
+            Option<DocumentFileInfo> optionalDocument = await _sut.Handle(request, default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -105,6 +105,8 @@ namespace Documents.CQRS.UnitTests.Features.Documents.Handlers
                 documentInfo.Name.Should().Be(document.Name);
                 documentInfo.MimeType.Should().Be(document.MimeType);
                 documentInfo.Hash.Should().Be(document.Hash);
+                documentInfo.Content.Should()
+                    .BeEquivalentTo(document.File.Content);
             });
         }
     }
