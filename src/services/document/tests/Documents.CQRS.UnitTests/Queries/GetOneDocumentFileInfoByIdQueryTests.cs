@@ -10,17 +10,13 @@ namespace Documents.CQRS.UnitTests.Queries
 {
     public class GetOneDocumentFileInfoByIdQueryTests
     {
-        public GetOneDocumentFileInfoByIdQueryTests()
-        {
-
-        }
 
         [Fact]
         public void IsQuery() => typeof(GetOneDocumentFileInfoByIdQuery).Should()
-            .BeAssignableTo<IQuery<Guid, Guid, Option<(DocumentInfo, byte[])>>>();
+            .BeAssignableTo<IQuery<Guid, Guid, Option<DocumentFileInfo>>>();
 
         [Fact]
-        public void Has_A_Uniuque_Identifier()
+        public void Has_A_Unique_Identifier()
         {
             // Arrange
             Guid documentId = Guid.NewGuid();

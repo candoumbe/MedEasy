@@ -1,8 +1,12 @@
 ﻿using AutoMapper.QueryableExtensions;
 using Bogus;
+using Documents.CQRS.Handlers;
+using Documents.CQRS.Queries;
+using Documents.DataStore.SqlServer;
 using Documents.DTO.v1;
+using Documents.Mapping;
+using Documents.Objects;
 using FluentAssertions;
-using FluentAssertions.Extensions;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -17,11 +21,6 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using Documents.CQRS.Handlers;
-using Documents.DataStore.SqlServer;
-using Documents.Mapping;
-using Documents.Objects;
-using Documents.CQRS.Queries;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -116,6 +115,65 @@ namespace Documents.CQRS.UnitTests.Handlers
                             expectedPageSize : 10,
                             expetedTotal : 10,
                             itemsExpectation : (Expression<Func<IEnumerable<DocumentInfo>, bool>>)(items => items.Select(x => x.Id).Distinct().Count() == 10)
+                        )
+                    };
+                }
+
+                {
+                    Faker<Document> documentFaker = new Faker<Document>()
+                        .CustomInstantiator(faker => new Document(
+                            id: Guid.NewGuid(),
+                            name: faker.System.CommonFileName(ext: "pdf"),
+                            mimeType: faker.System.MimeType())
+                        .SetFile(faker.Hacker.Random.Bytes(10))
+                        );
+
+                    IEnumerable<Document> documents = documentFaker.Generate(100);
+                    yield return new object[]
+                    {
+                        documents,
+                        new SearchDocumentInfo
+                        {
+                            Page = 1,
+                            PageSize = 10,
+                            Name = "*.xml"
+                        },
+                        (
+                            expectedPageCount : 1,
+                            expectedPageSize : 10,
+                            expetedTotal : 0,
+                            itemsExpectation : (Expression<Func<IEnumerable<DocumentInfo>, bool>>)(items => !items.Any())
+                        )
+                    };
+                }
+
+                {
+                    Faker<Document> documentFaker = new Faker<Document>()
+                        .CustomInstantiator(faker => new Document(
+                            id: Guid.NewGuid(),
+                            name: faker.System.CommonFileName(ext: "pdf"),
+                            mimeType: faker.System.MimeType())
+                        .SetFile(faker.Hacker.Random.Bytes(10))
+                        );
+
+                    IEnumerable<Document> documents = documentFaker.Generate(100);
+                    yield return new object[]
+                    {
+                        documents,
+                        new SearchDocumentInfo
+                        {
+                            Page = 1,
+                            PageSize = 10,
+                            Name = "*.pdf"
+                        },
+                        (
+                            expectedPageCount : 10,
+                            expectedPageSize : 10,
+                            expetedTotal : 100,
+                            itemsExpectation : (Expression<Func<IEnumerable<DocumentInfo>, bool>>)
+                            (
+                                items => items.All(doc => doc.Name.EndsWith(".pdf"))
+                            )
                         )
                     };
                 }

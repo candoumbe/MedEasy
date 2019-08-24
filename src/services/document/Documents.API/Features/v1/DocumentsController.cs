@@ -28,6 +28,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 namespace Documents.API.Features.v1
 {
     [Route("{v:apiVersion}/[controller]")]
+    [ProducesResponseType(Status401Unauthorized)]
     public class DocumentsController
     {
         public static string EndpointName => nameof(DocumentsController)
@@ -145,13 +146,11 @@ namespace Documents.API.Features.v1
                 some: document =>
                 {
                     IList<Link> links = new List<Link>
-                   {
+                    {
                         new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
                         new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
                         new Link { Relation = "file", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File) }) }
-                   };
-
-
+                    };
 
                     Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
                     {
@@ -165,15 +164,24 @@ namespace Documents.API.Features.v1
             );
         }
 
+        /// <summary>
+        /// Download the file associated
+        /// </summary>
+        /// <param name="id">id of the document to download</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         [HttpGet("{id}/file")]
+        [ProducesResponseType(Status200OK)]
+        [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> File(Guid id, CancellationToken ct = default)
         {
             Option<DocumentFileInfo> optionalFile = await _mediator.Send(new GetOneDocumentFileInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
-            return optionalFile.Match<IActionResult>(
-                fileInfo => new FileStreamResult(new MemoryStream(fileInfo.Content), fileInfo.MimeType) { 
-                    EnableRangeProcessing = true, 
+            return optionalFile.Match(
+                fileInfo => new FileStreamResult(new MemoryStream(fileInfo.Content), fileInfo.MimeType)
+                {
+                    EnableRangeProcessing = true,
                     FileDownloadName = fileInfo.Name,
                     LastModified = fileInfo.UpdatedDate
                 },
