@@ -334,6 +334,19 @@ namespace Identity.API
                         Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
                     }
                 });
+                
+                config.SwaggerDoc("v2", new Info
+                {
+                    Title = hostingEnvironment.ApplicationName,
+                    Description = "REST API for Identity management",
+                    Version = "v2",
+                    Contact = new Contact
+                    {
+                        Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
+                        Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
+                        Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
+                    }
+                });
 
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();

@@ -16,12 +16,12 @@
         public const string Status = nameof(Status);
 
         /// <summary>
-        /// Name of the route that returns all resources (i.e. "api/{resource}/")
+        /// Name of the route that returns all resources (i.e. "api/{controller}/")
         /// </summary>
         public const string DefaultGetAllApi = nameof(DefaultGetAllApi);
 
         /// <summary>
-        /// Name of the route to get a resource by it's id (i.e. "api/{resource}/{id}")
+        /// Name of the route to get a resource by it's id (i.e. "api/{controller}/{id}")
         /// </summary>
         public const string DefaultGetOneByIdApi = nameof(DefaultGetOneByIdApi);
 
@@ -31,7 +31,7 @@
         public const string DefaultGetAllSubResourcesByResourceIdApi = nameof(DefaultGetAllSubResourcesByResourceIdApi);
 
         /// <summary>
-        /// Name of the route to search resources at a specified endpoint ("api/{resource}/search").
+        /// Name of the route to search resources at a specified endpoint ("api/{controller}/search").
         /// </summary>
         public const string DefaultSearchResourcesApi = nameof(DefaultSearchResourcesApi);
 

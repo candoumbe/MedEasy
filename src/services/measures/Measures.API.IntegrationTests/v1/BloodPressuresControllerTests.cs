@@ -119,27 +119,26 @@ namespace Measures.API.IntegrationTests.v1
 
             BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
                 .ConfigureAwait(false);
-            using (HttpClient client = _sut.CreateClient())
-            {
-                HttpRequestMessage getAllRequest = new HttpRequestMessage(Get, _endpointUrl);
-                getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+            
+            using HttpClient client = _sut.CreateClient();
+            HttpRequestMessage getAllRequest = new HttpRequestMessage(Get, _endpointUrl);
+            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-                // Act
-                HttpResponseMessage response = await client.SendAsync(getAllRequest)
-                    .ConfigureAwait(false);
+            // Act
+            using HttpResponseMessage response = await client.SendAsync(getAllRequest)
+                .ConfigureAwait(false);
 
-                // Assert
-                ((int)response.StatusCode).Should().Be(Status200OK);
-                HttpContentHeaders headers = response.Content.Headers;
+            // Assert
+            ((int)response.StatusCode).Should().Be(Status200OK);
+            HttpContentHeaders headers = response.Content.Headers;
 
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"json : {json}");
+            _outputHelper.WriteLine($"json : {json}");
 
-                JToken pageResponseToken = JToken.Parse(json);
-                pageResponseToken.IsValid(_pageResponseSchema).Should().BeTrue();
-            }
+            JToken pageResponseToken = JToken.Parse(json);
+            pageResponseToken.IsValid(_pageResponseSchema).Should().BeTrue();
         }
 
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases

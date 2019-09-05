@@ -12,6 +12,7 @@
       "src\\services\\document\\Documents.DataStore.SqlServer\\Documents.DataStore.SqlServer.csproj",
       "src\\services\\document\\Documents.Mapping\\Documents.Mapping.csproj",
       "src\\services\\document\\Documents.Objects\\Documents.Objects.csproj",
+      "src\\services\\document\\tests\\Documents.API.IntegrationTests\\Documents.API.IntegrationTests.csproj",
       "src\\services\\document\\tests\\Documents.API.UnitTests\\Documents.API.UnitTests.csproj",
       "src\\services\\document\\tests\\Documents.CQRS.UnitTests\\Documents.CQRS.UnitTests.csproj",
       "src\\services\\document\\tests\\Documents.Objects.Tests\\Documents.Objects.Tests.csproj",

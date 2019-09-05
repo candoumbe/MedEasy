@@ -1,8 +1,18 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
+﻿#if !NETCOREAPP3_0
+using Microsoft.AspNetCore.Hosting;
+#else
+using Microsoft.Extensions.Hosting;
+#endif
+#if !NETCOREAPP3_0
+using Microsoft.AspNetCore.Hosting.Internal; 
+#else
+using Microsoft.Extensions.Hosting.Internal;
+#endif
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
+#if !NETCOREAPP3_0
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+#endif
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,34 +60,55 @@ namespace MedEasy.IntegrationTests.Core
             Assembly startupAssembly = typeof(TStart).GetTypeInfo().Assembly;
             string contentRoot = GetProjectPath(relativeTargetProjectParentDir, startupAssembly);
 
+#if !NETCOREAPP3_0
             IHostingEnvironment env = new HostingEnvironment
+#else
+            IHostEnvironment env = new HostingEnvironment
+#endif
             {
                 ContentRootPath = contentRoot,
                 EnvironmentName = environmentName,
                 ApplicationName = applicationName,
                 ContentRootFileProvider = new NullFileProvider(),
             };
+#if !NETCOREAPP3_0
 
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(contentRoot)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true) 
                 .AddEnvironmentVariables()
                 .Build();
 
-            IWebHostBuilder builder = new WebHostBuilder()
+            IWebHostBuilder builder = new WebHostBuilder() 
                 .UseConfiguration(configuration)
                 .UseEnvironment(env.EnvironmentName)
                 .UseStartup(typeof(TStart))
                 .ConfigureServices(InitializeServices)
-                .ConfigureServices(services => services.AddSingleton(env))
-                ;
-
+                .ConfigureServices(services => services.AddSingleton(env));
             Server = new TestServer(builder)
             {
                 BaseAddress = new Uri($"http://locahost/{applicationName}")
             };
+#else
+
+            IHostBuilder builder = new HostBuilder()
+                .ConfigureHostConfiguration(builder =>
+
+                    builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+
+
+
+
+                );
+            Server = builder.Build().GetTestServer();
+            Server.BaseAddress = new Uri($"http://locahost/{applicationName}");
+#endif
+
         }
+    
 
         public void Dispose() => Server?.Dispose();
 
@@ -92,7 +123,9 @@ namespace MedEasy.IntegrationTests.Core
             ApplicationPartManager manager = new ApplicationPartManager();
             manager.ApplicationParts.Add(new AssemblyPart(startupAssembly));
             manager.FeatureProviders.Add(new ControllerFeatureProvider());
-            manager.FeatureProviders.Add(new ViewComponentFeatureProvider());
+#if !NETCOREAPP3_0
+            manager.FeatureProviders.Add(new ViewComponentFeatureProvider()); 
+#endif
 
             services.AddSingleton(manager);
         }

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Optional;
@@ -63,6 +64,7 @@ namespace Documents.API.UnitTests.Features.v1
             Name = doc.Name,
             UpdatedDate = doc.UpdatedDate
         };
+        private Mock<ILogger<DocumentsController>> _loggerMock;
 
         public DocumentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -86,8 +88,10 @@ namespace Documents.API.UnitTests.Features.v1
             });
 
             _mediatorMock = new Mock<IMediator>(Strict);
+            _loggerMock = new Mock<ILogger<DocumentsController>>();
 
-            _sut = new DocumentsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object);
+            _sut = new DocumentsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object,
+                _loggerMock.Object);
         }
 
         public async void Dispose()
@@ -104,6 +108,7 @@ namespace Documents.API.UnitTests.Features.v1
             _apiOptionsMock = null;
             _mediatorMock = null;
             _sut = null;
+            _loggerMock = null;
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -229,6 +234,11 @@ namespace Documents.API.UnitTests.Features.v1
                 .NotContain(x => x.Resource == null).And
                 .NotContain(x => x.Links == null);
 
+            if (response.Items.AtLeastOnce())
+            {
+                response.Items.Should()
+                    .OnlyContain(x => x.Links.Once(link => link.Relation == Self), "All resources must provided a direct link to themselves");
+            }
             response.Total.Should()
                     .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
 

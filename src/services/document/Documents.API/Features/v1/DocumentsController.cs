@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
@@ -27,7 +28,12 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Documents.API.Features.v1
 {
-    [Route("{v:apiVersion}/[controller]")]
+    /// <summary>
+    /// Controller that handles <see cref="DocumentInfo"/>s
+    /// </summary>
+    [ApiController]
+    [Route("v{v:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [ProducesResponseType(Status401Unauthorized)]
     public class DocumentsController
     {
@@ -37,12 +43,25 @@ namespace Documents.API.Features.v1
         private readonly IUrlHelper _urlHelper;
         private readonly IOptionsSnapshot<DocumentsApiOptions> _apiOptions;
         private readonly IMediator _mediator;
+        private readonly ILogger<DocumentsController> _logger;
 
-        public DocumentsController(IUrlHelper urlHelper, IOptionsSnapshot<DocumentsApiOptions> apiOptions, IMediator mediator)
+        /// <summary>
+        /// Builds a new <see cref="DocumentsController"/> instance.
+        /// </summary>
+        /// <param name="urlHelper"></param>
+        /// <param name="apiOptions"></param>
+        /// <param name="mediator"></param>
+        /// <param name="logger"></param>
+        public DocumentsController(IUrlHelper urlHelper,
+                                   IOptionsSnapshot<DocumentsApiOptions> apiOptions,
+                                   IMediator mediator,
+                                   ILogger<DocumentsController> logger
+            )
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
             _mediator = mediator;
+            _logger = logger;
         }
 
         /// <summary>
@@ -57,7 +76,7 @@ namespace Documents.API.Features.v1
         [HttpHead]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<DocumentInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
-        public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
+        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
             DocumentsApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
@@ -73,7 +92,12 @@ namespace Documents.API.Features.v1
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link {}
+                        new Link {
+                            Relation = Self,
+                            Title = resource.Name,
+                            Method = "GET",
+                            Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, resource.Id })
+                        }
                     }
                 }),
 
@@ -107,26 +131,15 @@ namespace Documents.API.Features.v1
             DeleteDocumentInfoByIdCommand cmd = new DeleteDocumentInfoByIdCommand(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
-
-            IActionResult actionResult;
-            switch (cmdResult)
+            
+            return cmdResult switch
             {
-                case DeleteCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case DeleteCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-                    break;
-                case DeleteCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case DeleteCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> result");
-            }
-            return actionResult;
+                DeleteCommandResult.Done => new NoContentResult(),
+                DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
+                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> result"),
+            };
         }
 
         /// <summary>
@@ -137,7 +150,7 @@ namespace Documents.API.Features.v1
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Get([FromQuery] Guid id, CancellationToken ct = default)
         {
             Option<DocumentInfo> optionalDocument = await _mediator.Send(new GetOneDocumentInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
@@ -165,7 +178,7 @@ namespace Documents.API.Features.v1
         }
 
         /// <summary>
-        /// Download the file associated
+        /// Download the file associated with the document
         /// </summary>
         /// <param name="id">id of the document to download</param>
         /// <param name="ct"></param>
@@ -213,8 +226,7 @@ namespace Documents.API.Features.v1
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
-        /// <param name="ct"></param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
@@ -235,28 +247,15 @@ namespace Documents.API.Features.v1
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
-
-            IActionResult actionResult;
-            switch (cmdResult)
+            
+            return cmdResult switch
             {
-                case ModifyCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case ModifyCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-
-                    break;
-                case ModifyCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case ModifyCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> patch result");
-            }
-
-            return actionResult;
+                ModifyCommandResult.Done => new NoContentResult(),
+                ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> patch result"),
+            };
         }
 
         /// <summary>
@@ -267,7 +266,7 @@ namespace Documents.API.Features.v1
         /// <returns></returns>
         /// <response code="201">The resource was  created successfully.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
-        /// <response code="409">An account with the same <see cref="DocumentInfo.Username"/> or <see cref="DocumentInfo.Email"/> already exist</response>
+        /// <response code="409">A document with the same <see cref="DocumentInfo.Hash"/> already exists.</response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<DocumentInfo>), Status201Created)]
         public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default)
@@ -278,18 +277,18 @@ namespace Documents.API.Features.v1
                 .ConfigureAwait(false);
 
             return optionalDocument.Match(
-                some: account =>
+                some: doc =>
                 {
                     Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
                     {
-                        Resource = account,
+                        Resource = doc,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, account.Id}) }
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, doc.Id }) }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, doc.Id }, browsableResource);
                 },
                 none: cmdError =>
                 {
@@ -313,8 +312,8 @@ namespace Documents.API.Features.v1
         /// <param name="search"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        [HttpGet("/search")]
-        [HttpHead("/search")]
+        [HttpGet("search")]
+        [HttpHead("search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchDocumentInfo search, CancellationToken ct = default)
         {
 

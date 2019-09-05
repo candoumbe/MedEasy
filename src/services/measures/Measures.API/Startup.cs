@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API
@@ -101,13 +103,9 @@ namespace Measures.API
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
-                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                        {
-                            if (!description.IsDeprecated)
-                            {
-                                opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Agenda REST API {description.GroupName}");
-                            }
-                        }
+                        provider.ApiVersionDescriptions
+                            .Where(api => !api.IsDeprecated)
+                            .ForEach(description => opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Measures REST API {description.GroupName}"));
                     });
                 }
             }
@@ -117,10 +115,10 @@ namespace Measures.API
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}");
                 routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search/");
+                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}");
+                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search");
             });
         }
     }

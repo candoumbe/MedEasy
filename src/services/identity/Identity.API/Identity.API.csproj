@@ -13,6 +13,7 @@
   
  
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App"/>
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.2105168" />
   </ItemGroup>

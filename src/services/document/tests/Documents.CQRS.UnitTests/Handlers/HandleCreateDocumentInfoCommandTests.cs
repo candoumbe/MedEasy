@@ -30,7 +30,6 @@ namespace Documents.CQRS.UnitTests.Handlers
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactory;
-        private IMapper _mapperMock;
         private HandleCreateDocumentInfoCommand _sut;
 
         public HandleCreateDocumentInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
@@ -65,8 +64,6 @@ namespace Documents.CQRS.UnitTests.Handlers
                     .ConfigureAwait(false);
             }
             _unitOfWorkFactory = null;
-            _mapperMock = null;
-
             _sut = null;
         }
 

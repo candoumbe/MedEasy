@@ -1,6 +1,5 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Identity.API.Fixtures;
 using Identity.DTO;
 using Measures.API.Features.Patients;
 using Measures.DTO;
@@ -25,6 +24,7 @@ using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Measures.API;
 using Identity.DTO.v1;
+using Identity.API.Fixtures;
 
 namespace Measures.API.IntegrationTests.v1
 {

@@ -1,18 +1,17 @@
-using Identity.API.Features.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.API.Features.v1.Accounts;
 using Identity.DTO;
 using Identity.DTO.v1;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static Newtonsoft.Json.JsonConvert;
 
+
 namespace Identity.API.Fixtures
 {
+    [Obsolete("Use the versioned equivalent instead")]
     public class IdentityApiFixture : IntegrationFixture<Startup>
     {
         private string _version;
@@ -25,7 +24,6 @@ namespace Identity.API.Fixtures
             client.Timeout = TimeSpan.FromMinutes(2);
         }
 
-        public void UseVersion(string version = "1") => _version = version;
 
         /// <summary>
         /// Register a new account
@@ -37,7 +35,9 @@ namespace Identity.API.Fixtures
             // Create account
             using (HttpClient client = CreateClient())
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync($"/v{version ?? _version}/{AccountsController.EndpointName}", newAccount)
+                string uri = $"/v{version ?? _version}/{AccountsController.EndpointName}";
+
+                HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount)
                     .ConfigureAwait(false);
 
                 string responseContent = await response.Content.ReadAsStringAsync()
@@ -62,8 +62,12 @@ namespace Identity.API.Fixtures
         {
             using (HttpClient client = CreateClient())
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync($"/auth/v{version ?? _version}/token", loginInfo)
+
+                string uri = $"v{version ?? _version}/auth/token";
+
+                HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo)
                     .ConfigureAwait(false);
+
                 response.EnsureSuccessStatusCode();
 
                 string tokenJson = await response.Content.ReadAsStringAsync()
@@ -73,4 +77,5 @@ namespace Identity.API.Fixtures
             }
         }
     }
+
 }
