@@ -269,39 +269,35 @@ namespace Documents.API.Features.v1
         /// <response code="409">A document with the same <see cref="DocumentInfo.Hash"/> already exists.</response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<DocumentInfo>), Status201Created)]
-        public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default)
+        public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default, ApiVersion apiVersion = default)
         {
             CreateDocumentInfoCommand cmd = new CreateDocumentInfoCommand(newDocument);
 
             Option<DocumentInfo, CreateCommandResult> optionalDocument = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            return optionalDocument.Match(
+            return optionalDocument.Match<IActionResult>(
                 some: doc =>
                 {
+                    string version = apiVersion?.ToString() ?? "1.0";
                     Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
                     {
                         Resource = doc,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, doc.Id }) }
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, doc.Id }) }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, doc.Id }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, doc.Id, version }, browsableResource);
                 },
                 none: cmdError =>
                 {
-                    IActionResult actionResult;
-                    switch (cmdError)
+                    return cmdError switch
                     {
-                        case CreateCommandResult.Failed_Conflict:
-                            actionResult = new StatusCodeResult(Status409Conflict);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account");
-                    }
-                    return actionResult;
+                        CreateCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                        _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account"),
+                    };
                 });
         }
 

@@ -69,7 +69,7 @@ namespace Documents.API
                 config.Filters.Add(new AuthorizeFilter(policy));
                 //config.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             //.AddFluentValidation(options =>
             //{
             //    options.LocalizationEnabled = true;
