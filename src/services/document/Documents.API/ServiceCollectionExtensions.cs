@@ -229,6 +229,13 @@ namespace Documents.API
                     options.SubstituteApiVersionInUrl = true;
                 });
 
+
+            services.AddScoped(provider =>
+            {
+                HttpContext httpContext = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                return httpContext.GetRequestedApiVersion();
+            });
+
             return services;
         }
 

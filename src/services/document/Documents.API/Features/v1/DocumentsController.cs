@@ -44,6 +44,7 @@ namespace Documents.API.Features.v1
         private readonly IOptionsSnapshot<DocumentsApiOptions> _apiOptions;
         private readonly IMediator _mediator;
         private readonly ILogger<DocumentsController> _logger;
+        private readonly ApiVersion _apiVersion;
 
         /// <summary>
         /// Builds a new <see cref="DocumentsController"/> instance.
@@ -52,16 +53,19 @@ namespace Documents.API.Features.v1
         /// <param name="apiOptions"></param>
         /// <param name="mediator"></param>
         /// <param name="logger"></param>
+        /// <param name="apiVersion"></param>
         public DocumentsController(IUrlHelper urlHelper,
                                    IOptionsSnapshot<DocumentsApiOptions> apiOptions,
                                    IMediator mediator,
-                                   ILogger<DocumentsController> logger
+                                   ILogger<DocumentsController> logger,
+                                   ApiVersion apiVersion
             )
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
             _mediator = mediator;
             _logger = logger;
+            _apiVersion = apiVersion;
         }
 
         /// <summary>
@@ -269,7 +273,7 @@ namespace Documents.API.Features.v1
         /// <response code="409">A document with the same <see cref="DocumentInfo.Hash"/> already exists.</response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<DocumentInfo>), Status201Created)]
-        public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default, ApiVersion apiVersion = default)
+        public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default)
         {
             CreateDocumentInfoCommand cmd = new CreateDocumentInfoCommand(newDocument);
 
@@ -279,7 +283,7 @@ namespace Documents.API.Features.v1
             return optionalDocument.Match<IActionResult>(
                 some: doc =>
                 {
-                    string version = apiVersion?.ToString() ?? "1.0";
+                    string version = _apiVersion?.ToString() ?? "1.0";
                     Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
                     {
                         Resource = doc,

@@ -131,7 +131,7 @@ namespace Documents.API.IntegrationTests.Features.v1
                 .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"{nameof(Link.Href)} must be explicitely specified for each link").And
                 .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"{nameof(Link.Relation)} must be explicitely specified for each link").And
                 .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"{nameof(Link.Method)} must be explicitely specified for each link").And
-                .Contain(link => link.Relation == LinkRelation.Self, $"a direct link to the resource must be provided");
+                .Contain(link => link.Relation == LinkRelation.Self, "a direct link to the resource must be provided");
 
             Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
             linkToSelf.Method.Should()

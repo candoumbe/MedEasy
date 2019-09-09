@@ -65,6 +65,7 @@ namespace Documents.API.UnitTests.Features.v1
             UpdatedDate = doc.UpdatedDate
         };
         private Mock<ILogger<DocumentsController>> _loggerMock;
+        private ApiVersion _apiVersion;
 
         public DocumentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -89,9 +90,10 @@ namespace Documents.API.UnitTests.Features.v1
 
             _mediatorMock = new Mock<IMediator>(Strict);
             _loggerMock = new Mock<ILogger<DocumentsController>>();
+            _apiVersion = new ApiVersion(1, 0);
 
             _sut = new DocumentsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object,
-                _loggerMock.Object);
+                _loggerMock.Object, _apiVersion);
         }
 
         public async void Dispose()
@@ -562,7 +564,7 @@ namespace Documents.API.UnitTests.Features.v1
             linkSelf.Method.Should()
                 .Be("GET");
             linkSelf.Href.Should()
-                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id}");
+                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id}&version=1.0");
 
             createdResource.Name.Should()
                 .Be(newDocument.Name);
