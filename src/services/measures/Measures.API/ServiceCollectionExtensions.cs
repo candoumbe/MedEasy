@@ -233,7 +233,7 @@ namespace Measures.API
             {
                 IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
                 IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
-                var http = builder.GetRequiredService<IHttpContextAccessor>().HttpContext.Get
+                
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
 
