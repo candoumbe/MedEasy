@@ -56,7 +56,6 @@ services:
     ports:
       - "6003:1433"
 
-
   patients.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -66,6 +65,27 @@ services:
     ports:
       - "54002:80"
       - "54003:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro 
+
+  documents.db:
+    environment: 
+      SA_PASSWORD: P4ssW0rd!
+      ACCEPT_EULA: Y
+      TZ: Europe/Brussels
+    ports:
+      - "6005:1433"
+
+  documents.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=52003
+      - CONNECTIONSTRINGS__DOCUMENTS=Server=documents.db;Database=Documents;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
+    ports:
+      - "52002:80"
+      - "52003:443"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro 

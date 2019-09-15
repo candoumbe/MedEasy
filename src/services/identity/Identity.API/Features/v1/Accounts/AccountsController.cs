@@ -298,8 +298,8 @@ namespace Identity.API.Features.v1.Accounts
         /// <param name="search"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        [HttpGet("/search")]
-        [HttpHead("/search")]
+        [HttpGet("search")]
+        [HttpHead("search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
 

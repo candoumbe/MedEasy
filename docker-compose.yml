@@ -20,6 +20,11 @@ services:
     environment:
       ACCEPT_EULA: Y
       TZ: Europe/Brussels
+  documents.db:
+    image: microsoft/mssql-server-linux:2017-CU12
+    environment:
+      ACCEPT_EULA: Y
+      TZ: Europe/Brussels
 
 
   identity.api:
@@ -35,7 +40,7 @@ services:
     image: ${DOCKER_REGISTRY-}patientsapi
     build:
       context: .
-      dockerfile: src/services/Patients/Patients.API/Dockerfile
+      dockerfile: src/services/patients/Patients.API/Dockerfile
     depends_on:
       - identity.api
       - patients.db
@@ -45,8 +50,18 @@ services:
     image: ${DOCKER_REGISTRY-}measuresapi
     build:
       context: .
-      dockerfile: src/services/Measures/Measures.API/Dockerfile
+      dockerfile: src/services/measures/Measures.API/Dockerfile
     depends_on:
       - identity.api
       - measures.db
+      - eventstore
+  
+  documents.api:
+    image: ${DOCKER_REGISTRY-}documentsapi
+    build:
+      context: .
+      dockerfile: src/services/document/Documents.API/Dockerfile
+    depends_on:
+      - identity.api
+      - documents.db
       - eventstore

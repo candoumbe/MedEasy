@@ -175,27 +175,17 @@ namespace Identity.API.Features.v1.Auth
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(request, ct)
                 .ConfigureAwait(false);
 
-            return optionalBearerToken.Match(
+            return optionalBearerToken.Match<IActionResult>(
                 some: bearerToken => new OkObjectResult(bearerToken),
                 none: cmdResult =>
                 {
-                    IActionResult actionResult;
-                    switch (cmdResult)
+                    return cmdResult switch
                     {
-                        case RefreshAccessCommandResult.NotFound:
-                            actionResult = new NotFoundResult();
-                            break;
-                        case RefreshAccessCommandResult.Conflict:
-                            actionResult = new StatusCodeResult(Status409Conflict);
-                            break;
-                        case RefreshAccessCommandResult.Unauthorized:
-                            actionResult = new UnauthorizedResult();
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    return actionResult;
+                        RefreshAccessCommandResult.NotFound => new NotFoundResult(),
+                        RefreshAccessCommandResult.Conflict => new StatusCodeResult(Status409Conflict),
+                        RefreshAccessCommandResult.Unauthorized => new UnauthorizedResult(),
+                        _ => throw new ArgumentOutOfRangeException(),
+                    };
                 });
         }
     }

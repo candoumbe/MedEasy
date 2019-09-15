@@ -31,7 +31,6 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         private ITestOutputHelper _outputHelper;
         private IdentityApiFixture _identityApiFixture;
         private const string _version = "v2";
-        private readonly string _endpointUrl = "/";
         private readonly string _accountsEndpointBaseUrl = "/v1/accounts";
 
         public TokenControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)

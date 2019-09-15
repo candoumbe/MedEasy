@@ -223,6 +223,7 @@ namespace Identity.API
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.DefaultApiVersion = new ApiVersion(2, 0);
             });
             services.AddVersionedApiExplorer(
                 options =>
@@ -368,6 +369,8 @@ namespace Identity.API
                 {
                     {"Bearer", Enumerable.Empty<string>() }
                 });
+
+                config.CustomSchemaIds(type => type.FullName);
             });
 
             return services;

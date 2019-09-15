@@ -150,7 +150,6 @@ namespace Measures.API
             return services;
         }
 
-
         private static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
         {
             IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
@@ -233,7 +232,7 @@ namespace Measures.API
             {
                 IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
                 IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
-                
+
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
 
@@ -297,7 +296,6 @@ namespace Measures.API
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
                     Type = "apiKey"
-
                 });
 
                 config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>

@@ -25,6 +25,7 @@ namespace Identity.API.Features.v2.Auth
     /// Endpoint to handle authentication, token.
     /// </summary>
     [ApiController]
+    [ApiVersion("2.0")]
     [Route("v{version:apiVersion}/auth/[controller]")]
     [Authorize]
     public class TokenController
