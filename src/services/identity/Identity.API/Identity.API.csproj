@@ -8,12 +8,13 @@
     <UserSecretsId>f7d51143-5f51-4aab-97ae-a4bff6b5ca7f</UserSecretsId>
     <DockerComposeProjectPath>..\..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Identity.API.xml</DocumentationFile>
+    <DockerfileContext>..\..\..\..</DockerfileContext>
   </PropertyGroup>
 
   
  
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App"/>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.2105168" />
   </ItemGroup>

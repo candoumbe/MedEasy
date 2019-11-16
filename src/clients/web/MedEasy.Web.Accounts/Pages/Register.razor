@@ -1,0 +1,41 @@
+@page "/register"
+@inherits RegisterComponentBase
+@using Identity.Models.Auth.v1
+@using Identity.Models.Accounts
+
+<h3>Create an account</h3>
+
+<EditForm>
+    <DataAnnotationsValidator/>
+    <BSCard CardType="CardType.Body">
+        <BSForm OnValidSubmit="CreateAccount" Context="Model">
+            <BSFormGroup>
+                <BSLabel For="name">Account</BSLabel>
+                <BSInput Id="name" @bind-Value="ViewModel.Name" InputType="InputType.Text" PlaceHolder="Name of the account" />
+                <ValidationMessage For="(() => ViewModel.Name)" />
+            </BSFormGroup>
+            <BSFormGroup>
+                <BSLabel For="email">Account</BSLabel>
+                <BSInput Id="email" @bind-Value="ViewModel.Email" InputType="InputType.Text" PlaceHolder="Enter email or username" />
+                <small id="emailHelp" class="form-text text-muted">We will never share your email with anyone else.</small>
+                <ValidationMessage For="(() => ViewModel.Email)" />
+            </BSFormGroup>
+            <BSFormGroup>
+                <BSLabel For="new-password">New password</BSLabel>
+                <BSInput @bind-Value="ViewModel.Password" autocomplete="new-password" Id="new-password" InputType="InputType.Password" PlaceHolder="Password" />
+                <ValidationMessage For="(() => ViewModel.Password)" />
+            </BSFormGroup>
+
+            <BSFormGroup>
+                <BSLabel For="confirm-password">Confirm password</BSLabel>
+                <BSInput @bind-Value="ViewModel.ConfirmPassword" autocomplete="confirm-password" Id="confirm-password" InputType="InputType.Password" PlaceHolder="ConirmPassword" />
+                <ValidationMessage For="(() => ViewModel.ConfirmPassword)" />
+            </BSFormGroup>
+
+            <BSButton Color="Color.Primary" ButtonType="ButtonType.Submit">Create my account</BSButton> or <BSNavLink Href="/">Log in</BSNavLink>
+        </BSForm>
+
+
+    </BSCard>
+</EditForm>
+

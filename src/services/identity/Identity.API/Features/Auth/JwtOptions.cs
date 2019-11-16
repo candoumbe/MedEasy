@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Identity.API.Features.Auth
 {
+    /// <summary>
+    /// Options to configure JWT tokens
+    /// </summary>
     public class JwtOptions
     {
         /// <summary>
@@ -22,9 +25,14 @@ namespace Identity.API.Features.Auth
         /// </summary>
         public string Key { get; set; }
 
-
+        /// <summary>
+        /// Which service created the token
+        /// </summary>
         public string Issuer { get; set; }
 
+        /// <summary>
+        /// Which services can consumes the token
+        /// </summary>
         public IEnumerable<string> Audiences { get; set; }
     }
 }

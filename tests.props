@@ -12,6 +12,6 @@
     <PackageReference Include="FluentAssertions" Version="5.7.0" />
     <PackageReference Include="Bogus" Version="23.0.2" />
     <PackageReference Include="Moq" Version="4.10.1" />
-    
-	</ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+  </ItemGroup>
 </Project>

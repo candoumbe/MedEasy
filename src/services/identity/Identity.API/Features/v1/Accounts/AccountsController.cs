@@ -197,8 +197,7 @@ namespace Identity.API.Features.v1.Accounts
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
-        /// <param name="ct"></param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>

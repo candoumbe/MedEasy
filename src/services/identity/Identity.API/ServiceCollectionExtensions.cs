@@ -163,9 +163,6 @@ namespace Identity.API
         /// <summary>
         /// Adds required dependencies to access API datastores
         /// </summary>
-        /// <param name="services"></param>
-        /// 
-        /// 
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
@@ -368,6 +365,7 @@ namespace Identity.API
                 {
                     {"Bearer", Enumerable.Empty<string>() }
                 });
+                config.CustomSchemaIds(type => type.FullName);
             });
 
             return services;

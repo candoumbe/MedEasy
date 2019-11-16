@@ -1,0 +1,22 @@
+
+@page "/patients"
+@inject HttpClient HttpClient
+<h3>Ma patientèle</h3>
+
+<AuthorizeView>
+    <NotAuthorized>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+@code{
+[Parameter]
+public int Page { get; set; } = 1;
+
+[Parameter]
+public int PageSize { get; set; } = 10;
+
+
+}

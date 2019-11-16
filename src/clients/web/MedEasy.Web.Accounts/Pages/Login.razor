@@ -1,0 +1,22 @@
+﻿@page "/"
+@inherits LoginComponentBase
+
+<EditForm>
+    <BSForm OnValidSubmit="Connect" Context="Model">
+        <BSFormGroup>
+            <BSLabel For="username">Email address</BSLabel>
+            <BSInput Id="username" @bind-Value="ViewModel.Username" InputType="InputType.Email" PlaceHolder="Enter email or username" />
+            <small id="emailHelp" class="form-text text-muted">We will never share your email with anyone else.</small>
+            <ValidationMessage For="(() => ViewModel.Username)" />
+        </BSFormGroup>
+        <BSFormGroup>
+            <BSLabel For="password">Password</BSLabel>
+            <BSInput @bind-Value="ViewModel.Password" Id="password" InputType="InputType.Password" PlaceHolder="Password" />
+            <ValidationMessage For="(() => ViewModel.Password)" />
+        </BSFormGroup>
+        <BSButton Color="Color.Primary" ButtonType="ButtonType.Submit">Log in</BSButton>
+        <BSFormGroup>
+            No account ? <BSNavLink href="/register">Create a new account</BSNavLink>
+        </BSFormGroup>
+    </BSForm>
+</EditForm>
