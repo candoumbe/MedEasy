@@ -53,7 +53,6 @@ namespace Measures.API.Tests.Features.v1.Patients
         private ITestOutputHelper _outputHelper;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private Mock<IMediator> _mediatorMock;
-        private Mock<ClaimsPrincipal> _claimsPrincipal;
         private const string _baseUrl = "http://host/api";
         private IUnitOfWorkFactory _uowFactory;
 
@@ -74,13 +73,10 @@ namespace Measures.API.Tests.Features.v1.Patients
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _claimsPrincipal = new Mock<ClaimsPrincipal>(Strict);
-
             _controller = new PatientsController(
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
-                _mediatorMock.Object,
-                _claimsPrincipal.Object);
+                _mediatorMock.Object);
         }
 
         public void Dispose()
@@ -91,7 +87,6 @@ namespace Measures.API.Tests.Features.v1.Patients
             _apiOptionsMock = null;
             _mediatorMock = null;
             _uowFactory = null;
-            _claimsPrincipal = null;
         }
 
         public static IEnumerable<object> GetLastBloodPressuresMesuresCases

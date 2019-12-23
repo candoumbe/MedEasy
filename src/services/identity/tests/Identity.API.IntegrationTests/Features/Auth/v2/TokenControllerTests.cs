@@ -64,7 +64,6 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                     Password = newAccountInfo.Password
                 };
 
-
                 HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
                     .ConfigureAwait(false);
 

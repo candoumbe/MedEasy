@@ -187,38 +187,36 @@ namespace Measures.API.IntegrationTests.v1
             HttpRequestMessage getAllRequest = new HttpRequestMessage(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
             getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-            using (HttpClient client = _sut.CreateClient())
-            {
-                // Act
-                HttpResponseMessage response = await client.SendAsync(getAllRequest)
-                    .ConfigureAwait(false);
+            using HttpClient client = _sut.CreateClient();
+            // Act
+            HttpResponseMessage response = await client.SendAsync(getAllRequest)
+                .ConfigureAwait(false);
 
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("Invalid page and/or pageSize");
-                ((int)response.StatusCode).Should().Be(Status400BadRequest);
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("Invalid page and/or pageSize");
+            ((int)response.StatusCode).Should().Be(Status400BadRequest);
 
-                string content = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string content = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"Response content : {content}");
+            _outputHelper.WriteLine($"Response content : {content}");
 
-                content.Should()
-                    .NotBeNullOrEmpty();
+            content.Should()
+                .NotBeNullOrEmpty();
 
-                JToken validationProblemDetailsToken = JToken.Parse(content);
-                //validationProblemDetailsToken.IsValid(_validationProblemDetailsSchema)
-                //    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
+            JToken validationProblemDetailsToken = JToken.Parse(content);
+            //validationProblemDetailsToken.IsValid(_validationProblemDetailsSchema)
+            //    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-                ValidationProblemDetails errorObject = validationProblemDetailsToken.ToObject<ValidationProblemDetails>();
-                errorObject.Status.Should()
-                    .Be(Status400BadRequest);
-                errorObject.Title.Should()
-                    .Be("Validation failed");
-                errorObject.Errors.Should()
-                    .NotBeEmpty().And
-                    .ContainKeys("page", "pageSize");
-            }
+            ValidationProblemDetails errorObject = validationProblemDetailsToken.ToObject<ValidationProblemDetails>();
+            errorObject.Status.Should()
+                .Be(Status400BadRequest);
+            errorObject.Title.Should()
+                .Be("Validation failed");
+            errorObject.Errors.Should()
+                .NotBeEmpty().And
+                .ContainKeys("page", "pageSize");
         }
 
         //[Fact]

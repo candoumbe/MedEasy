@@ -2,15 +2,9 @@ version: '3.7'
 
 services:
 
-  eventstore:
-    ports:
-      - "7000:1113"
-      - "7001:2113"
   identity.db:
     environment: 
       SA_PASSWORD: P4ssW0rd!
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
     ports:
       - "6000:1433"
 
@@ -27,7 +21,6 @@ services:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
   
-
   measures.db:
     environment: 
       SA_PASSWORD: P4ssW0rd!
@@ -51,8 +44,6 @@ services:
   patients.db:
     environment: 
       SA_PASSWORD: P4ssW0rd!
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
     ports:
       - "6003:1433"
 
@@ -72,8 +63,6 @@ services:
   documents.db:
     environment: 
       SA_PASSWORD: P4ssW0rd!
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
     ports:
       - "6005:1433"
 
@@ -88,4 +77,4 @@ services:
       - "52003:443"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro 
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

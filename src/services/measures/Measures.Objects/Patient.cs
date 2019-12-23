@@ -22,11 +22,11 @@ namespace Measures.Objects
         /// </summary>
         public DateTime? BirthDate { get; private set; }
 
-        private IList<BloodPressure> _bloodPressures;
+        private readonly IList<BloodPressure> _bloodPressures;
 
         public IEnumerable<BloodPressure> BloodPressures => _bloodPressures;
 
-        private IList<Temperature> _temperatures;
+        private readonly IList<Temperature> _temperatures;
 
         public IEnumerable<Temperature> Temperatures => _temperatures;
 
@@ -93,8 +93,7 @@ namespace Measures.Objects
         /// </summary>
         /// <param name="measureId">id of the measure. this could later be used to retrieve the created measure.</param>
         /// <param name="dateOfMeasure"></param>
-        /// <param name="systolic"></param>
-        /// <param name="diastolic"></param>
+        /// <param name="value">The new temperature value to add</param>
         public void AddTemperature(Guid measureId, DateTimeOffset dateOfMeasure, float value)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))

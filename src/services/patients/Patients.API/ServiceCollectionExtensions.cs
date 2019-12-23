@@ -110,7 +110,7 @@ namespace Patients.API
                     ValidationProblemDetails validationProblem = new ValidationProblemDetails
                     {
                         Title = "Validation failed",
-                        Detail = $"{errors.Count} validation's errors",
+                        Detail = $"{errors.Count} validation errors",
                         Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
                             ? Status400BadRequest
                             : Status422UnprocessableEntity

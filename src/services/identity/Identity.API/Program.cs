@@ -84,14 +84,6 @@ namespace Identity.API
                     options.ClearProviders() // removes all default providers
                         .AddSerilog()
                         .AddConsole();
-                })
-                .ConfigureAppConfiguration((context, builder) =>
-
-                    builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                );
+                });
     }
 }

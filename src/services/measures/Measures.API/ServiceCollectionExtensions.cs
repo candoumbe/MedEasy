@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation.AspNetCore;
-using Identity.DTO;
 using Measures.Context;
-using Measures.CQRS.Commands.BloodPressures;
 using Measures.Mapping;
 using Measures.Validators.Commands.BloodPressures;
 using MedEasy.Core.Filters;
@@ -13,6 +11,7 @@ using MedEasy.Validators;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +25,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -35,10 +33,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
+using static Microsoft.AspNetCore.Http.StatusCodes;
+using Measures.CQRS.Queries.Patients;
+using Measures.API.Features.Auth;
 
 namespace Measures.API
 {
@@ -52,38 +52,33 @@ namespace Measures.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureMvc(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
-
-            services
-                .AddMvc(options =>
+            services.AddMvc(config =>
             {
-                options.Filters.Add<FormatFilterAttribute>();
-                options.Filters.Add<ValidateModelActionFilter>();
-                options.Filters.Add<AddCountHeadersFilterAttribute>();
+                config.Filters.Add<FormatFilterAttribute>();
+                config.Filters.Add<ValidateModelActionFilter>();
+                config.Filters.Add<AddCountHeadersFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                options.Filters.Add<HandleErrorAttribute>();
-                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                config.Filters.Add<HandleErrorAttribute>();
+                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                     .RequireAuthenticatedUser()
-                     .Build();
-                options.Filters.Add(new AuthorizeFilter(policy));
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .Build();
+
+                config.Filters.Add(new AuthorizeFilter(policy));
             })
-#if NETCOREAPP2_0
-        .SetCompatibilityVersion(CompatibilityVersion.Version_2_0)
-#else
-        .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-#endif
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             .AddFluentValidation(options =>
             {
-                options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
                 options.LocalizationEnabled = true;
+
                 options
-                    .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                    .RegisterValidatorsFromAssemblyContaining<CreateBloodPressureInfoValidator>()
-                    ;
+                    .RegisterValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
+                    .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>();
+                options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
             })
             .AddJsonOptions(options =>
             {
@@ -103,22 +98,103 @@ namespace Measures.API
                         .AllowAnyOrigin()
                 );
             });
-            services.AddOptions();
-            services.Configure<MeasuresApiOptions>((options) =>
-            {
-                options.DefaultPageSize = configuration.GetValue("APIOptions:DefaultPageSize", 30);
-                options.MaxPageSize = configuration.GetValue("APIOptions:MaxPageSize", 100);
-            });
-            services.Configure<MvcOptions>(options =>
-            {
-                options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
-            });
 
             services.AddRouting(options =>
             {
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
             });
+
+            services.AddHsts(options =>
+            {
+                options.Preload = true;
+                if (env.IsDevelopment() || env.IsEnvironment("IntegrationTest"))
+                {
+                    options.ExcludedHosts.Remove("localhost");
+                    options.ExcludedHosts.Remove("127.0.0.1");
+                    options.ExcludedHosts.Remove("[::1]");
+                }
+            });
+            services.AddHttpsRedirection(options =>
+            {
+                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 63796);
+                options.RedirectStatusCode = Status307TemporaryRedirect;
+            });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds custom options
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddOptions();
+            services.Configure<MeasuresApiOptions>((options) =>
+            {
+                options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(MeasuresApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(MeasuresApiOptions.DefaultPageSize)}", 100);
+            });
+            services.Configure<JwtOptions>((options) =>
+            {
+                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
+                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
+                options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
+            });
+            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds required dependencies to access APÏ datastores
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddDataStores(this IServiceCollection services)
+        {
+            DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            {
+                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                {
+                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                }
+                else
+                {
+                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                    builder.UseSqlServer(
+                        configuration.GetConnectionString("Measures"),
+                        options => options.EnableRetryOnFailure(5)
+                            .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
+                    );
+                }
+                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                builder.ConfigureWarnings(options =>
+                {
+                    options.Default(WarningBehavior.Log);
+                });
+                return builder;
+            }
+
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+
+                return new MeasuresContext(optionsBuilder.Options);
+            });
+
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
+            {
+                DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
+
+                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, options => new MeasuresContext(options));
+            });
+
+            return services;
         }
 
         /// <summary>
@@ -134,6 +210,7 @@ namespace Measures.API
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.DefaultApiVersion = new ApiVersion(2, 0);
             });
             services.AddVersionedApiExplorer(
                 options =>
@@ -150,81 +227,18 @@ namespace Measures.API
             return services;
         }
 
-        private static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
-        {
-            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options =>
-            {
-                options.Default(WarningBehavior.Log);
-            });
-
-            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-            {
-                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            }
-            else
-            {
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                builder.UseSqlServer(
-                    configuration.GetConnectionString("Measures"),
-                    b => b.MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName));
-            }
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds required dependencies to access API datastores
-        /// </summary>
-        /// <param name="services"></param>
-        /// 
-        /// 
-        public static IServiceCollection AddDataStores(this IServiceCollection services)
-        {
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new MeasuresContext(optionsBuilder.Options);
-            });
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
-           {
-               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-               DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
-
-               Func<DbContextOptions<MeasuresContext>, MeasuresContext> contextGenerator;
-
-               if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-               {
-                   contextGenerator = options =>
-                   {
-                       MeasuresContext context = new MeasuresContext(options);
-                       //context.Database.EnsureCreated();
-                       return context;
-                   };
-               }
-               else
-               {
-                   contextGenerator = (options) => new MeasuresContext(options);
-               }
-               return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, contextGenerator);
-           });
-
-            return services;
-        }
-
         /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection ConfigureDependencyInjection(this IServiceCollection services)
+        public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(CreateBloodPressureInfoForPatientIdCommand).Assembly);
+            services.AddMediatR(
+                typeof(GetPatientInfoByIdQuery).Assembly
+            );
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
-            services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
-            services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
+            services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
+            services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -236,22 +250,37 @@ namespace Measures.API
                 return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             });
 
-            services.AddScoped(serviceProvider =>
-            {
-                IHttpContextAccessor httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
-                ClaimsPrincipal principal = httpContextAccessor.HttpContext.User;
 
-                ConnectedAccountInfo connectedAccount = new ConnectedAccountInfo
-                {
-                    Id = Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.AccountId), out Guid accountId)
-                        ? accountId
-                        : Guid.Empty,
-                    Username = principal.FindFirstValue(ClaimTypes.NameIdentifier),
-                    Email = principal.FindFirstValue(ClaimTypes.Email)
-                };
+            return services;
+        }
 
-                return principal;
-            });
+
+        /// <summary>
+        /// Adds Authorization and authentication
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+
+            services.AddAuthorization()
+                   .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                   .AddJwtBearer(options =>
+                   {
+                       options.TokenValidationParameters = new TokenValidationParameters
+                       {
+                           ValidateIssuer = true,
+                           ValidateAudience = true,
+                           ValidateLifetime = true,
+                           ValidateIssuerSigningKey = true,
+                           ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
+                           ValidAudience = configuration["Authentication:JwtBearer:Audience"],
+                           IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
+                       };
+
+                       options.Validate();
+                   });
 
             return services;
         }
@@ -262,16 +291,16 @@ namespace Measures.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
-            ApplicationEnvironment app = PlatformServices.Default.Application;
+            (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new Info
                 {
                     Title = hostingEnvironment.ApplicationName,
-                    Description = "REST API for Measures API",
+                    Description = "Measures REST API",
                     Version = "v1",
                     Contact = new Contact
                     {
@@ -283,7 +312,7 @@ namespace Measures.API
 
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
-                string documentationPath = Path.Combine(app.ApplicationBasePath, $"{app.ApplicationName}.xml");
+                string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");
                 if (File.Exists(documentationPath))
                 {
                     config.IncludeXmlComments(documentationPath);
@@ -292,45 +321,20 @@ namespace Measures.API
                 config.DescribeAllEnumsAsStrings();
                 config.AddSecurityDefinition("Bearer", new ApiKeyScheme
                 {
-                    In = "header",
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
+                    In = "header",
+                    Description = "Token to access the API",
                     Type = "apiKey"
                 });
-
                 config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
                 {
                     {"Bearer", Enumerable.Empty<string>() }
                 });
+
+                config.CustomSchemaIds(type => type.FullName);
             });
 
             return services;
         }
-
-        /// <summary>
-        /// Configures the authentication middleware
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-               .AddJwtBearer(options =>
-               {
-                   options.TokenValidationParameters = new TokenValidationParameters
-                   {
-                       ValidateIssuer = true,
-                       ValidateAudience = true,
-                       ValidateLifetime = true,
-                       ValidateIssuerSigningKey = true,
-                       ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
-                       ValidAudience = configuration["Authentication:JwtBearer:Audience"],
-                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
-                   };
-               });
-
-            return services;
-        }
-
     }
 }

@@ -52,15 +52,17 @@ namespace Measures.API
                 });
 #endif
             services.AddDataStores()
-                .ConfigureDependencyInjection()
-                .ConfigureAuthentication(Configuration)
-                .AddCustomApiVersioning();
+                .AddDependencyInjection()
+                .AddCustomAuthentication(Configuration)
+                .AddCustomApiVersioning()
+                .AddCustomOptions(Configuration);
 
             if (HostingEnvironment.IsDevelopment())
             {
-                services.ConfigureSwagger(HostingEnvironment, Configuration);
+                services.AddSwagger(HostingEnvironment, Configuration);
             }
-            services.ConfigureMvc(Configuration);
+
+            services.AddCustomMvc(Configuration, HostingEnvironment);
         }
 
         /// <summary>
@@ -97,7 +99,6 @@ namespace Measures.API
             }
             else
             {
-                
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();

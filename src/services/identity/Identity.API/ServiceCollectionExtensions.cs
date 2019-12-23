@@ -158,17 +158,9 @@ namespace Identity.API
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
-        /// 
-        /// 
-        /// <summary>
-        /// Adds required dependencies to access API datastores
-        /// </summary>
-        /// <param name="services"></param>
-        /// 
-        /// 
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
-            DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
                 DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();

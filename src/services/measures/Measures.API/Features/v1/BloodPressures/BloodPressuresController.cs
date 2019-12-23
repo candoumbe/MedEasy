@@ -149,7 +149,7 @@ namespace Measures.API.Features.v1.BloodPressures
             Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
                     .ConfigureAwait(false);
 
-            IActionResult actionResult = result.Match<IActionResult>(
+            return result.Match<IActionResult>(
                 some: bloodPressure =>
                 {
                     Browsable<BloodPressureInfo> browsableResource = new Browsable<BloodPressureInfo>
@@ -181,7 +181,6 @@ namespace Measures.API.Features.v1.BloodPressures
                 },
                 none: () => new NotFoundResult()
             );
-            return actionResult;
         }
 
         ///// <summary>

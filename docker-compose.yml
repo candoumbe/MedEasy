@@ -1,10 +1,6 @@
 version: '3.7'
 
-services:
-
-  eventstore:
-    image: eventstore/eventstore:release-4.1.2
-    
+services: 
   identity.db:
     image: microsoft/mssql-server-linux:2017-CU12
     environment:
@@ -26,7 +22,6 @@ services:
       ACCEPT_EULA: Y
       TZ: Europe/Brussels
 
-
   identity.api:
     image: ${DOCKER_REGISTRY-}identityapi
     build:
@@ -34,7 +29,6 @@ services:
       dockerfile: src/services/identity/Identity.API/Dockerfile
     depends_on:
       - identity.db
-      - eventstore
 
   patients.api:
     image: ${DOCKER_REGISTRY-}patientsapi
@@ -44,7 +38,6 @@ services:
     depends_on:
       - identity.api
       - patients.db
-      - eventstore
 
   measures.api:
     image: ${DOCKER_REGISTRY-}measuresapi
@@ -54,7 +47,6 @@ services:
     depends_on:
       - identity.api
       - measures.db
-      - eventstore
   
   documents.api:
     image: ${DOCKER_REGISTRY-}documentsapi
@@ -64,4 +56,3 @@ services:
     depends_on:
       - identity.api
       - documents.db
-      - eventstore

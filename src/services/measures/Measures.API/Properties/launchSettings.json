@@ -17,8 +17,10 @@
     },
     "Measures.API": {
       "commandName": "Project",
-      "launchUrl": "measures/",
+      "launchBrowser": true,
+      "launchUrl": "swagger/",
       "environmentVariables": {
+        "CONNECTIONSTRINGS__MEASURES": "Server=measures.db;Database=Measures;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:63795/;https://localhost:63796"
@@ -26,7 +28,7 @@
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/measures/"
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger/"
     }
   }
 }

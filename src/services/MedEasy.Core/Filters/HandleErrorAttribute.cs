@@ -43,7 +43,7 @@ namespace MedEasy.Core.Filters
                     PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
                     object commandId = piCommandId.GetValue(exception);
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
-                    _logger.LogError($"Command <{commandId}> is not valid");
+                    _logger.LogError("Command <{CommandId}> is not valid", commandId) ;
                 }
                 else
                 {
@@ -55,7 +55,7 @@ namespace MedEasy.Core.Filters
                     object queryId = piQueryId.GetValue(exception);
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
 
-                    _logger.LogError($"Query <{queryId}> is not valid");
+                    _logger.LogError("Query <{QueryId}> is not valid", queryId);
                 }
                 foreach (ErrorInfo error in errors)
                 {

@@ -34,7 +34,6 @@ namespace Measures.API.Features.v1.Patients
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="PatientInfo"/> resources
     /// </summary>
-    [ApiController]
     [Route("/v{version:apiVersion}/[controller]")]
     public class PatientsController
     {
@@ -55,21 +54,17 @@ namespace Measures.API.Features.v1.Patients
         /// </summary>
         public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
 
-        private readonly ClaimsPrincipal _claimsPrincipal;
-
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
-        /// <param name="claimsPrincipal"></param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
-        public PatientsController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ClaimsPrincipal claimsPrincipal)
+        public PatientsController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator)
         {
             UrlHelper = urlHelper;
             ApiOptions = apiOptions;
             _mediator = mediator;
-            _claimsPrincipal = claimsPrincipal;
         }
 
         /// <summary>
@@ -517,7 +512,7 @@ namespace Measures.API.Features.v1.Patients
                 case ModifyCommandResult.Failed_Conflict:
                     break;
                 default:
-                    break;
+                    throw new ArgumentOutOfRangeException(nameof(result), $"Unsupported {result} when patching a patient resource");
             }
             return actionResult;
         }

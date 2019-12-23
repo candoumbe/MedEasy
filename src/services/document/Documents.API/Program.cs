@@ -37,9 +37,9 @@ namespace Documents.API
                         .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
                         .WaitAndRetryAsync(
                             retryCount: 5,
-                            sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
-                            onRetry: (exception, timeSpan, attempt, pollyContext) =>
-                                logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})")
+                            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                            onRetry: (exception, _, attempt, __) =>
+                                logger?.LogError(exception, "Error while upgrading database (Attempt {Attempt})", attempt)
                             );
                     logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
 
@@ -60,7 +60,7 @@ namespace Documents.API
             }
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) 
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
             => WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
                 .UseSerilog((hosting, loggerConfig) => loggerConfig
@@ -75,13 +75,14 @@ namespace Documents.API
                         .AddSerilog()
                         .AddConsole();
                 })
-                .ConfigureAppConfiguration((context, builder) =>
+                //.ConfigureAppConfiguration((context, builder) =>
 
-                    builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                );
+                //    builder
+                //        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                //        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                //        .AddEnvironmentVariables()
+                //        .AddCommandLine(args)
+                //)
+            ;
     }
 }
