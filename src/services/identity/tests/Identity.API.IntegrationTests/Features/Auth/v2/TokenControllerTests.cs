@@ -2,7 +2,7 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Identity.API.Features.Accounts;
-using Identity.API.Fixtures;
+using Identity.API.Fixtures.v1;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v2;
@@ -28,8 +28,8 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
     [Feature("Authentication")]
     public class TokenControllerTests : IClassFixture<IdentityApiFixture>
     {
-        private ITestOutputHelper _outputHelper;
-        private IdentityApiFixture _identityApiFixture;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly IdentityApiFixture _identityApiFixture;
         private const string _version = "v2";
         private readonly string _accountsEndpointBaseUrl = "/v1/accounts";
 

@@ -4,24 +4,25 @@ using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.DTO.v2;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
+
 using Optional;
+
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Primitives;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Identity.API.Features.v2.Auth
 {
