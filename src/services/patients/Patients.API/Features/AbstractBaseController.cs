@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 
 namespace Patients.API.Controllers
 {
@@ -42,7 +43,7 @@ namespace Patients.API.Controllers
         /// <summary>
         /// Helper to build <see cref="Uri"/>
         /// </summary>
-        protected IUrlHelper UrlHelper { get; }
+        protected LinkGenerator UrlHelper { get; }
 
         /// <summary>
         /// Name of the resource
@@ -56,7 +57,7 @@ namespace Patients.API.Controllers
         /// <param name="uowFactory">Factory class that builds <see cref="IUnitOfWork"/> instances.</param>
         /// <param name="expressionBuilder"></param>
         /// <param name="urlHelper"></param>
-        protected AbstractBaseController(ILogger logger, IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IUrlHelper urlHelper)
+        protected AbstractBaseController(ILogger logger, IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, LinkGenerator urlHelper)
         {
             Logger = logger;
             UowFactory = uowFactory;

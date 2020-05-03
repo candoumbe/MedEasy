@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\..\tests.props" />
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\Patients.DTO\Patients.DTO.csproj" />
+    <ProjectReference Include="..\..\Patients.Validators\Patients.Validators.csproj" />
+  </ItemGroup>
+
+</Project>

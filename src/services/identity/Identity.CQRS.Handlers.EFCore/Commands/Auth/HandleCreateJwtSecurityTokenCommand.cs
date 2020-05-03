@@ -40,7 +40,6 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                 claims = claims.Concat(new[] { new ClaimInfo { Type = JwtRegisteredClaimNames.Jti, Value = Guid.NewGuid().ToString() } });
             }
 
-
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(data.tokenOptions.Key));
             SecurityToken token = new JwtSecurityToken(
                 issuer : data.tokenOptions.Issuer,

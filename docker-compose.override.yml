@@ -4,16 +4,16 @@ services:
 
   identity.db:
     environment: 
-      SA_PASSWORD: P4ssW0rd!
+      POSTGRES_PASSWORD: P4ssW0rd!
     ports:
-      - "6000:1433"
+      - "6000:5432"
 
   identity.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=51800
-      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;User ID=sa;Password=P4ssW0rd!
     ports:
       - "51798:80"
       - "51800:443"
@@ -23,9 +23,9 @@ services:
   
   measures.db:
     environment: 
-      SA_PASSWORD: P4ssW0rd!
+      POSTGRES_PASSWORD: P4ssW0rd!
     ports:
-      - "6001:1433"
+      - "6001:5432"
 
   measures.api:
     environment:
@@ -43,9 +43,9 @@ services:
 
   patients.db:
     environment: 
-      SA_PASSWORD: P4ssW0rd!
+      POSTGRES_PASSWORD: P4ssW0rd!
     ports:
-      - "6003:1433"
+      - "6003:5432"
 
   patients.api:
     environment:
@@ -62,16 +62,16 @@ services:
 
   documents.db:
     environment: 
-      SA_PASSWORD: P4ssW0rd!
+      POSTGRES_PASSWORD: P4ssW0rd!
     ports:
-      - "6005:1433"
+      - "6005:5432"
 
   documents.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=52003
-      - CONNECTIONSTRINGS__DOCUMENTS=Server=documents.db;Database=Documents;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__DOCUMENTS=Server=documents.db;Database=Documents;User ID=sa;Password=P4ssW0rd!
     ports:
       - "52002:80"
       - "52003:443"

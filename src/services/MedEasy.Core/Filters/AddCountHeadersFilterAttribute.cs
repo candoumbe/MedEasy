@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
 using System.Collections;
+using System.Collections.Generic;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 
 namespace MedEasy.Core.Filters
@@ -29,8 +30,8 @@ namespace MedEasy.Core.Filters
         {
             string method = context.HttpContext.Request.Method;
 
-            (long total, long count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
-            (long total, long count) ComputeCountsFromEnumerable(in IEnumerable collection)
+            static (long total, long count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
+            static (long total, long count) ComputeCountsFromEnumerable(in IEnumerable collection)
             {
                 IEnumerator enumerator = collection.GetEnumerator();
                 long count = 0;
@@ -49,7 +50,7 @@ namespace MedEasy.Core.Filters
                 switch (context.Result)
                 {
                     case ObjectResult okObjectResult:
-                        
+
                         switch (okObjectResult.Value)
                         {
                             case IGenericPagedGetResponse genericPagedGetResponse:
@@ -88,11 +89,11 @@ namespace MedEasy.Core.Filters
 
                 if (totalCount.HasValue)
                 {
-                    context.HttpContext.Response.Headers.Add(TotalCountHeaderName, new StringValues(totalCount.Value.ToString()));
+                    context.HttpContext.Response.Headers.TryAdd(TotalCountHeaderName, new StringValues(totalCount.Value.ToString()));
                 }
                 if (count.HasValue)
                 {
-                    context.HttpContext.Response.Headers.Add(CountHeaderName, new StringValues(count.Value.ToString()));
+                    context.HttpContext.Response.Headers.TryAdd(CountHeaderName, new StringValues(count.Value.ToString()));
                 }
             }
         }

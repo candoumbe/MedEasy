@@ -15,9 +15,13 @@ using Optional;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Primitives;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Identity.API.Features.v2.Auth
 {
@@ -31,7 +35,7 @@ namespace Identity.API.Features.v2.Auth
     public class TokenController
     {
         private readonly IMediator _mediator;
-        private readonly IOptionsSnapshot<JwtOptions> _jwtOptions;
+        private readonly IOptionsMonitor<JwtOptions> _jwtOptions;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
@@ -40,7 +44,7 @@ namespace Identity.API.Features.v2.Auth
         /// <param name="mediator"></param>
         /// <param name="jwtOptions"></param>
         /// <param name="httpContextAccessor"></param>
-        public TokenController(IMediator mediator, IOptionsSnapshot<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
+        public TokenController(IMediator mediator, IOptionsMonitor<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
             _mediator = mediator;
             _jwtOptions = jwtOptions;
@@ -51,6 +55,7 @@ namespace Identity.API.Features.v2.Auth
         /// Generates a token for the specified user
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="ipValues"></param>
         /// <param name="ct">Notifies to abort the action execution</param>
         /// <returns></returns>
         /// <response code="404">The login/password was not found</response>
@@ -59,7 +64,7 @@ namespace Identity.API.Features.v2.Auth
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
         [ApiVersion("2.0")]
-        public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired]LoginModel model, CancellationToken ct = default)
+        public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired]LoginModel model, [FromHeader(Name = "x-forwarder-for")] IEnumerable<string> ipValues = default, CancellationToken ct = default)
         {
             LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
@@ -68,9 +73,9 @@ namespace Identity.API.Features.v2.Auth
             return await optionalUser.Match<ValueTask<ActionResult<BearerTokenInfo>>>(
                 some: async accountInfo =>
                 {
-                    JwtOptions jwtOptions = _jwtOptions.Value;
-                    _httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
-                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = ipValues.ToArray().FirstOrDefault() ?? string.Empty };
+                    JwtOptions jwtOptions = _jwtOptions.CurrentValue;
+                    //_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
+                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = ipValues?.ToArray()?.FirstOrDefault() ?? string.Empty };
                     JwtInfos jwtInfos = new JwtInfos
                     {
                         Key = jwtOptions.Key,

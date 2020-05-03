@@ -2,7 +2,7 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Identity.API.Features.v1.Accounts;
-using Identity.API.Fixtures;
+using Identity.API.Fixtures.v1;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;
@@ -127,46 +127,44 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
                 Email = $"bruce.wayne_{Guid.NewGuid()}@gotham.com"
             };
 
-            using (HttpClient client = _identityApiFixture.CreateClient())
+            using HttpClient client = _identityApiFixture.CreateClient();
+            await client.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccountInfo)
+                        .ConfigureAwait(false);
+
+            LoginInfo loginInfo = new LoginInfo
             {
-                await client.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccountInfo)
-                    .ConfigureAwait(false);
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
 
-                LoginInfo loginInfo = new LoginInfo
-                {
-                    Username = newAccountInfo.Username,
-                    Password = newAccountInfo.Password
-                };
+            // Act
+            using HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+                .ConfigureAwait(false);
 
-                // Act
-                HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
-                    .ConfigureAwait(false);
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            _outputHelper.WriteLine($"Response content : {responseContent}");
 
-                // Assert
-                string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                _outputHelper.WriteLine($"Response content : {responseContent}");
+            _outputHelper.WriteLine($"Status code : {response.StatusCode}");
 
-                _outputHelper.WriteLine($"Status code : {response.StatusCode}");
+            response.IsSuccessStatusCode.Should()
+                .BeTrue();
+            ((int)response.StatusCode).Should()
+                .Be(Status200OK);
 
-                response.IsSuccessStatusCode.Should()
-                    .BeTrue();
-                ((int)response.StatusCode).Should()
-                    .Be(Status200OK);
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            _outputHelper.WriteLine($"HTTP content : '{json}'");
 
-                _outputHelper.WriteLine($"HTTP content : '{json}'");
-
-                BearerTokenInfo tokenInfo = JToken.Parse(json)
-                    .ToObject<BearerTokenInfo>();
-                SecurityToken accessToken = new JwtSecurityToken(tokenInfo.AccessToken);
-                SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken);
-                refreshToken.ValidFrom.Should()
-                    .Be(accessToken.ValidFrom, "access and refresh tokens be valid since the same point in time");
-                refreshToken.ValidTo.Should()
-                    .BeAfter(accessToken.ValidTo, "refresh token should expire AFTER access token");
-            }
+            BearerTokenInfo tokenInfo = JToken.Parse(json)
+                .ToObject<BearerTokenInfo>();
+            SecurityToken accessToken = new JwtSecurityToken(tokenInfo.AccessToken);
+            SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken);
+            refreshToken.ValidFrom.Should()
+                .Be(accessToken.ValidFrom, "access and refresh tokens be valid since the same point in time");
+            refreshToken.ValidTo.Should()
+                .BeAfter(accessToken.ValidTo, "refresh token should expire AFTER access token");
         }
 
         [Fact]

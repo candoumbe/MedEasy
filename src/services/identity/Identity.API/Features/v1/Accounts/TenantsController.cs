@@ -11,6 +11,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using System;
 using System.Threading;
@@ -30,11 +31,11 @@ namespace Identity.API.Features.Accounts
     {
         public static string EndpointName => nameof(TenantsController)
             .Replace(nameof(Controller), string.Empty);
-        private readonly IUrlHelper _urlHelper;
+        private readonly LinkGenerator _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
         private readonly IMediator _mediator;
 
-        public TenantsController(IUrlHelper urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
+        public TenantsController(LinkGenerator urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
@@ -144,28 +145,16 @@ namespace Identity.API.Features.Accounts
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
-
-            IActionResult actionResult;
-            switch (cmdResult)
+            
+            
+            return cmdResult switch
             {
-                case ModifyCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case ModifyCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-
-                    break;
-                case ModifyCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case ModifyCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> patch result");
-            }
-
-            return actionResult;
+                ModifyCommandResult.Done => new NoContentResult(),
+                ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> patch result"),
+            };
         }
     }
 }

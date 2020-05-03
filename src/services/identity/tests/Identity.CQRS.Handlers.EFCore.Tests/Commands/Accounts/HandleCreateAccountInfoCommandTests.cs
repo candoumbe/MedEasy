@@ -235,42 +235,43 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        DateTimeOffset now = 10.January(2010).At(10.Hours().And(37.Minutes()));
-                        Option<Account> optionalAccount = await uow.Repository<Account>()
-                            .SingleOrDefaultAsync(x => x.Id == query.Data,ct)
-                            .ConfigureAwait(false);
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    DateTimeOffset now = 10.January(2010).At(10.Hours().And(37.Minutes()));
+                    Option<Account> optionalAccount = await uow.Repository<Account>()
+                        .SingleOrDefaultAsync(x => x.Id == query.Data, ct)
+                        .ConfigureAwait(false);
 
-                        return await optionalAccount.Match(
-                            some: async account =>
+                    return await optionalAccount.Match(
+                        some: async account =>
+                        {
+                            using IUnitOfWork unitOfWorkClaims = _uowFactory.NewUnitOfWork();
+                            IEnumerable<ClaimInfo> claimsOverride = await unitOfWorkClaims.Repository<Account>()
+                                                                                            .SingleAsync(selector: acc => acc.Claims.Select(ac => new ClaimInfo { Type = ac.Claim.Type, Value = ac.Claim.Value })
+                                                                                                    .ToList(),
+                                                                                                predicate: (Account acc) => acc.Id == account.Id,
+                                                                                                ct)
+                                                                                            .ConfigureAwait(false);
+                            
+                            IEnumerable<string> claimsTypesGranted = claimsOverride.Select(x => x.Type)
+                                                                                   .ToArray();
+
+                            AccountInfo accountInfo = new AccountInfo
                             {
-                                IEnumerable<ClaimInfo> claimsOverride = await uow.Repository<AccountClaim>()
-                                    .WhereAsync(
-                                        selector: ac => new ClaimInfo { Type = ac.Claim.Type, Value = ac.Value },
-                                        predicate: ac => ac.AccountId == account.Id,
-                                        ct)
-                                    .ConfigureAwait(false);
-                                IEnumerable<ClaimInfo> claimsFromRoles = await uow.Repository<RoleClaim>()
-                                    .WhereAsync(
-                                        selector: rc => new ClaimInfo { Type = rc.Claim.Type, Value = rc.Claim.Value },
-                                        (RoleClaim rc) => !claimsOverride.Any(claim => rc.Claim.Type == claim.Type),
-                                        ct
-                                    )
-                                    .ConfigureAwait(false);
-
-                                AccountInfo accountInfo = new AccountInfo
+                                Username = account.Name,
+                                Email = account.Email,
+                                Claims = claimsOverride,
+                                Roles = account.Roles.Select(ar => new RoleInfo
                                 {
-                                    Username = account.Name,
-                                    Email = account.Email,
-                                    Claims = claimsOverride
-                                        .Concat(claimsFromRoles)
-                                };
-                                return Option.Some(accountInfo);
-                            },
-                            none: () => Task.FromResult(Option.None<AccountInfo>())
-                        );
-                    }
+                                    Name = ar.Role.Code,
+                                    Claims = ar.Role.Claims.Select(rc => new ClaimInfo { Type = rc.Claim.Type, Value = rc.Claim.Value })
+                                                     .ToArray()
+                                })
+                            };
+                            return Option.Some(accountInfo);
+                        },
+                        none: () => Task.FromResult(Option.None<AccountInfo>())
+                    )
+                    .ConfigureAwait(false);
                 });
 
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
@@ -296,33 +297,31 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                             .NotContainNulls().And
                             .NotContain(claim => claim.Type.EndsWith(".api"));
 
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        Account newEntity = await uow.Repository<Account>().SingleAsync(x => x.Username == newAccount.Username)
-                            .ConfigureAwait(false);
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    Account newEntity = await uow.Repository<Account>().SingleAsync(x => x.Username == newAccount.Username)
+                        .ConfigureAwait(false);
 
-                        newEntity.PasswordHash.Should()
-                            .NotBeNullOrWhiteSpace().And
-                            .NotBe(newAccount.Password);
-                        newEntity.Salt.Should()
-                            .NotBeNullOrWhiteSpace();
-                        newEntity.Id.Should()
-                            .NotBeEmpty("Id must not be empty");
-                        newEntity.Email.Should()
-                            .Be(resource.Email);
-                        newEntity.EmailConfirmed.Should()
-                            .BeTrue("Email is confirmed automagically for now");
-                        newEntity.IsActive.Should()
-                            .BeTrue("Account is active right after registration for now");
+                    newEntity.PasswordHash.Should()
+                        .NotBeNullOrWhiteSpace().And
+                        .NotBe(newAccount.Password);
+                    newEntity.Salt.Should()
+                        .NotBeNullOrWhiteSpace();
+                    newEntity.Id.Should()
+                        .NotBeEmpty("Id must not be empty");
+                    newEntity.Email.Should()
+                        .Be(resource.Email);
+                    newEntity.EmailConfirmed.Should()
+                        .BeTrue("Email is confirmed automagically for now");
+                    newEntity.IsActive.Should()
+                        .BeTrue("Account is active right after registration for now");
 
-                        _mediatorMock.Verify(mock => mock.Send(It.IsAny<HashPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-                        _mediatorMock.Verify(mock => mock.Send(It.Is<HashPasswordQuery>(query => query.Data == newAccount.Password), It.IsAny<CancellationToken>()), Times.Once);
-                        _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Once);
-                        _mediatorMock.Verify(mock => mock.Publish(
-                            It.Is<AccountCreated>(evt => evt.Data.Id == resource.Id),
-                            It.IsAny<CancellationToken>()),
-                            Times.Once);
-                    }
+                    _mediatorMock.Verify(mock => mock.Send(It.IsAny<HashPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+                    _mediatorMock.Verify(mock => mock.Send(It.Is<HashPasswordQuery>(query => query.Data == newAccount.Password), It.IsAny<CancellationToken>()), Times.Once);
+                    _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Once);
+                    _mediatorMock.Verify(mock => mock.Publish(
+                        It.Is<AccountCreated>(evt => evt.Data.Id == resource.Id),
+                        It.IsAny<CancellationToken>()),
+                        Times.Once);
                 });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Once);

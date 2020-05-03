@@ -2,25 +2,13 @@ version: '3.7'
 
 services: 
   identity.db:
-    image: microsoft/mssql-server-linux:2017-CU12
-    environment:
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
+    image: postgres/postgres:12-alpine  
   patients.db:
-    image: microsoft/mssql-server-linux:2017-CU12
-    environment:
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
+    image: postgres/postgres:12-alpine
   measures.db:
-    image: microsoft/mssql-server-linux:2017-CU12
-    environment:
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
+    image: postgres/postgres:12-alpine
   documents.db:
-    image: microsoft/mssql-server-linux:2017-CU12
-    environment:
-      ACCEPT_EULA: Y
-      TZ: Europe/Brussels
+    image: postgres/postgres:12-alpine
 
   identity.api:
     image: ${DOCKER_REGISTRY-}identityapi

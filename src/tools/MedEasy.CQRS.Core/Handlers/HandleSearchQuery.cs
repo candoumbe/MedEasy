@@ -36,7 +36,6 @@ namespace MedEasy.CQRS.Core.Handlers
             _expressionBuilder = expressionBuilder;
         }
 
-
         /// <summary>
         /// Performs a search query against <typeparamref name="TEntity"/> datastore.
         /// </summary>
@@ -49,18 +48,17 @@ namespace MedEasy.CQRS.Core.Handlers
         {
             SearchQueryInfo<TResult> data = searchQuery.Data;
             Debug.Assert(data.Sort != null, "Sort expression should have been provided");
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<TResult, bool>> filter = data.Filter?.ToExpression<TResult>() ?? True<TResult>();
-                int page = data.Page;
-                int pageSize = data.PageSize;
-                
-                Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Expression<Func<TResult, bool>> filter = data.Filter?.ToExpression<TResult>() ?? True<TResult>();
+            int page = data.Page;
+            int pageSize = data.PageSize;
 
-                return await uow.Repository<TEntity>()
-                    .WhereAsync(selector, filter, data.Sort, pageSize, page, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            Expression<Func<TEntity, TResult>> selector = _expressionBuilder.GetMapExpression<TEntity, TResult>();
+            ISort<TResult> sort = data.Sort;
+
+            return await uow.Repository<TEntity>()
+                .WhereAsync(selector, filter, sort, pageSize, page, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

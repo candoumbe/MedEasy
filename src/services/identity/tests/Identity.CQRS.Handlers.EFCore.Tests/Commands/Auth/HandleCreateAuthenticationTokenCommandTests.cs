@@ -37,7 +37,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
     [Feature("Identity")]
     [Feature("JWT")]
     [Feature("Authentication")]
-    public class HandleCreateAuthenticationTokenCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IDateTimeService> _dateTimeServiceMock;
@@ -52,12 +52,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+            dbContextOptionsBuilder.UseSqlite(databaseFixture.Connection)
+                                   .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
             {
                 IdentityContext context = new IdentityContext(options);
-                
+                context.Database.EnsureDeleted();
+                context.Database.EnsureCreated();
                 return context;
             });
             _handleCreateSecurityTokenCommandMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
@@ -65,16 +67,18 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _sut = new HandleCreateAuthenticationTokenCommand(dateTimeService: _dateTimeServiceMock.Object, unitOfWorkFactory: _uowFactory, _handleCreateSecurityTokenCommandMock.Object);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             _outputHelper = null;
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Objects.Claim>().Clear();
-                uow.Repository<Account>().Clear();
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            
+            uow.Repository<Account>().Clear();
+            uow.Repository<Role>().Clear();
+            await uow.SaveChangesAsync()
+                .ConfigureAwait(false);
+            
             _handleCreateSecurityTokenCommandMock = null;
             _uowFactory = null;
             _sut = null;
@@ -86,7 +90,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             // Assert
             _sut.GetType().Should()
                 .Implement<IRequestHandler<CreateAuthenticationTokenCommand, AuthenticationTokenInfo>>();
-
 
         [Fact]
         public async Task GivenAccountInfo_Handler_Returns_CorrespondingToken()
@@ -112,7 +115,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             {
                 uow.Repository<Account>().Create(account);
                 await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
+
                 accountInfo = AutoMapperConfig.Build().CreateMapper()
                     .Map<Account, AccountInfo>(account);
             }
@@ -128,7 +132,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
 
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
-                .Returns(async (CreateSecurityTokenCommand cmd, CancellationToken ct) =>
+                .Returns(async (CreateSecurityTokenCommand cmd, CancellationToken _) =>
                 {
                     (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) = cmd.Data;
                     SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
@@ -148,7 +152,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
             // Act
             AuthenticationTokenInfo authenticationToken = await _sut.Handle(createAuthenticationTokenCommand, ct: default)
-                 .ConfigureAwait(false);
+                                                                    .ConfigureAwait(false);
 
             // Assert
             _dateTimeServiceMock.Verify();
@@ -277,7 +281,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             }
         }
 
-
         [Fact]
         public async Task TwoTokenForSameAccount_Have_Differents_Ids()
         {
@@ -321,7 +324,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "127.0.0.1" };
 
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
-                .Returns(async (CreateSecurityTokenCommand request, CancellationToken ct) =>
+                .Returns(async (CreateSecurityTokenCommand request, CancellationToken _) =>
                 {
                     (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) = request.Data;
                     SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));

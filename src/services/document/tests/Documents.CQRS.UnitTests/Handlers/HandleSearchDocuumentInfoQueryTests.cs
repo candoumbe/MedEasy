@@ -192,8 +192,8 @@ namespace Documents.CQRS.UnitTests.Handlers
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"Datastore : {documents.Stringify()}");
-                _outputHelper.WriteLine($"Search criteria : {searchCriteria.Stringify()}");
+                _outputHelper.WriteLine($"Datastore : {documents.Jsonify()}");
+                _outputHelper.WriteLine($"Search criteria : {searchCriteria.Jsonify()}");
             }
 
             SearchDocumentInfoQuery request = new SearchDocumentInfoQuery(searchCriteria);

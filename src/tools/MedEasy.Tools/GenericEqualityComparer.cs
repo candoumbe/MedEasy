@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace MedEasy.Tools
 {
     /// <summary>
-    /// 
+    /// Generic equality comparer
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class GenericEqualityComparer<T> : EqualityComparer<T>

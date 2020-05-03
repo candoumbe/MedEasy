@@ -5,13 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DataFilters" Version="2019.3.23.1" />
+    <PackageReference Include="DataFilters" Version="1.0.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="2.*" />
     <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Utilities" Version="2019.3.24.1" />
+    <PackageReference Include="Utilities" Version="1.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>

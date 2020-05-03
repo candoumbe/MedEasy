@@ -19,7 +19,7 @@ namespace Measures.Objects
         /// <param name="patientId"></param>
         /// <param name="dateOfMeasure"></param>
         /// <param name="value"></param>
-        public Temperature(Guid id, Guid patientId, DateTimeOffset dateOfMeasure, float value)
+        public Temperature(Guid id, Guid patientId, DateTime dateOfMeasure, float value)
             : base(id, patientId, dateOfMeasure)
         {
             Value = value;

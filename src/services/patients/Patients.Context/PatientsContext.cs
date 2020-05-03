@@ -1,16 +1,8 @@
-﻿using MedEasy.DAL.Interfaces;
-using MedEasy.Objects;
+﻿using MedEasy.DataStores.Core.Relational;
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 using Patients.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MedEasy.DataStores.Core.Relational;
 
 namespace Patients.Context
 {
@@ -20,11 +12,6 @@ namespace Patients.Context
         /// Usual size for the "normal" text
         /// </summary>
         private const int _normalTextLength = 255;
-
-        /// <summary>
-        /// Usual size for "short" text
-        /// </summary>
-        private const int _shortTextLength = 50;
 
         /// <summary>
         /// Collection of <see cref="Patient"/>s

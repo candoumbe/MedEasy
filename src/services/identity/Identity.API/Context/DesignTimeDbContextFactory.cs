@@ -24,7 +24,7 @@ namespace Identity.API.Context
                 .Build();
             DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
             string connectionString = configuration.GetConnectionString("Identity");
-            builder.UseSqlServer(connectionString, b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
+            builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
             return new IdentityContext(builder.Options);
         }
     }

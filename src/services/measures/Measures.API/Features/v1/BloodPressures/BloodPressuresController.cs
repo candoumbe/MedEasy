@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
@@ -34,9 +35,11 @@ namespace Measures.API.Features.v1.BloodPressures
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources
     /// </summary>
     [Route("/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class BloodPressuresController
     {
         private readonly IMediator _mediator;
+        private readonly string version;
 
         /// <summary>
         /// Name of the endpoint
@@ -46,65 +49,68 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <summary>
         /// Helper to build URLs
         /// </summary>
-        private IUrlHelper _urlHelper;
+        private readonly LinkGenerator _urlHelper;
 
         /// <summary>
         /// Options of the API
         /// </summary>
-        public IOptionsSnapshot<MeasuresApiOptions> ApiOptions { get; }
+        private readonly IOptionsSnapshot<MeasuresApiOptions> _apiOptions;
 
         /// <summary>
         /// Builds a new <see cref="BloodPressuresController"/> instance
         /// </summary>
+        /// <param name="urlHelper">Helper class to build URL strings.</param>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
-        /// <param name="urlHelper">Helper class to build URL strings.</param>
-        public BloodPressuresController(IUrlHelper urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions,
-            IMediator mediator)
+        /// <param name="apiVersion"></param>
+        public BloodPressuresController(LinkGenerator urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
         {
             _urlHelper = urlHelper;
-            ApiOptions = apiOptions;
+            _apiOptions = apiOptions;
             _mediator = mediator;
+            version = apiVersion?.ToString();
         }
 
         /// <summary>
         /// Gets all the resources of the endpoint
         /// </summary>
-        /// <param name="pagination">index of the page of resources to get</param>
+        /// <param name="page">index of the page of resources to get</param>
+        /// <param name="pageSize">Number of resources per page.</param>
         /// <param name="cancellationToken">Notifies to cancel the execution of request</param>
         /// <remarks>
-        /// Resources are returned as pages. The <paramref name="pagination"/>'s <see cref="PaginationConfiguration.PageSize"/> value is used has a hint by the server
+        /// Resources are returned as pages. The <paramref name="pageSize"/>'s value is used has a hint by the server
         /// and there's no garanty that the size of page of result will be equal to the <see cref="PaginationConfiguration.PageSize"/> set in the query.
         /// In particular, the number of resources on a page may be caped by the server.
         /// </remarks>
         /// <response code="200">items of the page</response>
-        /// <response code="400"><paramref name="pagination"/> is not correct.</response>
+        /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is lower than 1.</response>
         [HttpGet]
         [HttpHead]
         [HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), 200)]
-        [Authorize]
-        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), Status200OK)]
+        [ProducesResponseType(Status400BadRequest)]
+        public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)]int pageSize, CancellationToken cancellationToken = default)
         {
-            pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
+            PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = Math.Min(pageSize, _apiOptions.Value.MaxPageSize) };
+
             Page<BloodPressureInfo> result = await _mediator.Send(new GetPageOfBloodPressureInfoQuery(pagination), cancellationToken)
-                .ConfigureAwait(false);
+                                                            .ConfigureAwait(false);
 
             Debug.Assert(result != null, $"{nameof(result)} cannot be null");
 
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-            string firstPageUrl = _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+            string firstPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1, version });
             string previousPageUrl = hasPreviousPage
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1, version })
                     : null;
 
             string nextPageUrl = pagination.Page < result.Count
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1, version })
                     : null;
             string lastPageUrl = result.Count > 0
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count, version })
                     : firstPageUrl;
 
             IEnumerable<Browsable<BloodPressureInfo>> resources = result.Entries
@@ -116,7 +122,7 @@ namespace Measures.API.Features.v1.BloodPressures
                         new Link
                         {
                             Relation = LinkRelation.Self,
-                            Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id, version})
                         }
                     }
                 });
@@ -161,19 +167,19 @@ namespace Measures.API.Features.v1.BloodPressures
                             {
                                 Relation = LinkRelation.Self,
                                 Method = "GET",
-                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id, version })
                             },
                             new Link
                             {
                                 Relation = "delete",
                                 Method = "DELETE",
-                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id, version })
                             },
                             new Link
                             {
                                 Relation = "patient",
                                 Method = "GET",
-                                Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId, version })
                             }
                         }
                     };
@@ -207,8 +213,8 @@ namespace Measures.API.Features.v1.BloodPressures
         //               Resource = resource,
         //               Links = new[]
         //               {
-        //                    new Link { Relation = "patient", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { id = resource.PatientId }) },
-        //                    new Link { Relation = "delete", Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { resource.Id }), Method = "DELETE"}
+        //                    new Link { Relation = "patient", Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = resource.PatientId }) },
+        //                    new Link { Relation = "delete", Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { resource.Id }), Method = "DELETE"}
         //               }
 
         //           };
@@ -252,22 +258,14 @@ namespace Measures.API.Features.v1.BloodPressures
         public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             DeleteCommandResult result = await _mediator.Send(new DeleteBloodPressureInfoByIdCommand(id), cancellationToken)
-                .ConfigureAwait(false);
+                                                        .ConfigureAwait(false);
 
-            IActionResult actionResult;
-            switch (result)
+            return (IActionResult)(result switch
             {
-                case DeleteCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case DeleteCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("unexpected delete result");
-            }
-
-            return actionResult;
+                DeleteCommandResult.Done => new NoContentResult(),
+                DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
+                _ => throw new ArgumentOutOfRangeException(nameof(result), result, "unexpected delete result"),
+            });
         }
 
         /// <summary>
@@ -303,15 +301,15 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <response code="404">requested page is out of result bound</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), 200)]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
 
             if (search.From.HasValue)
             {
-                filters.Add(new CompositeFilter
+                filters.Add(new MultiFilter
                 {
                     Logic = Or,
                     Filters = new[] {
@@ -322,7 +320,7 @@ namespace Measures.API.Features.v1.BloodPressures
             }
             if (search.To.HasValue)
             {
-                filters.Add(new CompositeFilter
+                filters.Add(new MultiFilter
                 {
                     Logic = Or,
                     Filters = new[] {
@@ -340,10 +338,10 @@ namespace Measures.API.Features.v1.BloodPressures
             SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
             {
                 Page = search.Page,
-                PageSize = Math.Min(search.PageSize, ApiOptions.Value.MaxPageSize),
+                PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize),
                 Filter = filters.Once()
                     ? filters.Single()
-                    : new CompositeFilter { Logic = And, Filters = filters },
+                    : new MultiFilter { Logic = And, Filters = filters },
                 Sort = search.Sort?.ToSort<BloodPressureInfo>() ?? new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending)
             };
 
@@ -356,16 +354,16 @@ namespace Measures.API.Features.v1.BloodPressures
                 int count = pageOfResult.Entries.Count();
                 bool hasPreviousPage = count > 0 && search.Page > 1;
 
-                string firstPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi,
+                string firstPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
                     new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort, search.PatientId });
                 string previousPageUrl = hasPreviousPage
-                        ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
-                        ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
                         : null;
 
-                string lastPageUrl = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
+                string lastPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
 
                 IEnumerable<Browsable<BloodPressureInfo>> resources = pageOfResult.Entries
                     .Select(
@@ -378,7 +376,7 @@ namespace Measures.API.Features.v1.BloodPressures
                                 {
                                     Relation = LinkRelation.Self,
                                     Method = "GET",
-                                    Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })
+                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id })
                                 }
                             }
                         });

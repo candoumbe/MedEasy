@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Documents.CQRS.Handlers
 {
-    public class HandleGetOneDocumentFileInfoByIdQuery: IRequestHandler<GetOneDocumentFileInfoByIdQuery, Option<DocumentFileInfo>>
+    public class HandleGetOneDocumentFileInfoByIdQuery : IRequestHandler<GetOneDocumentFileInfoByIdQuery, Option<DocumentFileInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
 
@@ -26,26 +26,23 @@ namespace Documents.CQRS.Handlers
             _uowFactory = uowFactory;
         }
 
-        public async Task<Option<DocumentFileInfo>> Handle(GetOneDocumentFileInfoByIdQuery request, CancellationToken cancellationToken)
+        public Task<Option<DocumentFileInfo>> Handle(GetOneDocumentFileInfoByIdQuery request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                return await uow.Repository<Document>()
-                    .SingleOrDefaultAsync(
-                        selector: doc => new DocumentFileInfo
-                        {
-                            Name = doc.Name,
-                            Id = doc.Id,
-                            MimeType = doc.MimeType,
-                            Hash = doc.Hash,
-                            CreatedDate = doc.CreatedDate,
-                            UpdatedDate = doc.UpdatedDate,
-                            Content = doc.File.Content
-                        },
-                        predicate: (DocumentFileInfo doc) => doc.Id == request.Data,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+
+            return uow.Repository<Document>().SingleOrDefaultAsync(
+                selector: doc => new DocumentFileInfo
+                {
+                    Name = doc.Name,
+                    Id = doc.Id,
+                    MimeType = doc.MimeType,
+                    Hash = doc.Hash,
+                    CreatedDate = doc.CreatedDate,
+                    UpdatedDate = doc.UpdatedDate,
+                    Content = doc.File.Content
+                },
+                predicate: (DocumentFileInfo doc) => doc.Id == request.Data,
+                cancellationToken).AsTask();
         }
     }
 }

@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static MedEasy.RestObjects.LinkRelation;
+using Microsoft.AspNetCore.Routing;
 
 namespace Agenda.API.Resources.v1
 {
@@ -29,10 +30,11 @@ namespace Agenda.API.Resources.v1
     [Route("v{version:apiVersion}/[controller]")]
     public class AppointmentsController
     {
-        private readonly IUrlHelper _urlHelper;
+        private readonly LinkGenerator _urlHelper;
         private readonly IMediator _mediator;
         private readonly IOptionsSnapshot<AgendaApiOptions> _apiOptions;
         private readonly IMapper _mapper;
+        private readonly ApiVersion _apiVersion;
 
         /// <summary>
         /// Name of the endpoint
@@ -42,16 +44,18 @@ namespace Agenda.API.Resources.v1
         /// <summary>
         /// Builds a new <see cref="AppointmentsController"/>
         /// </summary>
-        /// <param name="urlHelper"></param>
+        /// <param name="urlHelper">Helper to build urls</param>
         /// <param name="mediator"></param>
         /// <param name="apiOptions"></param>
         /// <param name="mapper"></param>
-        public AppointmentsController(IUrlHelper urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper)
+        /// <param name="apiVersion"></param>
+        public AppointmentsController(LinkGenerator urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper, ApiVersion apiVersion)
         {
             _urlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _apiVersion = apiVersion;
         }
 
         /// <summary>
@@ -70,13 +74,25 @@ namespace Agenda.API.Resources.v1
             NewAppointmentInfo info = _mapper.Map<NewAppointmentInfo>(newAppointment);
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(info), ct)
                 .ConfigureAwait(false);
-
+            string version = _apiVersion.ToString();
             IEnumerable<AttendeeInfo> participants = newResource.Attendees;
             IEnumerable<Link> links = new List<Link>(1 + participants.Count())
             {
-                new Link {Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id })}
+                new Link
+                {
+                    Relation = Self,
+                    Method = "GET",
+                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
+                                                    new { controller = EndpointName, newResource.Id, version })
+                }
             }
-            .Concat(participants.Select(p => new Link { Relation = $"get-participant-{p.Id}", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id }) }))
+            .Concat(participants.Select(p => new Link
+            {
+                Relation = $"get-participant-{p.Id}",
+                Method = "GET",
+                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id, version })
+            })
+            )
 #if DEBUG
 
             .ToArray()
@@ -89,49 +105,58 @@ namespace Agenda.API.Resources.v1
                 Links = links
             };
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id }, browsableResource);
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id, version }, browsableResource);
         }
 
         /// <summary>
         /// Gets the appointments
         /// </summary>
-        /// <param name="pagination"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
         /// <param name="ct">Notifies to cancel the execution of the request</param>
         /// <returns></returns>
         /// <response code="200"/>
-        /// <response code="400">Page or pageSize is negative or 0</response>
+        /// <response code="400"><paramref name="page"/> or <paramref name="pageSize"/> is negative or 0</response>
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
-            PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = pageSize };
-            pagination.PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pagination.PageSize);
+            PaginationConfiguration pagination = new PaginationConfiguration
+            {
+                Page = page,
+                PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pageSize)
+            };
 
             Page<AppointmentInfo> result = await _mediator.Send(new GetPageOfAppointmentInfoQuery(pagination), ct)
                 .ConfigureAwait(false);
 
+            string version = _apiVersion.ToString();
             IEnumerable<Browsable<AppointmentModel>> entries = _mapper.Map<IEnumerable<AppointmentModel>>(result.Entries)
                 .Select(x => new Browsable<AppointmentModel>
                 {
                     Resource = x,
                     Links = new[]
                     {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})}
+                        new Link {
+                            Relation = Self,
+                            Method = "GET",
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
+                                                            new {controller = EndpointName, x.Id, version})}
                     }
                 });
 
             return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 entries,
-                first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize, version }),
                 previous: pagination.Page > 1 && result.Count > 1
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize, version })
                     : null,
 
                 next: result.Count > pagination.Page
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize, version })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize, version }),
                 total: result.Total
             );
         }
@@ -158,10 +183,21 @@ namespace Agenda.API.Resources.v1
             return optionalAppointment.Match<ActionResult<Browsable<AppointmentModel>>>(
                 some: appointment =>
                 {
+                    string version = _apiVersion.ToString();
                     IList<Link> links = new List<Link>
                     {
-                        new Link { Relation = Self, Method = "GET",  Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})},
-                        new Link { Relation = "delete", Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})}
+                        new Link
+                        {
+                            Relation = Self,
+                            Method = "GET",
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id, version})
+                        },
+                        new Link
+                        {
+                            Relation = "delete",
+                            Method = "DELETE",
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id, version})
+                        }
                     };
 
                     return new Browsable<AppointmentModel>
@@ -178,7 +214,7 @@ namespace Agenda.API.Resources.v1
         /// Search `appointments` resources based on some criteria.
         /// </summary>
         /// <param name="search">Search criteria</param>
-        /// <param name="cancellationToken">Notfies to cancel the search operation</param>
+        /// <param name="ct">Notfies to cancel the search operation</param>
         /// <remarks>
         /// <para>All criteria are combined as a AND.</para>
         /// <para>
@@ -216,32 +252,34 @@ namespace Agenda.API.Resources.v1
             Page<AppointmentInfo> page = await _mediator.Send(new SearchAppointmentInfoQuery(data), ct)
                 .ConfigureAwait(false);
 
+            string version = _apiVersion.ToString();
+
             return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 _mapper.Map<IEnumerable<AppointmentModel>>(page.Entries).Select(x => new Browsable<AppointmentModel>
                 {
                     Resource = x,
                     Links = new[]
                     {
-                        new Link { Relation = Self, Method = "GET", Href =_urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { x.Id })}
+                        new Link { Relation = Self, Method = "GET", Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id, version })}
                     }
                 }),
-                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize}),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, version }),
                 previous: page.Count > 1 && search.Page > 1
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, version })
                     : null,
                 next: search.Page < page.Count
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, version })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, version }),
                 total: page.Total
             );
         }
 
         /// <summary>
-        /// Removes the participant with the specified <see cref="participantId"/> from the appointment with 
-        /// the specified <paramref name="appointmentId"/>
+        /// Removes the attendee with the specified <paramref name="attendeeId"/> from the appointment with 
+        /// the specified <paramref name="id"/>
         /// </summary>
-        /// <param name="appointmentId">id of the appointment where to remove the participant from</param>
+        /// <param name="id">id of the appointment where to remove the participant from</param>
         /// <param name="attendeeId">id of the attendee to remove</param>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -249,37 +287,26 @@ namespace Agenda.API.Resources.v1
         /// <response code="404">Attendee or apppointment not found</response>
         /// <response code="409">Attendee cannot be removed</response>
         /// <response code="400"></response>
-        [HttpDelete("{appointmentId}/attendees/{attendeeId}")]
+        [HttpDelete("{id}/attendees/{attendeeId}")]
         [ProducesResponseType(Status204NoContent)]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
-        public async Task<IActionResult> Delete(Guid appointmentId, Guid attendeeId, CancellationToken ct = default)
+        public async Task<IActionResult> Delete(Guid id, Guid attendeeId, CancellationToken ct = default)
         {
-            RemoveAttendeeFromAppointmentByIdCommand cmd = new RemoveAttendeeFromAppointmentByIdCommand(data : (appointmentId, attendeeId));
+            RemoveAttendeeFromAppointmentByIdCommand cmd = new RemoveAttendeeFromAppointmentByIdCommand(data: (id, attendeeId));
 
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
-            IActionResult actionResult;
-            switch (cmdResult)
-            {
-                case DeleteCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case DeleteCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-                    break;
-                case DeleteCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case DeleteCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(cmdResult));
-            }
 
-            return actionResult;
+            return cmdResult switch
+            {
+                DeleteCommandResult.Done => new NoContentResult(),
+                DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
+                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException(nameof(cmdResult), cmdResult, "Unexpected delete result."),
+            };
         }
     }
 }

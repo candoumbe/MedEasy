@@ -21,7 +21,7 @@ namespace MedEasy.EventSourcing
             await _connection.ConnectAsync()
                 .ConfigureAwait(false);
 
-            string json = @event.Stringify();
+            string json = @event.Jsonify();
             EventData eventData = new EventData(@event.Id, @event.GetType().Name, true, Encoding.UTF8.GetBytes(json), Array.Empty<byte>());
 
             await _connection.AppendToStreamAsync(@event.GetType().Name, ExpectedVersion.Any, eventData)

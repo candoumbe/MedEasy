@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Linq;
 
 namespace Documents.API
@@ -11,15 +12,17 @@ namespace Documents.API
     public class Startup
     {
         private readonly IConfiguration _configuration;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IHostEnvironment _hostingEnvironment;
 
-        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration, IHostEnvironment hostingEnvironment)
         {
             _configuration = configuration;
             _hostingEnvironment = hostingEnvironment;
         }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to add services to the container.
+        /// </summary>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCustomMvc(_configuration, _hostingEnvironment)
@@ -31,12 +34,15 @@ namespace Documents.API
                 .AddSwagger(_hostingEnvironment, _configuration);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        public void Configure(IApplicationBuilder app, IHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseCors("AllowAnyOrigin");
             app.UseApiVersioning();
-            app.UseAuthentication();
             app.UseHttpMethodOverride();
+
             if (env.IsProduction())
             {
                 app.UseHsts();
@@ -50,28 +56,28 @@ namespace Documents.API
             }
             else
             {
-                if (env.IsDevelopment())
+                app.UseSwagger();
+                app.UseSwaggerUI(opt =>
                 {
-                    app.UseSwagger();
-                    app.UseSwaggerUI(opt =>
+                    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions.Where(api => !api.IsDeprecated))
                     {
-                        foreach (ApiVersionDescription description in provider.ApiVersionDescriptions.Where(api => !api.IsDeprecated))
-                        {
-                            opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"{env.ApplicationName} REST API {description.GroupName}");
-                        }
-                    });
-                }
+                        opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"{env.ApplicationName} REST API {description.GroupName}");
+                    }
+                });
             }
+            app.UseRouting();
 
-            app.UseCors("AllowAnyOrigin");
-            app.UseMvc(routeBuilder =>
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "/v{version:apiVersion}/{controller=root}/{action=index}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}/");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search/");
+                routeBuilder.MapControllerRoute(RouteNames.Default, "/v{version:apiVersion}/{controller=root}/{action=index}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search/");
             });
         }
     }

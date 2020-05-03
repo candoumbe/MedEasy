@@ -6,36 +6,27 @@ namespace Identity.Objects
     /// <summary>
     /// Association between a <see cref="Claim"/> and a <see cref="Role"/>
     /// </summary>
-    public class RoleClaim : AuditableEntity<Guid, RoleClaim>
+    public class RoleClaim : Entity<Guid, RoleClaim>
     {
-        public Guid RoleId { get; set; }
+        public Claim Claim { get; private set; }
 
-        public Guid ClaimId { get; set; }
+        public Guid RoleId { get; }
 
-        /// <summary>
-        /// Role of the association
-        /// </summary>
-        public Role Role { get; private set; }
-
-        /// <summary>
-        /// <see cref="Claim"/> of the associtation
-        /// </summary>
-        public Claim Claim { get; set; }
-
-        public RoleClaim(Guid id, Role role, Claim claim) : base(id)
+        private RoleClaim(Guid roleId, Guid id) : base(id)
         {
-            Role = role;
-            Claim = claim;
-            ClaimId = claim.Id;
-            RoleId = role.Id;
-        }
-
-        public RoleClaim(Guid id, Guid roleId, Guid claimId) : base(id)
-        {
-            ClaimId = claimId;
             RoleId = roleId;
         }
 
-
+        /// <summary>
+        /// Builds a new <see cref="RoleClaim"/> instance.
+        /// </summary>
+        /// <param name="roleId">id pf the role the <see cref="Claim"/></param>
+        /// <param name="id"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        public RoleClaim(Guid roleId, Guid id, string type, string value) : this(roleId, id)
+        {
+            Claim = new Claim(type, value);
+        }
     }
 }

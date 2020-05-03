@@ -14,6 +14,6 @@ namespace Measures.API.Features.Patients
         /// <summary>
         /// Indicates when the measure was made 
         /// </summary>
-        public DateTimeOffset DateOfMeasure { get; set; }
+        public DateTime DateOfMeasure { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace MedEasy.RestObjects
+﻿using System;
+
+namespace MedEasy.RestObjects
 {
     /// <summary>
     /// Link representation
@@ -43,5 +45,7 @@
         /// 
         /// </remarks>
         public bool? Template { get; set; }
+
+        public override string ToString() => this.Jsonify();
     }
 }

@@ -24,8 +24,7 @@ namespace Identity.Mapping
         {
             cfg.CreateCoreMapping();
             cfg.CreateMap<Account, AccountInfo>()
-                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
-                .ForMember(dto => dto.Claims, opt => opt.MapFrom(entity => entity.Claims.Select(kv => new ClaimInfo { Type = kv.Key, Value = kv.Value.value })))
+                .IncludeBase<AuditableEntity<Guid, Account>, Resource<Guid>>()
                 .ReverseMap()
                 .ForMember(entity => entity.Claims, opt => opt.Ignore() );
 

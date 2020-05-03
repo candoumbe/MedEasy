@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\..\tests.props"/>
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\src\services\agenda\Agenda.Validators\Agenda.Validators.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

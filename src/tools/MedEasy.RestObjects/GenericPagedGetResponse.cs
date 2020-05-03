@@ -19,7 +19,6 @@ namespace MedEasy.RestObjects
         [JsonProperty(Required = Required.Always)]
         public PageLinks Links { get; }
 
-
         /// <summary>
         /// Builds a new <see cref="GenericPagedGetResponse{T}"/> instance. 
         /// </summary>
@@ -34,8 +33,6 @@ namespace MedEasy.RestObjects
             Items = items;
             Links = new PageLinks(first, previous, next, last);
             Total = total;
-
-            
         }
         /// <summary>
         /// The items of the current page of result
@@ -65,6 +62,6 @@ namespace MedEasy.RestObjects
             }
         }
 
-        public override string ToString() => this.Stringify();
+        public override string ToString() => this.Jsonify();
     }
 }

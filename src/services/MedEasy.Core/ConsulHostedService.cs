@@ -1,14 +1,15 @@
 ﻿using Consul;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Hosting;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace MedEasy.Core.Infrastructure
 {
@@ -17,10 +18,10 @@ namespace MedEasy.Core.Infrastructure
     /// </summary>
     public class ConsulHostedService : IHostedService
     {
-        private IServer _server;
-        private IConsulClient _consulClient;
-        private IOptions<ConsulConfig> _consulOptions;
-        private ILogger<ConsulHostedService> _logger;
+        private readonly IServer _server;
+        private readonly IConsulClient _consulClient;
+        private readonly IOptions<ConsulConfig> _consulOptions;
+        private readonly ILogger<ConsulHostedService> _logger;
         private CancellationTokenSource _cts;
         private string _registrationID;
 
@@ -67,15 +68,16 @@ namespace MedEasy.Core.Infrastructure
                 {
                     HTTP = $"{uri.Scheme}://{uri.Host}:{uri.Port}{consulConfig.Check.HealthEndpoint}",
                     Timeout = TimeSpan.FromSeconds(consulConfig.Check.Timeout),
-                    Interval = TimeSpan.FromSeconds(consulConfig.Check.Interval),
-                    
+                    Interval = TimeSpan.FromSeconds(consulConfig.Check.Interval)                    
                 };
             }
 
             _logger.LogInformation("Registering in Consul");
             // Deregister any previously registerd instance
-            await _consulClient.Agent.ServiceDeregister(registration.ID, _cts.Token);
-            await _consulClient.Agent.ServiceRegister(registration, _cts.Token);
+            await _consulClient.Agent.ServiceDeregister(registration.ID, _cts.Token)
+                .ConfigureAwait(false);
+            await _consulClient.Agent.ServiceRegister(registration, _cts.Token)
+                .ConfigureAwait(false);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -84,7 +86,8 @@ namespace MedEasy.Core.Infrastructure
             _logger.LogInformation("Deregistering from Consul");
             try
             {
-                await _consulClient.Agent.ServiceDeregister(_registrationID, cancellationToken);
+                await _consulClient.Agent.ServiceDeregister(_registrationID, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {

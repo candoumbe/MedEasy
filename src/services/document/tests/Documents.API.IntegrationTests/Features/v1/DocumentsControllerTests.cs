@@ -23,16 +23,16 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
-using IdentityApiFixture = Identity.API.Fixtures.v2.IdentityApiFixture;
+using Identity.API.Fixtures.v2;
 
 namespace Documents.API.IntegrationTests.Features.v1
 {
     [IntegrationTest]
     [Feature(nameof(Documents))]
-    public class DocumentsControllerTests : IDisposable, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
+    public class DocumentsControllerTests : IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
     {
-        private IdentityApiFixture _identityApiFixture;
-        private ITestOutputHelper _outputHelper;
+        private readonly IdentityApiFixture _identityApiFixture;
+        private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/documents/";
         private readonly IntegrationFixture<Startup> _sut;
 
@@ -43,18 +43,11 @@ namespace Documents.API.IntegrationTests.Features.v1
             _sut = sut;
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-
-            _identityApiFixture = null;
-        }
-
+        
         [Fact]
         public async Task GivenNoToken_HeadAll_Returns_Unauthorized()
         {
             // Arrange
-
             string requestUri = $"{_endpointUrl}?page=1&pageSize=5";
             _outputHelper.WriteLine($"Requested URI : {requestUri}");
             HttpRequestMessage headRequest = new HttpRequestMessage(Head, requestUri);
@@ -96,7 +89,7 @@ namespace Documents.API.IntegrationTests.Features.v1
             };
 
             BearerTokenInfo tokenInfo = await _identityApiFixture.Register(newAccountInfo)
-                .ConfigureAwait(false);
+                                                                 .ConfigureAwait(false);
 
             HttpContent content = new StringContent(SerializeObject(newResourceInfo), Encoding.Default, "application/json");
 
@@ -110,16 +103,15 @@ namespace Documents.API.IntegrationTests.Features.v1
             // Assert
             _outputHelper.WriteLine($"Response : {response}");
             response.IsSuccessStatusCode.Should()
-                .BeTrue();
+                                        .BeTrue();
             response.StatusCode.Should()
-                .Be(Status201Created);
+                               .Be(Status201Created);
 
             string jsonResponse = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                                                        .ConfigureAwait(false);
 
             JToken jsonToken = JToken.Parse(jsonResponse);
-            JSchema responseSchema = new JSchemaGenerator()
-                .Generate(typeof(Browsable<DocumentInfo>));
+            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<DocumentInfo>));
             jsonToken.IsValid(responseSchema);
 
             Browsable<DocumentInfo> browsableResource = jsonToken.ToObject<Browsable<DocumentInfo>>();
@@ -151,7 +143,6 @@ namespace Documents.API.IntegrationTests.Features.v1
         }
 
         [Fact]
-
         public async Task GivenValidToken_Get_Returns_ListOfDocuments()
         {
             // Arrange
@@ -166,31 +157,33 @@ namespace Documents.API.IntegrationTests.Features.v1
                 Email = faker.Person.Email
             };
 
-            _outputHelper.WriteLine($"Registering account {newAccount.Stringify()}");
+            _outputHelper.WriteLine($"Registering account {newAccount.Jsonify()}");
 
             BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
-                .ConfigureAwait(false);
+                                                                  .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"Bearer : {bearerInfo.Jsonify()}");
 
             using HttpClient client = _sut.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken.Token);
 
             // Act
             using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}?page=1")
-                .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
             _outputHelper.WriteLine($"Response : {response}");
             _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
-            response.IsSuccessStatusCode.Should().BeTrue();
+            response.IsSuccessStatusCode.Should()
+                                        .BeTrue();
             response.StatusCode.Should().Be(Status200OK);
 
             string jsonResponse = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                                                        .ConfigureAwait(false);
 
             JToken jsonToken = JToken.Parse(jsonResponse);
-            JSchema responseSchema = new JSchemaGenerator()
-                .Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
+            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
             jsonToken.IsValid(responseSchema);
         }
 

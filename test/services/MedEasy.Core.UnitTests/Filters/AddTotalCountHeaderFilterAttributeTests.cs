@@ -97,7 +97,7 @@ namespace MedEasy.Core.UnitTests.Filters
         public void GivenOkObjectResult_Filter_AddCountHeaders_DependingValue(string method, object value, Expression<Func<IHeaderDictionary, bool>> headersExpectation, string reason)
         {
             _outputHelper.WriteLine($"{nameof(method)}: '{method}'");
-            _outputHelper.WriteLine($"{nameof(value)}: {value.Stringify()}");
+            _outputHelper.WriteLine($"{nameof(value)}: {value.Jsonify()}");
             _outputHelper.WriteLine($"Value type: {value.GetType()}");
 
             // Arrange
@@ -188,7 +188,7 @@ namespace MedEasy.Core.UnitTests.Filters
             // Assert
             IHeaderDictionary headers = resultExecutingContext.HttpContext.Response.Headers;
 
-            _outputHelper.WriteLine($"Headers : {headers.Stringify()}");
+            _outputHelper.WriteLine($"Headers : {headers.Jsonify()}");
 
             headers.Should()
                 .ContainKey(AddCountHeadersFilterAttribute.TotalCountHeaderName).WhichValue.Should()

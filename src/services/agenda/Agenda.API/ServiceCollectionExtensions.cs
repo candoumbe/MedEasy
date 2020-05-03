@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Cors.Internal;
+using Microsoft.AspNetCore.Mvc.Cors;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -40,8 +40,11 @@ using System.Text;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using System.Text.Json;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace Agenda.API
 {
@@ -55,8 +58,9 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
+
             services
                 .AddCors(options =>
                 {
@@ -66,72 +70,66 @@ namespace Agenda.API
                             .AllowAnyOrigin()
                     );
                 })
-                .AddMvc(options =>
+                .AddControllers(options =>
                 {
                     options.Filters.Add<FormatFilterAttribute>();
-                    options.Filters.Add<ValidateModelActionFilter>();
+                    //options.Filters.Add<ValidateModelActionFilter>();
                     options.Filters.Add<HandleErrorAttribute>();
                     options.Filters.Add<AddCountHeadersFilterAttribute>();
-                    options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-                    options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
 
-                    // This option is just to fix a breaking change in ASP.NETCORE 2.2 Routing (see https://github.com/aspnet/AspNetCore/issues/5055) 
-                    options.EnableEndpointRouting = false;
+                    AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                       .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                       .RequireAuthenticatedUser()
+                       .Build();
+
+                    options.Filters.Add(new AuthorizeFilter(policy));
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-                .AddFluentValidation(options =>
-                {
-                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
-                    options.LocalizationEnabled = true;
-                    options
-                        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
-                        ;
-                })
+                //.AddFluentValidation(options =>
+                //{
+                //    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                //    options.LocalizationEnabled = true;
+                //    options
+                //        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                //        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
+                //        ;
+                //})
                 .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                    options.SerializerSettings.DateTimeZoneHandling = Utc;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                });
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.WriteIndented = true;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                })
+                .AddXmlSerializerFormatters();
 
-            services.AddOptions();
-            services.Configure<AgendaApiOptions>((options) =>
-            {
-                options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 30);
-                options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
-            });
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.InvalidModelStateResponseFactory = (context) =>
-                {
-                    IDictionary<string, IEnumerable<string>> errors = context.ModelState
-                        .Where(element => !string.IsNullOrWhiteSpace(element.Key))
-                        .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
-                    ValidationProblemDetails validationProblem = new ValidationProblemDetails
-                    {
-                        Title = "Validation failed",
-                        Detail = $"{errors.Count} validation error{(errors.Count > 1 ? "s" : string.Empty)}",
-                        Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
-                            ? Status400BadRequest
-                            : Status422UnprocessableEntity
-                    };
-                    foreach ((string key, IEnumerable<string> details) in errors)
-                    {
-                        validationProblem.Errors.Add(key, details.ToArray());
-                    }
+           
+            //services.Configure<ApiBehaviorOptions>(options =>
+            //{
+            //    options.InvalidModelStateResponseFactory = (context) =>
+            //    {
+            //        IDictionary<string, IEnumerable<string>> errors = context.ModelState
+            //            .Where(element => !string.IsNullOrWhiteSpace(element.Key))
+            //            .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
+            //        ValidationProblemDetails validationProblem = new ValidationProblemDetails
+            //        {
+            //            Title = "Validation failed",
+            //            Detail = $"{errors.Count} validation error{(errors.Count > 1 ? "s" : string.Empty)}",
+            //            Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
+            //                ? Status400BadRequest
+            //                : Status422UnprocessableEntity
+            //        };
+            //        foreach ((string key, IEnumerable<string> details) in errors)
+            //        {
+            //            validationProblem.Errors.Add(key, details.ToArray());
+            //        }
 
-                    return new BadRequestObjectResult(validationProblem);
-                };
-            });
+            //        return new BadRequestObjectResult(validationProblem);
+            //    };
+            //});
 
-            services.Configure<LinkOptions>(options =>
+            services.AddRouting(opts =>
             {
-                options.AppendTrailingSlash = false;
-                options.LowercaseUrls = true;
+                opts.AppendTrailingSlash = false;
+                opts.LowercaseUrls = true;
             });
 
             services.AddHsts(options =>
@@ -153,28 +151,6 @@ namespace Agenda.API
             return services;
         }
 
-        private static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
-        {
-            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-            DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
-            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-            {
-                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            }
-            else
-            {
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                builder.UseSqlServer(
-                    configuration.GetConnectionString("Agenda"),
-                    options => options.EnableRetryOnFailure(5)
-                        .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
-                );
-            }
-            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
-            return builder;
-        }
-
         /// <summary>
         /// Adds required dependencies to access API datastores
         /// </summary>
@@ -185,7 +161,7 @@ namespace Agenda.API
         {
             static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
-                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
@@ -194,10 +170,10 @@ namespace Agenda.API
                 else
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(
+                    builder.UseNpgsql(
                         configuration.GetConnectionString("Agenda"),
                         options => options.EnableRetryOnFailure(5)
-                            .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
+                                          .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -223,6 +199,24 @@ namespace Agenda.API
         }
 
         /// <summary>
+        /// Adds supports for Options
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddOptions();
+            services.Configure<AgendaApiOptions>((options) =>
+            {
+                options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
+            });
+
+            return services;
+        }
+
+        /// <summary>
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
@@ -232,15 +226,14 @@ namespace Agenda.API
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
+            
             services.AddSingleton<IDateTimeService, DateTimeService>();
-            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddHttpContextAccessor();
             services.AddScoped(builder =>
             {
-                IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
-                IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
-
-                return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
+                HttpContext http = builder.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
             });
 
             return services;
@@ -252,26 +245,27 @@ namespace Agenda.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
-                Contact contact = new Contact
+                string url = configuration.GetValue("Swagger:Contact:Url", string.Empty);
+                OpenApiContact contact = new OpenApiContact
                 {
                     Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
                     Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
-                    Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
+                    Url = string.IsNullOrWhiteSpace(url) ? null : new Uri(url)
                 };
-                config.SwaggerDoc("v1", new Info
-                    {
+                config.SwaggerDoc("v1", new OpenApiInfo
+                {
                     Title = hostingEnvironment.ApplicationName,
                     Description = "REST API for Agenda API",
                     Version = "v1",
                     Contact = contact
-                    });
-                config.SwaggerDoc("v2", new Info
+                });
+                config.SwaggerDoc("v2", new OpenApiInfo
                 {
                     Title = hostingEnvironment.ApplicationName,
                     Description = "Agenda REST API v2",
@@ -286,8 +280,6 @@ namespace Agenda.API
                 {
                     config.IncludeXmlComments(documentationPath);
                 }
-                config.DescribeStringEnumsInCamelCase();
-                config.DescribeAllEnumsAsStrings();
             });
 
             return services;

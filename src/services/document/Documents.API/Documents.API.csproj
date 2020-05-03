@@ -3,7 +3,7 @@
   <Import Project="..\..\..\..\core-api.props" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>e3d08f9a-1972-44cc-8157-898f488547da</UserSecretsId>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Documents.API.xml</DocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -11,13 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="AutoMapper" Version="7.*" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.6.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.2105168" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.*" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.*" />
-    <PackageReference Include="Utilities" Version="2019.3.24.1" />
+    <PackageReference Include="Utilities" Version="1.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +21,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
-    <ProjectReference Include="..\Documents.DataStore.SqlServer\Documents.DataStore.SqlServer.csproj" />
+    <ProjectReference Include="..\Documents.DataStore\Documents.DataStore.csproj" />
     <ProjectReference Include="..\Documents.DTO\Documents.DTO.csproj" />
     <ProjectReference Include="..\Documents.CQRS\Documents.CQRS.csproj" />
     <ProjectReference Include="..\Documents.Mapping\Documents.Mapping.csproj" />

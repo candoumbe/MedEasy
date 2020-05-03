@@ -10,7 +10,9 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -39,7 +41,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         private IUnitOfWorkFactory _uowFactory;
         private static readonly IdentityApiOptions _apiOptions = new IdentityApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
-        private Mock<IUrlHelper> _urlHelperMock;
+        private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
         private TenantsController _sut;
         private const string _baseUrl = "http://host/api";
@@ -48,9 +50,9 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         {
             _outputHelper = outputHelper;
 
-            _urlHelperMock = new Mock<IUrlHelper>(Strict);
-            _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
-                .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+            _urlHelperMock = new Mock<LinkGenerator>(Strict);
+            _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
@@ -118,26 +120,24 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IsTenantQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (IsTenantQuery query, CancellationToken ct) =>
+                .Returns((IsTenantQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Account>()
-                            .AnyAsync((x) => x.TenantId == query.Data, ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return uow.Repository<Account>()
+                              .AnyAsync((x) => x.TenantId == query.Data, ct)
+                              .AsTask();
                 });
 
             // Act
             IActionResult actionResult = await _sut.Get(tenantId, ct: default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<IsTenantQuery>(q => q.Data == tenantId), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IsTenantQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
             RedirectToRouteResult redirect = actionResult.Should()
-                .BeAssignableTo<RedirectToRouteResult>().Which;
+                                                         .BeAssignableTo<RedirectToRouteResult>().Which;
 
             redirect.Permanent.Should()
                 .BeFalse();
@@ -175,30 +175,28 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 uow.Repository<Account>().Create(newAccount);
 
                 await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IsTenantQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (IsTenantQuery query, CancellationToken ct) =>
+                .Returns((IsTenantQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Account>()
-                            .AnyAsync((x) => x.TenantId == query.Data, ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return uow.Repository<Account>()
+                              .AnyAsync((x) => x.TenantId == query.Data, ct)
+                              .AsTask();
                 });
 
             // Act
             IActionResult actionResult = await _sut.Get(accountId, ct: default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<IsTenantQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IsTenantQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
-                .BeAssignableTo<NotFoundResult>($"account <{accountId}> is not a tenant");
+                        .BeAssignableTo<NotFoundResult>($"account <{accountId}> is not a tenant");
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
 
             IFilter filter = filters.Count == 1
                 ? filters.Single()
-                : new CompositeFilter { Logic = And, Filters = filters };
+                : new MultiFilter { Logic = And, Filters = filters };
 
             SearchQueryInfo<AttendeeInfo> data = new SearchQueryInfo<AttendeeInfo>
             {

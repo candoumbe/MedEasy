@@ -12,7 +12,7 @@ namespace Measures.DTO
     public class CreateBloodPressureInfo : CreatePhysiologicalMeasureInfo
     {
         [DataType(DataType.DateTime)]
-        public DateTimeOffset DateOfMeasure{ get; set; }
+        public DateTime DateOfMeasure{ get; set; }
 
         /// <summary>
         /// The new systolic blod pressure value

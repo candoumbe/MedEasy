@@ -18,6 +18,6 @@ namespace Measures.DTO
         /// When the measure was made
         /// </summary>
         [DataType(DataType.DateTime)]
-        public DateTimeOffset DateOfMeasure { get; set; }
+        public DateTime DateOfMeasure { get; set; }
     }
 }

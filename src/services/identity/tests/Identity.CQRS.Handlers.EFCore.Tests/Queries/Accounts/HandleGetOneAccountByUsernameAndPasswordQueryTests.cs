@@ -27,7 +27,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
     [UnitTest]
     [Feature("Identity")]
-    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
@@ -49,8 +49,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            uow.Repository<Account>().Clear();
+            await uow.SaveChangesAsync().ConfigureAwait(false);
+
             _outputHelper = null;
             _sut = null;
             _uowFactory = null;
@@ -103,7 +107,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 }
 
                 {
-                    DateTimeOffset utcNow = 1.October(2011).AddHours(12).AddMinutes(30);
+                    DateTime utcNow = 1.October(2011).AddHours(12).AddMinutes(30);
 
                     Account clarkKent = new Account
                     (
@@ -139,11 +143,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(account);
-                foreach (KeyValuePair<string, (string value, DateTimeOffset start, DateTimeOffset? end)> kv in account.Claims)
-                {
-                    Claim claim = uow.Repository<Claim>().Create(new Claim(Guid.NewGuid(), kv.Key, kv.Value.value));
-                    uow.Repository<AccountClaim>().Create(new AccountClaim(Guid.NewGuid(), account.Id, claim.Id, kv.Value.value, DateTimeOffset.UtcNow, null));
-                }
+                
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -154,9 +154,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
             // Assert
             _dateTimeServiceMock.Verify(mock => mock.UtcNowOffset(), Times.Once);
-            optionalUser.Match(
-                some: accountInfo => accountInfo.Should().Match(resultExpectation),
-                none: () => throw new NotImplementedException("This case should not happen"));
+
+            optionalUser.HasValue.Should()
+                                 .BeTrue();
+            optionalUser.MatchSome(accountInfo => accountInfo.Should().Match(resultExpectation));
         }
     }
 }

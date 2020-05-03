@@ -23,15 +23,16 @@ using System.IO;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 
 namespace Patients.API
 {
     public class Startup
     {
         private readonly IConfiguration _configuration;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IHostEnvironment _hostingEnvironment;
 
-        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration, IHostEnvironment hostingEnvironment)
         {
             _configuration = configuration;
             _hostingEnvironment = hostingEnvironment;
@@ -50,9 +51,9 @@ namespace Patients.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory, IHostApplicationLifetime applicationLifetime)
         {
-            app.UseAuthentication();
+            app.UseCors("AllowAnyOrigin");
             app.UseHttpMethodOverride();
 
             if (env.IsProduction())
@@ -73,7 +74,6 @@ namespace Patients.API
             }
             else
             {
-                
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();
@@ -84,16 +84,18 @@ namespace Patients.API
                     ;
                 }
             }
+            app.UseRouting();
+            
+            app.UseAuthentication();
 
-            app.UseCors("AllowAnyOrigin");
-            app.UseMvc(routeBuilder =>
+            app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.Default, "{controller=root}/{action=index}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "{controller}/");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}/");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search/");
+                routeBuilder.MapControllerRoute(RouteNames.Default, "{controller=root}/{action=index}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "{controller}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search/");
             });
         }
     }

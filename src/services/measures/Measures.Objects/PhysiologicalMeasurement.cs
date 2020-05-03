@@ -15,10 +15,10 @@ namespace Measures.Objects
         /// <summary>
         /// When the measure was made
         /// </summary>
-        public DateTimeOffset DateOfMeasure { get; set; }
+        public DateTime DateOfMeasure { get; set; }
 
 
-        protected PhysiologicalMeasurement(Guid id, Guid patientId, DateTimeOffset dateOfMeasure)
+        protected PhysiologicalMeasurement(Guid id, Guid patientId, DateTime dateOfMeasure)
             : base(id)
         {
             PatientId = patientId;

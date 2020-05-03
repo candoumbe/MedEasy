@@ -20,8 +20,8 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
     /// </summary>
     public class HandleChangeAppointmentDateCommand : IRequestHandler<ChangeAppointmentDateCommand, ModifyCommandResult>
     {
-        private IUnitOfWorkFactory _unitOfWorkFactory;
-        private IMapper _mapper;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
+        private readonly IMapper _mapper;
 
         public HandleChangeAppointmentDateCommand(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper)
         {
@@ -65,7 +65,8 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
                 Option<Appointment> optionalAppointment = await uow.Repository<Appointment>()
-                    .SingleOrDefaultAsync(app => app.Id == appointmentId, cancellationToken).ConfigureAwait(false);
+                                                                   .SingleOrDefaultAsync(app => app.Id == appointmentId, cancellationToken)
+                                                                   .ConfigureAwait(false);
 
                 return await optionalAppointment.Match(
                     some : async (appointment) =>
@@ -74,8 +75,9 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
                         bool willOverlapAnotherAppointment = await uow.Repository<Appointment>()
                             .AnyAsync(app => app.Id != appointmentId
-                                && ((start <= app.StartDate && app.StartDate <= end) || (start <= app.EndDate && app.EndDate <= end))   // another appointment starts before and end after
-                            );
+                                && ((start.CompareTo(app.StartDate) <= 0 && app.StartDate.CompareTo(end) <= 0) || (start.CompareTo(app.EndDate) <= 0 && app.EndDate.CompareTo(end) <= 0))   // another appointment starts before and end after
+                            )
+                            .ConfigureAwait(false);
 
                         if (willOverlapAnotherAppointment)
                         {
@@ -91,8 +93,8 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                         return result;
                     },
                     none: () => Task.FromResult(Failed_NotFound)
-                );
-
+                )
+                    .ConfigureAwait(false);
             }
         }
     }

@@ -38,30 +38,28 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
 
         public async Task<Option<AccountInfo, CreateCommandResult>> Handle(CreateAccountInfoCommand request, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Option<AccountInfo, CreateCommandResult> cmdResult = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
+            NewAccountInfo data = request.Data;
+            if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>().AnyAsync(x => x.Username == data.Username, ct).ConfigureAwait(false))
             {
-                Option<AccountInfo, CreateCommandResult> cmdResult = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
-                NewAccountInfo data = request.Data;
-                if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>().AnyAsync(x => x.Username == data.Username, ct).ConfigureAwait(false))
-                {
-                    (string salt, string passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
-                        .ConfigureAwait(false);
-                    Account newEntity = _mapper.Map<NewAccountInfo, Account>(data);
-                    newEntity.SetPassword(passwordHash, salt);
+                (string salt, string passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
+                    .ConfigureAwait(false);
+                Account newEntity = _mapper.Map<NewAccountInfo, Account>(data);
+                newEntity.SetPassword(passwordHash, salt);
 
-                    uow.Repository<Account>().Create(newEntity);
+                uow.Repository<Account>().Create(newEntity);
 
-                    await uow.SaveChangesAsync(ct)
-                        .ConfigureAwait(false);
+                await uow.SaveChangesAsync(ct)
+                    .ConfigureAwait(false);
 
-                    Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.Id), ct)
-                        .ConfigureAwait(false);
+                Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.Id), ct)
+                    .ConfigureAwait(false);
 
-                    optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));
-                }
-
-                return cmdResult;
+                optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));
             }
+
+            return cmdResult;
         }
     }
 }

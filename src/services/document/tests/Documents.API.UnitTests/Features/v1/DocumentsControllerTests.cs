@@ -39,6 +39,9 @@ using static MedEasy.RestObjects.LinkRelation;
 using static Moq.MockBehavior;
 using static System.StringComparison;
 using static System.Uri;
+using Microsoft.Data.Sqlite;
+using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Http;
 
 namespace Documents.API.UnitTests.Features.v1
 {
@@ -51,7 +54,7 @@ namespace Documents.API.UnitTests.Features.v1
         private IUnitOfWorkFactory _uowFactory;
         private static readonly DocumentsApiOptions _apiOptions = new DocumentsApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
-        private Mock<IUrlHelper> _urlHelperMock;
+        private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptionsSnapshot<DocumentsApiOptions>> _apiOptionsMock;
         private DocumentsController _sut;
         private const string _baseUrl = "http://host/api";
@@ -64,6 +67,7 @@ namespace Documents.API.UnitTests.Features.v1
             Name = doc.Name,
             UpdatedDate = doc.UpdatedDate
         };
+
         private Mock<ILogger<DocumentsController>> _loggerMock;
         private ApiVersion _apiVersion;
 
@@ -71,9 +75,9 @@ namespace Documents.API.UnitTests.Features.v1
         {
             _outputHelper = outputHelper;
 
-            _urlHelperMock = new Mock<IUrlHelper>(Strict);
-            _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
-                .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+            _urlHelperMock = new Mock<LinkGenerator>(Strict);
+            _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<DocumentsApiOptions>>(Strict);
 
@@ -291,17 +295,15 @@ namespace Documents.API.UnitTests.Features.v1
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneDocumentInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (GetOneDocumentInfoByIdQuery query, CancellationToken ct) =>
+                .Returns((GetOneDocumentInfoByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Document>()
-                            .SingleOrDefaultAsync(
-                                x => new DocumentInfo { Id = x.Id, Name = x.Name, Hash = x.Hash, MimeType = x.MimeType },
-                                (Document x) => x.Id == query.Data,
-                                ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return uow.Repository<Document>()
+                                    .SingleOrDefaultAsync(
+                                        x => new DocumentInfo { Id = x.Id, Name = x.Name, Hash = x.Hash, MimeType = x.MimeType },
+                                        (Document x) => x.Id == query.Data,
+                                        ct)
+                                    .AsTask();
                 });
 
             // Act
@@ -372,13 +374,8 @@ namespace Documents.API.UnitTests.Features.v1
         {
             // Arrange
             Guid documentId = Guid.NewGuid();
-            Document entry = new Document
-            (
-                id: documentId,
-                name: "the batman in action",
-                mimeType: "image/mpeg4"
-
-            ).SetFile(new byte[] { 1, 2, 3 });
+            Document entry = new Document (id: documentId, name: "the batman in action", mimeType: "image/mpeg4")
+                .SetFile(new byte[] { 1, 2, 3 });
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -389,17 +386,18 @@ namespace Documents.API.UnitTests.Features.v1
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneDocumentFileInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                .Returns(async (GetOneDocumentFileInfoByIdQuery query, CancellationToken ct) =>
+                .Returns((GetOneDocumentFileInfoByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Document>()
-                            .SingleOrDefaultAsync(
-                                x => new DocumentFileInfo { Id = x.Id, Name = x.Name, Hash = x.Hash, MimeType = x.MimeType, Content = x.File.Content },
-                                (Document x) => x.Id == query.Data,
-                                ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+
+                    Expression<Func<Document, DocumentFileInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
+                                                                                            .GetMapExpression<Document, DocumentFileInfo>();
+
+                    return uow.Repository<Document>()
+                              .SingleOrDefaultAsync(selector,
+                                                    predicate: (Document x) => x.Id == query.Data,
+                                                    cancellationToken: ct)
+                              .AsTask();
                 });
 
             // Act
@@ -439,9 +437,8 @@ namespace Documents.API.UnitTests.Features.v1
                 .BeAssignableTo<NotFoundResult>();
         }
 
-
         [Fact]
-        public async Task DeleteResource()
+        public async Task DeleteResource_Returns_NoContent_When_Command_Succeeds()
         {
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteDocumentInfoByIdCommand>(), It.IsAny<CancellationToken>()))
@@ -518,7 +515,6 @@ namespace Documents.API.UnitTests.Features.v1
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
         }
-
 
         [Fact]
         public async Task GivenMediatorReturnDocumentCreated_PostReturns_OkObjectResult()
@@ -640,8 +636,8 @@ namespace Documents.API.UnitTests.Features.v1
             ) pageExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(DocumentsController.Search)}({nameof(SearchDocumentInfo)})");
-            _outputHelper.WriteLine($"Search : {searchQuery.Stringify()}");
-            _outputHelper.WriteLine($"store items: {items.Stringify()}");
+            _outputHelper.WriteLine($"Search : {searchQuery.Jsonify()}");
+            _outputHelper.WriteLine($"store items: {items.Jsonify()}");
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
             // Arrange

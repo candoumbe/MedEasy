@@ -90,14 +90,14 @@ namespace MedEasy.EventSourcing.EventStore.UnitTests
                 It.Is<EventData[]>(events => events.Once() &&
                     events.Once(eventData => eventData.EventId == @event.Id 
                         && eventData.IsJson 
-                        && eventData.Data.SequenceEqual(Encoding.UTF8.GetBytes(@event.Stringify()))))), Times.Once);
+                        && eventData.Data.SequenceEqual(Encoding.UTF8.GetBytes(@event.Jsonify()))))), Times.Once);
 
             eventDatas.Should()
                 .HaveCount(1).And
                 .ContainSingle(eventData => eventData.EventId == @event.Id
                     && eventData.IsJson
                     && eventData.Type == typeof(DataCreatedEvent).Name
-                    && eventData.Data.SequenceEqual(Encoding.UTF8.GetBytes(@event.Stringify())));
+                    && eventData.Data.SequenceEqual(Encoding.UTF8.GetBytes(@event.Jsonify())));
         }
     }
 }

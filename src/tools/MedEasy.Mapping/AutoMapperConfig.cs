@@ -15,6 +15,12 @@ namespace MedEasy.Mapping
                 .ReverseMap()
                 .ForMember(entity => entity.Id, opt => opt.Ignore())
                 ;
+
+            cfg.CreateMap(typeof(AuditableBaseEntity<>), typeof(Resource<>))
+                .ReverseMap();
+
+            cfg.CreateMap(typeof(AuditableEntity<,>), typeof(Resource<>))
+               .ReverseMap();
         }
     }
 }
