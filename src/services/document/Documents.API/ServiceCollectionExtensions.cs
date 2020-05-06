@@ -1,38 +1,46 @@
 ﻿using AutoMapper;
+
 using Documents.CQRS.Queries;
 using Documents.DataStore.SqlServer;
 using Documents.Mapping;
-using FluentValidation;
+
 using FluentValidation.AspNetCore;
+
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
 using Swashbuckle.AspNetCore.Swagger;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
@@ -49,35 +57,29 @@ namespace Documents.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
-            services.AddMvc(config =>
+            services.AddControllers(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
                 config.Filters.Add<ValidateModelActionFilter>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
-                ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
+                //options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
-                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
 
+                // The following policy forces every request to be authenticated
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
                     .Build();
 
-
                 config.Filters.Add(new AuthorizeFilter(policy));
-                //config.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin"));
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-            //.AddFluentValidation(options =>
-            //{
-            //    options.LocalizationEnabled = true;
-
-            //    //options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
-            //    options.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
-            //})
-            .AddJsonOptions(options =>
+            .AddFluentValidation(options =>
+            {
+                options.LocalizationEnabled = true;
+            })
+            .AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.DateFormatHandling = IsoDateFormat;
@@ -85,7 +87,8 @@ namespace Documents.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
+            })
+            .AddXmlSerializerFormatters();
 
             services.AddCors(options =>
             {
@@ -155,7 +158,7 @@ namespace Documents.API
         {
             static DbContextOptionsBuilder<DocumentsStore> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
-                IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
+                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<DocumentsStore> builder = new DbContextOptionsBuilder<DocumentsStore>();
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
@@ -164,7 +167,7 @@ namespace Documents.API
                 else
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseSqlServer(
+                    builder.UseNpgsql(
                         configuration.GetConnectionString("Documents"),
                         options => options.EnableRetryOnFailure(5)
                             .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
@@ -221,7 +224,6 @@ namespace Documents.API
                     options.SubstituteApiVersionInUrl = true;
                 });
 
-
             services.AddScoped(provider =>
             {
                 HttpContext httpContext = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
@@ -244,21 +246,11 @@ namespace Documents.API
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
-            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddScoped(builder =>
-            {
-                IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
-                IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
+            services.AddHttpContextAccessor();
 
-                return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
-            });
-
-            
             return services;
         }
 
-        
         /// <summary>
         /// Adds Authorization and authentication
         /// </summary>
@@ -275,19 +267,11 @@ namespace Documents.API
                    {
                        ValidateIssuer = true,
                        ValidateAudience = true,
-                       //ValidateLifetime = true,
-                       //LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
-                       // {
-                       //     using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
-                       //     {
-                       //         IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
-
-                       //         return securityTokenValidator.Validate(securityToken).IsValid;
-                       //     }
-                       // },
+                       RequireAudience = true,
+                       ValidateLifetime = true,
                        RequireExpirationTime = true,
                        ValidateIssuerSigningKey = true,
-                       ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                       ValidIssuer =   configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
                        ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
                    };
@@ -303,22 +287,25 @@ namespace Documents.API
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
-                config.SwaggerDoc("v1", new Info
+                string contactUrl = configuration.GetValue("Swagger:Contact:Url", string.Empty);
+                config.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = hostingEnvironment.ApplicationName,
                     Description = $"REST API for {hostingEnvironment.ApplicationName}",
                     Version = "v1",
-                    Contact = new Contact
+                    Contact = new OpenApiContact
                     {
                         Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
                         Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
-                        Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
+                        Url = string.IsNullOrWhiteSpace(contactUrl)
+                            ? null
+                            : new Uri(contactUrl)
                     }
                 });
 
@@ -329,18 +316,18 @@ namespace Documents.API
                 {
                     config.IncludeXmlComments(documentationPath);
                 }
-                config.DescribeStringEnumsInCamelCase();
-                config.DescribeAllEnumsAsStrings();
-                config.AddSecurityDefinition("Bearer", new ApiKeyScheme
+
+                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    In = "header",
+                    In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = "apiKey"
-                });
-                config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                    Type = SecuritySchemeType.Http
+                };
+                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
+                config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    {"Bearer", Enumerable.Empty<string>() }
+                    [bearerSecurityScheme] = new List<string>()
                 });
             });
 

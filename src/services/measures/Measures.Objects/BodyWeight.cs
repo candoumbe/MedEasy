@@ -12,7 +12,7 @@ namespace Measures.Objects
         /// </summary>
         public decimal Value { get; set; }
 
-        public BodyWeight(Guid id, Guid patientId, DateTimeOffset dateOfMeasure, decimal value)
+        public BodyWeight(Guid id, Guid patientId, DateTime dateOfMeasure, decimal value)
            : base(id, patientId, dateOfMeasure)
         {
             Value = value;

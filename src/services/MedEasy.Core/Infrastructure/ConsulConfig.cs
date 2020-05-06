@@ -9,10 +9,12 @@
         /// Name of the service
         /// </summary>
         public string ServiceName { get; set; }
+
         /// <summary>
         /// Address of the consul server
         /// </summary>
         public string Address { get; set; }
+
         /// <summary>
         /// ID of the service (should uniquely identifies an instance of a service
         /// </summary>
@@ -23,11 +25,8 @@
         /// </summary>
         public string[] Tags { get;  set; }
 
-
         public ConsultCheckConfig Check { get; set; }
     }
-
-
     public class ConsultCheckConfig
     {
         public int Interval { get; set; }

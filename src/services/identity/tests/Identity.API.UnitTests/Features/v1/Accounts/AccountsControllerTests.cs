@@ -39,6 +39,7 @@ using static System.StringComparison;
 using static MedEasy.RestObjects.LinkRelation;
 using static System.Uri;
 using Identity.API.Features.v1.Accounts;
+using Microsoft.AspNetCore.Http;
 
 namespace Identity.API.UnitTests.Features.v1.Accounts
 {
@@ -55,23 +56,27 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         private IUnitOfWorkFactory _uowFactory;
         private static readonly IdentityApiOptions _apiOptions = new IdentityApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
-        private Mock<IUrlHelper> _urlHelperMock;
+        private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
         private AccountsController _sut;
         private const string _baseUrl = "http://host/api";
+        private static ApiVersion _apiVersion;
 
         public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
 
-            _urlHelperMock = new Mock<IUrlHelper>(Strict);
-            _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
-                .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+
+            _urlHelperMock = new Mock<LinkGenerator>(Strict);
+            _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            dbContextOptionsBuilder
+                .EnableDetailedErrors()
+                .UseSqlite(database.Connection)
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
@@ -82,8 +87,9 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             });
 
             _mediatorMock = new Mock<IMediator>(Strict);
+            _apiVersion = new ApiVersion(1,0);
 
-            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object);
+            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object, _apiVersion);
         }
 
         public async void Dispose()
@@ -119,10 +125,10 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                             pageSize, page, // request
                             0,    //expected total
                             (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         };
                     }
@@ -145,10 +151,10 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                         (
                             firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -161,10 +167,10 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                         10, 1, // request
                         400,    //expected total
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=40&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -186,7 +192,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAccountsQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((GetPageOfAccountsQuery query, CancellationToken cancellationToken) =>
+                .Returns((GetPageOfAccountsQuery query, CancellationToken _) =>
                 {
                     PaginationConfiguration pagination = query.Data;
                     Expression<Func<Account, AccountInfo>> expression = x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username };
@@ -281,14 +287,12 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 {
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
-                        Option<AccountInfo> result = await uow.Repository<Account>()
-                            .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username },
-                                (Account x) => x.Id == query.Data,
-                                ct)
-                            .ConfigureAwait(false);
-
-                        return result;
+                        return await uow.Repository<Account>()
+                                        .SingleOrDefaultAsync(
+                                            x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username },
+                                            (Account x) => x.Id == query.Data,
+                                            ct)
+                                        .ConfigureAwait(false);
                     }
                 });
 
@@ -318,13 +322,13 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be("thebatman");
@@ -369,14 +373,12 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 {
                     using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
                     {
-                        Option<AccountInfo> result = await uow.Repository<Account>()
-                            .SingleOrDefaultAsync(
-                                x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
-                                (Account x) => x.Id == query.Data,
-                                ct)
-                            .ConfigureAwait(false);
-
-                        return result;
+                        return await uow.Repository<Account>()
+                                        .SingleOrDefaultAsync(
+                                            x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
+                                            (Account x) => x.Id == query.Data,
+                                            ct)
+                                        .ConfigureAwait(false);
                     }
                 });
 
@@ -407,17 +409,17 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id}&version={_apiVersion}");
 
             Link tenantLink = browsableResource.Links.Single(x => x.Relation == "tenant");
             tenantLink.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be(newAccount.Username);
@@ -557,19 +559,18 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateAccountInfoCommand cmd, CancellationToken ct) =>
-                    Task.FromResult(Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() })));
+                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken ct) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newAccount, ct: default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAccountInfoCommand>(cmd => cmd.Data == newAccount), It.IsAny<CancellationToken>()), Times.Once);
 
             CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
-                .BeAssignableTo<CreatedAtRouteResult>().Which;
+                                                                    .BeAssignableTo<CreatedAtRouteResult>().Which;
 
             Browsable<AccountInfo> browsableResource = createdAtRouteResult.Value.Should()
                 .BeAssignableTo<Browsable<AccountInfo>>().Which;
@@ -587,22 +588,22 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             Link linkSelf = links.Single(link => link.Relation == Self);
             linkSelf.Method.Should()
-                .Be("GET");
+                           .Be("GET");
             linkSelf.Href.Should()
-                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id}");
+                         .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id}&version={_apiVersion}");
 
             createdResource.Username.Should()
-                .Be(newAccount.Username);
+                                    .Be(newAccount.Username);
 
             createdAtRouteResult.RouteName.Should()
-                .Be(RouteNames.DefaultGetOneByIdApi);
+                                          .Be(RouteNames.DefaultGetOneByIdApi);
             RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
             routeValues.Should()
                 .ContainKey("controller").WhichValue.Should().Be(AccountsController.EndpointName);
             routeValues.Should()
-                .ContainKey("id").WhichValue.Should()
-                    .BeOfType<Guid>().Which.Should()
-                    .NotBeEmpty();
+                       .ContainKey("id").WhichValue.Should()
+                            .BeOfType<Guid>().Which.Should()
+                            .NotBeEmpty();
         }
 
         public static IEnumerable<object[]> SearchTestCases
@@ -627,23 +628,21 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                         new SearchAccountInfo
                         {
                             Name = "*Wayne",
-                            Page = 1, PageSize = 10
+                            Page = 1, PageSize = 10,
+                            Sort = nameof(AccountInfo.Name)
                         },
                         (maxPageSize : 200, defaultPageSize : 30),
                         (
                             count : 40,
-                            items :
-                            (Expression<Func<IEnumerable<Browsable<SearchAccountInfoResult>>, bool>>)(resources =>
-                                resources.All(x => x.Resource.Name.Like("*Wayne")))
-                            ,
+                            items : (Expression<Func<IEnumerable<Browsable<SearchAccountInfoResult>>, bool>>)(resources => resources.All(x => x.Resource.Name.Like("*Wayne"))),
                             links :
                             (
                                 firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
+                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10&sort=Name&version={_apiVersion}".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
                                 previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10&Sort=Name&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10&Sort=Name&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         )
                     };
@@ -668,8 +667,8 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             ) pageExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(AccountsController.Search)}({nameof(SearchAccountInfo)})");
-            _outputHelper.WriteLine($"Search : {searchQuery.Stringify()}");
-            _outputHelper.WriteLine($"store items: {items.Stringify()}");
+            _outputHelper.WriteLine($"Search : {searchQuery.Jsonify()}");
+            _outputHelper.WriteLine($"store items: {items.Jsonify()}");
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
             // Arrange

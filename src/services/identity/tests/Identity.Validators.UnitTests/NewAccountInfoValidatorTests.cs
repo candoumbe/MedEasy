@@ -192,7 +192,6 @@ namespace Identity.Validators.UnitTests
                         $"Informations are ok"
                     };
                 }
-
             }
         }
 
@@ -208,8 +207,8 @@ namespace Identity.Validators.UnitTests
                     .ConfigureAwait(false);
             }
 
-            _outputHelper.WriteLine($"Accounts in datastore : {accounts.Stringify()}");
-            _outputHelper.WriteLine($"NewAccount : {newAccountInfo.Stringify()}");
+            _outputHelper.WriteLine($"Accounts in datastore : {accounts.Jsonify()}");
+            _outputHelper.WriteLine($"NewAccount : {newAccountInfo.Jsonify()}");
 
             // Act
             ValidationResult vr = await _sut.ValidateAsync(newAccountInfo, default)

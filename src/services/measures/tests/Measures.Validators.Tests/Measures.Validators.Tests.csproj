@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\..\tests.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Measures.Context\Measures.Context.csproj" />
+    <ProjectReference Include="..\..\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\..\Measures.Validators\Measures.Validators.csproj" />
+    <ProjectReference Include="..\..\Measures.Objects\Measures.Objects.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 
 namespace Agenda.API.Context
 {
@@ -24,7 +25,7 @@ namespace Agenda.API.Context
                 .Build();
             DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
             string connectionString = configuration.GetConnectionString("Agenda");
-            builder.UseSqlServer(connectionString, b => b.MigrationsAssembly(typeof(AgendaContext).Assembly.FullName));
+            builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(AgendaContext).Assembly.FullName));
             return new AgendaContext(builder.Options);
         }
     }

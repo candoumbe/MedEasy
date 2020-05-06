@@ -15,7 +15,7 @@ namespace MedEasy.CQRS.Core.Exceptions
         /// </summary>
         public IEnumerable<ErrorInfo> Errors { get; }
 
-        public ValidationException(IEnumerable<ErrorInfo> errors)
+        protected ValidationException(IEnumerable<ErrorInfo> errors)
         {
             Errors = errors ?? Enumerable.Empty<ErrorInfo>();
         }

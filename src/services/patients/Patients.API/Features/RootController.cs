@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static MedEasy.RestObjects.FormFieldType;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Hosting;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,7 +24,7 @@ namespace Patients.API.Controllers
     public class RootController
     {
         private readonly IActionContextAccessor _actionContextAccessor;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IHostEnvironment _hostingEnvironment;
         private readonly IUrlHelper _urlHelper;
         private IOptions<PatientsApiOptions> ApiOptions { get; }
 
@@ -34,7 +35,7 @@ namespace Patients.API.Controllers
         /// <param name="urlHelper"></param>
         /// <param name="actionContextAccessor"></param>
         /// <param name="apiOptions">Gives access to the API configuration</param>
-        public RootController(IHostingEnvironment hostingEnvironment, IUrlHelper urlHelper, IActionContextAccessor actionContextAccessor, IOptions<PatientsApiOptions> apiOptions)
+        public RootController(IHostEnvironment hostingEnvironment, IUrlHelper urlHelper, IActionContextAccessor actionContextAccessor, IOptions<PatientsApiOptions> apiOptions)
         {
             _hostingEnvironment = hostingEnvironment;
             _urlHelper = urlHelper;
@@ -66,7 +67,7 @@ namespace Patients.API.Controllers
             IList<Endpoint> endpoints = new List<Endpoint>() {
                 new Endpoint
                 {
-                    Name = PatientsController.EndpointName.ToLowerKebabCase(),
+                    Name = PatientsController.EndpointName.Slugify(),
                     Link = new Link
                     {
                         Title = "Collection of patients",

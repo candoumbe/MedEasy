@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using static Microsoft.AspNetCore.Http.HttpMethods;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MedEasy.Core.Filters
 {

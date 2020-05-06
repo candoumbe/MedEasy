@@ -20,23 +20,20 @@ namespace MedEasy.Validators.Patch
         /// </summary>
         public JsonPatchDocumentValidator()
         {
-            CascadeMode = StopOnFirstFailure;
+            //CascadeMode = StopOnFirstFailure;
 
             RuleFor(x => x.Operations)
                 .NotNull()
                 .NotEmpty().WithMessage("{PropertyName} must have at least one item.");
 
             When(
-                x => x.Operations.Any(),
+                x => x.Operations.AtLeastOnce(),
                 () =>
                 {
-#if NETSTANDARD2_0
-
                     RuleFor(x => x.Operations)
                                     .Must(operations => operations.AtLeastOnce(x => x.OperationType == OperationType.Test))
                                     .WithSeverity(Warning)
                                     .WithMessage(@"No ""test"" operation provided.");
-#endif
 
                     RuleFor(x => x.Operations)
                         .Must(operations =>
@@ -45,7 +42,7 @@ namespace MedEasy.Validators.Patch
                                .GroupBy(op => op.path)
                                .ToDictionary();
 
-                            return !operationGroups.Any(x => x.Value.AtLeast(2) && !x.Value.Once(op => op.OperationType == OperationType.Test));
+                            return !operationGroups.AtLeastOnce(x => x.Value.AtLeast(op => op.OperationType != OperationType.Test, 2));
                         })
                         .WithSeverity(Warning)
                         .WithMessage((patch) =>
@@ -53,11 +50,12 @@ namespace MedEasy.Validators.Patch
                             IEnumerable<string> properties = patch.Operations
                                .GroupBy(op => op.path)
                                .ToDictionary()
-                               .Where(x => x.Value.AtLeast(2) && !x.Value.Once(op => op.OperationType == OperationType.Test))
+                               .Where(x => x.Value.AtLeast(op => op.OperationType != OperationType.Test, 2))
                                .Select(x => x.Key)
-                               .OrderBy(x => x);
+                               .OrderBy(x => x)
+                               .Distinct();
 
-                            return $@"Multiple operations on the same path : {string.Join(", ", properties.Select(x => $@"""{x}"""))}";
+                            return $"Multiple operations on the same path : {string.Join(", ", properties.Select(x => $@"""{x}"""))}";
                         });
                     ;
                 }

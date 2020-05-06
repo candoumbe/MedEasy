@@ -4,12 +4,9 @@ using System.Collections.Generic;
 
 namespace MedEasy.Objects
 {
-    public abstract class BaseEntity<T> : IEqualityComparer<T>, IEquatable<T> where T : class
+    public abstract class BaseEntity<T> : IEqualityComparer<T>, IEquatable<T>, IEntity<T>
     {
-        protected readonly EqualityComparer<T> EqualityComparer = new GenericEqualityComparer<T>(
-                object.Equals,
-                x => x.GetHashCode()
-            );
+        public virtual T Id { get; }
 
         #region Implementation of IEqualityComparer<in BaseEntity>
 

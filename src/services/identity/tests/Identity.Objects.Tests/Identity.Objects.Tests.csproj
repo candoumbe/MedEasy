@@ -2,12 +2,12 @@
 
   <Import Project="..\..\..\..\..\tests.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Linq.Expressions" Version="4.3.0" />
-    <PackageReference Include="Utilities" Version="2019.3.24.1" />
+    <PackageReference Include="Utilities" Version="1.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>

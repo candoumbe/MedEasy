@@ -28,7 +28,11 @@ namespace MedEasy.Core.Filters
         public HandleErrorAttributeTests()
         {
             _loggerMock = new Mock<ILogger<HandleErrorAttribute>>(Strict);
-            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()));
+            _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(),
+                                               It.IsAny<EventId>(),
+                                               It.Is<It.IsAnyType>((_, __) => true),
+                                               It.IsAny<Exception>(),
+                                               (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()));
 
             _handleErrorAttribute = new HandleErrorAttribute(_loggerMock.Object);
         }
@@ -87,9 +91,12 @@ namespace MedEasy.Core.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>());
-            exceptionContext.Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors);
-            await _handleErrorAttribute.OnExceptionAsync(exceptionContext);
+            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            {
+                Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors)
+            };
+            await _handleErrorAttribute.OnExceptionAsync(exceptionContext)
+                .ConfigureAwait(false);
 
             // Assert
             exceptionContext.ExceptionHandled.Should().BeTrue();

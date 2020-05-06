@@ -59,12 +59,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
                 
-                IEnumerable<object[]> cases = uowFactorieCases
+                return uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
                     .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder });
-
-                return cases;
             }
         }
 

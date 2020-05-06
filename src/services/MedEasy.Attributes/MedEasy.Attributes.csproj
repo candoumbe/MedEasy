@@ -7,6 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
-    <PackageReference Include="Utilities" Version="2019.3.24.1" />
+    <PackageReference Include="Utilities" Version="1.0.0-*" />
   </ItemGroup>
 </Project>

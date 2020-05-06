@@ -3,18 +3,25 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Patients.Context;
+
 using Polly;
 using Polly.Retry;
+
 using Serilog;
+
 using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Npgsql;
 
 namespace Patients.API
 {
+#pragma warning disable CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
     public class Program
+#pragma warning restore CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
     {
         /// <summary>
         /// Host's entry point
@@ -26,46 +33,44 @@ namespace Patients.API
                 CreateWebHostBuilder(args)
                 .Build();
 
-            using (IServiceScope scope = host.Services.CreateScope())
+            using IServiceScope scope = host.Services.CreateScope();
+            IServiceProvider services = scope.ServiceProvider;
+            ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+            IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
+            PatientsContext context = services.GetRequiredService<PatientsContext>();
+
+            logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
+
+            try
             {
-                IServiceProvider services = scope.ServiceProvider;
-                ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-                IHostingEnvironment environment = services.GetRequiredService<IHostingEnvironment>();
-                PatientsContext context = services.GetRequiredService<PatientsContext>();
-
-                logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
-
-                try
+                if (!context.Database.IsInMemory())
                 {
-                    if (!context.Database.IsInMemory())
-                    {
-                        logger?.LogInformation("Upgrading {ApplicationContext} store", environment.ApplicationName);
-                        // Forces database migrations on startup
-                        RetryPolicy policy = Policy
-                            .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
-                            .WaitAndRetryAsync(
-                                retryCount: 5,
-                                sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
-                                onRetry: (exception, timeSpan, attempt, pollyContext) =>
-                                    logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
-                                );
-                        logger?.LogInformation("Starting {ApplicationContext} migration", environment.ApplicationName);
+                    logger?.LogInformation("Upgrading {ApplicationContext} store", environment.ApplicationName);
+                    // Forces database migrations on startup
+                    RetryPolicy policy = Policy
+                        .Handle<NpgsqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
+                        .WaitAndRetryAsync(
+                            retryCount: 5,
+                            sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
+                            onRetry: (exception, timeSpan, attempt, pollyContext) =>
+                                logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
+                            );
+                    logger?.LogInformation("Starting {ApplicationContext} migration", environment.ApplicationName);
 
-                        // Forces datastore migration on startup
-                        await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                            .ConfigureAwait(false);
-
-                        logger?.LogInformation("{ApplicationContext} store updated", environment.ApplicationName);
-                    }
-                    await host.RunAsync()
+                    // Forces datastore migration on startup
+                    await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
                         .ConfigureAwait(false);
 
-                    logger?.LogInformation("{ApplicationContext} started", environment.ApplicationName);
+                    logger?.LogInformation("{ApplicationContext} store updated", environment.ApplicationName);
                 }
-                catch (Exception ex)
-                {
-                    logger?.LogError(ex, "An error occurred when starting Patients.API");
-                }
+                await host.RunAsync()
+                    .ConfigureAwait(false);
+
+                logger?.LogInformation("{ApplicationContext} started", environment.ApplicationName);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "An error occurred when starting Patients.API");
             }
         }
 

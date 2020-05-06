@@ -1,11 +1,12 @@
 ﻿using MedEasy.Objects;
+
 using Optional;
+using Optional.Collections;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Specialized;
-using System.Collections.ObjectModel;
 
 namespace Identity.Objects
 {
@@ -15,7 +16,7 @@ namespace Identity.Objects
         /// <summary>
         /// Login used to authenticate
         /// </summary>
-        public string Username { get; private set; }
+        public string Username { get; }
 
         /// <summary>
         /// Salt used when computing <see cref="PasswordHash"/>
@@ -30,18 +31,18 @@ namespace Identity.Objects
         /// <summary>
         /// Email associated with the account
         /// </summary>
-        public string Email { get; private set; }
+        public string Email { get; }
 
         public string Name { get; set; }
 
-        public bool EmailConfirmed { get; private set; }
+        public bool EmailConfirmed { get; }
 
         public string RefreshToken { get; private set; }
 
         /// <summary>
         /// Indicates if the account can be used to authenticate a user
         /// </summary>
-        public bool IsActive { get; private set; }
+        public bool IsActive { get; }
 
         /// <summary>
         /// Indicates if <see cref="Account"/> is locked out.
@@ -49,20 +50,20 @@ namespace Identity.Objects
         /// <remarks>
         /// A locked <see cref="Account"/> cannot log in.
         /// </remarks>
-        public bool Locked { get; private set; }
+        public bool Locked { get; }
 
         /// <summary>
         /// Id of the owner of the element
         /// </summary>
         public Guid? TenantId { get; private set; }
 
-        private readonly IDictionary<string, Role> _roles;
+        private readonly IList<AccountRole> _roles;
 
-        private readonly IDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)> _claims;
+        private readonly IList<AccountClaim> _claims;
 
-        public IEnumerable<Role> Roles => _roles.Values;
+        public IEnumerable<AccountRole> Roles => _roles;
 
-        public IReadOnlyDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)> Claims => new ReadOnlyDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)>(_claims);
+        public IEnumerable<AccountClaim> Claims => _claims;
 
         /// <summary>
         /// Builds a new <see cref="Account"/> instance
@@ -78,8 +79,9 @@ namespace Identity.Objects
             IsActive = isActive;
             TenantId = tenantId;
             RefreshToken = refreshToken;
-            _roles = new ConcurrentDictionary<string, Role>();
-            _claims = new ConcurrentDictionary<string, (string value, DateTimeOffset start, DateTimeOffset? end)>();
+            _roles = new List<AccountRole>();
+            _claims = new List<AccountClaim>();
+            
         }
 
         /// <summary>
@@ -114,28 +116,27 @@ namespace Identity.Objects
         /// <exception cref="ArgumentOutOfRangeException">if <paramref name="end"/> is not <c>null</c> 
         /// and <paramref name="start"/> &gt; <paramref name="end"/>
         /// </exception>
-        public void AddOrUpdateClaim(string type, string value, DateTimeOffset start, DateTimeOffset? end = null)
+        public void AddOrUpdateClaim(string type, string value, DateTime start, DateTime? end = null)
         {
-            
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
             if (end != default && start > end)
             {
                 throw new ArgumentOutOfRangeException(nameof(start), "start > end");
             }
 
-            if (_claims.ContainsKey(type))
-            {
-                (string value, DateTimeOffset start, DateTimeOffset? end) claim = _claims[type];
-                _claims.Remove(type);
-                _claims.Add(type, (value, claim.start, claim.end));
-            }
-            else
-            {
-                _claims.Add(type, (value, start, end));
-            }
+            Option<AccountClaim> optionClaim = _claims.SingleOrNone(ac => ac.Claim.Type == type);
+
+            optionClaim.Match(
+                some: ac => ac.ChangeValueTo(value),
+                () => _claims.Add(new AccountClaim(Id, Guid.NewGuid(), type, value, start, end))
+            );
         }
 
         /// <summary>
-        /// Remove the <see cref="UserClaim"/> with the specified <see cref="UserClaim.Claim.Type"/>.
+        /// Remove the <see cref="AccountClaim"/> with the specified <see cref="AccountClaim.Type"/>.
         /// </summary>
         /// <param name="type">Type of claim to remove</param>
         /// <exception cref="ArgumentNullException">if <paramref name="type"/> is <c>null</c>.</exception>
@@ -145,22 +146,28 @@ namespace Identity.Objects
             {
                 throw new ArgumentNullException(nameof(type));
             }
-
-            _claims.Remove(type);
+            Option<AccountClaim> optionClaim = _claims.SingleOrNone(ac => ac.Claim.Type == type);
+            optionClaim.MatchSome(claim => _claims.Remove(claim));
         }
 
         /// <summary>
-        /// Defines the tenant of the current element
+        /// Defines the owner of the current element
         /// </summary>
         /// <param name="tenantId"></param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
-        public void SetTenant(Guid? tenantId)
+        public void OwnsBy(Guid? tenantId)
         {
             if (tenantId == Guid.Empty)
             {
-                throw new ArgumentOutOfRangeException(nameof(tenantId));
+                throw new ArgumentOutOfRangeException(nameof(tenantId), tenantId, $"Tenant ID cannot be empty");
             }
             TenantId = tenantId;
+        }
+
+
+        public void AddRole(Role role)
+        {
+            _roles.Add(new AccountRole(Id, role.Id));
         }
     }
 }

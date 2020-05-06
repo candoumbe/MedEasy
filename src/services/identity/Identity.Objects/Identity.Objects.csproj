@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\..\..\core.props"/>
+  <Import Project="..\..\..\..\core.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
@@ -10,7 +10,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="Optional" Version="4.0.0" />
   </ItemGroup>
 

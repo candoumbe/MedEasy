@@ -12,15 +12,17 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Patients.Context;
@@ -49,70 +51,68 @@ namespace Patients.API
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <param name="env"></param>
-        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
-            services.AddMvc(config =>
-            {
-                config.Filters.Add<FormatFilterAttribute>();
-                config.Filters.Add<ValidateModelActionFilter>();
-                config.Filters.Add<AddCountHeadersFilterAttribute>();
-                ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
-                config.Filters.Add<HandleErrorAttribute>();
-                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                    .Build();
-
-                config.Filters.Add(new AuthorizeFilter(policy));
-            })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-                options.RegisterValidatorsFromAssemblyContaining<CreatePatientInfoValidator>();
-            })
-            .AddJsonOptions(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                options.SerializerSettings.DateTimeZoneHandling = Utc;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAnyOrigin", builder =>
-                    builder.AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowAnyOrigin()
-                );
-            });
-            services.AddOptions();
-            services.Configure<PatientsApiOptions>((options) =>
-            {
-                options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 30);
-                options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 100);
-            });
-
-            services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("AllowAnyOrigin")));
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.InvalidModelStateResponseFactory = (context) =>
+            services
+                .AddControllers(config =>
                 {
+                    config.Filters.Add<FormatFilterAttribute>();
+                    config.Filters.Add<ValidateModelActionFilter>();
+                    config.Filters.Add<AddCountHeadersFilterAttribute>();
 
-                    IDictionary<string, IEnumerable<string>> errors = context.ModelState
-                        .Where(element => !string.IsNullOrWhiteSpace(element.Key))
-                        .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
-                    ValidationProblemDetails validationProblem = new ValidationProblemDetails
+                    config.Filters.Add<HandleErrorAttribute>();
+
+                    AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                        .Build();
+
+                    config.Filters.Add(new AuthorizeFilter(policy));
+                })
+                .AddFluentValidation(options =>
+                {
+                    options.LocalizationEnabled = true;
+                    options.RegisterValidatorsFromAssemblyContaining<CreatePatientInfoValidator>();
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.DateFormatHandling = IsoDateFormat;
+                    options.SerializerSettings.DateTimeZoneHandling = Utc;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                })
+                .AddXmlSerializerFormatters();
+
+                services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAnyOrigin", builder =>
+                        builder.AllowAnyHeader()
+                               .AllowAnyMethod()
+                               .AllowAnyOrigin()
+                    );
+                });
+                services.AddOptions();
+                services.Configure<PatientsApiOptions>((options) =>
+                {
+                    options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 30);
+                    options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 100);
+                });
+
+                services.Configure<ApiBehaviorOptions>(options =>
+                {
+                    options.InvalidModelStateResponseFactory = (context) =>
                     {
-                        Title = "Validation failed",
-                        Detail = $"{errors.Count} validation errors",
-                        Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
-                            ? Status400BadRequest
+                        IDictionary<string, IEnumerable<string>> errors = context.ModelState
+                            .Where(element => !string.IsNullOrWhiteSpace(element.Key))
+                            .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
+                        ValidationProblemDetails validationProblem = new ValidationProblemDetails
+                        {
+                            Title = "Validation failed",
+                            Detail = $"{errors.Count} validation errors",
+                            Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
+                                ? Status400BadRequest
                             : Status422UnprocessableEntity
                     };
                     foreach ((string key, IEnumerable<string> details) in errors)
@@ -129,24 +129,6 @@ namespace Patients.API
                 options.LowercaseUrls = true;
             });
 
-#if NETCOREAPP2_1
-            services.AddHsts(options =>
-                {
-                    options.Preload = true;
-                    if (env.IsDevelopment() || env.IsEnvironment("IntegrationTest"))
-                    {
-                        options.ExcludedHosts.Remove("localhost");
-                        options.ExcludedHosts.Remove("127.0.0.1");
-                        options.ExcludedHosts.Remove("[::1]");
-
-                    }
-                });
-            services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 54003);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
-            });
-#endif
             return services;
         }
 
@@ -156,6 +138,31 @@ namespace Patients.API
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
+            static DbContextOptionsBuilder<PatientsContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            {
+                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+                DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                {
+                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                }
+                else
+                {
+                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                    builder.UseNpgsql(
+                        configuration.GetConnectionString("Patients"),
+                        options => options.EnableRetryOnFailure(5)
+                            .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
+                    );
+                }
+                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+                builder.ConfigureWarnings(options =>
+                {
+                    options.Default(WarningBehavior.Log);
+                });
+                return builder;
+            }
+
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<PatientsContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -164,12 +171,12 @@ namespace Patients.API
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsContext>>(serviceProvider =>
-           {
-               IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-               DbContextOptionsBuilder<PatientsContext> builder = BuildDbContextOptions(serviceProvider);
+            {
+                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+                DbContextOptionsBuilder<PatientsContext> builder = BuildDbContextOptions(serviceProvider);
 
-               return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options));
-           });
+                return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options));
+            });
 
             return services;
         }
@@ -183,14 +190,11 @@ namespace Patients.API
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
-            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddScoped(builder =>
+            services.AddHttpContextAccessor();
+            services.AddScoped(serviceProvider =>
             {
-                IUrlHelperFactory urlHelperFactory = builder.GetRequiredService<IUrlHelperFactory>();
-                IActionContextAccessor actionContextAccessor = builder.GetRequiredService<IActionContextAccessor>();
-
-                return urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
+                HttpContext http = serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
             });
 
             services.AddSingleton<IDateTimeService, DateTimeService>();
@@ -198,83 +202,56 @@ namespace Patients.API
             return services;
         }
 
-        private static DbContextOptionsBuilder<PatientsContext> BuildDbContextOptions(IServiceProvider serviceProvider)
-        {
-            IHostingEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostingEnvironment>();
-            DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
-            if (hostingEnvironment.IsEnvironment("IntegrationTest"))
-            {
-                builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            }
-            else
-            {
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                builder.UseSqlServer(
-                    configuration.GetConnectionString("Patients"),
-                    options => options.EnableRetryOnFailure(5)
-                        .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
-                );
-            }
-            builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-            builder.ConfigureWarnings(options =>
-            {
-                options.Default(WarningBehavior.Log);
-            });
-            return builder;
-        }
-
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
+        /// <summary>
+        /// Adds custom authentication
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration) =>
+            services
+                    .AddAuthorization()
+                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
+                        options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
-                            {
-                                //                       IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
-                                //WARNING Validate the token
-                                return true;
-                            }
-                        },
-                        RequireExpirationTime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
-                        ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
-                            .GetChildren()
-                            .Select(x => x.Value),
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
-
-                    };
-                    options.Validate();
-                });
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            RequireExpirationTime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                            ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
+                        };
+                        options.Validate();
+                    });
 
         /// <summary>
         /// Adds Swagger middlewares
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="hostingEnvironment"></param>
+        /// <param name="environment"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureSwagger(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
             {
-                config.SwaggerDoc("v1", new Info
+                string contactUrl = configuration.GetValue("Swagger:Contact:Url", string.Empty);
+                config.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = hostingEnvironment.ApplicationName,
+                    Title = environment.ApplicationName,
                     Description = "REST API for Patients management",
                     Version = "v1",
-                    Contact = new Contact
+                    Contact = new OpenApiContact
                     {
                         Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
                         Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
-                        Url = configuration.GetValue("Swagger:Contact:Url", string.Empty)
+                        Url = string.IsNullOrWhiteSpace(contactUrl)
+                            ? null
+                            : new Uri(contactUrl)
                     }
                 });
 
@@ -285,20 +262,22 @@ namespace Patients.API
                 {
                     config.IncludeXmlComments(documentationPath);
                 }
-                config.DescribeStringEnumsInCamelCase();
-                config.DescribeAllEnumsAsStrings();
-                config.AddSecurityDefinition("Bearer", new ApiKeyScheme
+
+                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    In = "header",
+                    In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = "apiKey"
-                });
-                config.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                    Type = SecuritySchemeType.Http
+                };
+                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
+                config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    {"Bearer", Enumerable.Empty<string>() }
+                    [bearerSecurityScheme] = new List<string>()
                 });
             });
+
+            return services;
         }
     }
 }

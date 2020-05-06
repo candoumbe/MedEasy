@@ -1,7 +1,13 @@
 ﻿using AutoMapper;
+
 using Documents.DTO.v1;
 using Documents.Objects;
+
 using MedEasy.Mapping;
+using MedEasy.Objects;
+using MedEasy.RestObjects;
+
+using System;
 
 namespace Documents.Mapping
 {
@@ -15,7 +21,12 @@ namespace Documents.Mapping
         {
             cfg.CreateCoreMapping();
             cfg.CreateMap<Document, DocumentInfo>()
-                .IgnoreAllPropertiesWithAnInaccessibleSetter();
+                .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
+                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>();
+
+            cfg.CreateMap<Document, DocumentFileInfo>()
+                .ForMember(dto => dto.Content, opt => opt.MapFrom(entity => entity.File.Content));
                 
         });
     }

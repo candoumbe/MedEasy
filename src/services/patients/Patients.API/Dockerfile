@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch-slim AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch AS build
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS build
 WORKDIR /src
 COPY ["src/services/Patients/Patients.API/Patients.API.csproj", "src/services/Patients/Patients.API/"]
 COPY ["src/tools/MedEasy.Abstractions/MedEasy.Abstractions.csproj", "src/tools/MedEasy.Abstractions/"]

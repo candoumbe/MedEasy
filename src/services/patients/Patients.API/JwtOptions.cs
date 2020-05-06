@@ -30,6 +30,6 @@ namespace Patients.API
         /// <summary>
         /// Lists of services the token can be used for
         /// </summary>
-        public IEnumerable<string> Audiences { get; set; }
+        public string Audience { get; set; }
     }
 }

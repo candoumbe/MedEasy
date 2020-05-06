@@ -8,11 +8,6 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="MediatR" Version="5.1.0" />
-    <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

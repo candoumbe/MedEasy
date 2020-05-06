@@ -9,41 +9,39 @@ namespace Identity.Objects
     /// <remarks>
     /// This association takes precedence over a <see cref="RoleClaim"/> association for a given <see cref="Claim"/>.
     /// </remarks>
-    public class AccountClaim : AuditableEntity<Guid,AccountClaim>
+    public class AccountClaim : Entity<Guid, AccountClaim>
     {
-        public Guid ClaimId { get; private set; }
-
-        public Guid AccountId { get; private set;  }
-
-        /// <summary>
-        /// Overrides the <see cref="Claim"/>'s <see cref="Claim.Value"/> for the current <see cref="Account"/>
-        /// </summary>
-        public string Value { get; private set; }
-
-        public Account Account { get; private set; }
+        public Guid AccountId { get;  }
 
         public Claim Claim { get; private set; }
 
         /// <summary>
         /// When the claim is active for the user
         /// </summary>
-        public DateTimeOffset Start { get; private set; }
+        public DateTime Start { get; private set; }
 
         /// <summary>
         /// When will the claim ends
         /// </summary>
-        public DateTimeOffset? End { get; }
+        public DateTime? End { get; }
 
-        public AccountClaim(Guid id, Guid accountId, Guid claimId, string value, DateTimeOffset start, DateTimeOffset? end)
-            : base(id)
+        private AccountClaim(Guid accountId, Guid id) : base(id)
         {
-            Value = value;
-            Start = start;
-            End = end;
-            ClaimId = claimId;
             AccountId = accountId;
         }
 
-        public void ChangeValueTo(string newValue) => Value = newValue;
+        public AccountClaim(Guid accountId, Guid id, string type, string value, DateTime start, DateTime? end) : this (accountId, id)
+        {
+            AccountId = accountId;
+            Claim = new Claim(type, value);
+            Start = start;
+            End = end;
+        }
+
+        /// <summary>
+        /// Changes the value of the claim  
+        /// </summary>
+        /// <param name="newValue"></param>
+        public void ChangeValueTo(string newValue) => Claim.ChangeValueTo(newValue);
     }
 }

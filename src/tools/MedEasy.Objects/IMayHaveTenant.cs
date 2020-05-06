@@ -18,6 +18,6 @@ namespace MedEasy.Objects
         /// </summary>
         /// <param name="tenantId"></param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
-        void SetTenant(Guid? tenantId);
+        void OwnsBy(Guid? tenantId);
     }
 }

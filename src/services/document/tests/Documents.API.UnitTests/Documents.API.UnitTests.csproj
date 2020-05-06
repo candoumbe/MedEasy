@@ -2,24 +2,19 @@
 
   <Import Project="..\..\..\..\..\tests.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Bogus" Version="23.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="Moq" Version="4.10.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\Documents.API\Documents.API.csproj" />
-    <ProjectReference Include="..\..\Documents.DataStore.SqlServer\Documents.DataStore.SqlServer.csproj" />
     <ProjectReference Include="..\..\Documents.Mapping\Documents.Mapping.csproj" />
     <ProjectReference Include="..\..\Documents.Objects\Documents.Objects.csproj" />
   </ItemGroup>

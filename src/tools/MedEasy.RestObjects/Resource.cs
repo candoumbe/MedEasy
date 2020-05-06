@@ -19,12 +19,12 @@ namespace MedEasy.RestObjects
         /// Gets/sets when the resource was last modified
         /// </summary>
         [JsonProperty]
-        public DateTimeOffset UpdatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
 
         /// <summary>
         /// Gets/sets when the resource was last modified
         /// </summary>
         [JsonProperty]
-        public DateTimeOffset CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

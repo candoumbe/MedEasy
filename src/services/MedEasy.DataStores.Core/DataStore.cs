@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,33 +37,55 @@ namespace MedEasy.DataStores.Core.Relational
         /// <summary>
         /// <see cref="DbContext.OnModelCreating(ModelBuilder)"/>
         /// </summary>
-        /// <param name="modelBuilder"></param>
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        /// <param name="builder"></param>
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            foreach (IMutableEntityType entity in modelBuilder.Model.GetEntityTypes())
+            foreach (IMutableEntityType entity in builder.Model.GetEntityTypes())
             {
-                entity.Relational().TableName = entity.DisplayName();
+                entity.SetTableName(entity.DisplayName());
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
                     IAuditableEntity auditableEntity = entity as IAuditableEntity;
 
-                    modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
+                    builder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
                         .HasMaxLength(NormalTextLength);
 
-                    modelBuilder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
+                    builder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
                         .HasMaxLength(NormalTextLength);
 
-                    modelBuilder.Entity(entity.Name).Property(typeof(DateTimeOffset), nameof(IAuditableEntity.UpdatedDate))
+                    builder.Entity(entity.Name).Property(typeof(DateTime), nameof(IAuditableEntity.UpdatedDate))
                         .IsConcurrencyToken();
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
                 {
-                    modelBuilder.Entity(entity.Name)
+                    builder.Entity(entity.Name)
                                 .HasKey(nameof(IEntity<object>.Id));
+                }
+
+                if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+                {
+                    // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
+                    // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
+                    // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
+                    // use the DateTimeOffsetToBinaryConverter
+                    // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
+                    // This only supports millisecond precision, but should be sufficient for most use cases.
+                    foreach (var entityType in builder.Model.GetEntityTypes())
+                    {
+                        var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                                                                                    || p.PropertyType == typeof(DateTimeOffset?));
+                        foreach (var property in properties)
+                        {
+                            builder
+                                .Entity(entityType.Name)
+                                .Property(property.Name)
+                                .HasConversion(new DateTimeOffsetToBinaryConverter());
+                        }
+                    }
                 }
             }
         }
@@ -79,7 +102,7 @@ namespace MedEasy.DataStores.Core.Relational
             => x =>
             {
                 IAuditableEntity auditableEntity = (IAuditableEntity)(x.Entity);
-                DateTimeOffset now = DateTimeOffset.UtcNow;
+                DateTime now = DateTime.UtcNow;
                 if (x.State == EntityState.Added)
                 {
                     auditableEntity.CreatedDate = now;
@@ -106,8 +129,7 @@ namespace MedEasy.DataStores.Core.Relational
             entities
                 .AsParallel()
                 .ForEach(UpdateModifiedEntry);
-
-            return SaveChanges(acceptAllChangesOnSuccess);
+            return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
         /// <summary>

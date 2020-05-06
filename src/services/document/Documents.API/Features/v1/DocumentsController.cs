@@ -11,9 +11,11 @@ using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
@@ -40,7 +42,7 @@ namespace Documents.API.Features.v1
         public static string EndpointName => nameof(DocumentsController)
             .Replace(nameof(Controller), string.Empty);
 
-        private readonly IUrlHelper _urlHelper;
+        private readonly LinkGenerator _urlHelper;
         private readonly IOptionsSnapshot<DocumentsApiOptions> _apiOptions;
         private readonly IMediator _mediator;
         private readonly ILogger<DocumentsController> _logger;
@@ -54,7 +56,7 @@ namespace Documents.API.Features.v1
         /// <param name="mediator"></param>
         /// <param name="logger"></param>
         /// <param name="apiVersion"></param>
-        public DocumentsController(IUrlHelper urlHelper,
+        public DocumentsController(LinkGenerator urlHelper,
                                    IOptionsSnapshot<DocumentsApiOptions> apiOptions,
                                    IMediator mediator,
                                    ILogger<DocumentsController> logger,
@@ -96,23 +98,24 @@ namespace Documents.API.Features.v1
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link {
+                        new Link
+                        {
                             Relation = Self,
                             Title = resource.Name,
                             Method = "GET",
-                            Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, resource.Id })
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, resource.Id })
                         }
                     }
                 }),
 
-                first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize }),
                 previous: paginationConfiguration.Page > 1 && page.Count > 1
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize })
                     : null,
                 next: paginationConfiguration.Page < page.Count
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize }),
                 total: page.Total
             );
 
@@ -164,9 +167,9 @@ namespace Documents.API.Features.v1
                 {
                     IList<Link> links = new List<Link>
                     {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
-                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File) }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id }) },
+                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File) }) }
                     };
 
                     Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
@@ -187,7 +190,7 @@ namespace Documents.API.Features.v1
         /// <param name="id">id of the document to download</param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        [HttpGet("{id}/file")]
+        [HttpGet("{id}/[action]")]
         [ProducesResponseType(Status200OK)]
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> File(Guid id, CancellationToken ct = default)
@@ -289,7 +292,7 @@ namespace Documents.API.Features.v1
                         Resource = doc,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, doc.Id }) }
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, doc.Id }) }
                         }
                     };
 
@@ -305,7 +308,6 @@ namespace Documents.API.Features.v1
                 });
         }
 
-
         /// <summary>
         /// Search for documents
         /// </summary>
@@ -316,7 +318,6 @@ namespace Documents.API.Features.v1
         [HttpHead("search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchDocumentInfo search, CancellationToken ct = default)
         {
-
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
             IList<IFilter> filters = new List<IFilter>();
 
@@ -334,7 +335,7 @@ namespace Documents.API.Features.v1
                 Page = search.Page,
                 PageSize = search.PageSize,
                 Filter = filters.Skip(1).Any()
-                    ? new CompositeFilter { Logic = FilterLogic.And, Filters = filters }
+                    ? new MultiFilter { Logic = FilterLogic.And, Filters = filters }
                     : filters.Single(),
 
                 Sort = search.Sort?.ToSort<DocumentInfo>() ?? new Sort<DocumentInfo>(nameof(DocumentInfo.UpdatedDate), SortDirection.Descending)
@@ -351,14 +352,14 @@ namespace Documents.API.Features.v1
                     Resource = x,
                     Links = new[]
                     {
-                        new Link { Relation = Self, Method = "GET" }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id } ) }
                     }
                 }),
-                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName }),
                 next: hasNextPage
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName }),
                 total: searchResult.Total
             ));
         }

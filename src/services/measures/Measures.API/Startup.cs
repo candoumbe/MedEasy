@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,14 +25,14 @@ namespace Measures.API
         /// <summary>
         /// Provides information about 
         /// </summary>
-        public IHostingEnvironment HostingEnvironment { get; }
+        public IHostEnvironment HostingEnvironment { get; }
 
         /// <summary>
         /// Builds a new <see cref="Startup"/> instance.
         /// </summary>
         /// <param name="env">Accessor to the current ost's environment </param>
         /// <param name="configuration">configuration provided by the host</param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration)
+        public Startup(IHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
             HostingEnvironment = env;
@@ -43,26 +44,14 @@ namespace Measures.API
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-#if !NETCOREAPP2_0
-            services.AddHttpsRedirection(options =>
-                {
-                    options.HttpsPort = Configuration.GetValue<int>("HttpsPort", 63796);
-                    options.RedirectStatusCode = Status307TemporaryRedirect;
-                });
-#endif
-            services.AddDataStores()
-                .AddDependencyInjection()
-                .AddCustomAuthentication(Configuration)
-                .AddCustomApiVersioning()
-                .AddCustomOptions(Configuration);
-
-            if (HostingEnvironment.IsDevelopment())
-            {
-                services.AddSwagger(HostingEnvironment, Configuration);
-            }
-
-            services.AddCustomMvc(Configuration, HostingEnvironment);
+            services.AddCustomMvc(Configuration, HostingEnvironment)
+                    .AddDataStores()
+                    .AddDependencyInjection()
+                    .AddCustomAuthentication(Configuration)
+                    .AddCustomApiVersioning()
+                    .AddCustomOptions(Configuration)
+                    .AddSwagger(HostingEnvironment, Configuration)
+                    ;
         }
 
         /// <summary>
@@ -72,10 +61,12 @@ namespace Measures.API
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="applicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
+        /// <param name="provider"></param>
+        public void Configure(IApplicationBuilder app, IHostEnvironment env, IHostApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
         {
+
             app.UseApiVersioning();
-            app.UseAuthentication();
+            app.UseHttpMethodOverride();
 
             if (env.IsProduction())
             {
@@ -83,12 +74,10 @@ namespace Measures.API
             }
             app.UseHttpsRedirection();
 
-            app.UseHttpMethodOverride();
             applicationLifetime.ApplicationStopping.Register(() =>
             {
                 if (env.IsEnvironment("IntegrationTest"))
                 {
-
                 }
             });
 
@@ -97,29 +86,27 @@ namespace Measures.API
                 app.UseResponseCaching();
                 app.UseResponseCompression();
             }
-            else
+
+            app.UseSwagger();
+            app.UseSwaggerUI(opt =>
             {
-                if (env.IsDevelopment())
-                {
-                    app.UseSwagger();
-                    app.UseSwaggerUI(opt =>
-                    {
-                        provider.ApiVersionDescriptions
-                            .Where(api => !api.IsDeprecated)
-                            .ForEach(description => opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Measures REST API {description.GroupName}"));
-                    });
-                }
-            }
+                provider.ApiVersionDescriptions
+                        .ForEach(description => opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Measures REST API {description.GroupName}"));
+            });
+
+            app.UseRouting();
 
             app.UseCors("AllowAnyOrigin");
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-            app.UseMvc(routeBuilder =>
+            app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}");
-                routeBuilder.MapRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "/v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "/v{version:apiVersion}/{controller}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/v{version:apiVersion}/{controller}/{id}/{action}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "/v{version:apiVersion}/{controller}/search");
             });
         }
     }

@@ -24,26 +24,24 @@ namespace Identity.API.Fixtures.v2
         /// </summary>
         /// <param name="newAccount">Account to register</param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async ValueTask<BearerTokenInfo> Register(NewAccountInfo newAccount)
+        public async ValueTask<BearerTokenInfo> RegisterAndLogIn(NewAccountInfo newAccount)
         {
             // Create account
-            using (HttpClient client = CreateClient())
-            {
-                string uri = $"/v1/{AccountsController.EndpointName}";
+            using HttpClient client = CreateClient();
+            string uri = $"/v1/{AccountsController.EndpointName}";
 
-                HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount)
-                    .ConfigureAwait(false);
+            HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount)
+                .ConfigureAwait(false);
 
-                string responseContent = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string responseContent = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                response.EnsureSuccessStatusCode();
-                response.Dispose();
+            response.EnsureSuccessStatusCode();
+            response.Dispose();
 
-                // Get Token
-                return await Connect(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
-                    .ConfigureAwait(false);
-            }
+            // Get Token
+            return await LogIn(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -51,23 +49,20 @@ namespace Identity.API.Fixtures.v2
         /// </summary>
         /// <param name="loginInfo"></param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async Task<BearerTokenInfo> Connect(LoginInfo loginInfo)
+        public async Task<BearerTokenInfo> LogIn(LoginInfo loginInfo)
         {
-            using (HttpClient client = CreateClient())
-            {
+            using HttpClient client = CreateClient();
+            const string uri = "/v2/auth/token";
 
-                const string uri = "/v2/auth/token";
+            HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo)
+                .ConfigureAwait(false);
 
-                HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo)
-                    .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
-                response.EnsureSuccessStatusCode();
+            string tokenJson = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                string tokenJson = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
-
-                return DeserializeObject<BearerTokenInfo>(tokenJson);
-            }
+            return DeserializeObject<BearerTokenInfo>(tokenJson);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Patients.API.Context
                 .Build();
             DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
             string connectionString = configuration.GetConnectionString("Patients");
-            builder.UseSqlServer(connectionString, b => b.MigrationsAssembly(typeof(PatientsContext).Assembly.FullName));
+            builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(PatientsContext).Assembly.FullName));
             return new PatientsContext(builder.Options);
         }
     }

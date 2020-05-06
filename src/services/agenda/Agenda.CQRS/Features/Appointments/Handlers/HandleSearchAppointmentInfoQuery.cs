@@ -37,7 +37,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             SearchAppointmentInfo searchCriteria = request.Data;
             if (searchCriteria.From.HasValue)
             {
-                filters.Add(new CompositeFilter
+                filters.Add(new MultiFilter
                 {
                     Logic = Or,
                     Filters = new[]
@@ -50,7 +50,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
             if (searchCriteria.To.HasValue)
             {
-                filters.Add(new CompositeFilter
+                filters.Add(new MultiFilter
                 {
                     Logic = Or,
                     Filters = new[]
@@ -71,7 +71,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             {
                 searchQueryInfo.Filter = filters.Once()
                     ? filters.Single()
-                    : new CompositeFilter { Logic = And, Filters = filters };
+                    : new MultiFilter { Logic = And, Filters = filters };
             }
 
             return await _handleSearchQuery.Search<Appointment, AppointmentInfo>(new SearchQuery<AppointmentInfo>(searchQueryInfo), ct)

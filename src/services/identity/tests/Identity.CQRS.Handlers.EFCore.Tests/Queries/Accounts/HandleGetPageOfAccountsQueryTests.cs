@@ -92,14 +92,18 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             // Arrange
             Guid tenantId = Guid.NewGuid();
             IEnumerable<Account> accounts = new Faker<Account>()
-                .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
-                                                         tenantId: tenantId,
-                                                         email: faker.Internet.Email(),
-                                                         username: faker.Person.UserName,
-                                                         passwordHash: string.Empty,
-                                                         salt: string.Empty)
-                {
-                    CreatedDate = faker.Date.Recent()
+                .CustomInstantiator(faker => {
+                    Account account = new Account(id: Guid.NewGuid(),
+                               tenantId: tenantId,
+                               email: faker.Internet.Email(),
+                               username: faker.Person.UserName,
+                               passwordHash: string.Empty,
+                               salt: string.Empty)
+                    {
+                        CreatedDate = faker.Date.Recent()
+                    };
+
+                    return account;
                 })
                 .Generate(10);
 
@@ -119,16 +123,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)
-                .ConfigureAwait(false);
+                                                         .ConfigureAwait(false);
 
             // Assert
-            pageOfAccounts.Should()
-                .NotBeNull();
+            pageOfAccounts.Should().NotBeNull();
             pageOfAccounts.Count.Should().Be(1);
             pageOfAccounts.Entries.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .HaveCount(10);
+                                  .NotBeNull().And
+                                  .NotContainNulls().And
+                                  .HaveCount(10);
         }
     }
 }

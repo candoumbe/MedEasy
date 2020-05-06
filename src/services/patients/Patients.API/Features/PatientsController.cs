@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Optional;
@@ -47,7 +48,7 @@ namespace Patients.API.Controllers
         /// <param name="apiOptions"></param>
         /// <param name="expressionBuilder"></param>
         /// <param name="uowFactory"></param>
-        public PatientsController(ILogger<PatientsController> logger, IUrlHelper urlHelper, IOptionsSnapshot<PatientsApiOptions> apiOptions, IExpressionBuilder expressionBuilder, IUnitOfWorkFactory uowFactory)
+        public PatientsController(ILogger<PatientsController> logger, LinkGenerator urlHelper, IOptionsSnapshot<PatientsApiOptions> apiOptions, IExpressionBuilder expressionBuilder, IUnitOfWorkFactory uowFactory)
             : base(logger, uowFactory, expressionBuilder, urlHelper) => ApiOptions = apiOptions;
 
         /// <summary>
@@ -84,16 +85,16 @@ namespace Patients.API.Controllers
                 int count = result.Entries.Count();
                 bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-                string firstPageUrl = UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+                string firstPageUrl = UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
                 string previousPageUrl = hasPreviousPage
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                         : null;
 
                 string nextPageUrl = pagination.Page < result.Count
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                         : null;
                 string lastPageUrl = result.Count > 0
-                        ? UrlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                         : firstPageUrl;
 
                 IEnumerable<Browsable<PatientInfo>> resources = result.Entries
@@ -105,7 +106,7 @@ namespace Patients.API.Controllers
                             new Link
                             {
                                 Relation = LinkRelation.Self,
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
+                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                             }
                         }
                     });
@@ -155,13 +156,13 @@ namespace Patients.API.Controllers
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
-                                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
+                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
                                         Method = "GET"
                                     },
                                     new Link
                                     {
                                         Relation = "delete",
-                                        Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
+                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
                                         Method = "DELETE"
                                     }
                             }
@@ -214,7 +215,7 @@ namespace Patients.API.Controllers
                         {
                             Relation = "delete",
                             Method = "DELETE",
-                            Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })
+                            Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })
                         }
                     }
                 });
@@ -408,7 +409,7 @@ namespace Patients.API.Controllers
             {
                 Filter = filters.Count == 1
                     ? filters.Single()
-                    : new CompositeFilter { Logic = FilterLogic.And, Filters = filters },
+                    : new MultiFilter { Logic = FilterLogic.And, Filters = filters },
                 Page = search.Page,
                 PageSize = search.PageSize,
                 Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending)
@@ -431,11 +432,11 @@ namespace Patients.API.Controllers
                             {
                                 Method = "GET",
                                 Relation = LinkRelation.Self,
-                                Href = UrlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, x.Id })
+                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, x.Id })
                             }
                             }
                         }),
-                        first: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                        first: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
                             search.Firstname,
@@ -446,7 +447,7 @@ namespace Patients.API.Controllers
                             search.PageSize
                         }),
                         previous: search.Page > 1
-                            ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
@@ -458,7 +459,7 @@ namespace Patients.API.Controllers
                             })
                             : null,
                         next: pageOfResources.Count > search.Page
-                            ? UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
@@ -469,7 +470,7 @@ namespace Patients.API.Controllers
                                 search.PageSize
                             })
                             : null,
-                        last: UrlHelper.Link(RouteNames.DefaultSearchResourcesApi, new
+                        last: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
                             search.Firstname,

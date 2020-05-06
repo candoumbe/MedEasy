@@ -35,24 +35,21 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             _expressionBuilder = expressionBuilder;
         }
 
-        public async Task<Page<AccountInfo>> Handle(GetPageOfAccountsQuery request, CancellationToken ct)
+        public Task<Page<AccountInfo>> Handle(GetPageOfAccountsQuery request, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                PaginationConfiguration data = request.Data;
-                Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account, AccountInfo>();
-                Page<AccountInfo> result = await uow.Repository<Account>()
-                    .ReadPageAsync(
-                        selector: selector,
-                        pageSize: data.PageSize,
-                        page: data.Page,
-                        orderBy: new Sort<Account>(nameof(Account.Id), SortDirection.Descending),
-                        ct: ct)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                return await new ValueTask<Page<AccountInfo>>(result)
-                    .ConfigureAwait(false);
-            }
+            PaginationConfiguration data = request.Data;
+            Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account, AccountInfo>();
+
+            return uow.Repository<Account>()
+                      .ReadPageAsync(
+                            selector: selector,
+                            pageSize: data.PageSize,
+                            page: data.Page,
+                            orderBy: new Sort<AccountInfo>(nameof(AccountInfo.UpdatedDate), SortDirection.Descending),
+                            ct: ct)
+                      .AsTask();
         }
     }
 }

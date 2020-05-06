@@ -17,6 +17,6 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Last time the resource was updated
         /// </summary>
-        DateTimeOffset UpdatedDate { get; }
+        DateTime UpdatedDate { get; }
     }
 }

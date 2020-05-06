@@ -12,9 +12,11 @@ using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Optional;
 using System;
@@ -28,7 +30,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 namespace Identity.API.Features.v1.Accounts
 {
     /// <summary>
-    /// Handles <see cref="Account"/>s resources
+    /// Handles <see cref="AccountInfo"/>s resources
     /// </summary>
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
@@ -39,15 +41,24 @@ namespace Identity.API.Features.v1.Accounts
         public static string EndpointName => nameof(AccountsController)
             .Replace(nameof(Controller), string.Empty);
 
-        private readonly IUrlHelper _urlHelper;
+        private readonly LinkGenerator _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
         private readonly IMediator _mediator;
+        private readonly ApiVersion _apiVersion;
 
-        public AccountsController(IUrlHelper urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
+        /// <summary>
+        /// Builds a new <see cref="AccountsController"/> instance.
+        /// </summary>
+        /// <param name="urlHelper">helper class to build urls</param>
+        /// <param name="apiOptions"></param>
+        /// <param name="mediator"></param>
+        /// <param name="apiVersion"></param>
+        public AccountsController(LinkGenerator urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
             _mediator = mediator;
+            _apiVersion = apiVersion;
         }
 
         /// <summary>
@@ -72,24 +83,31 @@ namespace Identity.API.Features.v1.Accounts
             Page<AccountInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
+            string version = _apiVersion?.ToString();
+
             GenericPagedGetResponse<Browsable<AccountInfo>> result = new GenericPagedGetResponse<Browsable<AccountInfo>>(
                 page.Entries.Select(resource => new Browsable<AccountInfo>
                 {
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link {}
+                        new Link
+                        {
+                            Relation = Self,
+                            Method = "GET",
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, resource.Id, version})
+                        }
                     }
                 }),
 
-                first: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize, version }),
                 previous: paginationConfiguration.Page > 1 && page.Count > 1
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize, version })
                     : null,
                 next: paginationConfiguration.Page < page.Count
-                    ? _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize, version })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize, version }),
                 total: page.Total
             );
 
@@ -113,25 +131,14 @@ namespace Identity.API.Features.v1.Accounts
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            IActionResult actionResult;
-            switch (cmdResult)
+            return cmdResult switch
             {
-                case DeleteCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case DeleteCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-                    break;
-                case DeleteCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case DeleteCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> result");
-            }
-            return actionResult;
+                DeleteCommandResult.Done => new NoContentResult(),
+                DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
+                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException(nameof(cmdResult), cmdResult, $"Unexpected <{cmdResult}> result"),
+            };
         }
 
         /// <summary>
@@ -147,18 +154,20 @@ namespace Identity.API.Features.v1.Accounts
             Option<AccountInfo> optionalAccount = await _mediator.Send(new GetOneAccountByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
+            string version = _apiVersion?.ToString();
+
             return optionalAccount.Match(
                 some: account =>
                {
                    IList<Link> links = new List<Link>
                    {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }) }
                    };
 
                    if (account.TenantId.HasValue)
                    {
-                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId }) });
+                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId, version }) });
                    }
 
                    Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
@@ -220,27 +229,14 @@ namespace Identity.API.Features.v1.Accounts
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            IActionResult actionResult;
-            switch (cmdResult)
+            return cmdResult switch
             {
-                case ModifyCommandResult.Done:
-                    actionResult = new NoContentResult();
-                    break;
-                case ModifyCommandResult.Failed_Unauthorized:
-                    actionResult = new UnauthorizedResult();
-
-                    break;
-                case ModifyCommandResult.Failed_NotFound:
-                    actionResult = new NotFoundResult();
-                    break;
-                case ModifyCommandResult.Failed_Conflict:
-                    actionResult = new StatusCodeResult(Status409Conflict);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected <{cmdResult}> patch result");
-            }
-
-            return actionResult;
+                ModifyCommandResult.Done => new NoContentResult(),
+                ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new ArgumentOutOfRangeException(nameof(cmdResult), cmdResult, $"Unexpected <{cmdResult}> patch result"),
+            };
         }
 
         /// <summary>
@@ -255,42 +251,39 @@ namespace Identity.API.Features.v1.Accounts
         [HttpPost]
         [AllowAnonymous]
         [ProducesResponseType(typeof(Browsable<AccountInfo>), Status201Created)]
-        public async Task<IActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
+        public async Task<ActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
         {
             CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
 
             Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
-            return optionalAccount.Match(
+            return optionalAccount.Match<ActionResult>(
                 some: account =>
                 {
+                    string version = _apiVersion?.ToString();
                     Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
                     {
                         Resource = account,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.Link(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, account.Id}) }
+                            new Link
+                            {
+                                Relation = Self,
+                                Method = "GET",
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, account.Id , version})
+                            }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }, browsableResource);
                 },
-                none: cmdError =>
+                none: cmdError => cmdError switch
                 {
-                    IActionResult actionResult;
-                    switch (cmdError)
-                    {
-                        case CreateCommandResult.Failed_Conflict:
-                            actionResult = new StatusCodeResult(Status409Conflict);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account");
-                    }
-                    return actionResult;
+                    CreateCommandResult.Failed_Conflict => new ConflictResult(),
+                    _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account")
                 });
         }
-
 
         /// <summary>
         /// Search for accounts
@@ -302,7 +295,6 @@ namespace Identity.API.Features.v1.Accounts
         [HttpHead("search")]
         public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
-
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
             IList<IFilter> filters = new List<IFilter>();
 
@@ -319,8 +311,8 @@ namespace Identity.API.Features.v1.Accounts
             {
                 Page = search.Page,
                 PageSize = search.PageSize,
-                Filter = filters.Skip(1).Any()
-                    ? new CompositeFilter { Logic = FilterLogic.And, Filters = filters }
+                Filter = filters.Count > 1
+                    ? new MultiFilter { Logic = FilterLogic.And, Filters = filters }
                     : filters.Single(),
 
                 Sort = search.Sort?.ToSort<SearchAccountInfoResult>() ?? new Sort<SearchAccountInfoResult>(nameof(SearchAccountInfoResult.UpdatedDate), SortDirection.Descending)
@@ -330,6 +322,7 @@ namespace Identity.API.Features.v1.Accounts
                 .ConfigureAwait(false);
 
             bool hasNextPage = search.Page < searchResult.Count;
+            string version = _apiVersion?.ToString();
             return new OkObjectResult(new GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>(
 
                 items: searchResult.Entries.Select(x => new Browsable<SearchAccountInfoResult>
@@ -340,11 +333,11 @@ namespace Identity.API.Features.v1.Accounts
                         new Link { Relation = Self, Method = "GET" }
                     }
                 }),
-                first: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }),
                 next: hasNextPage
-                    ? _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version })
                     : null,
-                last: _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }),
                 total: searchResult.Total
             ));
         }

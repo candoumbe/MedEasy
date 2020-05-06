@@ -56,8 +56,7 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                     new ClaimInfo{ Type = CustomClaimTypes.Location, Value = authInfo.Location}
                 }.Union(audiences.Select(audience => new ClaimInfo { Type = JwtRegisteredClaimNames.Aud, Value = audience }));
 
-            IEnumerable<ClaimInfo> accessTokenClaims = refreshTokenClaims
-            .Union(accountInfo.Claims);
+            IEnumerable<ClaimInfo> accessTokenClaims = refreshTokenClaims.Union(accountInfo.Claims);
 
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
 
@@ -68,6 +67,7 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                 Key = jwtInfos.Key,
                 LifetimeInMinutes = jwtInfos.AccessTokenLifetime
             };
+
             CreateSecurityTokenCommand createAccessTokenCommand = new CreateSecurityTokenCommand((jwtAccessTokenOptions, accessTokenClaims));
             Task<SecurityToken> accessTokenTask = _handleCreateSecurityTokenCommand.Handle(createAccessTokenCommand, ct);
 
@@ -84,26 +84,24 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
             await Task.WhenAll(accessTokenTask, refreshTokenTask)
                 .ConfigureAwait(false);
 
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+            Account authenticatedAccount = await uow.Repository<Account>()
+                                                    .SingleAsync(x => x.Id == accountInfo.Id, ct)
+                                                    .ConfigureAwait(false);
+
+            SecurityToken accessToken = await accessTokenTask;
+            SecurityToken refreshToken = await refreshTokenTask;
+
+            authenticatedAccount.ChangeRefreshToken(refreshToken.ToString());
+
+            await uow.SaveChangesAsync(ct)
+                     .ConfigureAwait(false);
+
+            return new AuthenticationTokenInfo
             {
-                Account authenticatedAccount = await uow.Repository<Account>()
-                    .SingleAsync(x => x.Id == accountInfo.Id, ct)
-                    .ConfigureAwait(false);
-
-                SecurityToken accessToken = await accessTokenTask;
-                SecurityToken refreshToken = await refreshTokenTask;
-
-                authenticatedAccount.ChangeRefreshToken(refreshToken.ToString());
-
-                await uow.SaveChangesAsync(ct)
-                    .ConfigureAwait(false);
-
-                return new AuthenticationTokenInfo
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                };
-            }
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
         }
     }
 }

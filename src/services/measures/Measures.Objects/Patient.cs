@@ -67,7 +67,7 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure"></param>
         /// <param name="systolic"></param>
         /// <param name="diastolic"></param>
-        public void AddBloodPressure(Guid measureId, DateTimeOffset dateOfMeasure, float systolic, float diastolic)
+        public void AddBloodPressure(Guid measureId, DateTime dateOfMeasure, float systolic, float diastolic)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
@@ -94,7 +94,7 @@ namespace Measures.Objects
         /// <param name="measureId">id of the measure. this could later be used to retrieve the created measure.</param>
         /// <param name="dateOfMeasure"></param>
         /// <param name="value">The new temperature value to add</param>
-        public void AddTemperature(Guid measureId, DateTimeOffset dateOfMeasure, float value)
+        public void AddTemperature(Guid measureId, DateTime dateOfMeasure, float value)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {

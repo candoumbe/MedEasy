@@ -1,17 +1,22 @@
 <Project>
-	<Import Project="core.props"/>
+  <Import Project="core.props"/>
 
   <PropertyGroup>
-    <IsPackage>false</IsPackage>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.*" />
+    <PackageReference Include="xunit" Version="2.4.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="xunit.categories" Version="2.0.4" />
-    <PackageReference Include="FluentAssertions" Version="5.7.0" />
+    <PackageReference Include="FluentAssertions" Version="5.*" />
     <PackageReference Include="Bogus" Version="23.0.2" />
-    <PackageReference Include="Moq" Version="4.10.1" />
-    
-	</ItemGroup>
+    <PackageReference Include="Moq" Version="4.*" />
+    <PackageReference Include="FakeItEasy" Version="5.*"/>
+    <PackageReference Include="coverlet.msbuild" Version="2.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.*"/>
+  </ItemGroup>
 </Project>

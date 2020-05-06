@@ -16,6 +16,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Linq.Expressions.ExpressionExtensions;
+
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
     public class HandleGetPageOfAppointmentInfoQuery : IRequestHandler<GetPageOfAppointmentInfoQuery, Page<AppointmentInfo>>
@@ -37,22 +38,23 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             _dateTimeService = dateTimeService;
         }
 
-        public async Task<Page<AppointmentInfo>> Handle(GetPageOfAppointmentInfoQuery request, CancellationToken ct)
+        /// <inheritdoc/>
+        public async Task<Page<AppointmentInfo>> Handle(GetPageOfAppointmentInfoQuery request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-            {
-                Expression<Func<Appointment, AppointmentInfo>> selector = _expressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
-                DateTimeOffset now = _dateTimeService.UtcNowOffset();
-                return await uow.Repository<Appointment>()
-                    .WhereAsync(
-                        selector,
-                        (AppointmentInfo x) =>  (x.StartDate <= now && now <= x.EndDate) || now <= x.EndDate,
-                        new Sort<AppointmentInfo>(nameof(AppointmentInfo.StartDate)),
-                        request.Data.PageSize,
-                        request.Data.Page,
-                        ct)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+
+            Expression<Func<Appointment, AppointmentInfo>> selector = _expressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
+            DateTimeOffset utcNow = _dateTimeService.UtcNowOffset();
+
+            return await uow.Repository<Appointment>()
+                .WhereAsync(
+                    selector,
+                    (Appointment x) => (x.StartDate.CompareTo(utcNow) <= 0 && utcNow.CompareTo(x.EndDate) <= 0) || utcNow.CompareTo(x.EndDate) <= 0,
+                    new Sort<AppointmentInfo>(nameof(Appointment.StartDate)),
+                    request.Data.PageSize,
+                    request.Data.Page,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

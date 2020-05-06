@@ -32,58 +32,46 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
         {
             LoginInfo data = request.Data;
             DateTimeOffset now = _dateTimeService.UtcNowOffset();
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<RoleClaim, ClaimInfo>> roleClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<RoleClaim, ClaimInfo>();
-                Expression<Func<AccountClaim, ClaimInfo>> userClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<AccountClaim, ClaimInfo>();
-                var optionalUser = await uow.Repository<Account>()
-                    .SingleOrDefaultAsync(
-                        x => new
-                        {
-                            x.Id,
-                            x.Name,
-                            x.Username,
-                            x.Email,
-                            Roles = x.Roles
-                                .Select(r => r.Id)
-                                .ToList()
-                        },
-                        (Account x) => x.Username == data.Username && x.PasswordHash == data.Password,
-                        ct
-                    )
-                    .ConfigureAwait(false);
+            IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-
-                return await optionalUser.Match(
-                    some: async account =>
+            Expression<Func<RoleClaim, ClaimInfo>> roleClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<RoleClaim, ClaimInfo>();
+            Expression<Func<AccountClaim, ClaimInfo>> userClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<AccountClaim, ClaimInfo>();
+            var optionalUser = await uow.Repository<Account>()
+                .SingleOrDefaultAsync(
+                    x => new
                     {
-                        IEnumerable<ClaimInfo> accountClaims = await uow.Repository<AccountClaim>()
-                            .WhereAsync(
-                                userClaimToClaimInfoSelector,
-                                ac => ac.AccountId == account.Id, 
-                                ct)
-                            .ConfigureAwait(false);
-                        //IEnumerable<ClaimInfo> claimsFromRoles = await uow.Repository<RoleClaim>()
-                        //    .WhereAsync(
-                        //        roleClaimToClaimInfoSelector,
-                        //        (RoleClaim rc) => account.Roles.Any(roleId => roleId == rc.RoleId) && !account.AccountClaims.Any(uc => uc.Type == rc.Claim.Type),
-                        //        ct
-                        //    )
-                        //    .ConfigureAwait(false);
-
-                        AccountInfo accountInfo = new AccountInfo
-                        {
-                            Id = account.Id,
-                            Name = account.Name ?? account.Username,
-                            Username = account.Username,
-                            Email = account.Email,
-                            Claims = accountClaims
-                        };
-                        return Option.Some(accountInfo);
+                        x.Id,
+                        x.Name,
+                        x.Username,
+                        x.Email,
+                        Roles = x.Roles
+                            .Select(ar => new RoleInfo { Name = ar.Role.Code, Claims = ar.Role.Claims.Select(rc => new ClaimInfo { Type = rc.Claim.Type, Value = rc.Claim.Value }) })
+                            .ToList(),
+                        Claims = x.Claims.Select(rc => new ClaimInfo { Type = rc.Claim.Type, Value = rc.Claim.Value })
                     },
-                    none: () => Task.FromResult(Option.None<AccountInfo>())
-                ).ConfigureAwait(false);
-            }
+                    (Account x) => x.Username == data.Username && x.PasswordHash == data.Password,
+                    ct
+                )
+                .ConfigureAwait(false);
+
+
+            return optionalUser.Match(
+                some: account =>
+                {
+                    AccountInfo accountInfo = new AccountInfo
+                    {
+                        Id = account.Id,
+                        Name = account.Name ?? account.Username,
+                        Username = account.Username,
+                        Email = account.Email,
+                        Roles = account.Roles,
+                        Claims = account.Claims
+                    };
+                    return Option.Some(accountInfo);
+                },
+                none: () => Option.None<AccountInfo>()
+            );
+
         }
     }
 }

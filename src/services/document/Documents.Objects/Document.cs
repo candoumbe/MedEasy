@@ -19,7 +19,6 @@ namespace Documents.Objects
 
         public const string DefaultMimeType = "application/octect-stream";
 
-
         public Document(Guid id, string name, string mimeType = DefaultMimeType) : base(id)
         {
             Name = name;
@@ -42,6 +41,8 @@ namespace Documents.Objects
         /// <returns><c>true</c> if <see cref="other"/> has same content as the current instance 
         /// and <c>false</c> otherwise</returns>
         public bool IsEquivalentTo(Document other) => Hash.Equals(other.Hash);
+
+
         public void ChangeMimeTypeTo(string mimeType) => MimeType = mimeType;
     }
 }

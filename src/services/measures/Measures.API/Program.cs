@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
@@ -27,14 +28,15 @@ namespace Measures.API
         /// </summary>
         public static async Task Main(string[] args)
         {
-            IWebHost host = CreateWebHostBuilder(args)
+            IHost host = CreateHostBuilder(args)
                 .Build();
 
             using IServiceScope scope = host.Services.CreateScope();
+            
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             MeasuresContext context = services.GetRequiredService<MeasuresContext>();
-            IHostingEnvironment environment = services.GetRequiredService<IHostingEnvironment>();
+            IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
 
             logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
 
@@ -76,21 +78,21 @@ namespace Measures.API
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder(args)
-               .UseStartup<Startup>()
-               .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
-               .UseSerilog((hosting, loggerConfig) => loggerConfig
-                    .MinimumLevel.Verbose()
-                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .ReadFrom.Configuration(hosting.Configuration)
-                )
-            .ConfigureLogging((options) => {
-                   options.ClearProviders() // removes all default providers
-                       .AddSerilog()
-                       .AddConsole();
-               })
-            ;
+        public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
+                                                                           .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
+                                                                                                                       .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                                                                                                                       .UseSerilog((hosting, loggerConfig) => loggerConfig
+                                                                                                                            .MinimumLevel.Verbose()
+                                                                                                                            .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                                                                                                                            .Enrich.FromLogContext()
+                                                                                                                            .WriteTo.Console()
+                                                                                                                            .ReadFrom.Configuration(hosting.Configuration)
+                                                                                                                        ))
+                                                                            .ConfigureLogging((options) =>
+                                                                            {
+                                                                                options.ClearProviders() // removes all default providers
+                                                                                    .AddSerilog()
+                                                                                    .AddConsole();
+                                                                            });
     }
 }

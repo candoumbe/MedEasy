@@ -2,6 +2,7 @@
 using Identity.DTO;
 using MedEasy.Abstractions;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -20,15 +21,22 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
     public class HandleCreateJwtSecurityTokenCommand : IHandleCreateSecurityTokenCommand
     {
         private readonly IDateTimeService _dateTimeService;
+        private readonly ILogger<HandleCreateJwtSecurityTokenCommand> _logger;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreateAuthenticationTokenCommand"/> instance.
         /// </summary>
         /// <param name="dateTimeService">Service that provide methods to get current date.</param>
-        public HandleCreateJwtSecurityTokenCommand(IDateTimeService dateTimeService) => _dateTimeService = dateTimeService;
+        /// <param name="logger">Logger</param>
+        public HandleCreateJwtSecurityTokenCommand(IDateTimeService dateTimeService, ILogger<HandleCreateJwtSecurityTokenCommand> logger)
+        {
+            _dateTimeService = dateTimeService;
+            _logger = logger;
+        }
 
         public Task<SecurityToken> Handle(CreateSecurityTokenCommand cmd, CancellationToken ct)
         {
+            _logger.LogDebug("Start handling command {CommandId}", cmd.Id);
             DateTime now = _dateTimeService.UtcNow();
             (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) data = cmd.Data;
 
@@ -40,8 +48,8 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                 claims = claims.Concat(new[] { new ClaimInfo { Type = JwtRegisteredClaimNames.Jti, Value = Guid.NewGuid().ToString() } });
             }
 
-
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(data.tokenOptions.Key));
+            DateTime expires = now.AddMinutes(data.tokenOptions.LifetimeInMinutes);
             SecurityToken token = new JwtSecurityToken(
                 issuer : data.tokenOptions.Issuer,
                 audience : audiences.Any()
@@ -50,10 +58,12 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                 claims : claims.Select(claim => new Claim(claim.Type, claim.Value))
                     .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
                 notBefore: now,
-                expires: now.AddMinutes(data.tokenOptions.LifetimeInMinutes),
+                expires: expires,
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
+            _logger.LogDebug("Token will be valid from {Start} to {End}", now, expires);
 
+            _logger.LogDebug("Finished handling command {CommandId}", cmd.Id);
             return new ValueTask<SecurityToken>(token).AsTask();
         }
     }

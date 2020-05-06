@@ -42,7 +42,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IMediator> _mediatorMock;
-        private Mock<IOptionsSnapshot<JwtOptions>> _jwtOptionsMock;
+        private Mock<IOptionsMonitor<JwtOptions>> _jwtOptionsMock;
         private JwtOptions _jwtOptions;
         private Mock<IHttpContextAccessor> _httpContextMock;
         private API.Features.v2.Auth.TokenController _sut;
@@ -64,7 +64,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
                 return context;
             });
 
-            _jwtOptionsMock = new Mock<IOptionsSnapshot<JwtOptions>>(Strict);
+            _jwtOptionsMock = new Mock<IOptionsMonitor<JwtOptions>>(Strict);
             _jwtOptions = new JwtOptions
             {
                 Issuer = "identity.api",
@@ -76,7 +76,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
                 RefreshTokenLifetime = 20,
                 Key = "key_to_secure_api_access"
             };
-            _jwtOptionsMock.Setup(mock => mock.Value)
+            _jwtOptionsMock.Setup(mock => mock.CurrentValue)
                 .Returns(_jwtOptions);
             _httpContextMock = new Mock<IHttpContextAccessor>(Strict);
             _sut = new API.Features.v2.Auth.TokenController(mediator: _mediatorMock.Object, jwtOptions: _jwtOptionsMock.Object, _httpContextMock.Object);
@@ -108,7 +108,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == model.Username && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
-            _jwtOptionsMock.Verify(mock => mock.Value, Times.Never);
+            _jwtOptionsMock.Verify(mock => mock.CurrentValue, Times.Never);
 
             actionResult.Should()
                 .NotBeNull();
@@ -133,15 +133,11 @@ namespace Identity.API.UnitTests.Features.v2.Auth
                 Email = "brucewayne@gotham.com",
                 Name = "Bruce Wayne"
             };
-            _httpContextMock.Setup(mock => mock.HttpContext.Request.Headers)
-                .Returns(new HeaderDictionary(new Dictionary<string, StringValues>
-                {
-                    ["X_FORWARDED_FOR"] = new StringValues(authenticationInfo.Location)
-                }));
+            
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.Some(accountInfo));
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateAuthenticationTokenCommand cmd, CancellationToken ct) =>
+                .Returns((CreateAuthenticationTokenCommand cmd, CancellationToken _) =>
                     {
                         (AuthenticationInfo authInfo, AccountInfo localAccountInfo, JwtInfos jwtInfos) = cmd.Data;
 
@@ -164,7 +160,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
                   );
 
             // Act
-            ActionResult<BearerTokenInfo> actionResult = await _sut.Post(model, ct: default)
+            ActionResult<BearerTokenInfo> actionResult = await _sut.Post(model, new[] { authenticationInfo.Location }, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -179,7 +175,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
                 && cmd.Data.jwtInfos.AccessTokenLifetime == _jwtOptions.AccessTokenLifetime
                 && cmd.Data.jwtInfos.RefreshTokenLifetime == _jwtOptions.RefreshTokenLifetime), It.IsAny<CancellationToken>()));
 
-            _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _jwtOptionsMock.Verify(mock => mock.CurrentValue, Times.Once);
 
             actionResult.Should()
                 .NotBeNull();

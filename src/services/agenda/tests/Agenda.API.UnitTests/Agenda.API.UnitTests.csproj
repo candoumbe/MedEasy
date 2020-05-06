@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\..\tests.props" />
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
+    <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
+    <ProjectReference Include="..\..\Agenda.API\Agenda.API.csproj" />
+  </ItemGroup>
+
+</Project>

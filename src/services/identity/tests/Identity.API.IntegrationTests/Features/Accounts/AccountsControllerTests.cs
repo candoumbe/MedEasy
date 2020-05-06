@@ -22,14 +22,14 @@ using System.Net.Http.Headers;
 using Bogus;
 using Identity.DTO.v1;
 using Identity.API.Features.v1.Accounts;
-using Identity.API.Fixtures;
+using Identity.API.Fixtures.v1;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
     [IntegrationTest]
     [Feature("Accounts")]
     [Feature("Identity")]
-    public class AccountsControllerTests : IDisposable, IClassFixture<IdentityApiFixture>
+    public class AccountsControllerTests : IClassFixture<IdentityApiFixture>
     {
         private IdentityApiFixture _identityApiFixture;
         private ITestOutputHelper _outputHelper;
@@ -39,13 +39,6 @@ namespace Identity.API.IntegrationTests.Features.Accounts
         {
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
-        }
-
-        public void Dispose()
-        {
-            _outputHelper = null;
-
-            _identityApiFixture = null;
         }
 
         [Fact]
@@ -83,55 +76,52 @@ namespace Identity.API.IntegrationTests.Features.Accounts
                 Email = faker.Person.Email
             };
 
-            using (HttpClient httpClient = _identityApiFixture.CreateClient())
-            {
-                _outputHelper.WriteLine($"Address : {httpClient.BaseAddress}");
+            using HttpClient httpClient = _identityApiFixture.CreateClient();
+            _outputHelper.WriteLine($"Address : {httpClient.BaseAddress}");
 
-                // Act
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount)
-                    .ConfigureAwait(false);
+            // Act
+            using HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount)
+                                                                 .ConfigureAwait(false);
 
-                // Assert
-                _outputHelper.WriteLine($"Response : {response}");
-                response.IsSuccessStatusCode.Should()
-                    .BeTrue();
-                response.StatusCode.Should()
-                    .Be(Status201Created);
+            // Assert
+            _outputHelper.WriteLine($"Response : {response}");
+            response.IsSuccessStatusCode.Should()
+                .BeTrue();
+            response.StatusCode.Should()
+                .Be(Status201Created);
 
-                string jsonResponse = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string jsonResponse = await response.Content.ReadAsStringAsync()
+                                                        .ConfigureAwait(false);
 
-                JToken jsonToken = JToken.Parse(jsonResponse);
-                JSchema responseSchema = new JSchemaGenerator()
-                    .Generate(typeof(Browsable<AccountInfo>));
-                jsonToken.IsValid(responseSchema);
+            JToken jsonToken = JToken.Parse(jsonResponse);
+            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<AccountInfo>));
+            jsonToken.IsValid(responseSchema);
 
-                Browsable<AccountInfo> browsableResource = jsonToken.ToObject<Browsable<AccountInfo>>();
+            Browsable<AccountInfo> browsableResource = jsonToken.ToObject<Browsable<AccountInfo>>();
 
-                IEnumerable<Link> links = browsableResource.Links;
-                links.Should()
-                    .NotBeEmpty().And
-                    .NotContainNulls().And
-                    .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"{nameof(Link.Href)} must be explicitely specified for each link").And
-                    .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"{nameof(Link.Relation)} must be explicitely specified for each link").And
-                    .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"{nameof(Link.Method)} must be explicitely specified for each link").And
-                    .Contain(link => link.Relation == LinkRelation.Self, $"a direct link to the resource must be provided").And
-                    .HaveCount(1);
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                .NotBeEmpty().And
+                .NotContainNulls().And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"{nameof(Link.Href)} must be explicitely specified for each link").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"{nameof(Link.Relation)} must be explicitely specified for each link").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"{nameof(Link.Method)} must be explicitely specified for each link").And
+                .Contain(link => link.Relation == LinkRelation.Self, $"a direct link to the resource must be provided").And
+                .HaveCount(1);
 
-                Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
-                linkToSelf.Method.Should()
-                    .Be("GET");
+            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+            linkToSelf.Method.Should()
+                             .Be("GET");
 
-                AccountInfo createdAccountInfo = browsableResource.Resource;
+            AccountInfo createdAccountInfo = browsableResource.Resource;
 
-                createdAccountInfo.Name.Should()
-                    .Be(newAccount.Name);
-                createdAccountInfo.Email.Should()
-                    .Be(newAccount.Email);
+            createdAccountInfo.Name.Should()
+                                   .Be(newAccount.Name);
+            createdAccountInfo.Email.Should()
+                .Be(newAccount.Email);
 
-                createdAccountInfo.Id.Should()
-                    .NotBeEmpty();
-            }
+            createdAccountInfo.Id.Should()
+                .NotBeEmpty();
         }
 
         [Fact]
@@ -152,32 +142,30 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
             _outputHelper.WriteLine($"Registering account {newAccount}");
 
-            BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
+            BearerTokenInfo bearerInfo = await _identityApiFixture.RegisterAndConnect(newAccount)
                 .ConfigureAwait(false);
 
-            using (HttpClient client = _identityApiFixture.CreateClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken);
+            using HttpClient client = _identityApiFixture.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken);
 
-                // Act
-                HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts?page=1")
-                    .ConfigureAwait(false);
+            // Act
+            using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts?page=1")
+                .ConfigureAwait(false);
 
-                // Assert
-                _outputHelper.WriteLine($"Response : {response}");
-                _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+            // Assert
+            _outputHelper.WriteLine($"Response : {response}");
+            _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
-                response.IsSuccessStatusCode.Should().BeTrue();
-                response.StatusCode.Should().Be(Status200OK);
+            response.IsSuccessStatusCode.Should().BeTrue();
+            response.StatusCode.Should().Be(Status200OK);
 
-                string jsonResponse = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string jsonResponse = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                JToken jsonToken = JToken.Parse(jsonResponse);
-                JSchema responseSchema = new JSchemaGenerator()
-                    .Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
-                jsonToken.IsValid(responseSchema);
-            }
+            JToken jsonToken = JToken.Parse(jsonResponse);
+            JSchema responseSchema = new JSchemaGenerator()
+                .Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
+            jsonToken.IsValid(responseSchema);
         }
 
         //[Fact]

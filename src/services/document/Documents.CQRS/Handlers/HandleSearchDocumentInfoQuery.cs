@@ -15,7 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using static DataFilters.FilterLogic;
 
-
 namespace Documents.CQRS.Handlers
 {
     public class HandleSearchDocumentInfoQuery : IRequestHandler<SearchDocumentInfoQuery, Page<DocumentInfo>>
@@ -51,7 +50,7 @@ namespace Documents.CQRS.Handlers
             {
                 searchQueryInfo.Filter = filters.Once()
                     ? filters.Single()
-                    : new CompositeFilter { Logic = And, Filters = filters };
+                    : new MultiFilter { Logic = And, Filters = filters };
             }
 
             return await _handleSearchQuery.Search<Document, DocumentInfo>(new SearchQuery<DocumentInfo>(searchQueryInfo), cancellationToken)

@@ -33,6 +33,6 @@ namespace MedEasy.DTO.Search
         public IFilter Filter { get; set; }
 
 
-        public override string ToString() => this.Stringify();
+        public override string ToString() => this.Jsonify();
     }
 }

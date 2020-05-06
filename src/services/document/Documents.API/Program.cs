@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
@@ -24,7 +25,7 @@ namespace Documents.API
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             DocumentsStore context = services.GetRequiredService<DocumentsStore>();
-            IHostingEnvironment hostingEnvironment = services.GetRequiredService<IHostingEnvironment>();
+            IHostEnvironment hostingEnvironment = services.GetRequiredService<IHostEnvironment>();
             logger?.LogInformation("Starting {ApplicationContext}", hostingEnvironment.ApplicationName);
 
             try
