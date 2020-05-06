@@ -1,4 +1,4 @@
-﻿namespace Documents.API
+﻿namespace Agenda.API
 {
     public class JwtOptions
     {
@@ -7,6 +7,5 @@
         public string Audience { get; set; }
 
         public string Issuer { get; set; }
-
     }
 }

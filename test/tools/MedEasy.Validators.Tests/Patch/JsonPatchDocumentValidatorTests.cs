@@ -75,12 +75,7 @@ namespace MedEasy.Validators.Tests.Patch
                                 && vr.Errors.Exactly(1)
                                 && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
                                     && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname)}""".Equals(x.ErrorMessage)
-                                )
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && x.ErrorMessage == @"No ""test"" operation provided."
-                                )
+                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Lastname)}""".Equals(x.ErrorMessage))
                         ),
                         "Patch document has multiple operations with same values for the same path"
                     };
@@ -99,17 +94,13 @@ namespace MedEasy.Validators.Tests.Patch
                         patch,
                         (Expression<Func<ValidationResult, bool>>)(
                             vr => !vr.IsValid
-                                && vr.Errors.Exactly(2)
+                                && vr.Errors.Once()
                                 && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
                                     && x.Severity == Warning
-                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage)
-                                )
-                                && vr.Errors.Once(x => x.PropertyName == nameof(JsonPatchDocument<SuperHero>.Operations)
-                                    && x.Severity == Warning
-                                    && x.ErrorMessage == @"No ""test"" operation provided."
+                                    && $@"Multiple operations on the same path : ""/{nameof(SuperHero.Firstname).ToLower()}"", ""/{nameof(SuperHero.Lastname).ToLower()}""".Equals(x.ErrorMessage, StringComparison.OrdinalIgnoreCase)
                                 )
                         ),
-                        "Patch document has multiple operations with same values for two differents paths"
+                        "Patch document has multiple operations with different values for two differents paths"
                     };
                 }
 
@@ -134,7 +125,7 @@ namespace MedEasy.Validators.Tests.Patch
             }
         }
 
-        [Theory(Skip = "Needs more work")]
+        [Theory]
         [MemberData(nameof(InvalidPatchDocumentsCases))]
         public void ShouldFails_WithError(JsonPatchDocument<SuperHero> patchDocument, Expression<Func<ValidationResult, bool>> expectation, string because)
             => Test(patchDocument, expectation, because);

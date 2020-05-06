@@ -2,49 +2,42 @@
 using Agenda.DataStores;
 using Agenda.Mapping;
 using Agenda.Validators;
+
 using AutoMapper;
+
 using FluentValidation.AspNetCore;
+
 using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.Validators;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Cors;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using System.Text.Json;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
+
+using System;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API
 {
@@ -68,6 +61,7 @@ namespace Agenda.API
                         builder.AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowAnyOrigin()
+                            //.AllowCredentials()
                     );
                 })
                 .AddControllers(options =>
@@ -77,22 +71,21 @@ namespace Agenda.API
                     options.Filters.Add<HandleErrorAttribute>();
                     options.Filters.Add<AddCountHeadersFilterAttribute>();
 
-                    AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                       .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    AuthorizationPolicy policy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
                        .RequireAuthenticatedUser()
                        .Build();
 
                     options.Filters.Add(new AuthorizeFilter(policy));
                 })
-                //.AddFluentValidation(options =>
-                //{
-                //    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
-                //    options.LocalizationEnabled = true;
-                //    options
-                //        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                //        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
-                //        ;
-                //})
+                .AddFluentValidation(options =>
+                {
+                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                    options.LocalizationEnabled = true;
+                    options
+                        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
+                        ;
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
@@ -101,7 +94,6 @@ namespace Agenda.API
                 })
                 .AddXmlSerializerFormatters();
 
-           
             //services.Configure<ApiBehaviorOptions>(options =>
             //{
             //    options.InvalidModelStateResponseFactory = (context) =>
@@ -213,6 +205,13 @@ namespace Agenda.API
                 options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
             });
 
+            services.Configure<JwtOptions>((options) =>
+            {
+                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
+                options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
+                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
+            });
+
             return services;
         }
 
@@ -290,9 +289,11 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services
+                .AddAuthorization()
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -301,9 +302,9 @@ namespace Agenda.API
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration["Authentication:JwtBearer:Issuer"],
-                        ValidAudience = configuration["Authentication:JwtBearer:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:Key"])),
+                        ValidIssuer =   configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                        ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
                     };
                 });
 

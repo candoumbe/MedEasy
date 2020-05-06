@@ -1,4 +1,6 @@
-﻿namespace Identity.DTO.v2
+﻿using System;
+
+namespace Identity.DTO.v2
 {
     /// <summary>
     /// Wraps informations on tokens provided by the identity API
@@ -20,5 +22,7 @@
         /// This token as a longer lifetime than <see cref="RefreshToken"/>
         /// </remarks>
         public TokenInfo RefreshToken { get; set; }
+
+        public override string ToString() => this.Jsonify();
     }
 }

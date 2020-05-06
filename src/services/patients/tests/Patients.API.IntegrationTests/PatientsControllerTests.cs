@@ -1,7 +1,8 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Identity.API.Fixtures.v1;
+using Identity.API.Fixtures.v2;
 using Identity.DTO;
+using Identity.DTO.v2;
 using Patients.API;
 using Patients.DTO;
 using MedEasy.IntegrationTests.Core;
@@ -23,7 +24,6 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
-using Identity.DTO.v1;
 
 namespace Patients.API.IntegrationTests
 {
@@ -126,7 +126,7 @@ namespace Patients.API.IntegrationTests
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             LoginInfo loginInfo = new LoginInfo
@@ -136,7 +136,7 @@ namespace Patients.API.IntegrationTests
             };
 
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             // Act
             HttpResponseMessage response = await client.GetAsync("/patients")
@@ -188,11 +188,11 @@ namespace Patients.API.IntegrationTests
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
             using (HttpClient client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
                 HttpRequestMessage message = new HttpRequestMessage(method, url);
 
                 // Act
@@ -224,7 +224,7 @@ namespace Patients.API.IntegrationTests
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
-            string url = $"{_endpointUrl}/{Guid.Empty.ToString()}";
+            string url = $"{_endpointUrl}/{Guid.Empty}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             NewAccountInfo newAccountInfo = new NewAccountInfo
@@ -235,56 +235,48 @@ namespace Patients.API.IntegrationTests
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
-            using (HttpClient client = _server.CreateClient())
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            HttpRequestMessage message = new HttpRequestMessage(method, url);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(message)
+                .ConfigureAwait(false);
+
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("the requested patient id is empty");
+            ((int)response.StatusCode).Should()
+                .Be(Status400BadRequest, "the requested patient id is empty");
+
+            ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
+
+            if (method == Get)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
-                HttpRequestMessage message = new HttpRequestMessage(method, url);           
+                string content = await response.Content.ReadAsStringAsync()
+                        .ConfigureAwait(false);
 
-                // Act
-                HttpResponseMessage response = await client.SendAsync(message)
-                    .ConfigureAwait(false);
+                _outputHelper.WriteLine($"Bad request content : {content}");
 
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("the requested patient id is empty");
-                ((int)response.StatusCode).Should()
-                    .Be(Status400BadRequest, "the requested patient id is empty");
+                content.Should()
+                    .NotBeNullOrEmpty();
 
-                ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
+                JToken token = JToken.Parse(content);
+                token.IsValid(_errorObjectSchema)
 
-                if (method == Get)
-                {
-                    string content = await response.Content.ReadAsStringAsync()
-                            .ConfigureAwait(false);
+                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
-                    _outputHelper.WriteLine($"Bad request content : {content}");
-
-                    content.Should()
-                        .NotBeNullOrEmpty();
-
-                    JToken token = JToken.Parse(content);
-                    token.IsValid(_errorObjectSchema)
-
-                        .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
-
-                    ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
-                    errorObject.Title.Should()
-                        .Be("Validation failed");
-                    errorObject.Errors.Should()
+                ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
+                errorObject.Title.Should()
+                    .Be("Validation failed");
+                errorObject.Errors.Should()
+                    .HaveCount(1).And
+                    .ContainKey("id").WhichValue.Should()
                         .HaveCount(1).And
-                        .ContainKey("id").WhichValue.Should()
-                            .HaveCount(1).And
-                            .HaveElementAt(0, "'id' must have a non default value");
-                }
+                        .HaveElementAt(0, "'id' must have a non default value");
             }
         }
 
@@ -309,11 +301,11 @@ namespace Patients.API.IntegrationTests
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
             using (HttpClient client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync(url)
@@ -339,48 +331,43 @@ namespace Patients.API.IntegrationTests
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"Token : {bearerToken}");
+
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             CreatePatientInfo newPatient = new CreatePatientInfo
             {
                 Firstname = "Victor",
                 Lastname = "Freeze"
             };
-            using (HttpClient client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
 
-                // Act
-                HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient)
-                    .ConfigureAwait(false);
+            // Act
+            HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient)
+                .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
+            _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
 
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"created resource : {json}");
+            _outputHelper.WriteLine($"created resource : {json}");
 
-                string patientId = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
+            string patientId = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
 
-                //Assert
-                Uri location = response.Headers.Location;
-                _outputHelper.WriteLine($"Location of the resource : <{location}>");
-                location.Should().NotBeNull();
-                location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
-                HttpRequestMessage headMessage = new HttpRequestMessage(Head, location);
-                HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
-                    .ConfigureAwait(false);
+            //Assert
+            Uri location = response.Headers.Location;
+            _outputHelper.WriteLine($"Location of the resource : <{location}>");
+            location.Should().NotBeNull();
+            location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
+            HttpRequestMessage headMessage = new HttpRequestMessage(Head, location);
+            HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
+                .ConfigureAwait(false);
 
-                checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
-            }
+            checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
         }
 
         
@@ -403,7 +390,7 @@ namespace Patients.API.IntegrationTests
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             LoginInfo loginInfo = new LoginInfo
@@ -414,7 +401,7 @@ namespace Patients.API.IntegrationTests
 
             using (HttpClient client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
                 HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient)
                     .ConfigureAwait(false);
@@ -436,7 +423,7 @@ namespace Patients.API.IntegrationTests
                             Method = Head,
                             RequestUri = new Uri(link.Href)
                         };
-                        headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken);
+                        headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
                         // Act
                         response = await client2.SendAsync(headRequestMessage)

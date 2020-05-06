@@ -109,7 +109,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             using HttpClient client = _sut.CreateClient();
@@ -168,7 +168,7 @@ namespace Measures.API.IntegrationTests.v1
                 Email = faker.Person.Email
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                                                                .ConfigureAwait(false);
 
             HttpRequestMessage getAllRequest = new HttpRequestMessage(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");

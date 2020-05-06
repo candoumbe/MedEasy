@@ -47,11 +47,9 @@ namespace Agenda.API
                 .AddDataStores()
                 .AddCustomOptions(Configuration)
                 .AddCustomizedDependencyInjection()
-                .AddCustomApiVersioning();
-            if (HostingEnvironment.IsDevelopment())
-            {
-                services.AddCustomizedSwagger(HostingEnvironment, Configuration);
-            }
+                .AddCustomApiVersioning()
+                .AddCustomAuthenticationAndAuthorization(Configuration)
+                .AddCustomizedSwagger(HostingEnvironment, Configuration);
         }
 
         /// <summary>
@@ -100,11 +98,11 @@ namespace Agenda.API
             app.UseCors("AllowAnyOrigin");
 
             app.UseAuthentication()
-                .UseAuthorization();
+               .UseAuthorization();
 
             app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute(RouteNames.Default, "v{version:apiVersion}/{controller=health}/{action=status}", new { version = 1 });
+                routeBuilder.MapControllerRoute(RouteNames.Default, "v{version:apiVersion}/{controller=health}/{action=status}");
                 routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "v{version:apiVersion}/{controller}/{id}");
                 routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "v{version:apiVersion}/{controller}");
                 routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");

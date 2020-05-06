@@ -43,17 +43,15 @@ namespace Patients.API
         {
 
             services.AddCustomMvc(_configuration, _hostingEnvironment)
-                .AddDataStores();
-            services.AddAuthorization();
-            services.AddDependencyInjection();
-            services.ConfigureSwagger(_hostingEnvironment, _configuration);
-            services.ConfigureAuthentication(_configuration);
+                    .AddDataStores()
+                    .AddDependencyInjection()
+                    .AddCustomizedSwagger(_hostingEnvironment, _configuration)
+                    .AddCustomAuthenticationAndAuthorization(_configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory, IHostApplicationLifetime applicationLifetime)
         {
-            app.UseCors("AllowAnyOrigin");
             app.UseHttpMethodOverride();
 
             if (env.IsProduction())
@@ -85,8 +83,11 @@ namespace Patients.API
                 }
             }
             app.UseRouting();
-            
+
+            app.UseCors("AllowAnyOrigin");
+
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(routeBuilder =>
             {

@@ -43,7 +43,6 @@ namespace Documents.API.IntegrationTests.Features.v1
             _sut = sut;
         }
 
-        
         [Fact]
         public async Task GivenNoToken_HeadAll_Returns_Unauthorized()
         {
@@ -88,7 +87,7 @@ namespace Documents.API.IntegrationTests.Features.v1
                 Username = faker.Person.UserName
             };
 
-            BearerTokenInfo tokenInfo = await _identityApiFixture.Register(newAccountInfo)
+            BearerTokenInfo tokenInfo = await _identityApiFixture.RegisterAndLogIn(newAccountInfo)
                                                                  .ConfigureAwait(false);
 
             HttpContent content = new StringContent(SerializeObject(newResourceInfo), Encoding.Default, "application/json");
@@ -159,7 +158,7 @@ namespace Documents.API.IntegrationTests.Features.v1
 
             _outputHelper.WriteLine($"Registering account {newAccount.Jsonify()}");
 
-            BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
+            BearerTokenInfo bearerInfo = await _identityApiFixture.RegisterAndLogIn(newAccount)
                                                                   .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Bearer : {bearerInfo.Jsonify()}");

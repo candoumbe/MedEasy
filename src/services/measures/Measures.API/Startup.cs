@@ -64,7 +64,6 @@ namespace Measures.API
         /// <param name="provider"></param>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IHostApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
         {
-            app.UseCors("AllowAnyOrigin");
 
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
@@ -97,6 +96,7 @@ namespace Measures.API
 
             app.UseRouting();
 
+            app.UseCors("AllowAnyOrigin");
             app.UseAuthentication();
             app.UseAuthorization();
 

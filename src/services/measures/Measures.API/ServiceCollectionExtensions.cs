@@ -75,12 +75,12 @@ namespace Measures.API
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
-                //AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                //    .RequireAuthenticatedUser()
-                //    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                //    .Build();
+                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .Build();
 
-                //config.Filters.Add(new AuthorizeFilter(policy));
+                config.Filters.Add(new AuthorizeFilter(policy));
             })
             .AddFluentValidation(options =>
             {

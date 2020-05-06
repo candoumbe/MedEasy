@@ -127,7 +127,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Token : {bearerToken.Jsonify()}");
@@ -184,7 +184,7 @@ namespace Measures.API.IntegrationTests.v1
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
@@ -235,7 +235,7 @@ namespace Measures.API.IntegrationTests.v1
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             using HttpClient client = _server.CreateClient();
@@ -299,7 +299,7 @@ namespace Measures.API.IntegrationTests.v1
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
@@ -333,7 +333,7 @@ namespace Measures.API.IntegrationTests.v1
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             NewPatientModel newPatient = new NewPatientModel
@@ -462,7 +462,7 @@ namespace Measures.API.IntegrationTests.v1
                 Password = newAccountInfo.Password
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Token : {bearerToken.Jsonify()}");
@@ -520,7 +520,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            BearerTokenInfo bearerToken = await _identityServer.Register(newAccountInfo)
+            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                                                                .ConfigureAwait(false);
 
             using HttpClient client = _server.CreateClient();

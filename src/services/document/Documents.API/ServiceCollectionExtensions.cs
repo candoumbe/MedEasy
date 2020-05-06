@@ -67,6 +67,7 @@ namespace Documents.API
                 //options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
+                // The following policy forces every request to be authenticated
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()

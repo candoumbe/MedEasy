@@ -2,35 +2,58 @@ using Agenda.API.Resources.v1;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Attendees;
+
+using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using MedEasy.Core.Filters;
 using MedEasy.IntegrationTests.Core;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
+using static Moq.MockBehavior;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Optional.Collections;
+using Optional;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Agenda.API.IntegrationTests.v1
 {
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Attendees")]
-    public class AttendeesControllerTests : IClassFixture<IntegrationFixture<Startup>>, IDisposable
+    public class AttendeesControllerTests : IClassFixture<IntegrationFixture<Startup>>
     {
         private readonly IntegrationFixture<Startup> _server;
+        private readonly DummyClaimsProvider _claimsProvider;
         private ITestOutputHelper _outputHelper;
         private const string _rootEndpointUrl = "/v1";
         private const string _endpointUrl = _rootEndpointUrl + "/attendees";
@@ -81,11 +104,6 @@ namespace Agenda.API.IntegrationTests.v1
             _server = fixture;
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-        }
-
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
             get
@@ -112,15 +130,20 @@ namespace Agenda.API.IntegrationTests.v1
             string url = $"{_endpointUrl}?page={page}&pageSize={pageSize}";
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
-            // Act
-            using HttpClient client = _server.CreateClient();
+            IEnumerable<Claim> claims = new[]
+            {
+                new Claim(ClaimTypes.Name, "Bruce Wayne")
+            };
+            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
+            // Act
             using HttpResponseMessage response = await client.GetAsync(url)
-                                                       .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
             string content = await response.Content.ReadAsStringAsync()
                                                    .ConfigureAwait(false);
+
             _outputHelper.WriteLine($"Response content : {content}");
 
             response.IsSuccessStatusCode.Should().BeFalse("Invalid page and/or pageSize");
@@ -180,12 +203,17 @@ namespace Agenda.API.IntegrationTests.v1
         {
             _outputHelper.WriteLine($"search query string : {queryString}");
 
+            IEnumerable<Claim> claims = new[]
+            {
+                new Claim(ClaimTypes.Name, "Bruce Wayne")
+            };
+
             // Arrange
             string url = $"{_endpointUrl}/{nameof(AttendeesController.Search)}{queryString}";
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
             // Act
-            using HttpClient client = _server.CreateClient();
+            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
             HttpResponseMessage response = await client.GetAsync(url)
                                                        .ConfigureAwait(false);
 
@@ -214,11 +242,19 @@ namespace Agenda.API.IntegrationTests.v1
         [InlineData("HEAD")]
         public async Task Search_Handles_Verb(string verb)
         {
+            IEnumerable<Claim> claims = new[]
+            {
+                new Claim(ClaimTypes.Name, "Bruce Wayne")
+            };
+
+
             // Arrange
             string url = $"{_endpointUrl}/search?sort=+name&page=1";
 
             HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(verb), url);
-            using HttpClient client = _server.CreateClient();
+            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+
+
             // Act
             HttpResponseMessage response = await client.SendAsync(request)
                 .ConfigureAwait(false);
@@ -266,7 +302,11 @@ namespace Agenda.API.IntegrationTests.v1
         {
             // Arrange
             _outputHelper.WriteLine($"Nb items to create : {newAppointments.Count()}");
-            using HttpClient client = _server.CreateClient();
+            IEnumerable<Claim> claims = new[]
+            {
+                new Claim(ClaimTypes.Name, "Bruce Wayne")
+            };
+            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
             await newAppointments.ForEachAsync(async (newParticipant) =>
             {

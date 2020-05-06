@@ -59,7 +59,7 @@ namespace Patients.API
                     config.Filters.Add<FormatFilterAttribute>();
                     config.Filters.Add<ValidateModelActionFilter>();
                     config.Filters.Add<AddCountHeadersFilterAttribute>();
-                    
+
                     config.Filters.Add<HandleErrorAttribute>();
 
                     AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -104,7 +104,6 @@ namespace Patients.API
                 {
                     options.InvalidModelStateResponseFactory = (context) =>
                     {
-
                         IDictionary<string, IEnumerable<string>> errors = context.ModelState
                             .Where(element => !string.IsNullOrWhiteSpace(element.Key))
                             .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
@@ -208,8 +207,10 @@ namespace Patients.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration) =>
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        public static void AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration) =>
+            services
+                    .AddAuthorization()
+                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
@@ -232,7 +233,7 @@ namespace Patients.API
         /// <param name="services"></param>
         /// <param name="environment"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureSwagger(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -275,6 +276,8 @@ namespace Patients.API
                     [bearerSecurityScheme] = new List<string>()
                 });
             });
+
+            return services;
         }
     }
 }

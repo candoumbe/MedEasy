@@ -39,7 +39,6 @@ namespace Documents.API
         /// </summary>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            app.UseCors("AllowAnyOrigin");
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
 
@@ -67,6 +66,7 @@ namespace Documents.API
             }
             app.UseRouting();
 
+            app.UseCors("AllowAnyOrigin");
             app.UseAuthentication();
             app.UseAuthorization();
 

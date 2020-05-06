@@ -98,7 +98,8 @@ namespace Documents.API.Features.v1
                     Resource = resource,
                     Links = new[]
                     {
-                        new Link {
+                        new Link
+                        {
                             Relation = Self,
                             Title = resource.Name,
                             Method = "GET",

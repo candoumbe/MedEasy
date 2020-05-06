@@ -29,6 +29,6 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Queries.Roles
                                                                  .NotHaveDefaultConstructor().And
                                                                  .NotBeStatic().And
                                                                  .HaveConstructor(new[] { typeof(Guid) }).And
-                                                                 .BeDerivedFrom<QueryBase<Guid, Guid, Option<IEnumerable<RoleInfo>>>>();
+                                                                 .BeDerivedFrom<QueryBase<Guid, Guid, Option<IEnumerable<AccountInfo>>>>();
     }
 }

@@ -24,7 +24,7 @@ namespace Identity.API.Fixtures.v2
         /// </summary>
         /// <param name="newAccount">Account to register</param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async ValueTask<BearerTokenInfo> Register(NewAccountInfo newAccount)
+        public async ValueTask<BearerTokenInfo> RegisterAndLogIn(NewAccountInfo newAccount)
         {
             // Create account
             using HttpClient client = CreateClient();
@@ -40,7 +40,7 @@ namespace Identity.API.Fixtures.v2
             response.Dispose();
 
             // Get Token
-            return await Connect(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
+            return await LogIn(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
                 .ConfigureAwait(false);
         }
 
@@ -49,7 +49,7 @@ namespace Identity.API.Fixtures.v2
         /// </summary>
         /// <param name="loginInfo"></param>
         /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async Task<BearerTokenInfo> Connect(LoginInfo loginInfo)
+        public async Task<BearerTokenInfo> LogIn(LoginInfo loginInfo)
         {
             using HttpClient client = CreateClient();
             const string uri = "/v2/auth/token";

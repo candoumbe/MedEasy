@@ -142,7 +142,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
             _outputHelper.WriteLine($"Registering account {newAccount}");
 
-            BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
+            BearerTokenInfo bearerInfo = await _identityApiFixture.RegisterAndConnect(newAccount)
                 .ConfigureAwait(false);
 
             using HttpClient client = _identityApiFixture.CreateClient();
