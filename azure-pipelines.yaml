@@ -65,7 +65,7 @@ steps:
     command: test
     projects: '$(Parameters.projects.tests)'
     arguments: >-
-      --no-build -c $(configuration)
+      --no-build -c $(configuration) --collect:"XPlat Code Coverage"
       /p:CoverletOutput=$(Agent.TempDirectory)\ /p:CollectCoverage=true
       /p:ExcludeByAttribute=Obsolete
       /p:MergeWith="$(Agent.TempDirectory)\coverage.json"
