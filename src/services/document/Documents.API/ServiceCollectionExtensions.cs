@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 
 using Documents.CQRS.Queries;
-using Documents.DataStore.SqlServer;
+using Documents.DataStore;
 using Documents.Mapping;
 
 using FluentValidation.AspNetCore;

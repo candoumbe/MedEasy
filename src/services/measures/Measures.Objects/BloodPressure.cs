@@ -20,9 +20,15 @@ namespace Measures.Objects
         /// </summary>
         public float SystolicPressure { get; private set; }
 
-
-        public BloodPressure(Guid id, Guid patientId, DateTime dateOfMeasure, float diastolicPressure, float systolicPressure)
-            : base (id, patientId, dateOfMeasure)
+        /// <summary>
+        /// Builds a new <see cref="BloodPressure"/> instance.
+        /// </summary>
+        /// <param name="patientId">id of the <see cref="Patient"/> who the current measure will be attached to.</param>
+        /// <param name="dateOfMeasure">dDate of the measure</param>
+        /// <param name="diastolicPressure">The diastolic measure</param>
+        /// <param name="systolicPressure">The systolic measure</param>
+        public BloodPressure(Guid patientId, Guid id,  DateTime dateOfMeasure, float diastolicPressure, float systolicPressure)
+            : base (patientId, id, dateOfMeasure)
         {
             DiastolicPressure = diastolicPressure;
             SystolicPressure = systolicPressure;
@@ -39,7 +45,7 @@ namespace Measures.Objects
         /// </summary>
         /// <param name="newValue"></param>
         public void ChangeDiastolicTo(float newValue) => throw new NotImplementedException();
-        
+
         /// <summary>
         /// Updates
         /// </summary>

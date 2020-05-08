@@ -19,6 +19,7 @@ using static MedEasy.RestObjects.FormFieldType;
 using Xunit.Categories;
 using Endpoint = MedEasy.RestObjects.Endpoint;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Routing;
 
 namespace Patients.API.UnitTests.Controllers
 {
@@ -31,39 +32,32 @@ namespace Patients.API.UnitTests.Controllers
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IHostEnvironment> _hostingEnvironmentMock;
-        private Mock<IUrlHelper> _urlHelperMock;
-        private ActionContextAccessor _actionContextAccessor;
+        private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptions<PatientsApiOptions>> _optionsMock;
         private RootController _sut;
         private const string _baseUrl = "http://host/api";
+        private ApiVersion _apiVersion;
 
         public RootControllerTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             _hostingEnvironmentMock = new Mock<IHostEnvironment>(Strict);
-            _urlHelperMock = new Mock<IUrlHelper>(Strict);
-            _urlHelperMock.Setup(mock => mock.Link(It.IsAny<string>(), It.IsAny<object>()))
-                .Returns((string routename, object routeValues) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
-
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
+            _urlHelperMock = new Mock<LinkGenerator>(Strict);
+            _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _optionsMock = new Mock<IOptions<PatientsApiOptions>>(Strict);
             _optionsMock.Setup(mock => mock.Value).Returns(new PatientsApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
 
-            _sut = new RootController(_hostingEnvironmentMock.Object, _urlHelperMock.Object, _actionContextAccessor, _optionsMock.Object);
+            _apiVersion = new ApiVersion(1, 0);
+
+            _sut = new RootController(_hostingEnvironmentMock.Object, _urlHelperMock.Object, _optionsMock.Object, _apiVersion);
         }
 
         public void Dispose()
         {
             _hostingEnvironmentMock = null;
             _urlHelperMock = null;
-            _actionContextAccessor = null;
             _sut = null;
             _optionsMock = null;
         }
@@ -101,7 +95,7 @@ namespace Patients.API.UnitTests.Controllers
             patientsEndpoint.Link.Method.Should()
                 .Be("GET");
             patientsEndpoint.Link.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName.Slugify()}&page=1&pageSize=30");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName.Slugify()}&page=1&pageSize=30&version={_apiVersion}");
             patientsEndpoint.Link.Title.Should()
                 .Be("Collection of patients");
 
@@ -124,7 +118,7 @@ namespace Patients.API.UnitTests.Controllers
                 .Be("GET");
             patientsSearchForm.Meta.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&page=1&pageSize=30");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&page=1&pageSize=30&version={_apiVersion}");
 
             patientsSearchForm.Items.Should()
                 .NotBeNull().And
@@ -168,7 +162,7 @@ namespace Patients.API.UnitTests.Controllers
                 .Be("POST");
             patientsCreateForm.Meta.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&version={_apiVersion}");
 
             patientsCreateForm.Items.Should()
                 .NotBeNullOrEmpty().And

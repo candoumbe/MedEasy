@@ -1,4 +1,4 @@
-﻿using Identity.DataStores.SqlServer;
+﻿using Identity.DataStores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;

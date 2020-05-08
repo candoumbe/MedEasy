@@ -36,7 +36,7 @@ namespace Agenda.API
                     logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
                     // Forces database migrations on startup
                     RetryPolicy policy = Policy
-                        .Handle<NpgsqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
+                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
                         .WaitAndRetryAsync(
                             retryCount: 5,
                             sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),

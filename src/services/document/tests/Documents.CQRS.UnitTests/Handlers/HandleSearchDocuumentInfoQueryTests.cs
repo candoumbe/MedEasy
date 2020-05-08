@@ -2,7 +2,7 @@
 using Bogus;
 using Documents.CQRS.Handlers;
 using Documents.CQRS.Queries;
-using Documents.DataStore.SqlServer;
+using Documents.DataStore;
 using Documents.DTO.v1;
 using Documents.Mapping;
 using Documents.Objects;
@@ -34,6 +34,12 @@ namespace Documents.CQRS.UnitTests.Handlers
         private HandleSearchDocumentInfoQuery _sut;
         private IUnitOfWorkFactory _uowFactory;
         private IExpressionBuilder _expressionBuilder;
+        private static readonly Faker<Document> documentFaker = new Faker<Document>()
+                        .CustomInstantiator(faker => new Document(
+                            id: Guid.NewGuid(),
+                            name: faker.PickRandom("pdf", "txt", "odt"),
+                            mimeType: faker.System.MimeType())
+                        );
 
         public HandleSearchDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -93,14 +99,6 @@ namespace Documents.CQRS.UnitTests.Handlers
                 }
 
                 {
-                    Faker<Document> documentFaker = new Faker<Document>()
-                        .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
-                            name: faker.System.CommonFileName(),
-                            mimeType: faker.System.MimeType())
-                        .SetFile(faker.Hacker.Random.Bytes(10))
-                        );
-
                     IEnumerable<Document> documents = documentFaker.Generate(10);
                     yield return new object[]
                     {
@@ -120,14 +118,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                 }
 
                 {
-                    Faker<Document> documentFaker = new Faker<Document>()
-                        .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
-                            name: faker.System.CommonFileName(ext: "pdf"),
-                            mimeType: faker.System.MimeType())
-                        .SetFile(faker.Hacker.Random.Bytes(10))
-                        );
-
+                    
                     IEnumerable<Document> documents = documentFaker.Generate(100);
                     yield return new object[]
                     {
@@ -148,15 +139,12 @@ namespace Documents.CQRS.UnitTests.Handlers
                 }
 
                 {
-                    Faker<Document> documentFaker = new Faker<Document>()
-                        .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
-                            name: faker.System.CommonFileName(ext: "pdf"),
-                            mimeType: faker.System.MimeType())
-                        .SetFile(faker.Hacker.Random.Bytes(10))
-                        );
+                    IEnumerable<Document> documents = documentFaker.Generate(100)
+                                                                   .Select(doc => {
+                                                                       doc.ChangeNameTo($"{doc.Name}.pdf");
 
-                    IEnumerable<Document> documents = documentFaker.Generate(100);
+                                                                       return doc;
+                                                                    });
                     yield return new object[]
                     {
                         documents,

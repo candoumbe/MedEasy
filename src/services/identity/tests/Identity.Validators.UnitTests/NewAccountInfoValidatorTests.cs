@@ -2,7 +2,7 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.Objects;
 using MedEasy.DAL.EFStore;
@@ -46,7 +46,6 @@ namespace Identity.Validators.UnitTests
             });
             _loggerMock = new Mock<ILogger<NewAccountInfoValidator>>();
             
-
             _sut = new NewAccountInfoValidator(_uowFactory, _loggerMock.Object);
         }
 

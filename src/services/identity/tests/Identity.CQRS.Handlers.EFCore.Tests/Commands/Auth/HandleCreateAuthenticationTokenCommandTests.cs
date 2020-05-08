@@ -5,7 +5,7 @@ using FluentAssertions.Extensions;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.EFCore.Commands.Auth;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;

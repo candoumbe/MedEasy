@@ -13,7 +13,7 @@ namespace Documents.CQRS.UnitTests.Queries
 
         [Fact]
         public void IsQuery() => typeof(GetOneDocumentFileInfoByIdQuery).Should()
-            .BeAssignableTo<IQuery<Guid, Guid, Option<DocumentFileInfo>>>();
+            .BeAssignableTo<IQuery<Guid, Guid, Option<DocumentPartInfo>>>();
 
         [Fact]
         public void Has_A_Unique_Identifier()
@@ -28,8 +28,6 @@ namespace Documents.CQRS.UnitTests.Queries
             instance.Id.Should()
                 .NotBeEmpty().And
                 .NotBe(documentId);
-
-
         }
     }
 }

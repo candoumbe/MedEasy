@@ -3,7 +3,7 @@ using Identity.API.Features.Auth;
 using Identity.API.Features.v1.Auth;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;

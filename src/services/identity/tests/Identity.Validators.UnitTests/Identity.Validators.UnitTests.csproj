@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
-    <ProjectReference Include="..\..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
     <ProjectReference Include="..\..\Identity.Validators\Identity.Validators.csproj" />
+    <ProjectReference Include="..\..\Identity.DataStores\Identity.DataStores.csproj" />
   </ItemGroup>
 </Project>

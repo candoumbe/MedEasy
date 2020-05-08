@@ -19,10 +19,13 @@ variables :
     value: 'cobertura%2cjson'
   
 pr:
-  - master
+  autoCancel: true
+  branches:
+    include:
+      - master
 
 trigger:
-  batch: true
+  batch: false
   branches:
     include:
         - master

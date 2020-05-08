@@ -1,2 +1,6 @@
 <Project>
+  <PropertyGroup>
+    <Authors>Cyrille NDOUMBE</Authors>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 </Project>

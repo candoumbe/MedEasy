@@ -149,16 +149,16 @@ namespace Measures.API.Features.v1.BloodPressures
         [HttpOptions("{id}")]
         [HttpHead("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), 200)]
-        public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status200OK)]
+        public async Task<ActionResult<Browsable<BloodPressureInfo>>> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
                     .ConfigureAwait(false);
 
-            return result.Match<IActionResult>(
+            return result.Match<ActionResult<Browsable<BloodPressureInfo>>>(
                 some: bloodPressure =>
                 {
-                    Browsable<BloodPressureInfo> browsableResource = new Browsable<BloodPressureInfo>
+                    return new Browsable<BloodPressureInfo>
                     {
                         Resource = bloodPressure,
                         Links = new[]
@@ -183,7 +183,6 @@ namespace Measures.API.Features.v1.BloodPressures
                             }
                         }
                     };
-                    return new OkObjectResult(browsableResource);
                 },
                 none: () => new NotFoundResult()
             );

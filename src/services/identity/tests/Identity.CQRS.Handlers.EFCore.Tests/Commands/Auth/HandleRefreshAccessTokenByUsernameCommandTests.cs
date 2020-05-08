@@ -4,7 +4,7 @@ using FluentAssertions.Extensions;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.Commands;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v1;
 using Identity.Objects;

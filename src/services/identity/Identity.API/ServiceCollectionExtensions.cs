@@ -7,7 +7,7 @@ using Identity.API.Features.Auth;
 using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.Mapping;
 using Identity.Validators;
 

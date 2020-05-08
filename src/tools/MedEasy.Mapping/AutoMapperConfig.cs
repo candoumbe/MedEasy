@@ -21,6 +21,9 @@ namespace MedEasy.Mapping
 
             cfg.CreateMap(typeof(AuditableEntity<,>), typeof(Resource<>))
                .ReverseMap();
+
+            cfg.CreateMap(typeof(Entity<,>), typeof(Resource<>))
+               .ReverseMap();
         }
     }
 }

@@ -160,7 +160,7 @@ namespace Measures.API.Features.v1.Patients
             Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
                 .ConfigureAwait(false);
 
-            IActionResult actionResult = result.Match<IActionResult>(
+            return result.Match<IActionResult>(
                 some: resource =>
                 {
                     string version = _apiVersion.ToString();
@@ -200,8 +200,6 @@ namespace Measures.API.Features.v1.Patients
                 },
                 none: () => new NotFoundResult()
             );
-
-            return actionResult;
         }
 
         /// <summary>

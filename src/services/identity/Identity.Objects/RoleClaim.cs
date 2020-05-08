@@ -20,10 +20,10 @@ namespace Identity.Objects
         /// <summary>
         /// Builds a new <see cref="RoleClaim"/> instance.
         /// </summary>
-        /// <param name="roleId">id pf the role the <see cref="Claim"/></param>
-        /// <param name="id"></param>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
+        /// <param name="roleId">id of the role the <see cref="Claim"/> is attached to</param>
+        /// <param name="id">id of the claim</param>
+        /// <param name="type">type of the claim</param>
+        /// <param name="value">value of the claim</param>
         public RoleClaim(Guid roleId, Guid id, string type, string value) : this(roleId, id)
         {
             Claim = new Claim(type, value);

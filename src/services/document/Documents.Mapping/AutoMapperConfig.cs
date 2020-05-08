@@ -8,6 +8,7 @@ using MedEasy.Objects;
 using MedEasy.RestObjects;
 
 using System;
+using System.Linq;
 
 namespace Documents.Mapping
 {
@@ -25,8 +26,9 @@ namespace Documents.Mapping
                 .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
                 .IncludeBase<IEntity<Guid>, Resource<Guid>>();
 
-            cfg.CreateMap<Document, DocumentFileInfo>()
-                .ForMember(dto => dto.Content, opt => opt.MapFrom(entity => entity.File.Content));
+            cfg.CreateMap<DocumentPart, DocumentPartInfo>()
+                .ForMember(dto => dto.Position, opt => opt.MapFrom(entity => entity.Position))
+                .ForMember(dto => dto.Size, opt => opt.MapFrom(entity => entity.Size));
                 
         });
     }

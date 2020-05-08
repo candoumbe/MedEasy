@@ -4,7 +4,7 @@ using FluentAssertions;
 using Identity.CQRS.Handlers.Queries;
 using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Roles;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;

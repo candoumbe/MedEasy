@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Optional;
+
 using Measures.Objects.Exceptions;
+using Optional;
+using Optional.Collections;
 
 namespace Measures.Objects
 {
@@ -51,7 +53,7 @@ namespace Measures.Objects
         /// <param name="newName">new name to set.</param>
         public Patient ChangeNameTo(string newName)
         {
-            if (newName == null)
+            if (newName is null)
             {
                 throw new ArgumentNullException(nameof(newName));
             }
@@ -73,7 +75,7 @@ namespace Measures.Objects
             {
                 throw new DuplicateIdException();
             }
-            _bloodPressures.Add(new BloodPressure(measureId, Id, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
+            _bloodPressures.Add(new BloodPressure(Id, measureId, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
         }
 
         /// <summary>
@@ -82,12 +84,10 @@ namespace Measures.Objects
         /// <param name="measureId">id of the measure to delete</param>
         public void DeleteBloodPressure(Guid measureId)
         {
-            Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrDefault(m => m.Id == measureId)
-                .SomeNotNull();
-
+            Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrNone(m => m.Id == measureId);
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
-        
+
         /// <summary>
         /// Adds a new <see cref="Temperature"/> measure
         /// </summary>

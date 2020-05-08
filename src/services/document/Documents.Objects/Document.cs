@@ -1,5 +1,7 @@
 ﻿using MedEasy.Objects;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,28 +12,65 @@ namespace Documents.Objects
     /// </summary>
     public class Document : AuditableEntity<Guid, Document>
     {
-        public string Name { get; }
-        public DocumentFile File { get; private set; }
+
+        /// <summary>
+        /// Name of the document
+        /// </summary>
+        public string Name { get; private set; }
+
+        private IList<DocumentPart> _parts;
+
+        /// <summary>
+        /// Document's parts
+        /// </summary>
+        public IEnumerable<DocumentPart> Parts => _parts;
+
         public string MimeType { get; private set; }
+
+        /// <summary>
+        /// SHA256 hash of the document
+        /// </summary>
         public string Hash { get; private set; }
 
+        /// <summary>
+        /// Size of the document (in bytes)
+        /// </summary>
         public long Size { get; private set; }
+
+        /// <summary>
+        /// <see cref="Objects.Status"/> of the document
+        /// </summary>
+        public Status Status { get; private set; }
 
         public const string DefaultMimeType = "application/octect-stream";
 
+        /// <summary>
+        /// Builds a new <see cref="Document"/> which <see cref="Status"/> is <see cref="Status.Ongoing"/>.
+        /// </summary>
+        /// <param name="id">Id of the document</param>
+        /// <param name="name"></param>
+        /// <param name="mimeType"></param>
         public Document(Guid id, string name, string mimeType = DefaultMimeType) : base(id)
         {
             Name = name;
             MimeType = mimeType;
+            Status = Status.Ongoing;
+            _parts = new List<DocumentPart>();
         }
 
-        public Document SetFile(DocumentFile file)
+        /// <summary>
+        /// Updates the <see cref="Name"/> of the document
+        /// </summary>
+        /// <param name="newName">new name of the document</param>
+        /// <exception cref="ArgumentNullException"><paramref name="newName"/> is null/empty/whitespace only.</exception>
+        public void ChangeNameTo(string newName)
         {
-            File = file ?? throw new ArgumentNullException(nameof(file));
-            Size = file.Content.LongLength;
-            Hash = Encoding.Default.GetString(SHA256.Create().ComputeHash(file.Content));
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                throw new ArgumentNullException(nameof(newName));
+            }
 
-            return this;
+            Name = newName;
         }
 
         /// <summary>
@@ -42,7 +81,73 @@ namespace Documents.Objects
         /// and <c>false</c> otherwise</returns>
         public bool IsEquivalentTo(Document other) => Hash.Equals(other.Hash);
 
-
+        /// <summary>
+        /// Updates the <see cref="MimeType"/> of the document
+        /// </summary>
+        /// <param name="mimeType"></param>
         public void ChangeMimeTypeTo(string mimeType) => MimeType = mimeType;
+
+        /// <summary>
+        /// Update the size of the document
+        /// </summary>
+        /// <param name="newSize">The new size of the document</param>
+        /// <exception cref="InvalidOperationException">if <see cref="Status"/> is <see cref="Status.Done"/>.</exception>   
+        public void UpdateSize(long newSize)
+        {
+            if (Status == Status.Done)
+            {
+                throw new InvalidOperationException("The size of the document cannot be changed when its status is Done");
+            }
+
+            if (newSize < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(newSize), newSize, $"{nameof(Size)} cannot be negative.");
+            }
+
+            Size = newSize;
+        }
+
+        /// <summary>
+        /// Updates the <see cref="Hash"/> of the document.
+        /// </summary>
+        /// <param name="newHash">The new hash</param>
+        /// <exception cref="InvalidOperationException">if <see cref="Status"/> is <see cref="Status.Done"/></exception>
+        public void UpdateHash(string newHash)
+        {
+            if (Status == Status.Done)
+            {
+                throw new InvalidOperationException("Cannot change the hash of the document because it's already locked");
+            }
+
+            if (newHash is null)
+            {
+                throw new ArgumentNullException(nameof(newHash));
+            }
+            Hash = newHash;
+        }
+
+        /// <summary>
+        /// Changes <see cref="Document"/>' <see cref="Status"/> to <see cref="Status.Done"/>.
+        /// <para>
+        /// After calling this method, any call to <see cref="UpdateHash(string)"/>, <see cref="UpdateSize(long)"/> will throw <see cref="InvalidOperationException"/>.
+        /// </para>
+        /// </summary>
+        public void Lock() => Status = Status.Done;
+    }
+
+    /// <summary>
+    /// Status of the documents in the Storage
+    /// </summary>
+    public enum Status
+    {
+        /// <summary>
+        /// <see cref="Status"/> of <see cref="Document"/>s which upload is ongoing
+        /// </summary>
+        Ongoing,
+
+        /// <summary>
+        /// <see cref="Status"/> of <see cref="Document"/>s which upload is finished.
+        /// </summary>
+        Done
     }
 }

@@ -11,6 +11,7 @@ using System.Linq;
 using static MedEasy.RestObjects.FormFieldType;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Routing;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -25,22 +26,22 @@ namespace Patients.API.Controllers
     {
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IHostEnvironment _hostingEnvironment;
-        private readonly IUrlHelper _urlHelper;
-        private IOptions<PatientsApiOptions> ApiOptions { get; }
+        private readonly LinkGenerator _urlHelper;
+        private readonly IOptions<PatientsApiOptions> _apiOptions;
+        private readonly ApiVersion _apiVersion;
 
         /// <summary>
         /// Builds a new <see cref="RootController"/> instance
         /// </summary>
         /// <param name="hostingEnvironment">Gives access to hosting environment</param>
         /// <param name="urlHelper"></param>
-        /// <param name="actionContextAccessor"></param>
         /// <param name="apiOptions">Gives access to the API configuration</param>
-        public RootController(IHostEnvironment hostingEnvironment, IUrlHelper urlHelper, IActionContextAccessor actionContextAccessor, IOptions<PatientsApiOptions> apiOptions)
+        public RootController(IHostEnvironment hostingEnvironment, LinkGenerator urlHelper, IOptions<PatientsApiOptions> apiOptions, ApiVersion apiVersion)
         {
             _hostingEnvironment = hostingEnvironment;
             _urlHelper = urlHelper;
-            _actionContextAccessor = actionContextAccessor;
-            ApiOptions = apiOptions;
+            _apiOptions = apiOptions;
+            _apiVersion = apiVersion;
         }
 
 
@@ -60,10 +61,12 @@ namespace Patients.API.Controllers
         [AllowAnonymous]
         public IEnumerable<Endpoint> Index()
         {
-            PatientsApiOptions apiOptions = ApiOptions.Value;
+            PatientsApiOptions apiOptions = _apiOptions.Value;
             int page = 1,
                 pageSize = apiOptions.DefaultPageSize,
                 maxPageSize = apiOptions.MaxPageSize;
+            string version = _apiVersion.ToString();
+
             IList<Endpoint> endpoints = new List<Endpoint>() {
                 new Endpoint
                 {
@@ -73,7 +76,7 @@ namespace Patients.API.Controllers
                         Title = "Collection of patients",
                         Method = "GET",
                         Relation = LinkRelation.Collection,
-                        Href = _urlHelper.Link(RouteNames.DefaultGetAllApi, new {controller = PatientsController.EndpointName, page, pageSize})
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new {controller = PatientsController.EndpointName, page, pageSize, version})
                     },
                     Forms = new[]
                     {
@@ -83,7 +86,7 @@ namespace Patients.API.Controllers
                             {
                                 Method = "GET",
                                 Relation = LinkRelation.Search,
-                                Href = _urlHelper.Link(RouteNames.DefaultSearchResourcesApi, new {controller = PatientsController.EndpointName, page, pageSize})
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new {controller = PatientsController.EndpointName, page, pageSize, version})
 
                             },
                             Items = new[]
@@ -101,7 +104,7 @@ namespace Patients.API.Controllers
                             {
                                 Method = "POST",
                                 Relation = LinkRelation.CreateForm,
-                                Href = _urlHelper.Link(RouteNames.DefaultGetAllApi, new {controller = PatientsController.EndpointName})
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new {controller = PatientsController.EndpointName, version})
                             })
                             .AddField(form => form.Firstname)
                             .AddField(form => form.Lastname)
@@ -121,7 +124,7 @@ namespace Patients.API.Controllers
                     Name = "documentation",
                     Link = new Link
                     {
-                        Href = _urlHelper.Link(RouteNames.Default, new { controller = "swagger" }),
+                        Href = _urlHelper.GetPathByName(RouteNames.Default, new { controller = "swagger" }),
                         Relation = "help"
                     }
                 });
