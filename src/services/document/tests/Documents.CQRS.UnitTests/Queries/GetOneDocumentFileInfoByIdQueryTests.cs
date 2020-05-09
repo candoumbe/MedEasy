@@ -4,6 +4,7 @@ using FluentAssertions;
 using MedEasy.CQRS.Core.Queries;
 using Optional;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Documents.CQRS.UnitTests.Queries
@@ -13,7 +14,7 @@ namespace Documents.CQRS.UnitTests.Queries
 
         [Fact]
         public void IsQuery() => typeof(GetOneDocumentFileInfoByIdQuery).Should()
-            .BeAssignableTo<IQuery<Guid, Guid, Option<DocumentPartInfo>>>();
+            .BeAssignableTo<IQuery<Guid, Guid, IAsyncEnumerable<DocumentPartInfo>>>();
 
         [Fact]
         public void Has_A_Unique_Identifier()
