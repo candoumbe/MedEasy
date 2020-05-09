@@ -122,7 +122,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 {
                     new []
                     {
-                        new BloodPressure(Guid.NewGuid(), patientId: Guid.NewGuid(), dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
+                        new BloodPressure(id:Guid.NewGuid(), patientId: Guid.NewGuid(), dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
 

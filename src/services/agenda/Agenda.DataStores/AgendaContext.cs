@@ -84,6 +84,7 @@ namespace Agenda.DataStores
                     .HasMaxLength(_normalTextLength)
                     .IsRequired()
                     .HasDefaultValue(string.Empty);
+
             });
         }
     }

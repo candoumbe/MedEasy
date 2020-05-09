@@ -1,13 +1,18 @@
+using AutoMapper.QueryableExtensions;
+
 using Bogus;
+
 using Documents.API.Features.v1;
 using Documents.CQRS.Commands;
 using Documents.CQRS.Queries;
-using Documents.DataStore.SqlServer;
+using Documents.DataStore;
 using Documents.DTO;
 using Documents.DTO.v1;
 using Documents.Mapping;
 using Documents.Objects;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Handlers;
@@ -17,31 +22,36 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+
 using MediatR;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static MedEasy.RestObjects.LinkRelation;
 using static Moq.MockBehavior;
 using static System.StringComparison;
 using static System.Uri;
-using Microsoft.Data.Sqlite;
-using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.Http;
 
 namespace Documents.API.UnitTests.Features.v1
 {
@@ -69,7 +79,7 @@ namespace Documents.API.UnitTests.Features.v1
         };
 
         private Mock<ILogger<DocumentsController>> _loggerMock;
-        private ApiVersion _apiVersion;
+        private static readonly ApiVersion _apiVersion = new ApiVersion(1,0);
 
         public DocumentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -94,7 +104,6 @@ namespace Documents.API.UnitTests.Features.v1
 
             _mediatorMock = new Mock<IMediator>(Strict);
             _loggerMock = new Mock<ILogger<DocumentsController>>();
-            _apiVersion = new ApiVersion(1, 0);
 
             _sut = new DocumentsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object,
                 _loggerMock.Object, _apiVersion);
@@ -134,10 +143,14 @@ namespace Documents.API.UnitTests.Features.v1
                             pageSize, page, // request
                             0,    //expected total
                             (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                               && x.Relation == First
+                                                                                               && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                              && x.Relation == Last
+                                                                                              && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         };
                     }
@@ -146,8 +159,7 @@ namespace Documents.API.UnitTests.Features.v1
                 Faker<Document> accountFaker = new Faker<Document>()
                     .CustomInstantiator(faker => new Document(id: Guid.NewGuid(),
                         name: faker.System.CommonFileName(),
-                        mimeType: faker.System.MimeType()
-                    ).SetFile(faker.Hacker.Random.Bytes(10))
+                        mimeType: faker.System.MimeType())
                     );
                 {
                     IEnumerable<Document> items = accountFaker.Generate(400);
@@ -159,10 +171,14 @@ namespace Documents.API.UnitTests.Features.v1
                         (
                             firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                         && x.Relation == "next"
+                                                                                         && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                         && x.Relation == Last
+                                                                                         && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -175,10 +191,16 @@ namespace Documents.API.UnitTests.Features.v1
                         10, 1, // request
                         400,    //expected total
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                           && x.Relation == First
+                                                                                           && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                          && x.Relation == "next"
+                                                                                          && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=2&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
+                                                                                          && x.Relation == Last
+                                                                                          && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={DocumentsController.EndpointName}&page=40&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -200,7 +222,7 @@ namespace Documents.API.UnitTests.Features.v1
 
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfDocumentInfoQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((GetPageOfDocumentInfoQuery query, CancellationToken cancellationToken) =>
+                .ReturnsAsync((GetPageOfDocumentInfoQuery query, CancellationToken _) =>
                 {
                     PaginationConfiguration pagination = query.Data;
                     Expression<Func<Document, DocumentInfo>> expression = x => new DocumentInfo { Id = x.Id, Name = x.Name, MimeType = x.MimeType, Hash = x.Hash };
@@ -214,7 +236,7 @@ namespace Documents.API.UnitTests.Features.v1
                          .Take(pagination.PageSize)
                          .ToArray();
 
-                    return Task.FromResult(new Page<DocumentInfo>(results, items.Count(), pagination.PageSize));
+                    return new Page<DocumentInfo>(results, items.Count(), pagination.PageSize);
                 });
 
             // Act
@@ -243,7 +265,7 @@ namespace Documents.API.UnitTests.Features.v1
             if (response.Items.AtLeastOnce())
             {
                 response.Items.Should()
-                    .OnlyContain(x => x.Links.Once(link => link.Relation == Self), "All resources must provided a direct link to themselves");
+                    .OnlyContain(x => x.Links.Exactly(link => link.Relation == Self, 1), "All resources must provided one direct link");
             }
             response.Total.Should()
                     .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
@@ -284,8 +306,7 @@ namespace Documents.API.UnitTests.Features.v1
                 id: documentId,
                 name: "the batman in action",
                 mimeType: "image/mpeg4"
-
-            ).SetFile(new byte[] { 1, 2, 3 });
+            );
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Document>().Create(entry);
@@ -307,25 +328,22 @@ namespace Documents.API.UnitTests.Features.v1
                 });
 
             // Act
-            IActionResult actionResult = await _sut.Get(documentId, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<Browsable<DocumentInfo>> actionResult = await _sut.Get(documentId, ct: default)
+                                                                           .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneDocumentInfoByIdQuery>(q => q.Data == documentId), It.IsAny<CancellationToken>()), Times.Once);
 
-            Browsable<DocumentInfo> browsableResource = actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                .BeAssignableTo<Browsable<DocumentInfo>>().Which;
+            Browsable<DocumentInfo> browsableResource = actionResult.Value;
 
             browsableResource.Links.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Href)).And
-                .ContainSingle(x => x.Relation == Self).And
-                .ContainSingle(x => x.Relation == "file").And
-                .ContainSingle(x => x.Relation == "delete");
+                                   .NotBeNull().And
+                                   .NotContainNulls().And
+                                   .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
+                                   .NotContain(x => string.IsNullOrWhiteSpace(x.Href)).And
+                                   .ContainSingle(x => x.Relation == Self).And
+                                   .ContainSingle(x => x.Relation == "file").And
+                                   .ContainSingle(x => x.Relation == "delete");
 
             Link self = browsableResource.Links.Single(x => x.Relation == Self);
             self.Method.Should()
@@ -333,19 +351,19 @@ namespace Documents.API.UnitTests.Features.v1
 
             DocumentInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             Link file = browsableResource.Links.Single(x => x.Relation == "file");
             file.Method.Should()
                 .Be("GET");
             file.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?action={nameof(DocumentsController.File)}&controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?action={nameof(DocumentsController.File)}&controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             resource.Id.Should().Be(documentId);
             resource.Name.Should().Be(entry.Name);
@@ -361,84 +379,88 @@ namespace Documents.API.UnitTests.Features.v1
                 .ReturnsAsync(Option.None<DocumentInfo>());
 
             // Act
-            IActionResult actionResult = await _sut.Get(id: Guid.NewGuid(), ct: default)
-                .ConfigureAwait(false);
+            ActionResult<Browsable<DocumentInfo>> actionResult = await _sut.Get(id: Guid.NewGuid(), ct: default)
+                                                                           .ConfigureAwait(false);
 
             // Assert
-            actionResult.Should()
-                .BeAssignableTo<NotFoundResult>();
+            actionResult.Result.Should()
+                        .BeAssignableTo<NotFoundResult>();
         }
 
         [Fact]
         public async Task GetFile_Returns_The_Element()
         {
             // Arrange
+            Faker faker = new Faker();
             Guid documentId = Guid.NewGuid();
-            Document entry = new Document (id: documentId, name: "the batman in action", mimeType: "image/mpeg4")
-                .SetFile(new byte[] { 1, 2, 3 });
+
+            DocumentPart[] parts = new[]
+            {
+                new DocumentPart(documentId, 0, faker.Random.Bytes(10)),
+                new DocumentPart(documentId, 1, faker.Random.Bytes(10)),
+                new DocumentPart(documentId, 2, faker.Random.Bytes(10))
+            };
+
+            Document entry = new Document (id: documentId, name: "the batman in action", mimeType: "image/mpeg4");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Document>().Create(entry);
+                uow.Repository<DocumentPart>().Create(parts);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneDocumentFileInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((GetOneDocumentFileInfoByIdQuery query, CancellationToken ct) =>
+                .ReturnsAsync((GetOneDocumentFileInfoByIdQuery query, CancellationToken ct) =>
                 {
-                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                    Expression<Func<Document, DocumentFileInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
-                                                                                            .GetMapExpression<Document, DocumentFileInfo>();
+                    Expression<Func<DocumentPart, DocumentPartInfo>> selector = AutoMapperConfig.Build()
+                                                                                                .ExpressionBuilder
+                                                                                                .GetMapExpression<DocumentPart, DocumentPartInfo>();
 
-                    return uow.Repository<Document>()
-                              .SingleOrDefaultAsync(selector,
-                                                    predicate: (Document x) => x.Id == query.Data,
-                                                    cancellationToken: ct)
-                              .AsTask();
+                    return uow.Repository<DocumentPart>()
+                              .Stream(selector,
+                                      predicate: (DocumentPart x) => x.DocumentId == query.Data,
+                                      ct);
                 });
 
             // Act
-            IActionResult actionResult = await _sut.File(documentId, ct: default)
-                .ConfigureAwait(false);
+            IAsyncEnumerable<DocumentPartInfo> chunks = _sut.File(documentId, ct: default);
+            IList<DocumentPartInfo> items = new List<DocumentPartInfo>();
+
+            await foreach (DocumentPartInfo item in chunks)
+            {
+                items.Add(item);
+            }
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneDocumentFileInfoByIdQuery>(q => q.Data == documentId), It.IsAny<CancellationToken>()), Times.Once);
-
-            actionResult.Should()
-                .BeAssignableTo<FileResult>("The document exists");
-
-            FileResult fileResult = (FileResult)actionResult;
-            fileResult.ContentType.Should()
-                .Be(entry.MimeType);
-            fileResult.EnableRangeProcessing.Should()
-                .BeTrue();
-            fileResult.FileDownloadName.Should()
-                .Be(entry.Name);
-            fileResult.LastModified.Should()
-                .HaveValue();
+            items.Should()
+                 .HaveCount(parts.Count());
         }
 
         [Fact]
-        public async Task GetFile_UnknonwnId_Returns_NotFound()
+        public async Task GetFile_UnknonwnId_Returns_Empty()
         {
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneDocumentFileInfoByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<DocumentFileInfo>());
+                         .ReturnsAsync(AsyncEnumerable.Empty<DocumentPartInfo>());
 
             // Act
-            IActionResult actionResult = await _sut.File(id: Guid.NewGuid(), ct: default)
-                .ConfigureAwait(false);
+            var chunks = _sut.File(id: Guid.NewGuid(), ct: default);
+            bool hasValue = await chunks.GetAsyncEnumerator().MoveNextAsync()
+                                        .ConfigureAwait(false);
 
             // Assert
-            actionResult.Should()
-                .BeAssignableTo<NotFoundResult>();
+            hasValue.Should()
+                    .BeFalse();
         }
 
         [Fact]
-        public async Task DeleteResource_Returns_NoContent_When_Command_Succeeds()
+        public async Task DeleteResource_Returns_NoContent_when_command_returns_Done()
         {
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteDocumentInfoByIdCommand>(), It.IsAny<CancellationToken>()))
@@ -458,7 +480,7 @@ namespace Documents.API.UnitTests.Features.v1
         }
 
         [Fact]
-        public async Task Delete_Unknown_Resource_Returns_Not_Found()
+        public async Task Delete_Unknown_Resource_returns_NotFound()
         {
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteDocumentInfoByIdCommand>(), It.IsAny<CancellationToken>()))
@@ -528,8 +550,8 @@ namespace Documents.API.UnitTests.Features.v1
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateDocumentInfoCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateDocumentInfoCommand cmd, CancellationToken ct) =>
-                    Task.FromResult(Option.Some<DocumentInfo, CreateCommandResult>(new DocumentInfo { Name = cmd.Data.Name, Id = Guid.NewGuid() })));
+                .ReturnsAsync((CreateDocumentInfoCommand cmd, CancellationToken _) =>
+                    Option.Some<DocumentInfo, CreateCommandResult>(new DocumentInfo { Name = cmd.Data.Name, Id = Guid.NewGuid() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newDocument, ct: default)
@@ -560,7 +582,7 @@ namespace Documents.API.UnitTests.Features.v1
             linkSelf.Method.Should()
                 .Be("GET");
             linkSelf.Href.Should()
-                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id}&version=1.0");
+                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id}&version={_apiVersion}");
 
             createdResource.Name.Should()
                 .Be(newDocument.Name);
@@ -583,9 +605,7 @@ namespace Documents.API.UnitTests.Features.v1
                 Faker<Document> accountFaker = new Faker<Document>()
                     .CustomInstantiator(faker => new Document(
                         id: Guid.NewGuid(),
-                        name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne")
-                    .SetFile(file: faker.Hacker.Random.Bytes(25)))
-                    ;
+                        name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne"));
                 {
                     IEnumerable<Document> items = accountFaker.Generate(40);
 
@@ -608,10 +628,10 @@ namespace Documents.API.UnitTests.Features.v1
                             (
                                 firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
+                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10&version={_apiVersion}".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
                                 previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={DocumentsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         )
                     };

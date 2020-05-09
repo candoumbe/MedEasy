@@ -5,20 +5,13 @@ using MedEasy.DataStores.Core.Relational;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace Identity.DataStores.SqlServer
+namespace Identity.DataStores
 {
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>
     public class IdentityContext : DataStore<IdentityContext>
     {
-        /// <summary>
-        /// Collection of <see cref="Accounts"/>s
-        /// </summary>
-        public DbSet<Account> Accounts { get; set; }
-
-        public DbSet<Role> Roles { get; set; }
-
         /// <summary>
         /// Builds a new <see cref="IdentityContext"/> instance.
         /// </summary>

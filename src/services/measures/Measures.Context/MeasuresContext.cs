@@ -30,16 +30,6 @@ namespace Measures.Context
         private const int _shortTextLength = 50;
 
         /// <summary>
-        /// Collection of <see cref="BloodPressure"/>s
-        /// </summary>
-        public DbSet<BloodPressure> BloodPressures { get; set; }
-
-        /// <summary>
-        /// Collection of <see cref="Temperature"/>s
-        /// </summary>
-        public DbSet<Temperature> Temperatures { get; set; }
-
-        /// <summary>
         /// Builds a new <see cref="MeasuresContext"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
@@ -61,11 +51,26 @@ namespace Measures.Context
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Name)
                     .HasMaxLength(_normalTextLength);
+
+                entity.HasMany(x => x.BloodPressures)
+                      .WithOne(x => x.Patient)
+                      .HasForeignKey(measure => measure.PatientId)
+                      .HasPrincipalKey(patient => patient.Id);
+
+                entity.HasMany(x => x.Temperatures)
+                      .WithOne(x => x.Patient)
+                      .HasForeignKey(measure => measure.PatientId)
+                      .HasPrincipalKey(patient => patient.Id);
             });
 
             modelBuilder.Entity<BloodPressure>(entity => {
-                entity.Property(x => x.SystolicPressure);
-                entity.Property(x => x.DiastolicPressure);
+                entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
+                entity.HasIndex(x => x.Id);
+            });
+
+            modelBuilder.Entity<Temperature>(entity => {
+                entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
+                entity.HasIndex(x => x.Id);
             });
         }
 

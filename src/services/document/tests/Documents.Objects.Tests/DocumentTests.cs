@@ -1,3 +1,4 @@
+using Bogus;
 using FluentAssertions;
 using System;
 using System.Security.Cryptography;
@@ -12,17 +13,15 @@ namespace Documents.Objects.Tests
     public class DocumentTests
     {
         [Fact]
-        public void CtorBuildsValidInstance()
+        public void Ctor_builds_a_valid_instance()
         {
             // Arrange
             Guid id = Guid.NewGuid();
             string name = $"Document {Guid.NewGuid()}";
-            byte[] content = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}");
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
 
             // Act
-            Document document = new Document(id, name, mimeType)
-                .SetFile(content);
+            Document document = new Document(id, name, mimeType);
 
             // Assert
             document.Id.Should()
@@ -32,44 +31,114 @@ namespace Documents.Objects.Tests
             document.MimeType.Should()
                 .Be(mimeType);
             document.Hash.Should()
-                .Be(Encoding.UTF8.GetString(SHA256.Create().ComputeHash(content)));
-
+                .BeNull();
+            document.Status.Should()
+                           .Be(Status.Ongoing);
         }
 
         [Fact]
-        public void TwoDocuments_With_Same_Content_Has_Same_Hash()
+        public void Changing_size_for_a_document_with_status_Done_throws_InvalidOperationException()
         {
             // Arrange
-            byte[] content =new byte[] { 1, 2, 3 };
-
-            Document first = new Document(Guid.NewGuid(), "My super file", "application/text")
-                .SetFile(content);
-            Document second = new Document(Guid.NewGuid(), "My regular file", "application/text")
-                .SetFile(content);
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+            document.Lock();
 
             // Act
-            string firstHash = first.Hash;
-            string secondHash = second.Hash;
+            Action changeSize = () => document.UpdateSize(0);
 
             // Assert
-            firstHash.Should()
-                .Be(secondHash, "Both file holds the same content");
+            changeSize.Should()
+                      .ThrowExactly<InvalidOperationException>("the size of a locked document cannot be changed");
         }
 
         [Fact]
-        public void DocumentHashOnlyDependsOnFileContent()
+        public void Changing_hash_for_a_document_with_status_Done_throws_InvalidOperationException()
         {
             // Arrange
-            byte[] content = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}");
-            string expected = Encoding.UTF8.GetString(SHA256.Create().ComputeHash(content));
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+
+            document.Lock();
 
             // Act
-            Document document = new Document(Guid.NewGuid(), $"Document_{Guid.NewGuid()}", "mimeType")
-                .SetFile(content);
+            Action changingHash = () => document.UpdateHash($"{Guid.NewGuid()}");
 
             // Assert
-            document.Hash.Should()
-                .Be(expected, $"{nameof(document.Hash)} should rely solely on the file content");
+            changingHash.Should()
+                        .ThrowExactly<InvalidOperationException>($"{nameof(Document)}.{nameof(Document.Hash)} cannot be changed when its {nameof(Document.Status)} is {Status.Done}");
+        }
+
+        [Fact]
+        public void Changing_hash_for_a_document_to_null_throws_ArgumentNullException()
+        {
+            // Arrange
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+
+            // Act
+            Action changingHashToNull = () => document.UpdateHash(null);
+
+            // Assert
+            changingHashToNull.Should()
+                              .ThrowExactly<ArgumentNullException>($"{nameof(Document)}.{nameof(Document.Hash)} cannot be changed to null");
+        }
+
+        [Fact]
+        public void Changing_size_to_negative_value_throws_ArgumentOutOfRangeException()
+        {
+            // Arrange
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+
+            // Act
+            Action changingSizeToNegativeValue = () => document.UpdateSize(-1);
+
+            // Assert
+            changingSizeToNegativeValue.Should()
+                                       .ThrowExactly<ArgumentOutOfRangeException>($"{nameof(Document)}.{nameof(Document.Size)} cannot be negative");
+        }
+
+        [Fact]
+        public void Changing_name_null_throws_ArgumentNullRangeException()
+        {
+            // Arrange
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+
+            // Act
+            Action changingNameToNull = () => document.ChangeNameTo(null);
+
+            // Assert
+            changingNameToNull.Should()
+                                       .ThrowExactly<ArgumentNullException>($"{nameof(Document)}.{nameof(Document.Name)} cannot be null");
+        }
+
+        [Fact]
+        public void Lock_change_status_to_done()
+        {
+            // Arrange
+            Guid id = Guid.NewGuid();
+            string name = $"Document {Guid.NewGuid()}";
+            string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
+            Document document = new Document(id, name, mimeType);
+
+            // Act
+            document.Lock();
+
+            // Assert
+            document.Status.Should()
+                           .Be(Status.Done);
         }
     }
 }

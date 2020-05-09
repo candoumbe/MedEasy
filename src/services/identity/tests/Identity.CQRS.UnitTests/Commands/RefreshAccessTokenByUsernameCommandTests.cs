@@ -54,7 +54,7 @@ namespace Identity.CQRS.UnitTests.Commands
         [MemberData(nameof(InvalidCtorCases))]
         public void Ctor_Throws_ArgumentNullException(string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions, string reason)
         {
-            _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, tokenOptions }.Stringify()}");
+            _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, tokenOptions }.Jsonify()}");
 
             // Act
             Action action = () => new RefreshAccessTokenByUsernameCommand((username, expiredAccessToken, refreshToken, tokenOptions));

@@ -3,7 +3,7 @@ using MedEasy.DataStores.Core.Relational;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace Documents.DataStore.SqlServer
+namespace Documents.DataStore
 {
     public class DocumentsStore : DataStore<DocumentsStore>
     {
@@ -13,28 +13,37 @@ namespace Documents.DataStore.SqlServer
         {
         }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Document>(entity =>
             {
-                entity.OwnsOne(x => x.File, (file) =>
-                {
-                    file.ToTable(nameof(Document.File));
-                    file.Property(f => f.Content)
-                        .IsRequired();
-                });
+                entity.HasMany(x => x.Parts)
+                      .WithOne()
+                      .HasForeignKey(part => part.DocumentId)
+                      .HasPrincipalKey(doc => doc.Id);
+
+                entity.Property(x => x.Status)
+                      .HasConversion<string>()
+                      .HasDefaultValue(Status.Ongoing);
 
                 entity.Property(x => x.Name)
                     .HasMaxLength(255)
                     .IsRequired();
+
                 entity.Property(x => x.MimeType)
                     .IsRequired()
                     .HasMaxLength(255)
                     .HasDefaultValue(Document.DefaultMimeType);
+            });
 
+            modelBuilder.Entity<DocumentPart>(file =>
+            {
+                file.HasKey(x => new { x.DocumentId, x.Position });
+
+                file.Property(f => f.Content)
+                    .IsRequired();
             });
         }
     }

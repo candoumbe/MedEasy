@@ -19,10 +19,13 @@ variables :
     value: 'cobertura%2cjson'
   
 pr:
-  - master
+  autoCancel: true
+  branches:
+    include:
+      - master
 
 trigger:
-  batch: true
+  batch: false
   branches:
     include:
         - master
@@ -62,7 +65,7 @@ steps:
     command: test
     projects: '$(Parameters.projects.tests)'
     arguments: >-
-      --no-build -c $(configuration)
+      --no-build -c $(configuration) --collect:"XPlat Code Coverage"
       /p:CoverletOutput=$(Agent.TempDirectory)\ /p:CollectCoverage=true
       /p:ExcludeByAttribute=Obsolete
       /p:MergeWith="$(Agent.TempDirectory)\coverage.json"

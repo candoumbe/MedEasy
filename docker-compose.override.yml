@@ -13,7 +13,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=51800
-      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=Identity;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__IDENTITY=Server=identity.db;Database=identity;User ID=postgres;Password=P4ssW0rd!
     ports:
       - "51798:80"
       - "51800:443"
@@ -32,7 +32,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=63796
-      - CONNECTIONSTRINGS__MEASURES=Server=measures.db;Database=Measures;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__MEASURES=Server=measures.db;Database=measures;User ID=postgres;Password=P4ssW0rd!
     ports:
       - "63795:80"
       - "63796:443"
@@ -40,7 +40,6 @@ services:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
     
-
   patients.db:
     environment: 
       POSTGRES_PASSWORD: P4ssW0rd!
@@ -52,7 +51,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=54003
-      - CONNECTIONSTRINGS__PATIENTS=Server=patients.db;Database=Patients;MultipleActiveResultSets=true;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__PATIENTS=Server=patients.db;Database=patients;User ID=postgres;Password=P4ssW0rd!
     ports:
       - "54002:80"
       - "54003:443"
@@ -71,10 +70,29 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=52003
-      - CONNECTIONSTRINGS__DOCUMENTS=Server=documents.db;Database=Documents;User ID=sa;Password=P4ssW0rd!
+      - CONNECTIONSTRINGS__DOCUMENTS=Server=documents.db;Database=documents;User ID=postgres;Password=P4ssW0rd!
     ports:
       - "52002:80"
       - "52003:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+
+  agenda.db:
+    environment: 
+      POSTGRES_PASSWORD: P4ssW0rd!
+    ports:
+      - "6006:5432"
+
+  agenda.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=52003
+      - CONNECTIONSTRINGS__AGENDA=Server=agenda.db;Database=agenda;User ID=postgres;Password=P4ssW0rd!
+    ports:
+      - "55002:80"
+      - "55003:443"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

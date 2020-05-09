@@ -6,7 +6,7 @@ using Identity.CQRS.Events.Accounts;
 using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
 using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;

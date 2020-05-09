@@ -2,13 +2,15 @@ version: '3.7'
 
 services: 
   identity.db:
-    image: postgres/postgres:12-alpine  
+    image: postgres:12-alpine  
   patients.db:
-    image: postgres/postgres:12-alpine
+    image: postgres:12-alpine
   measures.db:
-    image: postgres/postgres:12-alpine
+    image: postgres:12-alpine
   documents.db:
-    image: postgres/postgres:12-alpine
+    image: postgres:12-alpine
+  agenda.db:
+    image: postgres:12-alpine
 
   identity.api:
     image: ${DOCKER_REGISTRY-}identityapi
@@ -44,3 +46,12 @@ services:
     depends_on:
       - identity.api
       - documents.db
+
+  agenda.api:
+    image: ${DOCKER_REGISTRY-}documentsapi
+    build:
+      context: .
+      dockerfile: src/services/agenda/Agenda.API/Dockerfile
+    depends_on:
+      - identity.api
+      - agenda.db

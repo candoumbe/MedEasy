@@ -3,9 +3,10 @@ using System;
 
 namespace Documents.DTO.v1
 {
-    public class DocumentFileInfo : DocumentInfo
+    public class DocumentPartInfo
     {
-        public byte[] Content { get; set; }
+        public int Position { get; set; }
 
+        public long Size { get; set; }
     }
 }

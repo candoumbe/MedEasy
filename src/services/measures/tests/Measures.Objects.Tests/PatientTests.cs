@@ -27,7 +27,7 @@ namespace Measures.Objects.Tests
         {
             // Arrange
             Guid id = Guid.NewGuid();
-            string initialName = "John Doe";
+            const string initialName = "John Doe";
 
             // Act
             Patient expected = new Patient(id, initialName);
@@ -43,7 +43,7 @@ namespace Measures.Objects.Tests
         }
 
         [Theory]
-        [InlineData("J'onzz J'onzz", "J'onzz J'onzz", "The new name is set as is because there no leading or trailing spaces")]
+        [InlineData("J'onzz J'onzz", "J'onzz J'onzz", "The new name is set 'as is' because there no leading or trailing spaces")]
         [InlineData("clark kent", "Clark Kent", "The new name is set using proper case.")]
         [InlineData("", "", "Changing name to string.empty is allowed")]
         [InlineData("  ", "", "Changing name to string.empty is allowed")]

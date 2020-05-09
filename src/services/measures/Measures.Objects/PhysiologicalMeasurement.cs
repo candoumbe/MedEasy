@@ -5,7 +5,7 @@ namespace Measures.Objects
 {
     public abstract class PhysiologicalMeasurement : AuditableEntity<Guid, PhysiologicalMeasurement>
     {
-        public virtual Patient Patient { get; set; }
+        public Patient Patient { get; set; }
 
         /// <summary>
         /// Patient for which the measure was made
@@ -17,14 +17,11 @@ namespace Measures.Objects
         /// </summary>
         public DateTime DateOfMeasure { get; set; }
 
-
-        protected PhysiologicalMeasurement(Guid id, Guid patientId, DateTime dateOfMeasure)
-            : base(id)
+        protected PhysiologicalMeasurement(Guid patientId, Guid id, DateTime dateOfMeasure) : base(id)
         {
             PatientId = patientId;
             DateOfMeasure = dateOfMeasure;
         }
-
 
         public void ChangePatientId(Guid newPatientId)
         {

@@ -111,7 +111,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
 
             BloodPressure measure = new BloodPressure(
-                idToDelete,
+                id: idToDelete,
                 patientId: patient.Id,
                 systolicPressure: 120,
                 diastolicPressure: 80,

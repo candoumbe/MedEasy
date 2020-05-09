@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Identity.CQRS\Identity.CQRS.csproj" />
-    <ProjectReference Include="..\..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
     <ProjectReference Include="..\..\Identity.Mapping\Identity.Mapping.csproj" />
   </ItemGroup>
 

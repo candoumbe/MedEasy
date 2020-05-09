@@ -18,8 +18,8 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using MedEasy.DAL.EFStore;
 using Documents.DTO.v1;
-using Documents.DataStore.SqlServer;
 using Documents.CQRS.Queries;
+using Documents.DataStore;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -30,6 +30,12 @@ namespace Documents.CQRS.UnitTests.Handlers
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfDocumentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
+        private static readonly Faker<Document> documentFaker = new Faker<Document>()
+                        .CustomInstantiator(faker => new Document(
+                            id: Guid.NewGuid(),
+                            name: faker.PickRandom("pdf", "txt", "odt"),
+                            mimeType: faker.System.MimeType())
+                        );
 
         public HandleGetPageOfDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
@@ -69,24 +75,15 @@ namespace Documents.CQRS.UnitTests.Handlers
                 {
                     Enumerable.Empty<Document>(),
                     (1, 10),
-                    ((Expression<Func<Page<DocumentInfo>, bool>>)(page => page.Count == 1
+                    (Expression<Func<Page<DocumentInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
                         && page.Entries != null && page.Entries.Count() == 0
-                    )),
+                    ),
                     "DataStore is empty"
                 };
 
                 {
-                    Faker<Document> appointmentFaker = new Faker<Document>()
-                        .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
-                            name: faker.System.CommonFileName(),
-                            mimeType: faker.System.MimeType())
-                            .SetFile(file: faker.System.Random.Bytes(20))
-                        );
-
-
-                    IEnumerable<Document> items = appointmentFaker.Generate(50);
+                    IEnumerable<Document> items = documentFaker.Generate(50);
                     yield return new object[]
                     {
                         items,

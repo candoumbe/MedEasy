@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using Documents.DataStore.SqlServer;
 using Documents.CQRS.Commands;
+using Bogus;
+using Documents.DataStore;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -65,9 +66,7 @@ namespace Documents.CQRS.UnitTests.Handlers
         {
             // Arrange
             Guid documentid = Guid.NewGuid();
-            Document document = new Document(id: documentid, name: "afile")
-                .SetFile(file: new byte[] { 123 });
-
+            Document document = new Document(id: documentid, name: "afile");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -91,7 +90,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                     .ConfigureAwait(false);
 
                 deleteOk.Should()
-                    .BeTrue("deleted resource must not be prensent in the datastore");
+                        .BeTrue("deleted resource must not be prensent in the datastore");
             }
         }
     }

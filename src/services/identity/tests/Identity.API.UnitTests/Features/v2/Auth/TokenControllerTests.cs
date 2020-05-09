@@ -5,7 +5,7 @@ using Identity.API.Features.v1.Auth;
 using Identity.API.Features.v2.Auth;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v2;
 using MedEasy.DAL.EFStore;

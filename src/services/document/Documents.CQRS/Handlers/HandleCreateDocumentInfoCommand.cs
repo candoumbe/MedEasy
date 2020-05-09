@@ -7,6 +7,7 @@ using MedEasy.DAL.Interfaces;
 using MediatR;
 using Optional;
 using System;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,10 +30,9 @@ namespace Documents.CQRS.Handlers
         public async Task<Option<DocumentInfo, CreateCommandResult>> Handle(CreateDocumentInfoCommand request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            
+
             Document document = new Document(id: request.Data.Id == Guid.Empty ? Guid.NewGuid() : request.Data.Id,
-                name: request.Data.Name)
-                .SetFile(request.Data.Content);
+                name: request.Data.Name);
 
             if (!string.IsNullOrWhiteSpace(request.Data.MimeType))
             {
@@ -40,6 +40,12 @@ namespace Documents.CQRS.Handlers
             }
 
             uow.Repository<Document>().Create(document);
+            uow.Repository<DocumentPart>().Create(new DocumentPart(document.Id, 0, request.Data.Content));
+
+            document.UpdateSize(request.Data.Content.Length);
+            document.UpdateHash(BitConverter.ToString(SHA256.Create().ComputeHash(request.Data.Content)));
+            document.Lock();
+
             await uow.SaveChangesAsync(cancellationToken)
                 .ConfigureAwait(false);
 

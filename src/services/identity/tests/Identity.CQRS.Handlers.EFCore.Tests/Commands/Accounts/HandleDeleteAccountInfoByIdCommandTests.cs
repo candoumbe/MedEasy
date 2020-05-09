@@ -2,7 +2,7 @@
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Events.Accounts;
 using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.Objects;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;

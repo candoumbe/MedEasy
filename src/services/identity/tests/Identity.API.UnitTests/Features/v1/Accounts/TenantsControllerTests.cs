@@ -3,7 +3,7 @@ using Identity.API.Features.Accounts;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Routing;
 using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores.SqlServer;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.Objects;
 using MedEasy.DAL.EFStore;

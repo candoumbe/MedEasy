@@ -1,16 +1,20 @@
-﻿using Identity.DataStores.SqlServer;
+﻿using Identity.DataStores;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
+using Npgsql;
+
 using Polly;
 using Polly.Retry;
+
 using Serilog;
+
 using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 namespace Identity.API
@@ -37,7 +41,7 @@ namespace Identity.API
                     logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
                     // Forces database migrations on startup
                     RetryPolicy policy = Policy
-                        .Handle<SqlException>(sql => sql.Message.Like("*Login failed*", ignoreCase: true))
+                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
                         .WaitAndRetryAsync(
                             retryCount: 5,
                             sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),

@@ -2,7 +2,6 @@
 using Bogus;
 using Documents.CQRS.Commands;
 using Documents.CQRS.Handlers;
-using Documents.DataStore.SqlServer;
 using Documents.DTO;
 using Documents.DTO.v1;
 using FakeItEasy;
@@ -21,6 +20,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using Microsoft.EntityFrameworkCore.Sqlite;
+using Documents.DataStore;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {

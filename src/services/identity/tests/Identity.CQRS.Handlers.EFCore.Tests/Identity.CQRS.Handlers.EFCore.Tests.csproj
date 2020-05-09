@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\Identity.CQRS.Handlers.EFCore\Identity.CQRS.Handlers.EFCore.csproj" />
-    <ProjectReference Include="..\..\Identity.DataStores.SqlServer\Identity.DataStores.SqlServer.csproj" />
+    <ProjectReference Include="..\..\Identity.DataStores\Identity.DataStores.csproj" />
     <ProjectReference Include="..\..\Identity.Mapping\Identity.Mapping.csproj" />
   </ItemGroup>
 
