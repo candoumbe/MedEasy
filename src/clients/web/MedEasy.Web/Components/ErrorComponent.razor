@@ -1,0 +1,14 @@
+﻿
+
+<div className="center-block">
+    <BSAlert Color="Color.Danger">
+        @(Text ?? "An error occured ...")}
+    </BSAlert>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string Text { get; set; }
+}

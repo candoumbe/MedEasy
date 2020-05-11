@@ -1,0 +1,23 @@
+﻿@namespace MedEasy.Components
+@typeparam TItem
+@using System.Linq.Expressions
+
+    <BSTableHeadCell @key=Key.Compile()>
+        @Title
+    </BSTableHeadCell>
+
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public Func<TItem, string> Definition { get; set; }
+
+    [Parameter]
+    public Expression<Func<string>> Key { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object> AdditionalAttributes { get; set; }
+}

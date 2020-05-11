@@ -1,0 +1,10 @@
+﻿@typeparam TElement
+
+<BSTableRow>
+    @RowTemplate
+</BSTableRow>
+
+@code {
+    [Parameter]
+    public RenderFragment<TElement> RowTemplate { get; set; }
+}

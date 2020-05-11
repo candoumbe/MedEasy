@@ -1,0 +1,69 @@
+﻿@page "/login"
+@inject IIdentityApi LoginService
+@using Identity.Models.v2
+@namespace MedEasy.Web.Pages
+@inject NavigationManager NavigationService
+@inject ILocalStorageService LocalStorage
+
+<BSAlert IsDismissible="true" IsOpen="HasErrorToDisplay" Color="Color.Danger">
+
+</BSAlert>
+<BSForm Model="LoginForm" OnValidSubmit="async () => await Connect()">
+    <DataAnnotationsValidator />
+    <BSFormGroup>
+        <BSLabel>Login</BSLabel>
+        <BSInput ValueExpression="() => LoginForm.Name" />
+        <BSFormFeedback For="() => LoginForm.Name" />
+    </BSFormGroup>
+
+    <BSFormGroup>
+        <BSFormLabel>Password</BSFormLabel>
+        <BSInput ValueExpression="() => LoginForm.Password" />
+        <BSFormFeedback For="() => LoginForm.Password" />
+    </BSFormGroup>
+
+    <BSFormGroup IsRow="true">
+        <BSButton ButtonType="ButtonType.Submit" Value="Log in" Color="Color.Primary" IsDisabled="!FormIsValid()" />
+        <BSButton ButtonType="ButtonType.Link" Value="Register" OnClick="GoToRegister" />
+    </BSFormGroup>
+</BSForm>
+
+
+@code{
+    private Identity.Models.LoginModel LoginForm { get; set; } = new Identity.Models.LoginModel();
+
+    private bool HasErrorToDisplay { get; set; }
+
+    private async Task Connect()
+    {
+        ApiResponse<BearerTokenModel> response = await LoginService.Login(LoginForm);
+
+        HasErrorToDisplay = !response.IsSuccessStatusCode;
+        if (response.IsSuccessStatusCode)
+        {
+            await LocalStorage.SetItemAsync("bearer", response.Content);
+            NavigationService.NavigateTo("/home");
+        }
+        else
+        {
+
+            switch ((int)response.StatusCode)
+            {
+                case Status404NotFound:
+
+                    break;
+            }
+            HasErrorToDisplay = true;
+
+        }
+    }
+
+    private void GoToRegister()
+    {
+        NavigationService.NavigateTo("/register");
+    }
+
+
+    private bool FormIsValid() => !(string.IsNullOrWhiteSpace(LoginForm.Name) || string.IsNullOrWhiteSpace(LoginForm.Name));
+
+}

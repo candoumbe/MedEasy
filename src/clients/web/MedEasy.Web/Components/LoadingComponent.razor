@@ -1,0 +1,13 @@
+﻿@namespace MedEasy.Components
+
+    <div className="center-block">
+        <BSAlert Color="Color.Info">
+            @(Text ?? "Loading")
+        </BSAlert>
+    </div>
+
+@code {
+
+    [Parameter]
+    public string Text { get; set; }
+}

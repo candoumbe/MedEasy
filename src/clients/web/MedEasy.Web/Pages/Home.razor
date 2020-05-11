@@ -1,0 +1,92 @@
+﻿@page "/home"
+@inject IIdentityApi LoginService
+@namespace MedEasy.Web.Pages
+@inject NavigationManager NavigationService
+@inject ILocalStorageService LocalStorage
+@using Identity.Models.v2
+@using Identity.Models.v1
+
+<BSTable>
+    @if (Accounts is null)
+    {
+        <BSTableBody>
+            <BSTableRow>
+                <LoadingComponent Text="Loading" />
+            </BSTableRow>
+        </BSTableBody>
+    }
+    else
+    {
+        <BSTableBody>
+            @foreach (Browsable<AccountModel> item in Accounts)
+            {
+                AccountModel account = item.Resource;
+                <BSTableRow @key="account.Id">
+                    <BSCard CardType="CardType.Card">
+                        <BSCard CardType="CardType.Title">@account.Name</BSCard>
+                    </BSCard>
+                </BSTableRow>
+            }
+        </BSTableBody>
+
+        <BSTableFooter>
+            <BSPagination Alignment="Alignment.Center">
+                <BSPaginationItem IsDisabled="CurrentPage > 1">
+                    <BSPaginationLink PaginationLinkType="PaginationLinkType.PreviousIcon" />
+                </BSPaginationItem>
+                <BSPaginationItem IsActive="CurrentPage == 1">@CurrentPage</BSPaginationItem>
+                <BSPaginationItem IsDisabled="CurrentPage >= MaxPage">
+                    <BSPaginationLink PaginationLinkType="PaginationLinkType.NextIcon" />
+                </BSPaginationItem>
+            </BSPagination>
+        </BSTableFooter>
+    }
+
+</BSTable>
+
+
+<BSModal IsOpen="IsErrorOpen">
+    <BSModalBody>
+        @ErrorText
+    </BSModalBody>
+</BSModal>
+
+@code{
+
+
+
+
+    private IEnumerable<Browsable<AccountModel>> Accounts { get; set; }
+
+    private int CurrentPage { get; set; }
+
+    private int MaxPage { get; set; }
+
+    private bool IsErrorOpen { get; set; }
+
+    private string ErrorText { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccounts(CurrentPage, MaxPage);
+    }
+
+
+    private async Task LoadAccounts(int page, int pageSize)
+    {
+        BearerTokenModel token = await LocalStorage.GetItemAsync<BearerTokenModel>("bearer");
+
+        ApiResponse<IEnumerable<Browsable<AccountModel>>> response = await LoginService.Accounts(token.AccessToken.Token, CurrentPage, MaxPage);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Accounts = response.Content;
+        }
+        else
+        {
+            ErrorText = response.ReasonPhrase;
+            IsErrorOpen = true;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,103 @@
+﻿@typeparam TItem
+@using System.Linq.Expressions
+@inject HttpClient client
+
+<BSTable>
+    <BSTableHead>
+
+        @foreach (GridColumn<TItem> col in Cols)
+        {
+            @col
+        }
+    </BSTableHead>
+    <BSTableBody>
+        @if (IsLoading)
+        {
+            <BSTableRow colspan=@Cols.Count()>
+                <LoadingComponent />
+            </BSTableRow>
+        }
+        else if (Error)
+        {
+            <BSTableRow>
+                <BSTableCell colspan=@Cols.Count()>
+                    <ErrorComponent Text="An error occured while sending the request" />
+                </BSTableCell>
+            </BSTableRow>
+        }
+        else if (Data.AtLeastOnce())
+        {
+            foreach (TItem item in Data)
+            {
+                <BSTableRow>
+                    @for (int i = 0; i < Cols.Count(); i++)
+                    {
+                        var col = Cols.ElementAt(i);
+                        <BSTableCell @key="col.Key.Compile()">
+                            @col.Definition(item)
+                        </BSTableCell>
+                    }
+                </BSTableRow>
+            }
+        }
+        else
+        {
+            <BSTableRow>
+                <BSTableCell colspan=@Cols.Count()>
+                    No data
+                </BSTableCell>
+            </BSTableRow>
+        }
+    </BSTableBody>
+</BSTable>
+
+<BSNav>
+</BSNav>
+
+@code {
+
+    /// <summary>
+    /// Columns definition
+    /// </summary>
+    [Parameter]
+    public IEnumerable<GridColumn<TItem>> Cols { get; set; }
+
+    /// <summary>
+    /// Base url to load data
+    /// </summary>
+    [Parameter]
+    public string Url { get; set; }
+
+    /// <summary>
+    /// Indicates if the current component is loading
+    /// </summary>
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Data
+    /// </summary>
+    private IEnumerable<TItem> Data { get; set; }
+
+
+    private bool Error { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Error = false;
+        IsLoading = true;
+        using HttpResponseMessage response = await client.GetAsync(Url);
+
+        if (response.IsSuccessStatusCode)
+        {
+            string json = await response.Content.ReadAsStringAsync();
+            Data = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<TItem>>(json);
+        }
+
+        IsLoading = false;
+        StateHasChanged();
+
+    }
+
+}
