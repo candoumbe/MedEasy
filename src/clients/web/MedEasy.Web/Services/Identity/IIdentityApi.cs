@@ -28,7 +28,7 @@ namespace MedEasy.Web.Services.Identity
         /// <param name="login"></param>
         /// <param name="ct"></param>
         /// <returns><see cref="ApiResponse{T}"/> with the appropriate <see cref="BearerTokenModel"/></returns>
-        [Post("/v2/token")]
+        [Post("/v2/auth/token")]
         Task<ApiResponse<BearerTokenModel>> Login([Body] LoginModel login, CancellationToken ct = default);
 
         [Get("/v1/accounts")]

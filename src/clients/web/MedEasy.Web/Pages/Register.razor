@@ -6,46 +6,68 @@
 @using Identity.Models.v2
 
 
-<BSForm Model="RegisterForm" OnValidSubmit="(async () => await RegisterAccount())">
-    <DataAnnotationsValidator/>
-    <BSAlert IsDismissible="true">
-        <ValidationSummary />
-    </BSAlert>
-    <BSAlert IsDismissible="true" IsOpen="!string.IsNullOrWhiteSpace(RegisterAccountErrorText)">
-        @RegisterAccountErrorText
-    </BSAlert>
-    
-    <BSFormGroup IsRow="true">
-        <BSLabel>Login</BSLabel>
-        <BSInput ValueExpression="() => RegisterForm.Name" />
-        <BSFormFeedback For="() => RegisterForm.Name">
-            <ValidationMessage For="() => RegisterForm.Name"/>
-        </BSFormFeedback>
-    </BSFormGroup>
-    
-    <BSFormGroup IsRow="true">
-        <BSLabel>Email</BSLabel>
-        <BSInput ValueExpression="() => RegisterForm.Email" InputType="InputType.Email"/>
-        <BSFormFeedback For="() => RegisterForm.Email">
-            <ValidationMessage For="() => RegisterForm.Email"/>
-        </BSFormFeedback>
-    </BSFormGroup>
+<Blazorise.Form>
+    <Validations Model="RegisterForm">
 
-    <BSFormGroup  IsRow="true">
-        <BSFormLabel>Password</BSFormLabel>
-        <BSInput ValueExpression="() => RegisterForm.Password" InputType="InputType.Password"/>
-        <BSFormLabel>Confirm password</BSFormLabel>
-        <BSInput ValueExpression="() => RegisterForm.ConfirmPassword" InputType="InputType.Password"/>
-        <BSFormFeedback For="() => RegisterForm.ConfirmPassword">
-            <ValidationMessage For="() => RegisterForm.ConfirmPassword" />
-        </BSFormFeedback>
-    </BSFormGroup>
+        <Validation>
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is3">Name</FieldLabel>
+                <FieldBody>
+                    <TextEdit @bind-Text="RegisterForm.Name" Casing="CharacterCasing.Title">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+        <Validation>
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is3" For="Email">Email</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is6">
+                    <TextEdit Role="TextRole.Email" @bind-Text="RegisterForm.Email">
+                        <Feedback>
+                            <ValidationError Tooltip="true" />
+                        </Feedback>
+                    </TextEdit>
+                    <FieldHelp>Your email that will be used to send you notification about reminders about your appointments.</FieldHelp>
+                </FieldBody>
+            </Field>
+        </Validation>
+        <Validation>
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is3">Password</FieldLabel>
+                <FieldBody>
+                    <TextEdit Role="TextRole.Password" @bind-Text="RegisterForm.Password">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+        <Validation>
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is3">Confirm password</FieldLabel>
+                <FieldBody>
+                    <TextEdit Role="TextRole.Password" @bind-Text="RegisterForm.ConfirmPassword">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
 
-    <BSFormGroup IsRow="true" >
-        <BSButton ButtonType="ButtonType.Submit">Register</BSButton>
-        <BSButton ButtonType="ButtonType.Link" OnClick="GoToLoginPage">Don't have an account ?</BSButton>
-    </BSFormGroup>
-</BSForm>
+    </Validations>
+
+    <Field Horizontal="true" JustifyContent="JustifyContent.Center">
+        <Button Type="ButtonType.Submit" Color="Color.Success" PreventDefaultOnSubmit="true"
+                Clicked="async () => await RegisterAndLogIn()"
+                >Create my account</Button>
+        or <Blazorise.Link To="/login">I have an account</Blazorise.Link>
+    </Field>
+</Blazorise.Form>
 
 
 @code{
@@ -53,7 +75,7 @@
 
     public string RegisterAccountErrorText { get; set; }
 
-    private async Task RegisterAccount()
+    private async Task RegisterAndLogIn()
     {
         ApiResponse<BearerTokenModel> response = await LoginService.Register(RegisterForm);
 
@@ -68,10 +90,4 @@
 
         }
     }
-
-
-    private void GoToLoginPage() => NavigationService.NavigateTo("/login");
-
-
-
 }

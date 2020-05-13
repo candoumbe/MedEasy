@@ -1,14 +1,36 @@
 ﻿
 
-<div className="center-block">
-    <BSAlert Color="Color.Danger">
-        @(Text ?? "An error occured ...")}
-    </BSAlert>
-</div>
+
+<Alert Color="Color.Danger" Visible="IsVisible">
+    <Heading Size="HeadingSize.Is3">
+        @(Title ?? "An error occured ...")}
+        @if (IsCloseable)
+        {
+            <CloseButton/>
+        }
+    </Heading>
+    <Paragraph>
+        @Details
+    </Paragraph>
+</Alert>
 
 
 @code {
 
     [Parameter]
-    public string Text { get; set; }
+    public string Title { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    /// <summary>
+    /// DEfines if the 
+    /// </summary>
+    [Parameter]
+    public bool IsCloseable { get; set; }
+
+    [Parameter]
+    public string Details { get; set; }
+
+
 }

@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Blazored.LocalStorage;
+
+using Blazorise;
+using Blazorise.Icons.Material;
+using Blazorise.Material;
+
+using MedEasy.Web.Data;
+using MedEasy.Web.Services.Identity;
+
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MedEasy.Web.Data;
-using BlazorStrap;
-using MedEasy.Web.Services.Identity;
+
 using Refit;
-using Blazored.LocalStorage;
 
 namespace MedEasy.Web
 {
@@ -33,7 +33,12 @@ namespace MedEasy.Web
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
-            services.AddBootstrapCss();
+            services.AddBlazorise(options =>
+            {
+                options.ChangeTextOnKeyPress = true;
+            })
+                .AddMaterialProviders()
+                .AddMaterialIcons();
 
             services.AddSingleton<IIdentityApi>((_) => RestService.For<IIdentityApi>(Configuration["Services:Identity:Url"]));
             services.AddBlazoredLocalStorage();
@@ -57,6 +62,11 @@ namespace MedEasy.Web
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.ApplicationServices
+                  .UseMaterialProviders()
+                  .UseMaterialIcons();
+
 
             app.UseEndpoints(endpoints =>
             {

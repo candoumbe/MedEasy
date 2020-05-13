@@ -1,43 +1,91 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">MedEasy.Web</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
+﻿<Bar ThemeContrast="ThemeContrast.Light" Breakpoint="Breakpoint.Tablet">
+    <BarBrand>
+        <BarLink To="/" Match="Match.All">
+            <span class="oi oi-home" aria-hidden="true"></span> MedEasy
+        </BarLink>
+    </BarBrand>
+    <BarToggler Clicked="ToggleNavMenu">
+    </BarToggler>
+    <BarMenu @ref="menu">
+        <BarStart>
+            <BarItem>
+                <BarLink To="counter">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Counter
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="fetchdata">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <Addons>
+                    <Addon AddonType="AddonType.Body">
+                        <TextEdit Placeholder="Search ..."
+                                  InputMode="TextInputMode.Search"
+                                  Size="Size.ExtraLarge" />
+                    </Addon>
+                    <Addon AddonType="AddonType.End">
+                        <Button Type="ButtonType.Button" Color="Color.None" Size="ButtonSize.Small">
+                            <Icon Name="IconName.Search" />
+                        </Button>
+                    </Addon>
+                </Addons>
+            </BarItem>
+        </BarStart>
+        <BarEnd>
+            <BarItem>
+                <BarLink To="agenda">
+                    <Icon IconStyle="IconStyle.Regular" /> Agenda
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarDropdown>
+                    <Tooltip Fade="true" Text="Cyrille NDOUMBE">
+                        <BarDropdownToggle><Icon Name="IconName.Person" /></BarDropdownToggle>
+                    </Tooltip>
+                    <BarDropdownMenu>
+                        <BarDropdownItem Title="Control">
+                            <Icon Name="IconName.Palette" /> Settings
+                        </BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+            <BarItem>
+                <BarLink To="https://docs.microsoft.com/aspnet/" target="_blank">
+                </BarLink>
+            </BarItem>
+        </BarEnd>
+    </BarMenu>
+</Bar>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
+@*<div class="top-row pl-4 navbar navbar-dark">
+        <a class="navbar-brand" href="">MedEasy.Web</a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="agenda">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
-    </ul>
-</div>
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <ul class="nav flex-column">
+            <li class="nav-item px-3">
+            </li>
+            <li class="nav-item px-3">
+            </li>
+            <li class="nav-item px-3">
+            </li>
+
+            <li class="nav-item px-3">
+            </li>
+        </ul>
+    </div>*@
 
 @code {
-    private bool collapseNavMenu = true;
-
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private BarMenu menu;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        menu.Toggle();
+
     }
 }

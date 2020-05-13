@@ -53,8 +53,8 @@ services:
       context: .
       dockerfile: src/services/agenda/Agenda.API/Dockerfile
     depends_on:
-      - identity.api
       - agenda.db
+      - identity.api
   medeasy.web:
     image: ${DOCKER_REGISTRY-}medeasyweb
     build:

@@ -23,6 +23,10 @@ namespace MedEasy.Web
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureLogging(logging =>
+                {
+                    logging.AddConsole();
                 });
     }
 }

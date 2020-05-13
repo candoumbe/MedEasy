@@ -100,7 +100,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
-      - SERVICES__IDENTITY__URL=https://identity.api/
+      - SERVICES__IDENTITY__URL=https://identity.api:443/
     ports:
       - "80"
       - "443"
