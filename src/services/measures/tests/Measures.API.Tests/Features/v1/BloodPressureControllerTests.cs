@@ -133,9 +133,9 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(_ => new BloodPressure(
                             id: Guid.NewGuid(),
-                            patientId: Guid.NewGuid(),
-                            dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
-                            systolicPressure: 120, diastolicPressure: 80
+                        patientId: Guid.NewGuid(),
+                        dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
+                        systolicPressure: 120, diastolicPressure: 80
                         )) ;
 
                 {

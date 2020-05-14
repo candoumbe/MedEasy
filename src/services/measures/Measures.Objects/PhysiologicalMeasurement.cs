@@ -17,8 +17,23 @@ namespace Measures.Objects
         /// </summary>
         public DateTime DateOfMeasure { get; set; }
 
+        /// <summary>
+        /// Builds a new <see cref="PhysiologicalMeasurement"/> instance
+        /// </summary>
+        /// <param name="patientId">id of the patient the measurement was taken from</param>
+        /// <param name="id">id of the measurement.</param>
+        /// <param name="dateOfMeasure">When the measure was taken.</param>
         protected PhysiologicalMeasurement(Guid patientId, Guid id, DateTime dateOfMeasure) : base(id)
         {
+            if (patientId == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(patientId));
+            }
+
+            if (dateOfMeasure == DateTime.MinValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dateOfMeasure), dateOfMeasure, $"{nameof(dateOfMeasure)} must be set");
+            }
             PatientId = patientId;
             DateOfMeasure = dateOfMeasure;
         }

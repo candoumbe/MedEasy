@@ -75,7 +75,7 @@ namespace Measures.Objects
             {
                 throw new DuplicateIdException();
             }
-            _bloodPressures.Add(new BloodPressure(Id, measureId, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
+            _bloodPressures.Add(new BloodPressure(Id, measureId, dateOfMeasure, systolicPressure: systolic, diastolicPressure: diastolic));
         }
 
         /// <summary>
