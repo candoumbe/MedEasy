@@ -17,13 +17,15 @@ namespace Measures.Objects
         /// </summary>
         public DateTime DateOfMeasure { get; set; }
 
+        protected static readonly string ValueIsOutsideRangeOfValidValuesMessage = $"The new value is outside the range [0 ; {float.MaxValue}] of valid values.";
+
         /// <summary>
         /// Builds a new <see cref="PhysiologicalMeasurement"/> instance
         /// </summary>
-        /// <param name="patientId">id of the patient the measurement was taken from</param>
         /// <param name="id">id of the measurement.</param>
+        /// <param name="patientId">id of the patient the measurement was taken from</param>
         /// <param name="dateOfMeasure">When the measure was taken.</param>
-        protected PhysiologicalMeasurement(Guid patientId, Guid id, DateTime dateOfMeasure) : base(id)
+        protected PhysiologicalMeasurement(Guid id, Guid patientId, DateTime dateOfMeasure) : base(id)
         {
             if (patientId == Guid.Empty)
             {
@@ -36,11 +38,6 @@ namespace Measures.Objects
             }
             PatientId = patientId;
             DateOfMeasure = dateOfMeasure;
-        }
-
-        public void ChangePatientId(Guid newPatientId)
-        {
-            PatientId = newPatientId;
         }
     }
 }

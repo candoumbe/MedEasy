@@ -33,8 +33,8 @@ namespace Measures.Objects
         /// </summary>
         /// <param name="patientId">id of the <see cref="Patient"/> who the current measure will be attached to.</param>
         /// <param name="dateOfMeasure">dDate of the measure</param>
-        /// <param name="diastolicPressure">The diastolic measure</param>
         /// <param name="systolicPressure">The systolic measure</param>
+        /// <param name="diastolicPressure">The diastolic measure</param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// 
         /// <list type="bullet">
@@ -47,31 +47,16 @@ namespace Measures.Objects
         /// 
         /// </exception>
         public BloodPressure(Guid patientId, Guid id, DateTime dateOfMeasure, float systolicPressure, float diastolicPressure)
-            : base(patientId, id, dateOfMeasure)
+            : base(id, patientId, dateOfMeasure)
         {
-            if (float.IsNaN(systolicPressure))
+            if (float.IsNaN(systolicPressure) || float.IsPositiveInfinity(systolicPressure) || systolicPressure < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(systolicPressure), $"{nameof(systolicPressure)} cannot be NaN");
+                throw new ArgumentOutOfRangeException(nameof(systolicPressure), systolicPressure, $"{nameof(systolicPressure)} is outside the range [0; {float.MaxValue}] of valid values");
             }
 
-            if (float.IsNaN(diastolicPressure))
+            if (float.IsNaN(diastolicPressure) || float.IsPositiveInfinity(diastolicPressure) || diastolicPressure < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(diastolicPressure), $"{nameof(diastolicPressure)} cannot be NaN");
-            }
-
-            if (float.IsPositiveInfinity(systolicPressure))
-            {
-                throw new ArgumentOutOfRangeException(nameof(systolicPressure), $"{nameof(systolicPressure)} cannot be PositiveInfinity");
-            }
-
-            if (systolicPressure < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(systolicPressure), systolicPressure, $"{nameof(systolicPressure)} cannot be less than 0");
-            }
-
-            if (diastolicPressure < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(diastolicPressure), diastolicPressure, $"{nameof(diastolicPressure)} cannot be less than 0");
+                throw new ArgumentOutOfRangeException(nameof(diastolicPressure), diastolicPressure, $"{nameof(diastolicPressure)} is outside the range [0; {float.MaxValue}] of valid values");
             }
 
             if (systolicPressure < diastolicPressure)
