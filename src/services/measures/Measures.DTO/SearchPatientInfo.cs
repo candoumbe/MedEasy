@@ -1,4 +1,6 @@
-﻿using MedEasy.DTO.Search;
+﻿using Forms;
+
+using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using System;
 

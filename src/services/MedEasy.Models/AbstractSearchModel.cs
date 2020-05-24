@@ -1,5 +1,6 @@
 ﻿using MedEasy.Attributes;
 using MedEasy.RestObjects;
+using Forms;
 
 namespace Agenda.Models.v1.Search
 {
@@ -7,7 +8,6 @@ namespace Agenda.Models.v1.Search
     {
         public const string SortPattern = @"^\s*(-|\+)?(([A-Za-z])\w*)+(\s*,\s*((-|\+)?(([A-Za-z])\w*)+)\s*)*$";
         public const char SortSeparator = ',';
-
 
         /// <summary>
         /// 1-based index of the page of result to display

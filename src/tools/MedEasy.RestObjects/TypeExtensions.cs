@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using static System.Collections.Generic.DictionaryExtensions;
+using Forms;
 
 namespace System
 {
@@ -75,7 +76,7 @@ namespace System
                 fields.Add(ff);
             }
 
-            f.Items = fields;
+            f.Fields = fields;
 
             return f;
         }

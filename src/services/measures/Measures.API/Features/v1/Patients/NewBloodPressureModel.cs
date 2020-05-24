@@ -1,4 +1,6 @@
-﻿using MedEasy.Attributes;
+﻿using Forms;
+
+using MedEasy.Attributes;
 using MedEasy.RestObjects;
 
 namespace Measures.API.Features.Patients

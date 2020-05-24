@@ -14,8 +14,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Forms;
+using static Forms.LinkRelation;
 using static Moq.MockBehavior;
-using static MedEasy.RestObjects.FormFieldType;
+using static Forms.FormFieldType;
 using Xunit.Categories;
 using Endpoint = MedEasy.RestObjects.Endpoint;
 using Microsoft.Extensions.Hosting;
@@ -120,7 +122,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&page=1&pageSize=30&version={_apiVersion}");
 
-            patientsSearchForm.Items.Should()
+            patientsSearchForm.Fields.Should()
                 .NotBeNull().And
                 .NotContainNulls().And
                 .OnlyContain(x => !string.IsNullOrWhiteSpace(x.Name)).And
@@ -130,26 +132,26 @@ namespace Patients.API.UnitTests.Controllers
                 .ContainSingle(x => x.Name == nameof(SearchPatientInfo.Page)).And
                 .ContainSingle(x => x.Name == nameof(SearchPatientInfo.PageSize));
 
-            FormField patientFirstnameField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Firstname));
+            FormField patientFirstnameField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.Firstname));
             patientFirstnameField.Type.Should().Be(FormFieldType.String);
 
-            FormField patientLastnameField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Lastname));
+            FormField patientLastnameField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.Lastname));
             patientLastnameField.Type.Should().Be(FormFieldType.String);
 
-            FormField patientBirthDateField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.BirthDate));
+            FormField patientBirthDateField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.BirthDate));
             patientBirthDateField.Type.Should().Be(Date);
 
-            FormField patientPageField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Page));
+            FormField patientPageField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.Page));
             patientPageField.Type.Should().Be(Integer);
             patientPageField.Min.Should().Be(1);
             patientPageField.Max.Should().BeNull();
 
-            FormField patientPageSizeField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.PageSize));
+            FormField patientPageSizeField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.PageSize));
             patientPageSizeField.Type.Should().Be(Integer);
             patientPageSizeField.Min.Should().Be(1);
             patientPageSizeField.Max.Should().Be(_optionsMock.Object.Value.MaxPageSize);
 
-            FormField patientSortField = patientsSearchForm.Items.Single(x => x.Name == nameof(SearchPatientInfo.Sort));
+            FormField patientSortField = patientsSearchForm.Fields.Single(x => x.Name == nameof(SearchPatientInfo.Sort));
             patientSortField.Type.Should().Be(FormFieldType.String);
             patientSortField.Pattern.Should().Be(SearchPatientInfo.SortPattern);
 
@@ -164,7 +166,7 @@ namespace Patients.API.UnitTests.Controllers
                 .NotBeNullOrWhiteSpace().And
                 .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&version={_apiVersion}");
 
-            patientsCreateForm.Items.Should()
+            patientsCreateForm.Fields.Should()
                 .NotBeNullOrEmpty().And
                 .NotContainNulls().And
                 .OnlyContain(x => !string.IsNullOrWhiteSpace(x.Name)).And
@@ -173,16 +175,16 @@ namespace Patients.API.UnitTests.Controllers
                 .ContainSingle(x => x.Name == nameof(PatientInfo.MainDoctorId)).And
                 .ContainSingle(x => x.Name == nameof(PatientInfo.BirthDate));
 
-            FormField patientCreateFormFirstnameField = patientsCreateForm.Items.Single(x => x.Name == nameof(PatientInfo.Firstname));
+            FormField patientCreateFormFirstnameField = patientsCreateForm.Fields.Single(x => x.Name == nameof(PatientInfo.Firstname));
             patientFirstnameField.Type.Should().Be(FormFieldType.String);
 
-            FormField patientCreateFormLastnameField = patientsCreateForm.Items.Single(x => x.Name == nameof(PatientInfo.Lastname));
+            FormField patientCreateFormLastnameField = patientsCreateForm.Fields.Single(x => x.Name == nameof(PatientInfo.Lastname));
             patientLastnameField.Type.Should().Be(FormFieldType.String);
 
-            FormField patientCreateFormBirthDateField = patientsCreateForm.Items.Single(x => x.Name == nameof(PatientInfo.BirthDate));
+            FormField patientCreateFormBirthDateField = patientsCreateForm.Fields.Single(x => x.Name == nameof(PatientInfo.BirthDate));
             patientBirthDateField.Type.Should().Be(Date);
 
-            FormField patientCreateFormMainDoctorIdField = patientsCreateForm.Items.Single(x => x.Name == nameof(PatientInfo.MainDoctorId));
+            FormField patientCreateFormMainDoctorIdField = patientsCreateForm.Fields.Single(x => x.Name == nameof(PatientInfo.MainDoctorId));
             patientCreateFormMainDoctorIdField.Type.Should().Be(FormFieldType.String);
 
             #endregion

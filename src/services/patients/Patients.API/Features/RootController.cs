@@ -1,17 +1,23 @@
-﻿using Patients.API.Routing;
-using Patients.DTO;
+﻿using Forms;
+
 using MedEasy.RestObjects;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+
+using Patients.API.Routing;
+using Patients.DTO;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static MedEasy.RestObjects.FormFieldType;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Routing;
+
+using static Forms.FormFieldType;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -87,9 +93,8 @@ namespace Patients.API.Controllers
                                 Method = "GET",
                                 Relation = LinkRelation.Search,
                                 Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new {controller = PatientsController.EndpointName, page, pageSize, version})
-
                             },
-                            Items = new[]
+                            Fields = new[]
                             {
                                 new FormField { Name = nameof(SearchPatientInfo.BirthDate), Type = Date },
                                 new FormField { Name = nameof(SearchPatientInfo.Firstname)},

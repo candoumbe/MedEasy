@@ -2,6 +2,7 @@
 using Documents.DTO;
 using Documents.DTO.v1;
 using FluentAssertions;
+using Forms;
 using Identity.DTO;
 using Identity.DTO.v2;
 using MedEasy.IntegrationTests.Core;

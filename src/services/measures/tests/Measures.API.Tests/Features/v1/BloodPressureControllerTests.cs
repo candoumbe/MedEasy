@@ -43,7 +43,8 @@ using Xunit.Categories;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
+using Forms;
 
 namespace Measures.API.Tests.Features.v1.BloodPressures
 {

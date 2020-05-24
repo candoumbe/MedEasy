@@ -17,6 +17,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static System.StringComparison;
+using Forms;
 
 namespace MedEasy.Core.UnitTests.Filters
 {

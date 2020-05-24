@@ -17,6 +17,7 @@ using Bogus;
 using DataFilters;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using Forms;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -45,7 +46,7 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 
 namespace Agenda.API.UnitTests.Features
 {

@@ -19,6 +19,7 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="Optional" Version="4.*" />
     <PackageReference Include="Utilities" Version="1.0.0-*" />
+    <PackageReference Include="Forms" Version="1.0.0-*" />
   
   </ItemGroup>
 

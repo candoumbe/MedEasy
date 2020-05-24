@@ -1,4 +1,6 @@
-﻿using MedEasy.RestObjects;
+﻿using Forms;
+
+using MedEasy.RestObjects;
 
 namespace MedEasy.DTO.Search
 {
