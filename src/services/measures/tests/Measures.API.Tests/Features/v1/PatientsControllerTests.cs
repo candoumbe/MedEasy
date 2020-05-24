@@ -6,6 +6,7 @@ using DataFilters;
 
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using Forms;
 
 using Measures.API.Features.Patients;
 using Measures.API.Features.v1.BloodPressures;
@@ -55,8 +56,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
-using static MedEasy.RestObjects.LinkRelation;
-using Consul;
+using static Forms.LinkRelation;
 
 namespace Measures.API.Tests.Features.v1.Patients
 {

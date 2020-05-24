@@ -1,4 +1,7 @@
 ﻿using FluentAssertions;
+
+using Forms;
+
 using System;
 using System.Linq;
 using Xunit;
@@ -13,6 +16,7 @@ namespace MedEasy.RestObjects.Tests
 
             public string Lastname { get; set; }
         }
+
         private class CreateHenchman : Person
         {
             public string BirthPlace { get; set; }
@@ -26,18 +30,18 @@ namespace MedEasy.RestObjects.Tests
         public void CreateHenchman_ToForm()
         {
             // Act
-            Form f = typeof(CreateHenchman).ToForm(new Link { Method = "POST", Href = "url/of/the/form", Relation = "create-form" });
+            Form form = typeof(CreateHenchman).ToForm(new Link { Method = "POST", Href = "url/of/the/form", Relation = "create-form" });
 
             // Assert
 
-            f.Items.Should()
+            form.Fields.Should()
                 .Contain(x => x.Name == nameof(CreateHenchman.Firstname)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.Lastname)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.BirthPlace)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.MinionId)).And
                 .Contain(x => x.Name == nameof(CreateHenchman.BirthDate));
 
-            FormField firstnameField = f.Items.Single(x => x.Name == nameof(CreateHenchman.Firstname));
+            FormField firstnameField = form.Fields.Single(x => x.Name == nameof(CreateHenchman.Firstname));
             firstnameField.Name.Should().Be(firstnameField.Name);
             firstnameField.Label.Should().Be(firstnameField.Name);
             firstnameField.Type.Should().Be(FormFieldType.String);
@@ -47,7 +51,7 @@ namespace MedEasy.RestObjects.Tests
             firstnameField.Pattern.Should().BeNull();
             firstnameField.Required.Should().BeNull();
 
-            FormField lastnameField = f.Items.Single(x => x.Name == nameof(CreateHenchman.Lastname));
+            FormField lastnameField = form.Fields.Single(x => x.Name == nameof(CreateHenchman.Lastname));
             lastnameField.Name.Should().Be(lastnameField.Name);
             lastnameField.Label.Should().Be(lastnameField.Name);
             lastnameField.Type.Should().Be(FormFieldType.String);
@@ -57,7 +61,7 @@ namespace MedEasy.RestObjects.Tests
             lastnameField.Pattern.Should().BeNull();
             lastnameField.Required.Should().BeNull();
 
-            FormField birthPlaceField = f.Items.Single(x => x.Name == nameof(CreateHenchman.BirthPlace));
+            FormField birthPlaceField = form.Fields.Single(x => x.Name == nameof(CreateHenchman.BirthPlace));
             birthPlaceField.Name.Should().Be(birthPlaceField.Name);
             birthPlaceField.Label.Should().Be(birthPlaceField.Name);
             birthPlaceField.Type.Should().Be(FormFieldType.String);
@@ -67,7 +71,7 @@ namespace MedEasy.RestObjects.Tests
             birthPlaceField.Pattern.Should().BeNull();
             birthPlaceField.Required.Should().BeNull();
 
-            FormField birthDateField = f.Items.Single(x => x.Name == nameof(CreateHenchman.BirthDate));
+            FormField birthDateField = form.Fields.Single(x => x.Name == nameof(CreateHenchman.BirthDate));
             birthDateField.Name.Should().Be(birthDateField.Name);
             birthDateField.Label.Should().Be(birthDateField.Name);
             birthDateField.Type.Should().Be(FormFieldType.Date);
@@ -77,7 +81,7 @@ namespace MedEasy.RestObjects.Tests
             birthDateField.Pattern.Should().BeNull();
             birthDateField.Required.Should().BeNull();
 
-            FormField minionIdField = f.Items.Single(x => x.Name == nameof(CreateHenchman.MinionId));
+            FormField minionIdField = form.Fields.Single(x => x.Name == nameof(CreateHenchman.MinionId));
             minionIdField.Name.Should().Be(minionIdField.Name);
             minionIdField.Label.Should().Be(minionIdField.Name);
             minionIdField.Type.Should().Be(FormFieldType.Integer);

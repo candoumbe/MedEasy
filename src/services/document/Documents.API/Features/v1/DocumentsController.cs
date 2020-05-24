@@ -11,6 +11,7 @@ using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
 using MediatR;
+using Forms;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Documents.API.Features.v1

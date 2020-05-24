@@ -1,5 +1,10 @@
 ﻿using Bogus;
+
 using FluentAssertions;
+
+using Forms;
+
+using Identity.API.Features.v1.Accounts;
 using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
@@ -7,6 +12,7 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Handlers;
@@ -16,30 +22,36 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+
 using MediatR;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
+using static Forms.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 using static System.StringComparison;
-using static MedEasy.RestObjects.LinkRelation;
 using static System.Uri;
-using Identity.API.Features.v1.Accounts;
-using Microsoft.AspNetCore.Http;
 
 namespace Identity.API.UnitTests.Features.v1.Accounts
 {

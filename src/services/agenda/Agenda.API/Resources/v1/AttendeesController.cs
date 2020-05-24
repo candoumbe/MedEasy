@@ -7,6 +7,8 @@ using Agenda.Models.v1.Attendees;
 
 using AutoMapper;
 
+using Forms;
+
 using MedEasy.Attributes;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
@@ -25,7 +27,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.Resources.v1

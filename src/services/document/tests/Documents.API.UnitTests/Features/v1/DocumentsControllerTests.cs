@@ -13,6 +13,8 @@ using Documents.Objects;
 
 using FluentAssertions;
 
+using Forms;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Handlers;
@@ -48,7 +50,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using static Moq.MockBehavior;
 using static System.StringComparison;
 using static System.Uri;

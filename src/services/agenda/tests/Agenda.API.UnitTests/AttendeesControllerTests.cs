@@ -21,6 +21,8 @@ using FakeItEasy;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
+using Forms;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
@@ -50,7 +52,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using static Moq.MockBehavior;
 using static System.StringComparison;
 

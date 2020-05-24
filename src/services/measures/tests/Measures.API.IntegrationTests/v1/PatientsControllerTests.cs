@@ -1,6 +1,8 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
+using Forms;
+
 using Identity.API.Fixtures.v2;
 using Identity.DTO;
 using Identity.DTO.v2;
@@ -70,6 +72,7 @@ namespace Measures.API.IntegrationTests.v1
                 {
                     [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
                     [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
+                    [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean } ,
                     [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
                 },
             Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
@@ -106,7 +109,6 @@ namespace Measures.API.IntegrationTests.v1
                     nameof(GenericPagedGetResponse<object>.Links).ToLower(),
                     nameof(GenericPagedGetResponse<object>.Total).ToLower()
                 }
-
         };
 
         public PatientsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture, IdentityApiFixture identityFixture)
@@ -115,7 +117,6 @@ namespace Measures.API.IntegrationTests.v1
             _server = fixture;
             _identityServer = identityFixture;
         }
-
 
         [Fact]
         public async Task GetAll_With_No_Data()
@@ -175,15 +176,9 @@ namespace Measures.API.IntegrationTests.v1
             NewAccountInfo newAccountInfo = new NewAccountInfo
             {
                 Username = $"dick_{Guid.NewGuid()}",
-                Email = $"batman_{Guid.NewGuid().ToString("N")}@gotham.fr",
+                Email = $"batman_{Guid.NewGuid():N}@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new LoginInfo
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
             };
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)

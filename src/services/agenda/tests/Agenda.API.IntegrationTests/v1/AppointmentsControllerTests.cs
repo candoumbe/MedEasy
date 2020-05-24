@@ -8,6 +8,8 @@ using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
+using Forms;
+
 using MedEasy.Core.Filters;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
@@ -31,7 +33,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.IntegrationTests.v1

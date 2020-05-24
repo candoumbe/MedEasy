@@ -26,6 +26,7 @@ using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using System.Text;
 using System.Net.Mime;
+using Forms;
 
 namespace Patients.API.IntegrationTests
 {
@@ -51,8 +52,7 @@ namespace Patients.API.IntegrationTests
             Required =
             {
                 nameof(ValidationProblemDetails.Title).ToLower(),
-                nameof(ValidationProblemDetails.Status).ToLower(),
-
+                nameof(ValidationProblemDetails.Status).ToLower()
             }
         };
 
@@ -63,8 +63,9 @@ namespace Patients.API.IntegrationTests
                 {
                     [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
                     [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
+                    [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean } ,
                     [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
-                },
+                },  
             Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
             AllowAdditionalProperties = false
         };
@@ -117,7 +118,7 @@ namespace Patients.API.IntegrationTests
         }
 
         [Fact]
-        public async Task GetAll_With_No_Data()
+        public async Task Given_empty_repository_Get_returns_pagination_links()
         {
             // Arrange
             NewAccountInfo newAccountInfo = new NewAccountInfo

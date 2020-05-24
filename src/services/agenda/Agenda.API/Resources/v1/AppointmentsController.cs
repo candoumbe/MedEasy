@@ -19,8 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Forms;
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static MedEasy.RestObjects.LinkRelation;
+using static Forms.LinkRelation;
 using Microsoft.AspNetCore.Routing;
 
 namespace Agenda.API.Resources.v1

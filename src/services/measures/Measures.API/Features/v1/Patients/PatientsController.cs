@@ -1,4 +1,7 @@
 ﻿using DataFilters;
+
+using Forms;
+
 using Measures.API.Features.Patients;
 using Measures.API.Features.v1.BloodPressures;
 using Measures.API.Routing;
@@ -67,8 +70,8 @@ namespace Measures.API.Features.v1.Patients
         /// Builds a new <see cref="PatientsController"/> instance
         /// </summary>
         /// <param name="apiOptions">Options of the API</param>
-        /// <param name="mediator"></param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
+        /// <param name="mediator"></param>
         public PatientsController(LinkGenerator urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
         {
             _urlHelper = urlHelper;

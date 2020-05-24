@@ -1,25 +1,35 @@
 ﻿using FluentAssertions;
+
 using Identity.DTO;
+
 #if NETCOREAPP2_0
 using MedEasy.IntegrationTests.Core; 
 #else
 #endif
 using MedEasy.RestObjects;
+
+using Forms;
+
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static System.Net.Http.HttpMethod;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+
 using System.Net.Http.Headers;
+
 using Bogus;
+
 using Identity.DTO.v1;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Fixtures.v1;

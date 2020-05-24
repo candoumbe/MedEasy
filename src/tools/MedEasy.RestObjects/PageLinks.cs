@@ -1,3 +1,5 @@
+using Forms;
+
 namespace MedEasy.RestObjects
 {
     /// <summary>

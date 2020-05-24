@@ -2,6 +2,9 @@ using AutoMapper.QueryableExtensions;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
+using Forms;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.RestObjects;
@@ -131,16 +134,22 @@ namespace Patients.API.UnitTests.Controllers
 
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
-                    
+
                     yield return new object[]
                     {
                         items,
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
-                        (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        (Expression<Func<Link, bool>>) (x => x != null
+                                                             && x.Relation == LinkRelation.First
+                                                             && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                        (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                        (Expression<Func<Link, bool>>) (x => x != null && x.Relation == LinkRelation.Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)),  // expected link to last page
+                        (Expression<Func<Link, bool>>) (x => x != null
+                                                             && x.Relation == LinkRelation.Next
+                                                             && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                        (Expression<Func<Link, bool>>) (x => x != null
+                                                             && x.Relation == LinkRelation.Last
+                                                             && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)),  // expected link to last page
                     };
                 }
                 {

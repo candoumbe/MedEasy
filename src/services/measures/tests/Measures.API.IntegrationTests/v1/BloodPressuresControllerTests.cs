@@ -22,6 +22,8 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
+using Forms;
+using static Forms.LinkRelation;
 
 namespace Measures.API.IntegrationTests.v1
 {
@@ -34,15 +36,16 @@ namespace Measures.API.IntegrationTests.v1
         private IdentityApiFixture _identityServer;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/bloodpressures";
-        
-        private static JSchema _pageLink = new JSchema
+
+        private static readonly JSchema _pageLink = new JSchema
         {
             Type = JSchemaType.Object,
             Properties =
                 {
                     [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
                     [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
-                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
+                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String } ,
+                    [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean } ,
                 },
             Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
             AllowAdditionalProperties = false
@@ -130,6 +133,9 @@ namespace Measures.API.IntegrationTests.v1
             HttpContentHeaders headers = response.Content.Headers;
 
             JToken pageResponseToken = JToken.Parse(json);
+
+            _outputHelper.WriteLine($"Schema : {_pageResponseSchema}");
+
             pageResponseToken.IsValid(_pageResponseSchema).Should()
                              .BeTrue();
         }
