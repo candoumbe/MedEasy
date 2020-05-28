@@ -51,6 +51,12 @@ namespace Measures.Mapping
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;
 
+            cfg.CreateMap<GenericMeasure, GenericMeasureInfo>()
+                .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
+                .ReverseMap()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                ;
+
             cfg.CreateMap(typeof(JsonPatchDocument<>), typeof(JsonPatchDocument<>));
             cfg.CreateMap(typeof(Operation<>), typeof(Operation<>));
         });

@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
