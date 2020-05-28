@@ -5,6 +5,10 @@ using FluentAssertions.Extensions;
 using System.Collections.Generic;
 using Xunit.Categories;
 using Measures.Objects.Exceptions;
+using System.Security.Cryptography.X509Certificates;
+using Bogus.DataSets;
+using System.Text.Json;
+using System.Windows.Markup;
 
 namespace Measures.Objects.Tests
 {
@@ -155,6 +159,83 @@ namespace Measures.Objects.Tests
             // Assert
             patient.BloodPressures.Should()
                 .BeEmpty("The corresponding measure should have been removed");
+        }
+
+        public static IEnumerable<object[]> AddMeasureArgumentExceptionCases
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    (
+                        formId        : Guid.Empty,
+                        measureId     : Guid.NewGuid(),
+                        dateofMeasure : 15.February(2012),
+                        values        : (IDictionary<string,object>)new Dictionary<string, object>
+                                        {
+                                            ["prop1"] = 1
+                                        }
+                    ),
+                    "formId cannot be empty"
+                };
+
+                yield return new object[]
+                {
+                    (
+                        formId        : Guid.NewGuid(),
+                        measureId     : Guid.Empty,
+                        dateofMeasure : 15.February(2012),
+                        values        : (IDictionary<string,object>)new Dictionary<string, object>
+                                        {
+                                            ["prop1"] = 1
+                                        }
+                    ),
+                    "measureId cannot be empty"
+                };
+
+                yield return new object[]
+                {
+                    (
+                        formId        : Guid.NewGuid(),
+                        measureId     : Guid.NewGuid(),
+                        dateofMeasure : DateTime.MinValue,
+                        values        : (IDictionary<string, object>)new Dictionary<string, object>
+                                        {
+                                            ["prop1"] = 1
+                                        }
+                    ),
+                    "dateOfMeasure cannot be DateTime.MinValue"
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(AddMeasureArgumentExceptionCases))]
+        public void AddMeasure_throws_ArgumentOutOfRangeException((Guid formId, Guid measureId, DateTime dateOfMeasure, IDictionary<string, object> values) input, string reason)
+        {
+            // Arrange
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+
+            // Act
+            Action addingMeasure = () => patient.AddMeasure(input.formId, input.measureId, input.dateOfMeasure, input.values);
+
+            // Assert
+            addingMeasure.Should()
+                         .ThrowExactly<ArgumentOutOfRangeException>(reason);
+        }
+
+        [Fact]
+        public void AddMeasure_throws_ArgumentNullException_when_values_is_null()
+        {
+            // Arrange
+            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+
+            // Act
+            Action addMeasureWithNullValues = () => patient.AddMeasure(Guid.NewGuid(), Guid.NewGuid(), 25.October(2012), null);
+
+            // Assert
+            addMeasureWithNullValues.Should()
+                                    .ThrowExactly<ArgumentNullException>("Values is not allowed to be null");
         }
     }
 }

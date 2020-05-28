@@ -6,6 +6,7 @@ using System.Linq;
 using Measures.Objects.Exceptions;
 using Optional;
 using Optional.Collections;
+using System.Text.Json;
 
 namespace Measures.Objects
 {
@@ -32,7 +33,12 @@ namespace Measures.Objects
 
         public IEnumerable<Temperature> Temperatures => _temperatures;
 
+        private IList<GenericMeasure> _measures;
 
+        /// <summary>
+        /// Measures that don't fit in provided measures.
+        /// </summary>
+        public IEnumerable<GenericMeasure> Measures => _measures;
         
         /// <summary>
         /// Builds a new <see cref="Patient"/> instance.
@@ -45,6 +51,7 @@ namespace Measures.Objects
             BirthDate = birthDate;
             _bloodPressures = new List<BloodPressure>();
             _temperatures = new List<Temperature>();
+            _measures = new List<GenericMeasure>();
         }
 
         /// <summary>
@@ -69,6 +76,7 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure"></param>
         /// <param name="systolic"></param>
         /// <param name="diastolic"></param>
+        /// <exception cref="DuplicateIdException">if <paramref name="measureId"/> is already present</exception>
         public void AddBloodPressure(Guid measureId, DateTime dateOfMeasure, float systolic, float diastolic)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
@@ -120,6 +128,40 @@ namespace Measures.Objects
             BirthDate = birthDate;
 
             return this;
+        }
+
+        /// <summary>
+        /// Adds a <see cref="GenericMeasure"/>
+        /// </summary>
+        /// <param name="formId">id of the form which <paramref name="values"/> should be validated against</param>
+        /// <param name="measureId">id of the measure to create</param>
+        /// <param name="dateOfMeasure">date and time when the measure was taken</param>
+        /// <param name="values">values associated with the measure</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="name"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="name"/> is empty or whitespace only</exception>
+        public void AddMeasure(Guid formId, Guid measureId, DateTime dateOfMeasure, IDictionary<string, object> values)
+        {
+            if (formId == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(formId), formId, $"{nameof(formId)} is empty");
+            }
+
+            if (measureId == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(measureId), measureId, $"{nameof(measureId)} is empty");
+            }
+
+            if (dateOfMeasure == DateTime.MinValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dateOfMeasure), dateOfMeasure, $"{nameof(dateOfMeasure)} cannot be DateTime.MinValue");
+            }
+
+            if (values is null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            _measures.Add(new GenericMeasure(id : measureId, patientId : Id, dateOfMeasure, formId, JsonDocument.Parse(values.Jsonify())));
         }
     }
 }

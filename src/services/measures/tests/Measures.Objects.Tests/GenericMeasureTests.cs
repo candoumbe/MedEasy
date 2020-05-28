@@ -24,9 +24,12 @@ namespace Measures.Objects.UnitTests
                               .NotBeAbstract().And
                               .NotHaveDefaultConstructor().And
                               .BeDerivedFrom<PhysiologicalMeasurement>().And
-                              .HaveConstructor(new[] { typeof(Guid), typeof(Guid), typeof(DateTime), typeof(JsonDocument) }).And
+                              .HaveConstructor(new[] { typeof(Guid), typeof(Guid), typeof(DateTime), typeof(Guid), typeof(JsonDocument) }).And
                               .HaveProperty<JsonDocument>("Data").And
-                              .HaveProperty<MeasureForm>("Form");
+                              .HaveProperty<Guid>("FormId").And
+                              .HaveProperty<Guid>("PatientId").And
+                              .HaveProperty<Guid>("Id")
+                              ;
         }
     }
 }
