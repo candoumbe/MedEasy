@@ -87,7 +87,7 @@ namespace Measures.CQRS.UnitTests.Handlers
             handlerType.Should()
                        .Implement<IRequestHandler<CreateGenericMeasureInfoCommand, Option<GenericMeasureInfo, CreateCommandResult>>>().And
                        .NotHaveDefaultConstructor().And
-                       .HaveConstructor(new[] { typeof(ILogger<HandleCreateGenericMeasureInfoCommand>), typeof(IUnitOfWorkFactory), typeof(IExpressionBuilder), typeof(IDateTimeService) });
+                       .HaveConstructor(new[] { typeof(ILogger<HandleCreateGenericMeasureInfoCommand>), typeof(IUnitOfWorkFactory), typeof(IExpressionBuilder) });
         }
 
         [Fact]
