@@ -1,0 +1,15 @@
+﻿@inherits LayoutComponentBase
+
+<Layout>
+    <LayoutHeader Fixed="true">
+        <NavMenu />
+    </LayoutHeader>
+    <LayoutContent>
+        <Container>
+            @Body
+        </Container>
+    </LayoutContent>
+    <LayoutFooter>
+        MedEasy - @DateTime.UtcNow.Year
+    </LayoutFooter>
+</Layout>

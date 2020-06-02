@@ -1,0 +1,59 @@
+﻿@page "/login"
+@inherits LoginBase
+
+<Blazorise.Form>
+
+    <Alert Color="Color.Danger" @ref="ErrorComponent">
+        <Heading>
+            Oops ... Looks like I did it again !
+            <CloseButton />
+        </Heading>
+        <Paragraph>
+            @ErrorMessage
+        </Paragraph>
+    </Alert>
+
+    <Validations Model="Model">
+        <Validation Validator="ValidationRule.IsNotEmpty">
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is2">Login</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.IsThird.OnDesktop.IsFull.OnMobile">
+                    <TextEdit @bind-Text="Model.Name"
+                              Placeholder="Username or email">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+        <Validation Validator="ValidationRule.IsNotEmpty">
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is2">Password</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.IsThird.OnDesktop.IsFull.OnMobile">
+                    <TextEdit Role="TextRole.Password"
+                              Placeholder="Enter your password"
+                              TextChanged="(string newPassword) => CanConnect = !(string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(Model.Name))">
+                        <Feedback>
+                            <ValidationError Visibility="Visibility.Never" />
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+    </Validations>
+
+
+    <Field>
+        <Button Type="ButtonType.Submit" Loading="IsConnecting && ErrorMessage is null"
+                PreventDefaultOnSubmit="true"
+                Clicked="(async () => await Connect())"
+                Disabled="IsConnecting"
+                Color="Color.Primary">
+            Let me in !
+        </Button>
+        <Blazorise.Link Casing="CharacterCasing.Title" To="/register">
+            No account ? Register
+        </Blazorise.Link>
+    </Field>
+</Blazorise.Form>

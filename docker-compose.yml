@@ -48,10 +48,28 @@ services:
       - documents.db
 
   agenda.api:
-    image: ${DOCKER_REGISTRY-}documentsapi
+    image: ${DOCKER_REGISTRY-}agendaapi
     build:
       context: .
       dockerfile: src/services/agenda/Agenda.API/Dockerfile
     depends_on:
       - identity.api
       - agenda.db
+
+  medeasy.web:
+    image: ${DOCKER_REGISTRY-}medeasyweb
+    build:
+      context: .
+      dockerfile: src/clients/web/MedEasy.Web/Server/Dockerfile
+    depends_on:
+      - identity.api
+
+   nginx:
+     build:
+       context: .
+       dockerfile: src/clients/nginx/Dockerfile
+     depends_on:
+        - medeasy.web
+     ports:
+        - "443:443"
+        - "80:80"

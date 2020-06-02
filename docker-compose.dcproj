@@ -6,7 +6,7 @@
     <ProjectGuid>b61f4697-36e0-48f9-9b59-a126a68d9315</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
-    <DockerServiceName>identity.api</DockerServiceName>
+    <DockerServiceName>medeasy.web</DockerServiceName>
     <DockerServiceUrl>{Scheme}://{ServiceHost}:{ServicePort}</DockerServiceUrl>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
   </PropertyGroup>
