@@ -23,6 +23,7 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using MediatR;
@@ -251,12 +252,12 @@ namespace Documents.API.UnitTests.Features.v1
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfDocumentInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
-            GenericPagedGetResponse<Browsable<DocumentInfo>> response = actionResult.Should()
+            GenericPageModel<Browsable<DocumentInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                         .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<Browsable<DocumentInfo>>>().Which;
+                        .BeAssignableTo<GenericPageModel<Browsable<DocumentInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -270,7 +271,7 @@ namespace Documents.API.UnitTests.Features.v1
                     .OnlyContain(x => x.Links.Exactly(link => link.Relation == Self, 1), "All resources must provided one direct link");
             }
             response.Total.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPageModel<Browsable<DocumentInfo>>)}.{nameof(GenericPageModel<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageLinksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageLinksExpectation.previousPageUrlExpectation);
@@ -689,12 +690,12 @@ namespace Documents.API.UnitTests.Features.v1
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.AtLeastOnce, $"because {nameof(DocumentsController)}.{nameof(DocumentsController.Search)} must always check that " +
                 $"{nameof(SearchDocumentInfo.PageSize)} don't exceed {nameof(DocumentsApiOptions.MaxPageSize)} value");
 
-            GenericPagedGetResponse<Browsable<DocumentInfo>> response = actionResult.Should()
-                    .NotBeNull().And
-                    .BeOfType<OkObjectResult>().Which
-                    .Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<DocumentInfo>>>().Which;
+            GenericPageModel<Browsable<DocumentInfo>> response = actionResult.Should()
+                                                                             .NotBeNull().And
+                                                                             .BeOfType<OkObjectResult>().Which.Value
+                                                                             .Should()
+                                                                             .NotBeNull().And
+                                                                             .BeAssignableTo<GenericPageModel<Browsable<DocumentInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -711,7 +712,7 @@ namespace Documents.API.UnitTests.Features.v1
             }
 
             response.Total.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPageModel<Browsable<DocumentInfo>>)}.{nameof(GenericPageModel<Browsable<DocumentInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

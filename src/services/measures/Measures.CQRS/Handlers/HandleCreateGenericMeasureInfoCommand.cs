@@ -12,6 +12,8 @@ using MediatR;
 
 using Microsoft.Extensions.Logging;
 
+using Newtonsoft.Json.Linq;
+
 using Optional;
 
 using System;
@@ -19,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,16 +60,31 @@ namespace Measures.CQRS.Handlers
                         some: async patient =>
                         {
                             Guid measureId = Guid.NewGuid();
-                            patient.AddMeasure(form.Id, measureId, cmdData.DateOfMeasure, cmdData.Data);
+                            patient.AddMeasure(form.Id, measureId, cmdData.DateOfMeasure, cmdData.Values);
 
                             await uow.SaveChangesAsync(cancellationToken)
                                      .ConfigureAwait(false);
 
-                            Expression<Func<GenericMeasure, GenericMeasureInfo>> selector = _expressionBuilder.GetMapExpression<GenericMeasure, GenericMeasureInfo>();
+                            GenericMeasure measure = patient.Measures.Single(x => x.Id == measureId);
 
-                            return Option.Some<GenericMeasureInfo, CreateCommandResult>(selector.Compile()(patient.Measures
-                                          .Single(x => x.Id == measureId)));
-                            
+                            IDictionary<string, object> values = new Dictionary<string, object>();
+
+                            foreach (JsonProperty element in measure.Data.RootElement.EnumerateObject())
+                            {
+                                values.Add(element.Name, element.Value.ToString());
+                            }
+
+                            return Option.Some<GenericMeasureInfo, CreateCommandResult>(
+                                new GenericMeasureInfo
+                                {
+                                    FormId = form.Id,
+                                    Id = measure.Id,
+                                    CreatedDate = measure.CreatedDate,
+                                    DateOfMeasure = measure.DateOfMeasure,
+                                    PatientId = measure.PatientId,
+                                    UpdatedDate = measure.UpdatedDate,
+                                    Data = values
+                                });
                         },
                         none: () => Task.FromResult(Option.None<GenericMeasureInfo, CreateCommandResult>(CreateCommandResult.Failed_NotFound))
                         ).ConfigureAwait(false);

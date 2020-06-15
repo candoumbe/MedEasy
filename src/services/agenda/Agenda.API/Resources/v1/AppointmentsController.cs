@@ -23,6 +23,7 @@ using Forms;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Forms.LinkRelation;
 using Microsoft.AspNetCore.Routing;
+using MedEasy.Models;
 
 namespace Agenda.API.Resources.v1
 {
@@ -121,7 +122,7 @@ namespace Agenda.API.Resources.v1
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
-        public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
+        public async Task<ActionResult<GenericPageModel<Browsable<AppointmentModel>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
             PaginationConfiguration pagination = new PaginationConfiguration
             {
@@ -147,19 +148,42 @@ namespace Agenda.API.Resources.v1
                     }
                 });
 
-            return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
-                entries,
-                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize, version }),
-                previous: pagination.Page > 1 && result.Count > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize, version })
-                    : null,
-
-                next: result.Count > pagination.Page
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize, version })
-                    : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize, version }),
-                total: result.Total
-            );
+            return new GenericPageModel<Browsable<AppointmentModel>>
+            {
+                Items = entries,
+                Links = new PageLinksModel
+                {
+                    First = new Link
+                    {
+                        Method = "GET",
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize, version }),
+                        Relation = First
+                    },
+                    Previous = pagination.Page > 1 && result.Count > 1
+                            ? new Link
+                            {
+                                Method = "GET",
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize, version }),
+                                Relation = Previous
+                            }
+                            : null,
+                    Next = result.Count > pagination.Page
+                            ? new Link
+                            {
+                                Method = "GET",
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize, version }),
+                                Relation = Next
+                            }
+                            : null,
+                    Last = new Link
+                    {
+                        Method = "GET",
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize, version }),
+                        Relation = Last
+                    },
+                },
+                Total = result.Total
+            };
         }
 
         /// <summary>
@@ -244,7 +268,7 @@ namespace Agenda.API.Resources.v1
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
-        public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Search([FromQuery] SearchAppointmentModel search, CancellationToken ct = default)
+        public async Task<ActionResult<GenericPageModel<Browsable<AppointmentModel>>>> Search([FromQuery] SearchAppointmentModel search, CancellationToken ct = default)
         {
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
 
@@ -255,8 +279,9 @@ namespace Agenda.API.Resources.v1
 
             string version = _apiVersion.ToString();
 
-            return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
-                _mapper.Map<IEnumerable<AppointmentModel>>(page.Entries).Select(x => new Browsable<AppointmentModel>
+            return new GenericPageModel<Browsable<AppointmentModel>>
+            {
+                Items = _mapper.Map<IEnumerable<AppointmentModel>>(page.Entries).Select(x => new Browsable<AppointmentModel>
                 {
                     Resource = x,
                     Links = new[]
@@ -264,16 +289,39 @@ namespace Agenda.API.Resources.v1
                         new Link { Relation = Self, Method = "GET", Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id, version })}
                     }
                 }),
-                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, version }),
-                previous: page.Count > 1 && search.Page > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, version })
+                Links = new PageLinksModel
+                {
+                    First = new Link
+                    {
+                        Relation = First,
+                        Method = "GET",
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, version })
+                    },
+                    Previous = page.Count > 1 && search.Page > 1
+                        ? new Link
+                        {
+                            Method = "GET",
+                            Relation = Previous,
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, version })
+                        }
+                        : null,
+                    Next = search.Page < page.Count
+                    ? new Link
+                    {
+                        Relation = Next,
+                        Method = "GET",
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, version })
+                    }
                     : null,
-                next: search.Page < page.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, version })
-                    : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, version }),
-                total: page.Total
-            );
+                    Last = new Link
+                    {
+                        Relation = Last,
+                        Method = "GET",
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, version })
+                    }
+                },
+                Total = page.Total
+            };
         }
 
         /// <summary>

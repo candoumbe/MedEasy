@@ -99,8 +99,7 @@ namespace Measures.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            })
-            .AddXmlSerializerFormatters();
+            });
 
             services.AddCors(options =>
             {
@@ -115,12 +114,6 @@ namespace Measures.API
             {
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
-            });
-
-            services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 63796);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
             });
 
             return services;
@@ -332,8 +325,6 @@ namespace Measures.API
                 {
                     [bearerSecurityScheme] = new List<string>()
                 });
-
-                config.CustomSchemaIds(type => type.FullName);
             });
 
             return services;

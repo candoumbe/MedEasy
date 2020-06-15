@@ -31,7 +31,7 @@ namespace Measures.DTO
         /// Data associated with the measure to create
         /// </summary>
         [FormField]
-        public IDictionary<string, object> Data { get; set; }
+        public IDictionary<string, object> Values { get; set; }
 
         public override string ToString() => this.Jsonify();
     }

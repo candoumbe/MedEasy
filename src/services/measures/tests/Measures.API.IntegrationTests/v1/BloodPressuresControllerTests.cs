@@ -24,6 +24,7 @@ using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Forms;
 using static Forms.LinkRelation;
+using MedEasy.Models;
 
 namespace Measures.API.IntegrationTests.v1
 {
@@ -47,7 +48,10 @@ namespace Measures.API.IntegrationTests.v1
                     [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String } ,
                     [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean } ,
                 },
-            Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
+            Required = {
+                nameof(Link.Href).ToLower(),
+                nameof(Link.Relation).ToLower()
+            },
             AllowAdditionalProperties = false
         };
 
@@ -56,30 +60,30 @@ namespace Measures.API.IntegrationTests.v1
             Type = JSchemaType.Object,
             Properties =
                 {
-                    [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                    [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
-                    [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
+                    [nameof(GenericPageModel<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
+                    [nameof(GenericPageModel<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
+                    [nameof(GenericPageModel<object>.Links).ToLower()] = new JSchema
                     {
                         Type = JSchemaType.Object,
                         Properties =
                         {
-                            [nameof(PageLinks.First).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Previous).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Next).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Last).ToLower()] = _pageLink
+                            [nameof(PageLinksModel.First).ToLower()] = _pageLink,
+                            [nameof(PageLinksModel.Previous).ToLower()] = _pageLink,
+                            [nameof(PageLinksModel.Next).ToLower()] = _pageLink,
+                            [nameof(PageLinksModel.Last).ToLower()] = _pageLink
                         },
                         Required =
                         {
-                            nameof(PageLinks.First).ToLower(),
-                            nameof(PageLinks.Last).ToLower()
+                            nameof(PageLinksModel.First).ToLower(),
+                            nameof(PageLinksModel.Last).ToLower()
                         }
                     }
                 },
             Required =
                 {
-                    nameof(GenericPagedGetResponse<object>.Items).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Total).ToLower()
+                    nameof(GenericPageModel<object>.Items).ToLower(),
+                    nameof(GenericPageModel<object>.Links).ToLower(),
+                    nameof(GenericPageModel<object>.Total).ToLower()
                 }
 
         };

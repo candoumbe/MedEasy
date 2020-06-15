@@ -33,6 +33,7 @@ using Bogus;
 using Identity.DTO.v1;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Fixtures.v1;
+using MedEasy.Models;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
@@ -174,7 +175,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
 
             JToken jsonToken = JToken.Parse(jsonResponse);
             JSchema responseSchema = new JSchemaGenerator()
-                .Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
+                .Generate(typeof(GenericPageModel<Browsable<AccountInfo>>));
             jsonToken.IsValid(responseSchema);
         }
 

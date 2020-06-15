@@ -14,6 +14,7 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,7 @@ using System.Threading.Tasks;
 using static DataFilters.FilterLogic;
 using static DataFilters.FilterOperator;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using static Forms.LinkRelation;
 
 namespace Measures.API.Features.v1.BloodPressures
 {
@@ -90,7 +92,7 @@ namespace Measures.API.Features.v1.BloodPressures
         [HttpGet]
         [HttpHead]
         [HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<BloodPressureInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)]int pageSize, CancellationToken cancellationToken = default)
         {
@@ -124,19 +126,28 @@ namespace Measures.API.Features.v1.BloodPressures
                     {
                         new Link
                         {
-                            Relation = LinkRelation.Self,
+                            Relation = Self,
                             Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id, version})
                         }
                     }
                 });
 
-            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
-                resources,
-                firstPageUrl,
-                previousPageUrl,
-                nextPageUrl,
-                lastPageUrl,
-                result.Total);
+            GenericPageModel<Browsable<BloodPressureInfo>> response = new GenericPageModel<Browsable<BloodPressureInfo>>
+            {
+                Items = resources,
+                Links = new PageLinksModel
+                {
+                    First = new Link { Href = firstPageUrl, Relation = First },
+                    Previous = previousPageUrl is null
+                         ? null
+                         : new Link { Href = previousPageUrl, Relation = Previous },
+                    Next = nextPageUrl is null
+                        ? null
+                        : new Link { Href = nextPageUrl, Relation = Next },
+                    Last = new Link { Href = lastPageUrl, Relation = Last }
+                },
+                Total = result.Total
+            };
 
             return new OkObjectResult(response);
         }
@@ -168,7 +179,7 @@ namespace Measures.API.Features.v1.BloodPressures
                         {
                             new Link
                             {
-                                Relation = LinkRelation.Self,
+                                Relation = Self,
                                 Method = "GET",
                                 Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id, version })
                             },
@@ -303,7 +314,7 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <response code="404">requested page is out of result bound</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<BloodPressureInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchBloodPressureInfo search, CancellationToken cancellationToken = default)
         {
@@ -376,22 +387,31 @@ namespace Measures.API.Features.v1.BloodPressures
                             {
                                 new Link
                                 {
-                                    Relation = LinkRelation.Self,
+                                    Relation = Self,
                                     Method = "GET",
                                     Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id })
                                 }
                             }
                         });
 
-                GenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
-                    resources,
-                    first: firstPageUrl,
-                    previous: previousPageUrl,
-                    next: nextPageUrl,
-                    last: lastPageUrl,
-                    total: pageOfResult.Total);
+                GenericPageModel<Browsable<BloodPressureInfo>> response = new GenericPageModel<Browsable<BloodPressureInfo>>
+                {
+                    Items = resources,
+                    Links = new PageLinksModel
+                    {
+                        First = new Link { Href = firstPageUrl, Relation = First },
+                        Previous = previousPageUrl is null
+                          ? null
+                          : new Link { Href = previousPageUrl, Relation = Previous },
+                        Next = nextPageUrl is null
+                         ? null
+                         : new Link { Href = nextPageUrl, Relation = Next },
+                        Last = new Link { Href = lastPageUrl, Relation = Last }
+                    },
+                    Total = pageOfResult.Total
+                };
 
-                actionResult = new OkObjectResult(reponse);
+                actionResult = new OkObjectResult(response);
             }
             else
             {
@@ -430,7 +450,7 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found, the patient resource was not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(ErrorObject), 400)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Patch([RequireNonDefault] Guid id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
         {
             PatchInfo<Guid, BloodPressureInfo> info = new PatchInfo<Guid, BloodPressureInfo>

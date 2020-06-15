@@ -55,3 +55,9 @@ services:
     depends_on:
       - identity.api
       - agenda.db
+
+  nginx:
+    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: src/services/nginx/Dockerfile

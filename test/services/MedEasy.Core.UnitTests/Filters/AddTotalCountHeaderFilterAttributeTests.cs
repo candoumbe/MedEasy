@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 using static System.StringComparison;
 using Forms;
+using MedEasy.Models;
 
 namespace MedEasy.Core.UnitTests.Filters
 {
@@ -60,12 +61,12 @@ namespace MedEasy.Core.UnitTests.Filters
                     yield return new object[]
                     {
                         method,
-                        new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
+                        new GenericPageModel<Browsable<Minion>> { Items = Enumerable.Empty<Browsable<Minion>>(), Total = 20 },
                         (Expression<Func<IHeaderDictionary, bool>>)(headers => headers.Once(header => AddCountHeadersFilterAttribute.CountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
                             && headers.Once(header => AddCountHeadersFilterAttribute.TotalCountHeaderName.Equals(header.Key, OrdinalIgnoreCase))
 
                         ),
-                        $"value is a {nameof(GenericPagedGetResponse<object>)}"
+                        $"value is a {nameof(GenericPageModel<object>)}"
                     };
 
                     yield return new object[]
@@ -134,7 +135,7 @@ namespace MedEasy.Core.UnitTests.Filters
                     yield return new object[]
                     {
                         method,
-                        new GenericPagedGetResponse<Browsable<Minion>>(Enumerable.Empty<Browsable<Minion>>(), total: 20),
+                        new GenericPageModel<Browsable<Minion>>{ Items = Enumerable.Empty<Browsable<Minion>>(), Total = 20 },
                         (expectedTotalCount : 20, expectedCount : 0)
                     };
                     {
@@ -156,7 +157,7 @@ namespace MedEasy.Core.UnitTests.Filters
                         yield return new object[]
                         {
                             method,
-                            new GenericPagedGetResponse<Browsable<Minion>>(resources, total: resourcesCount),
+                            new GenericPageModel<Browsable<Minion>> { Items = resources, Total = resourcesCount },
                             (expectedTotal : resourcesCount, expectedCount : resourcesCount)
                         };
                     }

@@ -47,6 +47,7 @@ using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static Forms.LinkRelation;
+using MedEasy.Models;
 
 namespace Agenda.API.UnitTests.Features
 {
@@ -177,10 +178,9 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
                 .Returns((GetPageOfAppointmentInfoQuery request, CancellationToken _) => Task.FromResult(Page<AppointmentInfo>.Empty(request.Data.PageSize)));
 
-
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<GenericPageModel<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
+                                                                                                 .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Page<AppointmentInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -195,12 +195,12 @@ namespace Agenda.API.UnitTests.Features
             actionResult.Should()
                 .NotBeNull();
 
-            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
+            GenericPageModel<Browsable<AppointmentModel>> response = actionResult.Value;
 
             response.Items.Should()
                 .BeEmpty();
 
-            PageLinks links = response.Links;
+            PageLinksModel links = response.Links;
             links.Should()
                 .NotBeNull();
 
@@ -531,7 +531,7 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: request.Page, pageSize: request.PageSize)
+            ActionResult<GenericPageModel<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: request.Page, pageSize: request.PageSize)
                 .ConfigureAwait(false);
 
             // Assert
@@ -549,9 +549,9 @@ namespace Agenda.API.UnitTests.Features
 
             actionResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<AppointmentModel>>>();
+                    .BeAssignableTo<GenericPageModel<Browsable<AppointmentModel>>>();
 
-            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
+            GenericPageModel<Browsable<AppointmentModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -567,7 +567,7 @@ namespace Agenda.API.UnitTests.Features
             }
 
             response.Total.Should()
-                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<AppointmentInfo>)}.{nameof(GenericPagedGetResponse<AppointmentInfo>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"the ""{nameof(GenericPageModel<AppointmentInfo>)}.{nameof(GenericPageModel<AppointmentInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
@@ -585,13 +585,13 @@ namespace Agenda.API.UnitTests.Features
                     new SearchAppointmentModel { Page = 1, PageSize = 10},
                     (defaultPageSize : 20, maxPageSize : 50),
                     (
-                        firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
+                        firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => (link.Method == "GET" || string.IsNullOrEmpty(link.Method))
                                                                                          && link.Relation == First
                                                                                          && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(link.Href, OrdinalIgnoreCase)
                         ),
                         previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
                         nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
-                        lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
+                        lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => (link.Method == "GET" || string.IsNullOrEmpty(link.Method))
                                                                                        && link.Relation == Last
                                                                                        && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(link.Href, OrdinalIgnoreCase)
                         )
@@ -613,16 +613,16 @@ namespace Agenda.API.UnitTests.Features
                         new SearchAppointmentModel { Page = 1, PageSize = 10},
                         (defaultPageSize : 20, maxPageSize : 50),
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => (link.Method == "GET" || string.IsNullOrEmpty(link.Method))
                                                                                              && link.Relation == First
                                                                                              && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(link.Href, OrdinalIgnoreCase)
                             ),
                             previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
                             nextPageUrl : (Expression<Func<Link, bool>>)(link => link != null
-                                                                                 && link.Method == "GET"
+                                                                                 && (link.Method == "GET" || string.IsNullOrEmpty(link.Method))
                                                                                  && link.Relation == Next
                                                                                  && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=2&pageSize=10&version={_apiVersion}".Equals(link.Href, OrdinalIgnoreCase)),
-                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
+                            lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => (link.Method == "GET" || string.IsNullOrEmpty(link.Method))
                                                                                            && link.Relation == Last
                                                                                            && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10&version={_apiVersion}".Equals(link.Href, OrdinalIgnoreCase)
                             )
@@ -716,7 +716,7 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Search(search, ct: default)
+            ActionResult<GenericPageModel<Browsable<AppointmentModel>>> actionResult = await _sut.Search(search, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -732,7 +732,7 @@ namespace Agenda.API.UnitTests.Features
             _mapperMock.VerifyNoOtherCalls();
 
 
-            GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
+            GenericPageModel<Browsable<AppointmentModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -748,7 +748,7 @@ namespace Agenda.API.UnitTests.Features
             }
 
             response.Total.Should()
-                    .Be(page.Total, $@"the ""{nameof(GenericPagedGetResponse<AppointmentModel>)}.{nameof(GenericPagedGetResponse<AppointmentModel>.Total)}"" property indicates the number of elements");
+                    .Be(page.Total, $@"the ""{nameof(GenericPageModel<AppointmentModel>)}.{nameof(GenericPageModel<AppointmentModel>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should()
                 .NotBeNull().And

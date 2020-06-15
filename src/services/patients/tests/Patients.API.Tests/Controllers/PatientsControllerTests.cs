@@ -7,6 +7,7 @@ using Forms;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -223,9 +224,9 @@ namespace Patients.API.UnitTests.Controllers
 
             okObjectResult.Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>();
+                    .BeAssignableTo<GenericPageModel<Browsable<PatientInfo>>>();
 
-            GenericPagedGetResponse<Browsable<PatientInfo>> response = (GenericPagedGetResponse<Browsable<PatientInfo>>)value;
+            GenericPageModel<Browsable<PatientInfo>> response = (GenericPageModel<Browsable<PatientInfo>>)value;
 
             response.Items.Should()
                 .NotBeNull();
@@ -238,7 +239,7 @@ namespace Patients.API.UnitTests.Controllers
             }
 
             response.Total.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPageModel<PatientInfo>)}.{nameof(GenericPageModel<PatientInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(firstPageUrlExpectation);
             response.Links.Previous.Should().Match(previousPageUrlExpectation);
@@ -405,21 +406,21 @@ namespace Patients.API.UnitTests.Controllers
                 .ConfigureAwait(false);
 
             // Assert
-            GenericPagedGetResponse<Browsable<PatientInfo>> content = actionResult.Should()
+            GenericPageModel<Browsable<PatientInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>().Which;
+                        .BeAssignableTo<GenericPageModel<Browsable<PatientInfo>>>().Which;
 
             content.Items.Should()
-                .NotBeNull($"{nameof(GenericPagedGetResponse<object>.Items)} must not be null").And
-                .NotContainNulls($"{nameof(GenericPagedGetResponse<object>.Items)} must not contains null").And
+                .NotBeNull($"{nameof(GenericPageModel<object>.Items)} must not be null").And
+                .NotContainNulls($"{nameof(GenericPageModel<object>.Items)} must not contains null").And
                 .NotContain(x => x.Resource == null).And
                 .NotContain(x => x.Links == null);
 
             content.Links.Should().NotBeNull();
-            PageLinks links = content.Links;
+            PageLinksModel links = content.Links;
 
             links.First.Should().Match(linksExpectation.firstPageLink);
             links.Previous.Should().Match(linksExpectation.previousPageLink);

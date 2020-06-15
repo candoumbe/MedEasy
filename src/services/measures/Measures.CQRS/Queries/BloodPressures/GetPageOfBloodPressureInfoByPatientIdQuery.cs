@@ -16,12 +16,12 @@ namespace Measures.CQRS.Queries.BloodPressures
 
         public Guid Id { get; }
 
-
-
         /// <summary>
         /// Builds a new <see cref="GetPageOfBloodPressureInfoByPatientIdQuery"/> instance.
         /// </summary>
         /// <param name="data">Data needed to get the result</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="data"/> equals <c>default</c></exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="data"/>'s patientId is <see cref="Guid.Empty"/>.</exception>
         public GetPageOfBloodPressureInfoByPatientIdQuery((Guid patientId, PaginationConfiguration pagination) data)
         {
             Id = Guid.NewGuid();

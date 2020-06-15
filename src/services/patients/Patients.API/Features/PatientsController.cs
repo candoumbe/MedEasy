@@ -10,6 +10,7 @@ using MedEasy.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO.Search;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using Microsoft.AspNetCore.JsonPatch;
@@ -34,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using static Forms.LinkRelation;
 
 namespace Patients.API.Controllers
 {
@@ -75,7 +77,7 @@ namespace Patients.API.Controllers
         /// <response code="400"><paramref name="pagination"/> is not valid</response>
         /// <response code="404"><paramref name="pagination"/> is outside range of available page</response>
         [HttpGet, HttpHead, HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
@@ -121,13 +123,22 @@ namespace Patients.API.Controllers
                         }
                     });
 
-                GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
-                        resources,
-                        firstPageUrl,
-                        previousPageUrl,
-                        nextPageUrl,
-                        lastPageUrl,
-                        result.Total);
+                GenericPageModel<Browsable<PatientInfo>> response = new GenericPageModel<Browsable<PatientInfo>>
+                {
+                    Items = resources,
+                    Links = new PageLinksModel
+                    {
+                        First = new Link { Href = firstPageUrl, Relation = First },
+                        Previous = previousPageUrl is null
+                             ? null
+                             : new Link { Href = previousPageUrl, Relation = Previous },
+                        Next = nextPageUrl is null
+                            ? null
+                            : new Link { Href = nextPageUrl, Relation = Next },
+                        Last = new Link { Href = lastPageUrl, Relation = Last }
+                    },
+                    Total = result.Total
+                };
 
                 return new OkObjectResult(response);
 
@@ -145,7 +156,7 @@ namespace Patients.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [HttpOptions("{id}")]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status200OK)]
         public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
@@ -195,8 +206,8 @@ namespace Patients.API.Controllers
         /// <response code="201">the resource was created successfully</response>
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 201)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken cancellationToken = default)
         {
             if (newPatient.Id == default)
@@ -292,7 +303,7 @@ namespace Patients.API.Controllers
         /// <response code="400"><paramref name="id"/> <paramref name="changes"/> are not valid for the selected resource.</response>
         /// <response code="404">Resource not found</response>
         [HttpPatch("{id}")]
-        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
+        [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), Status400BadRequest)]
         public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
@@ -400,9 +411,8 @@ namespace Patients.API.Controllers
         /// <response code="400">one the search criteria is not valid</response>
         [HttpGet("[action]")]
         [HttpHead("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<PatientInfo>>), Status200OK)]
+        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
@@ -433,11 +443,12 @@ namespace Patients.API.Controllers
             }
             else
             {
-                GenericPagedGetResponse<Browsable<PatientInfo>> page = new GenericPagedGetResponse<Browsable<PatientInfo>>(
-                        items: pageOfResources.Entries.Select(x => new Browsable<PatientInfo>
-                        {
-                            Resource = x,
-                            Links = new[] {
+                GenericPageModel<Browsable<PatientInfo>> page = new GenericPageModel<Browsable<PatientInfo>>
+                {
+                    Items = pageOfResources.Entries.Select(x => new Browsable<PatientInfo>
+                    {
+                        Resource = x,
+                        Links = new[] {
                             new Link
                             {
                                 Method = "GET",
@@ -445,53 +456,72 @@ namespace Patients.API.Controllers
                                 Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, x.Id })
                             }
                             }
-                        }),
-                        first: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                    }),
+                    Links = new PageLinksModel
+                    {
+                        First = new Link
                         {
-                            controller = ControllerName,
-                            search.Firstname,
-                            search.Lastname,
-                            search.BirthDate,
-                            search.Sort,
-                            page = 1,
-                            search.PageSize
-                        }),
-                        previous: search.Page > 1
-                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            Relation = First,
+                            Href = UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
                                 search.Lastname,
                                 search.BirthDate,
                                 search.Sort,
-                                page = search.Page - 1,
+                                page = 1,
                                 search.PageSize
                             })
+                        },
+                        Previous = search.Page > 1
+                            ? new Link
+                            {
+                                Relation = Previous,
+                                Href = UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                                {
+                                    controller = ControllerName,
+                                    search.Firstname,
+                                    search.Lastname,
+                                    search.BirthDate,
+                                    search.Sort,
+                                    page = search.Page - 1,
+                                    search.PageSize
+                                })
+                            }
                             : null,
-                        next: pageOfResources.Count > search.Page
-                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                        Next = pageOfResources.Count > search.Page
+                            ? new Link
+                            {
+                                Relation = Next,
+                                Href = UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                                {
+                                    controller = ControllerName,
+                                    search.Firstname,
+                                    search.Lastname,
+                                    search.BirthDate,
+                                    search.Sort,
+                                    page = search.Page + 1,
+                                    search.PageSize
+                                })
+                            }
+                            : null,
+                        Last = new Link
+                        {
+                            Relation = Last,
+                            Href = UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
                                 search.Lastname,
                                 search.BirthDate,
                                 search.Sort,
-                                page = search.Page + 1,
+                                page = Math.Max(pageOfResources.Count, 1),
                                 search.PageSize
                             })
-                            : null,
-                        last: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
-                        {
-                            controller = ControllerName,
-                            search.Firstname,
-                            search.Lastname,
-                            search.BirthDate,
-                            search.Sort,
-                            page = Math.Max(pageOfResources.Count, 1),
-                            search.PageSize
-                        })
-,
-                        total: pageOfResources.Total);
+                        }
+                    },
+                    Total = pageOfResources.Total
+                };
 
                 actionResult = new OkObjectResult(page);
             }

@@ -13,6 +13,7 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using MediatR;
@@ -79,7 +80,7 @@ namespace Identity.API.Features.v1.Accounts
         /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<AccountInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([BindRequired, FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
@@ -93,8 +94,9 @@ namespace Identity.API.Features.v1.Accounts
 
             string version = _apiVersion?.ToString();
 
-            GenericPagedGetResponse<Browsable<AccountInfo>> result = new GenericPagedGetResponse<Browsable<AccountInfo>>(
-                page.Entries.Select(resource => new Browsable<AccountInfo>
+            GenericPageModel<Browsable<AccountInfo>> result = new GenericPageModel<Browsable<AccountInfo>>
+            {
+                Items = page.Entries.Select(resource => new Browsable<AccountInfo>
                 {
                     Resource = resource,
                     Links = new[]
@@ -107,17 +109,31 @@ namespace Identity.API.Features.v1.Accounts
                         }
                     }
                 }),
-
-                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize, version }),
-                previous: paginationConfiguration.Page > 1 && page.Count > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize, version })
+                Links = new PageLinksModel
+                {
+                    First = new Link { 
+                        Method = "GET",
+                        Relation = First,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize, version }) },
+                    Previous = paginationConfiguration.Page > 1 && page.Count > 1
+                    ? new Link {
+                        Method = "GET",
+                        Relation = Previous,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize, version }) }
                     : null,
-                next: paginationConfiguration.Page < page.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize, version })
+                    Next = paginationConfiguration.Page < page.Count
+                    ? new Link {
+                        Method = "GET",
+                        Relation = Next,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize, version }) }
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize, version }),
-                total: page.Total
-            );
+                    Last = new Link {
+                        Method = "GET",
+                        Relation = Last,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize, version }) }
+                },
+                Total = page.Total
+            };
 
             return new OkObjectResult(result);
         }
@@ -331,9 +347,9 @@ namespace Identity.API.Features.v1.Accounts
 
             bool hasNextPage = search.Page < searchResult.Count;
             string version = _apiVersion?.ToString();
-            return new OkObjectResult(new GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>(
-
-                items: searchResult.Entries.Select(x => new Browsable<SearchAccountInfoResult>
+            return new OkObjectResult(new GenericPageModel<Browsable<SearchAccountInfoResult>>
+            {
+                Items = searchResult.Entries.Select(x => new Browsable<SearchAccountInfoResult>
                 {
                     Resource = x,
                     Links = new[]
@@ -341,13 +357,25 @@ namespace Identity.API.Features.v1.Accounts
                         new Link { Relation = Self, Method = "GET" }
                     }
                 }),
-                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }),
-                next: hasNextPage
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version })
+                Links = new PageLinksModel
+                {
+                    First = new Link {
+                        Method = "GET",
+                        Relation = First,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }) },
+                    Next = hasNextPage
+                    ? new Link {
+                        Method = "GET",
+                        Relation = Next,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }) }
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }),
-                total: searchResult.Total
-            ));
+                    Last = new Link {
+                        Method = "GET",
+                        Relation = Last,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName, version }) }
+                },
+                Total = searchResult.Total
+            });
         }
     }
 }

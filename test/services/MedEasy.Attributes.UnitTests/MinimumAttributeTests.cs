@@ -33,6 +33,7 @@ namespace MedEasy.Core.UnitTests.Attributes
         {
             // Arrange
             Type minimunAttributeType = typeof(MinimumAttribute);
+
             // Assert
             minimunAttributeType.Should()
                 .BeAssignableTo<RangeAttribute>();

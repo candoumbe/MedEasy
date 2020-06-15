@@ -13,5 +13,9 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
+    <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\GenericMeasures\" />
   </ItemGroup>
 </Project>

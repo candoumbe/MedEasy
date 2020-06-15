@@ -71,13 +71,16 @@ namespace MedEasy.AttributesUnitTests
         [InlineData(typeof(float), default(float), false, "default float is not valid")]
         [InlineData(typeof(short), default(short), false, "default short is not valid")]
         [MemberData(nameof(ValidateCases))]
-        public void Validate(Type type, object value, bool expectedResult, string reason)
+        public void Validate(Type type, object value, bool expected, string reason)
         {
-            _outputHelper.WriteLine($"Parameters : {new {type, value, expectedResult }.Jsonify()}");
+            _outputHelper.WriteLine($"Parameters : {new {type, value, expected }.Jsonify()}");
+
+            // Act
+            bool actual = _sut.IsValid(value);
 
             // Assert
-            _sut.IsValid(value).Should()
-                .Be(expectedResult, reason);
+            actual.Should()
+                  .Be(expected, reason);
         }
     }
 }

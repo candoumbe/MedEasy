@@ -11,6 +11,7 @@ using Measures.API.Features.Patients;
 using Measures.DTO;
 
 using MedEasy.IntegrationTests.Core;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -82,9 +83,9 @@ namespace Measures.API.IntegrationTests.v1
             Type = JSchemaType.Object,
             Properties =
                 {
-                    [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                    [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
-                    [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
+                    [nameof(GenericPageModel<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
+                    [nameof(GenericPageModel<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
+                    [nameof(GenericPageModel<object>.Links).ToLower()] = new JSchema
                     {
                         Type = JSchemaType.Object,
                         Properties =
@@ -103,9 +104,9 @@ namespace Measures.API.IntegrationTests.v1
                 },
             Required =
                 {
-                    nameof(GenericPagedGetResponse<object>.Items).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Total).ToLower()
+                    nameof(GenericPageModel<object>.Items).ToLower(),
+                    nameof(GenericPageModel<object>.Links).ToLower(),
+                    nameof(GenericPageModel<object>.Total).ToLower()
                 }
         };
 

@@ -68,8 +68,7 @@ namespace Agenda.API
             {
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
-
+            
             app.UseHttpMethodOverride();
 
             if (env.IsProduction() || env.IsStaging())

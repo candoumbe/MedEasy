@@ -57,6 +57,16 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static Forms.LinkRelation;
+using MedEasy.Models;
+using System.Reflection;
+using Measures.CQRS.Handlers.Patients;
+using MedEasy.Attributes;
+using Measures.Models.v1;
+using Measures.CQRS.Commands;
+using Bogus.DataSets;
+using System.Text.Json;
+using MedEasy.Core.Results;
+using FluentAssertions.Common;
 
 namespace Measures.API.Tests.Features.v1.Patients
 {
@@ -64,13 +74,14 @@ namespace Measures.API.Tests.Features.v1.Patients
     public class PatientsControllerTests : IDisposable
     {
         private Mock<LinkGenerator> _urlHelperMock;
-        private PatientsController _controller;
+        private PatientsController _sut;
         private ITestOutputHelper _outputHelper;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private Mock<IMediator> _mediatorMock;
         private const string _baseUrl = "http://host/api";
         private IUnitOfWorkFactory _uowFactory;
         private static readonly ApiVersion _apiVersion = new ApiVersion(1, 0);
+        private readonly Faker _faker;
 
         public PatientsControllerTests(ITestOutputHelper outputHelper)
         {
@@ -89,7 +100,9 @@ namespace Measures.API.Tests.Features.v1.Patients
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _controller = new PatientsController(
+            _faker = new Faker();
+
+            _sut = new PatientsController(
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
                 _mediatorMock.Object,
@@ -99,11 +112,139 @@ namespace Measures.API.Tests.Features.v1.Patients
         public void Dispose()
         {
             _urlHelperMock = null;
-            _controller = null;
+            _sut = null;
             _outputHelper = null;
             _apiOptionsMock = null;
             _mediatorMock = null;
             _uowFactory = null;
+        }
+
+        [Fact]
+        public void Has_endpoints_to_handle_PatientInfo_resources()
+        {
+            // Act
+            Type patientsControllerType = typeof(PatientsController);
+
+            // Assert
+            patientsControllerType.Should()
+                                  .BeDecoratedWith<ApiControllerAttribute>().And
+                                  .BeDecoratedWith<ApiVersionAttribute>(attr => attr.Versions.Once(v => v.MajorVersion == 1 && v.MinorVersion == 0));
+
+            patientsControllerType.Should()
+                                  .HaveMethod("Get", new[] { typeof(Guid), typeof(CancellationToken) }, "controller be used to get").Which
+                                  .Should()
+                                  .Return<Task<ActionResult<Browsable<PatientInfo>>>>().And
+                                  .BeDecoratedWith<HttpGetAttribute>(attr => attr.Template == "{id}").And
+                                  .BeDecoratedWith<HttpHeadAttribute>(attr => attr.Template == "{id}");
+
+            MethodInfo getAllPatientsEndpoints = patientsControllerType.Should()
+                                                                       .HaveMethod("Get", new[] { typeof(PaginationConfiguration), typeof(CancellationToken) }, "controller be used to get").Which;
+
+            getAllPatientsEndpoints.Should()
+                                   .Return<Task<GenericPageModel<Browsable<PatientInfo>>>>().And
+                                   .BeDecoratedWith<HttpGetAttribute>(attr => string.IsNullOrEmpty(attr.Template)).And
+                                   .BeDecoratedWith<HttpHeadAttribute>(attr => string.IsNullOrEmpty(attr.Template));
+        }
+
+        [Fact]
+        public void Has_endpoints_for_getting_all_measures()
+        {
+            // Act
+            Type patientsControllerType = typeof(PatientsController);
+
+            // Assert
+            patientsControllerType.Should()
+                                  .BeDecoratedWith<ApiControllerAttribute>().And
+                                  .BeDecoratedWith<ApiVersionAttribute>(attr => attr.Versions.Once(v => v.MajorVersion == 1 && v.MinorVersion == 0));
+
+            MethodInfo getMeasuresEndpoints = patientsControllerType.Should()
+                                                                    .HaveMethod("GetMeasures", new[] { typeof(Guid), typeof(string), typeof(int), typeof(int), typeof(CancellationToken) }, "controller must be usable to get measures").Which;
+
+            getMeasuresEndpoints.Should()
+                                .Return<Task<ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>>>>().And
+                                .BeDecoratedWith<HttpGetAttribute>(attr => attr.Template == "{id}/{measure}").And
+                                .BeDecoratedWith<HttpHeadAttribute>(attr => attr.Template == "{id}/{measure}").And
+                                .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status404NotFound, "the endpoint will returns 404 if the measure does not exist").And
+                                .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status206PartialContent && typeof(GenericPageModel<Browsable<GenericMeasureModel>>).Equals(attr.Type), "the endpoint can return a subset of large result set").And
+                                .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status200OK && typeof(GenericPageModel<Browsable<GenericMeasureModel>>).Equals(attr.Type));
+
+            ParameterInfo[] parameters = getMeasuresEndpoints.GetParameters();
+            parameters.Should()
+                      .ContainSingle(pi => pi.Name == "id"
+                                           && pi.ParameterType.Equals(typeof(Guid))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "measure"
+                                           && pi.ParameterType.Equals(typeof(string))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "page"
+                                           && pi.ParameterType.Equals(typeof(int))
+                                           && pi.GetCustomAttribute<MinimumAttribute>() == new MinimumAttribute(1)).And
+                      .ContainSingle(pi => pi.Name == "pageSize"
+                                           && pi.ParameterType.Equals(typeof(int))
+                                           && pi.GetCustomAttribute<MinimumAttribute>() == new MinimumAttribute(1));
+        }
+
+        [Fact]
+        public void Has_endpoints_for_getting_one_measure()
+        {
+            // Act
+            Type patientsControllerType = typeof(PatientsController);
+
+            // Assert
+            MethodInfo getOneMeasureEndpoint = patientsControllerType.Should()
+                                                                    .HaveMethod("GetOneMeasurementByPatientId", new[] { typeof(Guid), typeof(string), typeof(Guid), typeof(CancellationToken) }, "controller must be usable to get measures").Which;
+
+            getOneMeasureEndpoint.Should()
+                                 .Return<Task<ActionResult<Browsable<GenericMeasureModel>>>>().And
+                                 .BeDecoratedWith<HttpGetAttribute>(attr => attr.Template == "{id}/{measure}/{measureId}").And
+                                 .BeDecoratedWith<HttpHeadAttribute>(attr => attr.Template == "{id}/{measure}/{measureId}").And
+                                 .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status404NotFound, "the endpoint will returns 404 if the measure does not exist").And
+                                 .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status200OK && typeof(Browsable<GenericMeasureModel>).Equals(attr.Type));
+
+            ParameterInfo[] parameters = getOneMeasureEndpoint.GetParameters();
+            parameters.Should()
+                      .HaveCount(4).And
+                      .ContainSingle(pi => pi.Name == "id"
+                                           && pi.ParameterType.Equals(typeof(Guid))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "measure"
+                                           && pi.ParameterType.Equals(typeof(string))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "measureId"
+                                           && pi.ParameterType.Equals(typeof(Guid))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.ParameterType.Equals(typeof(CancellationToken)));
+        }
+
+        [Fact]
+        public void Has_endpoints_for_deleting_one_measure()
+        {
+            // Act
+            Type patientsControllerType = typeof(PatientsController);
+
+            // Assert
+            MethodInfo getOneMeasureEndpoint = patientsControllerType.Should()
+                                                                     .HaveMethod("DeleteOneMeasurementByPatientId", new[] { typeof(Guid), typeof(string), typeof(Guid), typeof(CancellationToken) }, "controller must be usable to get measures").Which;
+
+            getOneMeasureEndpoint.Should()
+                                 .Return<Task<ActionResult>>().And
+                                 .BeDecoratedWith<HttpDeleteAttribute>(attr => attr.Template == "{id}/{measure}/{measureId}").And
+                                 .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status404NotFound, "the endpoint will returns 404 if the measure does not exist").And
+                                 .BeDecoratedWith<ProducesResponseTypeAttribute>(attr => attr.StatusCode == Status204NoContent);
+
+            ParameterInfo[] parameters = getOneMeasureEndpoint.GetParameters();
+            parameters.Should()
+                      .HaveCount(4).And
+                      .ContainSingle(pi => pi.Name == "id"
+                                           && pi.ParameterType.Equals(typeof(Guid))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "measure"
+                                           && pi.ParameterType.Equals(typeof(string))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.Name == "measureId"
+                                           && pi.ParameterType.Equals(typeof(Guid))
+                                           && pi.GetCustomAttribute<RequireNonDefaultAttribute>() != null).And
+                      .ContainSingle(pi => pi.ParameterType.Equals(typeof(CancellationToken)));
         }
 
         public static IEnumerable<object> GetLastBloodPressuresMesuresCases
@@ -224,7 +365,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                         return patient;
                     });
                 {
-                    IEnumerable<Patient> items =patientFaker.Generate(400);
+                    IEnumerable<Patient> items = patientFaker.Generate(400);
 
                     yield return new object[]
                     {
@@ -334,25 +475,12 @@ namespace Measures.API.Tests.Features.v1.Patients
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            IActionResult actionResult = await _controller.Get(new PaginationConfiguration { Page = request.page, PageSize = request.pageSize })
+            GenericPageModel<Browsable<PatientInfo>> response = await _sut.Get(new PaginationConfiguration { Page = request.page, PageSize = request.pageSize })
                 .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"because {nameof(PatientsController)}.{nameof(PatientsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfPatientInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-
-            actionResult.Should()
-                    .NotBeNull().And
-                    .BeOfType<OkObjectResult>();
-            ObjectResult okObjectResult = (OkObjectResult)actionResult;
-
-            object value = okObjectResult.Value;
-
-            okObjectResult.Value.Should()
-                    .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>();
-
-            GenericPagedGetResponse<Browsable<PatientInfo>> response = (GenericPagedGetResponse<Browsable<PatientInfo>>)value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -367,7 +495,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             }
 
             response.Total.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<PatientInfo>)}.{nameof(GenericPagedGetResponse<PatientInfo>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPageModel<PatientInfo>)}.{nameof(GenericPageModel<PatientInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
@@ -552,26 +680,26 @@ namespace Measures.API.Tests.Features.v1.Patients
                 });
 
             // Act
-            IActionResult actionResult = await _controller.Search(searchRequest, default)
+            IActionResult actionResult = await _sut.Search(searchRequest, default)
                     .ConfigureAwait(false);
 
             // Assert
-            GenericPagedGetResponse<Browsable<PatientInfo>> content = actionResult.Should()
+            GenericPageModel<Browsable<PatientInfo>> content = actionResult.Should()
                 .NotBeNull().And
                 .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<Browsable<PatientInfo>>>().Which;
+                        .BeAssignableTo<GenericPageModel<Browsable<PatientInfo>>>().Which;
 
             content.Items.Should()
-                .NotBeNull($"{nameof(GenericPagedGetResponse<object>.Items)} must not be null").And
-                .NotContainNulls($"{nameof(GenericPagedGetResponse<object>.Items)} must not contains null").And
+                .NotBeNull($"{nameof(GenericPageModel<object>.Items)} must not be null").And
+                .NotContainNulls($"{nameof(GenericPageModel<object>.Items)} must not contains null").And
                 .NotContain(x => x.Resource == null).And
                 .NotContain(x => x.Links == null);
 
             content.Links.Should()
                 .NotBeNull();
-            PageLinks links = content.Links;
+            PageLinksModel links = content.Links;
 
             links.First.Should().Match(linksExpectation.firstPageLink);
             links.Previous.Should().Match(linksExpectation.previousPageLink);
@@ -594,7 +722,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(Page<PatientInfo>.Empty(pageSize: 10));
 
             // Act
-            IActionResult actionResult = await _controller.Search(searchRequest, default)
+            IActionResult actionResult = await _sut.Search(searchRequest, default)
                     .ConfigureAwait(false);
 
             // Assert
@@ -629,7 +757,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 {
                     using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
                     Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
-.GetMapExpression<Patient, PatientInfo>();
+                        .GetMapExpression<Patient, PatientInfo>();
 
                     return await uow.Repository<Patient>().SingleOrDefaultAsync(
                         selector,
@@ -639,11 +767,11 @@ namespace Measures.API.Tests.Features.v1.Patients
                 });
 
             //Act
-            IActionResult actionResult = await _controller.Get(Guid.NewGuid())
+            ActionResult<Browsable<PatientInfo>> actionResult = await _sut.Get(Guid.NewGuid())
                 .ConfigureAwait(false);
 
             //Assert
-            actionResult.Should()
+            actionResult.Result.Should()
                 .NotBeNull().And
                 .BeOfType<NotFoundResult>().Which
                     .StatusCode.Should().Be(404);
@@ -657,7 +785,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             //Arrange
             Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {  
+            {
                 uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -679,16 +807,12 @@ namespace Measures.API.Tests.Features.v1.Patients
                });
 
             //Act
-            IActionResult actionResult = await _controller.Get(patient.Id)
-                .ConfigureAwait(false);
+            ActionResult<Browsable<PatientInfo>> actionResult = await _sut.Get(patient.Id)
+                                                                                 .ConfigureAwait(false);
 
             //Assert
-
-            Browsable<PatientInfo> result = actionResult.Should()
-                .NotBeNull().And
-                .BeOfType<OkObjectResult>().Which
-                    .Value.Should()
-                    .BeAssignableTo<Browsable<PatientInfo>>().Which;
+            actionResult.Value.Should().NotBeNull();
+            Browsable<PatientInfo> result = actionResult.Value;
 
             IEnumerable<Link> links = result.Links;
 
@@ -743,7 +867,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
-            IActionResult actionResult = await _controller.Delete(id: idToDelete, ct: default)
+            IActionResult actionResult = await _sut.Delete(id: idToDelete, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -764,7 +888,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            IActionResult actionResult = await _controller.Delete(id: idToDelete, ct: default)
+            IActionResult actionResult = await _sut.Delete(id: idToDelete, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -786,7 +910,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(Option.None<PatientInfo>());
 
             // Act
-            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: pagination, ct: default)
+            IActionResult actionResult = await _sut.GetBloodPressures(id: patientId, pagination: pagination, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -840,7 +964,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                     }.Some()).AsTask());
 
             // Act
-            IActionResult actionResult = await _controller.GetBloodPressures(id: patientId, pagination: paging, ct: default)
+            IActionResult actionResult = await _sut.GetBloodPressures(id: patientId, pagination: paging, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -898,7 +1022,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             Guid patientId = Guid.NewGuid();
             // Act
 
-            IActionResult actionResult = await _controller.PostBloodPressure(patientId, newMeasure)
+            IActionResult actionResult = await _sut.PostBloodPressure(patientId, newMeasure)
                 .ConfigureAwait(false);
 
             // Assert
@@ -970,7 +1094,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(Option.None<BloodPressureInfo, CreateCommandResult>(mediatorResult));
 
             // Act
-            IActionResult actionResult = await _controller.PostBloodPressure(Guid.NewGuid(), new NewBloodPressureModel())
+            IActionResult actionResult = await _sut.PostBloodPressure(Guid.NewGuid(), new NewBloodPressureModel())
                 .ConfigureAwait(false);
 
             // Assert
@@ -1002,7 +1126,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 });
 
             // Act
-            IActionResult actionResult = await _controller.Post(newPatient, ct: default)
+            IActionResult actionResult = await _sut.Post(newPatient, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -1057,7 +1181,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(ModifyCommandResult.Failed_NotFound);
 
             // Act
-            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+            IActionResult actionResult = await _sut.Patch(Guid.NewGuid(), changes)
                 .ConfigureAwait(false);
 
             // Assert
@@ -1076,7 +1200,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ReturnsAsync(ModifyCommandResult.Done);
 
             // Act
-            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+            IActionResult actionResult = await _sut.Patch(Guid.NewGuid(), changes)
                 .ConfigureAwait(false);
 
             // Assert
@@ -1085,5 +1209,305 @@ namespace Measures.API.Tests.Features.v1.Patients
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();
         }
+
+        [Theory]
+        [InlineData(10, 5)]
+        [InlineData(20, 10)]
+        public async Task GetAllMeasures_returns_NotFound_when_Command_execution_returns_None(int pageSizeSubmitted, int maxPageSize)
+        {
+            Guid patientId = Guid.NewGuid();
+            const string measure = "blood-pressures";
+            int page = _faker.Random.Int(min: 1);
+
+            _apiOptionsMock.Setup(mock => mock.Value)
+                           .Returns(new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = maxPageSize });
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfMeasuresInfoByPatientIdQuery>(),
+                                                  It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(Option.None<Page<GenericMeasureInfo>>());
+
+            // Act
+            ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>> actionResult = await _sut.GetMeasures(patientId, measure, page, pageSizeSubmitted, default)
+                                                                                                           .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfMeasuresInfoByPatientIdQuery>(query => query.Id != Guid.Empty
+                                                                                                         && query.Data.patientId == patientId
+                                                                                                         && query.Data.name == measure
+                                                                                                         && query.Data.pagination.Page == page && query.Data.pagination.PageSize <= maxPageSize),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _apiOptionsMock.VerifyNoOtherCalls();
+
+            actionResult.Result.Should()
+                               .BeOfType<NotFoundResult>();
+        }
+
+        [Theory]
+        [InlineData(10, 5)]
+        [InlineData(20, 10)]
+        public async Task GetAllMeasures_returns_PartialObjectResult_when_Command_execution_returns_one_page_out_of_several(int pageSizeSubmitted, int maxPageSize)
+        {
+            Guid patientId = Guid.NewGuid();
+            const string measure = "blood-pressures";
+            int page = _faker.Random.Int(min: 1);
+
+            Faker<GenericMeasureInfo> faker = new Faker<GenericMeasureInfo>()
+                .RuleFor(measure => measure.PatientId, () => patientId)
+                .RuleFor(measure => measure.FormId, () => Guid.NewGuid())
+                .RuleFor(measure => measure.DateOfMeasure, f => f.Date.Recent())
+                .RuleFor(measure => measure.Id, () => Guid.NewGuid())
+                .RuleFor(measure => measure.Data, f => new Dictionary<string, object>
+                {
+                    ["systolic"] = f.Random.Float(min: 9, max: 15),
+                    ["diastolic"] = f.Random.Float(max: 9)
+                });
+
+            _apiOptionsMock.Setup(mock => mock.Value)
+                           .Returns(new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = maxPageSize });
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfMeasuresInfoByPatientIdQuery>(),
+                                                  It.IsAny<CancellationToken>()))
+                         .ReturnsAsync((GetPageOfMeasuresInfoByPatientIdQuery query, CancellationToken _) => Option.Some(new Page<GenericMeasureInfo>(faker.Generate(10), 200, query.Data.pagination.PageSize)));
+
+            // Act
+            ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>> actionResult = await _sut.GetMeasures(patientId, measure, page, pageSizeSubmitted, default)
+                                                                                                           .ConfigureAwait(false);
+
+            // Assert
+            int realPageSize = Math.Min(pageSizeSubmitted, maxPageSize);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfMeasuresInfoByPatientIdQuery>(query => query.Id != Guid.Empty
+                                                                                                         && query.Data.patientId == patientId
+                                                                                                         && query.Data.name == measure
+                                                                                                         && query.Data.pagination.Page == page && query.Data.pagination.PageSize == realPageSize),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _apiOptionsMock.VerifyNoOtherCalls();
+
+            GenericPageModel<Browsable<GenericMeasureModel>> response = actionResult.Result.Should()
+                                                                                   .BeOfType<PartialObjectResult>().Which
+                                                                                   .Value.Should().BeOfType<GenericPageModel<Browsable<GenericMeasureModel>>>().Which;
+
+            response.Items.Should()
+                          .NotBeEmpty().And
+                          .NotContainNulls().And
+                          .OnlyContain(item => item.Links != null).And
+                          .OnlyContain(item => item.Links.Once(link => link.Relation == "patient"
+                                                                       && link.Href.Equals($"http://host/api/{RouteNames.DefaultGetOneByIdApi}/?controller=Patients&id={patientId}&version={_apiVersion}"))).And
+                          .OnlyContain(item => item.Links.Once(link => link.Relation == Self
+                                                                       && link.Href.Equals($"http://host/api/{RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi}/?controller=Patients&measure={measure}&measureId={item.Resource.Id}&patientId={patientId}&version={_apiVersion}")));
+
+            PageLinksModel pageLinks = response.Links;
+
+            response.Links.Should()
+                          .NotBeNull();
+            Link first = response.Links.First;
+            first.Should()
+                 .NotBeNull();
+            first.Href.Should()
+                      .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&page=1&pageSize={realPageSize}&version={_apiVersion}");
+            first.Relation.Should()
+                          .Be(First);
+
+            Link previous = response.Links.Previous;
+            previous.Should()
+                 .NotBeNull();
+            previous.Href.Should()
+                      .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&page={(page - 1)}&pageSize={realPageSize}&version={_apiVersion}");
+            previous.Relation.Should()
+                          .Be(Previous);
+
+            Link last = response.Links.Last;
+            last.Should()
+                 .NotBeNull();
+            last.Href.Should()
+                      .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&page={response.Total}&pageSize={realPageSize}&version={_apiVersion}");
+            last.Relation.Should()
+                          .Be(Last);
+
+        }
+
+        [Theory]
+        [InlineData(10, 5)]
+        [InlineData(20, 10)]
+        public async Task GetAllMeasures_returns_200Ok_when_Command_execution_returns_the_whole_content(int pageSizeSubmitted, int maxPageSize)
+        {
+            Guid patientId = Guid.NewGuid();
+            const string measure = "blood-pressures";
+            int page = 1;
+
+            Faker<GenericMeasureInfo> faker = new Faker<GenericMeasureInfo>()
+                .RuleFor(measure => measure.PatientId, () => patientId)
+                .RuleFor(measure => measure.FormId, () => Guid.NewGuid())
+                .RuleFor(measure => measure.DateOfMeasure, f => f.Date.Recent())
+                .RuleFor(measure => measure.Id, () => Guid.NewGuid())
+                .RuleFor(measure => measure.Data, f => new Dictionary<string, object>
+                {
+                    ["systolic"] = f.Random.Float(min: 9, max: 15),
+                    ["diastolic"] = f.Random.Float(max: 9)
+                });
+
+            int realPageSize = Math.Min(pageSizeSubmitted, maxPageSize);
+            _apiOptionsMock.Setup(mock => mock.Value)
+                           .Returns(new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = maxPageSize });
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfMeasuresInfoByPatientIdQuery>(),
+                                                  It.IsAny<CancellationToken>()))
+                         .ReturnsAsync((GetPageOfMeasuresInfoByPatientIdQuery query, CancellationToken _) => Option.Some(new Page<GenericMeasureInfo>(faker.Generate(1), 1, query.Data.pagination.PageSize)));
+
+            // Act
+            ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>> actionResult = await _sut.GetMeasures(patientId, measure, page, pageSizeSubmitted, default)
+                                                                                                    .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfMeasuresInfoByPatientIdQuery>(query => query.Id != Guid.Empty
+                                                                                                         && query.Data.patientId == patientId
+                                                                                                         && query.Data.name == measure
+                                                                                                         && query.Data.pagination.Page == page && query.Data.pagination.PageSize == realPageSize),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _apiOptionsMock.VerifyNoOtherCalls();
+
+            actionResult.Value.Should().NotBeNull();
+            GenericPageModel<Browsable<GenericMeasureModel>> response = actionResult.Value;
+
+            response.Items.Should()
+                          .NotBeEmpty().And
+                          .NotContainNulls().And
+                          .OnlyContain(item => item.Links != null).And
+                          .OnlyContain(item => item.Links.Once(link => link.Relation == "patient"
+                                                                       && link.Href.Equals($"http://host/api/{RouteNames.DefaultGetOneByIdApi}/?controller=Patients&id={patientId}&version={_apiVersion}"))).And
+                          .OnlyContain(item => item.Links.Once(link => link.Relation == Self
+                                                                       && link.Href.Equals($"http://host/api/{RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi}/?controller=Patients&measure={measure}&measureId={item.Resource.Id}&patientId={patientId}&version={_apiVersion}")));
+
+            PageLinksModel pageLinks = response.Links;
+
+            response.Links.Should()
+                          .NotBeNull();
+            Link first = response.Links.First;
+            first.Should()
+                 .NotBeNull();
+            first.Href.Should()
+                      .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&page=1&pageSize={realPageSize}&version={_apiVersion}");
+            first.Relation.Should()
+                          .Be(First);
+
+            response.Links.Previous.Should()
+                    .BeNull();
+            response.Links.Next.Should()
+                               .BeNull();
+
+            Link last = response.Links.Last;
+            last.Should()
+                 .NotBeNull();
+            last.Href.Should()
+                      .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetAllSubResourcesByResourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&page=1&pageSize={realPageSize}&version={_apiVersion}");
+            last.Relation.Should()
+                          .Be(Last);
+
+        }
+
+        [Fact]
+        public async Task GetOneMeasureByPatientId_returns_404NotFound_when_query_returns_none()
+        {
+            // Arrange
+            Guid patientId = Guid.NewGuid();
+            Guid measureId = Guid.NewGuid();
+            const string measure = "heartbeat";
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneMeasureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(Option.None<GenericMeasureInfo>());
+
+            // Act
+            ActionResult<Browsable<GenericMeasureModel>> response = await _sut.GetOneMeasurementByPatientId(patientId, measure, measureId, default)
+                                                                              .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneMeasureInfoByPatientIdQuery>(query => query.Id != null
+                                                                                                     && query.Data.patientId == patientId
+                                                                                                     && query.Data.name == measure
+                                                                                                     && query.Data.measureId == measureId),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            response.Result.Should()
+                           .BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task GetOneMeasureByPatientId_returns_200OK_when_query_returns_something()
+        {
+            // Arrange
+            Guid patientId = Guid.NewGuid();
+            Guid measureId = Guid.NewGuid();
+            const string measure = "heartbeat";
+
+            GenericMeasureInfo measureInfo = new GenericMeasureInfo
+            {
+                FormId = Guid.NewGuid(),
+                CreatedDate = _faker.Date.Recent(),
+                Data = new Dictionary<string, object>
+                {
+                    ["prop"] = _faker.Random.Float(),
+                    ["comments"] = _faker.Lorem.Words()
+                },
+                DateOfMeasure = _faker.Date.Recent(),
+                Id = measureId,
+                PatientId = patientId,
+                UpdatedDate = _faker.Date.Recent()
+            };
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneMeasureInfoByPatientIdQuery>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(Option.Some(measureInfo));
+
+            // Act
+            ActionResult<Browsable<GenericMeasureModel>> actionResult = await _sut.GetOneMeasurementByPatientId(patientId, measure, measureId, default)
+                                                                                  .ConfigureAwait(false);
+
+            // Assert
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneMeasureInfoByPatientIdQuery>(query => query.Id != null
+                                                                                                     && query.Data.patientId == patientId
+                                                                                                     && query.Data.name == measure
+                                                                                                     && query.Data.measureId == measureId),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            Browsable<GenericMeasureModel> browsableMeasureModel = actionResult.Value;
+
+            browsableMeasureModel.Should()
+                                 .NotBeNull();
+
+            GenericMeasureModel resource = browsableMeasureModel.Resource;
+
+            resource.Should().NotBeNull();
+            resource.Id.Should().Be(measureInfo.Id);
+            resource.PatientId.Should().Be(measureInfo.PatientId);
+            resource.DateOfMeasure.Should().Be(measureInfo.DateOfMeasure);
+            resource.Values.Should().ContainKeys(measureInfo.Data.Keys);
+
+            foreach (KeyValuePair<string, object> kv in resource.Values)
+            {
+                kv.Value.Should().Be(measureInfo.Data[kv.Key]);
+            }
+
+            IEnumerable<Link> links = browsableMeasureModel.Links;
+            links.Should()
+                 .NotBeNull().And
+                 .NotContainNulls().And
+                 .ContainSingle(link => link.Relation == Self).And
+                 .ContainSingle(link => link.Relation == "patient");
+
+            Link self = links.Single(link => link.Relation == Self);
+            self.Href.Should()
+                     .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi}/?controller=Patients&id={patientId}&measure={measure}&measureId={measureId}&version={_apiVersion}");
+
+            Link patient = links.Single(link => link.Relation == "patient");
+            patient.Href.Should()
+                        .BeEquivalentTo($"http://host/api/{RouteNames.DefaultGetOneByIdApi}/?controller=Patients&id={patientId}&version={_apiVersion}");
+        }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using MedEasy.RestObjects;
+﻿using MedEasy.Models;
+using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
@@ -30,7 +31,7 @@ namespace MedEasy.Core.Filters
         {
             string method = context.HttpContext.Request.Method;
 
-            static (long total, long count) ComputeCountsFromPage(in IGenericPagedGetResponse response) => (response.Total, response.Count);
+            static (long total, long count) ComputeCountsFromPage(in PageModelBase response) => (response.Total, response.Count);
             static (long total, long count) ComputeCountsFromEnumerable(in IEnumerable collection)
             {
                 IEnumerator enumerator = collection.GetEnumerator();
@@ -53,7 +54,7 @@ namespace MedEasy.Core.Filters
 
                         switch (okObjectResult.Value)
                         {
-                            case IGenericPagedGetResponse genericPagedGetResponse:
+                            case PageModelBase genericPagedGetResponse:
                                 {
                                     (long total, long count) counts = ComputeCountsFromPage(genericPagedGetResponse);
                                     count = counts.count;
@@ -70,14 +71,13 @@ namespace MedEasy.Core.Filters
                                 break;
                         }
                         break;
-                    case IGenericPagedGetResponse genericPagedGetResponse:
+                    case PageModelBase genericPagedGetResponse:
                         {
                             (long total, long count) counts = ComputeCountsFromPage(genericPagedGetResponse);
                             count = counts.count;
                             totalCount = counts.total;
                         }
                         break;
-
                     case IEnumerable collection:
                         {
                             (long total, long count) counts = ComputeCountsFromEnumerable(collection);

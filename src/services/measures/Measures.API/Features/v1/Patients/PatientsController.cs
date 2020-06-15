@@ -9,6 +9,7 @@ using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
+
 using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -16,22 +17,31 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
+using MedEasy.Models;
 using MedEasy.RestObjects;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.AspNetCore.Http.StatusCodes;
 
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+using static Microsoft.AspNetCore.Http.StatusCodes;
+using static Forms.LinkRelation;
+using System.ComponentModel.DataAnnotations;
+using Measures.Models.v1;
+using Measures.Objects;
+using MedEasy.Core.Results;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Measures.API.Features.v1.Patients
 {
@@ -97,9 +107,8 @@ namespace Measures.API.Features.v1.Patients
         [HttpGet]
         [HttpHead]
         [HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status206PartialContent)]
-        public async Task<IActionResult> Get([FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<PatientInfo>>), Status200OK)]
+        public async Task<GenericPageModel<Browsable<PatientInfo>>> Get([FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
             pagination.PageSize = Math.Min(pagination.PageSize, _apiOptions.Value.MaxPageSize);
             Page<PatientInfo> result = await _mediator.Send(new GetPageOfPatientInfoQuery(pagination), cancellationToken)
@@ -135,15 +144,24 @@ namespace Measures.API.Features.v1.Patients
                     }
                 });
 
-            GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
-                resources,
-                firstPageUrl,
-                previousPageUrl,
-                nextPageUrl,
-                lastPageUrl,
-                result.Total);
+            GenericPageModel<Browsable<PatientInfo>> response = new GenericPageModel<Browsable<PatientInfo>>
+            {
+                Items = resources,
+                Links = new PageLinksModel
+                {
+                    First = new Link { Href = firstPageUrl, Relation = First },
+                    Previous = previousPageUrl is null
+                        ? null
+                        : new Link { Href = previousPageUrl, Relation = Previous },
+                    Next = nextPageUrl is null
+                        ? null
+                        : new Link { Href = nextPageUrl, Relation = Next },
+                    Last = new Link { Href = lastPageUrl, Relation = Last },
+                },
+                Total = result.Total
+            };
 
-            return new OkObjectResult(response);
+            return response;
         }
 
         /// <summary>
@@ -157,17 +175,17 @@ namespace Measures.API.Features.v1.Patients
         [HttpHead("{id}")]
         [HttpOptions("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
-        public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status200OK)]
+        public async Task<ActionResult<Browsable<PatientInfo>>> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
         {
             Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
                 .ConfigureAwait(false);
 
-            return result.Match<IActionResult>(
+            return result.Match<ActionResult<Browsable<PatientInfo>>>(
                 some: resource =>
                 {
                     string version = _apiVersion.ToString();
-                    Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
+                    return new Browsable<PatientInfo>
                     {
                         Resource = resource,
                         Links = new[]
@@ -199,7 +217,6 @@ namespace Measures.API.Features.v1.Patients
                             }
                         }
                     };
-                    return new OkObjectResult(browsableResource);
                 },
                 none: () => new NotFoundResult()
             );
@@ -239,9 +256,9 @@ namespace Measures.API.Features.v1.Patients
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [HttpOptions("[action]")]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<PatientInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Name))
@@ -265,64 +282,85 @@ namespace Measures.API.Features.v1.Patients
 
             if (searchQuery.Page <= page.Count)
             {
-                GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
-                        items: page.Entries.Select(x => new Browsable<PatientInfo>
-                        {
-                            Resource = x,
-                            Links = new[] {
+                GenericPageModel<Browsable<PatientInfo>> response = new GenericPageModel<Browsable<PatientInfo>>
+                {
+                    Items = page.Entries.Select(x => new Browsable<PatientInfo>
+                    {
+                        Resource = x,
+                        Links = new[] {
                             new Link
                             {
                                 Method = "GET",
-                                Relation = LinkRelation.Self,
+                                Relation = Self,
                                 Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id })
                             }
+                        }
+                    }),
+                    Links = new PageLinksModel
+                    {
+                        First = new Link
+                        {
+                            Relation = First,
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            {
+                                controller = EndpointName,
+                                search.Name,
+                                search.BirthDate,
+                                search.Sort,
+                                page = 1,
+                                search.PageSize,
+                                version
+                            })
+                        },
+                        Previous = search.Page > 1
+                            ? new Link
+                            {
+                                Relation = Previous,
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                                {
+                                    controller = EndpointName,
+                                    search.Name,
+                                    search.BirthDate,
+                                    search.Sort,
+                                    page = search.Page - 1,
+                                    search.PageSize,
+                                    version
+                                })
                             }
-                        }),
-                        first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            : null,
+                        Next = page.Count > search.Page
+                            ? new Link
+                            {
+                                Relation = Next,
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                                {
+                                    controller = EndpointName,
+                                    search.Name,
+                                    search.BirthDate,
+                                    search.Sort,
+                                    page = search.Page + 1,
+                                    search.PageSize,
+                                    version
+                                })
+                            }
+                            : null,
+                        Last = new Link
                         {
-                            controller = EndpointName,
-                            search.Name,
-                            search.BirthDate,
-                            search.Sort,
-                            page = 1,
-                            search.PageSize,
-                            version
-                        }),
-                        previous: search.Page > 1
-                            ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            Relation = Last,
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = EndpointName,
                                 search.Name,
                                 search.BirthDate,
                                 search.Sort,
-                                page = search.Page - 1,
+                                page = Math.Max(page.Count, 1),
                                 search.PageSize,
                                 version
                             })
-                            : null,
-                        next: page.Count > search.Page
-                            ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
-                            {
-                                controller = EndpointName,
-                                search.Name,
-                                search.BirthDate,
-                                search.Sort,
-                                page = search.Page + 1,
-                                search.PageSize,
-                                version
-                            })
-                            : null,
-                        last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
-                        {
-                            controller = EndpointName,
-                            search.Name,
-                            search.BirthDate,
-                            search.Sort,
-                            page = Math.Max(page.Count, 1),
-                            search.PageSize,
-                            version
-                        }),
-                        total: page.Total);
+                        }
+                    },
+                    Total = page.Total
+                };
                 actionResult = new OkObjectResult(response);
             }
             else
@@ -366,7 +404,7 @@ namespace Measures.API.Features.v1.Patients
         /// <returns></returns>
         [HttpGet("{id}/bloodpressures")]
         [HttpHead("{id}/bloodpressures")]
-        public async Task<IActionResult> GetBloodPressures([RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
+        public async Task<IActionResult> GetBloodPressures([RequireNonDefault] Guid id, [FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken ct = default)
         {
             GetPatientInfoByIdQuery query = new GetPatientInfoByIdQuery(id);
             Option<PatientInfo> result = await _mediator.Send(query, ct)
@@ -402,7 +440,7 @@ namespace Measures.API.Features.v1.Patients
         [HttpPost("{id}/bloodpressures")]
         [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status201Created)]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody] NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
         {
             CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
             {
@@ -469,7 +507,7 @@ namespace Measures.API.Features.v1.Patients
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
             CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(newPatient);
@@ -498,7 +536,7 @@ namespace Measures.API.Features.v1.Patients
                 }
             };
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, resource.Id, version }, browsableResource);
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id, version }, browsableResource);
         }
 
         /// <summary>
@@ -513,7 +551,9 @@ namespace Measures.API.Features.v1.Patients
         /// <reponse code="400"><paramref name="id"/> or <paramref name="changes"/> are not valid</reponse>
         [HttpPatch("{id}")]
         [ProducesResponseType(Status204NoContent)]
-        public async Task<IActionResult> Patch([RequireNonDefault]Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken ct = default)
+        [ProducesResponseType(Status400BadRequest)]
+        [ProducesResponseType(Status404NotFound)]
+        public async Task<IActionResult> Patch([RequireNonDefault] Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken ct = default)
         {
             PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
             {
@@ -533,6 +573,165 @@ namespace Measures.API.Features.v1.Patients
                 ModifyCommandResult.Failed_Conflict => new ConflictResult(),
                 _ => throw new ArgumentOutOfRangeException(nameof(result), $"Unsupported {result} when patching a patient resource")
             };
+        }
+
+        /// <summary>
+        /// Gets all measures fot the patient with the specified id
+        /// </summary>
+        /// <param name="id">id of the patient resource</param>
+        /// <param name="measure">name of the measure to retrieve</param>
+        /// <param name="page">1-based index of the page of result</param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpGet("{id}/{measure}")]
+        [HttpHead("{id}/{measure}")]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<GenericMeasureModel>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<GenericMeasureModel>>), Status206PartialContent)]
+        public async Task<ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>>> GetMeasures([RequireNonDefault] Guid id,
+                                                                                                      [RequireNonDefault] string measure,
+                                                                                                      [Minimum(1)] int page,
+                                                                                                      [Minimum(1)] int pageSize,
+                                                                                                      CancellationToken ct = default)
+        {
+            MeasuresApiOptions options = _apiOptions.Value;
+            PaginationConfiguration pagination = new PaginationConfiguration
+            {
+                Page = page,
+                PageSize = Math.Min(pageSize, options.MaxPageSize)
+            };
+            GetPageOfMeasuresInfoByPatientIdQuery request = new GetPageOfMeasuresInfoByPatientIdQuery((id, measure, pagination));
+            Option<Page<GenericMeasureInfo>> maybeResult = await _mediator.Send(request, ct)
+                                                                     .ConfigureAwait(false);
+
+            return maybeResult.Match(
+                some: page =>
+               {
+                   string version = _apiVersion.ToString();
+                   GenericPageModel<Browsable<GenericMeasureModel>> response = new GenericPageModel<Browsable<GenericMeasureModel>>
+                   {
+                       Items = page.Entries.Select(m => new Browsable<GenericMeasureModel>
+                       {
+                           Resource = new GenericMeasureModel
+                           {
+                               Id = m.Id
+                           },
+                           Links = new[] {
+                               new Link
+                               {
+                                   Relation = Self,
+                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, new { controller = EndpointName, patientId = m.PatientId, measure, measureId = m.Id, version })
+                               },
+                               new Link
+                               {
+                                   Relation = "patient",
+                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = m.PatientId, version })
+                               }
+                           }
+                       }),
+                       Links = new PageLinksModel
+                       {
+                           First = new Link
+                           {
+                               Relation = First,
+                               Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, measure, page = 1, pagination.PageSize, version })
+                           },
+                           Previous = page.Count > 1 && pagination.Page > 1
+                                ? new Link
+                                {
+                                    Relation = Previous,
+                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, measure, page = pagination.Page - 1, pagination.PageSize, version })
+                                }
+                                : null,
+                           Last = new Link
+                           {
+                               Relation = Last,
+                               Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, new { controller = EndpointName, id, measure, page = page.Total, pagination.PageSize, version })
+                           }
+                       },
+                       Total = page.Total
+                   };
+
+                   return page.Count > 1
+                       ? new PartialObjectResult(response)
+                       : (ActionResult<GenericPageModel<Browsable<GenericMeasureModel>>>)response;
+               },
+                none: () => new NotFoundResult());
+        }
+
+        /// <summary>
+        /// Gets one measuremeant by its id.
+        /// </summary>
+        /// <param name="id">id of the patient</param>
+        /// <param name="measure">name of the type of measurement to look for</param>
+        /// <param name="measureId">id of the measure</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <response code="200">Hurray ! You found it</response>
+        /// <response code="404">The think you're looking for is not here.</response>
+        [HttpGet("{id}/{measure}/{measureId}")]
+        [HttpHead("{id}/{measure}/{measureId}")]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(typeof(Browsable<GenericMeasureModel>), Status200OK)]
+        public async Task<ActionResult<Browsable<GenericMeasureModel>>> GetOneMeasurementByPatientId([RequireNonDefault] Guid id,
+                                                                                              [RequireNonDefault] string measure,
+                                                                                              [RequireNonDefault] Guid measureId,
+                                                                                              CancellationToken ct = default)
+        {
+            Option<GenericMeasureInfo> maybeMeasure = await _mediator.Send(new GetOneMeasureInfoByPatientIdQuery((id, measure, measureId)), ct)
+                                                                     .ConfigureAwait(false);
+
+            return maybeMeasure.Match<ActionResult<Browsable<GenericMeasureModel>>>(
+                some: m =>
+                {
+                    string version = _apiVersion.ToString();
+                    return new Browsable<GenericMeasureModel>
+                    {
+                        Resource = new GenericMeasureModel
+                        {
+                            Id = m.Id,
+                            DateOfMeasure = m.DateOfMeasure,
+                            PatientId = m.PatientId,
+                            Values = m.Data
+                        },
+                        Links = new[]
+                        {
+                            new Link
+                            {
+                                Relation = Self,
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi,
+                                                                new { controller = EndpointName, id = m.PatientId, measureId = m.Id, measure, version })
+                            },
+                            new Link
+                            {
+                                Relation = "patient",
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
+                                                                new { controller = EndpointName, id = m.PatientId, version })
+                            }
+                        }
+                    };
+                },
+                none: () => new NotFoundResult());
+        }
+
+        /// <summary>
+        /// Deletes the measurement with the specified <paramref name="measureId"/>
+        /// </summary>
+        /// <param name="id">id of the patient</param>
+        /// <param name="measure">name of the measure</param>
+        /// <param name="measureId">id of the measure</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}/{measure}/{measureId}")]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(Status204NoContent)]
+        public Task<ActionResult> DeleteOneMeasurementByPatientId([RequireNonDefault] Guid id,
+                                                                  [RequireNonDefault] string measure,
+                                                                  [RequireNonDefault] Guid measureId,
+                                                                  CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
         }
     }
 }

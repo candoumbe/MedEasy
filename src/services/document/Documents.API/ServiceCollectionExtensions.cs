@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
@@ -87,8 +88,7 @@ namespace Documents.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            })
-            .AddXmlSerializerFormatters();
+            });
 
             services.AddCors(options =>
             {
@@ -115,13 +115,6 @@ namespace Documents.API
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = configuration.GetValue("HttpsPort", 52800);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
-            });
-
-            //services.AddSt
 
             return services;
         }

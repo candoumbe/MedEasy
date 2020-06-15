@@ -82,8 +82,7 @@ namespace Patients.API
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                })
-                .AddXmlSerializerFormatters();
+                });
 
                 services.AddCors(options =>
                 {

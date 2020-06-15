@@ -241,7 +241,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.CQRS.UnitTests", "
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{B61F4697-36E0-48F9-9B59-A126A68D9315}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{38276876-BBD3-43AB-83E5-9C363AC5B7AC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Models", "src\services\measures\Measures.Models\Measures.Models.csproj", "{07C1101B-73AE-430D-8226-0887C08F1AF0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{01C65BB8-0694-4C85-AB85-684A477D2B0F}"
+	ProjectSection(SolutionItems) = preProject
+		src\services\nginx\Dockerfile = src\services\nginx\Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1711,6 +1720,22 @@ Global
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x64.Build.0 = Release|Any CPU
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x86.ActiveCfg = Release|Any CPU
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x86.Build.0 = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x64.Build.0 = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x86.Build.0 = Debug|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|ARM.Build.0 = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x64.ActiveCfg = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x64.Build.0 = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x86.ActiveCfg = Release|Any CPU
+		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1826,6 +1851,8 @@ Global
 		{C137713D-5559-4C98-A83E-862B055F0218} = {2BC06604-C732-47B7-8413-12C928386384}
 		{E913774F-C34A-4051-B83A-E7D98B53C2DC} = {0FBBE9AC-2864-45B6-A2A6-CD50EE8CD0DC}
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
+		{07C1101B-73AE-430D-8226-0887C08F1AF0} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
+		{01C65BB8-0694-4C85-AB85-684A477D2B0F} = {B560E34E-6829-4D71-AD6D-05B158B99E89}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}
