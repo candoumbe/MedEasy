@@ -10,10 +10,7 @@ using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
-using Measures.Models.v1;
-
 using MedEasy.Attributes;
-using MedEasy.Core.Results;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;

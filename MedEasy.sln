@@ -249,13 +249,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{01C65BB8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7894292A-69C2-4F74-AA58-873226A32D1B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{66FA15A3-3266-40CE-AFA0-07497DA77A40}"
-	ProjectSection(SolutionItems) = preProject
-		src\services\nginx\Dockerfile = src\services\nginx\Dockerfile
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1708,24 +1701,7 @@ Global
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x64.Build.0 = Release|Any CPU
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x86.ActiveCfg = Release|Any CPU
 		{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}.Release|x86.Build.0 = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|ARM.Build.0 = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x64.Build.0 = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Debug|x86.Build.0 = Debug|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|ARM.ActiveCfg = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|ARM.Build.0 = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x64.ActiveCfg = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x64.Build.0 = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x86.ActiveCfg = Release|Any CPU
-		{07C1101B-73AE-430D-8226-0887C08F1AF0}.Release|x86.Build.0 = Release|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|ARM.ActiveCfg = Debug|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|ARM.Build.0 = Debug|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1733,7 +1709,6 @@ Global
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Debug|x86.Build.0 = Debug|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Release|ARM.ActiveCfg = Release|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Release|ARM.Build.0 = Release|Any CPU
 		{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}.Release|x64.ActiveCfg = Release|Any CPU
