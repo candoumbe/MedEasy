@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\MedEasy.Models\MedEasy.Models.csproj" />
     <ProjectReference Include="..\Documents.DataStore\Documents.DataStore.csproj" />
     <ProjectReference Include="..\Documents.DTO\Documents.DTO.csproj" />
     <ProjectReference Include="..\Documents.CQRS\Documents.CQRS.csproj" />

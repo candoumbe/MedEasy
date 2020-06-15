@@ -21,6 +21,7 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using MediatR;
@@ -231,12 +232,12 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAccountsQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
-            GenericPagedGetResponse<Browsable<AccountInfo>> response = actionResult.Should()
+            GenericPageModel<Browsable<AccountInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                         .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<Browsable<AccountInfo>>>().Which;
+                        .BeAssignableTo<GenericPageModel<Browsable<AccountInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -245,7 +246,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 .NotContain(x => x.Links == null);
 
             response.Total.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<AccountInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<AccountInfo>>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPageModel<Browsable<AccountInfo>>)}.{nameof(GenericPageModel<Browsable<AccountInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageLinksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageLinksExpectation.previousPageUrlExpectation);
@@ -710,20 +711,20 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.AtLeastOnce, $"because {nameof(AccountsController)}.{nameof(AccountsController.Search)} must always check that " +
                 $"{nameof(SearchAccountInfo.PageSize)} don't exceed {nameof(IdentityApiOptions.MaxPageSize)} value");
 
-            GenericPagedGetResponse<Browsable<SearchAccountInfoResult>> response = actionResult.Should()
+            GenericPageModel<Browsable<SearchAccountInfoResult>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>>().Which;
+                    .BeAssignableTo<GenericPageModel<Browsable<SearchAccountInfoResult>>>().Which;
 
             response.Items.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .NotContain(x => x.Resource == null).And
-                .NotContain(x => x.Links == null).And
-                .NotContain(x => !x.Links.Any()).And
-                .Match(pageExpectation.items);
+                          .NotBeNull().And
+                          .NotContainNulls().And
+                          .NotContain(x => x.Resource == null).And
+                          .NotContain(x => x.Links == null).And
+                          .NotContain(x => !x.Links.Any()).And
+                          .Match(pageExpectation.items);
 
             if (response.Items.Any())
             {
@@ -732,7 +733,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             }
 
             response.Total.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>)}.{nameof(GenericPagedGetResponse<Browsable<SearchAccountInfoResult>>.Total)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPageModel<Browsable<SearchAccountInfoResult>>)}.{nameof(GenericPageModel<Browsable<SearchAccountInfoResult>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

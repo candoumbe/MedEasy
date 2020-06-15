@@ -42,14 +42,14 @@ namespace Measures.Objects
         /// <param name="min">minimun value of the field.</param>
         /// <param name="max">maximum value of the field.</param>
         /// <exception cref="ArgumentNullException">if <paramref name="name"/> is <c>null</c>.</exception>
-        public void AddFloatField(string name, string description = null, float? min = null, float? max = null)
+        public void AddFloatField(string name, string description = null, float? min = null, float? max = null, bool? required = false)
         {
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            AddField(new FormField { Name = name, Min = min, Max = max, Description = description, Type = FormFieldType.Decimal });
+            AddField(new FormField { Name = name, Min = min, Max = max, Description = description, Type = FormFieldType.Decimal, Required = required });
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Measures.Objects
 
         private void AddField(FormField field)
         {
-            field.Name = field?.Name?.Slugify();
+            field.Name = field.Name.Slugify();
 
             if (_fields.AtLeastOnce(f => f.Name == field.Name))
             {
@@ -79,6 +79,19 @@ namespace Measures.Objects
             }
 
             _fields.Add(field);
+        }
+
+        /// <summary>
+        /// Adds a text field to the current <see cref="MeasureForm"/>
+        /// </summary>
+        /// <param name="name">Name of the field</param>
+        /// <param name="description">Description of the field</param>
+        /// <param name="required"></param>
+        /// <exception cref="InvalidOperationException">a field with the same <paramref name="name"/> already exists.</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="name"/> is <c>null</c>.</exception>
+        public void AddTextField(string name, string description = null, bool? required = null)
+        {
+            AddField(new FormField { Type = FormFieldType.String, Name = name, Description = description, Required = required });
         }
     }
 }

@@ -27,6 +27,7 @@ using static System.Net.Http.HttpMethod;
 using System.Text;
 using System.Net.Mime;
 using Forms;
+using MedEasy.Models;
 
 namespace Patients.API.IntegrationTests
 {
@@ -75,9 +76,9 @@ namespace Patients.API.IntegrationTests
             Type = JSchemaType.Object,
             Properties =
                 {
-                    [nameof(GenericPagedGetResponse<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
-                    [nameof(GenericPagedGetResponse<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
-                    [nameof(GenericPagedGetResponse<object>.Links).ToLower()] = new JSchema
+                    [nameof(GenericPageModel<object>.Items).ToLower()] = new JSchema { Type = JSchemaType.Array},
+                    [nameof(GenericPageModel<object>.Total).ToLower()] = new JSchema { Type = JSchemaType.Number, Minimum = 0 },
+                    [nameof(GenericPageModel<object>.Links).ToLower()] = new JSchema
                     {
                         Type = JSchemaType.Object,
                         Properties =
@@ -96,9 +97,9 @@ namespace Patients.API.IntegrationTests
                 },
             Required =
                 {
-                    nameof(GenericPagedGetResponse<object>.Items).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Links).ToLower(),
-                    nameof(GenericPagedGetResponse<object>.Total).ToLower()
+                    nameof(GenericPageModel<object>.Items).ToLower(),
+                    nameof(GenericPageModel<object>.Links).ToLower(),
+                    nameof(GenericPageModel<object>.Total).ToLower()
                 }
 
         };

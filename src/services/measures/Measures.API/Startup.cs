@@ -71,8 +71,7 @@ namespace Measures.API
             {
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
-
+            
             applicationLifetime.ApplicationStopping.Register(() =>
             {
                 if (env.IsEnvironment("IntegrationTest"))

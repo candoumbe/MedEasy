@@ -1,13 +1,10 @@
-﻿using Bogus.DataSets;
-
+﻿
 using FluentAssertions;
 
 using Forms;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Xunit;
 using Xunit.Categories;
@@ -30,7 +27,7 @@ namespace Measures.Objects.UnitTests
         }
 
         [Fact]
-        public void AddFloatField_throws_InvalidOperationException_when_fieldname_is_null()
+        public void AddFloatField_throws_ArgumentNullException_when_fieldname_is_null()
         {
             // Arrange
             MeasureForm mf = new MeasureForm(Guid.NewGuid(), "heart-beat");
@@ -85,6 +82,62 @@ namespace Measures.Objects.UnitTests
         }
 
         [Fact]
+        public void AddTextField_throws_ArgumentNullException_when_fieldname_is_null()
+        {
+            // Arrange
+            MeasureForm mf = new MeasureForm(Guid.NewGuid(), "heart-beat");
+
+            // Act
+            Action addField = () => mf.AddTextField(name: null);
+
+            // Assert
+            addField.Should()
+                    .ThrowExactly<ArgumentNullException>("name of the field cannot be null");
+        }
+
+
+        [Fact]
+        public void AddTextField_adds_field_to_the_form()
+        {
+            // Arrange
+            MeasureForm mf = new MeasureForm(Guid.NewGuid(), "a-measure");
+
+            // Act
+            mf.AddTextField("description", "Additional comments");
+
+            // Assert
+            mf.Fields.Should()
+                     .HaveCount(1);
+
+            FormField field = mf.Fields.Single();
+            field.Name.Should()
+                      .Be("description", "The name of the for");
+            field.Type.Should()
+                      .Be(FormFieldType.String);
+            field.Min.Should()
+                     .BeNull();
+            field.Max.Should()
+                     .BeNull();
+            field.Description.Should()
+                             .Be("Additional comments");
+        }
+
+        [Fact]
+        public void AddTextField_throws_InvalidOperationException_when_field_with_the_same_name_already_exists()
+        {
+            // Arrange
+            MeasureForm mf = new MeasureForm(Guid.NewGuid(), "heart-beat");
+            mf.AddTextField(name: "value");
+
+            // Act
+            Action addField = () => mf.AddTextField(name: "value");
+
+            // Assert
+            addField.Should()
+                    .ThrowExactly<InvalidOperationException>("a field with the same name already exists");
+        }
+
+        [Fact]
         public void RemoveField_throws_ArgumentNullException_when_name_is_null()
         {
             // Arrange
@@ -97,7 +150,6 @@ namespace Measures.Objects.UnitTests
             removeField.Should()
                        .ThrowExactly<ArgumentNullException>("The name of the field to delete cannot be null");
         }
-
 
         [Fact]
         public void RemoveField_removes_the_specified_field()

@@ -46,7 +46,6 @@ namespace Documents.API
             {
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
 
             if (env.IsProduction() || env.IsStaging())
             {

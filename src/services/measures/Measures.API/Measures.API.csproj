@@ -12,7 +12,6 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.6.1" />
-    <PackageReference Include="Utilities" Version="1.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,12 +25,18 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\..\identity\Identity.DTO\Identity.DTO.csproj" />
     <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
+    <ProjectReference Include="..\..\MedEasy.Models\MedEasy.Models.csproj" />
     <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\Measures.DTO\Measures.DTO.csproj" />
     <ProjectReference Include="..\Measures.Mapping\Measures.Mapping.csproj" />
+    <ProjectReference Include="..\Measures.Models\Measures.Models.csproj" />
     <ProjectReference Include="..\Measures.Objects\Measures.Objects.csproj" />
     <ProjectReference Include="..\Measures.Validators\Measures.Validators.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\v1\Forms\" />
   </ItemGroup>
 
 

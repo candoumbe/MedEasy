@@ -45,7 +45,6 @@ namespace Identity.API
             {
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
 
             if (env.IsProduction() || env.IsStaging())
             {
@@ -75,12 +74,12 @@ namespace Identity.API
 
             app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute(RouteNames.Default, "v{version:apiVersion}/{controller=root}/{action=index}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "v{version:apiVersion}/{controller}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "v{version:apiVersion}/{controller}/search/");
+                routeBuilder.MapControllerRoute(RouteNames.Default,                                                     "v{version:apiVersion}/{controller=root}/{action=index}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi,                                        "v{version:apiVersion}/{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi,                                            "v{version:apiVersion}/{controller}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi,    "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi,                    "v{version:apiVersion}/{controller}/{id}/{action}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi,                                   "v{version:apiVersion}/{controller}/search/");
             });
         }
     }

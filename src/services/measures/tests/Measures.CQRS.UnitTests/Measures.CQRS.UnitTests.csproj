@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Queries\Patients\" />
+    <Folder Include="Handlers\GenericMeasures\" />
   </ItemGroup>
 
 </Project>

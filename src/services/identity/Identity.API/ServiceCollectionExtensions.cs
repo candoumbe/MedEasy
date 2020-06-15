@@ -104,8 +104,7 @@ namespace Identity.API
                 options.SerializerSettings.ContractResolver = jsonSerializerSettings.ContractResolver;
 
                 options.AllowInputFormatterExceptionMessages = env.IsDevelopment();
-            })
-            .AddXmlSerializerFormatters();
+            });
 
             services.AddCors(options =>
             {
@@ -132,12 +131,7 @@ namespace Identity.API
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 51800);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
-            });
-
+            
             return services;
         }
 

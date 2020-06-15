@@ -45,6 +45,7 @@ using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static Forms.LinkRelation;
 using Forms;
+using MedEasy.Models;
 
 namespace Measures.API.Tests.Features.v1.BloodPressures
 {
@@ -242,7 +243,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             // Act
             IActionResult actionResult = await _controller.Get(page: page, pageSize : pageSize)
-                .ConfigureAwait(false);
+                                                          .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
@@ -250,12 +251,12 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfBloodPressureInfoQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
-            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = actionResult.Should()
+            GenericPageModel<Browsable<BloodPressureInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                         .Value.Should()
                         .NotBeNull().And
-                        .BeAssignableTo<GenericPagedGetResponse<Browsable<BloodPressureInfo>>>().Which;
+                        .BeAssignableTo<GenericPageModel<Browsable<BloodPressureInfo>>>().Which;
 
             response.Items.Should()
                     .NotBeNull().And
@@ -264,7 +265,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     .NotContain(x => x.Links == null);
 
             response.Total.Should()
-                    .Be(expectedCount, $@"because the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"because the ""{nameof(GenericPageModel<Browsable<BloodPressureInfo>>)}.{nameof(GenericPageModel<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageLinksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageLinksExpectation.previousPageUrlExpectation);
@@ -435,12 +436,12 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.AtLeastOnce, $"because {nameof(BloodPressuresController)}.{nameof(BloodPressuresController.Search)} must always check that {nameof(SearchBloodPressureInfo.PageSize)} don't exceed {nameof(MeasuresApiOptions.MaxPageSize)} value");
 
-            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = actionResult.Should()
+            GenericPageModel<Browsable<BloodPressureInfo>> response = actionResult.Should()
                     .NotBeNull().And
                     .BeOfType<OkObjectResult>().Which
                     .Value.Should()
                     .NotBeNull().And
-                    .BeAssignableTo<GenericPagedGetResponse<Browsable<BloodPressureInfo>>>().Which;
+                    .BeAssignableTo<GenericPageModel<Browsable<BloodPressureInfo>>>().Which;
 
             response.Items.Should()
                 .NotBeNull().And
@@ -457,7 +458,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             }
 
             response.Total.Should()
-                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>)}.{nameof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
+                    .Be(pageExpectation.count, $@"the ""{nameof(GenericPageModel<Browsable<BloodPressureInfo>>)}.{nameof(GenericPageModel<Browsable<BloodPressureInfo>>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(pageExpectation.links.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);

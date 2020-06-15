@@ -97,26 +97,25 @@ namespace Measures.CQRS.UnitTests.Handlers
             Guid patientId = Guid.NewGuid();
             Patient patient = new Patient(patientId, "John Doe");
 
-            Guid formId = Guid.NewGuid();
+            MeasureForm bloodPressureForm = new MeasureForm(Guid.NewGuid(), "blood pressure");
+            bloodPressureForm.AddFloatField("systolic", min: 0, max: 30);
+            bloodPressureForm.AddFloatField("diastolic", min: 0, max: 30);
+
             CreateGenericMeasureInfo createGenericMeasureInfo = new CreateGenericMeasureInfo
             {
                 PatientId = patient.Id,
                 DateOfMeasure = 12.May(2017).Add(13.Hours()),
-                FormId = formId,
-                Data = new Dictionary<string, object>
+                FormId = bloodPressureForm.Id,
+                Values = new Dictionary<string, object>
                 {
                     ["systolic"] = 10f,
                     ["diastolic"] = 30f
                 }
             };
 
-            MeasureForm form = new MeasureForm(formId, "blood pressure");
-            form.AddFloatField("systolic", min: 0, max: 30);
-            form.AddFloatField("diastolic", min: 0, max: 30);
-
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<MeasureForm>().Create(form);
+                uow.Repository<MeasureForm>().Create(bloodPressureForm);
                 uow.Repository<Patient>().Create(patient);
 
                 await uow.SaveChangesAsync()
@@ -146,12 +145,11 @@ namespace Measures.CQRS.UnitTests.Handlers
                     measure.DateOfMeasure.Should()
                                          .Be(createGenericMeasureInfo.DateOfMeasure);
                     measure.FormId.Should()
-                                  .Be(formId);
-                    JsonElement root = measure.Data.RootElement;
-                    root.GetProperty("systolic").GetDecimal().Should()
-                                                             .Be(10);
-                    root.GetProperty("diastolic").GetDecimal().Should()
-                                                              .Be(20);
+                                  .Be(bloodPressureForm.Id);
+                    measure.Data.Should()
+                                .HaveCount(2).And
+                                .Contain("systolic", 10f).And
+                                .Contain("diastolic", 30f);
 
                     patient.Measures.Should()
                            .Contain(m => m.Id == measure.Id);

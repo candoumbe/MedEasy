@@ -25,6 +25,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Identity.API.Fixtures.v2;
+using MedEasy.Models;
 
 namespace Documents.API.IntegrationTests.Features.v1
 {
@@ -183,7 +184,7 @@ namespace Documents.API.IntegrationTests.Features.v1
                                                         .ConfigureAwait(false);
 
             JToken jsonToken = JToken.Parse(jsonResponse);
-            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
+            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(GenericPageModel<Browsable<AccountInfo>>));
             jsonToken.IsValid(responseSchema);
         }
 

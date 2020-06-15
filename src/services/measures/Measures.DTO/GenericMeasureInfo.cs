@@ -12,6 +12,6 @@ namespace Measures.DTO
     {
         public Guid FormId { get; set; }
 
-        public JsonDocument Data { get; set; }
+        public IDictionary<string, object> Data { get; set; }
     }
 }

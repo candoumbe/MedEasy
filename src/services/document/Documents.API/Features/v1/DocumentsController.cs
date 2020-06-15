@@ -29,6 +29,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Forms.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using MedEasy.Models;
 
 namespace Documents.API.Features.v1
 {
@@ -82,7 +83,7 @@ namespace Documents.API.Features.v1
         /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<DocumentInfo>>), Status200OK)]
+        [ProducesResponseType(typeof(GenericPageModel<Browsable<DocumentInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration paginationConfiguration, CancellationToken ct = default)
         {
@@ -95,8 +96,9 @@ namespace Documents.API.Features.v1
                 .ConfigureAwait(false);
 
             string version = _apiVersion.ToString();
-            GenericPagedGetResponse<Browsable<DocumentInfo>> result = new GenericPagedGetResponse<Browsable<DocumentInfo>>(
-                page.Entries.Select(resource => new Browsable<DocumentInfo>
+            GenericPageModel<Browsable<DocumentInfo>> result = new GenericPageModel<Browsable<DocumentInfo>>
+            {
+                Items = page.Entries.Select(resource => new Browsable<DocumentInfo>
                 {
                     Resource = resource,
                     Links = new[]
@@ -110,17 +112,35 @@ namespace Documents.API.Features.v1
                         }
                     }
                 }),
-
-                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize, version }),
-                previous: paginationConfiguration.Page > 1 && page.Count > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize, version })
+                Links = new PageLinksModel
+                {
+                    First = new Link
+                    {
+                        Relation = First,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, paginationConfiguration.PageSize, version })
+                    },
+                    Previous = paginationConfiguration.Page > 1 && page.Count > 1
+                    ? new Link
+                    {
+                        Relation = Previous,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize, version })
+                    }
                     : null,
-                next: paginationConfiguration.Page < page.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize, version })
+                    Next = paginationConfiguration.Page < page.Count
+                    ? new Link
+                    {
+                        Relation = Next,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize, version })
+                    }
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize, version }),
-                total: page.Total
-            );
+                    Last = new Link
+                    {
+                        Relation = Last,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize, version })
+                    }
+                },
+                Total = page.Total
+            };
 
             return new OkObjectResult(result);
         }
@@ -348,9 +368,10 @@ namespace Documents.API.Features.v1
 
             bool hasNextPage = search.Page < searchResult.Count;
             string version = _apiVersion.ToString();
-            return new OkObjectResult(new GenericPagedGetResponse<Browsable<DocumentInfo>>(
+            return new OkObjectResult(new GenericPageModel<Browsable<DocumentInfo>>
+            {
 
-                items: searchResult.Entries.Select(x =>
+                Items = searchResult.Entries.Select(x =>
                 {
                     return new Browsable<DocumentInfo>
                     {
@@ -361,13 +382,35 @@ namespace Documents.API.Features.v1
                         }
                     };
                 }),
-                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName, version }),
-                next: hasNextPage
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
+                Links = new PageLinksModel
+                {
+                    First = new Link
+                    {
+                        Relation = First,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName, version })
+                    },
+                    Next = hasNextPage
+                        ? new Link
+                        {
+                            Relation = Next,
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
+                        }
+                        : null,
+                    Previous = searchResult.Count > 1 && search.Page > 1
+                        ? new Link
+                        {
+                            Relation = Previous,
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page - 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
+                        }
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version }),
-                total: searchResult.Total
-            ));
+                    Last = new Link
+                    {
+                        Relation = Last,
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
+                    }
+                },
+                Total = searchResult.Total
+            });
         }
     }
 }

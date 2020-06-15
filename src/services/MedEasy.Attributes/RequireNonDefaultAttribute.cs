@@ -19,7 +19,7 @@ namespace MedEasy.Attributes
         /// <summary>
         /// List of all types that can be directly converted to their string representation
         /// </summary>
-        private static Type[] _primitiveTypes =
+        private readonly static Type[] _primitiveTypes =
         {
             typeof(string),
 
@@ -34,14 +34,16 @@ namespace MedEasy.Attributes
             typeof(Guid), typeof(Guid?),
             typeof(bool), typeof(bool?)
         };
+
+        /// <inheritdoc/>
         public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must have a non default value";
 
+        /// <inheritdoc/>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             ValidationResult validationResult = ValidationResult.Success;
-            //try
-            //{
-            if (value == null)
+
+            if (value is null)
             {
                 validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));
             }
@@ -56,13 +58,14 @@ namespace MedEasy.Attributes
                         validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));
                     }
                 }
-                else if (typeInfo.DeclaredConstructors.Once(x => !x.GetParameters().Any()))
+                else if (typeInfo.DeclaredConstructors.Once(x => x.GetParameters().Length == 0))
                 {
                     IEnumerable<PropertyInfo> pis = type.GetRuntimeProperties()
                         .Where(pi => pi.CanRead);
 
                     bool foundPropertyWithNonDefaultValue = false;
                     IEnumerator<PropertyInfo> enumerator = pis.GetEnumerator();
+
                     while (enumerator.MoveNext() && !foundPropertyWithNonDefaultValue)
                     {
                         PropertyInfo currentProp = enumerator.Current;
@@ -70,6 +73,7 @@ namespace MedEasy.Attributes
 
                         foundPropertyWithNonDefaultValue = ValidationResult.Success == IsValid(currentVal, validationContext);
                     }
+
                     if (!foundPropertyWithNonDefaultValue)
                     {
                         validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));

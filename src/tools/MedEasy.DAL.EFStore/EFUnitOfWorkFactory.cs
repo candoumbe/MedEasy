@@ -16,9 +16,8 @@ namespace MedEasy.DAL.EFStore
         /// Options used to create the unit of work instances
         /// </summary>
         public DbContextOptions<TContext> Options { get; }
+
         public Func<DbContextOptions<TContext>, TContext> ContextGenerator { get; }
-
-
 
         /// <summary>
         /// Builds a new <see cref="EFUnitOfWorkFactory"/> instance

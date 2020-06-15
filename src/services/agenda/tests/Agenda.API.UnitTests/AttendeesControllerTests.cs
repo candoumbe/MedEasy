@@ -27,6 +27,7 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
+using MedEasy.Models;
 using MedEasy.RestObjects;
 
 using MediatR;
@@ -251,14 +252,14 @@ namespace Agenda.API.UnitTests.Resources.v1
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AttendeeModel>>> actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize, ct: default)
-                                                                                                     .ConfigureAwait(false);
+            ActionResult<GenericPageModel<Browsable<AttendeeModel>>> actionResult = await _sut.Get(page: request.page, pageSize: request.pageSize, ct: default)
+                                                                                              .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Moq.Times.Once, $"{nameof(AttendeesController)}.{nameof(AttendeesController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfAttendeeInfoQuery>(), It.IsAny<CancellationToken>()), Moq.Times.Once);
 
-            GenericPagedGetResponse<Browsable<AttendeeModel>> response = actionResult.Value;
+            GenericPageModel<Browsable<AttendeeModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -274,7 +275,7 @@ namespace Agenda.API.UnitTests.Resources.v1
             }
 
             response.Total.Should()
-                          .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<AttendeeInfo>)}.{nameof(GenericPagedGetResponse<AttendeeInfo>.Total)}"" property indicates the number of elements");
+                          .Be(expectedCount, $@"the ""{nameof(GenericPageModel<AttendeeInfo>)}.{nameof(GenericPageModel<AttendeeInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
@@ -511,8 +512,8 @@ namespace Agenda.API.UnitTests.Resources.v1
                            .Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AttendeeModel>>> actionResult = await _sut.Search(request, ct: default)
-                                                                                                     .ConfigureAwait(false);
+            ActionResult<GenericPageModel<Browsable<AttendeeModel>>> actionResult = await _sut.Search(request, ct: default)
+                                                                                              .ConfigureAwait(false);
 
             // Assert
             _apiOptionsMock.VerifyGet(mock => mock.Value, Moq.Times.Once, $"{nameof(AttendeesController)}.{nameof(AttendeesController.Search)} must always check that {nameof(SearchAttendeeInfo.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
@@ -524,7 +525,7 @@ namespace Agenda.API.UnitTests.Resources.v1
             _mapperMock.Verify(mock => mock.Map<SearchAttendeeInfo>(It.IsAny<SearchAttendeeModel>()), Moq.Times.Once);
             _mapperMock.Verify(mock => mock.Map<SearchAttendeeInfo>(It.Is<SearchAttendeeModel>(input => input == request)), Moq.Times.Once);
 
-            GenericPagedGetResponse<Browsable<AttendeeModel>> response = actionResult.Value;
+            GenericPageModel<Browsable<AttendeeModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
 
@@ -540,7 +541,7 @@ namespace Agenda.API.UnitTests.Resources.v1
             }
 
             response.Total.Should()
-                    .Be(expectedCount, $@"the ""{nameof(GenericPagedGetResponse<AttendeeInfo>)}.{nameof(GenericPagedGetResponse<AttendeeInfo>.Total)}"" property indicates the number of elements");
+                    .Be(expectedCount, $@"the ""{nameof(GenericPageModel<AttendeeInfo>)}.{nameof(GenericPageModel<AttendeeInfo>.Total)}"" property indicates the number of elements");
 
             response.Links.First.Should().Match(linksExpectation.firstPageUrlExpectation);
             response.Links.Previous.Should().Match(linksExpectation.previousPageUrlExpectation);
@@ -582,8 +583,8 @@ namespace Agenda.API.UnitTests.Resources.v1
                 .Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
 
             // Act
-            ActionResult<GenericPagedGetResponse<Browsable<AttendeeModel>>> actionResult = await _sut.Search(query, default)
-                .ConfigureAwait(false);
+            ActionResult<GenericPageModel<Browsable<AttendeeModel>>> actionResult = await _sut.Search(query, default)
+                                                                                              .ConfigureAwait(false);
 
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchAttendeeInfoQuery>(), It.IsAny<CancellationToken>()), Moq.Times.Once);
             _mediatorMock.VerifyNoOtherCalls();

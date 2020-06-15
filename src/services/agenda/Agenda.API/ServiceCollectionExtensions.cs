@@ -91,8 +91,7 @@ namespace Agenda.API
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.WriteIndented = true;
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                })
-                .AddXmlSerializerFormatters();
+                });
 
             //services.Configure<ApiBehaviorOptions>(options =>
             //{
@@ -134,12 +133,7 @@ namespace Agenda.API
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 53172);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
-            });
-
+            
             return services;
         }
 
