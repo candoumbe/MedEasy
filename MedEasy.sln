@@ -251,6 +251,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{01C65BB8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{A8251F1C-A5A9-4B2C-BCC2-23A1F6D9A9C8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{38276876-BBD3-43AB-83E5-9C363AC5B7AC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Models", "src\services\measures\Measures.Models\Measures.Models.csproj", "{07C1101B-73AE-430D-8226-0887C08F1AF0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{01C65BB8-0694-4C85-AB85-684A477D2B0F}"
+	ProjectSection(SolutionItems) = preProject
+		src\services\nginx\Dockerfile = src\services\nginx\Dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

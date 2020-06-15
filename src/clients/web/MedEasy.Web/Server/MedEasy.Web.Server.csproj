@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>aa253db4-9354-42b7-ac70-89325daa8402</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..\..\..</DockerfileContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="3.2.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="5.1.67" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\MedEasy.Web.Client.csproj" />
+    <ProjectReference Include="..\Shared\MedEasy.Web.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="nginx\conf.d\" />
+  </ItemGroup>
+
+
+</Project>
