@@ -2,15 +2,25 @@ version: '3.7'
 
 services: 
   identity.db:
-    image: postgres:12-alpine  
+    image: postgres:12-alpine
+    environment:
+    - TZ=Europe/Stockholm
   patients.db:
     image: postgres:12-alpine
+    environment:
+      - TZ=Europe/Stockholm
   measures.db:
     image: postgres:12-alpine
+    environment:
+      - TZ=Europe/Stockholm
   documents.db:
     image: postgres:12-alpine
+  environment:
+    - TZ=Europe/Stockholm
   agenda.db:
     image: postgres:12-alpine
+    environment:
+      - TZ=Europe/Stockholm
 
   identity.api:
     image: ${DOCKER_REGISTRY-}identityapi

@@ -92,6 +92,8 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
             SecurityToken accessToken = await accessTokenTask;
             SecurityToken refreshToken = await refreshTokenTask;
 
+
+
             authenticatedAccount.ChangeRefreshToken(refreshToken.ToString());
 
             await uow.SaveChangesAsync(ct)

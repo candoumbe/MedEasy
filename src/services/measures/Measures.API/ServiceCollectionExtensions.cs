@@ -316,11 +316,13 @@ namespace Measures.API
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Description = "Token to access the API",
-                    Type = SecuritySchemeType.Http
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT"
                 };
 
-                config.AddSecurityDefinition("bearerAuth", bearerSecurityScheme);
+                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     [bearerSecurityScheme] = new List<string>()

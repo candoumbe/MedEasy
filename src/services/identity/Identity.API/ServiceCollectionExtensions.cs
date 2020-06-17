@@ -296,12 +296,9 @@ namespace Identity.API
                        ValidateLifetime = true,
                        LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
                         {
-                            using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
-                            {
-                                IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
-
-                                return securityTokenValidator.Validate(securityToken).IsValid;
-                            }
+                            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
+                            IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
+                            return securityTokenValidator.Validate(securityToken).IsValid;
                         },
                        RequireExpirationTime = true,
                        ValidateIssuerSigningKey = true,
@@ -364,18 +361,26 @@ namespace Identity.API
                     config.IncludeXmlComments(documentationPath);
                 }
 
-                OpenApiSecurityScheme securityScheme = new OpenApiSecurityScheme
+                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Description = "Token to access the API",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
                 };
-                config.AddSecurityDefinition("Bearer", securityScheme);
+
+                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [securityScheme] = new List<string>()
+                    [bearerSecurityScheme] = new List<string>()
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
