@@ -6,7 +6,7 @@ namespace Identity.CQRS.Queries
     /// <summary>
     /// Request hashing a password
     /// </summary>
-    public class HashPasswordQuery : QueryBase<Guid, string, (string salt, string passwordHash)>
+    public class HashPasswordQuery : QueryBase<Guid, string, (string salt, string hashedPassword)>
     {
         /// <summary>
         /// Creates a new <see cref="HashPasswordQuery"/> instance

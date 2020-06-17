@@ -44,7 +44,8 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
             if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>().AnyAsync(x => x.Username == data.Username, ct).ConfigureAwait(false))
             {
                 (string salt, string passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
-                    .ConfigureAwait(false);
+                                                                    .ConfigureAwait(false);
+
                 Account newEntity = _mapper.Map<NewAccountInfo, Account>(data);
                 newEntity.SetPassword(passwordHash, salt);
 

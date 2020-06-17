@@ -30,7 +30,7 @@ trigger:
     include:
         - master
         - feature/*
-        - fix/*
+        - hotfix/*
   paths:
     exclude:
         - README.md

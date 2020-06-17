@@ -1,6 +1,11 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+
+using FluentAssertions;
 using FluentAssertions.Extensions;
+
+using Identity.CQRS.Handlers.Queries;
 using Identity.CQRS.Handlers.Queries.Accounts;
+using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
@@ -10,6 +15,9 @@ using MedEasy.Abstractions;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
+using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Optional;
@@ -17,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,6 +42,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
         private Mock<IDateTimeService> _dateTimeServiceMock;
+        private readonly Mock<IMediator> _mediatorMock;
         private HandleGetOneAccountInfoByUsernameAndPasswordQuery _sut;
 
         public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
@@ -46,7 +57,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
 
-            _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
+            _mediatorMock = new Mock<IMediator>(Strict);
+
+            _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object, _mediatorMock.Object);
         }
 
         public async ValueTask DisposeAsync()
@@ -67,14 +80,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             // Arrange
             LoginInfo info = new LoginInfo { Username = "Bruce", Password = "CapedCrusader" };
             GetOneAccountByUsernameAndPasswordQuery query = new GetOneAccountByUsernameAndPasswordQuery(info);
-            _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(new DateTimeOffset(2008, 5, 10, 15, 0, 0, TimeSpan.Zero));
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(info.Password);
 
             // Act
             Option<AccountInfo> optionalUser = await _sut.Handle(query, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _dateTimeServiceMock.Verify();
             optionalUser.HasValue.Should()
                 .BeFalse("No user in the store");
         }
@@ -97,7 +111,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     yield return new object[]
                     {
                         bruceWayne,
-                        1.October(2011).AddHours(12).AddMinutes(30),
                         new LoginInfo {Username = bruceWayne.Username, Password = bruceWayne.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == bruceWayne.Username
                             && info.Name == bruceWayne.Name
@@ -121,7 +134,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     yield return new object[]
                     {
                         clarkKent,
-                        utcNow,
                         new LoginInfo {Username = clarkKent.Username, Password = clarkKent.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.Username
                             && info.Email == clarkKent.Email
@@ -135,25 +147,28 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 
         [Theory]
         [MemberData(nameof(GetOneUserByUsernameAndPasswordQueryCases))]
-        public async Task GivenUserExists_Handlers_Returns_Info(Account account, DateTimeOffset utcNow, LoginInfo loginInfo, Expression<Func<AccountInfo, bool>> resultExpectation)
+        public async Task GivenUserExists_Handlers_Returns_Info(Account account, LoginInfo loginInfo, Expression<Func<AccountInfo, bool>> resultExpectation)
         {
             // Arrange
 
-            _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(utcNow);
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(loginInfo.Password);
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(account);
-                
+
                 await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
             }
 
             // Act
             Option<AccountInfo> optionalUser = await _sut.Handle(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), default)
-                .ConfigureAwait(false);
+                                                         .ConfigureAwait(false);
 
             // Assert
-            _dateTimeServiceMock.Verify(mock => mock.UtcNowOffset(), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<HashPasswordWithPredefinedSaltAndIterationQuery>(query => query.Data.password == loginInfo.Password), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
 
             optionalUser.HasValue.Should()
                                  .BeTrue();
