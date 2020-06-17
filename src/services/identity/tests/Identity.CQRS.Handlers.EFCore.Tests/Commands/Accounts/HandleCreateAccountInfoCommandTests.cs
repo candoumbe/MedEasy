@@ -168,9 +168,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
+            _mapperMock.VerifyNoOtherCalls();
 
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Never,
                 "No resource created");
+            _mediatorMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -203,9 +205,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
+            _mapperMock.VerifyNoOtherCalls();
 
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()), Times.Never,
                 "No resource created");
+            _mediatorMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -251,7 +255,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                                                                                                 predicate: (Account acc) => acc.Id == account.Id,
                                                                                                 ct)
                                                                                             .ConfigureAwait(false);
-                            
+
                             IEnumerable<string> claimsTypesGranted = claimsOverride.Select(x => x.Type)
                                                                                    .ToArray();
 
@@ -322,9 +326,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                         It.Is<AccountCreated>(evt => evt.Data.Id == resource.Id),
                         It.IsAny<CancellationToken>()),
                         Times.Once);
+
+                    _mediatorMock.VerifyNoOtherCalls();
                 });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Once);
+            _mapperMock.VerifyNoOtherCalls();
         }
     }
 }
