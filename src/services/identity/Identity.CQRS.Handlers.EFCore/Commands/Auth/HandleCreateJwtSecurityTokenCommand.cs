@@ -61,10 +61,10 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
                 expires: expires,
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
-            _logger.LogDebug("Token will be valid from {Start} to {End}", now, expires);
-
+            _logger.LogDebug("Token will be valid from {Start:dd/MM/yyyy hh:mm:ss} UTC to {End:dd/MM/yyyy hh:mm:ss} UTC", now, expires);
             _logger.LogDebug("Finished handling command {CommandId}", cmd.Id);
-            return new ValueTask<SecurityToken>(token).AsTask();
+            
+            return Task.FromResult(token);
         }
     }
 }

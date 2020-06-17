@@ -110,6 +110,12 @@ services:
     volumes:
       - ${APPDATA}/nginx/conf.d:/etc/nginx/conf.d
       - ${APPDATA}/nginx/templates:/etc/nginx/templates
+    depends_on:
+      - agenda.api
+      - identity.api
+      - patients.api
+      - documents.api
+      - measures.api
      
 networks:
   apis:

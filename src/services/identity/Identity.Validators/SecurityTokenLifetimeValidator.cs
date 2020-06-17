@@ -15,11 +15,11 @@ namespace Identity.Validators
             DateTime utcNow = datetimeService.UtcNow();
             RuleFor(x => x.ValidFrom)
                 .LessThanOrEqualTo(utcNow)
-                .Unless(token => token.ValidFrom == default(DateTime));
+                .Unless(token => token.ValidFrom == default);
 
             RuleFor(x => x.ValidTo)
                 .GreaterThanOrEqualTo(utcNow)
-                .Unless(token => token.ValidTo == default(DateTime));
+                .Unless(token => token.ValidTo == default);
 
         }
     }

@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using Castle.Core.Logging;
+
+using FluentAssertions;
 using FluentAssertions.Extensions;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
@@ -6,6 +8,8 @@ using Identity.CQRS.Handlers.Commands;
 using Identity.DTO;
 using MedEasy.Abstractions;
 using MediatR;
+
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using System;
@@ -30,6 +34,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IDateTimeService> _dateTimeServiceMock;
+        private Mock<ILogger<HandleCreateJwtSecurityTokenCommand>> _loggerMock;
         private HandleCreateJwtSecurityTokenCommand _sut;
 
         public HandleCreateJwtSecurityTokenCommandTests(ITestOutputHelper outputHelper)
@@ -37,7 +42,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _outputHelper = outputHelper;
 
             _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
-            _sut = new HandleCreateJwtSecurityTokenCommand(dateTimeService: _dateTimeServiceMock.Object);
+            _loggerMock = new Mock<ILogger<HandleCreateJwtSecurityTokenCommand>>();
+
+            _sut = new HandleCreateJwtSecurityTokenCommand(dateTimeService: _dateTimeServiceMock.Object, _loggerMock.Object);
         }
 
         public void Dispose()
@@ -116,7 +123,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                     new ClaimInfo { Type =  "batarangs", Value = "10"},
                     new ClaimInfo { Type =  "fight", Value = "100"},
                     new ClaimInfo { Type =  "money", Value = "1000K$"},
-
                 }
             };
 
