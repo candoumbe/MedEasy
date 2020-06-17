@@ -559,7 +559,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken ct) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() }));
+                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken _) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newAccount, ct: default)
@@ -573,7 +573,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                                                                     .BeAssignableTo<CreatedAtRouteResult>().Which;
 
             Browsable<AccountInfo> browsableResource = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<Browsable<AccountInfo>>().Which;
+                                                                                 .BeAssignableTo<Browsable<AccountInfo>>().Which;
 
             AccountInfo createdResource = browsableResource.Resource;
 
