@@ -863,7 +863,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             // Arrange
             Guid idToDelete = Guid.NewGuid();
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteMeasureFormInfoByIdCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
@@ -871,8 +871,8 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<DeletePatientInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeleteMeasureFormInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeleteMeasureFormInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();
@@ -884,7 +884,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             // Arrange
             Guid idToDelete = Guid.NewGuid();
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<DeleteMeasureFormInfoByIdCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
@@ -892,8 +892,8 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeletePatientInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<DeletePatientInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<DeleteMeasureFormInfoByIdCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<DeleteMeasureFormInfoByIdCommand>(cmd => cmd.Data == idToDelete), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();

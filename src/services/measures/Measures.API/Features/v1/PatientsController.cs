@@ -5,12 +5,15 @@ using Forms;
 using Measures.API.Features.Patients;
 using Measures.API.Features.v1.BloodPressures;
 using Measures.API.Routing;
+using Measures.CQRS.Commands;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
+using Measures.Models.v1;
 
 using MedEasy.Attributes;
+using MedEasy.Core.Results;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
@@ -35,13 +38,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Forms.LinkRelation;
-using System.ComponentModel.DataAnnotations;
-using Measures.Models.v1;
-using Measures.Objects;
-using MedEasy.Core.Results;
-using System.Reflection.Metadata.Ecma335;
+using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Measures.API.Features.v1.Patients
 {
@@ -382,8 +380,8 @@ namespace Measures.API.Features.v1.Patients
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken ct = default)
         {
-            DeleteCommandResult result = await _mediator.Send(new DeletePatientInfoByIdCommand(id), ct)
-                .ConfigureAwait(false);
+            DeleteCommandResult result = await _mediator.Send(new DeleteMeasureFormInfoByIdCommand(id), ct)
+                                                        .ConfigureAwait(false);
 
             return result switch
             {

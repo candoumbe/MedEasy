@@ -26,7 +26,7 @@ namespace Measures.Mapping
         public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
         {
             cfg.CreateCoreMapping();
-            
+
             cfg.CreateMap<Patient, PatientInfo>()
                 .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Name))
                 .IncludeBase<IEntity<Guid>, Resource<Guid>>();
@@ -56,6 +56,8 @@ namespace Measures.Mapping
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;
+
+            cfg.CreateMap<MeasureForm, GenericMeasureFormInfo>();
 
             cfg.CreateMap(typeof(JsonPatchDocument<>), typeof(JsonPatchDocument<>));
             cfg.CreateMap(typeof(Operation<>), typeof(Operation<>));
