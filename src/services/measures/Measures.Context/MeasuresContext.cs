@@ -66,9 +66,6 @@ namespace Measures.Context
                       .WithOne(x => x.Patient)
                       .HasForeignKey(measure => measure.PatientId)
                       .HasPrincipalKey(patient => patient.Id);
-
-
-
             });
 
             modelBuilder.Entity<GenericMeasure>(entity =>

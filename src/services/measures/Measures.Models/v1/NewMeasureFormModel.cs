@@ -1,19 +1,15 @@
 ﻿using Forms;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
-namespace Measures.DTO
+namespace Measures.Models.v1
 {
-    public class GenericMeasureFormInfo
+    public class NewMeasureFormModel
     {
-        public Guid Id { get; set; }
-
         public string Name { get; set; }
 
         public IEnumerable<FormField> Fields { get; set; }
-
-        public DateTime UpdatedDate { get; set; }
     }
 }

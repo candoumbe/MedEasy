@@ -225,7 +225,7 @@ namespace Measures.Objects.Tests
         }
 
         [Fact]
-        public void AddMeasure_throws_ArgumentNullException_when_values_is_null()
+        public void AddMeasure_throws_ArgumentNullException_when_values_are_null()
         {
             // Arrange
             Patient patient = new Patient(Guid.NewGuid(), "John Doe");
