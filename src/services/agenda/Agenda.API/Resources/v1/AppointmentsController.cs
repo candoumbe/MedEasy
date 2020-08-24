@@ -25,6 +25,9 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Agenda.API.Resources.v1
 {
+    /// <summary>
+    /// Handles appointement resources
+    /// </summary>
     [ApiVersion("1.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]

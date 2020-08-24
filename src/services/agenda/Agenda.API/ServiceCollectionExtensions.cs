@@ -225,7 +225,7 @@ namespace Agenda.API
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
-            
+
             services.AddSingleton<IDateTimeService, DateTimeService>();
 
             services.AddHttpContextAccessor();

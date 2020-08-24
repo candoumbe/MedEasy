@@ -12,14 +12,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
     [UnitTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class ChangeAppointmentDateCommandTests
+    public class RescheduleAppointmentCommandTests
     {
         private readonly ITestOutputHelper _outputHelper;
 
-        public ChangeAppointmentDateCommandTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+        public RescheduleAppointmentCommandTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
         [Fact]
-        public void IsCommand() => typeof(ChangeAppointmentDateCommand).Should()
+        public void IsCommand() => typeof(RescheduleAppointmentCommand).Should()
             .NotBeAbstract().And
             .BeDerivedFrom<CommandBase<Guid, (Guid appointmentId, DateTimeOffset start, DateTimeOffset end), ModifyCommandResult>>();
     }

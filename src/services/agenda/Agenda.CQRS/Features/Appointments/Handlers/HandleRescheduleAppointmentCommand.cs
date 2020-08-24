@@ -4,6 +4,8 @@ using AutoMapper;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Exceptions;
 using MedEasy.DAL.Interfaces;
+using MedEasy.DAL.Repositories;
+
 using MediatR;
 using Optional;
 using System;
@@ -16,20 +18,19 @@ using static MedEasy.CQRS.Core.Commands.Results.ModifyCommandResult;
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
     /// <summary>
-    /// Handles <see cref="ChangeAppointmentDateCommand"/>
+    /// Handles <see cref="RescheduleAppointmentCommand"/>
     /// </summary>
-    public class HandleChangeAppointmentDateCommand : IRequestHandler<ChangeAppointmentDateCommand, ModifyCommandResult>
+    public class HandleRescheduleAppointmentCommand : IRequestHandler<RescheduleAppointmentCommand>
     {
-        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public HandleChangeAppointmentDateCommand(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper)
+
+        public HandleRescheduleAppointmentCommand(IMediator mediator, IRepository<AppointmentView> appointments)
         {
-            _unitOfWorkFactory = unitOfWorkFactory;
-            _mapper = mapper;
+            _mediator = mediator;
         }
 
-        public async Task<ModifyCommandResult> Handle(ChangeAppointmentDateCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(RescheduleAppointmentCommand request, CancellationToken cancellationToken)
         {
             (Guid appointmentId, DateTimeOffset start, DateTimeOffset end) = request.Data;
 
@@ -62,7 +63,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                 });
             }
 
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using (IUnitOfWork uow = _mediator.NewUnitOfWork())
             {
                 Option<Appointment> optionalAppointment = await uow.Repository<Appointment>()
                                                                    .SingleOrDefaultAsync(app => app.Id == appointmentId, cancellationToken)

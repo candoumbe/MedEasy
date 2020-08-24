@@ -15,6 +15,9 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+
+using Moq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,59 +28,30 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
+using static Moq.MockBehavior;
+
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [UnitTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class HandleChangeAppointmentDateCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleRescheduleAppointmentCommandTests
     {
-        private HandleChangeAppointmentDateCommand _sut;
+        private HandleRescheduleAppointmentCommand _sut;
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _unitOfWorkFactoryMock;
-        private IUnitOfWorkFactory _unitOfWorkFactory;
-        private IMapper _mapper;
+        private readonly Mock<IMediator> _mediatorMock; 
 
-        public HandleChangeAppointmentDateCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleRescheduleAppointmentCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<AgendaContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(warnings => warnings.Throw());
+            _mediatorMock = new Mock<IMediator>(Strict);
 
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(dbContextOptionsBuilder.Options, (options) =>
-            {
-                AgendaContext context = new AgendaContext(options);
-                context.Database.EnsureCreated();
-
-                return context;
-            });
-            _mapper = A.Fake<IMapper>(x => x.Wrapping(AutoMapperConfig.Build().CreateMapper()));
-            _unitOfWorkFactoryMock = A.Fake<IUnitOfWorkFactory>(x => x.Wrapping(_unitOfWorkFactory));
-
-            _sut = new HandleChangeAppointmentDateCommand(_unitOfWorkFactoryMock, _mapper);
-        }
-
-        public async void Dispose()
-        {
-            using (IUnitOfWork uow = _unitOfWorkFactoryMock.NewUnitOfWork())
-            {
-                uow.Repository<Attendee>().Clear();
-                uow.Repository<Appointment>().Clear();
-
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-
-            _unitOfWorkFactoryMock = null;
-            _unitOfWorkFactory = null;
-            _sut = null;
+            _sut = new HandleRescheduleAppointmentCommand(_mediatorMock.Object);
         }
 
         [Fact]
-        public void Handle_ChangeAppointmentDateCommand() => typeof(HandleChangeAppointmentDateCommand).Should()
-            .Implement<IRequestHandler<ChangeAppointmentDateCommand, ModifyCommandResult>>();
+        public void Handle_ChangeAppointmentDateCommand() => typeof(HandleRescheduleAppointmentCommand).Should()
+            .Implement<IRequestHandler<RescheduleAppointmentCommand, ModifyCommandResult>>();
 
         public static IEnumerable<object[]> InvalidDataCommandCases
         {
@@ -109,7 +83,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _outputHelper.WriteLine($"{nameof(data)} : {data}");
 
             // Arrange
-            ChangeAppointmentDateCommand cmd = new ChangeAppointmentDateCommand(data);
+            RescheduleAppointmentCommand cmd = new RescheduleAppointmentCommand(data);
 
             // Act
             Func<Task> action = async () => await _sut.Handle(cmd, default)
@@ -118,10 +92,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             // Assert
             action.Should()
                 .Throw<CommandNotValidException<Guid>>(reason);
-
-            A.CallTo(_unitOfWorkFactoryMock)
-                .MustNotHaveHappened();
-            A.CallTo(_mapper).MustNotHaveHappened();
         }
 
         public static IEnumerable<object[]> HandleCases
@@ -132,7 +102,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 yield return new object[]
                 {
                     Enumerable.Empty<Appointment>(),
-                    new ChangeAppointmentDateCommand((Guid.NewGuid(), start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
+                    new RescheduleAppointmentCommand((Guid.NewGuid(), start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
                     ModifyCommandResult.Failed_NotFound,
                     "Appointment not found in the datastore"
                 };
@@ -155,7 +125,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointment },
-                        new ChangeAppointmentDateCommand((appointment.Id, start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
+                        new RescheduleAppointmentCommand((appointment.Id, start: 17.February(2012).Add(13.Hours()), end: 17.February(2012).Add(13.Hours().Add(15.Minutes())))),
                         ModifyCommandResult.Done,
                         "The appointment exists and the change won't overlap with any existing appointment"
                     };
@@ -194,7 +164,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointmentRelocation, appointmentEmancipation },
-                        new ChangeAppointmentDateCommand((appointmentEmancipation.Id, start: faker.Date.RecentOffset(refDate: appointmentRelocation.StartDate), end: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate))),
+                        new RescheduleAppointmentCommand((appointmentEmancipation.Id, start: faker.Date.RecentOffset(refDate: appointmentRelocation.StartDate), end: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate))),
                         ModifyCommandResult.Failed_Conflict,
                         "The appointment would end when another appointemtn is ongoing"
                     };
@@ -234,7 +204,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         new []{ appointmentRelocation, appointmentEmancipation },
-                        new ChangeAppointmentDateCommand((appointmentEmancipation.Id, start: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
+                        new RescheduleAppointmentCommand((appointmentEmancipation.Id, start: faker.Date.BetweenOffset(appointmentRelocation.StartDate, appointmentRelocation.EndDate), end: faker.Date.SoonOffset(refDate : appointmentRelocation.EndDate))),
                         ModifyCommandResult.Failed_Conflict,
                         "The appointment would start whilst another appointment is ongoing"
                     };
@@ -244,7 +214,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         [Theory]
         [MemberData(nameof(HandleCases))]
-        public async Task HandleTests(IEnumerable<Appointment> appointments, ChangeAppointmentDateCommand cmd, ModifyCommandResult expected, string reason)
+        public async Task HandleTests(IEnumerable<Appointment> appointments, RescheduleAppointmentCommand cmd, ModifyCommandResult expected, string reason)
         {
             // Arrange
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
