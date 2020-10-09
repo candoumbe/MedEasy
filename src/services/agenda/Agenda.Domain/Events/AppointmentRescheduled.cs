@@ -1,7 +1,6 @@
 ﻿using MedEasy.Domain.Core;
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Agenda.Domain.Events
 {
@@ -10,8 +9,14 @@ namespace Agenda.Domain.Events
     /// </summary>
     public class AppointmentRescheduled : EventBase<Guid>
     {
+        /// <summary>
+        /// New start
+        /// </summary>
         public DateTime Start { get; }
 
+        /// <summary>
+        /// New end
+        /// </summary>
         public DateTime End { get; }
 
         public override uint Version => 1;
@@ -21,6 +26,5 @@ namespace Agenda.Domain.Events
             Start = start;
             End = end;
         }
-
     }
 }

@@ -16,7 +16,5 @@ namespace MedEasy.Domain.Core
         {
             Id = id;
         }
-
-        
     }
 }

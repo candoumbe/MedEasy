@@ -16,6 +16,7 @@
     <PackageReference Include="Bogus" Version="23.0.2" />
     <PackageReference Include="Moq" Version="4.*" />
     <PackageReference Include="FakeItEasy" Version="5.*"/>
+    <PackageReference Include="AutoFixture.xUnit2" Version="4.13.*"/>
     <PackageReference Include="coverlet.collector" Version="1.2.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

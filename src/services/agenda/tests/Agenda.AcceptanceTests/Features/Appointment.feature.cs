@@ -19,7 +19,7 @@ namespace Agenda.AcceptanceTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.3.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class AppointmentFeature : object, Xunit.IClassFixture<AppointmentFeature.FixtureData>, System.IDisposable
+    public partial class AgendaFeature : object, Xunit.IClassFixture<AgendaFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -31,7 +31,7 @@ namespace Agenda.AcceptanceTests.Features
 #line 1 "Appointment.feature"
 #line hidden
         
-        public AppointmentFeature(AppointmentFeature.FixtureData fixtureData, Agenda_AcceptanceTests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public AgendaFeature(AgendaFeature.FixtureData fixtureData, Agenda_AcceptanceTests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -40,7 +40,7 @@ namespace Agenda.AcceptanceTests.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Appointment", "\tHandle appointments and attendees", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Agenda", "\tHandle the hassle related to start/end dates and timezones.", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -81,7 +81,7 @@ namespace Agenda.AcceptanceTests.Features
         }
         
         [Xunit.SkippableFactAttribute(DisplayName="Add attendee to an appointment")]
-        [Xunit.TraitAttribute("FeatureTitle", "Appointment")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agenda")]
         [Xunit.TraitAttribute("Description", "Add attendee to an appointment")]
         [Xunit.TraitAttribute("Category", "Acceptance")]
         public virtual void AddAttendeeToAnAppointment()
@@ -111,10 +111,10 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 6
- testRunner.Given("An existing appointment with no attendee", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+ testRunner.Given("an existing appointment for a specific user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 7
- testRunner.When("I add an attendee called \"Bruce Wayne\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.When("I create a new appointment", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
  testRunner.Then("The appointment should have an attendee called \"Bruce Wayne\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -130,12 +130,12 @@ this.ScenarioInitialize(scenarioInfo);
             
             public FixtureData()
             {
-                AppointmentFeature.FeatureSetup();
+                AgendaFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                AppointmentFeature.FeatureTearDown();
+                AgendaFeature.FeatureTearDown();
             }
         }
     }

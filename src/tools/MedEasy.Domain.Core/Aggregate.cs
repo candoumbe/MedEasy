@@ -18,6 +18,7 @@ namespace MedEasy.Domain.Core
         protected Aggregate(T id)
         {
             Id = id;
+            _handlers = new Dictionary<Type, Action<IEvent<T>>>();
             _events = new Queue<IEvent<T>>();
         }
 
