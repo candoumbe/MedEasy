@@ -240,7 +240,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.CQRS.UnitTests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Models", "src\services\measures\Measures.Models\Measures.Models.csproj", "{07C1101B-73AE-430D-8226-0887C08F1AF0}"
 EndProject
