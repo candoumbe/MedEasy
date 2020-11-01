@@ -168,7 +168,7 @@ namespace Measures.API
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("Measures"),
+                        configuration.GetConnectionString("measures-db"),
                         options => options.EnableRetryOnFailure(5)
                             .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
                     );

@@ -192,7 +192,7 @@ namespace Identity.API
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("Identity"),
+                        configuration.GetConnectionString("identity-db"),
                         options => options.EnableRetryOnFailure(5)
                             .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
                     );

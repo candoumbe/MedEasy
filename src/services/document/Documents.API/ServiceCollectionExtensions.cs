@@ -168,7 +168,7 @@ namespace Documents.API
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("Documents"),
+                        configuration.GetConnectionString("documents-db"),
                         options => options.EnableRetryOnFailure(5)
                             .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
                     );
