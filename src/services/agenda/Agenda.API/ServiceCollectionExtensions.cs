@@ -157,7 +157,7 @@ namespace Agenda.API
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("Agenda"),
+                        configuration.GetConnectionString("agenda-db"),
                         options => options.EnableRetryOnFailure(5)
                                           .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
                     );

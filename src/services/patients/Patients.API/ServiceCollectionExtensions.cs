@@ -149,7 +149,7 @@ namespace Patients.API
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("Patients"),
+                        configuration.GetConnectionString("patients-db"),
                         options => options.EnableRetryOnFailure(5)
                             .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
                     );

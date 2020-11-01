@@ -1,0 +1,53 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: medeasy
+services:
+- name: identity-api
+  project: src/services/identity/Identity.API/Identity.API.csproj
+- name: measures-api
+  project: src/services/Measures/Measures.API/Measures.API.csproj
+- name: patients-api
+  project: src/services/Patients/Patients.API/Patients.API.csproj
+- name: agenda-api
+  project: src/services/agenda/Agenda.API/Agenda.API.csproj
+- name: documents-api
+  project: src/services/document/Documents.API/Documents.API.csproj
+- name: identity-db
+  image: postgres:12-alpine
+  env:
+  - name: POSTGRES_PASSWORD
+    value: "pass@word1"
+  bindings:
+    - connectionString: Server=${host};Port=${port};Database=identity;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+- name: measures-db
+  image: postgres:12-alpine
+  env:
+  - name: POSTGRES_PASSWORD
+    value: "pass@word1"
+  bindings:
+    - connectionString: Server=${host};Port=${port};Database=measures;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+- name: documents-db
+  image: postgres:12-alpine
+  env:
+  - name: POSTGRES_PASSWORD
+    value: "pass@word1"
+  bindings:
+    - connectionString: Server=${host};Port=${port};Database=documents;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+- name: patients-db
+  image: postgres:12-alpine
+  env:
+  - name: POSTGRES_PASSWORD
+    value: "pass@word1"
+  bindings:
+    - connectionString: Server=${host};Port=${port};Database=patients;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+- name: agenda-db
+  image: postgres:12-alpine
+  env:
+  - name: POSTGRES_PASSWORD
+    value: "pass@word1"
+  bindings:
+    - connectionString: Server=${host};Port=${port};Database=agenda;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
