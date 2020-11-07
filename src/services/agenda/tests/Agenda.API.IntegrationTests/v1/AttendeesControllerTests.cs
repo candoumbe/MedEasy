@@ -3,19 +3,13 @@ using Agenda.API.Resources.v1.Appointments;
 using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Attendees;
 
-using Bogus;
-
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
 using MedEasy.Core.Filters;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 
@@ -24,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,16 +27,8 @@ using Xunit.Categories;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
-using static Moq.MockBehavior;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Optional.Collections;
-using Optional;
-using Microsoft.AspNetCore.Components.Authorization;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Agenda.API.IntegrationTests.v1
 {
@@ -286,8 +271,16 @@ namespace Agenda.API.IntegrationTests.v1
 
                     yield return new object[]
                     {
-                        new []{
-                            new NewAppointmentModel { Location = "The bowlery", Attendees = participants, StartDate = 1.April(2012), EndDate = 2.April(2012), Subject = "Let's rob something !" }
+                        new []
+                        {
+                            new NewAppointmentModel
+                            {
+                                Location = "The bowlery",
+                                Attendees = participants,
+                                StartDate = 1.April(2012),
+                                EndDate = 2.April(2012),
+                                Subject = "Let's rob something !"
+                            }
                         },
                         $"/search?{new SearchAttendeeModel { Name="*Nygma*|*Coblepot*", Page=1, PageSize=30 }.ToQueryString()}",
                         (total : 2, count : 2)
@@ -309,13 +302,16 @@ namespace Agenda.API.IntegrationTests.v1
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
             await newAppointments.ForEachAsync(async (newParticipant) =>
-            {
-                HttpResponseMessage createdResponse = await client.PostAsync($"agenda/{AppointmentsController.EndpointName}", new StringContent(SerializeObject(newParticipant), Encoding.UTF8, "application/json"))
-                    .ConfigureAwait(false);
+                                               {
+                                                   using HttpResponseMessage createdResponse = await client.PostAsync($"agenda/{AppointmentsController.EndpointName}",
+                                                                                                                   new StringContent(SerializeObject(newParticipant),
+                                                                                                                                       Encoding.UTF8,
+                                                                                                                                       Application.Json))
+                                                                                                           .ConfigureAwait(false);
 
-                _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
-            })
-            .ConfigureAwait(false);
+                                                   _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
+                                               })
+                                               .ConfigureAwait(false);
 
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
@@ -324,7 +320,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)
-                    .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
             _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
@@ -337,12 +333,15 @@ namespace Agenda.API.IntegrationTests.v1
                 .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.TotalCountHeaderName).And
                 .ContainSingle(header => header.Key == AddCountHeadersFilterAttribute.CountHeaderName);
 
-            response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName).Should()
-                .HaveCount(1);
+            IEnumerable<string> totalCountHeaderValues = response.Headers.GetValues(AddCountHeadersFilterAttribute.TotalCountHeaderName);
+            totalCountHeaderValues.Should()
+                                  .HaveCount(1).And
+                                  .ContainSingle(val => val == expectedCountHeaders.total.ToString());
 
-            response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName).Should()
-                .HaveCount(1);
-            
+            IEnumerable<string> countHeaderValues = response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName);
+            countHeaderValues.Should()
+                             .HaveCount(1).And
+                            .ContainSingle(val => val == expectedCountHeaders.count.ToString());
         }
     }
 }

@@ -48,11 +48,13 @@ public class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     public readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
+    [Parameter("Indicates wheter to restore nuget in interactive mode - Default is false")]
+    public readonly bool Interactive = false;
+
     [Solution] public readonly Solution Solution;
     [GitRepository] public readonly GitRepository GitRepository;
 
     [CI] public readonly AzurePipelines AzurePipelines;
-
 
     [Partition(10)] public readonly Partition TestPartition;
 
@@ -88,6 +90,7 @@ public class Build : NukeBuild
             DotNetRestore(s => s
                 .SetConfigFile("nuget.config")
                 .SetIgnoreFailedSources(true)
+                .When(IsLocalBuild && Interactive, _ => _.SetProperty("NugetInteractive", IsLocalBuild && Interactive))
                 .CombineWith(projects, (setting, project) => setting.SetProjectFile(project)
                                                                     .SetVerbosity(DotNetVerbosity.Minimal))
             );
