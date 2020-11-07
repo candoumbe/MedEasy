@@ -100,7 +100,6 @@ namespace Agenda.API.IntegrationTests.v1
             }
         };
 
-
         public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
         {
             _outputHelper = outputHelper;
@@ -141,7 +140,7 @@ namespace Agenda.API.IntegrationTests.v1
             // Act
 
             using HttpResponseMessage response = await client.GetAsync(url)
-                                                       .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
 

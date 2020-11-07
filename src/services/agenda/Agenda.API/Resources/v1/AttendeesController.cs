@@ -233,9 +233,9 @@ namespace Agenda.API.Resources.v1
             SearchAttendeeInfo data = _mapper.Map<SearchAttendeeInfo>(search);
 
             string version = _apiVersion.ToString();
-            
+
             Page<AttendeeInfo> page = await _mediator.Send(new SearchAttendeeInfoQuery(data), ct)
-                .ConfigureAwait(false);
+                                                     .ConfigureAwait(false);
             ActionResult<GenericPagedGetResponse<Browsable<AttendeeModel>>> actionResult;
             string linkToFirstPage = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = 1, search.PageSize, version });
             string linkToLastPage = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = page.Count, search.PageSize, version });
@@ -251,7 +251,7 @@ namespace Agenda.API.Resources.v1
             }
             else
             {
-                GenericPagedGetResponse<Browsable<AttendeeModel>> results = new GenericPagedGetResponse<Browsable<AttendeeModel>>(
+                actionResult = new GenericPagedGetResponse<Browsable<AttendeeModel>>(
                     _mapper.Map<IEnumerable<AttendeeModel>>(page.Entries).Select(x => new Browsable<AttendeeModel>
                     {
                         Resource = x,
@@ -274,8 +274,6 @@ namespace Agenda.API.Resources.v1
                     last: linkToLastPage,
                     total: page.Total
                 );
-
-                actionResult = results;
             }
 
             return actionResult;

@@ -51,9 +51,9 @@ namespace Agenda.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="env"></param>
         public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
-
             services
                 .AddCors(options =>
                 {
