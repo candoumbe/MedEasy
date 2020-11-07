@@ -4,21 +4,26 @@ using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;
+
 using MedEasy.CQRS.Core.Commands.Results;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Optional;
+
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Identity.API.Features.v1.Auth

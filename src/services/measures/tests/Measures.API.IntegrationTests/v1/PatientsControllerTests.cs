@@ -336,21 +336,22 @@ namespace Measures.API.IntegrationTests.v1
             {
                 Name = "Victor Freeze"
             };
+
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             // Act
             HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
-                .ConfigureAwait(false);
+                                                       .ConfigureAwait(false);
 
             string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                                                .ConfigureAwait(false);
             _outputHelper.WriteLine($"Response : {json}");
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
             response.IsSuccessStatusCode.Should()
-                .BeTrue("Creating the resource should succeed");
+                                        .BeTrue("Creating the resource should succeed");
 
-            string patientId = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
+            string patientId = JToken.Parse(json).ToObject<Browsable<PatientInfo>>().Resource.Id.ToString();
 
             NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
             {

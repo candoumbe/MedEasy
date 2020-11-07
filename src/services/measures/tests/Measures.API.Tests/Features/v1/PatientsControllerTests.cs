@@ -1136,7 +1136,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 .BeAssignableTo<CreatedAtRouteResult>().Which;
 
             Browsable<PatientInfo> browsablePatientInfo = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<Browsable<PatientInfo>>().Which;
+                                                                                    .BeAssignableTo<Browsable<PatientInfo>>().Which;
 
             PatientInfo resource = browsablePatientInfo.Resource;
             resource.Should()
@@ -1149,14 +1149,13 @@ namespace Measures.API.Tests.Features.v1.Patients
 
 
             IEnumerable<Link> links = browsablePatientInfo.Links;
-            links.Should()
-                .NotBeNullOrEmpty().And
-                .NotContainNulls().And
-                .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"each resource link must provide its {nameof(Link.Href)}").And
-                .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"each resource link must provide its {nameof(Link.Method)}").And
-                .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"each resource link must provide its {nameof(Link.Relation)}").And
-                .Contain(link => link.Relation == Self).And
-                .Contain(link => link.Relation == "bloodpressures");
+            links.Should().NotBeNullOrEmpty().And
+                          .NotContainNulls().And
+                          .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"each resource link must provide its {nameof(Link.Href)}").And
+                          .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"each resource link must provide its {nameof(Link.Method)}").And
+                          .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"each resource link must provide its {nameof(Link.Relation)}").And
+                          .Contain(link => link.Relation == Self).And
+                          .Contain(link => link.Relation == "bloodpressures");
 
             Link linkToSelf = links.Single(link => link.Relation == Self);
             linkToSelf.Href.Should()

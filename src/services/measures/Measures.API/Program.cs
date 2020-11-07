@@ -1,25 +1,27 @@
 ﻿using Measures.Context;
-using Microsoft.AspNetCore;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Npgsql;
+
 using Polly;
 using Polly.Retry;
+
 using Serilog;
+
 using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 namespace Measures.API
 {
 #pragma warning disable RCS1102 // Make class static.
-                               /// <summary>
-                               /// Host's entry point
-                               /// </summary>
+    /// <summary>
+    /// Host's entry point
+    /// </summary>
     public class Program
 #pragma warning restore RCS1102 // Make class static.
     {

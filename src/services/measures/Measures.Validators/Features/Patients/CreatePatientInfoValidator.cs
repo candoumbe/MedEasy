@@ -2,8 +2,6 @@ using FluentValidation;
 using MedEasy.DAL.Interfaces;
 using Measures.DTO;
 using System;
-using static FluentValidation.CascadeMode;
-using static FluentValidation.Severity;
 
 namespace Measures.Validators.Features.Patients.DTO
 {

@@ -1,16 +1,18 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+
 using Measures.CQRS.Commands.BloodPressures;
-using Measures.CQRS.Events;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 

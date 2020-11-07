@@ -1,6 +1,8 @@
 ﻿using Identity.DTO;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.RestObjects;
+
 using System;
 
 namespace Identity.CQRS.Queries.Accounts

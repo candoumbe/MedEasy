@@ -1,9 +1,11 @@
 ﻿using FluentValidation;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
 using System.Collections.Generic;
 using System.Linq;
-using static FluentValidation.CascadeMode;
+
 using static FluentValidation.Severity;
 
 namespace MedEasy.Validators.Patch

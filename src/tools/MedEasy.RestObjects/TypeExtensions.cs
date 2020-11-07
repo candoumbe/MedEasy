@@ -29,7 +29,11 @@ namespace System
             {
                 FormField ff = new FormField { Name = pi.Name };
 
-                IEnumerable<Attribute> attributes = pi.GetCustomAttributes(true);
+                IEnumerable<Attribute> attributes = pi.GetCustomAttributes(inherit: true)
+#if !NETSTANDARD1_1
+                    .Cast<Attribute>()
+#endif
+                    ;
                 DisplayAttribute displayAttribute = (DisplayAttribute)attributes
                     .FirstOrDefault(x => typeof(DisplayAttribute).Equals(x.GetType()));
 

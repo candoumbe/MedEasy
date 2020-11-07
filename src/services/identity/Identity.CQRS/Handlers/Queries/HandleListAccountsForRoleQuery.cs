@@ -1,14 +1,18 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Identity.CQRS.Queries.Roles;
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
+
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
 using System;
-using System.Linq;
 
 namespace Identity.Mapping
 {

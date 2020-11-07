@@ -43,7 +43,7 @@ stages:
         displayName: 'UnitTests'
         dependsOn: [ Compile ]
         strategy:
-          parallel: 4
+          parallel: 10
         steps:
           - task: CmdLine@2
             inputs:
@@ -56,7 +56,7 @@ stages:
         displayName: 'IntegrationTests'
         dependsOn: [ Compile ]
         strategy:
-          parallel: 4
+          parallel: 10
         steps:
           - task: CmdLine@2
             inputs:
@@ -82,7 +82,7 @@ stages:
         displayName: 'UnitTests'
         dependsOn: [ Compile ]
         strategy:
-          parallel: 4
+          parallel: 10
         steps:
           - task: CmdLine@2
             inputs:
@@ -95,7 +95,7 @@ stages:
         displayName: 'IntegrationTests'
         dependsOn: [ Compile ]
         strategy:
-          parallel: 4
+          parallel: 10
         steps:
           - task: CmdLine@2
             inputs:

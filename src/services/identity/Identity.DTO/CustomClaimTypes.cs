@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
     /// <summary>
     /// Custom claims that can be used throughout the application
