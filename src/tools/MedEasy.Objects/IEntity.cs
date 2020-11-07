@@ -1,5 +1,3 @@
-using System;
-
 namespace MedEasy.Objects
 {
     /// <summary>

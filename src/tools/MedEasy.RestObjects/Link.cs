@@ -46,6 +46,6 @@ namespace MedEasy.RestObjects
         /// </remarks>
         public bool? Template { get; set; }
 
-        public override string ToString() => this.Jsonify();
+        public override string ToString() => this.Jsonify(null);
     }
 }

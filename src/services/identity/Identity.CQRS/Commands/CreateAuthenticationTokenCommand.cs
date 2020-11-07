@@ -1,6 +1,7 @@
 ﻿using Identity.DTO;
+
 using MedEasy.CQRS.Core.Commands;
-using Microsoft.IdentityModel.Tokens;
+
 using System;
 
 namespace Identity.CQRS.Commands

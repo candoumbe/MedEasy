@@ -418,16 +418,16 @@ namespace Agenda.API.IntegrationTests.v1
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel)
-                .ConfigureAwait(false);
+                                                       .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
             string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                                                .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Response content : {json}");
 
             Browsable<AppointmentModel> browsableAppointmentModel = JToken.Parse(json)
-                .ToObject<Browsable<AppointmentModel>>();
+                                                                          .ToObject<Browsable<AppointmentModel>>();
 
             _outputHelper.WriteLine($"Resource created : {browsableAppointmentModel.Jsonify()}");
 
@@ -455,7 +455,7 @@ namespace Agenda.API.IntegrationTests.v1
                 .BeTrue($"Appointment <{appointmentId}> and Attendee <{attendeeId}> exist.");
 
             ((int)response.StatusCode).Should()
-                .Be(Status204NoContent);
+                                      .Be(Status204NoContent);
         }
     }
 }

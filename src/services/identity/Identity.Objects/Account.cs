@@ -4,9 +4,7 @@ using Optional;
 using Optional.Collections;
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Identity.Objects
 {

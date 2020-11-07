@@ -1,7 +1,6 @@
 ﻿using DataFilters;
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MedEasy.DTO.Search
 {

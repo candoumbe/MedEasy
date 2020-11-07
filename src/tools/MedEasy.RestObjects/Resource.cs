@@ -1,30 +1,29 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Runtime.Serialization;
-
+﻿using System;
+#if NETSTANDARD1_1
+using Newtonsoft.Json;
+#endif
 namespace MedEasy.RestObjects
 {
     /// <summary>
     /// Bazse class for a resource
     /// </summary>
     /// <typeparam name="T">Type of the identifier of the resource</typeparam>
+#if NETSTANDARD1_1
     [JsonObject]
+#endif
     public abstract class Resource<T> : IResource<T>
         where T : IEquatable<T>
     {
-        [JsonProperty]
         public T Id { get; set; }
 
         /// <summary>
         /// Gets/sets when the resource was last modified
         /// </summary>
-        [JsonProperty]
         public DateTime UpdatedDate { get; set; }
 
         /// <summary>
         /// Gets/sets when the resource was last modified
         /// </summary>
-        [JsonProperty]
         public DateTime CreatedDate { get; set; }
     }
 }

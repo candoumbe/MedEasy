@@ -1,9 +1,11 @@
 ﻿using Identity.DTO;
+
 using MedEasy.CQRS.Core.Queries;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Identity.CQRS.Queries.Roles
 {

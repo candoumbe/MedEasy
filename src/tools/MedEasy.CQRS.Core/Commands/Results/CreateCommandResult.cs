@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MedEasy.CQRS.Core.Commands.Results
+﻿namespace MedEasy.CQRS.Core.Commands.Results
 {
     public enum CreateCommandResult
     {

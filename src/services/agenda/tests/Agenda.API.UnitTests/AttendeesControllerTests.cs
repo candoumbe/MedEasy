@@ -241,7 +241,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                                     selector,
                                     query.Data.PageSize,
                                     query.Data.Page,
-                                    new Sort<AttendeeInfo>(nameof(AttendeeInfo.UpdatedDate)),
+                                    new Sort<Attendee>(nameof(Attendee.UpdatedDate)),
                                     ct)
                               .AsTask();
                 });

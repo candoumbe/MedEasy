@@ -1,12 +1,9 @@
 ﻿using AutoMapper.QueryableExtensions;
-using DataFilters.Expressions;
 using DataFilters;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;

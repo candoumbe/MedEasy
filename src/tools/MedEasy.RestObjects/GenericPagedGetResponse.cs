@@ -1,22 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NETSTANDARD1_1
 using Newtonsoft.Json;
-using static Newtonsoft.Json.JsonConvert;
-
+#endif
 namespace MedEasy.RestObjects
 {
     /// <summary>
     /// Wraps a paged response 
     /// </summary>
     /// <typeparam name="T">Type of items that will be wrapped in a paged result</typeparam>
+#if NETSTANDARD1_1
     [JsonObject]
+#endif
     public class GenericPagedGetResponse<T> : IGenericPagedGetResponse
     {
         /// <summary>
         /// Links that helps navigated through pages of the result
         /// </summary>
+#if NETSTANDARD1_1
         [JsonProperty(Required = Required.Always)]
+#endif
         public PageLinks Links { get; }
 
         /// <summary>
@@ -37,18 +41,24 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// The items of the current page of result
         /// </summary>
+#if NETSTANDARD1_1
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+#endif
         public IEnumerable<T> Items { get;  }
 
         /// <summary>
         /// Number of items in the the result
         /// </summary>
+#if NETSTANDARD1_1
         [JsonProperty]
+#endif
         public long Total { get; }
 
         private long? _count;
 
+#if NETSTANDARD1_1
         [JsonProperty]
+#endif
         public long Count
         {
             get

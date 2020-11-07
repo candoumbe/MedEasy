@@ -37,7 +37,6 @@ namespace Agenda.Mapping
 
             cfg.CreateMap<NewAppointmentModel, NewAppointmentInfo>()
                .ReverseMap();
-            
 
             cfg.CreateMap<AppointmentAttendee, AttendeeInfo>()
                 .ForMember(dto => dto.Id, opt => opt.MapFrom(entity => entity.Attendee.Id))
@@ -48,14 +47,19 @@ namespace Agenda.Mapping
                 .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.Attendee.CreatedDate))
                 ;
 
-
             cfg.CreateMap<Appointment, AppointmentInfo>()
+                .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
+                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
                 .ForMember(dto => dto.Attendees, opt => opt.MapFrom(entity => entity.Attendees));
 
             cfg.CreateMap<AppointmentModel, AppointmentInfo>()
                 .ReverseMap();
 
             cfg.CreateMap<Attendee, AttendeeInfo>()
+                .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
+                .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
+                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
                 .ReverseMap()
                 .ConstructUsing(dto => new Attendee(dto.Id, dto.Name, dto.Email, dto.PhoneNumber))
                 ;

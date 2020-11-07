@@ -1,8 +1,7 @@
-﻿using MedEasy.RestObjects;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
 
 namespace Measures.DTO
 {

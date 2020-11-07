@@ -1,8 +1,10 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.DTO;
+
 using MedEasy.Abstractions;
-using MediatR;
+
 using Microsoft.IdentityModel.Tokens;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;

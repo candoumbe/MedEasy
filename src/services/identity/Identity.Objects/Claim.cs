@@ -1,8 +1,4 @@
-﻿using MedEasy.Objects;
-using System;
-using System.Collections.Generic;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
     public class Claim
     {

@@ -1,12 +1,8 @@
 ﻿using FluentValidation;
+
 using Measures.DTO;
+
 using MedEasy.Validators.Validators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using static FluentValidation.Severity;
 
 namespace Measures.Validators.Queries.BloodPressures
 {

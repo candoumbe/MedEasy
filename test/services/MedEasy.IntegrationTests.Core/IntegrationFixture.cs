@@ -44,24 +44,24 @@ namespace MedEasy.IntegrationTests.Core
         {
             return WithWebHostBuilder(builder =>
             {
-
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddControllers(opts =>
                     {
-                        var authorizeFilters = opts.Filters.OfType<AuthorizeFilter>().ToArray();
+                        AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
+                                                                         .ToArray();
+
                         foreach (IFilterMetadata item in authorizeFilters)
                         {
                             opts.Filters.Remove(item);
-
                         }
                     });
                     //services.AddTransient<IAuthorizationHandler, DummyAuthorizationHandler>();
                     services.AddTransient<DummyClaimsProvider>((_) => new DummyClaimsProvider(Scheme, claims))
                             .AddAuthorization(opts =>
                             {
-                                opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme)
-                                                    .RequireAuthenticatedUser().Build());
+                                opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
+                                                                                             .Build());
                             })
                             .AddAuthentication(Scheme)
                             .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });

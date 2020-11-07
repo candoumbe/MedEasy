@@ -1,5 +1,8 @@
 ﻿using FluentAssertions;
 using MedEasy.Attributes;
+
+using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -73,7 +76,7 @@ namespace MedEasy.AttributesUnitTests
         [MemberData(nameof(ValidateCases))]
         public void Validate(Type type, object value, bool expectedResult, string reason)
         {
-            _outputHelper.WriteLine($"Parameters : {new {type, value, expectedResult }.Jsonify()}");
+            _outputHelper.WriteLine($"Parameters : {JsonConvert.SerializeObject(new {type, value, expectedResult })}");
 
             // Assert
             _sut.IsValid(value).Should()
