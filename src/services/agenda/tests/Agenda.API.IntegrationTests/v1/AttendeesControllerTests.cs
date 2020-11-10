@@ -29,6 +29,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
+using Newtonsoft.Json.Serialization;
 
 namespace Agenda.API.IntegrationTests.v1
 {

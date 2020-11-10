@@ -1,5 +1,4 @@
-﻿#endif
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Forms;
 
@@ -9,7 +8,6 @@ namespace MedEasy.RestObjects
     /// A wrapper of a <typeparamref name="T"/> resource with its current <see cref="Links"/>
     /// </summary>
     /// <typeparam name="T">Type of the resource that will be wrapped</typeparam>
-#endif
     public class Browsable<T>
     {
         private IEnumerable<Link> _links;
@@ -17,7 +15,6 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Location of the resource. Can be cached for further operations
         /// </summary>
-#endif
         public IEnumerable<Link> Links
         {
             get => _links ?? Enumerable.Empty<Link>();
