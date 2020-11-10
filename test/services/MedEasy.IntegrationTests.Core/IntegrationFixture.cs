@@ -34,7 +34,6 @@ namespace MedEasy.IntegrationTests.Core
         /// This method removes all <see cref="AuthorizeFilter"/>s and replace it with a <see cref="DummyAuthenticationHandler"/> that succeeds only if 
         /// <list type="bullet">
         ///     <item><paramref name="claims"/> is not empty and contains at least one non null value</item>
-        ///     <item><paramref name="claims"/> is not empty and contains at least one non null value</item>
         /// </list>
         /// </para>
         /// </summary>

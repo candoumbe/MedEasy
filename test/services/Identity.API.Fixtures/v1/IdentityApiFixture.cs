@@ -1,11 +1,15 @@
 using Identity.API.Features.v1.Accounts;
 using Identity.DTO;
 using Identity.DTO.v1;
+
 using MedEasy.IntegrationTests.Core;
+
 using System;
-using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
+
 using static Newtonsoft.Json.JsonConvert;
 
 
@@ -32,15 +36,13 @@ namespace Identity.API.Fixtures.v1
             using HttpClient client = CreateClient();
             string uri = $"/v1/{AccountsController.EndpointName}";
 
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount)
+            using HttpResponseMessage response = await client.PostAsync(uri, new StringContent(newAccount.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                 .ConfigureAwait(false);
 
             string responseContent = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-            Debug.WriteLine($"Response : {responseContent}");
+                                                   .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            response.Dispose();
 
             // Get Token
             return await Connect(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
@@ -57,13 +59,13 @@ namespace Identity.API.Fixtures.v1
             using HttpClient client = CreateClient();
             const string uri = "/v1/auth/token";
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.PostAsync(uri, new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                                             .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 
             string tokenJson = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+                                             .ConfigureAwait(false);
 
             return DeserializeObject<BearerTokenInfo>(tokenJson);
         }

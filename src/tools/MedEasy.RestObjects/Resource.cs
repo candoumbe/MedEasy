@@ -1,6 +1,8 @@
 ﻿using System;
 #if NETSTANDARD1_1
 using Newtonsoft.Json;
+#else
+using System.Text.Json.Serialization;
 #endif
 namespace MedEasy.RestObjects
 {

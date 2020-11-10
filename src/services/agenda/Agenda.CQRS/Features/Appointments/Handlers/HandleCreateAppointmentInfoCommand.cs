@@ -27,20 +27,19 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
         public async Task<AppointmentInfo> Handle(CreateAppointmentInfoCommand request, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Appointment appointment = _mapper.Map<NewAppointmentInfo, Appointment>(request.Data);
-                foreach (AttendeeInfo participantInfo in request.Data.Attendees)
-                {
-                    Attendee participant = _mapper.Map<AttendeeInfo, Attendee>(participantInfo);
-                    appointment.AddAttendee(participant);
-                }
-                uow.Repository<Appointment>().Create(appointment);
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                return _mapper.Map<Appointment, AppointmentInfo>(appointment);
+            Appointment appointment = _mapper.Map<NewAppointmentInfo, Appointment>(request.Data);
+            foreach (AttendeeInfo participantInfo in request.Data.Attendees)
+            {
+                Attendee participant = _mapper.Map<AttendeeInfo, Attendee>(participantInfo);
+                appointment.AddAttendee(participant);
             }
+            uow.Repository<Appointment>().Create(appointment);
+            await uow.SaveChangesAsync()
+                .ConfigureAwait(false);
+
+            return _mapper.Map<Appointment, AppointmentInfo>(appointment);
         }
     }
 }

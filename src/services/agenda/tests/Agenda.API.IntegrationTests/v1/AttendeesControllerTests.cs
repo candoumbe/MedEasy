@@ -29,6 +29,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
+using Newtonsoft.Json.Serialization;
 
 namespace Agenda.API.IntegrationTests.v1
 {
@@ -40,8 +41,8 @@ namespace Agenda.API.IntegrationTests.v1
         private readonly IntegrationFixture<Startup> _server;
         private readonly DummyClaimsProvider _claimsProvider;
         private ITestOutputHelper _outputHelper;
-        private const string _rootEndpointUrl = "/v1";
-        private const string _endpointUrl = _rootEndpointUrl + "/attendees";
+        private const string _version = "/v1";
+        private const string _endpointUrl = _version + "/attendees";
 
         private static readonly JSchema _errorObjectSchema = new JSchema
         {
@@ -265,8 +266,13 @@ namespace Agenda.API.IntegrationTests.v1
                 {
                     IEnumerable<AttendeeModel> participants = new[]
                     {
-                        new AttendeeModel {Name = "Ed Nygma"},
-                        new AttendeeModel {Name = "Oswald Coblepot"}
+                        new AttendeeModel {
+                            Id = Guid.NewGuid(),
+                            Name = "Ed Nygma"
+                        },
+                        new AttendeeModel {
+                            Id = Guid.NewGuid(),
+                            Name = "Oswald Coblepot"}
                     };
 
                     yield return new object[]
@@ -300,16 +306,19 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-
+            string requestUri = $"{_version}/{AppointmentsController.EndpointName}";
             await newAppointments.ForEachAsync(async (newParticipant) =>
                                                {
-                                                   using HttpResponseMessage createdResponse = await client.PostAsync($"agenda/{AppointmentsController.EndpointName}",
-                                                                                                                   new StringContent(SerializeObject(newParticipant),
-                                                                                                                                       Encoding.UTF8,
-                                                                                                                                       Application.Json))
+                                                   string jsonParticipant = newParticipant.Jsonify();
+                                                   _outputHelper.WriteLine($"{nameof(jsonParticipant)} : {jsonParticipant}");
+                                                   using HttpResponseMessage createdResponse = await client.PostAsync(requestUri,
+                                                                                                                      new StringContent(jsonParticipant,
+                                                                                                                                        Encoding.UTF8,
+                                                                                                                                        Application.Json))
                                                                                                            .ConfigureAwait(false);
 
                                                    _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
+                                                   _outputHelper.WriteLine($"Created participant response : {await createdResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}");
                                                })
                                                .ConfigureAwait(false);
 
@@ -341,7 +350,7 @@ namespace Agenda.API.IntegrationTests.v1
             IEnumerable<string> countHeaderValues = response.Headers.GetValues(AddCountHeadersFilterAttribute.CountHeaderName);
             countHeaderValues.Should()
                              .HaveCount(1).And
-                            .ContainSingle(val => val == expectedCountHeaders.count.ToString());
+                             .ContainSingle(val => val == expectedCountHeaders.count.ToString());
         }
     }
 }
