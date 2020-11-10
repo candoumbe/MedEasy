@@ -23,6 +23,8 @@ using Bogus;
 using Identity.DTO.v1;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Fixtures.v1;
+using System.Text;
+using System.Net.Mime;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
@@ -80,7 +82,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             _outputHelper.WriteLine($"Address : {httpClient.BaseAddress}");
 
             // Act
-            using HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount)
+            using HttpResponseMessage response = await httpClient.PostAsync($"{_endpointUrl}/{AccountsController.EndpointName}", new StringContent(newAccount.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                                  .ConfigureAwait(false);
 
             // Assert

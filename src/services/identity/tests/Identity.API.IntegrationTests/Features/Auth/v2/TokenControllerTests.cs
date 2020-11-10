@@ -1,24 +1,32 @@
 ﻿using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Identity.API.Features.Accounts;
+
 using Identity.API.Fixtures.v1;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v2;
+
 using MedEasy.RestObjects;
+
 using Microsoft.IdentityModel.Tokens;
+
 using Newtonsoft.Json.Linq;
+
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
 
@@ -55,7 +63,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
 
             using (HttpClient client = _identityApiFixture.CreateClient())
             {
-                await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
+                await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                         .ConfigureAwait(false);
 
                 LoginInfo loginInfo = new LoginInfo
@@ -64,7 +72,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                     Password = newAccountInfo.Password
                 };
 
-                HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+                HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -127,7 +135,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
+            await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                         .ConfigureAwait(false);
 
             LoginInfo loginInfo = new LoginInfo
@@ -137,7 +145,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+            HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                 .ConfigureAwait(false);
 
             // Assert
@@ -183,7 +191,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
 
             using (HttpClient client = _identityApiFixture.CreateClient())
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
+                HttpResponseMessage response = await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
@@ -195,7 +203,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                     Password = newAccountInfo.Password
                 };
 
-                response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+                response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                     .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -224,7 +232,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
                 RefreshAccessTokenInfo refreshAccessTokenInfo = new RefreshAccessTokenInfo { AccessToken = tokenInfo.AccessToken.Token, RefreshToken = tokenInfo.RefreshToken.Token };
-                refreshTokenRequest.Content = new ObjectContent<RefreshAccessTokenInfo>(refreshAccessTokenInfo, new JsonMediaTypeFormatter(), "application/json");
+                refreshTokenRequest.Content = new StringContent(refreshAccessTokenInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json);
 
                 // Act
                 response = await client.SendAsync(refreshTokenRequest)

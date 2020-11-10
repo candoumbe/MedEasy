@@ -22,6 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -29,7 +32,6 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 
 namespace Measures.API.IntegrationTests.v1
@@ -345,7 +347,7 @@ namespace Measures.API.IntegrationTests.v1
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
+            HttpResponseMessage response = await client.PostAsync(_baseUrl, new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                        .ConfigureAwait(false);
 
             string json = await response.Content.ReadAsStringAsync()
@@ -355,7 +357,7 @@ namespace Measures.API.IntegrationTests.v1
             response.IsSuccessStatusCode.Should()
                                         .BeTrue("Creating the resource should succeed");
 
-            string patientId = JToken.Parse(json).ToObject<Browsable<PatientInfo>>().Resource.Id.ToString();
+            Guid patientId = JToken.Parse(json).ToObject<Browsable<PatientInfo>>().Resource.Id;
 
             NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
             {
@@ -389,8 +391,8 @@ namespace Measures.API.IntegrationTests.v1
             // Act
             string requestUri = $"{_baseUrl}/{patientId}/bloodpressures";
             _outputHelper.WriteLine($"Endpoint : {requestUri}");
-            response = await client.PostAsJsonAsync(requestUri, resourceToCreate)
-                .ConfigureAwait(false);
+            response = await client.PostAsync(requestUri, new StringContent(resourceToCreate.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                   .ConfigureAwait(false);
             _outputHelper.WriteLine($"HTTP create bloodpressure for patient <{patientId}> status code : {response.StatusCode}");
             _outputHelper.WriteLine($"Response content: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
@@ -410,8 +412,8 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Location of the resource : <{location}>");
             location.Should().NotBeNull();
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
-            HttpRequestMessage headMessage = new HttpRequestMessage(Head, location);
-            HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
+            using HttpRequestMessage headMessage = new HttpRequestMessage(Head, location);
+            using HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
                 .ConfigureAwait(false);
 
             checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
@@ -471,18 +473,17 @@ namespace Measures.API.IntegrationTests.v1
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatientInfo)
-                .ConfigureAwait(false);
+            HttpResponseMessage response = await client.PostAsync(_baseUrl, new StringContent(newPatientInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                                             .ConfigureAwait(false);
 
             string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            PatientInfo patientInfo = DeserializeObject<PatientInfo>(json);
+                                                .ConfigureAwait(false);
+            PatientInfo patientInfo = JsonSerializer.Deserialize<PatientInfo>(json);
 
             // Act
             _outputHelper.WriteLine($"Invalid resource : {invalidResource}");
-            response = await client.PostAsJsonAsync($"{_baseUrl}/{patientInfo.Id}/bloodpressures", invalidResource)
-                .ConfigureAwait(false);
+            response = await client.PostAsync($"{_baseUrl}/{patientInfo.Id}/bloodpressures", new StringContent(invalidResource.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                   .ConfigureAwait(false);
 
             // Assert
 
@@ -500,7 +501,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Response content : {content}");
 
             JToken.Parse(content).IsValid(_errorObjectSchema)
-                .Should().BeTrue("Validation errors");
+                    .Should().BeTrue("Validation errors");
         }
 
         [Fact]
@@ -527,7 +528,7 @@ namespace Measures.API.IntegrationTests.v1
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
+            HttpResponseMessage response = await client.PostAsync(_baseUrl, new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");

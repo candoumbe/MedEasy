@@ -22,7 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -351,7 +353,7 @@ namespace Agenda.API.IntegrationTests.v1
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment)
+            HttpResponseMessage response = await client.PostAsync(_endpointUrl, new StringContent(newAppointment.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                              .ConfigureAwait(false);
 
             // Assert
@@ -416,7 +418,7 @@ namespace Agenda.API.IntegrationTests.v1
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel)
+            HttpResponseMessage response = await client.PostAsync(_endpointUrl, new StringContent(newAppointmentModel.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");

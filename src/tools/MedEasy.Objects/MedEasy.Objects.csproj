@@ -4,9 +4,6 @@
     <TargetFramework>netstandard1.0</TargetFramework>
     <AssemblyName>MedEasy.Objects</AssemblyName>
     <PackageId>MedEasy.Objects</PackageId>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 

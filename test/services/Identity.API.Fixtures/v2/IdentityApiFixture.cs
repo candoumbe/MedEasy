@@ -1,11 +1,15 @@
 using Identity.API.Features.v1.Accounts;
 using Identity.DTO;
 using Identity.DTO.v2;
+
 using MedEasy.IntegrationTests.Core;
+
 using System;
-using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
+
 using static Newtonsoft.Json.JsonConvert;
 
 
@@ -30,14 +34,13 @@ namespace Identity.API.Fixtures.v2
             using HttpClient client = CreateClient();
             string uri = $"/v1/{AccountsController.EndpointName}";
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.PostAsync(uri, new StringContent(newAccount.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                                             .ConfigureAwait(false);
 
             string responseContent = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            response.Dispose();
 
             // Get Token
             return await LogIn(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
@@ -54,7 +57,7 @@ namespace Identity.API.Fixtures.v2
             using HttpClient client = CreateClient();
             const string uri = "/v2/auth/token";
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo)
+            HttpResponseMessage response = await client.PostAsync(uri, new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                 .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();

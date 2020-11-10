@@ -24,6 +24,8 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
+using System.Text;
+using System.Net.Mime;
 
 namespace Patients.API.IntegrationTests
 {
@@ -346,7 +348,7 @@ namespace Patients.API.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient)
+            HttpResponseMessage response = await client.PostAsync("/patients", new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
@@ -370,7 +372,6 @@ namespace Patients.API.IntegrationTests
             checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
         }
 
-        
         [Fact]
         public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
         {
@@ -399,42 +400,38 @@ namespace Patients.API.IntegrationTests
                 Password = newAccountInfo.Password
             };
 
-            using (HttpClient client = _server.CreateClient())
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+
+            HttpResponseMessage response = await client.PostAsync("/patients", new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                                                       .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+            _outputHelper.WriteLine($"json : {json}");
+            IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
+            IEnumerable<Link> linksToGetData = patientLinks.Where(x => x.Method == "GET");
+
+            using HttpClient client2 = _server.CreateClient();
+            foreach (Link link in linksToGetData)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
-
-                HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient)
-                    .ConfigureAwait(false);
-
-                _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
-
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
-                _outputHelper.WriteLine($"json : {json}");
-                IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
-                IEnumerable<Link> linksToGetData = patientLinks.Where(x => x.Method == "GET");
-
-                using (HttpClient client2 = _server.CreateClient())
+                HttpRequestMessage headRequestMessage = new HttpRequestMessage
                 {
-                    foreach (Link link in linksToGetData)
-                    {
-                        HttpRequestMessage headRequestMessage = new HttpRequestMessage
-                        {
-                            Method = Head,
-                            RequestUri = new Uri(link.Href)
-                        };
-                        headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+                    Method = Head,
+                    RequestUri = new Uri(link.Href)
+                };
+                headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
-                        // Act
-                        response = await client2.SendAsync(headRequestMessage)
-                            .ConfigureAwait(false);
+                // Act
+                response = await client2.SendAsync(headRequestMessage)
+                                        .ConfigureAwait(false);
 
-                        // Assert
-                        _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
-                        response.IsSuccessStatusCode.Should()
-                            .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");
-                    }
-                }
+                // Assert
+                _outputHelper.WriteLine($"HTTP HEAD <{link.Href}> status code : <{response.StatusCode}>");
+                response.IsSuccessStatusCode.Should()
+                    .BeTrue($"<{link.Href}> should be accessible as it was returned as part of the response after creating patient resource");
             }
         }
     }

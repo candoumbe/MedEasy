@@ -73,7 +73,7 @@ namespace Agenda.API.Resources.v1
         {
             NewAppointmentInfo info = _mapper.Map<NewAppointmentInfo>(newAppointment);
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(info), ct)
-                .ConfigureAwait(false);
+                                                         .ConfigureAwait(false);
             string version = _apiVersion.ToString();
             IEnumerable<AttendeeInfo> participants = newResource.Attendees;
             IEnumerable<Link> links = new List<Link>(1 + participants.Count())
@@ -94,7 +94,6 @@ namespace Agenda.API.Resources.v1
             })
             )
 #if DEBUG
-
             .ToArray()
 #endif
             ;
