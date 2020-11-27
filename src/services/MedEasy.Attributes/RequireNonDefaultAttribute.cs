@@ -19,22 +19,6 @@ namespace MedEasy.Attributes
         /// <summary>
         /// List of all types that can be directly converted to their string representation
         /// </summary>
-        private readonly static Type[] _primitiveTypes =
-        {
-            typeof(string),
-
-            typeof(int),
-            typeof(long),
-            typeof(short),
-            typeof(decimal),
-            typeof(float),
-
-            typeof(DateTime), typeof(DateTime?),
-            typeof(DateTimeOffset), typeof(DateTimeOffset?),
-            typeof(Guid), typeof(Guid?),
-            typeof(bool), typeof(bool?)
-        };
-
         /// <inheritdoc/>
         public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must have a non default value";
 

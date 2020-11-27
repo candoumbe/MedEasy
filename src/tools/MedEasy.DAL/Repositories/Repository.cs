@@ -72,7 +72,7 @@ namespace MedEasy.DAL.Repositories
                         .ToArrayAsync(ct)
                         .ConfigureAwait(false);
 
-                pageResult = new Page<TResult>(results, total , pageSize);
+                pageResult = new Page<TResult>(results, total, pageSize);
             }
             else
             {
@@ -174,10 +174,8 @@ namespace MedEasy.DAL.Repositories
             }
             else
             {
-                IEnumerable<TEntry> result = await query.ToListAsync(ct)
-                    .ConfigureAwait(false);
-                int total = await CountAsync(predicate, ct)
-                    .ConfigureAwait(false);
+                IEnumerable<TEntry> result = await query.ToListAsync(ct).ConfigureAwait(false);
+                int total = await CountAsync(predicate, ct).ConfigureAwait(false);
                 pagedResult = new Page<TEntry>(result, total, pageSize);
             }
 

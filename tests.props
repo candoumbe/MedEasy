@@ -16,7 +16,8 @@
     <PackageReference Include="Bogus" Version="23.0.2" />
     <PackageReference Include="Moq" Version="4.*" />
     <PackageReference Include="AutoFixture.AutoFakeItEasy" Version="4.*"/>
-    <PackageReference Include="coverlet.collector" Version="1.2.1">
+    <PackageReference Include="Utilities" Version="2019.*" />
+    <PackageReference Include="coverlet.msbuild" Version="2.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

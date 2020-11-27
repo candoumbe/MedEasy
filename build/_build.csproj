@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <NoWarn>CS0649;CS0169</NoWarn>
     <NukeRootDirectory>..</NukeRootDirectory>
@@ -10,8 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="0.25.0" />
-    <PackageReference Include="Utilities" Version="1.0.0-CI-20201010-143709" />
+    <PackageReference Include="Nuke.Common" Version="5.0.0" />
+    <PackageReference Include="Utilities" Version="2019.*" />
+    <PackageReference Include="ReportGenerator" Version="4.8.*" />
+    <PackageReference Include="GitVersion.CommandLine" Version="5.5.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

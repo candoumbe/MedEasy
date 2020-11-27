@@ -28,6 +28,6 @@ namespace Agenda.CQRS.Features.Participants.Queries
         public bool Equals(GetOneAttendeeInfoByIdQuery other) => other != null
                 && (ReferenceEquals(this, other) || Equals(Data, other.Data));
 
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode() => Data.GetHashCode();
     }
 }

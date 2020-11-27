@@ -24,7 +24,7 @@ namespace Agenda.Validators
         /// <param name="unitOfWorkFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         public PatchAppointmentInfoValidator(IDateTimeService datetimeService, IUnitOfWorkFactory unitOfWorkFactory)
         {
-            bool IsFieldOperation(Operation op, string path) => string.Compare(path, op.path, ignoreCase: true) == 0;
+            static bool IsFieldOperation(Operation op, string path) => string.Compare(path, op.path, ignoreCase: true) == 0;
 
             if (unitOfWorkFactory == null)
             {
@@ -74,34 +74,26 @@ namespace Agenda.Validators
                                 }
                                 else
                                 {
-                                    using (IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork())
+                                    using IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork();
+                                    if (replaceStartDate != default && replaceStartDate.value is DateTimeOffset newStartDate)
                                     {
-                                        if (replaceStartDate != default && replaceStartDate.value is DateTimeOffset newStartDate)
-                                        {
-                                            valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.Id == context.Id && x.EndDate <= newStartDate, cancellationToken)
-                                                .ConfigureAwait(false);
-                                        }
-                                        else if (replaceEndDate.value is DateTimeOffset newEndDate)
-                                        {
-                                            valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.Id == context.Id && x.StartDate >= newEndDate, cancellationToken)
-                                                .ConfigureAwait(false);
-                                        }
+                                        valid = !await uow.Repository<Appointment>()
+                                            .AnyAsync(x => x.Id == context.Id && x.EndDate <= newStartDate, cancellationToken)
+                                            .ConfigureAwait(false);
+                                    }
+                                    else if (replaceEndDate.value is DateTimeOffset newEndDate)
+                                    {
+                                        valid = !await uow.Repository<Appointment>()
+                                            .AnyAsync(x => x.Id == context.Id && x.StartDate >= newEndDate, cancellationToken)
+                                            .ConfigureAwait(false);
                                     }
                                 }
-
                             }
 
                             return valid;
                         })
                         .WithMessage($"{nameof(AppointmentInfo.StartDate)} cannot be greater than {nameof(AppointmentInfo.EndDate)}");
-
                 });
-
-
-
-
         }
     }
 }

@@ -12,7 +12,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Datafilters.Expressions" Version="1.0.0-*" />
+    <PackageReference Include="Datafilters.Expressions" Version="0.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.*" />
     <PackageReference Include="Optional" Version="4.*" />
   </ItemGroup>

@@ -31,7 +31,6 @@ namespace MedEasy.DTO.Search
         /// </summary>
         public IFilter Filter { get; set; }
 
-
         public override string ToString() => this.Jsonify();
     }
 }

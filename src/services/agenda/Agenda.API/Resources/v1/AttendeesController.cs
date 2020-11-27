@@ -46,7 +46,7 @@ namespace Agenda.API.Resources.v1
 
         /// <summary>
         /// Name of the endpoint
-        /// </summary>²
+        /// </summary>ï¿½
         public static string EndpointName => nameof(AttendeesController).Replace("Controller", string.Empty);
 
         public AttendeesController(LinkGenerator urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper, ApiVersion apiVersion)
@@ -97,15 +97,28 @@ namespace Agenda.API.Resources.v1
                     {
                         Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = 1, pageSize, version }),
                         Method = "GET",
+                        Relation = First
                     },
                     Previous = result.Count > 2 && page > 1
-                    ? new Link { Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page - 1, pageSize, version }) }
-                    : null,
+                        ? new Link
+                        {
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page - 1, pageSize, version }),
+                            Relation = Previous
+                        }
+                        : null,
                     Next = page < result.Count
-                    ? new Link { Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page + 1, pageSize, version }) }
+                    ? new Link
+                    {
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page + 1, pageSize, version }),
+                        Relation = Next
+                    }
                     : null,
 
-                    Last = new Link { Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = result.Count, pageSize, version }) }
+                    Last = new Link
+                    {
+                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = result.Count, pageSize, version }),
+                        Relation = Last
+                    }
                 },
                 Total = result.Total
             };
@@ -277,14 +290,22 @@ namespace Agenda.API.Resources.v1
                     }),
                     Links = new PageLinksModel
                     {
-                        First = new Link { Href = linkToFirstPage },
+                        First = new Link { Href = linkToFirstPage, Relation = First },
                         Previous = page.Count > 1 && search.Page > 1
-                        ? new Link { Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = search.Page - 1, search.PageSize, version }) }
-                        : null,
+                            ? new Link
+                            {
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = search.Page - 1, search.PageSize, version }),
+                                Relation = Previous
+                            }
+                            : null,
                         Next = search.Page < page.Count
-                        ? new Link { Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = search.Page + 1, search.PageSize, version }) }
-                        : null,
-                        Last = new Link { Href = linkToLastPage },
+                            ? new Link
+                            {
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.Name, search.Email, search.Sort, page = search.Page + 1, search.PageSize, version }),
+                                Relation = Next
+                            }
+                            : null,
+                        Last = new Link { Href = linkToLastPage, Relation = Last },
                     },
                     Total = page.Total
                 };

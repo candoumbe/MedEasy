@@ -259,17 +259,16 @@ namespace Agenda.API.UnitTests.Features
             Guid appointmentId = Guid.NewGuid();
 
             Appointment appointment = new Appointment(
-
                 id: appointmentId,
-                location : "Wayne Tower",
-                subject : "Confidential",
-                startDate : 12.July(2013).AddHours(14).AddMinutes(30),
-                endDate : 12.July(2013).AddHours(14).AddMinutes(45)
+                subject: "Confidential",
+                location: "Wayne Tower",
+                startDate: 12.July(2013).AddHours(14).AddMinutes(30),
+                endDate: 12.July(2013).AddHours(14).AddMinutes(45)
 
             );
 
-            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name:"Bruce Wayne"));
-            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name:"Dick Grayson"));
+            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne"));
+            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name: "Dick Grayson"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -378,9 +377,9 @@ namespace Agenda.API.UnitTests.Features
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(appointment => appointment.EndDate, (_, appointment) => appointment.StartDate.Add(11.Hours()))
-                        .CustomInstantiator(_  => new Appointment(
+                        .CustomInstantiator(_ => new Appointment(
                             id: Guid.NewGuid(),
-                            startDate: 10.January (2016).At(10.Hours()),
+                            startDate: 10.January(2016).At(10.Hours()),
                             endDate: 10.January(2016).At(10.Hours().And(30.Minutes())),
                             subject: string.Empty,
                             location: string.Empty
@@ -404,7 +403,7 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2015),
                         20,    //expected total
                         (
-                            first : (Expression<Func<Link, bool>>) (x => x != null 
+                            first : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
                                     && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
@@ -451,8 +450,8 @@ namespace Agenda.API.UnitTests.Features
                             id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(wordCount: 5),
                             location: faker.Address.City(),
-                            startDate : 10.January(2016).At(10.Hours()),
-                            endDate : 10.January(2016).At(11.Hours())))
+                            startDate: 10.January(2016).At(10.Hours()),
+                            endDate: 10.January(2016).At(11.Hours())))
                         .FinishWith((faker, appointment) =>
                         {
                             IEnumerable<Attendee> participants = participantFaker.Generate(faker.Random.Int(min: 1, max: 5));
@@ -488,11 +487,12 @@ namespace Agenda.API.UnitTests.Features
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Appointment> items, PaginationConfiguration request,
-            (int defaultPageSize, int maxPageSize) pagingOptions,
-            DateTimeOffset now,
-            int expectedCount,
-            (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
+        public async Task GetAll(IEnumerable<Appointment> items,
+                                 PaginationConfiguration request,
+                                 (int defaultPageSize, int maxPageSize) pagingOptions,
+                                 DateTimeOffset now,
+                                 int expectedCount,
+                                 (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(AppointmentsController.Get)}({nameof(PaginationConfiguration)})");
             _outputHelper.WriteLine($"{nameof(request)}.{nameof(PaginationConfiguration.PageSize)}: {request.PageSize}");

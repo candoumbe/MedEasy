@@ -26,7 +26,6 @@ namespace MedEasy.IntegrationTests.Core
                       //.UseContentRoot(".")
                       .UseEnvironment("IntegrationTest");
 
-
         /// <summary>
         /// Initializes a <see cref="HttpClient"/> instance that can be later used to call endpoints where authorization/authentication is required
         /// 

@@ -39,7 +39,6 @@ namespace Agenda.Models.v1.Appointments
         /// </summary>
         public IEnumerable<AttendeeModel> Attendees { get; set; }
 
-
         public NewAppointmentModel()
         {
             Attendees = Enumerable.Empty<AttendeeModel>();

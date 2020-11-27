@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Linq.Expressions" Version="4.3.0" />
-    <PackageReference Include="Utilities" Version="1.0.0-*" />
+    <PackageReference Include="Utilities" Version="2019.*" />
   </ItemGroup>
 
   <ItemGroup>

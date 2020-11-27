@@ -6,9 +6,9 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <PackageReference Include="Utilities" Version="1.0.0-*" />
+    <PackageReference Include="Utilities" Version="2019.*" />
     <PackageReference Include="Optional" Version="4.*" />
-    <PackageReference Include="Forms" Version="1.0.0-*" />
+    <PackageReference Include="Forms" Version="0.*" />
     
   </ItemGroup>
 

@@ -5,9 +5,6 @@
     <AssemblyName>MedEasy.RestObjects</AssemblyName>
     <PackageId>MedEasy.RestObjects</PackageId>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -18,8 +15,7 @@
     </PackageReference>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="Optional" Version="4.*" />
-    <PackageReference Include="Utilities" Version="1.0.0-*" />
-    <PackageReference Include="Forms" Version="1.0.0-*" />
+    <PackageReference Include="Forms" Version="0.*" />
   
   </ItemGroup>
 

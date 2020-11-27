@@ -106,7 +106,7 @@ namespace Agenda.API.UnitTests.Resources.v1
             _mapperMock.Setup(mock => mock.Map<SearchAttendeeInfo>(It.IsAny<SearchAttendeeModel>()))
                 .Returns((SearchAttendeeModel input) => mapper.Map<SearchAttendeeInfo>(input));
 
-            
+
             _sut = new AttendeesController(urlHelper: _urlHelperMock.Object, mediator: _mediatorMock.Object, apiOptions: _apiOptionsMock.Object,
                     _mapperMock.Object, apiVersion
                 );
@@ -216,10 +216,11 @@ namespace Agenda.API.UnitTests.Resources.v1
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Attendee> items, (int pageSize, int page) request,
-            (int defaultPageSize, int maxPageSize) pagingOptions,
-            int expectedCount,
-            (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
+        public async Task GetAll(IEnumerable<Attendee> items,
+                                 (int pageSize, int page) request,
+                                 (int defaultPageSize, int maxPageSize) pagingOptions,
+                                 int expectedCount,
+                                 (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(AttendeesController.Get)}({nameof(PaginationConfiguration)})");
             _outputHelper.WriteLine($"{nameof(request)}{nameof(request.pageSize)}: {request.pageSize}");
@@ -269,9 +270,9 @@ namespace Agenda.API.UnitTests.Resources.v1
             if (response.Items.Any())
             {
                 response.Items.Should()
-                    .NotContainNulls().And
-                    .OnlyContain(x => x.Resource != null, "resource must not be null").And
-                    .OnlyContain(x => x.Links.Once(link => link.Relation == Self), "links must contain one self relation");
+                              .NotContainNulls().And
+                              .OnlyContain(x => x.Resource != null, "resource must not be null").And
+                              .OnlyContain(x => x.Links.Once(link => link.Relation == Self), "links must contain one self relation");
             }
 
             response.Total.Should()
@@ -346,7 +347,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                 ;
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IRequest<Option<IEnumerable<AppointmentInfo>>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.Some(appointmentInfo.GenerateLazy(count : 10)));
+                .ReturnsAsync(Option.Some(appointmentInfo.GenerateLazy(count: 10)));
 
             // Act
             ActionResult<IEnumerable<Browsable<AppointmentModel>>> actionResult = await _sut.Planning(id: attendeeId, from: 1.January(2019), to: 31.January(2019), ct: default)
@@ -494,10 +495,11 @@ namespace Agenda.API.UnitTests.Resources.v1
 
         [Theory]
         [MemberData(nameof(SearchCases))]
-        public async Task Search(Page<AttendeeInfo> page, SearchAttendeeModel request,
-            (int defaultPageSize, int maxPageSize) pagingOptions,
-            int expectedCount,
-            (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
+        public async Task Search(Page<AttendeeInfo> page,
+                                 SearchAttendeeModel request,
+                                 (int defaultPageSize, int maxPageSize) pagingOptions,
+                                 int expectedCount,
+                                 (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) linksExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(AttendeesController)}({nameof(AttendeesController.Search)})");
             _outputHelper.WriteLine($"{nameof(request)} : {request.Jsonify()}");
@@ -572,7 +574,7 @@ namespace Agenda.API.UnitTests.Resources.v1
 
         [Theory]
         [MemberData(nameof(SearchReturnsNotFoundCases))]
-        public async Task Search_Returns_NotFound_When_PageIndex_Exceed_PageCount(Page<AttendeeInfo> page, (int defaultPageSize, int maxPageSize) pagingOptions, SearchAttendeeModel query,  Expression<Func<PageLinks, bool>> resultExpectation, string reason)
+        public async Task Search_Returns_NotFound_When_PageIndex_Exceed_PageCount(Page<AttendeeInfo> page, (int defaultPageSize, int maxPageSize) pagingOptions, SearchAttendeeModel query, Expression<Func<PageLinks, bool>> resultExpectation, string reason)
         {
             // Arrange
 

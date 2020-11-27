@@ -8,30 +8,50 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.GitVersion;
+using Nuke.Common.Tools.ReportGenerator;
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
-using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Logger;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using System;
-using System.IO;
+using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+
+
+
+[AzurePipelines(
+    suffix: "pull-request",
+    AzurePipelinesImage.WindowsLatest,
+    InvokedTargets = new[] { nameof(Tests) },
+    NonEntryTargets = new[] { nameof(Restore) },
+    ExcludedTargets = new[] { nameof(Clean) },
+    PullRequestsAutoCancel = true,
+    PullRequestsBranchesInclude = new[] { "main" },
+    TriggerBranchesInclude = new[] {
+        "feature/*",
+        "fix/*"
+    },
+    TriggerPathsExclude = new[]
+    {
+        "docs/*",
+        "README.md"
+    }
+)]
 
 [AzurePipelines(
     AzurePipelinesImage.UbuntuLatest,
     AzurePipelinesImage.WindowsLatest,
-    InvokedTargets = new[] {nameof(UnitTests), nameof(IntegrationTests)},
-    NonEntryTargets = new [] {nameof(Restore) },
-    ExcludedTargets = new [] {nameof(Clean)},
+    InvokedTargets = new[] { nameof(Tests) },
+    NonEntryTargets = new[] { nameof(Restore) },
+    ExcludedTargets = new[] { nameof(Clean) },
     PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new[] { "main" },
     TriggerBranchesInclude = new[] {
-        "main",
-        "feature/*",
-        "fix/*"
+        "main"
     },
     TriggerPathsExclude = new[]
     {
@@ -56,6 +76,8 @@ public class Build : NukeBuild
 
     [CI] public readonly AzurePipelines AzurePipelines;
 
+    [GitVersion] public readonly GitVersion GitVersion;
+
     [Partition(10)] public readonly Partition TestPartition;
 
     public AbsolutePath SourceDirectory => RootDirectory / "src";
@@ -67,14 +89,20 @@ public class Build : NukeBuild
 
     public AbsolutePath TestResultDirectory => OutputDirectory / "tests-results";
 
+    public AbsolutePath ArtifactsDirectory => OutputDirectory / "artifacts";
+    public AbsolutePath CoverageReportHistoryDirectory => OutputDirectory / "coverage-history";
+
     private const string CsProjGlobFilesPattern = "**/*.csproj";
 
     public Target Clean => _ => _
         .Before(Restore)
-        .Executes(() => {
+        .Executes(() =>
+        {
             SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
             TestDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
-            EnsureCleanDirectory(OutputDirectory);
+            EnsureCleanDirectory(CoverageReportDirectory);
+            EnsureCleanDirectory(TestResultDirectory);
+            EnsureCleanDirectory(ArtifactsDirectory);
         });
 
     public Target Restore => _ => _
@@ -85,7 +113,7 @@ public class Build : NukeBuild
                                                                 .Concat(TestDirectory.GlobFiles(CsProjGlobFilesPattern))
                                                                 .Where(path => !path.ToString().Like("*.SPA.csproj"));
 
-            Trace($"Projects : {string.Join(NewLine, projects)}");
+            Trace($"Projects : {string.Join("\n", projects)}");
 
             DotNetRestore(s => s
                 .SetConfigFile("nuget.config")
@@ -110,83 +138,105 @@ public class Build : NukeBuild
     public Target UnitTests => _ => _
         .DependsOn(Compile)
         .Description("Run unit tests and collect code")
-        .Partition(() => TestPartition)
-        .Produces(TestResultDirectory / "*.trx")
-        .Produces(TestResultDirectory / "*.xml")
+        .Produces(TestResultDirectory / "*-unit-tests.trx")
+        .Produces(TestResultDirectory / "*-unit-tests.xml")
+        .Produces(CoverageReportHistoryDirectory / "*.xml")
         .Executes(() =>
         {
-            Info("Start executing unit tests");
             IEnumerable<Project> projects = Solution.GetProjects("*.UnitTests");
             IEnumerable<Project> testsProjects = TestPartition.GetCurrent(projects);
 
+            testsProjects.ForEach(project => Info(project));
+
             DotNetTest(s => s
-                 .SetConfiguration(Configuration)
-                 .ResetVerbosity()
-                 .EnableCollectCoverage()
-                 .SetNoBuild(InvokedTargets.Contains(Compile))
-                 .SetResultsDirectory(TestResultDirectory)
-                 .When(IsServerBuild, _ => _
-                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
-                     .AddProperty("ExcludeByAttribute", "Obsolete")
-                     .EnableUseSourceLink()
-                 )
-                 .CombineWith(testsProjects, (cs, project) => cs.SetProjectFile(project)
+                .SetConfiguration(Configuration)
+                .EnableCollectCoverage()
+                .EnableUseSourceLink()
+                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .AddProperty("maxcpucount", "1")
+                .SetResultsDirectory(TestResultDirectory)
+                .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
+                .AddProperty("ExcludeByAttribute", "Obsolete")
+                .CombineWith(testsProjects, (cs, project) => cs.SetProjectFile(project)
                     .CombineWith(project.GetTargetFrameworks(), (setting, framework) => setting
                         .SetFramework(framework)
-                        .SetLogger($"trx;LogFileName={project.Name}-unit-test.{framework}.trx")
-                        .When(InvokedTargets.Contains(Coverage) || IsServerBuild, _ => _
-                            .SetCoverletOutput(TestResultDirectory / $"{project.Name}.{framework}.xml")))));
+                        .SetLogger($"trx;LogFileName={project.Name}-unit-tests.{framework}.trx")
+                        .SetCollectCoverage(true)
+                        .SetCoverletOutput(TestResultDirectory / $"{project.Name}-unit-tests.xml"))
+                    )
+            );
 
-            TestResultDirectory.GlobFiles("*-unit-test.*.trx").ForEach(testFileResult =>
-                AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
-                                                   title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
-                                                   files: new string[] { testFileResult }));
+            TestResultDirectory.GlobFiles("*-unit-tests.*.trx")
+                               .ForEach(testFileResult => AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
+                                                                                             title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
+                                                                                             files: new string[] { testFileResult })
+            );
+
         });
 
     public Target IntegrationTests => _ => _
         .DependsOn(Compile)
-        .Description("Run integration tests and collect code coverage")
+        .Description("Run integration tests and test results coverage")
         .Partition(() => TestPartition)
-        .Produces(TestResultDirectory / "*.trx")
-        .Produces(TestResultDirectory / "*.xml")
+        .Produces(TestResultDirectory / "*-integration-tests.trx")
+        .Produces(TestResultDirectory / "*-integration-tests.xml")
         .Executes(() =>
         {
             IEnumerable<Project> projects = Solution.GetProjects("*.IntegrationTests");
             IEnumerable<Project> testsProjects = TestPartition.GetCurrent(projects);
 
             DotNetTest(s => s
-                .SetConfiguration(Configuration)
-                .ResetVerbosity()
-                .EnableCollectCoverage()
-                .SetNoBuild(InvokedTargets.Contains(Compile))
-                .SetResultsDirectory(TestResultDirectory)
-                .When(IsServerBuild, _ => _.SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
-                                           .AddProperty("ExcludeByAttribute", "Obsolete")
-                                           .EnableUseSourceLink()
-                )
-                .CombineWith(testsProjects, (cs, project) => cs.SetProjectFile(project)
-                    .CombineWith(project.GetTargetFrameworks(), (setting, framework) => setting
-                        .SetFramework(framework)
-                        .SetLogger($"trx;LogFileName={project.Name}-integration.{framework}.trx")
-                        .When(InvokedTargets.Contains(Coverage) || IsServerBuild, _ => _
-                            .SetCoverletOutput(TestResultDirectory / $"{project.Name}.{framework}.xml")))));
+                 .SetConfiguration(Configuration)
+                 .EnableCollectCoverage()
+                 .EnableUseSourceLink()
+                 .SetNoBuild(InvokedTargets.Contains(Compile))
+                 .When(IsServerBuild, _ => _.AddProperty("maxcpucount", "1"))
+                 .SetResultsDirectory(TestResultDirectory)
+                 .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
+                 .AddProperty("ExcludeByAttribute", "Obsolete")
+                 .CombineWith(testsProjects, (cs, project) => cs.SetProjectFile(project)
+                     .CombineWith(project.GetTargetFrameworks(), (setting, framework) => setting
+                         .SetFramework(framework)
+                         .SetLogger($"trx;LogFileName={project.Name}-integration-tests.{framework}.trx")
+                         .SetCollectCoverage(true)
+                         .SetCoverletOutput(TestResultDirectory / $"{project.Name}-integration-tests.xml"))
+                     )
+             );
 
-            TestResultDirectory.GlobFiles("-integration.*.trx").ForEach(testFileResult =>
-                AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
-                                                   title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
-                                                   files: new string[] { testFileResult }));
+            TestResultDirectory.GlobFiles("*-integration-tests.*.trx")
+                               .ForEach(testFileResult => AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
+                                                                                             title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
+                                                                                             files: new string[] { testFileResult })
+            );
         });
 
     public Target Tests => _ => _
         .DependsOn(UnitTests, IntegrationTests)
+        .Triggers(Coverage)
         .Executes(() =>
         {
+
         });
 
     public Target Coverage => _ => _
-        .DependsOn(UnitTests, IntegrationTests)
+        .DependsOn(Tests)
+        .Consumes(Tests)
         .Executes(() =>
         {
+
+            // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
+            ReportGenerator(_ => _
+                .SetFramework("net5.0")
+                .SetReports(TestResultDirectory / "*.xml")
+                .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetHistoryDirectory(CoverageReportHistoryDirectory)
+            );
+
+            TestResultDirectory.GlobFiles("*.xml")
+                               .ForEach(file => AzurePipelines?.PublishCodeCoverage(coverageTool: AzurePipelinesCodeCoverageToolType.Cobertura,
+                                                                                    summaryFile: file,
+                                                                                    reportDirectory: CoverageReportDirectory));
         });
 
     public Target Publish => _ => _
@@ -194,10 +244,14 @@ public class Build : NukeBuild
         .Executes(() =>
         {
             DotNetPublish(s => s
-                .SetSelfContained(true)
+                .SetProject(Solution)
                 .SetNoBuild(InvokedTargets.Contains(Compile))
                 .SetNoRestore(InvokedTargets.Contains(Restore))
-                .SetOutput(OutputDirectory / "publish")
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.NuGetVersion)
+                .SetOutput(ArtifactsDirectory)
             );
         })
     ;

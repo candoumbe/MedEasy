@@ -13,6 +13,5 @@ namespace MedEasy.CQRS.Core.Commands
     public interface IDeleteByCommand<TKey, TBy> : ICommand<TKey, TBy>
         where TKey : IEquatable<TKey>
     {
-
     }
 }

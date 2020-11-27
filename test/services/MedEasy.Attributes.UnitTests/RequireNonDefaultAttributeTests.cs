@@ -76,7 +76,7 @@ namespace MedEasy.AttributesUnitTests
         [MemberData(nameof(ValidateCases))]
         public void Validate(Type type, object value, bool expected, string reason)
         {
-            _outputHelper.WriteLine($"Parameters : {new {type, value, expected }.Jsonify()}");
+            _outputHelper.WriteLine($"Parameters : {JsonConvert.SerializeObject(new { type, value, expected })}");
 
             // Act
             bool actual = _sut.IsValid(value);

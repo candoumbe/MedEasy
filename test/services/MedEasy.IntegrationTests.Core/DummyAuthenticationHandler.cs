@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace MedEasy.IntegrationTests.Core
 {
-
     /// <summary>
     /// A dummy <see cref="AuthenticationHandler{AuthenticationSchemeOptions}"/> that always succeed.
     /// <para>
@@ -41,13 +40,11 @@ namespace MedEasy.IntegrationTests.Core
         }
     }
 
-
     public class DummyClaimsProvider
     {
         public string Scheme { get; }
 
         public IEnumerable<Claim> Claims { get; }
-
 
         public DummyClaimsProvider(string scheme, IEnumerable<Claim> claims)
         {
@@ -55,7 +52,6 @@ namespace MedEasy.IntegrationTests.Core
             Claims = claims ?? throw new ArgumentNullException(nameof(claims));
         }
     }
-
 
     public class DummyAuthorizationHandler : IAuthorizationHandler
     {

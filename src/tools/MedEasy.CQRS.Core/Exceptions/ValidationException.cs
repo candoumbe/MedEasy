@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace MedEasy.CQRS.Core.Exceptions
 {
     /// <summary>
