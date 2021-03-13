@@ -33,7 +33,7 @@ namespace Identity.Validators.UnitTests
 {
     [UnitTest]
     [Feature("Accounts")]
-    public class NewAccountInfoValidatorTests : IAsyncDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class NewAccountInfoValidatorTests : IAsyncLifetime, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -56,21 +56,15 @@ namespace Identity.Validators.UnitTests
             _sut = new NewAccountInfoValidator(_uowFactory, _loggerMock.Object);
         }
 
-        public async ValueTask DisposeAsync()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
-            using (IUnitOfWork uow =_uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Account>().Clear();
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-            _uowFactory = null;
-            _outputHelper = null;
-            _loggerMock = null;
-            _sut = null;
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            uow.Repository<Account>().Clear();
+            await uow.SaveChangesAsync()
+                     .ConfigureAwait(false);
         }
-
-
 
         [Fact]
         public void IsNewAccountValidator() => typeof(NewAccountInfoValidator).Should()
@@ -80,7 +74,7 @@ namespace Identity.Validators.UnitTests
         {
             get
             {
-                
+                Faker faker = new();
                 yield return new object[]
                 {
                     Enumerable.Empty<Account>(),
@@ -97,7 +91,6 @@ namespace Identity.Validators.UnitTests
                 };
 
                 {
-                    Faker faker = new Faker();
                     Account account = new Account(id: Guid.NewGuid(),
                                                   username: faker.Person.UserName,
                                                   passwordHash: faker.Lorem.Word(),
@@ -122,8 +115,8 @@ namespace Identity.Validators.UnitTests
                         "An account with the same username already exists"
                     };
                 }
+
                 {
-                    Faker faker = new Faker();
                     Account account = new Account
                     (
                         username: "joker",
@@ -153,7 +146,6 @@ namespace Identity.Validators.UnitTests
                 }
 
                 {
-                    Faker faker = new Faker();
                     Account account = new Account
                     (
                         username: "joker",
@@ -162,7 +154,7 @@ namespace Identity.Validators.UnitTests
                         email: "joker@card-city.com",
                         id: Guid.NewGuid()
                     );
-                    
+
                     yield return new object[]
                     {
                         new[] {account},
@@ -194,8 +186,8 @@ namespace Identity.Validators.UnitTests
                             ConfirmPassword = "smile",
                             Username = "capedcrusader"
                         },
-                        (Expression<Func<ValidationResult, bool>>)(vr => !vr.Errors.Any()),
-                        $"Informations are ok"
+                        (Expression<Func<ValidationResult, bool>>)(vr => vr.Errors.Count == 0),
+                        "Informations are ok"
                     };
                 }
             }
@@ -221,6 +213,7 @@ namespace Identity.Validators.UnitTests
                 .ConfigureAwait(false);
 
             // Assert
+            _outputHelper.WriteLine($"Validation results : {vr.Jsonify()}");
             vr.Should()
                 .Match(validationResultExpectation, reason);
 

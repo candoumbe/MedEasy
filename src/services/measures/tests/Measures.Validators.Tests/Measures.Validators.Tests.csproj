@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\..\Measures.DTO\Measures.DTO.csproj" />
     <ProjectReference Include="..\..\Measures.Validators\Measures.Validators.csproj" />

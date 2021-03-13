@@ -27,12 +27,22 @@
   <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.*"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.*"/>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.*" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
     </ItemGroup>
   </When>
   <Otherwise>
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" Condition="'$(IsIntegrationTestProject)' == 'true'" />
     </ItemGroup>
   </Otherwise>
 </Choose>
+
+  <PropertyGroup>
+    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+    <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('IntegrationTests'))">true</IsIntegrationTestProject>
+  </PropertyGroup>
+
 </Project>
