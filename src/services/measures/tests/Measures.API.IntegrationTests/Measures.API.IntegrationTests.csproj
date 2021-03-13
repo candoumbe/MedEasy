@@ -2,12 +2,9 @@
 
   <Import Project="..\..\..\..\..\tests.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.*" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
