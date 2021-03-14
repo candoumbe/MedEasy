@@ -29,14 +29,14 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 
 [GitHubActions(
     "continuous",
-    GitHubActionsImage.UbuntuLatest,
+    GitHubActionsImage.WindowsLatest,
     OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
     OnPullRequestBranches = new[] { DevelopBranch },
     PublishArtifacts = false,
     InvokedTargets = new[] { nameof(IntegrationTests) })]
 [GitHubActions(
     "deployment",
-    GitHubActionsImage.UbuntuLatest,
+    GitHubActionsImage.WindowsLatest,
     OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
     InvokedTargets = new[] { nameof(Publish) },
     ImportGitHubTokenAs = nameof(GitHubToken),
