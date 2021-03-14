@@ -1,6 +1,7 @@
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
+using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
@@ -25,6 +26,26 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+
+[GitHubActions(
+    "continuous",
+    GitHubActionsImage.UbuntuLatest,
+    OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
+    OnPullRequestBranches = new[] { DevelopBranch },
+    PublishArtifacts = false,
+    InvokedTargets = new[] { nameof(IntegrationTests) })]
+[GitHubActions(
+    "deployment",
+    GitHubActionsImage.UbuntuLatest,
+    OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
+    InvokedTargets = new[] { nameof(Publish) },
+    ImportGitHubTokenAs = nameof(GitHubToken),
+    ImportSecrets =
+        new[]
+        {
+            nameof(NugetApiKey
+),
+        })]
 [AzurePipelines(
     suffix: "release",
     AzurePipelinesImage.WindowsLatest,
@@ -134,6 +155,9 @@ public class Build : NukeBuild
     [PathExecutable]
     public readonly Tool Tye;
 
+    [Parameter("Token required when publishing artifacts to GitHub")]
+    public readonly string GitHubToken;
+
     public Target Clean => _ => _
         .Before(Restore)
         .Executes(() =>
@@ -167,9 +191,6 @@ public class Build : NukeBuild
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
                 .SetProjectFile(Solution)
-                //.SetAssemblyVersion(GitVersion.AssemblySemVer)
-                //.SetFileVersion(GitVersion.AssemblySemFileVer)
-                //.SetInformationalVersion(GitVersion.InformationalVersion)
                 );
         });
 
@@ -497,6 +518,7 @@ public class Build : NukeBuild
 
     public Target TyeInstall => _ => _
         .Requires(() => IsLocalBuild)
+        .Description("Install/Updates Tye globally")
         .Executes(() =>
         {
             IReadOnlyCollection<Output> outputs = DotNet(arguments: "tool list -g");
@@ -520,7 +542,7 @@ public class Build : NukeBuild
         });
 
     public Target Run => _ => _
-        .Requires(() => IsLocalBuild) 
+        .Requires(() => IsLocalBuild)
         .Description("Run all services using Tye")
         .DependsOn(Compile, TyeInstall)
         .Executes(() =>
