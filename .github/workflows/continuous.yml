@@ -31,5 +31,5 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run './build.cmd IntegrationTests'
-        run: ./build.cmd IntegrationTests
+      - name: Run './build.cmd UnitTests IntegrationTests'
+        run: ./build.cmd UnitTests IntegrationTests

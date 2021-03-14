@@ -33,7 +33,8 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
     OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
     OnPullRequestBranches = new[] { DevelopBranch },
     PublishArtifacts = false,
-    InvokedTargets = new[] { nameof(IntegrationTests) })]
+    InvokedTargets = new[] { nameof(UnitTests), nameof(IntegrationTests) }
+)]
 [GitHubActions(
     "deployment",
     GitHubActionsImage.WindowsLatest,
