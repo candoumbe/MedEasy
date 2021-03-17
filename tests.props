@@ -13,13 +13,36 @@
     </PackageReference>
     <PackageReference Include="xunit.categories" Version="2.0.4" />
     <PackageReference Include="FluentAssertions" Version="5.*" />
-    <PackageReference Include="Bogus" Version="23.0.2" />
+    <PackageReference Include="Bogus" Version="33.0.2" />
     <PackageReference Include="Moq" Version="4.*" />
     <PackageReference Include="AutoFixture.AutoFakeItEasy" Version="4.*"/>
-    <PackageReference Include="coverlet.collector" Version="1.2.1">
+    <PackageReference Include="coverlet.msbuild" Version="3.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.*"/>
+    
   </ItemGroup>
+    
+<Choose>
+  <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.*"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.*"/>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.*" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
+    </ItemGroup>
+  </When>
+  <Otherwise>
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*"/>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" Condition="'$(IsIntegrationTestProject)' == 'true'" />
+    </ItemGroup>
+  </Otherwise>
+</Choose>
+
+  <PropertyGroup>
+    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+    <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('IntegrationTests'))">true</IsIntegrationTestProject>
+  </PropertyGroup>
+
 </Project>

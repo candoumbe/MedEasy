@@ -18,11 +18,9 @@ namespace Identity.Validators
                 .EmailAddress()
                 .MustAsync(async (email, ct) =>
                 {
-                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
-                    {
-                        return !await uow.Repository<Account>().AnyAsync(x => x.Email == email, ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
+                    return !await uow.Repository<Account>().AnyAsync(x => x.Email == email, ct)
+                        .ConfigureAwait(false);
                 })
                 .WithMessage(newAccountInfo => $"'{newAccountInfo.Email}' is already associated to another account");
 
@@ -38,17 +36,15 @@ namespace Identity.Validators
                 .MustAsync(async (username, ct) =>
                 {
                     logger?.LogDebug($"Validating username <{username}>");
-                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
-                    {
-                        bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.Username == username, ct)
-                            .ConfigureAwait(false);
+                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
+                    bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.Username == username, ct)
+                                                                      .ConfigureAwait(false);
 
-                        logger?.LogDebug($"Username <{username}> {(alreadyUsed ? string.Empty:"not ")}already used");
+                    logger?.LogDebug($"Username <{username}> {(alreadyUsed ? string.Empty : "not ")}already used");
 
-                        return !alreadyUsed;
-                    }
-                });
-
+                    return !alreadyUsed;
+                })
+                .WithMessage(newAccountinfo => $"An account with the username '{newAccountinfo.Username}' already exists");
         }
     }
 }

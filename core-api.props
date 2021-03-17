@@ -14,17 +14,30 @@
     <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.*" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="8.*" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.*" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.*" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.*" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.*" />
     <PackageReference Include="AutoMapper" Version="7.*" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.*" />
-    <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.4.0-alpha.20371.1" />
+    <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.6.0-alpha.21070.5" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+      <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.*" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*" />
+      </ItemGroup>
+    </Otherwise>
+
+  </Choose>
 </Project>

@@ -1,10 +1,14 @@
 using AutoMapper.QueryableExtensions;
+
 using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -13,21 +17,26 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using Patients.API.Controllers;
 using Patients.API.Routing;
 using Patients.Context;
 using Patients.DTO;
 using Patients.Mapping;
 using Patients.Objects;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
@@ -64,7 +73,7 @@ namespace Patients.API.UnitTests.Controllers
                 }
             };
 
-            DbContextOptionsBuilder<PatientsContext> dbOptions = new DbContextOptionsBuilder<PatientsContext>();
+            DbContextOptionsBuilder<PatientsContext> dbOptions = new();
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
             _factory = new EFUnitOfWorkFactory<PatientsContext>(dbOptions.Options, (options) => new PatientsContext(options));
 
@@ -97,7 +106,7 @@ namespace Patients.API.UnitTests.Controllers
             get
             {
                 int[] pageSizes = { 1, int.MaxValue };
-                int[] pages = { 10,  1,  int.MaxValue };
+                int[] pages = { 10, 1, int.MaxValue };
 
                 foreach (int pageSize in pageSizes)
                 {
@@ -131,7 +140,7 @@ namespace Patients.API.UnitTests.Controllers
 
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
-                    
+
                     yield return new object[]
                     {
                         items,
@@ -242,7 +251,7 @@ namespace Patients.API.UnitTests.Controllers
             get
             {
                 {
-                    SearchPatientInfo searchInfo = new SearchPatientInfo
+                    SearchPatientInfo searchInfo = new()
                     {
                         Firstname = "bruce",
                         Page = 1,
@@ -274,11 +283,11 @@ namespace Patients.API.UnitTests.Controllers
                                     $"&pageSize={PaginationConfiguration.DefaultPageSize}" +
                                     $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))
                         )
-
                     };
                 }
+
                 {
-                    SearchPatientInfo searchInfo = new SearchPatientInfo
+                    SearchPatientInfo searchInfo = new()
                     {
                         Lastname = "!wayne",
                         Page = 1,
@@ -309,11 +318,10 @@ namespace Patients.API.UnitTests.Controllers
                                     $"&page=1&pageSize=30" +
                                     $"&sort={searchInfo.Sort}").Equals(last.Href, OrdinalIgnoreCase))
                         )
-
                     };
                 }
                 {
-                    SearchPatientInfo searchInfo = new SearchPatientInfo
+                    SearchPatientInfo searchInfo = new()
                     {
                         Firstname = "bruce",
                         Page = 1,
@@ -344,7 +352,7 @@ namespace Patients.API.UnitTests.Controllers
                 }
 
                 {
-                    SearchPatientInfo searchInfo = new SearchPatientInfo
+                    SearchPatientInfo searchInfo = new()
                     {
                         Firstname = "bruce",
                         Page = 1,
@@ -360,7 +368,7 @@ namespace Patients.API.UnitTests.Controllers
                          ((Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == LinkRelation.First
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
-                                $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
+                                $"birthdate={searchInfo.BirthDate.Value:s}" +
                                 $"&Controller={PatientsController.EndpointName}" +
                                 $"&firstname={searchInfo.Firstname}"+
                                 $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
@@ -369,7 +377,7 @@ namespace Patients.API.UnitTests.Controllers
                         (Expression<Func<Link, bool>>)(last => last != null
                             && last.Relation == LinkRelation.Last
                             && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
-                                $"birthdate={searchInfo.BirthDate.Value.ToString("s")}" +
+                                $"birthdate={searchInfo.BirthDate.Value:s}" +
                                 $"&Controller={PatientsController.EndpointName}" +
                                 $"&firstname={searchInfo.Firstname}"+
                                 $"&page=1&pageSize=30").Equals(last.Href, OrdinalIgnoreCase))
@@ -388,7 +396,7 @@ namespace Patients.API.UnitTests.Controllers
             _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
 
             // Arrange
-            PatientsApiOptions apiOptions = new PatientsApiOptions { DefaultPageSize = 30, MaxPageSize = 50 };
+            PatientsApiOptions apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 50 };
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
 
             // Act
@@ -423,7 +431,7 @@ namespace Patients.API.UnitTests.Controllers
             get
             {
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Add(x => x.Lastname, "Grayson");
 
                     Guid patientId = Guid.NewGuid();
@@ -465,7 +473,7 @@ namespace Patients.API.UnitTests.Controllers
             using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
                 Patient sourceAfterPatch = await uow.Repository<Patient>().SingleAsync(x => x.Id == source.Id)
-                    .ConfigureAwait(false);
+                                                                          .ConfigureAwait(false);
                 sourceAfterPatch.Should().Match(patchResultExpectation);
             }
         }
@@ -474,7 +482,7 @@ namespace Patients.API.UnitTests.Controllers
         public async Task PatchUnknownIdReturnsNotFound()
         {
             // Arrange
-            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+            JsonPatchDocument<PatientInfo> patchDocument = new();
             patchDocument.Replace(x => x.Firstname, "John");
 
             // Act
@@ -506,7 +514,7 @@ namespace Patients.API.UnitTests.Controllers
         {
             //Arrange
             Guid patientId = Guid.NewGuid();
-            PatientInfo expectedResource = new PatientInfo
+            PatientInfo expectedResource = new()
             {
                 Id = patientId,
                 Firstname = "Bruce",
@@ -515,7 +523,7 @@ namespace Patients.API.UnitTests.Controllers
 
             using (IUnitOfWork uow = _factory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient(patientId, firstname: "Bruce", lastname: "Wayne")) ;
+                uow.Repository<Patient>().Create(new Patient(patientId, firstname: "Bruce", lastname: "Wayne"));
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -572,7 +580,7 @@ namespace Patients.API.UnitTests.Controllers
             Guid patientId = Guid.NewGuid();
 
             //Act
-            CreatePatientInfo info = new CreatePatientInfo
+            CreatePatientInfo info = new()
             {
                 Firstname = "Bruce",
                 Lastname = "Wayne"

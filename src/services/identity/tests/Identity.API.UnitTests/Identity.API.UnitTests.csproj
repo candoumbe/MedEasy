@@ -2,12 +2,13 @@
 
   <Import Project="..\..\..\..\..\tests.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="5.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*" />
   </ItemGroup>
 
   <ItemGroup>
