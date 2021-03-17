@@ -234,24 +234,24 @@ public class Build : NukeBuild
             // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
             ReportGenerator(_ => _
                 .SetFramework("net5.0")
-                .SetReports(CoverageReportUnitTestsDirectory / "*.xml")
+                .SetReports(UnitTestsResultDirectory / "*.xml")
                 .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
                 .SetTargetDirectory(CoverageReportUnitTestsDirectory)
                 .SetHistoryDirectory(CoverageReportUnitTestsHistoryDirectory)
             );
 
-            CoverageReportUnitTestsDirectory.GlobFiles("*.xml")
+            UnitTestsResultDirectory.GlobFiles("*.xml")
                                            .ForEach(file => AzurePipelines?.PublishCodeCoverage(coverageTool: AzurePipelinesCodeCoverageToolType.Cobertura,
                                                                                     summaryFile: file,
-                                                                                    reportDirectory: CoverageReportDirectory));
+                                                                                    reportDirectory: CoverageReportUnitTestsDirectory));
         });
 
     public Target IntegrationTests => _ => _
         .DependsOn(Compile)
-        .Description("Run unit tests and collect code coverage")
+        .Description("Run integration tests and collect code coverage")
         .Produces(IntegrationTestsResultDirectory / "*.trx")
         .Produces(IntegrationTestsResultDirectory / "*.xml")
-        .Produces(CoverageReportHistoryDirectory / "*.xml")
+        .Produces(CoverageReportIntegrationTestsDirectory / "*.xml")
         .Executes(() =>
         {
             IEnumerable<Project> projects = Solution.GetProjects("*.integrationTests");
@@ -264,7 +264,7 @@ public class Build : NukeBuild
                 .EnableCollectCoverage()
                 .EnableUseSourceLink()
                 .SetNoBuild(InvokedTargets.Contains(Compile))
-                .SetResultsDirectory(TestResultDirectory)
+                .SetResultsDirectory(IntegrationTestsResultDirectory)
                 .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                 .AddProperty("ExcludeByAttribute", "Obsolete")
                 .CombineWith(testsProjects, (cs, project) => cs.SetProjectFile(project)
@@ -272,11 +272,11 @@ public class Build : NukeBuild
                         .SetFramework(framework)
                         .SetLogger($"trx;LogFileName={project.Name}.{framework}.trx")
                         .SetCollectCoverage(true)
-                        .SetCoverletOutput(TestResultDirectory / $"{project.Name}.xml"))
+                        .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml"))
                     )
             );
 
-            TestResultDirectory.GlobFiles("*.trx")
+            IntegrationTestsResultDirectory.GlobFiles("*.trx")
                                .ForEach(testFileResult => AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
                                                                                              title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
                                                                                              files: new string[] { testFileResult })
@@ -285,16 +285,24 @@ public class Build : NukeBuild
             // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
             ReportGenerator(_ => _
                 .SetFramework("net5.0")
-                .SetReports(TestResultDirectory / "*.xml")
+                .SetReports(IntegrationTestsResultDirectory / "*.xml")
                 .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
-                .SetTargetDirectory(CoverageReportDirectory)
-                .SetHistoryDirectory(CoverageReportHistoryDirectory)
+                .SetTargetDirectory(CoverageReportIntegrationTestsDirectory)
+                .SetHistoryDirectory(CoverageReportintegrationTestsHistoryDirectory)
             );
 
-            TestResultDirectory.GlobFiles("*.xml")
+            IntegrationTestsResultDirectory.GlobFiles("*.xml")
                                .ForEach(file => AzurePipelines?.PublishCodeCoverage(coverageTool: AzurePipelinesCodeCoverageToolType.Cobertura,
                                                                                     summaryFile: file,
-                                                                                    reportDirectory: CoverageReportDirectory));
+                                                                                    reportDirectory: CoverageReportIntegrationTestsDirectory));
+        });
+
+    public Target Tests => _ => _
+        .DependsOn(UnitTests, IntegrationTests)
+        .Description("Run all configured tests")
+        .Executes(() =>
+        {
+
         });
 
 
