@@ -254,7 +254,7 @@ public class Build : NukeBuild
         .Produces(CoverageReportIntegrationTestsDirectory / "*.xml")
         .Executes(() =>
         {
-            IEnumerable<Project> projects = Solution.GetProjects("*.integrationTests");
+            IEnumerable<Project> projects = Solution.GetProjects("*.IntegrationTests");
             IEnumerable<Project> testsProjects = TestPartition.GetCurrent(projects);
 
             testsProjects.ForEach(project => Info(project));
@@ -263,7 +263,7 @@ public class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .EnableCollectCoverage()
                 .EnableUseSourceLink()
-                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(UnitTests))
                 .SetResultsDirectory(IntegrationTestsResultDirectory)
                 .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                 .AddProperty("ExcludeByAttribute", "Obsolete")
@@ -527,7 +527,7 @@ public class Build : NukeBuild
 
     public Target TyeInstall => _ => _
         .Requires(() => IsLocalBuild)
-        .Description("Install/Updates Tye globally")
+        .Description("Install/Updates Tye tool globally")
         .Executes(() =>
         {
             IReadOnlyCollection<Output> outputs = DotNet(arguments: "tool list -g");
