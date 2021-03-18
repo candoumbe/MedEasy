@@ -37,6 +37,7 @@ namespace Measures.Context
         {
             base.OnModelCreating(modelBuilder);
 
+            
 
             modelBuilder.Entity<Patient>(entity =>
             {

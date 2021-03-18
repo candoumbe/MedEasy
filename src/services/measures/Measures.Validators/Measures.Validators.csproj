@@ -1,14 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />

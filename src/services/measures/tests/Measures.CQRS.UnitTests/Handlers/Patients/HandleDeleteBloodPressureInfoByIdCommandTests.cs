@@ -148,7 +148,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     {
                         new Patient(idPatient, "Solomon"),
 
-                        new PhysiologicalMeasurement[]
+                        new []
                         {
                             new BloodPressure(Guid.NewGuid(),
                                 idPatient,
@@ -164,7 +164,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
         [Theory]
         [MemberData(nameof(PatientWithMeasuresCases))]
-        public async Task DeletePatient_When_AnyMeasure_Exists_ShouldReturns_Conflict(Patient patient, IEnumerable<PhysiologicalMeasurement> measures)
+        public async Task DeletePatient_When_AnyMeasure_Exists_ShouldReturns_Conflict(Patient patient, IEnumerable<BloodPressure> measures)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -179,7 +179,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 })
                 .ConfigureAwait(false);
 
-                uow.Repository<PhysiologicalMeasurement>().Create(measures);
+                uow.Repository<BloodPressure>().Create(measures);
                 await uow.SaveChangesAsync().ConfigureAwait(false);
             }
 

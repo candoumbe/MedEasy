@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -9,10 +9,6 @@
     <PackageReference Include="Dapper" Version="1.60.5" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageRefenrece Include="Dapper" Version="1.50.2" />
-    <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.4" />
   </ItemGroup>
 

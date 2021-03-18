@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 
 using static Nuke.Common.ChangeLog.ChangelogTasks;
 using static Nuke.Common.IO.FileSystemTasks;
@@ -160,7 +161,6 @@ public class Build : NukeBuild
     public readonly string GitHubToken;
 
     public Target Clean => _ => _
-        .Before(Restore)
         .Executes(() =>
         {
             SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
@@ -530,23 +530,34 @@ public class Build : NukeBuild
         .Description("Install/Updates Tye tool globally")
         .Executes(() =>
         {
-            IReadOnlyCollection<Output> outputs = DotNet(arguments: "tool list -g");
-            const string tyePackageId = "microsoft.tye";
-            if (!outputs.AtLeastOnce(output => output.Type == OutputType.Std && output.Text.Like($"*{tyePackageId}*", true)))
+            try
             {
-                Info($"Installing {tyePackageId}");
-                DotNetToolInstall(s => s.SetPackageName(tyePackageId)
-                                        .SetGlobal(true)
-                                        .SetVersion("0.6.0-alpha.21070.5")
-                );
+                if (new Ping().Send("https://www.google.fr").Status == IPStatus.Success)
+                {
+                    IReadOnlyCollection<Output> outputs = DotNet(arguments: "tool list -g");
+                    const string tyePackageId = "microsoft.tye";
+                    if (!outputs.AtLeastOnce(output => output.Type == OutputType.Std && output.Text.Like($"*{tyePackageId}*", true)))
+                    {
+                        Info($"Installing {tyePackageId}");
+                        DotNetToolInstall(s => s.SetPackageName(tyePackageId)
+                                                .SetGlobal(true)
+                                                .SetVersion("0.6.0-alpha.21070.5")
+                        );
+                    }
+                    else
+                    {
+                        Info($"Updating {tyePackageId}");
+                        DotNetToolUpdate(s => s.SetPackageName(tyePackageId)
+                                                .SetGlobal(true)
+                                                .SetVersion("0.6.0-alpha.21070.5")
+                        );
+                    }
+                }
             }
-            else
+            catch (PingException)
             {
-                Info($"Updating {tyePackageId}");
-                DotNetToolUpdate(s => s.SetPackageName(tyePackageId)
-                                        .SetGlobal(true)
-                                        .SetVersion("0.6.0-alpha.21070.5")
-                );
+                Info("No internet connexion available ...");
+                Info("Skipping installing/updating");
             }
         });
 

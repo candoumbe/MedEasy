@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 
 namespace Agenda.API.Context
 {

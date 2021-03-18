@@ -1,9 +1,7 @@
 ﻿using MedEasy.Objects;
-using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace Agenda.Objects
 {
