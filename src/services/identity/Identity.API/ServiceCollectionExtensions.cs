@@ -187,10 +187,9 @@ namespace Identity.API
                 else
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseNpgsql(
-                        configuration.GetConnectionString("identity-db"),
-                        options => options.EnableRetryOnFailure(5)
-                            .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
+                    builder.UseNpgsql(configuration.GetConnectionString("identity-db"),
+                                      options => options.EnableRetryOnFailure(5)
+                                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());

@@ -25,6 +25,15 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}"
+    },
+    "WSL 2": {
+      "commandName": "WSL2",
+      "launchUrl": "https://localhost:51800/",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://localhost:51799/;https://localhost:51800/",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "distributionName": ""
     }
   }
 }

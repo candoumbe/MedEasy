@@ -113,7 +113,7 @@ namespace Identity.API.Features.Accounts
         /// Only the declared modifications will be applied to the resource.
         /// </para>
         /// <para>    // HTTP 1.1 PATCH /api/tenants/3594c436-8595-444d-9e6b-2686c4904725</para>
-        /// <para>
+        /// <example>
         ///     [
         ///         {
         ///             "op": "update",
@@ -122,7 +122,7 @@ namespace Identity.API.Features.Accounts
         ///             "value": "bruce@wayne-entreprise.com"
         ///       }
         ///     ]
-        /// </para>
+        /// </example>
         /// <para>The set of changes to apply will be applied atomically. </para>
         /// 
         /// </remarks>
@@ -145,8 +145,7 @@ namespace Identity.API.Features.Accounts
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
-            
-            
+
             return cmdResult switch
             {
                 ModifyCommandResult.Done => new NoContentResult(),

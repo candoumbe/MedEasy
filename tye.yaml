@@ -5,6 +5,11 @@
 #    https://aka.ms/AA7q20u
 #
 name: medeasy
+
+extensions:
+- name: seq
+  logPath: ./.logs
+
 services:
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
@@ -19,35 +24,45 @@ services:
 - name: identity-db
   image: postgres:12-alpine
   env:
-  - name: POSTGRES_PASSWORD
-    value: "pass@word1"
+  - POSTGRES_PASSWORD="pass@word1"
+  - POSTGRES_USER="identity_api"
+  - POSTGRES_DB="identity"
   bindings:
-    - connectionString: Server=${host};Port=${port};Database=identity;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+    - containerPort: 5432
+      connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
 - name: measures-db
   image: postgres:12-alpine
   env:
-  - name: POSTGRES_PASSWORD
-    value: "pass@word1"
+  - POSTGRES_PASSWORD="pass@word1"
+  - POSTGRES_USER="measures_api"
+  - POSTGRES_DB="measures"
   bindings:
-    - connectionString: Server=${host};Port=${port};Database=measures;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+    - containerPort: 5432
+      connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
 - name: documents-db
   image: postgres:12-alpine
   env:
-  - name: POSTGRES_PASSWORD
-    value: "pass@word1"
+  - POSTGRES_PASSWORD="pass@word1"
+  - POSTGRES_USER="documents_api"
+  - POSTGRES_DB="documents"
   bindings:
-    - connectionString: Server=${host};Port=${port};Database=documents;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+    - containerPort: 5432
+      connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
 - name: patients-db
   image: postgres:12-alpine
   env:
-  - name: POSTGRES_PASSWORD
-    value: "pass@word1"
+  - POSTGRES_PASSWORD="pass@word1"
+  - POSTGRES_USER="patients_api"
+  - POSTGRES_DB="patients"
   bindings:
-    - connectionString: Server=${host};Port=${port};Database=patients;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+    - containerPort: 5432
+      connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
 - name: agenda-db
   image: postgres:12-alpine
   env:
-  - name: POSTGRES_PASSWORD
-    value: "pass@word1"
+  - POSTGRES_PASSWORD="pass@word1"
+  - POSTGRES_USER="agenda_api"
+  - POSTGRES_DB="agenda"
   bindings:
-    - connectionString: Server=${host};Port=${port};Database=agenda;User ID=postgres;Password=${env:POSTGRES_PASSWORD};
+    - containerPort: 5432
+      connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};

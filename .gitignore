@@ -245,3 +245,7 @@ ModelManifest.xml
 .fake/
 /output/
 .vscode/
+
+/.logs
+# Tye - Tye runner
+/.tye

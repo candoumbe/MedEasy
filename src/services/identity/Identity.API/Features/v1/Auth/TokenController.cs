@@ -168,7 +168,7 @@ namespace Identity.API.Features.v1.Auth
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;
-            JwtInfos jwtInfos = new JwtInfos
+            JwtInfos jwtInfos = new ()
             {
                 AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
                 Audiences = jwtOptions.Audiences,
@@ -176,7 +176,7 @@ namespace Identity.API.Features.v1.Auth
                 Key = jwtOptions.Key,
                 RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
             };
-            RefreshAccessTokenByUsernameCommand request = new RefreshAccessTokenByUsernameCommand((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
+            RefreshAccessTokenByUsernameCommand request = new ((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(request, ct)
                 .ConfigureAwait(false);
 
@@ -189,7 +189,7 @@ namespace Identity.API.Features.v1.Auth
                         RefreshAccessCommandResult.NotFound => new NotFoundResult(),
                         RefreshAccessCommandResult.Conflict => new StatusCodeResult(Status409Conflict),
                         RefreshAccessCommandResult.Unauthorized => new UnauthorizedResult(),
-                        _ => throw new ArgumentOutOfRangeException(),
+                        _ => throw new ArgumentOutOfRangeException(nameof(cmdResult)),
                     };
                 });
         }

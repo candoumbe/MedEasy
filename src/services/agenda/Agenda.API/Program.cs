@@ -11,6 +11,8 @@ using Serilog;
 using System;
 using Npgsql;
 using System.Threading.Tasks;
+using System.Diagnostics;
+
 namespace Agenda.API
 {
 #pragma warning disable RCS1102 // Make class static.
@@ -19,6 +21,8 @@ namespace Agenda.API
     {
         public static async Task Main(string[] args)
         {
+
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             IHost host = CreateHostBuilder(args).Build();
 
             using IServiceScope scope = host.Services.CreateScope();

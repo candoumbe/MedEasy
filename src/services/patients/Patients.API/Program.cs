@@ -16,6 +16,7 @@ using Serilog;
 using System;
 using System.Threading.Tasks;
 using Npgsql;
+using System.Diagnostics;
 
 namespace Patients.API
 {
@@ -29,8 +30,8 @@ namespace Patients.API
         /// </summary>
         public static async Task Main(string[] args)
         {
-            IWebHost host =
-                CreateWebHostBuilder(args)
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            IHost host = CreateHostBuilder(args)
                 .Build();
 
             using IServiceScope scope = host.Services.CreateScope();
@@ -79,15 +80,23 @@ namespace Patients.API
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder(args)
-               .UseStartup<Startup>()
-               .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
-                .UseSerilog((hosting, loggerConfig) => loggerConfig
-                    .MinimumLevel.Verbose()
-                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .ReadFrom.Configuration(hosting.Configuration)
+        /// <summary>
+        /// Builds the host
+        /// </summary>
+        /// <param name="args">command line arguments</param>
+        /// <returns></returns>
+
+        public static IHostBuilder CreateHostBuilder(string[] args)
+            => Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
+                                                            .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                                                            .UseSerilog((hosting, loggerConfig) => loggerConfig
+                                                                .MinimumLevel.Verbose()
+                                                                .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                                                                .Enrich.FromLogContext()
+                                                                .WriteTo.Console()
+                                                                .ReadFrom.Configuration(hosting.Configuration)
+                                                            )
                 )
                 .ConfigureLogging((options) =>
                 {
@@ -95,13 +104,13 @@ namespace Patients.API
                         .AddSerilog()
                         .AddConsole();
                 })
-            .ConfigureAppConfiguration((context, builder) =>
+                .ConfigureAppConfiguration((context, builder) =>
 
-                   builder
-                       .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                       .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                       .AddEnvironmentVariables()
-                       .AddCommandLine(args)
-               );
+                    builder
+                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                        .AddEnvironmentVariables()
+                        .AddCommandLine(args)
+                );
     }
 }

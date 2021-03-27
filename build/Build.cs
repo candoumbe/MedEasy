@@ -27,6 +27,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using static Nuke.Common.Tools.Npm.NpmTasks;
 
 [GitHubActions(
     "continuous",
@@ -45,8 +46,7 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
     ImportSecrets =
         new[]
         {
-            nameof(NugetApiKey
-),
+            nameof(NugetApiKey),
         })]
 [AzurePipelines(
     suffix: "release",
@@ -305,7 +305,6 @@ public class Build : NukeBuild
 
         });
 
-
     public Target Pack => _ => _
         .DependsOn(UnitTests, Compile)
         .Consumes(Compile)
@@ -561,12 +560,24 @@ public class Build : NukeBuild
             }
         });
 
+
+    [Parameter(@"Deines which services should start when running using Tye tool")]
+    public string[] Services => Array.Empty<string>();
     public Target Run => _ => _
         .Requires(() => IsLocalBuild)
         .Description("Run all services using Tye")
         .DependsOn(Compile, TyeInstall)
         .Executes(() =>
         {
-            Tye("run");
+            Tye("run --dashboard --logs seq=http://localhost:5431");
+        });
+
+    [PathExecutable]
+    public readonly Tool Npx;
+    public Target TypeScriptModels => _ => _
+        .Description("Generates Typescript definition files")
+        .Executes(() =>
+        {
+            Npx("swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
         });
 }
