@@ -2,6 +2,8 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using NodaTime;
+
 using Patients.Objects;
 
 namespace Patients.Context
@@ -22,7 +24,8 @@ namespace Patients.Context
         /// Builds a new <see cref="PatientsContext"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
-        public PatientsContext(DbContextOptions<PatientsContext> options) : base(options)
+        /// <param name="clock"><see cref="IClock"/> instance used to access current date/time</param>
+        public PatientsContext(DbContextOptions<PatientsContext> options, IClock clock) : base(options, clock)
         {
         }
 

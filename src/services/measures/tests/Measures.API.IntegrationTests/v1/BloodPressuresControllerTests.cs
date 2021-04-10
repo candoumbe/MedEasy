@@ -1,24 +1,31 @@
 using Bogus;
+
 using FluentAssertions;
+
 using Identity.API.Fixtures.v2;
 using Identity.DTO;
 using Identity.DTO.v2;
+
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
@@ -34,15 +41,17 @@ namespace Measures.API.IntegrationTests.v1
         private IdentityApiFixture _identityServer;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/bloodpressures";
-        
-        private static JSchema _pageLink = new JSchema
+
+        private static readonly JSchema _pageLink = new()
         {
-            Type = JSchemaType.Object,
+            Type = JSchemaType.Object | JSchemaType.Null,
             Properties =
                 {
                     [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
                     [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
-                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
+                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String },
+                    [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean | JSchemaType.Null },
+                    [nameof(Link.Title).ToLower()] = new JSchema { Type = JSchemaType.Boolean | JSchemaType.Null }
                 },
             Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
             AllowAdditionalProperties = false

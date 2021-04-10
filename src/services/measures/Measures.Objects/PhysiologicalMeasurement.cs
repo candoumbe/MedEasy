@@ -1,4 +1,7 @@
 ﻿using MedEasy.Objects;
+
+using NodaTime;
+
 using System;
 
 namespace Measures.Objects
@@ -15,17 +18,12 @@ namespace Measures.Objects
         /// <summary>
         /// When the measure was made
         /// </summary>
-        public DateTime DateOfMeasure { get; set; }
+        public Instant DateOfMeasure { get; set; }
 
-        protected PhysiologicalMeasurement(Guid patientId, Guid id, DateTime dateOfMeasure) : base(id)
+        protected PhysiologicalMeasurement(Guid patientId, Guid id, Instant dateOfMeasure) : base(id)
         {
             PatientId = patientId;
             DateOfMeasure = dateOfMeasure;
-        }
-
-        public void ChangePatientId(Guid newPatientId)
-        {
-            PatientId = newPatientId;
         }
     }
 }

@@ -2,6 +2,10 @@ using Bogus;
 using FakeItEasy;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
+using NodaTime;
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,17 +26,15 @@ namespace Identity.Objects.Tests
         public AccountTests()
         {
             _accountFaker = new Faker<Account>()
-                    .CustomInstantiator((faker) => new Account(
-                        id: Guid.NewGuid(),
-                        username: faker.Internet.UserName(),
-                        email: faker.Internet.Email(),
-                        passwordHash: faker.Internet.Password(),
-                        locked: faker.PickRandom(new[] { true, false }),
-                        isActive: faker.PickRandom(new[] { true, false }),
-                        salt: faker.Lorem.Word(),
-                        tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
-                        refreshToken: faker.Lorem.Word()
-                    ));
+                    .CustomInstantiator((faker) => new Account(id: Guid.NewGuid(),
+                                                               username: faker.Internet.UserName(),
+                                                               email: faker.Internet.Email(),
+                                                               passwordHash: faker.Internet.Password(),
+                                                               locked: faker.PickRandom(new[] { true, false }),
+                                                               isActive: faker.PickRandom(new[] { true, false }),
+                                                               salt: faker.Lorem.Word(),
+                                                               tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                                                               refreshToken: faker.Lorem.Word()));
         }
 
         public static IEnumerable<object[]> AddOrUpdateClaimCases
@@ -40,46 +42,45 @@ namespace Identity.Objects.Tests
             get
             {
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator((faker) => new Account(
-                        id: Guid.NewGuid(),
-                        username: faker.Internet.UserName(),
-                        email: faker.Internet.Email(),
-                        passwordHash: faker.Internet.Password(),
-                        locked: faker.PickRandom(new[] {true, false}),
-                        isActive: faker.PickRandom(new[] {true, false}),
-                        salt: faker.Lorem.Word(),
-                        tenantId: faker.PickRandom(new[] {Guid.NewGuid(), default}),
-                        refreshToken: faker.Lorem.Word()
-                    ));
+                    .CustomInstantiator((faker) => new Account(id: Guid.NewGuid(),
+                                                               username: faker.Internet.UserName(),
+                                                               email: faker.Internet.Email(),
+                                                               passwordHash: faker.Internet.Password(),
+                                                               locked: faker.PickRandom(new[] { true, false }),
+                                                               isActive: faker.PickRandom(new[] { true, false }),
+                                                               salt: faker.Lorem.Word(),
+                                                               tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                                                               refreshToken: faker.Lorem.Word()));
                 {
-                    DateTime utcNow = 12.December(2010);
+                    Instant utcNow = 12.December(2010).AsUtc().ToInstant();
                     yield return new object[]
                     {
                         accountFaker.Generate(),
-                        (type : "create", value : "1",  start : utcNow, end :  (DateTime?)null),
+                        (type : "create", value : "1",  start : utcNow, end :  (Instant?)null),
                         (Expression<Func<Account, bool>>)(account => account.Claims.Exactly(1)
-                            && account.Claims.Once(ac => ac.Claim.Type == "create" && ac.Claim.Value == "1"
-                                && ac.Start == 12.December(2010)
-                                && ac.End == default
-                            )
+                                                                     && account.Claims.Once(ac => ac.Claim.Type == "create"
+                                                                                                  && ac.Claim.Value == "1"
+                                                                                                  && ac.Start == utcNow
+                                                                                                  && ac.End == default
+                                                                     )
                         )
                     };
                 }
 
                 {
-                    DateTime utcNow = 12.December(2010);
+                    Instant utcNow = 12.December(2010).AsUtc().ToInstant();
                     Account account = accountFaker.Generate();
 
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     yield return new object[]
                     {
                         account,
-                        (type : "create", value : "0",  start : utcNow, end :  (DateTime?)null),
+                        (type : "create", value : "0",  start : utcNow, end :  (Instant?)null),
                         (Expression<Func<Account, bool>>)(acc => acc.Claims.Once()
-                            && acc.Claims.Once(ac => ac.Claim.Value == "0"
-                                && ac.Start == 12.December(2010)
-                                && ac.End == default
-                            )
+                                                                 && acc.Claims.Once(ac => ac.Claim.Value == "0"
+                                                                                          && ac.Start == utcNow
+                                                                                          && ac.End == default
+                                                                 )
                         )
                     };
                 }
@@ -88,7 +89,9 @@ namespace Identity.Objects.Tests
 
         [Theory]
         [MemberData(nameof(AddOrUpdateClaimCases))]
-        public void AddOrUpdate(Account account, (string type, string value, DateTime start, DateTime? end) claim, Expression<Func<Account, bool>> accountExpectation)
+        public void AddOrUpdate(Account account,
+                                (string type, string value, Instant start, Instant? end) claim,
+                                Expression<Func<Account, bool>> accountExpectation)
         {
             // Act
             account.AddOrUpdateClaim(type : claim.type,  value : claim.value, claim.start, claim.end);
@@ -115,7 +118,7 @@ namespace Identity.Objects.Tests
                         refreshToken: faker.Lorem.Word()
                     ));
                 {
-                    DateTime utcNow = 12.December(2010);
+                    Instant utcNow = 12.December(2010).AsUtc().ToInstant();
 
                     yield return new object[]
                     {
@@ -127,7 +130,7 @@ namespace Identity.Objects.Tests
                 }
 
                 {
-                    DateTime utcNow = 12.December(2010);
+                    Instant utcNow = 12.December(2010).AsUtc().ToInstant();
                     Account account = accountFaker.Generate();
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     yield return new object[]
@@ -140,7 +143,7 @@ namespace Identity.Objects.Tests
                 }
 
                 {
-                    DateTime utcNow = 12.December(2010);
+                    Instant utcNow = 12.December(2010).AsUtc().ToInstant();
                     Account account = accountFaker;
                     account.AddOrUpdateClaim(type: "create", value: "1", start: utcNow);
                     account.AddOrUpdateClaim(type: "delete", value: "1", start: utcNow);
@@ -150,7 +153,7 @@ namespace Identity.Objects.Tests
                         "create",
                         (Expression<Func<Account, bool>>)(acc =>
                             acc.Claims.Exactly(1)
-                            && !acc.Claims.Any(ac => ac.Claim.Type == "create")),
+                            && acc.Claims.Exactly(ac => ac.Claim.Type == "create", 0)),
                         "The corresponding claim must no longer exists"
                     };
                 }
@@ -174,7 +177,7 @@ namespace Identity.Objects.Tests
         {
             // Arrange
             Account account = _accountFaker.Generate();
-            account.AddOrUpdateClaim(type: "create", value: "1", start: 12.July(2003));
+            account.AddOrUpdateClaim(type: "create", value: "1", start: 12.July(2003).AsUtc().ToInstant());
 
             // Act
             Action action = () => account.RemoveClaim(null);
@@ -193,7 +196,7 @@ namespace Identity.Objects.Tests
             Account account = _accountFaker.Generate();
 
             // Act
-            Action action = () => account.AddOrUpdateClaim(type: null, value: "0", start: 12.April(1998), end: 15.May(2008));
+            Action action = () => account.AddOrUpdateClaim(type: null, value: "0", start: 12.April(1998).AsUtc().ToInstant(), end: 15.May(2008).AsUtc().ToInstant());
 
             // Assert
             action.Should()
@@ -209,7 +212,7 @@ namespace Identity.Objects.Tests
             Account account = _accountFaker;
 
             // Act
-            Action action = () => account.AddOrUpdateClaim(type: "claimType", value: "0", start: 2.January(2002), end: 1.January(2002));
+            Action action = () => account.AddOrUpdateClaim(type: "claimType", value: "0", start: 2.January(2002).AsUtc().ToInstant(), end: 1.January(2002).AsUtc().ToInstant());
 
             // Assert
             action.Should()

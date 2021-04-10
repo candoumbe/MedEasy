@@ -42,8 +42,12 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(Appointment.StartDate), @operator: GreaterThanOrEqual, value : searchCriteria.From.Value),
-                        new Filter(field: nameof(Appointment.EndDate), @operator: GreaterThanOrEqual, value : searchCriteria.From.Value)
+                        new Filter(field: nameof(Appointment.StartDate),
+                                   @operator: GreaterThanOrEqual,
+                                   value : searchCriteria.From.Value.ToInstant()),
+                        new Filter(field: nameof(Appointment.EndDate),
+                                   @operator: GreaterThanOrEqual,
+                                   value : searchCriteria.From.Value.ToInstant())
                     }
                 });
             }
@@ -55,13 +59,17 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(Appointment.StartDate), @operator: LessThanOrEqualTo, value : searchCriteria.To.Value),
-                        new Filter(field: nameof(Appointment.EndDate), @operator: LessThanOrEqualTo, value : searchCriteria.To.Value)
+                        new Filter(field: nameof(Appointment.StartDate),
+                                   @operator: LessThanOrEqualTo,
+                                   value : searchCriteria.To.Value.ToInstant()),
+                        new Filter(field: nameof(Appointment.EndDate),
+                                   @operator: LessThanOrEqualTo,
+                                   value : searchCriteria.To.Value.ToInstant())
                     }
                 });
             }
 
-            SearchQueryInfo<AppointmentInfo> searchQueryInfo = new SearchQueryInfo<AppointmentInfo>
+            SearchQueryInfo<AppointmentInfo> searchQueryInfo = new()
             {
                 Page = searchCriteria.Page,
                 PageSize = searchCriteria.PageSize,

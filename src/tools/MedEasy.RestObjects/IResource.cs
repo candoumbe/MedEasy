@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NodaTime;
+
+using System;
 
 namespace MedEasy.RestObjects
 {
@@ -17,6 +19,6 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Last time the resource was updated
         /// </summary>
-        DateTime UpdatedDate { get; }
+        Instant? UpdatedDate { get; }
     }
 }

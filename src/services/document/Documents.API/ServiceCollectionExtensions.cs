@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,21 +28,23 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-using Swashbuckle.AspNetCore.Swagger;
+using NodaTime;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
+using NodaTime.Serialization.SystemTextJson;
 
 namespace Documents.API
 {
@@ -79,14 +80,13 @@ namespace Documents.API
             {
                 options.LocalizationEnabled = true;
             })
-            .AddNewtonsoftJson(options =>
+            .AddJsonOptions(options =>
             {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                options.SerializerSettings.DateTimeZoneHandling = Utc;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
+                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
 
@@ -184,15 +184,17 @@ namespace Documents.API
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<DocumentsStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new DocumentsStore(optionsBuilder.Options);
+                return new DocumentsStore(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<DocumentsStore>>(serviceProvider =>
            {
                DbContextOptionsBuilder<DocumentsStore> builder = BuildDbContextOptions(serviceProvider);
+               IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-               return new EFUnitOfWorkFactory<DocumentsStore>(builder.Options, options => new DocumentsStore(options));
+               return new EFUnitOfWorkFactory<DocumentsStore>(builder.Options, options => new DocumentsStore(options, clock));
            });
 
             return services;
@@ -247,6 +249,7 @@ namespace Documents.API
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
             services.AddHttpContextAccessor();
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;
         }

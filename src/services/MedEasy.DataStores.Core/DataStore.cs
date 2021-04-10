@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+using NodaTime;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +31,16 @@ namespace MedEasy.DataStores.Core.Relational
         /// Usual size for "short" text
         /// </summary>
         public static readonly int ShortTextLength = 50;
+        private readonly IClock _clock;
 
-        public DataStore(DbContextOptions<TContext> options) : base(options)
+        /// <summary>
+        /// Builds a new <see cref="DataStore{TContext}"/> instance.
+        /// </summary>
+        /// <param name="options">Options used by the datastore</param>
+        /// <param name="clock"><see cref="IClock"/> instance used to access current time.</param>
+        protected DataStore(DbContextOptions<TContext> options, IClock clock) : base(options)
         {
-
+            _clock = clock;
         }
 
         /// <summary>
@@ -49,16 +57,14 @@ namespace MedEasy.DataStores.Core.Relational
 
                 if (typeof(IAuditableEntity).IsAssignableFrom(entity.ClrType))
                 {
-                    IAuditableEntity auditableEntity = entity as IAuditableEntity;
-
                     builder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.CreatedBy))
                         .HasMaxLength(NormalTextLength);
 
                     builder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
                         .HasMaxLength(NormalTextLength);
 
-                    builder.Entity(entity.Name).Property(typeof(DateTime), nameof(IAuditableEntity.UpdatedDate))
-                        .IsConcurrencyToken();
+                    //builder.Entity(entity.Name).Property(typeof(Instant), nameof(IAuditableEntity.UpdatedDate))
+                    //       .IsConcurrencyToken();
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))
@@ -67,27 +73,27 @@ namespace MedEasy.DataStores.Core.Relational
                                 .HasKey(nameof(IEntity<object>.Id));
                 }
 
-                if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
-                {
-                    // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
-                    // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
-                    // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
-                    // use the DateTimeOffsetToBinaryConverter
-                    // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
-                    // This only supports millisecond precision, but should be sufficient for most use cases.
-                    foreach (var entityType in builder.Model.GetEntityTypes())
-                    {
-                        var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
-                                                                                    || p.PropertyType == typeof(DateTimeOffset?));
-                        foreach (var property in properties)
-                        {
-                            builder
-                                .Entity(entityType.Name)
-                                .Property(property.Name)
-                                .HasConversion(new DateTimeOffsetToBinaryConverter());
-                        }
-                    }
-                }
+                //if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+                //{
+                //    // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations
+                //    // here: https://docs.microsoft.com/en-us/ef/core/providers/sqlite/limitations#query-limitations
+                //    // To work around this, when the Sqlite database provider is used, all model properties of type DateTimeOffset
+                //    // use the DateTimeOffsetToBinaryConverter
+                //    // Based on: https://github.com/aspnet/EntityFrameworkCore/issues/10784#issuecomment-415769754
+                //    // This only supports millisecond precision, but should be sufficient for most use cases.
+                //    foreach (var entityType in builder.Model.GetEntityTypes())
+                //    {
+                //        var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                //                                                                    || p.PropertyType == typeof(DateTimeOffset?));
+                //        foreach (var property in properties)
+                //        {
+                //            builder
+                //                .Entity(entityType.Name)
+                //                .Property(property.Name)
+                //                .HasConversion(new DateTimeOffsetToBinaryConverter());
+                //        }
+                //    }
+                //}
             }
         }
 
@@ -103,7 +109,7 @@ namespace MedEasy.DataStores.Core.Relational
             => x =>
             {
                 IAuditableEntity auditableEntity = (IAuditableEntity)(x.Entity);
-                DateTime now = DateTime.UtcNow;
+                Instant now = _clock.GetCurrentInstant();
                 if (x.State == EntityState.Added)
                 {
                     auditableEntity.CreatedDate = now;
@@ -140,8 +146,7 @@ namespace MedEasy.DataStores.Core.Relational
         {
             IEnumerable<EntityEntry> entities = GetModifiedEntities();
 
-            entities
-                .ForEach(UpdateModifiedEntry);
+            entities.ForEach(UpdateModifiedEntry);
 
             return await base.SaveChangesAsync(true, ct)
                 .ConfigureAwait(false);

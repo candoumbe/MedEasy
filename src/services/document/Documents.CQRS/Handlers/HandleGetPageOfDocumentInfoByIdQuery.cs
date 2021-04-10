@@ -1,13 +1,12 @@
-﻿using AutoMapper;
-using DataFilters;
-using Documents.CQRS.Queries;
+﻿using Documents.CQRS.Queries;
 using Documents.DTO.v1;
 using Documents.Objects;
-using MedEasy.CQRS.Core.Commands.Results;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+
 using MediatR;
-using Optional;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;

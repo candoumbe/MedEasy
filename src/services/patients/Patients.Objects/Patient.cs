@@ -1,4 +1,7 @@
 ﻿using MedEasy.Objects;
+
+using NodaTime;
+
 using System;
 
 namespace Patients.Objects
@@ -21,7 +24,7 @@ namespace Patients.Objects
         /// <summary>
         /// When the patient was born
         /// </summary>
-        public DateTime? BirthDate { get; private set; }
+        public LocalDate? BirthDate { get; private set; }
 
         /// <summary>
         /// Where the patient was born
@@ -48,7 +51,7 @@ namespace Patients.Objects
         /// </summary>
         /// <param name="birthDate"></param>
         /// <returns></returns>
-        public Patient WasBornOn(DateTime? birthDate)
+        public Patient WasBornOn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
             return this;

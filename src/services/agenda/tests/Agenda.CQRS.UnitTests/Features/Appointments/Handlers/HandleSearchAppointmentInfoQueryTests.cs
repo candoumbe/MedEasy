@@ -15,6 +15,11 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,13 +44,13 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         public HandleSearchAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            optionsBuilder.UseSqlite(database.Connection)
+            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -77,10 +82,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             get
             {
                 {
-                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    SearchAppointmentInfo searchAppointmentInfo = new()
                     {
-                        From = 1.January(2010),
-                        To = 2.January(2010),
+                        From = 1.January(2010).AsUtc().ToInstant().InUtc(),
+                        To = 2.January(2010).AsUtc().ToInstant().InUtc(),
                         Page = 1,
                         PageSize = 10
                     };
@@ -99,12 +104,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
-                            subject: faker.Lorem.Sentence(),
-                            location: faker.Address.City(),
-                            startDate: 1.January(2010).At(13.Hours()),
-                            endDate : 1.January(2010).At(14.Hours())));
+                        .CustomInstantiator(faker => new Appointment(id: Guid.NewGuid(), subject: faker.Lorem.Sentence(),
+                                                                     location: faker.Address.City(),
+                                                                     startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
+                                                                     endDate: 1.January(2010).At(14.Hours()).AsUtc().ToInstant()));
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(10);
                     yield return new object[]
@@ -112,8 +115,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                         appointments,
                         new SearchAppointmentInfo
                         {
-                            From = 2.January(2010),
-                            To = 2.January(2010),
+                            From = 2.January(2010).AsUtc().ToInstant().InUtc(),
+                            To = 2.January(2010).AsUtc().ToInstant().InUtc(),
                             Page = 1,
                             PageSize = 10
                         },
@@ -132,14 +135,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
-                            startDate: 1.January(2010).At(13.Hours()),
-                            endDate: 1.January(2010).At(14.Hours())));
+                            startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
+                            endDate: 1.January(2010).At(14.Hours()).AsUtc().ToInstant()));
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(10);
-                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    SearchAppointmentInfo searchAppointmentInfo = new()
                     {
-                        From = 2.January(2010),
-                        To = 2.January(2010),
+                        From = ZonedDateTime.FromDateTimeOffset(2.January(2010)),
+                        To = ZonedDateTime.FromDateTimeOffset(2.January(2010)),
                         Page = 1,
                         PageSize = 10
                     };
@@ -160,18 +163,18 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
-                            subject: faker.Lorem.Sentence(),
-                            location: faker.Address.City(),
-                            startDate: 1.January(2010).At(13.Hours()),
-                            endDate: 2.January(2010).At(14.Hours())));
+                        .CustomInstantiator(faker => new Appointment(id: Guid.NewGuid(),
+                                                                     subject: faker.Lorem.Sentence(),
+                                                                     location: faker.Address.City(),
+                                                                     startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
+                                                                     endDate: 2.January(2010).At(14.Hours()).AsUtc().ToInstant())
+                        );
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
-                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    SearchAppointmentInfo searchAppointmentInfo = new()
                     {
-                        From = 2.January(2010),
-                        To = 2.January(2010),
+                        From = 2.January(2010).AsUtc().ToInstant().InUtc(),
+                        To = 2.January(2010).AsUtc().ToInstant().InUtc(),
                         Page = 1,
                         PageSize = 5
                     };
@@ -184,9 +187,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
                             itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
-                                && items.Count() == 5
-                                && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
-                            )
+                                && items.Exactly(5)
+                                && items.All(x => x.StartDate >= searchAppointmentInfo.From.Value.ToInstant()
+                                                  || x.EndDate >= searchAppointmentInfo.From.Value.ToInstant()))
                         )
                     };
                 }
@@ -197,14 +200,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
-                            startDate: 1.January(2010).At(13.Hours()),
-                            endDate: 2.January(2010).At(14.Hours())));
+                            startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
+                            endDate: 2.January(2010).At(14.Hours()).AsUtc().ToInstant()));
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
-                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    SearchAppointmentInfo searchAppointmentInfo = new()
                     {
-                        From = 2.January(2010),
-                        To = 2.January(2010),
+                        From = ZonedDateTime.FromDateTimeOffset(2.January(2010)),
+                        To = ZonedDateTime.FromDateTimeOffset(2.January(2010)),
                         Page = 2,
                         PageSize = 5
                     };
@@ -217,8 +220,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
                             itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
-                                && items.Count() == 2
-                                && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
+                                && items.Exactly(2)
+                                && items.All(x => x.StartDate >= searchAppointmentInfo.From.Value.ToInstant()
+                                                  || x.EndDate >= searchAppointmentInfo.From.Value.ToInstant())
                             )
                         )
                     };
@@ -230,13 +234,13 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
-                            startDate: 1.January(2010).At(13.Hours()),
-                            endDate: 2.January(2010).At(14.Hours())));
+                            startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
+                            endDate: 2.January(2010).At(14.Hours()).AsUtc().ToInstant()));
 
                     IEnumerable<Appointment> appointments = appointmentFaker.Generate(7);
-                    SearchAppointmentInfo searchAppointmentInfo = new SearchAppointmentInfo
+                    SearchAppointmentInfo searchAppointmentInfo = new()
                     {
-                        From = 1.January(2010),
+                        From = ZonedDateTime.FromDateTimeOffset(1.January(2010).AsUtc()),
                         Page = 2,
                         PageSize = 5
                     };
@@ -249,8 +253,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             expectedPageSize : searchAppointmentInfo.PageSize,
                             expetedTotal : 7,
                             itemsExpectation : (Expression<Func<IEnumerable<AppointmentInfo>, bool>>)(items => items != null
-                                && items.Count() == 2
-                                && items.Count(x => x.StartDate >= searchAppointmentInfo.From || x.EndDate >= searchAppointmentInfo.From) == items.Count()
+                                && items.Exactly(2)
+                                && items.All(x => x.StartDate >= searchAppointmentInfo.From.Value.ToInstant()
+                                                  || x.EndDate >= searchAppointmentInfo.From.Value.ToInstant())
                             )
                         )
                     };
@@ -260,25 +265,26 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         [Theory]
         [MemberData(nameof(HandleCases))]
-        public async Task GivenDataStoreHasRecords_Handle_Returns_Data(IEnumerable<Appointment> appointments, SearchAppointmentInfo searchCriteria,
-            (int expectedPageCount, int expectedPageSize, int expectedTotal, Expression<Func<IEnumerable<AppointmentInfo>, bool>> itemsExpectation) expectations)
+        public async Task GivenDataStoreHasRecords_Handle_Returns_Data(IEnumerable<Appointment> appointments,
+                                                                       SearchAppointmentInfo searchCriteria,
+                                                                       (int expectedPageCount, int expectedPageSize, int expectedTotal, Expression<Func<IEnumerable<AppointmentInfo>, bool>> itemsExpectation) expectations)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Appointment>().Create(appointments);
                 await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
 
                 _outputHelper.WriteLine($"Datastore : {appointments.Jsonify()}");
                 _outputHelper.WriteLine($"Search criteria : {searchCriteria.Jsonify()}");
             }
 
-            SearchAppointmentInfoQuery request = new SearchAppointmentInfoQuery(searchCriteria);
+            SearchAppointmentInfoQuery request = new(searchCriteria);
 
             // Act
             Page<AppointmentInfo> page = await _sut.Handle(request, default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
 

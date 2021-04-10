@@ -45,8 +45,11 @@ namespace MedEasy.CQRS.Core.Handlers
         {
             SearchQueryInfo<TResult> data = searchQuery.Data;
             Debug.Assert(data.Sort != null, "Sort expression should have been provided");
+
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+
             Expression<Func<TResult, bool>> filter = data.Filter?.ToExpression<TResult>() ?? True<TResult>();
+
             int page = data.Page;
             int pageSize = data.PageSize;
 

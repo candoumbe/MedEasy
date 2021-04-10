@@ -1,11 +1,8 @@
 ﻿using FluentValidation;
+
 using MedEasy.Validators.Validators;
+
 using Patients.DTO;
-using System;
-using System.Linq;
-using System.Text.RegularExpressions;
-using static FluentValidation.Severity;
-using static System.StringSplitOptions;
 
 namespace Patients.Validators.Features.Patients.Queries
 {

@@ -55,13 +55,8 @@ namespace Measures.CQRS.Handlers.Patients
                 Patient entity = new Patient(data.Id ?? Guid.NewGuid(), data.Name)
                     .WasBornIn(data.BirthDate);
 
-                DateTime now = DateTime.UtcNow;
-                entity.UpdatedDate = now;
-                entity.CreatedDate = now;
-
                 uow.Repository<Patient>().Create(entity);
-                await uow.SaveChangesAsync(ct)
-                    .ConfigureAwait(false);
+                await uow.SaveChangesAsync(ct).ConfigureAwait(false);
 
                 Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
 

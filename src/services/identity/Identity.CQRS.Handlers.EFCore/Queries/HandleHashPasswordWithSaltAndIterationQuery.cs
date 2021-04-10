@@ -1,9 +1,10 @@
 ﻿using Identity.CQRS.Queries;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

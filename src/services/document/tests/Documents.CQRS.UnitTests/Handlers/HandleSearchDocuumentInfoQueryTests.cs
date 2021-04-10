@@ -13,6 +13,10 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,12 +48,12 @@ namespace Documents.CQRS.UnitTests.Handlers
         public HandleSearchDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             DbContextOptionsBuilder<DocumentsStore> optionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            optionsBuilder.UseSqlite(database.Connection)
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(optionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options);
+                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

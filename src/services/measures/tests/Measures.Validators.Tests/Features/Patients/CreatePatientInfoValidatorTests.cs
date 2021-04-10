@@ -9,6 +9,10 @@ using Measures.Validators.Features.Patients.DTO;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -38,7 +42,7 @@ namespace Measures.Validators.Tests.Features.Patients
 
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
             dbContextOptionsBuilder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options, new FakeClock(new Instant())));
             _validator = new CreatePatientInfoValidator(_uowFactory);
         }
 

@@ -24,6 +24,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Identity.API.Fixtures.v2;
+using Newtonsoft.Json;
 
 namespace Documents.API.IntegrationTests.Features.v1
 {
@@ -109,13 +110,11 @@ namespace Documents.API.IntegrationTests.Features.v1
             string jsonResponse = await response.Content.ReadAsStringAsync()
                                                         .ConfigureAwait(false);
 
-            JToken jsonToken = JToken.Parse(jsonResponse);
+            JObject jsonToken = JObject.Parse(jsonResponse);
             JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<DocumentInfo>));
             jsonToken.IsValid(responseSchema);
 
-            Browsable<DocumentInfo> browsableResource = jsonToken.ToObject<Browsable<DocumentInfo>>();
-
-            IEnumerable<Link> links = browsableResource.Links;
+            IEnumerable<Link> links = jsonToken[nameof(Browsable<DocumentInfo>.Links).ToCamelCase()].ToObject<IEnumerable<Link>>();
             links.Should()
                 .NotBeEmpty().And
                 .NotContainNulls().And
@@ -126,19 +125,16 @@ namespace Documents.API.IntegrationTests.Features.v1
 
             Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
             linkToSelf.Method.Should()
-                .Be("GET");
-
-            DocumentInfo createdResourceInfo = browsableResource.Resource;
-
-            createdResourceInfo.Name.Should()
-                .Be(newResourceInfo.Name);
-            createdResourceInfo.MimeType.Should()
-                .Be(newResourceInfo.MimeType);
-            createdResourceInfo.Hash.Should()
-                .NotBeNullOrWhiteSpace();
-
-            createdResourceInfo.Id.Should()
-                .NotBeEmpty();
+                             .Be("GET");
+            JToken jsonResource = jsonToken[nameof(Browsable<DocumentInfo>.Resource).ToCamelCase()];
+            jsonResource.Value<string>(nameof(DocumentInfo.Name).ToCamelCase()).Should()
+                                                                 .Be(newResourceInfo.Name);
+            jsonResource.Value<string>(nameof(DocumentInfo.MimeType).ToCamelCase()).Should()
+                                                                     .Be(newResourceInfo.MimeType);
+            jsonResource.Value<string>(nameof(DocumentInfo.Hash).ToCamelCase()).Should()
+                                                                 .NotBeNullOrWhiteSpace();
+            jsonResource.Value<string>(nameof(DocumentInfo.Id).ToCamelCase()).Should()
+                                                               .NotBeNullOrWhiteSpace();
         }
 
         [Fact]

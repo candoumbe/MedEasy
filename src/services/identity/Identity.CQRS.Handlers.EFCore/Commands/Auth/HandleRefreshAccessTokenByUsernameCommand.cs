@@ -2,13 +2,18 @@
 using Identity.DTO;
 using Identity.DTO.v1;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Microsoft.IdentityModel.Tokens;
+
+using NodaTime;
+
 using Optional;
-using System;
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading;
@@ -18,7 +23,7 @@ namespace Identity.CQRS.Handlers.Commands
 {
     public class HandleRefreshAccessTokenByUsernameCommand : IRequestHandler<RefreshAccessTokenByUsernameCommand, Option<BearerTokenInfo, RefreshAccessCommandResult>>
     {
-        private readonly IDateTimeService _datetimeService;
+        private readonly IClock _datetimeService;
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IHandleCreateSecurityTokenCommand _handleCreateSecurityTokenCommand;
 
@@ -28,7 +33,7 @@ namespace Identity.CQRS.Handlers.Commands
         /// <param name="datetimeService">Service which gives access to current datetime</param>
         /// <param name="uowFactory"></param>
         /// <param name="handleCreateSecurityTokenCommand">Service to create <see cref="SecurityToken"/> instances.</param>
-        public HandleRefreshAccessTokenByUsernameCommand(IDateTimeService datetimeService, IUnitOfWorkFactory uowFactory, IHandleCreateSecurityTokenCommand handleCreateSecurityTokenCommand)
+        public HandleRefreshAccessTokenByUsernameCommand(IClock datetimeService, IUnitOfWorkFactory uowFactory, IHandleCreateSecurityTokenCommand handleCreateSecurityTokenCommand)
         {
             _datetimeService = datetimeService;
             _uowFactory = uowFactory;
@@ -38,13 +43,13 @@ namespace Identity.CQRS.Handlers.Commands
         public async Task<Option<BearerTokenInfo, RefreshAccessCommandResult>> Handle(RefreshAccessTokenByUsernameCommand cmd, CancellationToken ct)
         {
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearer = default;
-            DateTime utcNow = _datetimeService.UtcNow();
+            Instant utcNow = _datetimeService.GetCurrentInstant();
 
             (string username, string expiredAccessTokenString, string refreshTokenString, JwtInfos tokenOptions) = cmd.Data;
-            JwtSecurityToken refreshToken = new JwtSecurityToken(refreshTokenString);
-            JwtSecurityToken accessToken = new JwtSecurityToken(expiredAccessTokenString);
+            JwtSecurityToken refreshToken = new (refreshTokenString);
+            JwtSecurityToken accessToken = new (expiredAccessTokenString);
 
-            if (refreshToken.ValidFrom > utcNow || refreshToken.ValidTo <= utcNow)
+            if (refreshToken.ValidFrom > utcNow.ToDateTimeUtc() || refreshToken.ValidTo <= utcNow.ToDateTimeUtc())
             {
                 optionalBearer = Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized);
             }
@@ -57,24 +62,24 @@ namespace Identity.CQRS.Handlers.Commands
                     optionalBearer = await optionalAccount.Match<ValueTask<Option<BearerTokenInfo, RefreshAccessCommandResult>>>(
                         some: async account =>
                         {
-                            JwtSecurityTokenOptions accessTokenOptions = new JwtSecurityTokenOptions
+                            JwtSecurityTokenOptions accessTokenOptions = new()
                             {
                                 Audiences = tokenOptions.Audiences,
                                 Issuer = tokenOptions.Issuer,
                                 Key = tokenOptions.Key,
                                 LifetimeInMinutes = tokenOptions.AccessTokenLifetime
                             };
-                            CreateSecurityTokenCommand createNewAccessTokenCmd = new CreateSecurityTokenCommand((accessTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
+                            CreateSecurityTokenCommand createNewAccessTokenCmd = new((accessTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
                             Task<SecurityToken> newAccessTokenTask = _handleCreateSecurityTokenCommand.Handle(createNewAccessTokenCmd, ct);
 
-                            JwtSecurityTokenOptions refreshTokenOptions = new JwtSecurityTokenOptions
+                            JwtSecurityTokenOptions refreshTokenOptions = new()
                             {
                                 Audiences = tokenOptions.Audiences,
                                 Issuer = tokenOptions.Issuer,
                                 Key = tokenOptions.Key,
                                 LifetimeInMinutes = tokenOptions.RefreshTokenLifetime
                             };
-                            CreateSecurityTokenCommand createNewRefreshTokenCmd = new CreateSecurityTokenCommand((refreshTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
+                            CreateSecurityTokenCommand createNewRefreshTokenCmd = new((refreshTokenOptions, accessToken.Claims.Select(claim => new ClaimInfo { Type = claim.Type, Value = claim.Value })));
                             Task<SecurityToken> newRefreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createNewRefreshTokenCmd, ct);
 
                             await Task.WhenAll(newAccessTokenTask, newRefreshTokenTask)

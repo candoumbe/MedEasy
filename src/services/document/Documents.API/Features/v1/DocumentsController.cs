@@ -1,8 +1,10 @@
 ﻿using DataFilters;
+
 using Documents.CQRS.Commands;
 using Documents.CQRS.Queries;
 using Documents.DTO;
 using Documents.DTO.v1;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.CQRS.Core.Queries;
@@ -10,22 +12,24 @@ using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static MedEasy.RestObjects.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -88,13 +92,13 @@ namespace Documents.API.Features.v1
             DocumentsApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
 
-            GetPageOfDocumentInfoQuery query = new GetPageOfDocumentInfoQuery(paginationConfiguration);
+            GetPageOfDocumentInfoQuery query = new(paginationConfiguration);
 
             Page<DocumentInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
             string version = _apiVersion.ToString();
-            GenericPagedGetResponse<Browsable<DocumentInfo>> result = new GenericPagedGetResponse<Browsable<DocumentInfo>>(
+            GenericPagedGetResponse<Browsable<DocumentInfo>> result = new(
                 page.Entries.Select(resource => new Browsable<DocumentInfo>
                 {
                     Resource = resource,
@@ -137,7 +141,7 @@ namespace Documents.API.Features.v1
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
         {
-            DeleteDocumentInfoByIdCommand cmd = new DeleteDocumentInfoByIdCommand(id);
+            DeleteDocumentInfoByIdCommand cmd = new(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -241,12 +245,12 @@ namespace Documents.API.Features.v1
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<DocumentInfo> changes, CancellationToken ct = default)
         {
-            PatchInfo<Guid, DocumentInfo> data = new PatchInfo<Guid, DocumentInfo>
+            PatchInfo<Guid, DocumentInfo> data = new()
             {
                 Id = id,
                 PatchDocument = changes
             };
-            PatchCommand<Guid, DocumentInfo> cmd = new PatchCommand<Guid, DocumentInfo>(data);
+            PatchCommand<Guid, DocumentInfo> cmd = new(data);
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                                                            .ConfigureAwait(false);
@@ -274,7 +278,7 @@ namespace Documents.API.Features.v1
         [ProducesResponseType(typeof(Browsable<DocumentInfo>), Status201Created)]
         public async Task<IActionResult> Post([FromBody] NewDocumentInfo newDocument, CancellationToken ct = default)
         {
-            CreateDocumentInfoCommand cmd = new CreateDocumentInfoCommand(newDocument);
+            CreateDocumentInfoCommand cmd = new(newDocument);
 
             Option<DocumentInfo, CreateCommandResult> optionalDocument = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
@@ -283,7 +287,7 @@ namespace Documents.API.Features.v1
                 some: doc =>
                 {
                     string version = _apiVersion?.ToString() ?? "1.0";
-                    Browsable<DocumentInfo> browsableResource = new Browsable<DocumentInfo>
+                    Browsable<DocumentInfo> browsableResource = new()
                     {
                         Resource = doc,
                         Links = new[]
@@ -331,7 +335,7 @@ namespace Documents.API.Features.v1
                 filters.Add($"{nameof(DocumentInfo.MimeType)}={search.MimeType}".ToFilter<DocumentInfo>());
             }
 
-            SearchQueryInfo<DocumentInfo> searchQuery = new SearchQueryInfo<DocumentInfo>
+            SearchQueryInfo<DocumentInfo> searchQuery = new()
             {
                 Page = search.Page,
                 PageSize = search.PageSize,

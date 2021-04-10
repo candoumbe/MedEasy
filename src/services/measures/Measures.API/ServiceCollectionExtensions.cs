@@ -33,17 +33,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
 
 namespace Measures.API
 {
@@ -84,14 +84,13 @@ namespace Measures.API
                     .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
                     ;
             })
-            .AddNewtonsoftJson(options =>
+            .AddJsonOptions(options =>
             {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                options.SerializerSettings.DateTimeZoneHandling = Utc;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
+                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
 
@@ -177,15 +176,17 @@ namespace Measures.API
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new MeasuresContext(optionsBuilder.Options);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                
+                return new MeasuresContext(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
             {
                 DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, options => new MeasuresContext(options));
+                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, options => new MeasuresContext(options, clock));
             });
 
             return services;
@@ -241,6 +242,9 @@ namespace Measures.API
                 HttpContext http = sp.GetRequiredService<IHttpContextAccessor>().HttpContext;
                 return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
             });
+
+
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;
         }

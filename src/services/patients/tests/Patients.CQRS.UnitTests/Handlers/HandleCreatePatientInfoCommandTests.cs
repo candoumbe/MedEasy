@@ -1,13 +1,20 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using FluentAssertions;
-using FluentAssertions.Extensions;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Patients.Context;
 using Patients.CQRS.Commands;
 using Patients.CQRS.Events;
@@ -15,15 +22,17 @@ using Patients.CQRS.Handlers.Patients;
 using Patients.DTO;
 using Patients.Mapping;
 using Patients.Objects;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Patients.CQRS.UnitTests.Handlers
@@ -37,7 +46,6 @@ namespace Patients.CQRS.UnitTests.Handlers
         private IUnitOfWorkFactory _uowFactory;
         private IExpressionBuilder _expressionBuilder;
         private Mock<IMediator> _mediatorMock;
-        private Mock<IDateTimeService> _dateTimeServiceMock;
         private HandleCreatePatientInfoCommand _sut;
 
         public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
@@ -45,18 +53,17 @@ namespace Patients.CQRS.UnitTests.Handlers
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
-            builder.UseSqlite(database.Connection);
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<PatientsContext>(builder.Options, (options) => {
-                PatientsContext context = new PatientsContext(options);
+                PatientsContext context = new PatientsContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
             _mediatorMock = new Mock<IMediator>(Strict);
-            _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
-
-            _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object, _dateTimeServiceMock.Object);
+            
+            _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
         }
 
         public void Dispose()
@@ -74,34 +81,27 @@ namespace Patients.CQRS.UnitTests.Handlers
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
-                IDateTimeService[] dateTimeServiceCases = { null, Mock.Of<IDateTimeService>() };
 
-                IEnumerable<object[]> cases = uowFactorieCases
+                return uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder })
                     .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.expressionBuilder, mediator))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator })
-                    .CrossJoin(dateTimeServiceCases, (a, dateTimeService) => (a.uowFactory, a.expressionBuilder, a.mediator, dateTimeService))
-                    .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null || tuple.dateTimeService == null)
-                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator, tuple.dateTimeService });
-
-                return cases;
+                    .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null)
+                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator });
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
-        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator,
-            IDateTimeService dateTimeService
-            )
+        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
             _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
             _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
             _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
-            _outputHelper.WriteLine($"{nameof(dateTimeService)} is null : {(dateTimeService == null)}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator, dateTimeService);
+            Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert

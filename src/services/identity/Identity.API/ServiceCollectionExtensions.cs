@@ -9,9 +9,9 @@ using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.Mapping;
+using Identity.Objects;
 using Identity.Validators;
 
-using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
@@ -36,18 +36,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+
+using Swashbuckle.NodaTime.AspNetCore;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
 
 namespace Identity.API
 {
@@ -63,15 +65,7 @@ namespace Identity.API
         /// <param name="configuration"></param>
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                DateFormatHandling = IsoDateFormat,
-                DateTimeZoneHandling = Utc,
-                NullValueHandling = NullValueHandling.Ignore,
-                Formatting = Formatting.Indented,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            };
+
             services.AddControllers(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
@@ -87,25 +81,23 @@ namespace Identity.API
 
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
+            .AddJsonOptions(options =>
+            {
+                JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
+                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                jsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+            })
+
             .AddFluentValidation(options =>
             {
                 options.LocalizationEnabled = true;
 
                 options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
                 options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
-            })
-            .AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = jsonSerializerSettings.ReferenceLoopHandling;
-                options.SerializerSettings.DateFormatHandling = jsonSerializerSettings.DateFormatHandling;
-                options.SerializerSettings.DateTimeZoneHandling = jsonSerializerSettings.DateTimeZoneHandling;
-                options.SerializerSettings.NullValueHandling = jsonSerializerSettings.NullValueHandling;
-                options.SerializerSettings.Formatting = jsonSerializerSettings.Formatting;
-                options.SerializerSettings.ContractResolver = jsonSerializerSettings.ContractResolver;
-
-                options.AllowInputFormatterExceptionMessages = env.IsDevelopment();
-            })
-            .AddXmlSerializerFormatters();
+            });
 
             services.AddCors(options =>
             {
@@ -203,15 +195,15 @@ namespace Identity.API
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new IdentityContext(optionsBuilder.Options);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new IdentityContext(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
            {
                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
-
-               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options));
+               IClock clock = serviceProvider.GetRequiredService<IClock>();
+               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options, clock));
            });
 
             return services;
@@ -272,12 +264,12 @@ namespace Identity.API
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddHttpContextAccessor();
 
-            services.AddSingleton<IDateTimeService, DateTimeService>();
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;
         }
 
-        
+
         /// <summary>
         /// Adds Authorization and authentication
         /// </summary>
@@ -320,12 +312,20 @@ namespace Identity.API
         }
 
         /// <summary>
+        /// Adds custom middleware for performing healthchecks
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IHealthChecksBuilder AddCustomHealthChecks(this IServiceCollection services)
+            => services.AddHealthChecks().AddDbContextCheck<IdentityContext>(customTestQuery: async (context, ct) => await context.Set<Account>().AnyAsync(ct));
+
+        /// <summary>
         /// Adds Swagger middlewares
         /// </summary>
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -380,6 +380,7 @@ namespace Identity.API
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
+                config.ConfigureForNodaTime();
             });
 
             return services;

@@ -1,6 +1,5 @@
 ﻿using Identity.DataStores;
 
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +9,8 @@ using Microsoft.Extensions.Logging;
 
 using Npgsql;
 
+using Optional;
+
 using Polly;
 using Polly.Retry;
 
@@ -17,7 +18,6 @@ using Serilog;
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Identity.API
@@ -70,6 +70,11 @@ namespace Identity.API
             {
                 logger?.LogError(ex, "An error occurred on startup.");
             }
+
+            finally
+            {
+
+            }
         }
 
         /// <summary>
@@ -84,31 +89,36 @@ namespace Identity.API
         /// <param name="args">command line arguments</param>
         /// <returns></returns>
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
-            => Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
-                                                            .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
-                                                            .UseSerilog((hosting, loggerConfig) => loggerConfig
-                                                                .MinimumLevel.Verbose()
-                                                                .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                                                                .Enrich.FromLogContext()
-                                                                .WriteTo.Console()
-                                                                .ReadFrom.Configuration(hosting.Configuration)
-                                                            )
-                )
-                .ConfigureLogging((options) =>
-                {
-                    options.ClearProviders() // removes all default providers
-                        .AddSerilog()
-                        .AddConsole();
-                })
-                .ConfigureAppConfiguration((context, builder) =>
+        public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
+                           .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
+                                                                       .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                                                                       .UseSerilog((hosting, loggerConfig) =>
+                                                                       {
+                                                                           loggerConfig = loggerConfig
+                                                                              .MinimumLevel.Verbose()
+                                                                              .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                                                                              .Enrich.FromLogContext()
+                                                                              .WriteTo.Console()
+                                                                              .ReadFrom.Configuration(hosting.Configuration);
 
-                    builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                );
+                                                                           hosting.Configuration.GetServiceUri("seq")
+                                                                                                .SomeNotNull()
+                                                                                                .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
+                                                                       })
+                           )
+                           .ConfigureLogging((options) =>
+                           {
+                               options.ClearProviders() // removes all default providers
+                                   .AddSerilog()
+                                   .AddConsole();
+                           })
+                           .ConfigureAppConfiguration((context, builder) =>
+
+                               builder
+                                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                                   .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                                   .AddEnvironmentVariables()
+                                   .AddCommandLine(args)
+                           );
     }
 }

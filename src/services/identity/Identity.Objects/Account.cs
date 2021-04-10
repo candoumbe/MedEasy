@@ -1,5 +1,7 @@
 ﻿using MedEasy.Objects;
 
+using NodaTime;
+
 using Optional;
 using Optional.Collections;
 
@@ -35,6 +37,9 @@ namespace Identity.Objects
 
         public bool EmailConfirmed { get; }
 
+        /// <summary>
+        /// Token that can be used to request new access tokens.
+        /// </summary>
         public string RefreshToken { get; private set; }
 
         /// <summary>
@@ -66,7 +71,26 @@ namespace Identity.Objects
         /// <summary>
         /// Builds a new <see cref="Account"/> instance
         /// </summary>
-        public Account(Guid id, string username, string email, string passwordHash, string salt, string name="", bool locked = false, bool isActive = false, Guid? tenantId = null, string refreshToken = null) : base(id)
+        /// <param name="id">Account's identifier</param>
+        /// <param name="username">Username associated with the account</param>
+        /// <param name="email">Email of the account</param>
+        /// <param name="passwordHash">Hash of the password associated with the account</param>
+        /// <param name="salt">Salt used to further obfuscate the account</param>
+        /// <param name="name">Name of the account</param>
+        /// <param name="locked">Indicates if the account is locked or not.</param>
+        /// <param name="isActive">Indicates if the account is active.</param>
+        /// <param name="tenantid">Tenant's identifier.</param>
+        /// <param name="refreshToken">Token that can be used to give the account a new access token.</param>
+        public Account(Guid id,
+                       string username,
+                       string email,
+                       string passwordHash,
+                       string salt,
+                       string name = "",
+                       bool locked = false,
+                       bool isActive = false,
+                       Guid? tenantId = null,
+                       string refreshToken = null) : base(id)
         {
             Username = username;
             Name = name;
@@ -93,6 +117,10 @@ namespace Identity.Objects
             Salt = salt;
         }
 
+        /// <summary>
+        /// Updates the <see cref="RefreshToken"/>
+        /// </summary>
+        /// <param name="refreshToken">The new refresh token</param>
         public void ChangeRefreshToken(string refreshToken)
         {
             RefreshToken = refreshToken;
@@ -114,7 +142,7 @@ namespace Identity.Objects
         /// <exception cref="ArgumentOutOfRangeException">if <paramref name="end"/> is not <c>null</c> 
         /// and <paramref name="start"/> &gt; <paramref name="end"/>
         /// </exception>
-        public void AddOrUpdateClaim(string type, string value, DateTime start, DateTime? end = null)
+        public void AddOrUpdateClaim(string type, string value, Instant start, Instant? end = null)
         {
             if (type is null)
             {
@@ -157,12 +185,15 @@ namespace Identity.Objects
         {
             if (tenantId == Guid.Empty)
             {
-                throw new ArgumentOutOfRangeException(nameof(tenantId), tenantId, $"Tenant ID cannot be empty");
+                throw new ArgumentOutOfRangeException(nameof(tenantId), tenantId, "Tenant ID cannot be empty");
             }
             TenantId = tenantId;
         }
 
-
+        /// <summary>
+        /// Gives a new <see cref="Role"/> to the current account.
+        /// </summary>
+        /// <param name="role"></param>
         public void AddRole(Role role)
         {
             _roles.Add(new AccountRole(Id, role.Id));

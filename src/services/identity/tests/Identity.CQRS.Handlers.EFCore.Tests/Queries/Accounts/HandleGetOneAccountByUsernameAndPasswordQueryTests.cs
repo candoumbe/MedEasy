@@ -1,9 +1,7 @@
-﻿using Bogus;
-
+﻿
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
-using Identity.CQRS.Handlers.Queries;
 using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
@@ -11,7 +9,7 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
@@ -19,18 +17,26 @@ using MedEasy.IntegrationTests.Core;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
@@ -41,7 +47,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
     {
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
-        private Mock<IDateTimeService> _dateTimeServiceMock;
         private readonly Mock<IMediator> _mediatorMock;
         private HandleGetOneAccountInfoByUsernameAndPasswordQuery _sut;
 
@@ -53,13 +58,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             string dbName = $"{Guid.NewGuid()}";
             builder.UseInMemoryDatabase($"{dbName}");
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options));
-
-            _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options, new FakeClock(new Instant())));
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object, _mediatorMock.Object);
+            _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, mediator: _mediatorMock.Object);
         }
 
         public async ValueTask DisposeAsync()
@@ -71,7 +74,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             _outputHelper = null;
             _sut = null;
             _uowFactory = null;
-            _dateTimeServiceMock = null;
         }
 
         [Fact]
@@ -120,7 +122,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 }
 
                 {
-                    DateTime utcNow = 1.October(2011).AddHours(12).AddMinutes(30);
+                    Instant utcNow = 1.October(2011).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant();
 
                     Account clarkKent = new Account
                     (

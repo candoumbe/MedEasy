@@ -1,36 +1,44 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Identity.API.Features.Auth;
 using Identity.API.Features.v1.Auth;
-using Identity.API.Features.v2.Auth;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v2;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
+
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.API.UnitTests.Features.v2.Auth
@@ -54,11 +62,11 @@ namespace Identity.API.UnitTests.Features.v2.Auth
             _mediatorMock = new Mock<IMediator>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            optionsBuilder.UseSqlite(databaseFixture.Connection);
+            optionsBuilder.UseSqlite(databaseFixture.Connection, x => x.UseNodaTime());
 
             _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;

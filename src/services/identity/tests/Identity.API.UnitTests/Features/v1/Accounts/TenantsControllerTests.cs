@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+
 using Identity.API.Features.Accounts;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Routing;
@@ -6,24 +7,33 @@ using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+
 using Moq;
-using Optional;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.API.UnitTests.Features.v1.Accounts
@@ -57,12 +67,12 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

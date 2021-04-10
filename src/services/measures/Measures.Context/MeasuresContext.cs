@@ -4,6 +4,8 @@ using MedEasy.DataStores.Core.Relational;
 
 using Microsoft.EntityFrameworkCore;
 
+using NodaTime;
+
 namespace Measures.Context
 {
     /// <summary>
@@ -25,7 +27,8 @@ namespace Measures.Context
         /// Builds a new <see cref="MeasuresContext"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
-        public MeasuresContext(DbContextOptions<MeasuresContext> options) : base(options)
+        /// <param name="clock"><see cref="IClock"/> implementation used when current time is needed</param>
+        public MeasuresContext(DbContextOptions<MeasuresContext> options, IClock clock) : base(options, clock)
         {
         }
 
@@ -37,13 +40,13 @@ namespace Measures.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            
-
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Name)
                     .HasMaxLength(_normalTextLength);
+
+                entity.Property(x => x.BirthDate);
 
                 entity.HasMany(x => x.BloodPressures)
                       .WithOne(x => x.Patient)
@@ -66,6 +69,5 @@ namespace Measures.Context
                 entity.HasIndex(x => x.Id);
             });
         }
-
     }
 }

@@ -44,6 +44,9 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static MedEasy.RestObjects.LinkRelation;
+using NodaTime.Testing;
+using NodaTime;
+using NodaTime.Extensions;
 
 namespace Measures.API.Tests.Features.v1.BloodPressures
 {
@@ -77,12 +80,12 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
             DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new MeasuresContext(options);
+                MeasuresContext context = new (options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -134,16 +137,16 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     .CustomInstantiator(_ => new BloodPressure(
                             id: Guid.NewGuid(),
                             patientId: Guid.NewGuid(),
-                            dateOfMeasure: 10.April(2016).Add(13.Hours(48.Minutes())),
+                            dateOfMeasure: 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
                             systolicPressure: 120, diastolicPressure: 80
                         )) ;
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
                     foreach (BloodPressure measure in bloodPressureFaker.Generate(400))
                     {
-                        patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours(48.Minutes())), systolic: 120, diastolic: 80);
+                        patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
                     }
                     yield return new object[]
                     {
@@ -161,7 +164,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((measure) =>
                     {
@@ -182,9 +185,11 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
-                    patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours(48.Minutes())),
-                                systolic: 120, diastolic: 80);
+                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    patient.AddBloodPressure(Guid.NewGuid(),
+                                             10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
+                                             systolic: 120,
+                                             diastolic: 80);
                     yield return new object[]
                     {
                         new [] { patient },
@@ -278,7 +283,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 Faker<Patient> patientFaker = new Faker<Patient>()
                     .CustomInstantiator(faker =>
                     {
-                        Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth);
+                        Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
                         patient.ChangeNameTo(faker.Person.FullName);
 
@@ -290,7 +295,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                         return new BloodPressure(
                             id: Guid.NewGuid(),
                             patientId: Guid.NewGuid(),
-                            dateOfMeasure: faker.Date.Between(start: 1.January(2001), end: 31.January(2001)),
+                            dateOfMeasure: faker.Noda().Instant.Between(start: 1.January(2001).AsUtc().ToInstant(), end: 31.January(2001).AsUtc().ToInstant()),
                             diastolicPressure: 80,
                             systolicPressure: 120
                         );
@@ -309,8 +314,8 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                         new [] { patient },
                         new SearchBloodPressureInfo
                         {
-                            From = 1.January(2001),
-                            To = 31.January(2001),
+                            From = 1.January(2001).AsUtc().ToInstant().InUtc(),
+                            To = 31.January(2001).AsUtc().ToInstant().InUtc(),
                             Page = 1, PageSize = 30
                         },
                         (maxPageSize : 200, defaultPageSize : 30),
@@ -318,7 +323,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                             count : 400,
                             items :
                             (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                                resources.All(x =>1.January(2001) <= x.Resource.DateOfMeasure && x.Resource.DateOfMeasure <= 31.January(2001) ))
+                                resources.All(x =>1.January(2001).AsUtc().ToInstant() <= x.Resource.DateOfMeasure && x.Resource.DateOfMeasure <= 31.January(2001).AsUtc().ToInstant() ))
                             ,
                             links :
                             (
@@ -335,27 +340,29 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
                 {
                     Patient patient =  patientFaker.Generate();
-                    patient.AddBloodPressure(
-                        Guid.NewGuid(),
-                        dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())),
-                        diastolic: 80,
-                        systolic: 120
-                    );
+                    patient.AddBloodPressure(Guid.NewGuid(),
+                                             dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                                             diastolic: 80,
+                                             systolic: 120);
                     yield return new object[]
                     {
                         new [] { patient },
-                        new SearchBloodPressureInfo { From = 23.June(2012), Page = 1, PageSize = 30 }, // request
+                        new SearchBloodPressureInfo { From = 23.June(2012).AsUtc().ToInstant().InUtc(), Page = 1, PageSize = 30 }, // request
                         (maxPageSize: 200, pageSize: 30),
                         (
                             count: 1,
                             items:
                               (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                                resources.All(x => 23.June(2012) <= x.Resource.DateOfMeasure)),
+                                resources.All(x => 23.June(2012).AsUtc().ToInstant() <= x.Resource.DateOfMeasure)),
                             links: (
-                                firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null
+                                                                                             && x.Relation.Contains(First)
+                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to previous page
                                 nextPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to next page
-                                lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null && x.Relation.Contains(Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null
+                                                                                            && x.Relation.Contains(Last)
+                                                                                            && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                             )
                         )
                     };
@@ -364,7 +371,10 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
 
                     Patient patient = patientFaker.Generate();
-                    patient.AddBloodPressure(Guid.NewGuid(), dateOfMeasure: 23.June(2012).Add(10.Hours().Add(30.Minutes())), systolic: 120, diastolic: 80);
+                    patient.AddBloodPressure(Guid.NewGuid(),
+                                             dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                                             systolic: 120,
+                                             diastolic: 80);
 
                     yield return new object[]
                     {
@@ -422,13 +432,13 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new MeasuresApiOptions { DefaultPageSize = apiOptions.defaultPageSize, MaxPageSize = apiOptions.maxPageSize });
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns((SearchQuery<BloodPressureInfo> query, CancellationToken ct) =>
-                    new HandleSearchQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder).Search<BloodPressure, BloodPressureInfo>(query, ct)
-                );
+                         .Returns((SearchQuery<BloodPressureInfo> query, CancellationToken ct) =>
+                             new HandleSearchQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder).Search<BloodPressure, BloodPressureInfo>(query, ct)
+                         );
 
             // Act
             IActionResult actionResult = await _controller.Search(searchQuery)
-                .ConfigureAwait(false);
+                                                          .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchQuery<BloodPressureInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -470,16 +480,16 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             {
                 yield return new object[]
                 {
-                    new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013) },
+                    new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013).AsUtc().ToInstant().InUtc() },
                     (maxPageSize : 30, defaultPageSize : 30),
-                    new [] { new Patient( Guid.NewGuid(), "Starr", 18.August(1983)) },
+                    new [] { new Patient( Guid.NewGuid(), "Starr", 18.August(1983).AsLocal().ToLocalDateTime().Date) },
                     "page index is not 1 and there's no result for the search query"
                 };
 
                 {
 
-                    Patient patient = new Patient(Guid.NewGuid(), "Homelander", 18.August(1983));
-                    patient.AddBloodPressure(Guid.NewGuid(), 22.January(1987), systolic: 120, diastolic: 80);
+                    Patient patient = new Patient(Guid.NewGuid(), "Homelander", 18.August(1983).AsUtc().ToLocalDateTime().Date);
+                    patient.AddBloodPressure(Guid.NewGuid(), 22.January(1987).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
 
                     yield return new object[]
                     {
@@ -566,11 +576,11 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne", 12.December(1953));
+                Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne", 12.December(1953).ToLocalDateTime().Date);
 
                 patient.AddBloodPressure(
                         measureId,
-                        dateOfMeasure: 24.April(1997),
+                        dateOfMeasure: 24.April(1997).AsUtc().ToInstant(),
                         systolic: 150,
                         diastolic: 90
                 );

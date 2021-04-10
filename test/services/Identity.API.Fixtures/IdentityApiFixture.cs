@@ -1,13 +1,15 @@
 using Identity.API.Features.v1.Accounts;
 using Identity.DTO;
 using Identity.DTO.v1;
+
 using MedEasy.IntegrationTests.Core;
+
 using System;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+
 using static Newtonsoft.Json.JsonConvert;
 
 

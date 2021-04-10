@@ -2,6 +2,9 @@
 using FluentAssertions;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
+using NodaTime;
+
 using System;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,6 +24,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
         [Fact]
         public void IsCommand() => typeof(ChangeAppointmentDateCommand).Should()
             .NotBeAbstract().And
-            .BeDerivedFrom<CommandBase<Guid, (Guid appointmentId, DateTimeOffset start, DateTimeOffset end), ModifyCommandResult>>();
+            .BeDerivedFrom<CommandBase<Guid, (Guid appointmentId, ZonedDateTime start, ZonedDateTime end), ModifyCommandResult>>();
     }
 }

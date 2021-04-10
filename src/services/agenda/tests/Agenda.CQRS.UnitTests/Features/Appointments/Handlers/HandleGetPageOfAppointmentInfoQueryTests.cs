@@ -4,26 +4,36 @@ using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.Mapping;
 using Agenda.Objects;
-using AutoMapper;
+
 using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+
 using Microsoft.EntityFrameworkCore;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
@@ -33,24 +43,24 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
     public class HandleGetPageOfAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
     {
         private IUnitOfWorkFactory _uowFactory;
-        private Mock<IDateTimeService> _dateTimeServiceMock;
+        private Mock<IClock> _dateTimeServiceMock;
         private HandleGetPageOfAppointmentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
 
         public HandleGetPageOfAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            optionsBuilder.UseSqlite(database.Connection)
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors();
+            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
+                          .EnableSensitiveDataLogging()
+                          .EnableDetailedErrors();
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
-            _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _dateTimeServiceMock = new Mock<IClock>(Strict);
             _sut = new HandleGetPageOfAppointmentInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder, _dateTimeServiceMock.Object);
             _outputHelper = outputHelper;
         }
@@ -78,19 +88,20 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 yield return new object[]
                 {
                     Enumerable.Empty<Appointment>(),
-                    1.January(2010),
+                    1.January(2010).AsUtc().ToInstant(),
                     (1, 10),
-                    ((Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
-                        && page.Total == 0
-                        && page.Entries != null && page.Entries.Count() == 0
-                    )),
+                    (Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
+                                                                            && page.Total == 0
+                                                                            && page.Entries != null
+                                                                            && page.Entries.Exactly(0)
+                    ),
                     "DataStore is empty"
                 };
 
                 yield return new object[]
                 {
                     Enumerable.Empty<Appointment>(),
-                    1.January(2010),
+                    1.January(2010).AsUtc().ToInstant(),
                     (2, 10),
                     ((Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
@@ -104,19 +115,19 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                             id: Guid.NewGuid(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
-                            startDate: 10.April(2000).At(13.Hours()),
-                            endDate: 10.April(2000).At(14.Hours())));
+                            startDate: 10.April(2000).At(13.Hours()).AsUtc().ToInstant(),
+                            endDate: 10.April(2000).At(14.Hours()).AsUtc().ToInstant()));
 
 
                     IEnumerable<Appointment> items = appointmentFaker.Generate(50);
                     yield return new object[]
                     {
                         items,
-                        10.April(2000),
+                        10.April(2000).AsUtc().ToInstant(),
                         (2, 10),
                         (Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 5
                             && page.Total == 50
-                            && page.Entries != null && page.Entries.Count() == 10
+                            && page.Entries != null && page.Entries.Exactly(10)
                         ),
                         "DataStore contains elements"
                     };
@@ -126,29 +137,29 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         [Theory]
         [MemberData(nameof(HandleCases))]
-        public async Task TestHandle(IEnumerable<Appointment> appointments, DateTimeOffset currentDateTime, (int page, int pageSize) pagination, Expression<Func<Page<AppointmentInfo>, bool>> pageExpectation, string reason)
+        public async Task TestHandle(IEnumerable<Appointment> appointments, Instant currentDateTime, (int page, int pageSize) pagination, Expression<Func<Page<AppointmentInfo>, bool>> pageExpectation, string reason)
         {
             // Arrange
             _outputHelper.WriteLine($"page : {pagination.page}");
             _outputHelper.WriteLine($"pageSize : {pagination.pageSize}");
-            _outputHelper.WriteLine($"Current date time : {currentDateTime}");
+            _outputHelper.WriteLine($"Current date time : {currentDateTime.ToDateTimeUtc()}");
 
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Appointment>().Create(appointments);
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                int appointmentsCount = await uow.Repository<Appointment>().CountAsync()
-                    .ConfigureAwait(false);
-                _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
-            }
-            _dateTimeServiceMock.Setup(mock => mock.UtcNowOffset()).Returns(currentDateTime);
-            GetPageOfAppointmentInfoQuery request = new GetPageOfAppointmentInfoQuery(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
+            uow.Repository<Appointment>().Create(appointments);
+            await uow.SaveChangesAsync()
+                .ConfigureAwait(false);
+
+            int appointmentsCount = await uow.Repository<Appointment>().CountAsync()
+                .ConfigureAwait(false);
+            _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
+
+            _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(currentDateTime);
+            GetPageOfAppointmentInfoQuery request = new(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
 
             // Act
             Page<AppointmentInfo> page = await _sut.Handle(request, cancellationToken: default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
             page.Should()

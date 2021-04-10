@@ -1,9 +1,9 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.DTO;
 
-using MedEasy.Abstractions;
-
 using Microsoft.IdentityModel.Tokens;
+
+using NodaTime;
 
 using System;
 using System.Collections.Generic;
@@ -21,17 +21,17 @@ namespace Identity.CQRS.Handlers
     /// </summary>
     public class HandleCreateJwtSecurityTokenCommand : IHandleCreateSecurityTokenCommand
     {
-        private readonly IDateTimeService _dateTimeService;
+        private readonly IClock _dateTimeService;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreateAuthenticationTokenCommand"/> instance.
         /// </summary>
         /// <param name="dateTimeService">Service that provide methods to get current date.</param>
-        public HandleCreateJwtSecurityTokenCommand(IDateTimeService dateTimeService) => _dateTimeService = dateTimeService;
+        public HandleCreateJwtSecurityTokenCommand(IClock dateTimeService) => _dateTimeService = dateTimeService;
 
         public Task<SecurityToken> Handle(CreateSecurityTokenCommand cmd, CancellationToken ct)
         {
-            DateTime now = _dateTimeService.UtcNow();
+            Instant now = _dateTimeService.GetCurrentInstant();
             (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) data = cmd.Data;
 
             IEnumerable<string> audiences = data.tokenOptions.Audiences?.Distinct() ?? Enumerable.Empty<string>();
@@ -42,7 +42,6 @@ namespace Identity.CQRS.Handlers
                 claims = claims.Concat(new[] { new ClaimInfo { Type = JwtRegisteredClaimNames.Jti, Value = Guid.NewGuid().ToString() } });
             }
 
-
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(data.tokenOptions.Key));
             SecurityToken token = new JwtSecurityToken(
                 issuer: data.tokenOptions.Issuer,
@@ -51,8 +50,9 @@ namespace Identity.CQRS.Handlers
                     : data.tokenOptions.Issuer,
                 claims: claims.Select(claim => new Claim(claim.Type, claim.Value))
                     .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
-                notBefore: now,
-                expires: now.AddMinutes(data.tokenOptions.LifetimeInMinutes),
+                notBefore: now.ToDateTimeUtc(),
+                expires: now.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes))
+                            .ToDateTimeUtc(),
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
 

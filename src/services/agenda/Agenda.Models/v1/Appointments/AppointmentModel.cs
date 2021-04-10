@@ -1,8 +1,11 @@
 ﻿using Agenda.Models.v1.Attendees;
+
 using MedEasy.RestObjects;
+
+using NodaTime;
+
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace Agenda.Models.v1.Appointments
 {
@@ -25,12 +28,12 @@ namespace Agenda.Models.v1.Appointments
         /// <summary>
         /// Start date of the appointment
         /// </summary>
-        public DateTimeOffset StartDate { get; set; }
+        public ZonedDateTime StartDate { get; set; }
 
         /// <summary>
         /// End date of the appointment
         /// </summary>
-        public DateTimeOffset EndDate { get; set; }
+        public ZonedDateTime EndDate { get; set; }
 
         /// <summary>
         /// Participants

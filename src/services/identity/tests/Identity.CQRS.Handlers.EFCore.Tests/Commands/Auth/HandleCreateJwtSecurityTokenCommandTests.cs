@@ -1,24 +1,29 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
-using Identity.CQRS.Handlers.Commands;
 using Identity.DTO;
-using MedEasy.Abstractions;
+
 using MediatR;
+
 using Microsoft.IdentityModel.Tokens;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.CQRS.UnitTests.Handlers.Queries
@@ -29,14 +34,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
     public class HandleCreateJwtSecurityTokenCommandTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IDateTimeService> _dateTimeServiceMock;
+        private Mock<IClock> _dateTimeServiceMock;
         private HandleCreateJwtSecurityTokenCommand _sut;
 
         public HandleCreateJwtSecurityTokenCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
 
-            _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _dateTimeServiceMock = new Mock<IClock>(Strict);
             _sut = new HandleCreateJwtSecurityTokenCommand(dateTimeService: _dateTimeServiceMock.Object);
         }
 
@@ -58,8 +63,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         {
             // Arrange
 
-            DateTime utcNow = 1.February(2007).Add(14.Hours()).AsUtc();
-            JwtSecurityTokenOptions jwtSecurityTokenOptions = new JwtSecurityTokenOptions
+            Instant utcNow = 1.February(2007).Add(14.Hours()).AsUtc().ToInstant();
+            JwtSecurityTokenOptions jwtSecurityTokenOptions = new ()
             {
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
@@ -70,7 +75,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             IEnumerable<ClaimInfo> claims = Enumerable.Empty<ClaimInfo>();
 
             CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtSecurityTokenOptions, claims));
-            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
             SecurityToken token = await _sut.Handle(createRefreshTokenCommand, ct: default)
@@ -93,9 +98,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .HaveSameCount(jwtSecurityTokenOptions.Audiences).And
                 .OnlyContain(audience => jwtSecurityTokenOptions.Audiences.Contains(audience));
             jwtSecurityToken.ValidFrom.Should()
-                .Be(utcNow);
+                                      .Be(utcNow.ToDateTimeUtc());
             jwtSecurityToken.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtSecurityTokenOptions.LifetimeInMinutes));
+                .Be(utcNow.Plus(Duration.FromMinutes(jwtSecurityTokenOptions.LifetimeInMinutes)).ToDateTimeUtc());
             jwtSecurityToken.Claims.Should()
                 .NotContainNulls().And
                 .NotContain(claim => claim.Value == null);
@@ -128,10 +133,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 LifetimeInMinutes = 10
             };
 
-            DateTime utcNow = 10.January(2014).AsUtc();
-            AuthenticationInfo authInfo = new AuthenticationInfo { Location = "Paris" };
+            Instant utcNow = 10.January(2014).AsUtc().ToInstant();
+            AuthenticationInfo authInfo = new () { Location = "Paris" };
             CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtInfos, Enumerable.Empty<ClaimInfo>()));
-            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
             SecurityToken tokenOne = await _sut.Handle(createRefreshTokenCommand, ct: default)

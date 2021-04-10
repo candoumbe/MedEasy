@@ -1,17 +1,20 @@
 using Documents.DataStore;
-using Microsoft.AspNetCore;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Npgsql;
+
 using Polly;
 using Polly.Retry;
+
 using Serilog;
+
 using System;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 

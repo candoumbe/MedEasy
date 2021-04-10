@@ -7,7 +7,6 @@ using AutoMapper;
 
 using FluentValidation.AspNetCore;
 
-using MedEasy.Abstractions;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
@@ -32,10 +31,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+
 using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -88,11 +91,13 @@ namespace Agenda.API
                 })
                 .AddJsonOptions(options =>
                 {
-                    options.JsonSerializerOptions.IgnoreNullValues = true;
-                    options.JsonSerializerOptions.WriteIndented = true;
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
+                    jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    jsonSerializerOptions.WriteIndented = true;
+                    jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 })
-                .AddXmlSerializerFormatters();
+            .AddXmlSerializerFormatters();
 
             //services.Configure<ApiBehaviorOptions>(options =>
             //{
@@ -154,7 +159,7 @@ namespace Agenda.API
             static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
+                DbContextOptionsBuilder<AgendaContext> builder = new();
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
                     builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
@@ -176,15 +181,16 @@ namespace Agenda.API
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-
-                return new AgendaContext(optionsBuilder.Options);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new AgendaContext(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
             {
                 DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider);
 
-                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options));
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options, clock));
             });
 
             return services;
@@ -225,8 +231,8 @@ namespace Agenda.API
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
-            
-            services.AddSingleton<IDateTimeService, DateTimeService>();
+
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             services.AddHttpContextAccessor();
             services.AddScoped(builder =>
@@ -251,7 +257,7 @@ namespace Agenda.API
             services.AddSwaggerGen(config =>
             {
                 string url = configuration.GetValue("Swagger:Contact:Url", string.Empty);
-                OpenApiContact contact = new OpenApiContact
+                OpenApiContact contact = new()
                 {
                     Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
                     Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),

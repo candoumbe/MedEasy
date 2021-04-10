@@ -1,49 +1,61 @@
 ﻿using Bogus;
+
 using FluentAssertions;
+
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers.Commands;
 using Identity.DataStores;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+
 using Xunit;
+
 using static Moq.MockBehavior;
+
 using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.UnitTests.Handlers.Commands
 {
-    public class HandleInvalidateAccessTokenByUsernameCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteDatabaseFixture>
     {
-        private Mock<IDateTimeService> _datetimeServiceMock;
+        private Mock<IClock> _datetimeServiceMock;
         private IUnitOfWorkFactory _uowFactory;
         private HandleInvalidateAccessTokenByUsernameCommand _sut;
 
         public HandleInvalidateAccessTokenByUsernameCommandTests(SqliteDatabaseFixture databaseFixture)
         {
-            _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _datetimeServiceMock = new Mock<IClock>(Strict);
             DbContextOptionsBuilder<IdentityContext> dbContextBuilderOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>()
-                .UseSqlite(databaseFixture.Connection);
+                .UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextBuilderOptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
-            _sut = new HandleInvalidateAccessTokenByUsernameCommand(datetimeService: _datetimeServiceMock.Object, uowFactory: _uowFactory);
+            _sut = new HandleInvalidateAccessTokenByUsernameCommand(clock: _datetimeServiceMock.Object, uowFactory: _uowFactory);
         }
 
-        public async void Dispose()
+        public async ValueTask DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

@@ -11,6 +11,11 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using Optional;
 using System;
 using System.Linq;
@@ -31,12 +36,12 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
         public HandleGetOneAppointmentInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            optionsBuilder.UseSqlite(database.Connection);
+            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -65,7 +70,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         public async Task GivenEmptyDataStore_Handle_Returns_None()
         {
             // Arrange
-            GetOneAppointmentInfoByIdQuery request = new GetOneAppointmentInfoByIdQuery(Guid.NewGuid());
+            GetOneAppointmentInfoByIdQuery request = new(Guid.NewGuid());
 
             // Act
             Option<AppointmentInfo> optionalAppointment = await _sut.Handle(request, ct: default)
@@ -80,15 +85,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             // Arrange
             Guid appointmentId = Guid.NewGuid();
-            Appointment appointment = new Appointment
-            (
+            Appointment appointment = new            (
                 id: appointmentId,
                 location : "Wayne Tower",
                 subject :"Contengency",
-                startDate : 1.April(2018).AddHours(15),
-                endDate : 1.April(2018).AddHours(16)
+                startDate : 1.April(2018).Add(15.Hours()).AsUtc().ToInstant(),
+                endDate : 1.April(2018).Add(16.Hours()).AsUtc().ToInstant()
             );
-            Attendee bruce = new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne");
+            Attendee bruce = new(id: Guid.NewGuid(), name: "Bruce Wayne");
             appointment.AddAttendee(bruce);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -99,7 +103,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                          .ConfigureAwait(false);
             }
 
-            GetOneAppointmentInfoByIdQuery request = new GetOneAppointmentInfoByIdQuery(appointmentId);
+            GetOneAppointmentInfoByIdQuery request = new(appointmentId);
 
             // Act
             Option<AppointmentInfo> optionalAppointment = await _sut.Handle(request, default)
@@ -121,8 +125,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 attendeeInfo.Id.Should().Be(bruce.Id);
                 attendeeInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Attendee.Name);
                 attendeeInfo.UpdatedDate.Should()
-                    .NotBe(DateTime.MinValue).And
-                    .NotBe(DateTime.MaxValue);
+                    .NotBe(Instant.MinValue).And
+                    .NotBe(Instant.MaxValue);
             });
         }
     }

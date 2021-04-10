@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Agenda.Objects
 {
@@ -33,6 +34,7 @@ namespace Agenda.Objects
 
         private readonly IList<AppointmentAttendee> _appointments;
 
+        [JsonIgnore]
         public IEnumerable<AppointmentAttendee> Appointments => _appointments;
 
         /// <summary>

@@ -1,27 +1,8 @@
-﻿using FluentValidation.AspNetCore;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Serialization;
-using Patients.Context;
-using Patients.API.Controllers;
 using Patients.API.Routing;
-using Patients.API.StartupRegistration;
-using Patients.Mapping;
-using Patients.Validators.Features.Patients.DTO;
-using Swashbuckle.AspNetCore.Swagger;
-using System.IO;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 

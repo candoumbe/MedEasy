@@ -1,21 +1,20 @@
 ﻿using Documents.CQRS.Handlers;
 using Documents.Objects;
 using FluentAssertions;
-using FluentAssertions.Extensions;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using Documents.CQRS.Commands;
-using Bogus;
 using Documents.DataStore;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -31,13 +30,13 @@ namespace Documents.CQRS.UnitTests.Handlers
         {
             _outputHelper = outputHelper;
             DbContextOptionsBuilder<DocumentsStore> builder = new DbContextOptionsBuilder<DocumentsStore>();
-            builder.UseSqlite(database.Connection)
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging()
                 .ConfigureWarnings(warnings => warnings.Throw());
 
             _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(builder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options);
+                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

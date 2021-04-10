@@ -1,8 +1,10 @@
 ﻿using Agenda.DTO;
+
 using MedEasy.CQRS.Core.Queries;
+
 using Optional;
+
 using System;
-using System.Collections.Generic;
 
 namespace Agenda.CQRS.Features.Appointments.Queries
 {

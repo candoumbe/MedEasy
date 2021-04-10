@@ -10,6 +10,11 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -31,14 +36,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
-            builder.UseSqlite(database.Connection)
+            DbContextOptionsBuilder<AgendaContext> builder = new();
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging()
                 .ConfigureWarnings(warnings => warnings.Throw());
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 _databaseFacade = context.Database;
                 _databaseFacade.EnsureCreated();
                 return context;
@@ -60,7 +65,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             Guid participantId = Guid.NewGuid();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Attendee>().Create(new Attendee(id : participantId,"Dick Grayson"));
+                uow.Repository<Attendee>()
+                   .Create(new Attendee(id : participantId,"Dick Grayson"));
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -80,11 +86,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             // Arrange
             Guid appointmentId = Guid.NewGuid();
-            Appointment appointment = new Appointment
-            (
+            Appointment appointment = new            (
                 id: appointmentId,
-                startDate: 17.July(2016).At(13.Hours().And(30.Minutes())),
-                endDate: 17.July(2016).At(13.Hours().And(45.Minutes())),
+                startDate: 17.July(2016).At(13.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                endDate: 17.July(2016).At(13.Hours().And(45.Minutes())).AsUtc().ToInstant(),
                 subject: "Confidential",
                 location: "Somewhere in Gotham"
             );
@@ -112,19 +117,17 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             // Arrange
             Guid appointmentId = Guid.NewGuid();
-            Appointment appointment = new Appointment
-            (
+            Appointment appointment = new            (
                 id: appointmentId,
-                startDate: 17.July(2016).At(13.Hours().And(30.Minutes())),
-                endDate: 17.July(2016).At(13.Hours().And(45.Minutes())),
+                startDate: 17.July(2016).At(13.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                endDate: 17.July(2016).At(13.Hours().And(45.Minutes())).AsUtc().ToInstant(),
                 subject: "Confidential",
                 location: "Somewhere in Gotham"
-
             );
-            Attendee dickGrayson = new Attendee(id: Guid.NewGuid(), name:"Dick Grayson");
+            Attendee dickGrayson = new(id: Guid.NewGuid(), name:"Dick Grayson");
             appointment.AddAttendee(dickGrayson);
 
-            Attendee bruceWayne = new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne");
+            Attendee bruceWayne = new(id: Guid.NewGuid(), name: "Bruce Wayne");
             appointment.AddAttendee(bruceWayne);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

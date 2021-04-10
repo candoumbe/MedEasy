@@ -19,6 +19,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -56,11 +60,11 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             _mediatorMock = new Mock<IMediator>(Strict);
 
             DbContextOptionsBuilder<IdentityContext> optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            optionsBuilder.UseSqlite(databaseFixture.Connection);
+            optionsBuilder.UseSqlite(databaseFixture.Connection, x => x.UseNodaTime());
 
             _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;

@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using NodaTime;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,10 +47,10 @@ namespace Identity.Validators.UnitTests
         {
             _outputHelper = outputHelper;
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new();
-            dbContextOptionsBuilder.UseSqlite(databaseFixture.Connection);
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

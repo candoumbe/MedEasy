@@ -1,15 +1,17 @@
 ﻿using FluentAssertions;
+
 using Identity.CQRS.Commands;
 using Identity.DTO;
 using Identity.DTO.v1;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

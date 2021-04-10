@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using static Newtonsoft.Json.JsonConvert;
 using static Newtonsoft.Json.Formatting;
+using NodaTime;
 
 namespace Measures.DTO
 {
@@ -12,7 +13,7 @@ namespace Measures.DTO
     public class CreateBloodPressureInfo : CreatePhysiologicalMeasureInfo
     {
         [DataType(DataType.DateTime)]
-        public DateTime DateOfMeasure{ get; set; }
+        public Instant DateOfMeasure{ get; set; }
 
         /// <summary>
         /// The new systolic blod pressure value

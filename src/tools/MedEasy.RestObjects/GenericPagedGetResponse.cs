@@ -1,26 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if NETSTANDARD1_1
-using Newtonsoft.Json;
-#endif
+
 namespace MedEasy.RestObjects
 {
     /// <summary>
-    /// Wraps a paged response 
+    /// Wraps a paged response
     /// </summary>
     /// <typeparam name="T">Type of items that will be wrapped in a paged result</typeparam>
-#if NETSTANDARD1_1
-    [JsonObject]
-#endif
+
     public class GenericPagedGetResponse<T> : IGenericPagedGetResponse
     {
         /// <summary>
         /// Links that helps navigated through pages of the result
         /// </summary>
-#if NETSTANDARD1_1
-        [JsonProperty(Required = Required.Always)]
-#endif
         public PageLinks Links { get; }
 
         /// <summary>
@@ -32,7 +25,12 @@ namespace MedEasy.RestObjects
         /// <param name="next"><see cref="Link"/> to the next page of response</param>
         /// <param name="last"><see cref="Link"/> to the last page of response</param>
         /// <param name="total">Total count of items</param>
-        public GenericPagedGetResponse(in IEnumerable<T> items, in string first = null, in string previous = null, in string next = null, string last = null, in long total = 0)
+        public GenericPagedGetResponse(in IEnumerable<T> items,
+                                       in string first = null,
+                                       in string previous = null,
+                                       in string next = null,
+                                       string last = null,
+                                       in long total = 0)
         {
             Items = items;
             Links = new PageLinks(first, previous, next, last);
@@ -41,24 +39,15 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// The items of the current page of result
         /// </summary>
-#if NETSTANDARD1_1
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-#endif
         public IEnumerable<T> Items { get;  }
 
         /// <summary>
-        /// Number of items in the the result
+        /// Number of items in the result
         /// </summary>
-#if NETSTANDARD1_1
-        [JsonProperty]
-#endif
         public long Total { get; }
 
         private long? _count;
 
-#if NETSTANDARD1_1
-        [JsonProperty]
-#endif
         public long Count
         {
             get

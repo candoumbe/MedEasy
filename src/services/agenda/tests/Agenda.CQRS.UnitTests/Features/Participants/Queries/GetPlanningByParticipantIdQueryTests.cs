@@ -1,12 +1,16 @@
 ﻿using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DTO;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using MedEasy.DAL.Repositories;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

@@ -1,9 +1,9 @@
 ﻿using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using FluentValidation;
-using MedEasy.Abstractions;
+
 using MedEasy.Validators.Validators;
-using System;
 
 namespace Agenda.Validators
 {

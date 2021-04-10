@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <AssemblyName>MedEasy.RestObjects</AssemblyName>
     <PackageId>MedEasy.RestObjects</PackageId>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.1' ">$(PackageTargetFallback);dnxcore50;portable-dnxcore50+net45+win8+wp8+wpa81</PackageTargetFallback>
@@ -15,7 +15,7 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="Optional" Version="4.*" />
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.1.0" />
-  
+    <PackageReference Include="NodaTime" Version="3.0.5" />
   </ItemGroup>
 
 </Project>

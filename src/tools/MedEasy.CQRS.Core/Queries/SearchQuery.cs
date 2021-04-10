@@ -30,7 +30,7 @@ namespace MedEasy.CQRS.Core.Queries
             Data = search;
         }
 
-        //public override string ToString() => SerializeObject(this, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        public override string ToString() => this.Jsonify();
 
     }
 }

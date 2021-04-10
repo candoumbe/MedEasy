@@ -1,9 +1,9 @@
 ﻿using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using FluentValidation;
-using MedEasy.Abstractions;
+
 using MedEasy.Validators.Validators;
-using System;
 
 namespace Agenda.Validators
 {
@@ -23,7 +23,7 @@ namespace Agenda.Validators
                 () =>
                 {
                     RuleFor(x => x.To)
-                        .GreaterThanOrEqualTo((search) => search.From);
+                        .Must((search, to) => to.Value.ToInstant() >= search.From.Value.ToInstant());
                 });
         }
     }

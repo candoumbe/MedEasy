@@ -56,7 +56,11 @@ namespace Measures.CQRS.Handlers.BloodPressures
                 return await optionalPatient.Match(
                     some: async _ =>
                     {
-                        BloodPressure newEntity = new BloodPressure(patientId: data.PatientId, id: Guid.NewGuid(), data.DateOfMeasure, data.DiastolicPressure, data.SystolicPressure);
+                        BloodPressure newEntity = new BloodPressure(patientId: data.PatientId,
+                                                                    id: Guid.NewGuid(),
+                                                                    data.DateOfMeasure,
+                                                                    data.DiastolicPressure,
+                                                                    data.SystolicPressure);
 
                         uow.Repository<BloodPressure>().Create(newEntity);
                         await uow.SaveChangesAsync(cancellationToken)

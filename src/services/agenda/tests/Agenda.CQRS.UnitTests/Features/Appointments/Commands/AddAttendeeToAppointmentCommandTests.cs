@@ -19,7 +19,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
             Guid participantId = Guid.NewGuid();
 
             // Act
-            AddAttendeeToAppointmentCommand instance = new AddAttendeeToAppointmentCommand(data : (appointmentId, participantId));
+            AddAttendeeToAppointmentCommand instance = new(data : (appointmentId, participantId));
 
             // Assert
             instance.Id.Should()

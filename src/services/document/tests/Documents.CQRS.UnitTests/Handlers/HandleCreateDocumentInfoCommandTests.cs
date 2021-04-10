@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Bogus;
+﻿using Bogus;
 using Documents.CQRS.Commands;
 using Documents.CQRS.Handlers;
 using Documents.DTO;
@@ -19,8 +18,9 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using Microsoft.EntityFrameworkCore.Sqlite;
 using Documents.DataStore;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -37,13 +37,13 @@ namespace Documents.CQRS.UnitTests.Handlers
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<DocumentsStore> dbContextOptionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging()
                 .ConfigureWarnings(warnings => warnings.Throw());
 
             _unitOfWorkFactory = new EFUnitOfWorkFactory<DocumentsStore>(dbContextOptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options);
+                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;

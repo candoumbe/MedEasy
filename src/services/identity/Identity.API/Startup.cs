@@ -1,10 +1,12 @@
 ﻿using Identity.API.Routing;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 using System.Linq;
 
 namespace Identity.API
@@ -31,7 +33,8 @@ namespace Identity.API
                 .AddCustomAuthentication(_configuration)
                 .AddCustomApiVersioning()
                 .AddDependencyInjection()
-                .AddSwagger(_hostingEnvironment, _configuration);
+                .AddCustomSwagger(_hostingEnvironment, _configuration)
+                .AddCustomHealthChecks();
         }
 
         /// <summary>
@@ -54,11 +57,13 @@ namespace Identity.API
             }
             else
             {
+                app.UseHealthChecks("/health");
                 if (env.IsDevelopment())
                 {
                     app.UseSwagger();
                     app.UseSwaggerUI(opt =>
                     {
+                        opt.RoutePrefix = string.Empty;
                         foreach (ApiVersionDescription description in provider.ApiVersionDescriptions.Where(api => !api.IsDeprecated))
                         {
                             opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"{env.ApplicationName} REST API {description.GroupName}");
@@ -81,6 +86,7 @@ namespace Identity.API
                 routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
                 routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/");
                 routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "v{version:apiVersion}/{controller}/search/");
+                routeBuilder.MapHealthChecks("/health");
             });
         }
     }

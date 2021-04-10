@@ -40,6 +40,8 @@ using static MedEasy.RestObjects.LinkRelation;
 using static System.Uri;
 using Identity.API.Features.v1.Accounts;
 using Microsoft.AspNetCore.Http;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Identity.API.UnitTests.Features.v1.Accounts
 {
@@ -76,12 +78,12 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
             dbContextOptionsBuilder
                 .EnableDetailedErrors()
-                .UseSqlite(database.Connection)
+                .UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

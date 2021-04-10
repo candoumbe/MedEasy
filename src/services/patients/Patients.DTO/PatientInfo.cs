@@ -1,5 +1,8 @@
 ﻿using MedEasy.RestObjects;
 using Newtonsoft.Json;
+
+using NodaTime;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -33,7 +36,7 @@ namespace Patients.DTO
         /// <summary>
         /// Patient's birth date
         /// </summary>
-        public DateTime? BirthDate { get; set; }
+        public LocalDate? BirthDate { get; set; }
 
         /// <summary>
         /// Id of the main doctor

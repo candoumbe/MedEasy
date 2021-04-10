@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+using NodaTime;
+
 namespace Measures.Context.Migrations
 {
     public partial class InitialMigration : Migration
@@ -12,12 +14,12 @@ namespace Measures.Context.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    CreatedDate = table.Column<DateTime>(nullable: false),
+                    CreatedDate = table.Column<Instant>(nullable: false),
                     CreatedBy = table.Column<string>(nullable: true),
-                    UpdatedDate = table.Column<DateTime>(nullable: false),
+                    UpdatedDate = table.Column<Instant>(nullable: false),
                     UpdatedBy = table.Column<string>(nullable: true),
                     Name = table.Column<string>(maxLength: 255, nullable: true),
-                    BirthDate = table.Column<DateTime>(nullable: true)
+                    BirthDate = table.Column<LocalDate>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,7 +31,7 @@ namespace Measures.Context.Migrations
                 columns: table => new
                 {
                     PatientId = table.Column<Guid>(nullable: false),
-                    DateOfMeasure = table.Column<DateTime>(nullable: false),
+                    DateOfMeasure = table.Column<Instant>(nullable: false),
                     Id = table.Column<Guid>(nullable: false),
                     DiastolicPressure = table.Column<float>(nullable: false),
                     SystolicPressure = table.Column<float>(nullable: false)
@@ -50,7 +52,7 @@ namespace Measures.Context.Migrations
                 columns: table => new
                 {
                     PatientId = table.Column<Guid>(nullable: false),
-                    DateOfMeasure = table.Column<DateTime>(nullable: false),
+                    DateOfMeasure = table.Column<Instant>(nullable: false),
                     Id = table.Column<Guid>(nullable: false),
                     Value = table.Column<float>(nullable: false)
                 },

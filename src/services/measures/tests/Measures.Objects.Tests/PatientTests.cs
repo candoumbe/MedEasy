@@ -5,6 +5,8 @@ using FluentAssertions.Extensions;
 using System.Collections.Generic;
 using Xunit.Categories;
 using Measures.Objects.Exceptions;
+using NodaTime.Extensions;
+using NodaTime;
 
 namespace Measures.Objects.Tests
 {
@@ -81,13 +83,13 @@ namespace Measures.Objects.Tests
         {
             get
             {
-                yield return new object[] { Guid.NewGuid(), 10.April(2012), 120, 80 };
+                yield return new object[] { Guid.NewGuid(), 10.April(2012).AsUtc().ToInstant(), 120, 80 };
             }
         }
 
         [Theory]
         [MemberData(nameof(AddBloodPressureCases))]
-        public void AddingBloodPressure_Should_AddMeasure(Guid measureId, DateTime dateOfMeasure, float systolic, float diastolic)
+        public void AddingBloodPressure_Should_AddMeasure(Guid measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
             // Arrange
             Patient patient = new Patient(Guid.NewGuid(), "John Doe");
@@ -116,7 +118,7 @@ namespace Measures.Objects.Tests
             Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             // Act
-            Action addWithNoId = () => patient.AddBloodPressure(Guid.Empty, 22.April(2014), systolic: 150, diastolic: 80);
+            Action addWithNoId = () => patient.AddBloodPressure(Guid.Empty, 22.April(2014).AsUtc().ToInstant(), systolic: 150, diastolic: 80);
 
             // Assert
             addWithNoId.Should()
@@ -130,10 +132,10 @@ namespace Measures.Objects.Tests
             Patient patient = new Patient(Guid.NewGuid(), "John Doe");
 
             Guid measureId = Guid.NewGuid();
-            patient.AddBloodPressure(measureId, 18.April(2012), systolic: 120, diastolic: 50);
+            patient.AddBloodPressure(measureId, 18.April(2012).AsUtc().ToInstant(), systolic: 120, diastolic: 50);
 
             // Act
-            Action addMeasureWithDuplicateId = () => patient.AddBloodPressure(measureId, 18.April(2013), systolic: 130 , diastolic: 90);
+            Action addMeasureWithDuplicateId = () => patient.AddBloodPressure(measureId, 18.April(2013).AsUtc().ToInstant(), systolic: 130 , diastolic: 90);
 
             // Assert
             addMeasureWithDuplicateId.Should()
@@ -147,7 +149,7 @@ namespace Measures.Objects.Tests
             Patient patient = new Patient(Guid.NewGuid(), "John Doe");
             Guid measureId = Guid.NewGuid();
 
-            patient.AddBloodPressure(measureId, 10.April(2014), systolic : 120, diastolic : 80);
+            patient.AddBloodPressure(measureId, 10.April(2014).AsUtc().ToInstant(), systolic : 120, diastolic : 80);
 
             // Act
             patient.DeleteBloodPressure(measureId);

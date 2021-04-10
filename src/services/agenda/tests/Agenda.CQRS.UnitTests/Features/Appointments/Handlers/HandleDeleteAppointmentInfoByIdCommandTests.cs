@@ -9,6 +9,11 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,14 +34,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         public HandleDeleteAppointmentInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
-            builder.UseSqlite(database.Connection)
+            DbContextOptionsBuilder<AgendaContext> builder = new();
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging()
                 .ConfigureWarnings(warnings => warnings.Throw());
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(builder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                context.Database.EnsureCreated();
                 return context;
             });
@@ -65,10 +70,10 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             // Arrange
             Guid appointmentUuid = Guid.NewGuid();
-            Appointment appointment = new Appointment(
+            Appointment appointment = new(
                 id: appointmentUuid,
-                startDate : 16.July(2016).At(15.Hours().And(30.Minutes())),
-                endDate : 16.July(2016).At(15.Hours().And(45.Minutes())),
+                startDate : 16.July(2016).At(15.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                endDate : 16.July(2016).At(15.Hours().And(45.Minutes())).AsUtc().ToInstant(),
                 subject : "Confidential",
                 location : "Wayne Tower"
             );
@@ -86,7 +91,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     .ConfigureAwait(false);
             }
 
-            DeleteAppointmentInfoByIdCommand cmd = new DeleteAppointmentInfoByIdCommand(appointmentUuid);
+            DeleteAppointmentInfoByIdCommand cmd = new(appointmentUuid);
             // Act
             DeleteCommandResult cmdResult = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);

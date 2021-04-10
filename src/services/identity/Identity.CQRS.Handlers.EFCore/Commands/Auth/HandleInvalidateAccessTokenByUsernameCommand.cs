@@ -1,10 +1,15 @@
 ﻿using Identity.CQRS.Commands;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
+using NodaTime;
+
 using Optional;
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,40 +17,40 @@ namespace Identity.CQRS.Handlers.Commands
 {
     public class HandleInvalidateAccessTokenByUsernameCommand : IRequestHandler<InvalidateAccessTokenByUsernameCommand, InvalidateAccessCommandResult>
     {
-        private readonly IDateTimeService _datetimeService;
+        private readonly IClock _clock;
         private readonly IUnitOfWorkFactory _uowFactory;
 
         /// <summary>
         /// Builds a new <see cref="HandleInvalidateAccessTokenByUsernameCommand"/> instance
         /// </summary>
-        /// <param name="datetimeService"></param>
+        /// <param name="clock"></param>
         /// <param name="uowFactory"></param>
-        public HandleInvalidateAccessTokenByUsernameCommand(IDateTimeService datetimeService, IUnitOfWorkFactory uowFactory)
+        public HandleInvalidateAccessTokenByUsernameCommand(IClock clock, IUnitOfWorkFactory uowFactory)
         {
-            _datetimeService = datetimeService;
+            _clock = clock;
             _uowFactory = uowFactory;
         }
 
         public async Task<InvalidateAccessCommandResult> Handle(InvalidateAccessTokenByUsernameCommand cmd, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Option<Account> optionalAccount = await uow.Repository<Account>().SingleOrDefaultAsync(x => x.Username == cmd.Data, ct)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                return await optionalAccount.Match(
-                   some: async account =>
-                   {
-                        account.DeleteRefreshToken();
+            Option<Account> optionalAccount = await uow.Repository<Account>()
+                                                       .SingleOrDefaultAsync(x => x.Username == cmd.Data, ct)
+                                                       .ConfigureAwait(false);
 
-                        await uow.SaveChangesAsync(ct)
-                            .ConfigureAwait(false);
+            return await optionalAccount.Match(
+               some: async account =>
+               {
+                   account.DeleteRefreshToken();
 
-                       return InvalidateAccessCommandResult.Done;
-                   },
-                   none : () => Task.FromResult(InvalidateAccessCommandResult.Failed_NotFound)
-                ).ConfigureAwait(false);
-            }
+                   await uow.SaveChangesAsync(ct)
+                           .ConfigureAwait(false);
+
+                   return InvalidateAccessCommandResult.Done;
+               },
+               none: () => Task.FromResult(InvalidateAccessCommandResult.Failed_NotFound)
+            ).ConfigureAwait(false);
         }
     }
 }

@@ -120,7 +120,7 @@ namespace Agenda.API.Resources.v1
                 some: resource =>
                 {
                     string version = _apiVersion.ToString();
-                    Browsable<AttendeeInfo> browsableResource = new Browsable<AttendeeInfo>
+                    Browsable<AttendeeInfo> browsableResource = new()
                     {
                         Resource = resource,
                         Links = new[]
@@ -242,7 +242,7 @@ namespace Agenda.API.Resources.v1
 
             if (search.Page > page.Count)
             {
-                PageLinks validLinks = new PageLinks(
+                PageLinks validLinks = new(
                     first: linkToFirstPage,
                     previous: null,
                     next: null,

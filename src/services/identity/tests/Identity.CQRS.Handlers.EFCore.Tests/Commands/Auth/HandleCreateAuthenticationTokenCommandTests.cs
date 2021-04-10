@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+
 using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.EFCore.Commands.Auth;
@@ -9,14 +12,22 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -25,10 +36,13 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
+
 using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.UnitTests.Handlers.Queries
@@ -40,7 +54,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
     public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteDatabaseFixture>
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IDateTimeService> _dateTimeServiceMock;
+        private Mock<IClock> _dateTimeServiceMock;
         private HandleCreateAuthenticationTokenCommand _sut;
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenCommandMock;
@@ -49,19 +63,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         {
             _outputHelper = outputHelper;
 
-            _dateTimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _dateTimeServiceMock = new Mock<IClock>(Strict);
 
-            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseSqlite(databaseFixture.Connection)
+            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new();
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                                    .EnableSensitiveDataLogging();
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
-            {
-                IdentityContext context = new IdentityContext(options);
-                context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
-                return context;
-            });
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options,
+                                                                   (options) => new(options, new FakeClock(new Instant())));
             _handleCreateSecurityTokenCommandMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
 
             _sut = new HandleCreateAuthenticationTokenCommand(dateTimeService: _dateTimeServiceMock.Object, unitOfWorkFactory: _uowFactory, _handleCreateSecurityTokenCommandMock.Object);
@@ -73,12 +82,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         {
             _outputHelper = null;
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            
+
             uow.Repository<Account>().Clear();
             uow.Repository<Role>().Clear();
             await uow.SaveChangesAsync()
-                .ConfigureAwait(false);
-            
+                     .ConfigureAwait(false);
+
             _handleCreateSecurityTokenCommandMock = null;
             _uowFactory = null;
             _sut = null;
@@ -95,16 +104,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         public async Task GivenAccountInfo_Handler_Returns_CorrespondingToken()
         {
             // Arrange
-            DateTime utcNow = 10.January(2014).AsUtc();
-            Account account = new Account
-            (
-                id: Guid.NewGuid(),
-                username: "thebatman",
-                email: "bwayne@wayne-enterprise.com",
-                name: "Bruce Wayne",
-                passwordHash: new Faker().Lorem.Word(),
-                salt: new Faker().Lorem.Word()
-            );
+            Instant utcNow = 10.January(2014).AsUtc().ToInstant();
+            Account account = new(id: Guid.NewGuid(),
+                                  username: "thebatman",
+                                  email: "bwayne@wayne-enterprise.com",
+                                  name: "Bruce Wayne",
+                                  passwordHash: new Faker().Lorem.Word(),
+                                  salt: new Faker().Lorem.Word());
 
             account.AddOrUpdateClaim(type: "batarangs", value: "10", utcNow);
             account.AddOrUpdateClaim(type: "fight", value: "100", utcNow);
@@ -121,7 +127,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                     .Map<Account, AccountInfo>(account);
             }
 
-            JwtInfos jwtInfos = new JwtInfos
+            JwtInfos jwtInfos = new()
             {
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
@@ -129,7 +135,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 AccessTokenLifetime = 10,
                 RefreshTokenLifetime = 1.Days().TotalMinutes
             };
-            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns(async (CreateSecurityTokenCommand cmd, CancellationToken _) =>
@@ -139,16 +145,16 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                     SecurityToken token = new JwtSecurityToken(
                         issuer: tokenOptions.Issuer,
                         claims: claims.Select(claim => new Claim(claim.Type, claim.Value)),
-                        notBefore: utcNow,
-                        expires: utcNow.AddMinutes(tokenOptions.LifetimeInMinutes),
+                        notBefore: utcNow.ToDateTimeUtc(),
+                        expires: utcNow.Plus(Duration.FromMinutes(tokenOptions.LifetimeInMinutes)).ToDateTimeUtc(),
                         signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
                     );
 
                     return await new ValueTask<SecurityToken>(token);
                 });
 
-            AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "127.0.0.1" };
-            CreateAuthenticationTokenCommand createAuthenticationTokenCommand = new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos));
+            AuthenticationInfo authenticationInfo = new() { Location = "127.0.0.1" };
+            CreateAuthenticationTokenCommand createAuthenticationTokenCommand = new((authenticationInfo, accountInfo, jwtInfos));
 
             // Act
             AuthenticationTokenInfo authenticationToken = await _sut.Handle(createAuthenticationTokenCommand, ct: default)
@@ -156,7 +162,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
             // Assert
             _dateTimeServiceMock.Verify();
-            _handleCreateSecurityTokenCommandMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _handleCreateSecurityTokenCommandMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(),
+                                                                             It.IsAny<CancellationToken>()), Times.Exactly(2));
 
             SecurityToken accessToken = authenticationToken.AccessToken;
 
@@ -166,9 +173,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .NotBeNullOrWhiteSpace().And
                 .MatchRegex(@"^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$", "id must be a GUID");
             accessToken.ValidFrom.Should()
-                .Be(utcNow);
+                .Be(utcNow.ToDateTimeUtc());
             accessToken.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtInfos.AccessTokenLifetime));
+                .Be(utcNow.Plus(Duration.FromMinutes(jwtInfos.AccessTokenLifetime)).ToDateTimeUtc());
             accessToken.Issuer.Should()
                 .Be(jwtInfos.Issuer);
 
@@ -181,13 +188,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .BeEquivalentTo(jwtInfos.Audiences);
 
             jwtAccessToken.Claims.Should()
-                .ContainSingle(claim => claim.Type == ClaimTypes.NameIdentifier).And
-                .ContainSingle(claim => claim.Type == "batarangs").And
-                .ContainSingle(claim => claim.Type == "money").And
-                .ContainSingle(claim => claim.Type == "fight").And
-                .ContainSingle(claim => claim.Type == ClaimTypes.Name).And
-                .ContainSingle(claim => claim.Type == CustomClaimTypes.AccountId).And
-                .ContainSingle(claim => claim.Type == ClaimTypes.Email)
+                                .ContainSingle(claim => claim.Type == ClaimTypes.NameIdentifier).And
+                                .ContainSingle(claim => claim.Type == "batarangs").And
+                                .ContainSingle(claim => claim.Type == "money").And
+                                .ContainSingle(claim => claim.Type == "fight").And
+                                .ContainSingle(claim => claim.Type == ClaimTypes.Name).And
+                                .ContainSingle(claim => claim.Type == CustomClaimTypes.AccountId).And
+                                .ContainSingle(claim => claim.Type == CustomClaimTypes.TimeZoneId).And
+                                .ContainSingle(claim => claim.Type == ClaimTypes.Email)
             ;
 
             {
@@ -217,7 +225,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
                 Claim fightClaim = jwtAccessToken.Claims.Single(claim => claim.Type == "fight");
                 fightClaim.Value.Should()
-                    .Be("100");
+                                .Be("100");
+
+                Claim timeZoneClaim = jwtAccessToken.Claims.Single(claim => claim.Type == CustomClaimTypes.TimeZoneId);
+                timeZoneClaim.Value.Should()
+                                   .Be(DateTimeZone.Utc.Id, $"{nameof(CustomClaimTypes.TimeZoneId)} must be set even when account has not explicitely specified");
             }
             SecurityToken refreshToken = authenticationToken.RefreshToken;
 
@@ -227,9 +239,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 .NotBeNullOrWhiteSpace().And
                 .MatchRegex(@"^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$", "id must be a GUID");
             refreshToken.ValidFrom.Should()
-                .Be(utcNow);
+                                  .Be(utcNow.ToDateTimeUtc());
             refreshToken.ValidTo.Should()
-                .Be(utcNow.AddMinutes(jwtInfos.RefreshTokenLifetime));
+                .Be(utcNow.Plus(Duration.FromMinutes(jwtInfos.RefreshTokenLifetime)).ToDateTimeUtc());
             refreshToken.Issuer.Should()
                 .Be(jwtInfos.Issuer);
             JwtSecurityToken jwtRefreshToken = refreshToken.Should()
@@ -285,17 +297,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         public async Task TwoTokenForSameAccount_Have_Differents_Ids()
         {
             // Arrange
-            DateTime utcNow = 10.January(2014).AsUtc();
-            Faker faker = new Faker();
-            Account account = new Account
-            (
-                id: Guid.NewGuid(),
-                username: "thebatman",
-                email: "bwayne@wayne-enterprise.com",
-                name: "Bruce Wayne",
-                passwordHash: faker.Lorem.Word(),
-                salt: faker.Lorem.Word()
-            );
+            Instant utcNow = 10.January(2014).AsUtc().ToInstant();
+            Faker faker = new();
+            Account account = new (id: Guid.NewGuid(),
+                                   username: "thebatman",
+                                   email: "bwayne@wayne-enterprise.com",
+                                   name: "Bruce Wayne",
+                                   passwordHash: faker.Lorem.Word(),
+                                   salt: faker.Lorem.Word());
 
             account.AddOrUpdateClaim("batarangs", "10", utcNow);
             account.AddOrUpdateClaim("fight", "100", utcNow);
@@ -313,7 +322,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                     .Map<Account, AccountInfo>(account);
             }
 
-            JwtInfos jwtInfos = new JwtInfos
+            JwtInfos jwtInfos = new()
             {
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
@@ -321,7 +330,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 AccessTokenLifetime = 10,
                 RefreshTokenLifetime = 1.Days().TotalMinutes
             };
-            AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "127.0.0.1" };
+            AuthenticationInfo authenticationInfo = new() { Location = "127.0.0.1" };
 
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns(async (CreateSecurityTokenCommand request, CancellationToken _) =>
@@ -331,16 +340,16 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                     SecurityToken token = new JwtSecurityToken(
                         issuer: tokenOptions.Issuer,
                         claims: claims.Select(claim => new Claim(claim.Type, claim.Value)),
-                        notBefore: utcNow,
-                        expires: utcNow.AddMinutes(tokenOptions.LifetimeInMinutes),
+                        notBefore: utcNow.ToDateTimeUtc(),
+                        expires: utcNow.Plus(Duration.FromMinutes(tokenOptions.LifetimeInMinutes)).ToDateTimeUtc(),
                         signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
                     );
 
-                    return await new ValueTask<SecurityToken>(token);
+                    return await new ValueTask<SecurityToken>(token).ConfigureAwait(false);
                 });
 
-            CreateAuthenticationTokenCommand cmd = new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos));
-            _dateTimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            CreateAuthenticationTokenCommand cmd = new((authenticationInfo, accountInfo, jwtInfos));
+            _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
             AuthenticationTokenInfo tokenOne = await _sut.Handle(cmd, ct: default)

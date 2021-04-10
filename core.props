@@ -3,4 +3,9 @@
     <Authors>Cyrille NDOUMBE</Authors>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.2.0" />
+  </ItemGroup>
+  
 </Project>

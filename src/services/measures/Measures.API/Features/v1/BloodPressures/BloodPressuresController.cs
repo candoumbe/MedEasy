@@ -1,9 +1,11 @@
 ﻿using DataFilters;
+
 using Measures.API.Features.v1.Patients;
 using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
+
 using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -12,19 +14,23 @@ using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static DataFilters.FilterLogic;
 using static DataFilters.FilterOperator;
 using static Microsoft.AspNetCore.Http.StatusCodes;
@@ -89,7 +95,7 @@ namespace Measures.API.Features.v1.BloodPressures
         [HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<BloodPressureInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
-        public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)]int pageSize, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken cancellationToken = default)
         {
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = Math.Min(pageSize, _apiOptions.Value.MaxPageSize) };
 
@@ -284,15 +290,15 @@ namespace Measures.API.Features.v1.BloodPressures
         ///     will match all resources which have exactly 'Bruce' in the Firstname property
         /// </para>
         /// <para>
-        ///     // GET api/BloodPressures/Search?Firstname=B*e
-        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        ///     `GET api/BloodPressures/Search?Firstname=B*e`
+        ///     will match all resources which starts with 'B' and ends with 'e'.
         /// </para>
         /// <para>'?' : match exactly one charcter in a string property.</para>
         /// <para>'!' : negate a criteria</para>
-        /// <para>
+        /// <example>
         ///     // GET api/BloodPressures/Search?Firstname=!Bruce
-        ///     will match all resources where Firstname is not "Bruce"
-        /// </para>
+        ///     will match all resources where Firstname is not Bruce
+        /// </example>
         ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
@@ -311,9 +317,10 @@ namespace Measures.API.Features.v1.BloodPressures
                 filters.Add(new MultiFilter
                 {
                     Logic = Or,
-                    Filters = new[] {
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value),
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value)
+                    Filters = new[]
+                    {
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value.ToInstant()),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value.ToInstant())
                     }
                 });
             }
@@ -322,9 +329,10 @@ namespace Measures.API.Features.v1.BloodPressures
                 filters.Add(new MultiFilter
                 {
                     Logic = Or,
-                    Filters = new[] {
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value),
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value)
+                    Filters = new[]
+                    {
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value.ToInstant()),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value.ToInstant())
                     }
                 });
             }
@@ -345,7 +353,7 @@ namespace Measures.API.Features.v1.BloodPressures
             };
 
             Page<BloodPressureInfo> pageOfResult = await _mediator.Send(new SearchQuery<BloodPressureInfo>(searchQueryInfo), cancellationToken)
-                .ConfigureAwait(false);
+                                                                  .ConfigureAwait(false);
 
             IActionResult actionResult;
             if (search.Page <= pageOfResult.Count)
@@ -354,15 +362,54 @@ namespace Measures.API.Features.v1.BloodPressures
                 bool hasPreviousPage = count > 0 && search.Page > 1;
 
                 string firstPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
-                    new { controller = EndpointName, search.From, search.To, Page = 1, search.PageSize, search.Sort, search.PatientId });
+                                                               new
+                                                               {
+                                                                   controller = EndpointName,
+                                                                   from = search.From?.ToDateTimeUtc(),
+                                                                   to = search.To?.ToDateTimeUtc(),
+                                                                   Page = 1,
+                                                                   search.PageSize,
+                                                                   search.Sort,
+                                                                   search.PatientId
+                                                               });
                 string previousPageUrl = hasPreviousPage
-                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page - 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                                   new
+                                                   {
+                                                       controller = EndpointName,
+                                                       from = search.From?.ToDateTimeUtc(),
+                                                       to = search.To?.ToDateTimeUtc(),
+                                                       Page = search.Page - 1,
+                                                       search.PageSize,
+                                                       search.Sort,
+                                                       search.PatientId
+                                                   })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
-                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = search.Page + 1, search.PageSize, search.Sort, search.PatientId })
+                        ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                                   new
+                                                   {
+                                                       controller = EndpointName,
+                                                       from = search.From?.ToDateTimeUtc(),
+                                                       to = search.To?.ToDateTimeUtc(),
+                                                       Page = search.Page + 1,
+                                                       search.PageSize,
+                                                       search.Sort,
+                                                       search.PatientId
+                                                   })
                         : null;
 
-                string lastPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, Page = pageOfResult.Count, search.PageSize, search.Sort, search.PatientId });
+                string lastPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                                              new
+                                                              {
+                                                                  controller = EndpointName,
+                                                                  from = search.From?.ToDateTimeUtc(),
+                                                                  to = search.To?.ToDateTimeUtc(),
+                                                                  Page = pageOfResult.Count,
+                                                                  search.PageSize,
+                                                                  search.Sort,
+                                                                  search.PatientId
+                                                              });
 
                 IEnumerable<Browsable<BloodPressureInfo>> resources = pageOfResult.Entries
                     .Select(

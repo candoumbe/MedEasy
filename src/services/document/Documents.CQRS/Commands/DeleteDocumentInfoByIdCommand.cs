@@ -1,8 +1,7 @@
 ﻿using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Documents.CQRS.Commands
 {

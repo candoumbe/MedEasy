@@ -2,6 +2,8 @@
 using MedEasy.DataStores.Core.Relational;
 using Microsoft.EntityFrameworkCore;
 
+using NodaTime;
+
 namespace Agenda.DataStores
 {
     /// <summary>
@@ -33,7 +35,7 @@ namespace Agenda.DataStores
         /// Builds a new <see cref="AgendaContext"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
-        public AgendaContext(DbContextOptions<AgendaContext> options) : base(options)
+        public AgendaContext(DbContextOptions<AgendaContext> options, IClock clock) : base(options, clock)
         {
         }
 
@@ -68,10 +70,10 @@ namespace Agenda.DataStores
                     .IsRequired();
 
                 entity.Property(x => x.StartDate)
-                    .IsRequired();
+                      .IsRequired();
 
                 entity.Property(x => x.EndDate)
-                    .IsRequired();
+                      .IsRequired();
             });
 
             modelBuilder.Entity<Attendee>(entity =>

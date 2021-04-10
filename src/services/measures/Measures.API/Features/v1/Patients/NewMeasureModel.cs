@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NodaTime;
+
+using System;
 
 namespace Measures.API.Features.Patients
 {
@@ -12,8 +10,8 @@ namespace Measures.API.Features.Patients
     public abstract class NewMeasureModel
     {
         /// <summary>
-        /// Indicates when the measure was made 
+        /// Indicates when the measure was made
         /// </summary>
-        public DateTime DateOfMeasure { get; set; }
+        public Instant DateOfMeasure { get; set; }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using MedEasy.RestObjects;
+
+using NodaTime;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,6 +21,6 @@ namespace Measures.DTO
         /// When the measure was made
         /// </summary>
         [DataType(DataType.DateTime)]
-        public DateTime DateOfMeasure { get; set; }
+        public Instant DateOfMeasure { get; set; }
     }
 }

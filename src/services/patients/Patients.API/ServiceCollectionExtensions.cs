@@ -1,20 +1,18 @@
 ﻿using AutoMapper;
+
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using MedEasy.Abstractions;
+
 using MedEasy.Core.Filters;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,20 +21,28 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
+using NodaTime;
+
 using Patients.Context;
 using Patients.Mapping;
 using Patients.Validators.Features.Patients.DTO;
-using Swashbuckle.AspNetCore.Swagger;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.DateFormatHandling;
 using static Newtonsoft.Json.DateTimeZoneHandling;
+using NodaTime.Serialization.SystemTextJson;
 
 namespace Patients.API
 {
@@ -74,14 +80,13 @@ namespace Patients.API
                     options.LocalizationEnabled = true;
                     options.RegisterValidatorsFromAssemblyContaining<CreatePatientInfoValidator>();
                 })
-                .AddNewtonsoftJson(options =>
+                .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    options.SerializerSettings.DateFormatHandling = IsoDateFormat;
-                    options.SerializerSettings.DateTimeZoneHandling = Utc;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
+                    jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    jsonSerializerOptions.WriteIndented = true;
+                    jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 })
                 .AddXmlSerializerFormatters();
 
@@ -166,8 +171,9 @@ namespace Patients.API
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<PatientsContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new PatientsContext(optionsBuilder.Options);
+                return new PatientsContext(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsContext>>(serviceProvider =>
@@ -175,7 +181,9 @@ namespace Patients.API
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<PatientsContext> builder = BuildDbContextOptions(serviceProvider);
 
-                return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options));
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+
+                return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options, clock));
             });
 
             return services;
@@ -197,7 +205,7 @@ namespace Patients.API
                 return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
             });
 
-            services.AddSingleton<IDateTimeService, DateTimeService>();
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;
         }

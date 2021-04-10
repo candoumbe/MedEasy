@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Optional;
+using NodaTime;
 
 namespace Agenda.Objects
 {
@@ -26,12 +27,12 @@ namespace Agenda.Objects
         /// <summary>
         /// Start date of the appointment
         /// </summary>
-        public DateTimeOffset StartDate { get; private set; }
+        public Instant StartDate { get; private set; }
 
         /// <summary>
         /// End date of the <see cref="Appointment"/>
         /// </summary>
-        public DateTimeOffset EndDate { get; private set; }
+        public Instant EndDate { get; private set; }
 
         /// <summary>
         /// Participants of the <see cref="Appointment"/>
@@ -41,7 +42,7 @@ namespace Agenda.Objects
         public AppointmentStatus Status { get; }
 
         
-        public Appointment(Guid id, string subject, string location, DateTimeOffset startDate, DateTimeOffset endDate) : base(id)
+        public Appointment(Guid id, string subject, string location, Instant startDate, Instant endDate) : base(id)
         {
             Subject = subject;
             Location = location ?? string.Empty;
@@ -66,7 +67,7 @@ namespace Agenda.Objects
         public void RemoveAttendee(Guid attendeeId)
         {
             Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.Id == attendeeId)
-                .SomeNotNull();
+                                                                      .SomeNotNull();
 
             optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
         }
@@ -83,10 +84,10 @@ namespace Agenda.Objects
         /// </summary>
         /// <param name="newStartDate"></param>
         /// <param name="newEndDate"></param>
-        public void Reschedule(DateTimeOffset newStartDate, DateTimeOffset newEndDate)
+        public void Reschedule(ZonedDateTime newStartDate, ZonedDateTime newEndDate)
         {
-            StartDate = newStartDate;
-            EndDate = newEndDate;
+            StartDate = newStartDate.ToInstant();
+            EndDate = newEndDate.ToInstant();
         }
     }
 }

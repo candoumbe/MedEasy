@@ -2,7 +2,6 @@
 using Documents.CQRS.Handlers;
 using Documents.Objects;
 using FluentAssertions;
-using FluentAssertions.Extensions;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
@@ -20,6 +19,8 @@ using MedEasy.DAL.EFStore;
 using Documents.DTO.v1;
 using Documents.CQRS.Queries;
 using Documents.DataStore;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
@@ -40,12 +41,12 @@ namespace Documents.CQRS.UnitTests.Handlers
         public HandleGetPageOfDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
             DbContextOptionsBuilder<DocumentsStore> optionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            optionsBuilder.UseSqlite(database.Connection)
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(optionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options);
+                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

@@ -4,20 +4,32 @@ using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.Mapping;
 using Agenda.Objects;
+
 using AutoMapper;
+
 using Bogus;
+
 using FakeItEasy;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -37,14 +49,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<AgendaContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            DbContextOptionsBuilder<AgendaContext> dbContextOptionsBuilder = new();
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging()
                 .ConfigureWarnings(warnings => warnings.Throw());
 
             _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(dbContextOptionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new (options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -76,16 +88,16 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             get
             {
-                Person person = new Person();
+                Person person = new();
                 Faker<AttendeeInfo> participantFaker = new Faker<AttendeeInfo>()
                     .RuleFor(x => x.Id, () => Guid.NewGuid())
-                    .RuleFor(x => x.Name, faker => new Person().FullName )
-                    .RuleFor(x => x.UpdatedDate, faker => faker.Date.Recent())
+                    .RuleFor(x => x.Name, _ => new Person().FullName )
+                    .RuleFor(x => x.UpdatedDate, faker => faker.Noda().Instant.Recent())
                     ;
 
                 Faker<NewAppointmentInfo> newAppointmentFaker = new Faker<NewAppointmentInfo>()
-                    .RuleFor(x => x.StartDate, faker => faker.Date.Future())
-                    .RuleFor(x => x.EndDate, (faker, app) => app.StartDate.Add(30.Minutes()))
+                    .RuleFor(x => x.StartDate, faker => faker.Noda().ZonedDateTime.Future())
+                    .RuleFor(x => x.EndDate, (_, app) => app.StartDate.Plus(30.Minutes().ToDuration()))
                     .RuleFor(x => x.Location, faker => faker.Address.City())
                     .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                     .RuleFor(x => x.Attendees, faker => participantFaker.Generate(faker.Random.Int(min: 1, max: 5)));
@@ -94,13 +106,13 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return new object[]
                     {
                         data,
-                        ((Expression<Func<AppointmentInfo, bool>>)(app => app.Id != default
-                            && app.StartDate == data.StartDate
-                            && app.EndDate == data.EndDate
-                            && app.Subject == data.Subject
-                            && app.Location == data.Location
-                            && app.Attendees.Count() == data.Attendees.Count()
-                        ))
+                        (Expression<Func<AppointmentInfo, bool>>)(app => app.Id != default
+                                                                         && app.StartDate == data.StartDate.ToInstant()
+                                                                         && app.EndDate == data.EndDate.ToInstant()
+                                                                         && app.Subject == data.Subject
+                                                                         && app.Location == data.Location
+                                                                         && app.Attendees.Exactly(data.Attendees.Count())
+                        )
                     };
                 }
             }
@@ -113,7 +125,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _outputHelper.WriteLine($"{nameof(info)} : {info}");
 
             // Arrange
-            CreateAppointmentInfoCommand cmd = new CreateAppointmentInfoCommand(info);
+            CreateAppointmentInfoCommand cmd = new (info);
 
             // Act
             AppointmentInfo appointment = await _sut.Handle(cmd, default)

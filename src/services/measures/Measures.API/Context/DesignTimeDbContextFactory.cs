@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+
+using NodaTime;
+
 using System.IO;
 
 namespace Measures.API.Context
@@ -25,7 +28,7 @@ namespace Measures.API.Context
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
             string connectionString = configuration.GetConnectionString("Measures");
             builder.UseNpgsql(connectionString, b => b.MigrationsAssembly("Measures.Context"));
-            return new MeasuresContext(builder.Options);
+            return new MeasuresContext(builder.Options, SystemClock.Instance);
         }
     }
 }

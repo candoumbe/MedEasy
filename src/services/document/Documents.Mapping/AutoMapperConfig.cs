@@ -8,7 +8,6 @@ using MedEasy.Objects;
 using MedEasy.RestObjects;
 
 using System;
-using System.Linq;
 
 namespace Documents.Mapping
 {

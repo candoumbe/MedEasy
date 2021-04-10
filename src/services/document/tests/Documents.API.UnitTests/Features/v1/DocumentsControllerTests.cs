@@ -35,6 +35,9 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
 
 using System;
@@ -92,12 +95,12 @@ namespace Documents.API.UnitTests.Features.v1
             _apiOptionsMock = new Mock<IOptionsSnapshot<DocumentsApiOptions>>(Strict);
 
             DbContextOptionsBuilder<DocumentsStore> dbContextOptionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            dbContextOptionsBuilder.UseSqlite(database.Connection)
+            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                 .EnableSensitiveDataLogging();
 
             _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(dbContextOptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options);
+                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

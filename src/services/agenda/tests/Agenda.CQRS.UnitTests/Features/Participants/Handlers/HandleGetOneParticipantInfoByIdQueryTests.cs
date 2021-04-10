@@ -10,6 +10,10 @@ using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 using Microsoft.EntityFrameworkCore;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
 using System;
 using System.Threading.Tasks;
@@ -29,12 +33,12 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 
         public HandleGetOneParticipantInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            optionsBuilder.UseSqlite(database.Connection);
+            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -62,7 +66,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         public async Task GivenEmptyDataStore_Handle_Returns_None()
         {
             // Arrange
-            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(Guid.NewGuid());
+            GetOneAttendeeInfoByIdQuery request = new(Guid.NewGuid());
 
             // Act
             Option<AttendeeInfo> optionalParticipant = await _sut.Handle(request, cancellationToken: default)
@@ -77,7 +81,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             // Arrange
             Guid attendeeId = Guid.NewGuid();
-            Attendee attendee = new Attendee(id: attendeeId, name: "Bruce Wayne");
+            Attendee attendee = new(id: attendeeId, name: "Bruce Wayne");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -87,7 +91,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     .ConfigureAwait(false);
             }
 
-            GetOneAttendeeInfoByIdQuery request = new GetOneAttendeeInfoByIdQuery(attendeeId);
+            GetOneAttendeeInfoByIdQuery request = new(attendeeId);
 
             // Act
             Option<AttendeeInfo> optionalAttendee = await _sut.Handle(request, default)

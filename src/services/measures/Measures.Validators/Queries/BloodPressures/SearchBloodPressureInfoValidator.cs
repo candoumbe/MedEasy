@@ -4,6 +4,8 @@ using Measures.DTO;
 
 using MedEasy.Validators.Validators;
 
+using NodaTime.Extensions;
+
 namespace Measures.Validators.Queries.BloodPressures
 {
     /// <summary>
@@ -36,7 +38,7 @@ namespace Measures.Validators.Queries.BloodPressures
                 () =>
                 {
                     RuleFor(x => x.From)
-                        .LessThanOrEqualTo(x => x.To);
+                        .Must((instance, from) => from.Value.ToInstant() <= instance.To.Value.ToInstant());
                 }
             );
         }

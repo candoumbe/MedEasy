@@ -6,6 +6,7 @@ using System.Linq;
 using Measures.Objects.Exceptions;
 using Optional;
 using Optional.Collections;
+using NodaTime;
 
 namespace Measures.Objects
 {
@@ -22,7 +23,7 @@ namespace Measures.Objects
         /// <summary>
         /// Patient's date of birth
         /// </summary>
-        public DateTime? BirthDate { get; private set; }
+        public LocalDate? BirthDate { get; private set; }
 
         private readonly IList<BloodPressure> _bloodPressures;
 
@@ -39,7 +40,7 @@ namespace Measures.Objects
         /// </summary>
         /// <param name="id">instance unique identitifer</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="Guid.Empty"/></exception>
-        public Patient(Guid id, string name, DateTime? birthDate = null) : base(id)
+        public Patient(Guid id, string name, LocalDate? birthDate = null) : base(id)
         {
             Name = name?.Trim().ToTitleCase();
             BirthDate = birthDate;
@@ -69,7 +70,7 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure"></param>
         /// <param name="systolic"></param>
         /// <param name="diastolic"></param>
-        public void AddBloodPressure(Guid measureId, DateTime dateOfMeasure, float systolic, float diastolic)
+        public void AddBloodPressure(Guid measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
@@ -77,6 +78,7 @@ namespace Measures.Objects
             }
             _bloodPressures.Add(new BloodPressure(Id, measureId, dateOfMeasure, diastolicPressure: diastolic, systolicPressure: systolic));
         }
+
 
         /// <summary>
         /// Removes the <see cref="BloodPressure"/> with the specified id
@@ -94,7 +96,7 @@ namespace Measures.Objects
         /// <param name="measureId">id of the measure. this could later be used to retrieve the created measure.</param>
         /// <param name="dateOfMeasure"></param>
         /// <param name="value">The new temperature value to add</param>
-        public void AddTemperature(Guid measureId, DateTime dateOfMeasure, float value)
+        public void AddTemperature(Guid measureId, Instant dateOfMeasure, float value)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
@@ -110,12 +112,12 @@ namespace Measures.Objects
         public void DeleteTemperature(Guid measureId)
         {
             Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrDefault(m => m.Id == measureId)
-                .SomeNotNull();
+                                                                           .SomeNotNull();
 
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
 
-        public Patient WasBornIn(DateTime? birthDate)
+        public Patient WasBornIn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
 

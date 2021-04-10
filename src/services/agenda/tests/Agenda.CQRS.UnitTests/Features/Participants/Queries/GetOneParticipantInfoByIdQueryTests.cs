@@ -1,10 +1,10 @@
 ﻿using Agenda.CQRS.Features.Participants.Queries;
+
 using FluentAssertions;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -21,7 +21,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             Guid participantId = Guid.NewGuid();
 
             // Act
-            GetOneAttendeeInfoByIdQuery instance = new GetOneAttendeeInfoByIdQuery(participantId);
+            GetOneAttendeeInfoByIdQuery instance = new(participantId);
 
             // Assert
             instance.Id.Should()
