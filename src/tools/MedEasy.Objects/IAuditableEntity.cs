@@ -1,14 +1,14 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace MedEasy.Objects
 {
     public interface IAuditableEntity
     {
-        DateTime CreatedDate { get; set; }
+        Instant? CreatedDate { get; set; }
 
         string CreatedBy { get; set; }
 
-        DateTime UpdatedDate { get; set; }
+        Instant? UpdatedDate { get; set; }
 
         string UpdatedBy { get; set; }
     }

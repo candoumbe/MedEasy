@@ -1,8 +1,9 @@
 ﻿using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
-using MedEasy.DTO.Search;
+
 using System;
 
 namespace Agenda.CQRS.Features.Appointments.Queries

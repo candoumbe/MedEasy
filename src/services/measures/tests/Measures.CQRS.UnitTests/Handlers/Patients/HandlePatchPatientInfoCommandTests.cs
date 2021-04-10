@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using FluentAssertions.Extensions;
+
 using Measures.Context;
 using Measures.CQRS.Events;
 using Measures.CQRS.Handlers.Patients;
@@ -16,6 +18,11 @@ using MediatR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,11 +49,12 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseSqlite(database.Connection);
-
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
+                   .EnableDetailedErrors()
+                   .EnableSensitiveDataLogging();
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) =>
             {
-                MeasuresContext context = new MeasuresContext(options);
+                MeasuresContext context = new MeasuresContext(options, new FakeClock(new DateTime().AsUtc().ToInstant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -122,7 +130,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
             patchDocument.Replace(x => x.Name, "Darkseid");
 
-            PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
+            PatchInfo<Guid, PatientInfo> patchInfo = new ()
             {
                 Id = idToPatch,
                 PatchDocument = patchDocument

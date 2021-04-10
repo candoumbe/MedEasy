@@ -28,6 +28,8 @@ using Xunit.Categories;
 using AutoMapper.QueryableExtensions;
 using static Moq.MockBehavior;
 using DataFilters;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
@@ -45,12 +47,12 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new DbContextOptionsBuilder<AgendaContext>();
-            optionsBuilder.UseSqlite(database.Connection);
+            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
+            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new AgendaContext(options);
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -82,7 +84,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             get
             {
                 {
-                    SearchAttendeeInfo searchAttendeeInfo = new SearchAttendeeInfo
+                    SearchAttendeeInfo searchAttendeeInfo = new()
                     {
                         Page = 1,
                         Name = "*Bat*",
@@ -136,7 +138,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     }
                 });
 
-            SearchAttendeeInfoQuery query = new SearchAttendeeInfoQuery(data);
+            SearchAttendeeInfoQuery query = new(data);
 
             // Act
             Page<AttendeeInfo> page = await _sut.Handle(query, default)

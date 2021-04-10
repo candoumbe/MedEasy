@@ -1,7 +1,11 @@
 ﻿using Identity.DataStores;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+
+using NodaTime;
+
 using System.IO;
 
 namespace Identity.API.Context
@@ -9,7 +13,7 @@ namespace Identity.API.Context
     /// <summary>
     /// Factory class to create <see cref="IdentityContext"/> during design time.
     /// </summary>
-    public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<IdentityContext>
+    public class IdentityDesignTimeDbContextFactory : IDesignTimeDbContextFactory<IdentityContext>
     {
         /// <summary>
         /// Creates a new <see cref="IdentityContext"/> instance.
@@ -24,8 +28,10 @@ namespace Identity.API.Context
                 .Build();
             DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
             string connectionString = configuration.GetConnectionString("Identity");
-            builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
-            return new IdentityContext(builder.Options);
+            builder.UseSqlite(connectionString,
+                              b => b.UseNodaTime()
+                                    .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
+            return new IdentityContext(builder.Options, SystemClock.Instance);
         }
     }
 }

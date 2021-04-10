@@ -1,12 +1,13 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Measures.CQRS.Events.BloodPressures;
 using Measures.DTO;
-using System;
+
+using NodaTime.Extensions;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -27,14 +28,14 @@ namespace Measures.CQRS.UnitTests.Events
             {
                 yield return new object[]
                 {
-                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010), SystolicPressure = 120, DiastolicPressure = 80 }),
+                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 }),
                     null,
                     false,
                     "comparing to null always returns false"
                 };
 
                 {
-                    BloodPressureCreated bloodPressureCreated = new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010), SystolicPressure = 120, DiastolicPressure = 80 });
+                    BloodPressureCreated bloodPressureCreated = new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 });
                     yield return new object[]
                     {
                         bloodPressureCreated,
@@ -45,8 +46,8 @@ namespace Measures.CQRS.UnitTests.Events
                 }
                 yield return new object[]
                 {
-                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010), SystolicPressure = 120, DiastolicPressure = 80 }),
-                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010), SystolicPressure = 120, DiastolicPressure = 80 }),
+                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 }),
+                    new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 }),
                     true,
                     "comparing two instances with same data always returns true"
                 };

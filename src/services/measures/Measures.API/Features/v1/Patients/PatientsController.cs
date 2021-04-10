@@ -1,4 +1,5 @@
 ﻿using DataFilters;
+
 using Measures.API.Features.Patients;
 using Measures.API.Features.v1.BloodPressures;
 using Measures.API.Routing;
@@ -6,6 +7,7 @@ using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
+
 using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -14,18 +16,22 @@ using MedEasy.DAL.Repositories;
 using MedEasy.DTO;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860

@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Linq.Expressions" Version="4.3.0" />
-    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,11 +1,15 @@
 ﻿using FluentAssertions;
+
 using Identity.CQRS.Queries.Roles;
 using Identity.DTO;
+
 using MedEasy.CQRS.Core.Queries;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.Text;
+
 using Xunit;
 using Xunit.Abstractions;
 

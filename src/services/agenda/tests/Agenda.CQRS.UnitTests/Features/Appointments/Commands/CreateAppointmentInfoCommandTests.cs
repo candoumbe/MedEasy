@@ -6,6 +6,7 @@ using FluentAssertions.Extensions;
 using System.Collections.Generic;
 using Agenda.CQRS.Features.Appointments.Commands;
 using Xunit.Categories;
+using NodaTime.Extensions;
 
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
@@ -19,7 +20,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
         [Fact]
         public void Ctor_Is_Valid()
         {
-            CreateAppointmentInfoCommand instance = new CreateAppointmentInfoCommand(new NewAppointmentInfo()
+            CreateAppointmentInfoCommand instance = new(new NewAppointmentInfo()
             {
             });
 
@@ -47,8 +48,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
             {
                 yield return new object[]
                 {
-                    new CreateAppointmentInfoCommand(new NewAppointmentInfo { Location = "Wayne Tower", StartDate = 10.April(2010).AddHours(12), EndDate = 10.April(2010).AddHours(13), Subject = "Classified"  }),
-                    new CreateAppointmentInfoCommand(new NewAppointmentInfo { Location = "Wayne Tower", StartDate = 10.April(2010).AddHours(12), EndDate = 10.April(2010).AddHours(13), Subject = "Classified"  }),
+                    new CreateAppointmentInfoCommand(new NewAppointmentInfo { Location = "Wayne Tower", StartDate = 10.April(2010).Add(12.Hours()).AsUtc().ToInstant().InUtc(), EndDate = 10.April(2010).Add(13.Hours()).AsUtc().ToInstant().InUtc(), Subject = "Classified"  }),
+                    new CreateAppointmentInfoCommand(new NewAppointmentInfo { Location = "Wayne Tower", StartDate = 10.April(2010).Add(12.Hours()).AsUtc().ToInstant().InUtc(), EndDate = 10.April(2010).Add(13.Hours()).AsUtc().ToInstant().InUtc(), Subject = "Classified"  }),
                     true,
                     "two commands with same data"
                 };

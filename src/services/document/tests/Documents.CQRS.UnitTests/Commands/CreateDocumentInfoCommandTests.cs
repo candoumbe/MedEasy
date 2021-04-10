@@ -1,9 +1,11 @@
 using Documents.CQRS.Commands;
 using Documents.DTO;
+
 using FluentAssertions;
-using FluentAssertions.Extensions;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Categories;
 

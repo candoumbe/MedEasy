@@ -1,5 +1,7 @@
 ﻿using MedEasy.RestObjects;
 
+using NodaTime;
+
 using System;
 
 namespace Measures.DTO
@@ -14,6 +16,6 @@ namespace Measures.DTO
         /// <summary>
         /// Patient's birth date
         /// </summary>
-        public DateTime? BirthDate { get; set; }
+        public LocalDate? BirthDate { get; set; }
     }
 }

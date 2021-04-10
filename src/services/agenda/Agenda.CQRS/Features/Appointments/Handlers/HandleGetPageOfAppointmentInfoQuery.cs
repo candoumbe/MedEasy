@@ -2,20 +2,22 @@
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DTO;
 using Agenda.Objects;
-using AutoMapper;
+
 using AutoMapper.QueryableExtensions;
+
 using DataFilters;
-using MedEasy.Abstractions;
-using MedEasy.CQRS.Core.Handlers;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+
 using MediatR;
-using Optional;
+
+using NodaTime;
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Linq.Expressions.ExpressionExtensions;
 
 namespace Agenda.CQRS.Features.Appointments.Handlers
 {
@@ -23,7 +25,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IExpressionBuilder _expressionBuilder;
-        private readonly IDateTimeService _dateTimeService;
+        private readonly IClock _dateTimeService;
 
         /// <summary>
         /// Builds a new <see cref="HandleGetOneAppointmentInfoByIdQuery"/> instance.
@@ -31,7 +33,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
         /// <param name="unitOfWorkFactory"></param>
         /// <param name="expressionBuilder"></param>
         /// <param name="dateTimeService">Service to get <see cref="DateTime"/>s/<see cref="DateTimeOffset"/>s</param>
-        public HandleGetPageOfAppointmentInfoQuery(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IDateTimeService dateTimeService)
+        public HandleGetPageOfAppointmentInfoQuery(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IClock dateTimeService)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             _expressionBuilder = expressionBuilder;
@@ -44,12 +46,12 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
 
             Expression<Func<Appointment, AppointmentInfo>> selector = _expressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
-            DateTimeOffset utcNow = _dateTimeService.UtcNowOffset();
+            Instant utcNow = _dateTimeService.GetCurrentInstant();
 
             return await uow.Repository<Appointment>()
                 .WhereAsync(
                     selector,
-                    (Appointment x) => (x.StartDate.CompareTo(utcNow) <= 0 && utcNow.CompareTo(x.EndDate) <= 0) || utcNow.CompareTo(x.EndDate) <= 0,
+                    (Appointment x) => utcNow <= x.EndDate,
                     new Sort<AppointmentInfo>(nameof(Appointment.StartDate)),
                     request.Data.PageSize,
                     request.Data.Page,

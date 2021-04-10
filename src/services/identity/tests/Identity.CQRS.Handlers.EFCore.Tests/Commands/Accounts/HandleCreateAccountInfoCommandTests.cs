@@ -17,6 +17,10 @@ using MedEasy.IntegrationTests.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -46,10 +50,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseSqlite(databaseFixture.Connection);
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

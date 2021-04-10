@@ -1,5 +1,6 @@
 ﻿using MedEasy.DTO.Search;
-using System;
+
+using NodaTime;
 
 namespace Agenda.DTO.Resources.Search
 {
@@ -11,12 +12,12 @@ namespace Agenda.DTO.Resources.Search
         /// <summary>
         /// Min start or end date
         /// </summary>
-        public DateTimeOffset? From { get; set; }
+        public ZonedDateTime? From { get; set; }
 
         /// <summary>
         /// Max start or end date
         /// </summary>
-        public DateTimeOffset? To { get; set; }
+        public ZonedDateTime? To { get; set; }
 
         /// <summary>
         /// Subject of the appointments

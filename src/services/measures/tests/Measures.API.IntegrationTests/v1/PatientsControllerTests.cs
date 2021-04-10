@@ -16,7 +16,9 @@ using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
-using Superpower.Parsers;
+
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +32,13 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
+using System.Net.Http.Json;
+using NodaTime.Serialization.SystemTextJson;
+using NodaTime;
 
 namespace Measures.API.IntegrationTests.v1
 {
@@ -46,7 +52,7 @@ namespace Measures.API.IntegrationTests.v1
         private const string _version = "v1";
         private readonly static string _baseUrl = $"/{_version}/patients";
 
-        private static readonly JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -63,20 +69,22 @@ namespace Measures.API.IntegrationTests.v1
             }
         };
 
-        private static readonly JSchema _pageLink = new JSchema
+        private static readonly JSchema _pageLink = new()
         {
-            Type = JSchemaType.Object,
+            Type = JSchemaType.Object | JSchemaType.Null,
             Properties =
                 {
                     [nameof(Link.Href).ToLower()] = new JSchema { Type = JSchemaType.String },
                     [nameof(Link.Relation).ToLower()] = new JSchema { Type = JSchemaType.String },
-                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String }
+                    [nameof(Link.Method).ToLower()] = new JSchema { Type = JSchemaType.String },
+                    [nameof(Link.Template).ToLower()] = new JSchema { Type = JSchemaType.Boolean | JSchemaType.Null },
+                    [nameof(Link.Title).ToLower()] = new JSchema { Type = JSchemaType.Boolean | JSchemaType.Null }
                 },
             Required = { nameof(Link.Href).ToLower(), nameof(Link.Relation).ToLower() },
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -121,7 +129,7 @@ namespace Measures.API.IntegrationTests.v1
         public async Task GetAll_With_No_Data()
         {
             // Arrange
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = $"robin_{Guid.NewGuid()}",
                 Email = $"batman_{Guid.NewGuid()}@gotham.fr",
@@ -172,7 +180,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Perfoming HTTP <{method}> on <{url}>");
 
             // Arrange
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = $"dick_{Guid.NewGuid()}",
                 Email = $"batman_{Guid.NewGuid().ToString("N")}@gotham.fr",
@@ -180,7 +188,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -190,7 +198,7 @@ namespace Measures.API.IntegrationTests.v1
                 .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
-            HttpRequestMessage message = new HttpRequestMessage(method, url);
+            HttpRequestMessage message = new(method, url);
 
             // Act
             HttpResponseMessage response = await client.SendAsync(message)
@@ -223,7 +231,7 @@ namespace Measures.API.IntegrationTests.v1
             string url = $"{_baseUrl}/{Guid.Empty.ToString()}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = $"robin_{Guid.NewGuid()}",
                 Email = $"batman_{Guid.NewGuid()}@gotham.fr",
@@ -231,7 +239,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -242,7 +250,7 @@ namespace Measures.API.IntegrationTests.v1
 
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
-            HttpRequestMessage message = new HttpRequestMessage(method, url);
+            HttpRequestMessage message = new(method, url);
             // Act
             HttpResponseMessage response = await client.SendAsync(message)
                 .ConfigureAwait(false);
@@ -287,7 +295,7 @@ namespace Measures.API.IntegrationTests.v1
             string url = $"{_baseUrl}/search?page=2&page10&firstname=Bruce";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = $"batman_{Guid.NewGuid()}",
                 Email = $"batman_{Guid.NewGuid()}@gotham.fr",
@@ -295,7 +303,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -321,7 +329,7 @@ namespace Measures.API.IntegrationTests.v1
         public async Task Create_Resource()
         {
             // Arrange
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = $"robin_{Guid.NewGuid()}",
                 Email = "robin@gotham.fr",
@@ -329,7 +337,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -338,16 +346,18 @@ namespace Measures.API.IntegrationTests.v1
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
-            NewPatientModel newPatient = new NewPatientModel
+            NewPatientModel newPatient = new()
             {
                 Name = "Victor Freeze"
             };
 
+            JsonSerializerOptions jsonSerializerOptions = new();
+            jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(_baseUrl, new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient, jsonSerializerOptions)
                                                        .ConfigureAwait(false);
 
             string json = await response.Content.ReadAsStringAsync()
@@ -359,14 +369,14 @@ namespace Measures.API.IntegrationTests.v1
 
             Guid patientId = JToken.Parse(json).ToObject<Browsable<PatientInfo>>().Resource.Id;
 
-            NewBloodPressureModel resourceToCreate = new NewBloodPressureModel
+            NewBloodPressureModel resourceToCreate = new()
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
-                DateOfMeasure = 23.January(2002).AddHours(23).AddMinutes(36)
+                DateOfMeasure = 23.January(2002).Add(23.Hours().And(36.Minutes())).AsUtc().ToInstant()
             };
 
-            JSchema createdResourceSchema = new JSchema
+            JSchema createdResourceSchema = new()
             {
                 Type = JSchemaType.Object,
                 Properties =
@@ -391,7 +401,7 @@ namespace Measures.API.IntegrationTests.v1
             // Act
             string requestUri = $"{_baseUrl}/{patientId}/bloodpressures";
             _outputHelper.WriteLine($"Endpoint : {requestUri}");
-            response = await client.PostAsync(requestUri, new StringContent(resourceToCreate.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            response = await client.PostAsJsonAsync(requestUri, resourceToCreate, jsonSerializerOptions)
                                    .ConfigureAwait(false);
             _outputHelper.WriteLine($"HTTP create bloodpressure for patient <{patientId}> status code : {response.StatusCode}");
             _outputHelper.WriteLine($"Response content: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
@@ -412,7 +422,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Location of the resource : <{location}>");
             location.Should().NotBeNull();
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
-            using HttpRequestMessage headMessage = new HttpRequestMessage(Head, location);
+            using HttpRequestMessage headMessage = new(Head, location);
             using HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
                 .ConfigureAwait(false);
 
@@ -434,7 +444,7 @@ namespace Measures.API.IntegrationTests.v1
                     new CreateBloodPressureInfo {
                         SystolicPressure = 120,
                         DiastolicPressure = 80,
-                        DateOfMeasure = 20.June(2003)
+                        DateOfMeasure = 20.June(2003).AsUtc().ToInstant()
                     },
                     $"No {nameof(CreateBloodPressureInfo.PatientId)} data set onto the resource"
                 };
@@ -446,12 +456,12 @@ namespace Measures.API.IntegrationTests.v1
         public async Task PostInvalidBloodPressure_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
         {
             // Arrange
-            NewPatientInfo newPatientInfo = new NewPatientInfo
+            NewPatientInfo newPatientInfo = new()
             {
                 Name = "Solomon Grundy"
             };
             string username = $"batman_{Guid.NewGuid()}";
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = username,
                 Email = $"{username}@gotham.fr",
@@ -459,7 +469,7 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -508,13 +518,13 @@ namespace Measures.API.IntegrationTests.v1
         public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
         {
             // Arrange
-            NewPatientInfo newPatient = new NewPatientInfo
+            NewPatientInfo newPatient = new()
             {
                 Name = "Victor Freeze"
             };
 
             string username = $"batman_{Guid.NewGuid()}";
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = username,
                 Email = $"{username}@gotham.fr",
@@ -545,7 +555,7 @@ namespace Measures.API.IntegrationTests.v1
             foreach (Link link in linksToGetData)
             {
                 _outputHelper.WriteLine($"Link under test : {link}");
-                HttpRequestMessage headRequestMessage = new HttpRequestMessage
+                HttpRequestMessage headRequestMessage = new()
                 {
                     Method = Head,
                     RequestUri = new Uri(link.Href, UriKind.RelativeOrAbsolute)

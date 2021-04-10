@@ -1,5 +1,6 @@
 ﻿using Agenda.Models.v1.Attendees;
 
+using NodaTime;
 
 using System;
 using System.Collections.Generic;
@@ -27,12 +28,12 @@ namespace Agenda.Models.v1.Appointments
         /// <summary>
         /// Start date of the appointment
         /// </summary>
-        public DateTimeOffset StartDate { get; set; }
+        public ZonedDateTime StartDate { get; set; }
 
         /// <summary>
         /// End date of the appointment
         /// </summary>
-        public DateTimeOffset EndDate { get; set; }
+        public ZonedDateTime EndDate { get; set; }
 
         /// <summary>
         /// Participants of the appointment

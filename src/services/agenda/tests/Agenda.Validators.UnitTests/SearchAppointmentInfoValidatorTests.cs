@@ -1,21 +1,25 @@
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using FluentValidation.Results;
-using MedEasy.Abstractions;
+
 using MedEasy.DTO.Search;
-using Moq;
+
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
 
 namespace Agenda.Validators.UnitTests
 {
@@ -67,7 +71,7 @@ namespace Agenda.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    new SearchAppointmentInfo { From = 1.February(2010), To = 1.January(2010)  },
+                    new SearchAppointmentInfo { From = 1.February(2010).AsUtc().ToInstant().InUtc(), To = 1.January(2010).AsUtc().ToInstant().InUtc()  },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchAppointmentInfo.To) && err.Severity == Error)
@@ -77,7 +81,7 @@ namespace Agenda.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    new SearchAppointmentInfo { From = 1.February(2010) },
+                    new SearchAppointmentInfo { From = 1.February(2010).AsUtc().ToInstant().InUtc() },
                     ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid
                     )),
                     $"only {nameof(SearchAppointmentInfo.From)} was explicitely set"
@@ -92,7 +96,7 @@ namespace Agenda.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    new SearchAppointmentInfo { To = 1.February(2010) },
+                    new SearchAppointmentInfo { To = 1.February(2010).AsUtc().ToInstant().InUtc() },
                     ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid
                     )),
                     $"only {nameof(SearchAppointmentInfo.To)} was explicitely set"

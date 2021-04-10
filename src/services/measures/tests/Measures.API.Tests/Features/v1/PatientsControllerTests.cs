@@ -56,7 +56,9 @@ using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
 using static System.StringComparison;
 using static MedEasy.RestObjects.LinkRelation;
-using Consul;
+using NodaTime;
+using NodaTime.Testing;
+using NodaTime.Extensions;
 
 namespace Measures.API.Tests.Features.v1.Patients
 {
@@ -83,7 +85,8 @@ namespace Measures.API.Tests.Features.v1.Patients
             DbContextOptionsBuilder<MeasuresContext> dbOptions = new DbContextOptionsBuilder<MeasuresContext>();
             string dbName = $"InMemoryMedEasyDb_{Guid.NewGuid()}";
             dbOptions.UseInMemoryDatabase(dbName);
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbOptions.Options, (options) => new MeasuresContext(options));
+
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbOptions.Options, (options) => new MeasuresContext(options, new FakeClock(new Instant())));
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
@@ -122,7 +125,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 {
                     new []
                     {
-                        new BloodPressure(id:Guid.NewGuid(), patientId: Guid.NewGuid(), dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
+                        new BloodPressure(id:Guid.NewGuid(), patientId: Guid.NewGuid(), dateOfMeasure: faker.Noda().Instant.Recent(), systolicPressure: 120, diastolicPressure: 80)
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
 
@@ -135,10 +138,10 @@ namespace Measures.API.Tests.Features.v1.Patients
                     {
                         new []
                         {
-                           new BloodPressure(Guid.NewGuid(), patientId, dateOfMeasure: faker.Date.Recent(), systolicPressure: 120, diastolicPressure: 80)
+                           new BloodPressure(Guid.NewGuid(), patientId, dateOfMeasure: faker.Noda().Instant.Recent(), systolicPressure: 120, diastolicPressure: 80)
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
-                        (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
+                        (Expression<Func<IEnumerable<BloodPressureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Exactly(1))
                     };
                 }
             }
@@ -159,7 +162,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                 {
                     new []
                     {
-                        new Temperature(Guid.NewGuid(), Guid.NewGuid(), dateOfMeasure: 18.August(2003), value : 37)
+                        new Temperature(Guid.NewGuid(), Guid.NewGuid(), dateOfMeasure: 18.August(2003).AsUtc().ToInstant(), value : 37)
                     },
                     new GetMostRecentPhysiologicalMeasuresInfo { PatientId = Guid.NewGuid(), Count = 10 },
                     (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => !x.Any())
@@ -170,7 +173,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                     {
                         new []
                         {
-                            new Temperature(Guid.NewGuid(), patientId, dateOfMeasure: 18.August(2003), value : 37)
+                            new Temperature(Guid.NewGuid(), patientId, dateOfMeasure: 18.August(2003).AsUtc().ToInstant(), value : 37)
                         },
                         new GetMostRecentPhysiologicalMeasuresInfo { PatientId = patientId, Count = 10 },
                         (Expression<Func<IEnumerable<TemperatureInfo>, bool>>) (x => x.All(measure => measure.PatientId == patientId) && x.Count() == 1)
@@ -224,7 +227,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                         return patient;
                     });
                 {
-                    IEnumerable<Patient> items =patientFaker.Generate(400);
+                    IEnumerable<Patient> items = patientFaker.Generate(400);
 
                     yield return new object[]
                     {
@@ -488,7 +491,7 @@ namespace Measures.API.Tests.Features.v1.Patients
                         BirthDate = 31.July(2010)
                     };
                     Patient patient = new Patient(Guid.NewGuid(), "Bruce wayne")
-                        .WasBornIn(31.July(2010));
+                        .WasBornIn(31.July(2010).ToLocalDateTime().Date);
 
                     yield return new object[]
                     {
@@ -657,7 +660,7 @@ namespace Measures.API.Tests.Features.v1.Patients
             //Arrange
             Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {  
+            {
                 uow.Repository<Patient>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -878,22 +881,20 @@ namespace Measures.API.Tests.Features.v1.Patients
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
-                DateOfMeasure = 30.September(2010).AddHours(14).AddMinutes(53)
+                DateOfMeasure = 30.September(2010).Add(14.Hours().And(53.Minutes())).AsUtc().ToInstant()
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateBloodPressureInfoForPatientIdCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateBloodPressureInfoForPatientIdCommand cmd, CancellationToken cancellationToken) =>
-                {
-                    return Task.FromResult(new BloodPressureInfo
+                .ReturnsAsync((CreateBloodPressureInfoForPatientIdCommand cmd, CancellationToken _) =>
+                    new BloodPressureInfo
                     {
                         DateOfMeasure = cmd.Data.DateOfMeasure,
                         Id = Guid.NewGuid(),
                         DiastolicPressure = cmd.Data.DiastolicPressure,
                         PatientId = cmd.Data.PatientId,
                         SystolicPressure = cmd.Data.SystolicPressure,
-                        UpdatedDate = 23.June(2010)
-                    }.Some<BloodPressureInfo, CreateCommandResult>());
-                })
+                        UpdatedDate = 23.June(2010).AsUtc().ToInstant()
+                    }.Some<BloodPressureInfo, CreateCommandResult>())
                 .Verifiable();
             Guid patientId = Guid.NewGuid();
             // Act
@@ -991,14 +992,11 @@ namespace Measures.API.Tests.Features.v1.Patients
             MeasuresApiOptions apiOptions = new MeasuresApiOptions { DefaultPageSize = 25, MaxPageSize = 10 };
             _apiOptionsMock.Setup(mock => mock.Value).Returns(apiOptions);
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreatePatientInfoCommand cmd, CancellationToken ct) =>
+                .ReturnsAsync((CreatePatientInfoCommand cmd, CancellationToken _) => new PatientInfo
                 {
-                    return Task.FromResult(new PatientInfo
-                    {
-                        Name = cmd.Data.Name,
-                        BirthDate = cmd.Data.BirthDate,
-                        Id = Guid.NewGuid()
-                    });
+                    Name = cmd.Data.Name,
+                    BirthDate = cmd.Data.BirthDate,
+                    Id = Guid.NewGuid()
                 });
 
             // Act

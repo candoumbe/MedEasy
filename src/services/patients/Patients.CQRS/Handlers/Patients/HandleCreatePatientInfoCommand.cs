@@ -1,16 +1,16 @@
 ﻿using AutoMapper.QueryableExtensions;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Patients.CQRS.Commands;
 using Patients.CQRS.Events;
 using Patients.DTO;
 using Patients.Objects;
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +24,6 @@ namespace Patients.CQRS.Handlers.Patients
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly IMediator _mediator;
-        private readonly IDateTimeService _dateTimeService;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreatePatientInfoCommand"/> instance.
@@ -35,41 +34,37 @@ namespace Patients.CQRS.Handlers.Patients
         /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/>, <paramref name="expressionBuilder"/> or 
         /// <paramref name="mediator"/> is <c>null</c>.
         /// </exception>
-        public HandleCreatePatientInfoCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator, IDateTimeService dateTimeService)
+        public HandleCreatePatientInfoCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _dateTimeService = dateTimeService ?? throw new ArgumentNullException(nameof(dateTimeService));
         }
 
 
         public async Task<PatientInfo> Handle(CreatePatientInfoCommand cmd, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                CreatePatientInfo newResourceInfo = cmd.Data;
-                
-                Patient entity = new Patient(
-                    newResourceInfo.Id.GetValueOrDefault(Guid.NewGuid()),
-                    firstname : newResourceInfo.Firstname?.ToTitleCase(),
-                    lastname : newResourceInfo.Lastname?.ToUpperInvariant()
-                );
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            CreatePatientInfo newResourceInfo = cmd.Data;
 
-                uow.Repository<Patient>().Create(entity);
-                await uow.SaveChangesAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            Patient entity = new(newResourceInfo.Id ?? Guid.NewGuid(),
+                                 firstname: newResourceInfo.Firstname?.ToTitleCase(),
+                                 lastname: newResourceInfo.Lastname?.ToUpperInvariant()
+            );
 
-                Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            uow.Repository<Patient>().Create(entity);
+            await uow.SaveChangesAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-                PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
+            Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
+
+            PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
 
 
-                await _mediator.Publish(new PatientCreated(patientInfo), cancellationToken)
-                    .ConfigureAwait(false);
+            await _mediator.Publish(new PatientCreated(patientInfo), cancellationToken)
+                .ConfigureAwait(false);
 
-                return patientInfo;
-            }
+            return patientInfo;
         }
     }
 }

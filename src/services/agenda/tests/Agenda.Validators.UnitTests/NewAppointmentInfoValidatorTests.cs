@@ -1,16 +1,24 @@
 using Agenda.DTO;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using FluentValidation.Results;
-using MedEasy.Abstractions;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 using static Newtonsoft.Json.JsonConvert;
@@ -22,13 +30,13 @@ namespace Agenda.Validators.UnitTests
     public class NewAppointmentInfoValidatorTests : IDisposable
     {
         private static ITestOutputHelper _outputHelper;
-        private Mock<IDateTimeService> _datetimeServiceMock;
+        private Mock<IClock> _datetimeServiceMock;
         private NewAppointmentModelValidator _sut;
 
         public NewAppointmentInfoValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _datetimeServiceMock = new (Strict);
             _sut = new NewAppointmentModelValidator(_datetimeServiceMock.Object);
         }
 
@@ -62,8 +70,8 @@ namespace Agenda.Validators.UnitTests
                     {
                         Location = "Wayne Tower",
                         Subject = "Classified",
-                        StartDate = 1.February(2005).AddHours(12).AddMinutes(30),
-                        EndDate = 1.February(2005).AddHours(12).AddMinutes(30),
+                        StartDate = 1.February(2005).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant().InUtc(),
+                        EndDate = 1.February(2005).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant().InUtc(),
                         Attendees = new []
                         {
                             new AttendeeInfo { Name = "Ed Nigma" }
@@ -79,8 +87,8 @@ namespace Agenda.Validators.UnitTests
                     {
                         Location = "Wayne Tower",
                         Subject = "Classified",
-                        StartDate = 1.February(2005).AddHours(12).AddMinutes(30),
-                        EndDate = 1.February(2005).AddHours(12),
+                        StartDate = 1.February(2005).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant().InUtc(),
+                        EndDate = 1.February(2005).Add(12.Hours()).AsUtc().ToInstant().InUtc(),
                         Attendees = new []
                         {
                             new AttendeeInfo { Name = "Ed Nigma" }
@@ -99,8 +107,8 @@ namespace Agenda.Validators.UnitTests
                     {
                         Location = "Wayne Tower",
                         Subject = "Classified",
-                        StartDate = 1.February(2005).AddHours(12),
-                        EndDate = 1.February(2005).AddHours(12).AddMinutes(30)
+                        StartDate = 1.February(2005).Add(12.Hours()).AsUtc().ToInstant().InUtc(),
+                        EndDate = 1.February(2005).Add(12.Hours()).Add(30.Minutes()).AsUtc().ToInstant().InUtc()
                     },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
@@ -135,7 +143,7 @@ namespace Agenda.Validators.UnitTests
 
             // Assert
             action.Should()
-                .Throw<ArgumentNullException>($"a {nameof(IDateTimeService)} instance is required").Which
+                .Throw<ArgumentNullException>($"a {nameof(IClock)} instance is required").Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

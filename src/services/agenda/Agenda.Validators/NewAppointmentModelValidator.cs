@@ -1,6 +1,9 @@
 ﻿using Agenda.DTO;
+
 using FluentValidation;
-using MedEasy.Abstractions;
+
+using NodaTime;
+
 using System;
 
 namespace Agenda.Validators
@@ -15,7 +18,7 @@ namespace Agenda.Validators
         /// </summary>
         /// <param name="dateTimeService">Service to get <see cref="DateTime"/></param>
         /// <exception cref="ArgumentNullException"><paramref name="dateTimeService"/> is null.</exception>
-        public NewAppointmentModelValidator(IDateTimeService dateTimeService)
+        public NewAppointmentModelValidator(IClock dateTimeService)
         {
             if (dateTimeService == null)
             {
@@ -39,7 +42,7 @@ namespace Agenda.Validators
                 () =>
                 {
                     RuleFor(x => x.EndDate)
-                        .GreaterThanOrEqualTo(x => x.StartDate);
+                        .Must((x, endDate) => endDate.ToInstant() >= x.StartDate.ToInstant());
                 }
             );
         }

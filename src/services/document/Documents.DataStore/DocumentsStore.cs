@@ -1,7 +1,10 @@
 ﻿using Documents.Objects;
+
 using MedEasy.DataStores.Core.Relational;
+
 using Microsoft.EntityFrameworkCore;
-using System;
+
+using NodaTime;
 
 namespace Documents.DataStore
 {
@@ -9,7 +12,7 @@ namespace Documents.DataStore
     {
         public DbSet<Document> Documents { get; set; }
 
-        public DocumentsStore(DbContextOptions<DocumentsStore> options) : base(options)
+        public DocumentsStore(DbContextOptions<DocumentsStore> options, IClock clock) : base(options, clock)
         {
         }
 

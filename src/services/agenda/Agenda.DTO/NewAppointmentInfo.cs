@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using static Newtonsoft.Json.JsonConvert;
-using static Newtonsoft.Json.Formatting;
 using static Newtonsoft.Json.NullValueHandling;
 using Newtonsoft.Json;
+using NodaTime;
 
 namespace Agenda.DTO
 {
     /// <summary>
     /// Contains data to create a new <see cref="Appointment"/> beetween two or more person
     /// </summary>
-    [JsonObject]
     public class NewAppointmentInfo : IEquatable<NewAppointmentInfo>
     {
         /// <summary>
@@ -31,13 +29,13 @@ namespace Agenda.DTO
         /// Start date of the appointment
         /// </summary>
         [JsonProperty]
-        public DateTimeOffset StartDate { get; set; }
+        public ZonedDateTime StartDate { get; set; }
 
         /// <summary>
         /// End date of the appointment
         /// </summary>
         [JsonProperty]
-        public DateTimeOffset EndDate { get; set; }
+        public ZonedDateTime EndDate { get; set; }
 
         /// <summary>
         /// Participants of the appointment
@@ -45,30 +43,20 @@ namespace Agenda.DTO
         [JsonProperty]
         public IEnumerable<AttendeeInfo> Attendees { get; set; }
 
-
         public NewAppointmentInfo()
         {
             Attendees = Enumerable.Empty<AttendeeInfo>();
         }
 
         public override bool Equals(object obj) => Equals(obj as NewAppointmentInfo);
-        public bool Equals(NewAppointmentInfo other) => other != null 
-            && Location == other.Location 
-            && Subject == other.Subject 
-            && StartDate.Equals(other.StartDate) 
-            && EndDate.Equals(other.EndDate) 
+        public bool Equals(NewAppointmentInfo other) => other != null
+            && Location == other.Location
+            && Subject == other.Subject
+            && StartDate.Equals(other.StartDate)
+            && EndDate.Equals(other.EndDate)
             && EqualityComparer<IEnumerable<AttendeeInfo>>.Default.Equals(Attendees, other.Attendees);
 
-        public override int GetHashCode()
-        {
-            int hashCode = -1527032563;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Location);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Subject);
-            hashCode = hashCode * -1521134295 + EqualityComparer<DateTimeOffset>.Default.GetHashCode(StartDate);
-            hashCode = hashCode * -1521134295 + EqualityComparer<DateTimeOffset>.Default.GetHashCode(EndDate);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<AttendeeInfo>>.Default.GetHashCode(Attendees);
-            return hashCode;
-        }
+        public override int GetHashCode() => HashCode.Combine(Location, Subject, StartDate, EndDate, Attendees);
 
         public static bool operator ==(NewAppointmentInfo info1, NewAppointmentInfo info2)
         {

@@ -28,7 +28,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
             Guid participantId = Guid.NewGuid();
 
             // Act
-            RemoveAttendeeFromAppointmentByIdCommand instance = new RemoveAttendeeFromAppointmentByIdCommand(data : (appointmentId, participantId));
+            RemoveAttendeeFromAppointmentByIdCommand instance = new(data : (appointmentId, participantId));
 
             // Assert
             instance.Id.Should()

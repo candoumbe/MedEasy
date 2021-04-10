@@ -1,7 +1,9 @@
-﻿using Agenda.CQRS.Features.Appointments.Handlers;
-using Agenda.CQRS.Features.Appointments.Queries;
+﻿using Agenda.CQRS.Features.Appointments.Queries;
+
 using FluentAssertions;
+
 using System;
+
 using Xunit;
 using Xunit.Categories;
 

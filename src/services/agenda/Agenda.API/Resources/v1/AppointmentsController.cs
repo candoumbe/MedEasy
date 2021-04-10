@@ -98,13 +98,15 @@ namespace Agenda.API.Resources.v1
 #endif
             ;
 
-            Browsable<AppointmentInfo> browsableResource = new Browsable<AppointmentInfo>
+            Browsable<AppointmentInfo> browsableResource = new()
             {
                 Resource = newResource,
                 Links = links
             };
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, newResource.Id, version }, browsableResource);
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi,
+                                            new { controller = EndpointName, newResource.Id, version },
+                                            browsableResource);
         }
 
         /// <summary>
@@ -121,29 +123,31 @@ namespace Agenda.API.Resources.v1
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
-            PaginationConfiguration pagination = new PaginationConfiguration
+            PaginationConfiguration pagination = new()
             {
                 Page = page,
                 PageSize = Math.Min(_apiOptions.Value.MaxPageSize, pageSize)
             };
 
             Page<AppointmentInfo> result = await _mediator.Send(new GetPageOfAppointmentInfoQuery(pagination), ct)
-                .ConfigureAwait(false);
+                                                          .ConfigureAwait(false);
 
             string version = _apiVersion.ToString();
             IEnumerable<Browsable<AppointmentModel>> entries = _mapper.Map<IEnumerable<AppointmentModel>>(result.Entries)
-                .Select(x => new Browsable<AppointmentModel>
-                {
-                    Resource = x,
-                    Links = new[]
-                    {
-                        new Link {
-                            Relation = Self,
-                            Method = "GET",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                            new {controller = EndpointName, x.Id, version})}
-                    }
-                });
+                                                                      .Select(x => new Browsable<AppointmentModel>
+                                                                      {
+                                                                          Resource = x,
+                                                                          Links = new[]
+                                                                          {
+                                                                              new Link
+                                                                              {
+                                                                                  Relation = Self,
+                                                                                  Method = "GET",
+                                                                                  Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
+                                                                                                                  new {controller = EndpointName, x.Id, version})
+                                                                              }
+                                                                          }
+                                                                      });
 
             return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 entries,
@@ -293,7 +297,7 @@ namespace Agenda.API.Resources.v1
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Delete(Guid id, Guid attendeeId, CancellationToken ct = default)
         {
-            RemoveAttendeeFromAppointmentByIdCommand cmd = new RemoveAttendeeFromAppointmentByIdCommand(data: (id, attendeeId));
+            RemoveAttendeeFromAppointmentByIdCommand cmd = new(data: (id, attendeeId));
 
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);

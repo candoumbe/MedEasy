@@ -20,6 +20,10 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using Patients.API.Controllers;
 using Patients.API.Routing;
 using Patients.Context;
@@ -75,7 +79,8 @@ namespace Patients.API.UnitTests.Controllers
 
             DbContextOptionsBuilder<PatientsContext> dbOptions = new();
             dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
-            _factory = new EFUnitOfWorkFactory<PatientsContext>(dbOptions.Options, (options) => new PatientsContext(options));
+            _factory = new EFUnitOfWorkFactory<PatientsContext>(dbOptions.Options,
+                                                                (options) => new PatientsContext(options, new FakeClock(new Instant())));
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
@@ -362,7 +367,7 @@ namespace Patients.API.UnitTests.Controllers
                     yield return new object[]
                     {
                         new[] {
-                            new PatientInfo { Firstname = "bruce", BirthDate = 31.July(2010) }
+                            new PatientInfo { Firstname = "bruce", BirthDate = 31.July(2010).ToLocalDateTime().Date }
                         },
                         searchInfo,
                          ((Expression<Func<Link, bool>>) (x => x != null
@@ -438,7 +443,7 @@ namespace Patients.API.UnitTests.Controllers
                     yield return new object[]
                     {
                         new Patient(patientId, firstname: null,  lastname: "Wayne")
-                            .WasBornOn(14.June(1960)),
+                            .WasBornOn(14.June(1960).ToLocalDateTime().Date),
                         patchDocument,
                         (Expression<Func<Patient, bool>>)(x => x.Id == patientId && x.Lastname == "Grayson")
                     };

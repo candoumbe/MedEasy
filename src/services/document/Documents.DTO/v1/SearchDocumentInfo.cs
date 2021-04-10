@@ -1,7 +1,4 @@
 ﻿using MedEasy.DTO.Search;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Documents.DTO.v1
 {

@@ -3,7 +3,8 @@
 using MedEasy.DataStores.Core.Relational;
 
 using Microsoft.EntityFrameworkCore;
-using System;
+
+using NodaTime;
 
 namespace Identity.DataStores
 {
@@ -16,7 +17,7 @@ namespace Identity.DataStores
         /// Builds a new <see cref="IdentityContext"/> instance.
         /// </summary>
         /// <param name="options">options of the <see cref="IdentityContext"/></param>
-        public IdentityContext(DbContextOptions<IdentityContext> options) : base(options)
+        public IdentityContext(DbContextOptions<IdentityContext> options, IClock clock) : base(options, clock)
         {
         }
 

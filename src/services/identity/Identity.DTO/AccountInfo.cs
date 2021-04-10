@@ -24,6 +24,6 @@ namespace Identity.DTO
 
         public IEnumerable<RoleInfo> Roles { get; set; }
 
-        public AccountInfo() => Claims = Enumerable.Empty<ClaimInfo>();
+        public AccountInfo() => Claims = new List<ClaimInfo>();
     }
 }

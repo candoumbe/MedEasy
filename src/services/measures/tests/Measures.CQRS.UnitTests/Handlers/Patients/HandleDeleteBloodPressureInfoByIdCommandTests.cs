@@ -14,6 +14,11 @@ using MedEasy.IntegrationTests.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,10 +45,10 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseSqlite(database.Connection);
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options);
+                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -152,7 +157,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                         {
                             new BloodPressure(Guid.NewGuid(),
                                 idPatient,
-                                dateOfMeasure: 30.September(2007),
+                                dateOfMeasure: 30.September(2007).AsUtc().ToInstant(),
                                 systolicPressure : 120,
                                 diastolicPressure : 80
                             )

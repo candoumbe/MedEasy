@@ -35,12 +35,12 @@ namespace Identity.Validators
                 .NotEmpty()
                 .MustAsync(async (username, ct) =>
                 {
-                    logger?.LogDebug($"Validating username <{username}>");
+                    logger?.LogDebug("Validating username {Username}", username);
                     using IUnitOfWork uow = uowFactory.NewUnitOfWork();
                     bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.Username == username, ct)
                                                                       .ConfigureAwait(false);
 
-                    logger?.LogDebug($"Username <{username}> {(alreadyUsed ? string.Empty : "not ")}already used");
+                    logger?.LogDebug($"Username {{Username}} {(alreadyUsed ? string.Empty : "not ")}already used", username);
 
                     return !alreadyUsed;
                 })

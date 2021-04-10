@@ -1,31 +1,39 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Bogus;
+
 using FluentAssertions;
+
 using Identity.CQRS.Handlers.Queries;
-using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Roles;
 using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -55,13 +63,13 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseSqlite(database.Connection)
+            DbContextOptionsBuilder<IdentityContext> builder = new();
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
                    .EnableSensitiveDataLogging()
                    .AddInterceptors(new LogQueryInterceptor());
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

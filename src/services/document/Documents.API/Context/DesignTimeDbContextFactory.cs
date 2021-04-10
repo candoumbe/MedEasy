@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
+using NodaTime;
+
 using System.IO;
 
 namespace Documents.API.Context
@@ -29,7 +31,7 @@ namespace Documents.API.Context
             string connectionString = configuration.GetConnectionString("Documents");
             builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName));
             
-            return new DocumentsStore(builder.Options);
+            return new DocumentsStore(builder.Options, SystemClock.Instance);
         }
     }
 }

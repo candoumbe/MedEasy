@@ -1,4 +1,7 @@
 ﻿using MedEasy.Objects;
+
+using NodaTime;
+
 using System;
 
 namespace Identity.Objects
@@ -18,19 +21,19 @@ namespace Identity.Objects
         /// <summary>
         /// When the claim is active for the user
         /// </summary>
-        public DateTime Start { get; private set; }
+        public Instant Start { get; private set; }
 
         /// <summary>
         /// When will the claim ends
         /// </summary>
-        public DateTime? End { get; }
+        public Instant? End { get; }
 
         private AccountClaim(Guid accountId, Guid id) : base(id)
         {
             AccountId = accountId;
         }
 
-        public AccountClaim(Guid accountId, Guid id, string type, string value, DateTime start, DateTime? end) : this (accountId, id)
+        public AccountClaim(Guid accountId, Guid id, string type, string value, Instant start, Instant? end) : this (accountId, id)
         {
             AccountId = accountId;
             Claim = new Claim(type, value);

@@ -1,6 +1,7 @@
 ﻿using Documents.DTO.v1;
+
 using MedEasy.CQRS.Core.Queries;
-using Optional;
+
 using System;
 using System.Collections.Generic;
 

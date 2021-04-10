@@ -1,22 +1,32 @@
 ﻿using Agenda.DTO;
 using Agenda.Objects;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using FluentValidation.Results;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
+
 using Microsoft.AspNetCore.JsonPatch;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static FluentValidation.Severity;
 using static Moq.MockBehavior;
 
@@ -29,7 +39,7 @@ namespace Agenda.Validators.UnitTests
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private Mock<IDateTimeService> _datetimeServiceMock;
+        private Mock<IClock> _datetimeServiceMock;
         private PatchAppointmentInfoValidator _sut;
 
         public PatchAppointmentInfoValidatorTests(ITestOutputHelper outputHelper)
@@ -38,7 +48,7 @@ namespace Agenda.Validators.UnitTests
             _unitOfWorkFactoryMock = new Mock<IUnitOfWorkFactory>(Strict);
             _unitOfWorkFactoryMock.Setup(mock => mock.NewUnitOfWork().Dispose());
 
-            _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _datetimeServiceMock = new Mock<IClock>(Strict);
 
             _sut = new PatchAppointmentInfoValidator(_datetimeServiceMock.Object, _unitOfWorkFactoryMock.Object);
         }
@@ -55,14 +65,14 @@ namespace Agenda.Validators.UnitTests
             get
             {
                 yield return new object[] { null, null };
-                yield return new object[] { null, Mock.Of<IDateTimeService>() };
+                yield return new object[] { null, Mock.Of<IClock>() };
                 yield return new object[] { Mock.Of<IUnitOfWorkFactory>(), null };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
-        public void Throws_ArgumentNullException_WhenParameterIsNull(IUnitOfWorkFactory uowFactory, IDateTimeService dateTimeService)
+        public void Throws_ArgumentNullException_WhenParameterIsNull(IUnitOfWorkFactory uowFactory, IClock dateTimeService)
         {
 
             _outputHelper.WriteLine($"Datetime service is null : {dateTimeService == null}");
@@ -92,8 +102,8 @@ namespace Agenda.Validators.UnitTests
                             Id = Guid.NewGuid(),
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
-                                .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().Add(30.Minutes())))
-                                .Replace(x => x.EndDate, 8.March(2019).Add(14.Hours()))
+                                .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant())
+                                .Replace(x => x.EndDate, 8.March(2019).Add(14.Hours()).AsUtc().ToInstant())
                          },
                         (Expression<Func<IEnumerable<ValidationFailure>, bool>>)(errors => errors.Once()
                             && errors.Once(err => err.PropertyName == nameof(PatchInfo<Guid, AppointmentInfo>.PatchDocument)
@@ -113,8 +123,8 @@ namespace Agenda.Validators.UnitTests
                         {
                             new Appointment(
                                 id:  appointmentId,
-                                startDate: 12.January(2019).At(10.Hours()),
-                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
+                                startDate: 12.January(2019).At(10.Hours()).AsUtc().ToInstant(),
+                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
@@ -123,8 +133,8 @@ namespace Agenda.Validators.UnitTests
                             Id = Guid.NewGuid(),
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
-                                .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().Add(30.Minutes())))
-                                .Replace(x => x.EndDate, 8.March(2019).Add(14.Hours()))
+                                .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant())
+                                .Replace(x => x.EndDate, 8.March(2019).Add(14.Hours()).AsUtc().ToInstant())
                          },
                         (Expression<Func<IEnumerable<ValidationFailure>, bool>>)(errors => errors.Once()
                             && errors.Once(err => err.PropertyName == nameof(PatchInfo<Guid, AppointmentInfo>.PatchDocument)
@@ -144,8 +154,8 @@ namespace Agenda.Validators.UnitTests
                         {
                             new Appointment(
                                 id: appointmentId,
-                                startDate : 12.January(2019).At(10.Hours()),
-                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())),
+                                startDate : 12.January(2019).At(10.Hours()).AsUtc().ToInstant(),
+                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                 location: "Somewhere in metropolis",
                                 subject: "unknown")
                         },
@@ -154,7 +164,7 @@ namespace Agenda.Validators.UnitTests
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
-                                .Replace(x => x.StartDate, 12.January(2019).Add(11.Hours()))
+                                .Replace(x => x.StartDate, 12.January(2019).Add(11.Hours()).AsUtc().ToInstant())
                          },
                         (Expression<Func<IEnumerable<ValidationFailure>, bool>>)(errors => errors.Once()
                             && errors.Once(err => err.PropertyName == nameof(PatchInfo<Guid, AppointmentInfo>.PatchDocument)
@@ -175,8 +185,8 @@ namespace Agenda.Validators.UnitTests
                             new Appointment
                             (
                                 id: appointmentId,
-                                startDate: 12.January(2019).Add(10.Hours()),
-                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
+                                startDate: 12.January(2019).Add(10.Hours()).AsUtc().ToInstant(),
+                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
@@ -185,7 +195,7 @@ namespace Agenda.Validators.UnitTests
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
-                                .Replace(x => x.EndDate, 12.January(2019).Add(11.Hours()))
+                                .Replace(x => x.EndDate, 12.January(2019).Add(11.Hours()).AsUtc().ToInstant())
                          },
                         (Expression<Func<IEnumerable<ValidationFailure>, bool>>)(errors => !errors.Any()
                         ),
@@ -202,8 +212,8 @@ namespace Agenda.Validators.UnitTests
                              new Appointment
                             (
                                 id: appointmentId,
-                                startDate: 12.January(2019).Add(10.Hours()),
-                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())),
+                                startDate: 12.January(2019).Add(10.Hours()).AsUtc().ToInstant(),
+                                endDate: 12.January(2019).Add(10.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
@@ -212,7 +222,7 @@ namespace Agenda.Validators.UnitTests
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
-                                .Replace(x => x.StartDate, 12.January(2019).Add(10.Hours().Add(15.Minutes())))
+                                .Replace(x => x.StartDate, 12.January(2019).Add(10.Hours().Add(15.Minutes())).AsUtc().ToInstant())
                         },
                         (Expression<Func<IEnumerable<ValidationFailure>, bool>>)(errors => !errors.Any()),
                         $"Patch document contains an operation on {nameof(AppointmentInfo.StartDate)} that stay lower than registered {nameof(AppointmentInfo.EndDate)}"
@@ -231,22 +241,28 @@ namespace Agenda.Validators.UnitTests
 
             int callCount= 0;
 
-            _unitOfWorkFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Appointment>().AnyAsync(It.IsAny<Expression<Func<Appointment, bool>>>(), It.IsAny<CancellationToken>()))
-                .Callback(() => callCount++)
-                .Returns((Expression<Func<Appointment, bool>> filter, CancellationToken ct) => new ValueTask<bool>(appointments.Any(filter.Compile())));
+            _unitOfWorkFactoryMock.Setup(mock => mock.NewUnitOfWork()
+                                                     .Repository<Appointment>()
+                                                     .AnyAsync(It.IsAny<Expression<Func<Appointment, bool>>>(),
+                                                               It.IsAny<CancellationToken>()))
+                                  .Callback(() => callCount++)
+                                  .ReturnsAsync((Expression<Func<Appointment, bool>> filter, CancellationToken _) => appointments.Any(filter.Compile()));
 
             // Act
             ValidationResult validationResult = await _sut.ValidateAsync(patch)
-                .ConfigureAwait(false);
+                                                          .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Errors : {validationResult.Errors.Jsonify()}");
 
             // Assert
             validationResult.Errors.Should()
-                .Match(errorsExpectation, reason);
+                                   .Match(errorsExpectation, reason);
 
-            _unitOfWorkFactoryMock.Verify(mock => mock.NewUnitOfWork().Repository<Appointment>().AnyAsync(It.IsAny<Expression<Func<Appointment, bool>>>(), It.IsAny<CancellationToken>()), Times.Exactly(callCount));
-            _unitOfWorkFactoryMock.Verify(mock => mock.NewUnitOfWork().Dispose(), Times.Exactly(callCount));
+            _unitOfWorkFactoryMock.Verify(mock => mock.NewUnitOfWork()
+                                                      .Repository<Appointment>()
+                                                      .AnyAsync(It.IsAny<Expression<Func<Appointment, bool>>>(),
+                                                                It.IsAny<CancellationToken>()), Times.Exactly(callCount));
+            _unitOfWorkFactoryMock.Verify(mock => mock.NewUnitOfWork().Dispose(), Times.AtMostOnce());
             _unitOfWorkFactoryMock.VerifyNoOtherCalls();
         }
     }

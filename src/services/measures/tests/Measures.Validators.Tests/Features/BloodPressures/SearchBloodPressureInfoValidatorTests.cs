@@ -4,6 +4,9 @@ using FluentValidation.Results;
 using Measures.DTO;
 using Measures.Validators.Queries.BloodPressures;
 using Newtonsoft.Json;
+
+using NodaTime.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +50,7 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
 
                 yield return new object[]
                 {
-                    new SearchBloodPressureInfo { From = 23.July(2010) },
+                    new SearchBloodPressureInfo { From = 23.July(2010).AsUtc().ToInstant().InUtc() },
                     ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
                     $"{nameof(SearchBloodPressureInfo.From)} is not null"
 
@@ -119,7 +122,7 @@ namespace Measures.Validators.Tests.Features.Queries.BloodPressures
 
                 yield return new object[]
                 {
-                    new SearchBloodPressureInfo { From = 1.February(2000), To = 1.January(2000) },
+                    new SearchBloodPressureInfo { From = 1.February(2000).AsUtc().ToInstant().InUtc(), To = 1.January(2000).AsUtc().ToInstant().InUtc() },
                     ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.From)
                             && err.Severity == Error )

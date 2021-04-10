@@ -27,7 +27,6 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using static Nuke.Common.Tools.Npm.NpmTasks;
 
 [GitHubActions(
     "continuous",
@@ -569,7 +568,7 @@ public class Build : NukeBuild
         .DependsOn(Compile, TyeInstall)
         .Executes(() =>
         {
-            Tye("run --dashboard --logs seq=http://localhost:5431");
+            Tye("run --dashboard --logs seq=http://localhost:55340");
         });
 
     [PathExecutable]

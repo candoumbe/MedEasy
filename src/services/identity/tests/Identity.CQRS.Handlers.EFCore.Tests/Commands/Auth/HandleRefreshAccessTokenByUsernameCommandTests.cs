@@ -1,6 +1,8 @@
 ﻿using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.Commands;
@@ -8,15 +10,23 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v1;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
 using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,10 +34,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
+
 using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
@@ -39,7 +52,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private readonly SigningCredentials _signingCredentials;
-        private Mock<IDateTimeService> _datetimeServiceMock;
+        private Mock<IClock> _clockMock;
         private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenMock;
         private HandleRefreshAccessTokenByUsernameCommand _sut;
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
@@ -50,18 +63,18 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<IdentityContext> dbContextBuilderOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>()
-                .UseSqlite(databaseFixture.Connection);
+                .UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextBuilderOptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
 
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             _signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signatureKey)), SecurityAlgorithms.HmacSha256);
-            _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _clockMock = new (Strict);
             _handleCreateSecurityTokenMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
             _handleCreateSecurityTokenMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreateSecurityTokenCommand cmd, CancellationToken ct) =>
@@ -76,7 +89,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
                     return Task.FromResult(st);
                 });
-            _sut = new HandleRefreshAccessTokenByUsernameCommand(datetimeService: _datetimeServiceMock.Object, uowFactory: _uowFactory, _handleCreateSecurityTokenMock.Object);
+            _sut = new HandleRefreshAccessTokenByUsernameCommand(datetimeService: _clockMock.Object,
+                                                                 uowFactory: _uowFactory,
+                                                                 _handleCreateSecurityTokenMock.Object);
         }
 
         public async void Dispose()
@@ -90,7 +105,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                     .ConfigureAwait(false);
             }
             _uowFactory = null;
-            _datetimeServiceMock = null;
+            _clockMock = null;
             _sut = null;
             _jwtSecurityTokenHandler = null;
         }
@@ -99,11 +114,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
         public async Task GivenExpiredRefreshToken_Handler_Returns_Unauthorized()
         {
             // Arrange
-            DateTime utcNow = 25.June(2018).Add(15.Hours());
+            Instant utcNow = 25.June(2018).Add(15.Hours()).AsUtc().ToInstant();
 
-            Faker faker = new Faker();
+            Faker faker = new();
 
-            JwtInfos tokenInfos = new JwtInfos
+            JwtInfos tokenInfos = new()
             {
                 Issuer = faker.Internet.DomainName(),
                 Key = faker.Lorem.Word(),
@@ -113,8 +128,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
             };
             SecurityToken accessToken = new JwtSecurityToken(
                 audience: "api",
-                notBefore: utcNow.Subtract(2.Days()),
-                expires: utcNow.Subtract(2.Days()).Add(1.Hours()),
+                notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
+                expires: utcNow.Minus(2.Days().ToDuration()).Plus(1.Hours().ToDuration()).ToDateTimeUtc(),
                 signingCredentials: _signingCredentials,
                 claims: new[]
                 {
@@ -123,8 +138,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
             );
             SecurityToken refreshToken = new JwtSecurityToken(
                 audience : "api",
-                notBefore: utcNow.Subtract(2.Days()),
-                expires: utcNow.Subtract(1.Days()),
+                notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
+                expires: utcNow.Minus(1.Days().ToDuration()).ToDateTimeUtc(),
                 signingCredentials: _signingCredentials,
                 claims: new[]
                 {
@@ -137,20 +152,21 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
             _outputHelper.WriteLine($"Refresh token : {refreshTokenString}");
 
-            RefreshAccessTokenByUsernameCommand cmd = new RefreshAccessTokenByUsernameCommand(("thejoker", expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenInfos));
+            RefreshAccessTokenByUsernameCommand cmd = new(("thejoker", expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenInfos));
 
-            _datetimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            _clockMock.Setup(mock => mock.GetCurrentInstant())
+                      .Returns(utcNow);
 
             // Act
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearer = await _sut.Handle(cmd, default)
-                .ConfigureAwait(false);
+                                                                                           .ConfigureAwait(false);
 
             // Assert
-            _datetimeServiceMock.Verify(mock => mock.UtcNow(), Times.Once);
+            _clockMock.Verify(mock => mock.GetCurrentInstant(), Times.Once);
             _handleCreateSecurityTokenMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()), Times.Never);
 
             optionalBearer.HasValue.Should()
-                .BeFalse();
+                                   .BeFalse();
             optionalBearer.MatchNone(cmdResult => cmdResult.Should().Be(RefreshAccessCommandResult.Unauthorized, "The refresh token is expired"));
         }
 
@@ -158,27 +174,25 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
         public async Task GivenValidRefreshToken_Handler_Returns_NewToken()
         {
             // Arrange
-            DateTime utcNow = 25.June(2018).Add(15.Hours());
-            Faker faker = new Faker();
-            JwtSecurityToken refreshToken = new JwtSecurityToken(
+            Instant utcNow = 25.June(2018).Add(15.Hours()).AsUtc().ToInstant();
+            Faker faker = new();
+            JwtSecurityToken refreshToken = new(
                audience: "api",
-               notBefore: utcNow.Subtract(2.Days()),
-               expires: utcNow.Add(1.Days()),
+               notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
+               expires: utcNow.Plus(1.Days().ToDuration()).ToDateTimeUtc(),
                signingCredentials: _signingCredentials,
                claims: new[]
                {
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                }
            );
-            Account account = new Account
-            (
-                id: Guid.NewGuid(),
-                name : faker.Person.FullName,
-                email : faker.Person.Email,
-                passwordHash : faker.Lorem.Word(),
-                salt : faker.Lorem.Word(),
-                username : faker.Person.UserName
-            );
+            Account account = new (id: Guid.NewGuid(),
+                                   name : faker.Person.FullName,
+                                   email : faker.Person.Email,
+                                   passwordHash : faker.Lorem.Word(),
+                                   salt : faker.Lorem.Word(),
+                                   username : faker.Person.UserName);
+
             account.ChangeRefreshToken(new JwtSecurityTokenHandler().WriteToken(refreshToken));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -187,7 +201,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            JwtInfos tokenOptions = new JwtInfos
+            JwtInfos tokenOptions = new()
             {
                 Issuer = faker.Internet.DomainName(),
                 Key = faker.Lorem.Word(),
@@ -197,8 +211,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
             };
             SecurityToken accessToken = new JwtSecurityToken(
                 audience: "api",
-                notBefore: utcNow.Subtract(2.Days()),
-                expires: utcNow.Add(2.Days()),
+                notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
+                expires: utcNow.Plus(2.Days().ToDuration()).ToDateTimeUtc(),
                 signingCredentials: _signingCredentials,
                 claims: new[]
                 {
@@ -211,9 +225,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
             _outputHelper.WriteLine($"Refresh token : {refreshTokenString}");
 
-            RefreshAccessTokenByUsernameCommand refreshAccessTokenByUsernameCommand = new RefreshAccessTokenByUsernameCommand((account.Username, expiredAccessTokenString, refreshTokenString, tokenOptions));
+            RefreshAccessTokenByUsernameCommand refreshAccessTokenByUsernameCommand = new((account.Username, expiredAccessTokenString, refreshTokenString, tokenOptions));
 
-            _datetimeServiceMock.Setup(mock => mock.UtcNow()).Returns(utcNow);
+            _clockMock.Setup(mock => mock.GetCurrentInstant())
+                      .Returns(utcNow);
 
             // Act
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearer = await _sut.Handle(refreshAccessTokenByUsernameCommand, default)
@@ -221,8 +236,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
             // Assert
             optionalBearer.HasValue.Should()
-                .BeTrue("refresh token is valid and the user exists in the database");
-            _datetimeServiceMock.Verify(mock => mock.UtcNow(), Times.Once);
+                                   .BeTrue("refresh token is valid and the user exists in the database");
+            _clockMock.Verify(mock => mock.GetCurrentInstant(), Times.Once);
             _handleCreateSecurityTokenMock.Verify(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
             _handleCreateSecurityTokenMock.Verify(mock =>
                 mock.Handle(It.Is<CreateSecurityTokenCommand>(cmd => cmd.Data.tokenOptions.Audiences.SequenceEqual(tokenOptions.Audiences)

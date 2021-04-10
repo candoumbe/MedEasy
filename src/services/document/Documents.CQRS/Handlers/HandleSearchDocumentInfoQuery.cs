@@ -1,18 +1,22 @@
 ﻿using DataFilters;
+
 using Documents.CQRS.Queries;
 using Documents.DTO.v1;
 using Documents.Objects;
+
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO.Search;
+
 using MediatR;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static DataFilters.FilterLogic;
 
 namespace Documents.CQRS.Handlers

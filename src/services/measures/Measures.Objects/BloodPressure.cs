@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NodaTime;
+
+using System;
 
 namespace Measures.Objects
 {
@@ -27,7 +29,7 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure">dDate of the measure</param>
         /// <param name="diastolicPressure">The diastolic measure</param>
         /// <param name="systolicPressure">The systolic measure</param>
-        public BloodPressure(Guid patientId, Guid id,  DateTime dateOfMeasure, float diastolicPressure, float systolicPressure)
+        public BloodPressure(Guid patientId, Guid id,  Instant dateOfMeasure, float diastolicPressure, float systolicPressure)
             : base (patientId, id, dateOfMeasure)
         {
             DiastolicPressure = diastolicPressure;

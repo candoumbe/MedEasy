@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 
+using NodaTime;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -28,6 +30,6 @@ namespace Measures.DTO
         /// Patient's birth date
         /// </summary>
         [JsonProperty]
-        public DateTime? BirthDate { get; set; }
+        public LocalDate? BirthDate { get; set; }
     }
 }

@@ -1,13 +1,19 @@
 ﻿using Agenda.DTO;
 using Agenda.Objects;
+
 using FluentValidation;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.Validators.Patch;
+
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
+using NodaTime;
+
 using System;
 using System.Linq;
+
 using static FluentValidation.CascadeMode;
 using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
 
@@ -22,7 +28,7 @@ namespace Agenda.Validators
         /// Builds a <see cref="PatchAppointmentInfoValidator"/> instance.
         /// </summary>
         /// <param name="unitOfWorkFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
-        public PatchAppointmentInfoValidator(IDateTimeService datetimeService, IUnitOfWorkFactory unitOfWorkFactory)
+        public PatchAppointmentInfoValidator(IClock datetimeService, IUnitOfWorkFactory unitOfWorkFactory)
         {
             bool IsFieldOperation(Operation op, string path) => string.Compare(path, op.path, ignoreCase: true) == 0;
 
@@ -63,31 +69,30 @@ namespace Agenda.Validators
 
                             Operation<AppointmentInfo> replaceEndDate = patchInfo.Operations
                                 .SingleOrDefault(op => op.OperationType == Replace
-                                 && IsFieldOperation(op, $"/{nameof(AppointmentInfo.EndDate)}"));
+                                                       && IsFieldOperation(op, $"/{nameof(AppointmentInfo.EndDate)}"));
 
                             if (replaceStartDate != default || replaceEndDate != default)
                             {
                                 if (replaceStartDate != default && replaceEndDate != default)
                                 {
-                                    valid = replaceStartDate.value is DateTimeOffset newStartDate && replaceEndDate.value is DateTimeOffset newEndDate
-                                        && newStartDate <= newEndDate;
+                                    valid = replaceStartDate.value is Instant newStartDate
+                                            && replaceEndDate.value is Instant newEndDate
+                                            && newStartDate <= newEndDate;
                                 }
                                 else
                                 {
-                                    using (IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork())
+                                    using IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork();
+                                    if (replaceStartDate?.value is Instant newStartDate)
                                     {
-                                        if (replaceStartDate != default && replaceStartDate.value is DateTimeOffset newStartDate)
-                                        {
-                                            valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.Id == context.Id && x.EndDate <= newStartDate, cancellationToken)
-                                                .ConfigureAwait(false);
-                                        }
-                                        else if (replaceEndDate.value is DateTimeOffset newEndDate)
-                                        {
-                                            valid = !await uow.Repository<Appointment>()
-                                                .AnyAsync(x => x.Id == context.Id && x.StartDate >= newEndDate, cancellationToken)
-                                                .ConfigureAwait(false);
-                                        }
+                                        valid = !await uow.Repository<Appointment>()
+                                            .AnyAsync(x => x.Id == context.Id && x.EndDate <= newStartDate, cancellationToken)
+                                            .ConfigureAwait(false);
+                                    }
+                                    else if (replaceEndDate?.value is Instant newEndDate)
+                                    {
+                                        valid = !await uow.Repository<Appointment>()
+                                            .AnyAsync(x => x.Id == context.Id && x.StartDate >= newEndDate, cancellationToken)
+                                            .ConfigureAwait(false);
                                     }
                                 }
 

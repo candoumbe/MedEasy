@@ -37,6 +37,10 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Testing;
+
 using Optional;
 
 using System;
@@ -77,10 +81,10 @@ namespace Agenda.API.UnitTests.Resources.v1
                 .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             DbContextOptionsBuilder<AgendaContext> dbOptions = new DbContextOptionsBuilder<AgendaContext>();
-            dbOptions.UseSqlite(database.Connection);
+            dbOptions.UseInMemoryDatabase($"{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(dbOptions.Options, (options) =>
             {
-                AgendaContext dbContext = new AgendaContext(options);
+                AgendaContext dbContext = new AgendaContext(options, new FakeClock(new Instant()));
                 dbContext.Database.EnsureCreated();
 
                 return dbContext;
@@ -331,11 +335,12 @@ namespace Agenda.API.UnitTests.Resources.v1
         {
             // Arrange
             Guid attendeeId = Guid.NewGuid();
+            DateTimeZone utcZone = DateTimeZone.Utc;
             Faker<AppointmentInfo> appointmentInfo = new Faker<AppointmentInfo>()
                 .RuleFor(x => x.Id, () => Guid.NewGuid())
-                .RuleFor(x => x.StartDate, () => 13.January(2010).Add(14.Hours()))
-                .RuleFor(x => x.EndDate, (_, current) => current.StartDate.Add(1.Hours()))
-                .RuleFor(x => x.CreatedDate, (faker) => faker.Date.Recent())
+                .RuleFor(x => x.StartDate, () => 13.January(2010).Add(14.Hours()).AsUtc().ToInstant())
+                .RuleFor(x => x.EndDate, (_, current) => current.StartDate + 1.Hours().ToDuration())
+                .RuleFor(x => x.CreatedDate, (faker) => faker.Noda().Instant.Recent())
                 .RuleFor(x => x.Attendees, _ => new[] {
                     new AttendeeInfo {Name = "Hugo strange", Id = attendeeId },
                     new AttendeeInfo {Name = "Joker", Id = Guid.NewGuid()}
@@ -346,21 +351,24 @@ namespace Agenda.API.UnitTests.Resources.v1
                 .ReturnsAsync(Option.Some(appointmentInfo.GenerateLazy(count : 10)));
 
             // Act
-            ActionResult<IEnumerable<Browsable<AppointmentModel>>> actionResult = await _sut.Planning(id: attendeeId, from: 1.January(2019), to: 31.January(2019), ct: default)
-                .ConfigureAwait(false);
+            ActionResult<IEnumerable<Browsable<AppointmentModel>>> actionResult = await _sut.Planning(id: attendeeId,
+                                                                                                      from: 1.January(2019),
+                                                                                                      to: 31.January(2019),
+                                                                                                      ct: default)
+                                                                                            .ConfigureAwait(false);
 
             // Assert
             actionResult.Value.Should()
-                .NotBeNull().And
-                .BeAssignableTo<IEnumerable<Browsable<AppointmentModel>>>();
+                              .NotBeNull().And
+                              .BeAssignableTo<IEnumerable<Browsable<AppointmentModel>>>();
 
             IEnumerable<Browsable<AppointmentModel>> appointments = actionResult.Value;
             appointments.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .OnlyContain(browsable => browsable.Resource != default).And
-                .OnlyContain(browsable => browsable.Links.Once()).And
-                .OnlyContain(browsable => browsable.Links.Once(link => link.Relation == Self));
+                        .NotBeNull().And
+                        .NotContainNulls().And
+                        .OnlyContain(browsable => browsable.Resource != default).And
+                        .OnlyContain(browsable => browsable.Links.Once()).And
+                        .OnlyContain(browsable => browsable.Links.Once(link => link.Relation == Self));
 
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Option<IEnumerable<AppointmentInfo>>>>(), It.IsAny<CancellationToken>()), Moq.Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetPlanningByAttendeeIdQuery>(query =>

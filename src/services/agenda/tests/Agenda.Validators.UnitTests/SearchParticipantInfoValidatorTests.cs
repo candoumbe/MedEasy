@@ -1,21 +1,22 @@
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using FluentAssertions;
-using FluentAssertions.Extensions;
+
 using FluentValidation.Results;
-using MedEasy.Abstractions;
+
 using MedEasy.DTO.Search;
-using Moq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
 
 namespace Agenda.Validators.UnitTests
 {

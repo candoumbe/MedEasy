@@ -29,7 +29,11 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
-using Newtonsoft.Json.Serialization;
+using NodaTime.Extensions;
+using System.Net.Http.Json;
+using System.Text.Json;
+using NodaTime.Serialization.SystemTextJson;
+using NodaTime;
 
 namespace Agenda.API.IntegrationTests.v1
 {
@@ -44,7 +48,7 @@ namespace Agenda.API.IntegrationTests.v1
         private const string _version = "/v1";
         private const string _endpointUrl = _version + "/attendees";
 
-        private static readonly JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -64,7 +68,7 @@ namespace Agenda.API.IntegrationTests.v1
         /// <summary>
         /// Schema of an <see cref="AttendeeModel"/> resource once translated to json
         /// </summary>
-        private static readonly JSchema _participantInfoResourceSchema = new JSchema
+        private static readonly JSchema _participantInfoResourceSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -237,7 +241,7 @@ namespace Agenda.API.IntegrationTests.v1
             // Arrange
             string url = $"{_endpointUrl}/search?sort=+name&page=1";
 
-            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(verb), url);
+            HttpRequestMessage request = new(new HttpMethod(verb), url);
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
 
 
@@ -283,8 +287,8 @@ namespace Agenda.API.IntegrationTests.v1
                             {
                                 Location = "The bowlery",
                                 Attendees = participants,
-                                StartDate = 1.April(2012),
-                                EndDate = 2.April(2012),
+                                StartDate = 1.April(2012).AsUtc().ToInstant().InUtc(),
+                                EndDate = 2.April(2012).AsUtc().ToInstant().InUtc(),
                                 Subject = "Let's rob something !"
                             }
                         },
@@ -309,12 +313,9 @@ namespace Agenda.API.IntegrationTests.v1
             string requestUri = $"{_version}/{AppointmentsController.EndpointName}";
             await newAppointments.ForEachAsync(async (newParticipant) =>
                                                {
-                                                   string jsonParticipant = newParticipant.Jsonify();
-                                                   _outputHelper.WriteLine($"{nameof(jsonParticipant)} : {jsonParticipant}");
-                                                   using HttpResponseMessage createdResponse = await client.PostAsync(requestUri,
-                                                                                                                      new StringContent(jsonParticipant,
-                                                                                                                                        Encoding.UTF8,
-                                                                                                                                        Application.Json))
+                                                   JsonSerializerOptions jsonSerializerOptions = new();
+                                                   jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                                                   using HttpResponseMessage createdResponse = await client.PostAsJsonAsync(requestUri, newParticipant, jsonSerializerOptions)
                                                                                                            .ConfigureAwait(false);
 
                                                    _outputHelper.WriteLine($"{nameof(createdResponse)} status : {createdResponse.StatusCode}");
@@ -325,7 +326,7 @@ namespace Agenda.API.IntegrationTests.v1
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
 
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, path);
+            using HttpRequestMessage request = new(HttpMethod.Head, path);
 
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)

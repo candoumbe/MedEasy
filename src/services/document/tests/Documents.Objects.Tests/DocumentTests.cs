@@ -1,8 +1,7 @@
-using Bogus;
 using FluentAssertions;
+
 using System;
-using System.Security.Cryptography;
-using System.Text;
+
 using Xunit;
 using Xunit.Categories;
 

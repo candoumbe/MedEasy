@@ -1,30 +1,30 @@
 ﻿using Bogus;
+using NodaTime.Testing;
+
 using FluentAssertions;
-using FluentAssertions.Extensions;
+
 using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
 using Identity.Mapping;
 using Identity.Objects;
-using MedEasy.Abstractions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
+
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using Optional;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static Moq.MockBehavior;
+using NodaTime;
 
 namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
@@ -35,17 +35,18 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
         private HandleGetPageOfAccountByTenantIdQuery _sut;
+        private FakeClock _clock;
 
         public HandleGetPageOfAccountsByTenantIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
         {
             _outputHelper = outputHelper;
-
+            _clock = new FakeClock(new Instant());
             DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseSqlite(databaseFixture.Connection);
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options);
+                IdentityContext context = new IdentityContext(options, _clock);
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -100,7 +101,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                                                          passwordHash: string.Empty,
                                                          salt: string.Empty)
                 {
-                    CreatedDate = faker.Date.Recent()
+                    CreatedDate = faker.Noda().Instant.Recent()
                 })
                 .Generate(10);
 

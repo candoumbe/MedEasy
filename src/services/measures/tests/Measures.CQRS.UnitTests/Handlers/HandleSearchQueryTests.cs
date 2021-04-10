@@ -20,10 +20,8 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 using static Moq.MockBehavior;
-using static DataFilters.FilterLogic;
 using static DataFilters.FilterOperator;
 using DataFilters;
-using DataFilters.Expressions;
 
 namespace Measures.CQRS.UnitTests.Handlers
 {

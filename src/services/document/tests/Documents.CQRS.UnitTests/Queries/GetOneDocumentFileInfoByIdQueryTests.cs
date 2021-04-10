@@ -1,10 +1,13 @@
 ﻿using Documents.CQRS.Queries;
 using Documents.DTO.v1;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Queries;
-using Optional;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 
 namespace Documents.CQRS.UnitTests.Queries

@@ -1,19 +1,25 @@
-using MedEasy.Abstractions;
-using Microsoft.IdentityModel.Tokens;
-using Moq;
-using System;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using static Moq.MockBehavior;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using Xunit.Categories;
+
 using FluentValidation;
 using FluentValidation.Results;
-using System.Linq.Expressions;
+
+using Microsoft.IdentityModel.Tokens;
+
+using Moq;
+
+using NodaTime;
+using NodaTime.Extensions;
+
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+
+using Xunit;
+using Xunit.Abstractions;
+using Xunit.Categories;
+
+using static Moq.MockBehavior;
 
 namespace Identity.Validators.UnitTests
 {
@@ -23,13 +29,13 @@ namespace Identity.Validators.UnitTests
     public class SecurityTokenLifetimeValidatorTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IDateTimeService> _datetimeServiceMock;
+        private Mock<IClock> _datetimeServiceMock;
 
 
         public SecurityTokenLifetimeValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _datetimeServiceMock = new Mock<IDateTimeService>(Strict);
+            _datetimeServiceMock = new Mock<IClock>(Strict);
         }
 
         public void Dispose()
@@ -44,10 +50,10 @@ namespace Identity.Validators.UnitTests
             {
                 yield return new object[]
                 {
-                    15.February(2014).Add(14.Hours().Add(15.Minutes())),
+                    15.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                     new JwtSecurityToken(
-                        notBefore : 13.February(2014).Add(14.Hours().Add(15.Minutes())),
-                        expires : 13.February(2014).Add(14.Hours().Add(20.Minutes()))
+                        notBefore : 13.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc(),
+                        expires : 13.February(2014).Add(14.Hours().And(20.Minutes())).AsUtc()
                     ),
                     false,
                     "Current datetime is after token's lifetime"
@@ -55,10 +61,10 @@ namespace Identity.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    15.February(2014).Add(14.Hours().Add(15.Minutes())),
+                    15.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                     new JwtSecurityToken(
-                        notBefore : 16.February(2014).Add(14.Hours().Add(15.Minutes())),
-                        expires : 16.February(2014).Add(14.Hours().Add(20.Minutes()))
+                        notBefore : 16.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc(),
+                        expires : 16.February(2014).Add(14.Hours().And(20.Minutes())).AsUtc()
                     ),
                     false,
                     "Current datetime is before token's lifetime"
@@ -66,10 +72,10 @@ namespace Identity.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    15.February(2014).Add(14.Hours().Add(15.Minutes())),
+                    15.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                     new JwtSecurityToken(
-                        notBefore : 14.February(2014).Add(14.Hours().Add(15.Minutes())),
-                        expires : 16.February(2014).Add(14.Hours().Add(20.Minutes()))
+                        notBefore : 14.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc(),
+                        expires : 16.February(2014).Add(14.Hours().And(20.Minutes())).AsUtc()
                     ),
                     true,
                     "Current datetime is within token's lifetime"
@@ -77,9 +83,9 @@ namespace Identity.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    15.February(2014).Add(14.Hours().Add(15.Minutes())),
+                    15.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                     new JwtSecurityToken(
-                        expires : 16.February(2014).Add(14.Hours().Add(20.Minutes()))
+                        expires : 16.February(2014).Add(14.Hours().And(20.Minutes())).AsUtc()
                     ),
                     true,
                     "Current datetime is before token's expires"
@@ -87,9 +93,9 @@ namespace Identity.Validators.UnitTests
 
                 yield return new object[]
                 {
-                    15.February(2014).Add(14.Hours().Add(15.Minutes())),
+                    15.February(2014).Add(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                     new JwtSecurityToken(
-                        notBefore : 12.February(2014).Add(14.Hours().Add(20.Minutes()))
+                        notBefore : 12.February(2014).Add(14.Hours().And(20.Minutes())).AsUtc()
                     ),
                     true,
                     "Current datetime is after token starts to be valid"
@@ -98,22 +104,19 @@ namespace Identity.Validators.UnitTests
         }
 
 
-
-
         [Theory]
         [MemberData(nameof(ValidateCases))]
-        public void Validate(DateTime currentDate, SecurityToken securityToken, bool expectedValidity, string reason)
+        public void Validate(Instant currentDate, SecurityToken securityToken, bool expectedValidity, string reason)
         {
-
             // Arrange
             _outputHelper.WriteLine($"Token valid from <{securityToken.ValidFrom}> to <{securityToken.ValidTo}>");
-            _datetimeServiceMock.Setup(mock => mock.UtcNow()).Returns(currentDate);
+            _datetimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(currentDate);
 
             // Act
             ValidationResult validationResult = new SecurityTokenLifetimeValidator(_datetimeServiceMock.Object).Validate(securityToken);
 
             // Assert
-            _datetimeServiceMock.Verify(mock => mock.UtcNow(), Times.Once);
+            _datetimeServiceMock.Verify(mock => mock.GetCurrentInstant(), Times.Once);
             validationResult
                 .IsValid
                 .Should()

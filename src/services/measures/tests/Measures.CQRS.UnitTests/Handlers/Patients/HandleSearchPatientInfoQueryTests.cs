@@ -25,11 +25,11 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using static DataFilters.FilterLogic;
 using static DataFilters.FilterOperator;
 using static Moq.MockBehavior;
 using DataFilters;
-using DataFilters.Expressions;
+using NodaTime.Testing;
+using NodaTime;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
@@ -51,7 +51,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options);
+                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

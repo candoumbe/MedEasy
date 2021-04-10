@@ -1,7 +1,4 @@
-﻿using MedEasy.RestObjects;
-using System;
-
-namespace Documents.DTO.v1
+﻿namespace Documents.DTO.v1
 {
     public class DocumentPartInfo
     {

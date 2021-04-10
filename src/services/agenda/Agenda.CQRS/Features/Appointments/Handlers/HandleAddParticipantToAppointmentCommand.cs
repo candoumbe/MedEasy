@@ -1,10 +1,13 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Objects;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;

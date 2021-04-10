@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+
+using NodaTime;
+
 using System.IO;
 
 namespace Agenda.API.Context
@@ -22,10 +25,11 @@ namespace Agenda.API.Context
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
-            DbContextOptionsBuilder<AgendaContext> builder = new DbContextOptionsBuilder<AgendaContext>();
+            DbContextOptionsBuilder<AgendaContext> builder = new();
             string connectionString = configuration.GetConnectionString("Agenda");
             builder.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(AgendaContext).Assembly.FullName));
-            return new AgendaContext(builder.Options);
+
+            return new AgendaContext(builder.Options, SystemClock.Instance);
         }
     }
 }

@@ -24,8 +24,8 @@ namespace Agenda.Mapping
             cfg.CreateMap<NewAppointmentInfo, Appointment>()
                 .IgnoreAllPropertiesWithAnInaccessibleSetter()
                 .ConstructUsing((dto) => new Appointment(id: Guid.NewGuid(),
-                                                         startDate: dto.StartDate,
-                                                         endDate: dto.EndDate,
+                                                         startDate: dto.StartDate.ToInstant(),
+                                                         endDate: dto.EndDate.ToInstant(),
                                                          subject: dto.Subject,
                                                          location: dto.Location))
                 .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
@@ -54,7 +54,12 @@ namespace Agenda.Mapping
                 .ForMember(dto => dto.Attendees, opt => opt.MapFrom(entity => entity.Attendees));
 
             cfg.CreateMap<AppointmentModel, AppointmentInfo>()
-                .ReverseMap();
+                .ForMember(dto => dto.StartDate, opt => opt.MapFrom(model => model.StartDate.ToInstant()))
+                .ForMember(dto => dto.EndDate,   opt => opt.MapFrom(model => model.EndDate.ToInstant()))
+                .ReverseMap()
+                .ForMember(model => model.StartDate, opt => opt.MapFrom(dto => dto.StartDate.InUtc()))
+                .ForMember(model => model.EndDate, opt => opt.MapFrom(dto => dto.EndDate.InUtc()))
+                ;
 
             cfg.CreateMap<Attendee, AttendeeInfo>()
                 .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
@@ -66,7 +71,6 @@ namespace Agenda.Mapping
 
             cfg.CreateMap<AttendeeModel, AttendeeInfo>()
                 .ReverseMap();
-
 
             cfg.CreateMap<SearchAppointmentInfo, SearchAppointmentModel>()
                 .ReverseMap();

@@ -5,7 +5,6 @@ using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
 
-using MedEasy.Abstractions;
 using MedEasy.DAL.Interfaces;
 
 using MediatR;
@@ -13,7 +12,6 @@ using MediatR;
 using Optional;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -25,26 +23,23 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
-        private readonly IDateTimeService _dateTimeService;
         private readonly IMediator _mediator;
 
-        public HandleGetOneAccountInfoByUsernameAndPasswordQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IDateTimeService dateTimeService, IMediator mediator)
+        public HandleGetOneAccountInfoByUsernameAndPasswordQuery(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
             _uowFactory = uowFactory;
             _expressionBuilder = expressionBuilder;
-            _dateTimeService = dateTimeService;
             _mediator = mediator;
         }
 
         public async Task<Option<AccountInfo>> Handle(GetOneAccountByUsernameAndPasswordQuery request, CancellationToken ct)
         {
             LoginInfo data = request.Data;
-            
+
             IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
             Expression<Func<RoleClaim, ClaimInfo>> roleClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<RoleClaim, ClaimInfo>();
             Expression<Func<AccountClaim, ClaimInfo>> userClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<AccountClaim, ClaimInfo>();
-
 
             var usernameAndPassword = await uow.Repository<Account>()
                                         .SingleOrDefaultAsync(
@@ -102,7 +97,8 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
                     return accountInfo;
                 },
                 none: () => Task.FromResult(Option.None<AccountInfo>())
-            );
+            )
+                .ConfigureAwait(false);
         }
     }
 }

@@ -6,10 +6,6 @@
 #
 name: medeasy
 
-extensions:
-- name: seq
-  logPath: ./.logs
-
 services:
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
@@ -66,3 +62,16 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+- name: seq
+  image: datalust/seq
+  env:
+    - name: "ACCEPT_EULA"
+      value: "Y"
+  bindings:
+    - name: ui
+      port: 55340
+      protocol: http
+      containerPort: 80
+    - name: internal
+      containerPort: 5341
+      port : 55341

@@ -1,4 +1,6 @@
-﻿using MedEasy.RestObjects;
+﻿
+using NodaTime;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -29,7 +31,7 @@ namespace Patients.DTO
         /// <summary>
         /// Patient's birthdate
         /// </summary>
-        public DateTime? BirthDate { get; set; }
+        public LocalDate? BirthDate { get; set; }
 
         /// <summary>
         /// Patient's birthplace

@@ -12,6 +12,10 @@ using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+
+using NodaTime;
+using NodaTime.Testing;
+
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -35,10 +39,10 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _outputHelper = outputHelper;
 
             DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseSqlite(database.Connection);
+            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
 
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options);
+                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
