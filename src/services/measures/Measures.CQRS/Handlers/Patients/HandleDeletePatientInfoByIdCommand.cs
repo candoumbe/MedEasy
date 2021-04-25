@@ -1,10 +1,14 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Events;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -44,33 +48,31 @@ namespace Measures.CQRS.Handlers.Patients
                     _uowFactory.NewUnitOfWork().Repository<Temperature>().AnyAsync(x => x.Patient.Id == cmd.Data, cancellationToken).AsTask(),
             };
 
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            DeleteCommandResult result = DeleteCommandResult.Done;
+
+            await Task.WhenAll(anyMesureTask).ConfigureAwait(false);
+
+            if (anyMesureTask.AtLeastOnce(anyMesure => anyMesure.Result))
             {
-                DeleteCommandResult result = DeleteCommandResult.Done;
-
-                await Task.WhenAll(anyMesureTask).ConfigureAwait(false);
-
-                if (anyMesureTask.AtLeastOnce(anyMesure => anyMesure.Result))
-                {
-                    result = DeleteCommandResult.Failed_Conflict;
-                }
-                else if (!await uow.Repository<Patient>()
-                    .AnyAsync(x => x.Id == cmd.Data, cancellationToken).ConfigureAwait(false))
-                {
-                    result = DeleteCommandResult.Failed_NotFound;
-                }
-                else
-                {
-                    uow.Repository<Patient>().Delete(x => x.Id == cmd.Data);
-                    await uow.SaveChangesAsync(cancellationToken)
-                        .ConfigureAwait(false);
-
-                    await _mediator.Publish(new PatientDeleted(cmd.Data), cancellationToken)
-                        .ConfigureAwait(false);
-                }
-
-                return result;
+                result = DeleteCommandResult.Failed_Conflict;
             }
+            else if (!await uow.Repository<Patient>()
+                .AnyAsync(x => x.Id == cmd.Data, cancellationToken).ConfigureAwait(false))
+            {
+                result = DeleteCommandResult.Failed_NotFound;
+            }
+            else
+            {
+                uow.Repository<Patient>().Delete(x => x.Id == cmd.Data);
+                await uow.SaveChangesAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                await _mediator.Publish(new PatientDeleted(cmd.Data), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return result;
         }
     }
 }

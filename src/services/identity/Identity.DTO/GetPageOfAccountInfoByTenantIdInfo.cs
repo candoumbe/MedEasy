@@ -1,4 +1,4 @@
-﻿using System;
+﻿using MedEasy.Ids;
 
 namespace Identity.DTO
 {
@@ -11,6 +11,6 @@ namespace Identity.DTO
 
         public int PageSize { get; set; }
 
-        public Guid TenantId { get; set; }
+        public TenantId TenantId { get; set; }
     }
 }

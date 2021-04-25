@@ -18,6 +18,7 @@ using Xunit.Categories;
 using Endpoint = MedEasy.RestObjects.Endpoint;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Routing;
+using MedEasy.Ids;
 
 namespace Patients.API.UnitTests.Controllers
 {
@@ -28,13 +29,13 @@ namespace Patients.API.UnitTests.Controllers
     [Feature("Documentation")]
     public class RootControllerTests : IDisposable
     {
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
         private Mock<IHostEnvironment> _hostingEnvironmentMock;
         private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptions<PatientsApiOptions>> _optionsMock;
         private RootController _sut;
         private const string _baseUrl = "http://host/api";
-        private ApiVersion _apiVersion;
+        private readonly ApiVersion _apiVersion;
 
         public RootControllerTests(ITestOutputHelper outputHelper)
         {
@@ -42,7 +43,8 @@ namespace Patients.API.UnitTests.Controllers
             _hostingEnvironmentMock = new Mock<IHostEnvironment>(Strict);
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) 
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _optionsMock = new Mock<IOptions<PatientsApiOptions>>(Strict);
             _optionsMock.Setup(mock => mock.Value).Returns(new PatientsApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });
@@ -69,7 +71,7 @@ namespace Patients.API.UnitTests.Controllers
 
             // Arrange
             _hostingEnvironmentMock.Setup(mock => mock.EnvironmentName)
-                .Returns(environmentName);
+                                   .Returns(environmentName);
 
             // Act
             IEnumerable<Endpoint> endpoints = _sut.Index();

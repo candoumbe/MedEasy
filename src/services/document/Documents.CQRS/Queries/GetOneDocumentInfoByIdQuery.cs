@@ -1,13 +1,17 @@
 ﻿using Documents.DTO.v1;
+using Documents.Ids;
+
 using MedEasy.CQRS.Core.Queries;
+
 using Optional;
+
 using System;
 
 namespace Documents.CQRS.Queries
 {
-    public class GetOneDocumentInfoByIdQuery : QueryBase<Guid, Guid, Option<DocumentInfo>>
+    public class GetOneDocumentInfoByIdQuery : QueryBase<Guid, DocumentId, Option<DocumentInfo>>
     {
-        public GetOneDocumentInfoByIdQuery(Guid data) : base(Guid.NewGuid(), data)
+        public GetOneDocumentInfoByIdQuery(DocumentId data) : base(Guid.NewGuid(), data)
         {
         }
     }

@@ -15,17 +15,17 @@ namespace MedEasy.CQRS.Core.UnitTests.Exceptions
             {
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<string>(null, Enumerable.Empty<ErrorInfo>())))
+                    (Action)(() => new QueryNotValidException<string>(null, Enumerable.Empty<ErrorInfo>()))
                 };
 
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<int>(0, Enumerable.Empty<ErrorInfo>())))
+                    (Action)(() => new QueryNotValidException<int>(0, Enumerable.Empty<ErrorInfo>()))
                 };
 
                 yield return new object[]
                 {
-                    ((Action)(() => new QueryNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ErrorInfo>())))
+                    (Action)(() => new QueryNotValidException<Guid>(Guid.Empty, Enumerable.Empty<ErrorInfo>()))
                 };
             }
         }

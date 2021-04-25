@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Measures.Ids;
+
+using System;
 using System.Collections.Generic;
 
 namespace Measures.DTO
 {
-    public class BloodPressureInfo : PhysiologicalMeasurementInfo, IEquatable<BloodPressureInfo>
+    public sealed class BloodPressureInfo : PhysiologicalMeasurementInfo<BloodPressureId>, IEquatable<BloodPressureInfo>
     {
         /// <summary>
         /// Value of the measure
@@ -18,9 +20,9 @@ namespace Measures.DTO
         public override bool Equals(object obj) => Equals(obj as BloodPressureInfo);
 
         public bool Equals(BloodPressureInfo other) => other != null
-            && DateOfMeasure == other.DateOfMeasure
-            && SystolicPressure == other.SystolicPressure
-            && DiastolicPressure == other.DiastolicPressure;
+                                                       && DateOfMeasure == other.DateOfMeasure
+                                                       && SystolicPressure == other.SystolicPressure
+                                                       && DiastolicPressure == other.DiastolicPressure;
 
         public override int GetHashCode() => (DateOfMeasure, SystolicPressure, DiastolicPressure).GetHashCode();
 

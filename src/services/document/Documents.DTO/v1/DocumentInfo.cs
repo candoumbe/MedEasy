@@ -1,9 +1,10 @@
-﻿using MedEasy.RestObjects;
-using System;
+﻿using Documents.Ids;
+
+using MedEasy.RestObjects;
 
 namespace Documents.DTO.v1
 {
-    public class DocumentInfo : Resource<Guid>
+    public class DocumentInfo : Resource<DocumentId>
     {
         /// <summary>
         /// Name of the document

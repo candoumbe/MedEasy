@@ -2,6 +2,7 @@
 using Agenda.CQRS.Features.Appointments.Handlers;
 using Agenda.DataStores;
 using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
 
@@ -17,8 +18,6 @@ using FluentAssertions.Extensions;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Extensions;
@@ -38,25 +37,20 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleCreateAppointmentInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateAppointmentInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private IMapper _mapperMock;
         private HandleCreateAppointmentInfoCommand _sut;
 
-        public HandleCreateAppointmentInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleCreateAppointmentInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<AgendaContext> dbContextOptionsBuilder = new();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(warnings => warnings.Throw());
-
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(dbContextOptionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
-                AgendaContext context = new (options, new FakeClock(new Instant()));
+                AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -68,7 +62,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _sut = new HandleCreateAppointmentInfoCommand(_unitOfWorkFactory, _mapperMock);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
@@ -76,7 +72,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 uow.Repository<Appointment>().Clear();
 
                 await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
             }
             _unitOfWorkFactory = null;
             _mapperMock = null;
@@ -90,8 +86,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             {
                 Person person = new();
                 Faker<AttendeeInfo> participantFaker = new Faker<AttendeeInfo>()
-                    .RuleFor(x => x.Id, () => Guid.NewGuid())
-                    .RuleFor(x => x.Name, _ => new Person().FullName )
+                    .RuleFor(x => x.Id, () => AttendeeId.New())
+                    .RuleFor(x => x.Name, _ => new Person().FullName)
                     .RuleFor(x => x.UpdatedDate, faker => faker.Noda().Instant.Recent())
                     ;
 
@@ -125,7 +121,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _outputHelper.WriteLine($"{nameof(info)} : {info}");
 
             // Arrange
-            CreateAppointmentInfoCommand cmd = new (info);
+            CreateAppointmentInfoCommand cmd = new(info);
 
             // Act
             AppointmentInfo appointment = await _sut.Handle(cmd, default)
@@ -140,13 +136,11 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 .MustHaveHappened(info.Attendees.Count(), Times.Exactly);
             A.CallTo(() => _unitOfWorkFactory.NewUnitOfWork()).MustHaveHappenedOnceExactly();
 
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-            {
-                bool createdInDatastore = await uow.Repository<Appointment>().AnyAsync(x => x.Id == appointment.Id)
-                    .ConfigureAwait(false);
-                createdInDatastore.Should()
-                    .BeTrue();
-            }
+            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+            bool createdInDatastore = await uow.Repository<Appointment>().AnyAsync(x => x.Id == appointment.Id)
+                .ConfigureAwait(false);
+            createdInDatastore.Should()
+                .BeTrue();
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using MedEasy.CQRS.Core.Events;
+﻿using Measures.Ids;
+
+using MedEasy.CQRS.Core.Events;
+
 using System;
 
 namespace Measures.CQRS.Events
@@ -6,18 +9,18 @@ namespace Measures.CQRS.Events
     /// <summary>
     /// Event that notifies a <see cref="PatientInfo"/> resource was updated.
     /// </summary>
-    public class PatientUpdated : NotificationBase<Guid, Guid>
+    public class PatientUpdated : NotificationBase<Guid, PatientId>
     {
         /// <summary>
         /// Created patient's unique identifier
         /// </summary>
-        public Guid PatientId { get; }
+        public PatientId PatientId { get; }
 
         /// <summary>
         /// Builds a new <see cref="PatientUpdated"/> instance.
         /// </summary>
         /// <param name="patientId"></param>
-        public PatientUpdated(Guid patientId) : base(Guid.NewGuid(), patientId)
+        public PatientUpdated(PatientId patientId) : base(Guid.NewGuid(), patientId)
         { }
     }
 }

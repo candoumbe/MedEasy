@@ -27,23 +27,17 @@ namespace Agenda.Validators.UnitTests
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class NewAppointmentInfoValidatorTests : IDisposable
+    public class NewAppointmentInfoValidatorTests
     {
         private static ITestOutputHelper _outputHelper;
-        private Mock<IClock> _datetimeServiceMock;
-        private NewAppointmentModelValidator _sut;
+        private readonly Mock<IClock> _datetimeServiceMock;
+        private readonly NewAppointmentModelValidator _sut;
 
         public NewAppointmentInfoValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _datetimeServiceMock = new (Strict);
+            _datetimeServiceMock = new(Strict);
             _sut = new NewAppointmentModelValidator(_datetimeServiceMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _sut = null;
-            _datetimeServiceMock = null;
         }
 
         public static IEnumerable<object[]> ValidateCases
@@ -53,14 +47,14 @@ namespace Agenda.Validators.UnitTests
                 yield return new object[]
                 {
                     new NewAppointmentInfo(),
-                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
+                    (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 5
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.EndDate) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.StartDate) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Location) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Subject) && error.Severity == Error)
                         && vr.Errors.Once(error => error.PropertyName == nameof(NewAppointmentInfo.Attendees) && error.Severity == Error)
-                    )),
+                    ),
                     "no property set"
                 };
 
@@ -77,7 +71,7 @@ namespace Agenda.Validators.UnitTests
                             new AttendeeInfo { Name = "Ed Nigma" }
                         }
                     },
-                    ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
+                    (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
                     $"all properties set and {nameof(NewAppointmentInfo.StartDate)} == {nameof(NewAppointmentInfo.EndDate)}"
                 };
 
@@ -94,10 +88,10 @@ namespace Agenda.Validators.UnitTests
                             new AttendeeInfo { Name = "Ed Nigma" }
                         }
                     },
-                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
+                    (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
                         && vr.Errors.Once(error => nameof(NewAppointmentInfo.EndDate) == error.PropertyName && error.Severity == Error)
-                    )),
+                    ),
                     $"{nameof(NewAppointmentInfo.StartDate)} > {nameof(NewAppointmentInfo.EndDate)}"
                 };
 
@@ -110,10 +104,10 @@ namespace Agenda.Validators.UnitTests
                         StartDate = 1.February(2005).Add(12.Hours()).AsUtc().ToInstant().InUtc(),
                         EndDate = 1.February(2005).Add(12.Hours()).Add(30.Minutes()).AsUtc().ToInstant().InUtc()
                     },
-                    ((Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
+                    (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid
                         && vr.Errors.Count == 1
                         && vr.Errors.Once(error => nameof(NewAppointmentInfo.Attendees) == error.PropertyName && error.Severity == Error)
-                    )),
+                    ),
                     $"{nameof(NewAppointmentInfo.Attendees)} is empty"
                 };
             }

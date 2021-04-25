@@ -1,18 +1,19 @@
-﻿using MedEasy.Objects;
-using System;
+﻿using Identity.Ids;
+
+using MedEasy.Objects;
 
 namespace Identity.Objects
 {
     /// <summary>
-    /// Association between a <see cref="Claim"/> and a <see cref="Role"/>
+    /// Association between a <see cref="Claim"/> and a <see cref="Role"/>.
     /// </summary>
-    public class RoleClaim : Entity<Guid, RoleClaim>
+    public class RoleClaim : Entity<RoleClaimId, RoleClaim>
     {
         public Claim Claim { get; private set; }
 
-        public Guid RoleId { get; }
+        public RoleId RoleId { get; }
 
-        private RoleClaim(Guid roleId, Guid id) : base(id)
+        private RoleClaim(RoleId roleId, RoleClaimId id) : base(id)
         {
             RoleId = roleId;
         }
@@ -24,7 +25,7 @@ namespace Identity.Objects
         /// <param name="id">id of the claim</param>
         /// <param name="type">type of the claim</param>
         /// <param name="value">value of the claim</param>
-        public RoleClaim(Guid roleId, Guid id, string type, string value) : this(roleId, id)
+        public RoleClaim(RoleId roleId, RoleClaimId id, string type, string value) : this(roleId, id)
         {
             Claim = new Claim(type, value);
         }

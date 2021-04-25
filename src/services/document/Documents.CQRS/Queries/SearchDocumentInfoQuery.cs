@@ -1,6 +1,8 @@
 ﻿using Documents.DTO.v1;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using System;
 
 namespace Documents.CQRS.Queries

@@ -1,25 +1,32 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using FluentAssertions;
+
 using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
 using NodaTime.Testing;
 
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -29,31 +36,23 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]
-    public class HandleGetOneAccountByIdQueryTests : IDisposable,IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetOneAccountByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private HandleGetOneAccountByIdQuery _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly HandleGetOneAccountByIdQuery _sut;
 
-        public HandleGetOneAccountByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetOneAccountByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
             _sut = new HandleGetOneAccountByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
-        }
-        
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _sut = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -62,7 +61,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             {
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
-                
+
                 return uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
@@ -77,7 +76,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         {
             _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
             _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
-            
+
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleGetOneAccountByIdQuery(unitOfWorkFactory, expressionBuilder);
@@ -98,7 +97,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public async Task Get_Unknown_Id_Returns_None()
         {
             // Act
-            Option<AccountInfo> optionalResource = await _sut.Handle(new GetOneAccountByIdQuery(Guid.NewGuid()), default)
+            Option<AccountInfo> optionalResource = await _sut.Handle(new GetOneAccountByIdQuery(AccountId.New()), default)
                 .ConfigureAwait(false);
 
             // Assert

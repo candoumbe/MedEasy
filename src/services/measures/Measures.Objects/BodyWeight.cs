@@ -1,4 +1,6 @@
-﻿using NodaTime;
+﻿using Measures.Ids;
+
+using NodaTime;
 
 using System;
 
@@ -7,15 +9,15 @@ namespace Measures.Objects
     /// <summary>
     /// An instance of this class represents a body weight measurement
     /// </summary>
-    public class BodyWeight : PhysiologicalMeasurement, IEquatable<BodyWeight>
+    public sealed class BodyWeight : PhysiologicalMeasurement<BodyWeightId>, IEquatable<BodyWeight>
     {
         /// <summary>
         /// Gets / sets the temperature
         /// </summary>
         public decimal Value { get; set; }
 
-        public BodyWeight(Guid id, Guid patientId, Instant dateOfMeasure, decimal value)
-           : base(id, patientId, dateOfMeasure)
+        public BodyWeight(BodyWeightId id, PatientId patientId, Instant dateOfMeasure, decimal value)
+           : base(patientId, id, dateOfMeasure)
         {
             Value = value;
         }

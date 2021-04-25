@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -24,7 +26,7 @@ namespace MedEasy.RestObjects.Tests
         public void Ctor_Should_Build_Valid_Instance()
         {
             // Act
-            FormFieldAttribute attribute = new FormFieldAttribute();
+            FormFieldAttribute attribute = new();
 
             // Assert
             attribute.Type.Should().Be(FormFieldType.String);

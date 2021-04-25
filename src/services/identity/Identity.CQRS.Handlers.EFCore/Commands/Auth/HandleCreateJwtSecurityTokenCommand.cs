@@ -44,7 +44,7 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
 
             IEnumerable<string> audiences = data.tokenOptions.Audiences?.Distinct() ?? Enumerable.Empty<string>();
 
-            IEnumerable<ClaimInfo> claims = (data.claims ?? Enumerable.Empty<ClaimInfo>());
+            IEnumerable<ClaimInfo> claims = data.claims ?? Enumerable.Empty<ClaimInfo>();
             if (!claims.Any(claim => claim.Type == JwtRegisteredClaimNames.Sid))
             {
                 claims = claims.Concat(new[] { new ClaimInfo { Type = JwtRegisteredClaimNames.Jti, Value = Guid.NewGuid().ToString() } });
@@ -53,11 +53,11 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(data.tokenOptions.Key));
             Instant expires = now.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes));
             SecurityToken token = new JwtSecurityToken(
-                issuer : data.tokenOptions.Issuer,
-                audience : audiences.Any()
+                issuer: data.tokenOptions.Issuer,
+                audience: audiences.Any()
                     ? data.tokenOptions.Audiences.First()
                     : data.tokenOptions.Issuer,
-                claims : claims.Select(claim => new Claim(claim.Type, claim.Value))
+                claims: claims.Select(claim => new Claim(claim.Type, claim.Value))
                     .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
                 notBefore: now.ToDateTimeUtc(),
                 expires: expires.ToDateTimeUtc(),

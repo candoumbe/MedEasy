@@ -61,11 +61,12 @@ namespace MedEasy.EventSourcing.EventStore.UnitTests
         public async Task PublishEvent_Relies_On_Connection()
         {
             // Arrange
-            NotificationBase @event = new DataCreatedEvent(new {
+            NotificationBase @event = new DataCreatedEvent(new
+            {
                 Firstname = "Jerome",
                 Lastname = "Valeska"
             });
-            ConcurrentStack<EventData> eventDatas = new ConcurrentStack<EventData>();
+            ConcurrentStack<EventData> eventDatas = new();
             _eventStoreConnectionMock.Setup(mock => mock.ConnectAsync())
                 .Returns(Task.CompletedTask);
             _eventStoreConnectionMock.Setup(mock => mock.AppendToStreamAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<EventData>()))
@@ -88,8 +89,8 @@ namespace MedEasy.EventSourcing.EventStore.UnitTests
                 It.Is<string>(streamName => streamName == typeof(DataCreatedEvent).Name),
                 It.Is<long>(expectedVersion => expectedVersion == ExpectedVersion.Any),
                 It.Is<EventData[]>(events => events.Once() &&
-                    events.Once(eventData => eventData.EventId == @event.Id 
-                        && eventData.IsJson 
+                    events.Once(eventData => eventData.EventId == @event.Id
+                        && eventData.IsJson
                         && eventData.Data.SequenceEqual(Encoding.UTF8.GetBytes(@event.Jsonify(null)))))), Times.Once);
 
             eventDatas.Should()

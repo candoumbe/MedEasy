@@ -7,6 +7,6 @@ namespace Measures.Objects.Exceptions
     /// </summary>
     public class DuplicateIdException : Exception
     {
-        
+
     }
 }

@@ -1,21 +1,28 @@
 ﻿using Bogus;
+
 using FluentAssertions;
+
 using MedEasy.Core.Filters;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+
 using Moq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static System.StringComparison;
 
 namespace MedEasy.Core.UnitTests.Filters
@@ -101,15 +108,15 @@ namespace MedEasy.Core.UnitTests.Filters
             _outputHelper.WriteLine($"Value type: {value.GetType()}");
 
             // Arrange
-            DefaultHttpContext httpContext = new DefaultHttpContext();
+            DefaultHttpContext httpContext = new();
             httpContext.Request.Method = method;
-            ActionContext actionContext = new ActionContext(
+            ActionContext actionContext = new(
                httpContext,
                new Mock<RouteData>().Object,
                new Mock<ActionDescriptor>().Object,
                new ModelStateDictionary());
 
-            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+            ResultExecutingContext resultExecutingContext = new(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new OkObjectResult(value),
@@ -128,7 +135,7 @@ namespace MedEasy.Core.UnitTests.Filters
         {
             get
             {
-                foreach (string method in new []{ "GET", "HEAD", "OPTIONS" })
+                foreach (string method in new[] { "GET", "HEAD", "OPTIONS" })
                 {
                     yield return new object[]
                     {
@@ -168,15 +175,15 @@ namespace MedEasy.Core.UnitTests.Filters
         public void GivenOkObjectResultWithData_FilterAddHeaders(string method, object okResultValue, (int expectedTotalCount, int expectedCount) headersCountExpectation)
         {
             // Arrange
-            DefaultHttpContext httpContext = new DefaultHttpContext();
+            DefaultHttpContext httpContext = new();
             httpContext.Request.Method = method;
-            ActionContext actionContext = new ActionContext(
+            ActionContext actionContext = new(
                httpContext,
                new Mock<RouteData>().Object,
                new Mock<ActionDescriptor>().Object,
                new ModelStateDictionary());
 
-            ResultExecutingContext resultExecutingContext = new ResultExecutingContext(
+            ResultExecutingContext resultExecutingContext = new(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new OkObjectResult(okResultValue),

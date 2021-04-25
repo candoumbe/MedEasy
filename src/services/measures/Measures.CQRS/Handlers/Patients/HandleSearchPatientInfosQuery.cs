@@ -1,9 +1,12 @@
 ﻿using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using MediatR;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +16,7 @@ namespace Measures.CQRS.Handlers.Patients
     /// <summary>
     /// Handles <see cref="SearchQuery{PatientInfo}"/> instances.
     /// </summary>
-    public class HandleSearchPatientInfosQuery :  IRequestHandler<SearchQuery<PatientInfo>, Page<PatientInfo>>
+    public class HandleSearchPatientInfosQuery : IRequestHandler<SearchQuery<PatientInfo>, Page<PatientInfo>>
     {
         private readonly IHandleSearchQuery _handleSearchQuery;
 

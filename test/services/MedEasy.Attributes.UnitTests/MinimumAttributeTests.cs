@@ -1,9 +1,12 @@
 ﻿using FluentAssertions;
+
 using MedEasy.Attributes;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -12,20 +15,13 @@ namespace MedEasy.Core.UnitTests.Attributes
 {
     [UnitTest]
     [Feature("Validation")]
-    public class MinimumAttributeTests : IDisposable
+    public class MinimumAttributeTests
     {
-        private ITestOutputHelper _outputHelper;
-        private MinimumAttribute _sut;
+        private readonly ITestOutputHelper _outputHelper;
 
         public MinimumAttributeTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-        }
-
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _sut = null;
         }
 
         [Fact]
@@ -41,7 +37,7 @@ namespace MedEasy.Core.UnitTests.Attributes
 
             attributes.Should()
                 .HaveCount(1).And
-                .ContainSingle(attr => attr.AttributeType == typeof(AttributeUsageAttribute),$"{nameof(AttributeUsageAttribute)} must be present on the class");
+                .ContainSingle(attr => attr.AttributeType == typeof(AttributeUsageAttribute), $"{nameof(AttributeUsageAttribute)} must be present on the class");
 
             AttributeUsageAttribute usage = minimunAttributeType.GetCustomAttribute<AttributeUsageAttribute>();
             usage.AllowMultiple.Should().BeFalse("attribute cannot be used multiple times on the same element");

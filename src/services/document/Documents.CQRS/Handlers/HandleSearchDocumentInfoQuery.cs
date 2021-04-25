@@ -44,7 +44,7 @@ namespace Documents.CQRS.Handlers
                 filters.Add($"{nameof(Document.MimeType)}={searchCriteria.MimeType}".ToFilter<DocumentInfo>());
             }
 
-            SearchQueryInfo<DocumentInfo> searchQueryInfo = new SearchQueryInfo<DocumentInfo>
+            SearchQueryInfo<DocumentInfo> searchQueryInfo = new()
             {
                 Page = searchCriteria.Page,
                 PageSize = searchCriteria.PageSize,

@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -28,12 +27,12 @@ using Xunit.Categories;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using System.Security.Claims;
-using static System.Net.Mime.MediaTypeNames;
 using NodaTime.Extensions;
 using System.Net.Http.Json;
 using System.Text.Json;
 using NodaTime.Serialization.SystemTextJson;
 using NodaTime;
+using Agenda.Ids;
 
 namespace Agenda.API.IntegrationTests.v1
 {
@@ -43,8 +42,7 @@ namespace Agenda.API.IntegrationTests.v1
     public class AttendeesControllerTests : IClassFixture<IntegrationFixture<Startup>>
     {
         private readonly IntegrationFixture<Startup> _server;
-        private readonly DummyClaimsProvider _claimsProvider;
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
         private const string _version = "/v1";
         private const string _endpointUrl = _version + "/attendees";
 
@@ -271,11 +269,11 @@ namespace Agenda.API.IntegrationTests.v1
                     IEnumerable<AttendeeModel> participants = new[]
                     {
                         new AttendeeModel {
-                            Id = Guid.NewGuid(),
+                            Id = AttendeeId.New(),
                             Name = "Ed Nygma"
                         },
                         new AttendeeModel {
-                            Id = Guid.NewGuid(),
+                            Id = AttendeeId.New(),
                             Name = "Oswald Coblepot"}
                     };
 

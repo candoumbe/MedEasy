@@ -1,10 +1,14 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,25 +43,23 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<DeleteCommandResult> Handle(DeleteBloodPressureInfoByIdCommand cmd, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            DeleteCommandResult result = DeleteCommandResult.Done;
+            if (await uow.Repository<BloodPressure>().AnyAsync(x => x.Id == cmd.Data).ConfigureAwait(false))
             {
-                DeleteCommandResult result = DeleteCommandResult.Done;
-                if (await uow.Repository<BloodPressure>().AnyAsync(x => x.Id == cmd.Data).ConfigureAwait(false))
-                {
-                    uow.Repository<BloodPressure>().Delete(x => x.Id == cmd.Data);
-                    await uow.SaveChangesAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                uow.Repository<BloodPressure>().Delete(x => x.Id == cmd.Data);
+                await uow.SaveChangesAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
-                    await _mediator.Publish(new BloodPressureDeleted(cmd.Data), cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    result = DeleteCommandResult.Failed_NotFound;
-                }
-
-                return result;
+                await _mediator.Publish(new BloodPressureDeleted(cmd.Data), cancellationToken)
+                    .ConfigureAwait(false);
             }
+            else
+            {
+                result = DeleteCommandResult.Failed_NotFound;
+            }
+
+            return result;
         }
     }
 }

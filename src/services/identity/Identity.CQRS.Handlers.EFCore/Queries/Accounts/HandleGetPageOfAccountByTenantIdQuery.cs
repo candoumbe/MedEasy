@@ -1,11 +1,16 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using DataFilters;
+
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+
 using MediatR;
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,7 +22,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
     /// <summary>
     /// Handles <see cref="GetPageOfAccountsByTenantIdQuery"/> queries
     /// </summary>
-    public class HandleGetPageOfAccountByTenantIdQuery : 
+    public class HandleGetPageOfAccountByTenantIdQuery :
         IRequestHandler<GetPageOfAccountsByTenantIdQuery, Page<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -36,22 +41,20 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
         public async Task<Page<AccountInfo>> Handle(GetPageOfAccountsByTenantIdQuery request, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                GetPageOfAccountInfoByTenantIdInfo data = request.Data;
-                Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account,AccountInfo>();
-                Page<Account> result = await uow.Repository<Account>()
-                    .WhereAsync(
-                        //selector: selector,
-                        predicate : (Account account) => account.TenantId == data.TenantId,
-                        orderBy: new Sort<Account>(nameof(Account.UpdatedDate), SortDirection.Descending),
-                        pageSize: data.PageSize,
-                        page: data.Page,
-                        ct)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            GetPageOfAccountInfoByTenantIdInfo data = request.Data;
+            Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account, AccountInfo>();
+            Page<Account> result = await uow.Repository<Account>()
+                .WhereAsync(
+                    //selector: selector,
+                    predicate: (Account account) => account.TenantId == data.TenantId,
+                    orderBy: new Sort<Account>(nameof(Account.UpdatedDate), SortDirection.Descending),
+                    pageSize: data.PageSize,
+                    page: data.Page,
+                    ct)
+                .ConfigureAwait(false);
 
-                return await new ValueTask<Page<AccountInfo>>(new Page<AccountInfo>(result.Entries.Select(selector.Compile()), result.Total, result.Size));
-            }
+            return await new ValueTask<Page<AccountInfo>>(new Page<AccountInfo>(result.Entries.Select(selector.Compile()), result.Total, result.Size));
         }
     }
 }

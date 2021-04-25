@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +23,7 @@ namespace MedEasy.RestObjects.Tests
         public void Ctor()
         {
             // Act
-            FormField instance = new FormField();
+            FormField instance = new();
 
             // Assert
             instance.Description.Should().BeNull();

@@ -7,6 +7,7 @@ using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
 
@@ -43,29 +44,34 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
     [UnitTest]
     [Feature("Identity")]
-    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private ITestOutputHelper _outputHelper;
         private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
         private readonly Mock<IMediator> _mediatorMock;
         private HandleGetOneAccountInfoByUsernameAndPasswordQuery _sut;
 
-        public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            string dbName = $"{Guid.NewGuid()}";
-            builder.UseInMemoryDatabase($"{dbName}");
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
+                                                                   (options) =>
+                                                                   {
+                                                                       IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                                                                       context.Database.EnsureCreated();
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => new IdentityContext(options, new FakeClock(new Instant())));
+                                                                       return context;
+                                                                   });
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _sut = new HandleGetOneAccountInfoByUsernameAndPasswordQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder, mediator: _mediatorMock.Object);
         }
 
-        public async ValueTask DisposeAsync()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             uow.Repository<Account>().Clear();
@@ -80,8 +86,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
         public async Task GivenNoUser_Handler_Returns_None()
         {
             // Arrange
-            LoginInfo info = new LoginInfo { Username = "Bruce", Password = "CapedCrusader" };
-            GetOneAccountByUsernameAndPasswordQuery query = new GetOneAccountByUsernameAndPasswordQuery(info);
+            LoginInfo info = new() { Username = "Bruce", Password = "CapedCrusader" };
+            GetOneAccountByUsernameAndPasswordQuery query = new(info);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(info.Password);
@@ -100,10 +106,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             get
             {
                 {
-                    Account bruceWayne = new Account
-                    (
+                    Account bruceWayne = new(
                         name: "Bruce Wayne",
-                        id: Guid.NewGuid(),
+                        id: AccountId.New(),
                         email: "Bruce@wayne-entreprise.com",
                         username: "Batman",
                         passwordHash: "CapedCrusader",
@@ -124,9 +129,8 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                 {
                     Instant utcNow = 1.October(2011).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant();
 
-                    Account clarkKent = new Account
-                    (
-                        id: Guid.NewGuid(),
+                    Account clarkKent = new(
+                        id: AccountId.New(),
                         email: "clark.kent@smallville.com",
                         username: "Superman",
                         passwordHash: "StrongestManAlive",

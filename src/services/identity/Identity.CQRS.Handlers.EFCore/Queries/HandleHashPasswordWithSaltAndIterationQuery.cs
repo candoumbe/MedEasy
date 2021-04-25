@@ -12,7 +12,7 @@ namespace Identity.CQRS.Handlers.Queries
 {
     public class HandleHashPasswordWithPredefinedSaltAndIterationQuery : IRequestHandler<HashPasswordWithPredefinedSaltAndIterationQuery, string>
     {
-        public  async Task<string> Handle(HashPasswordWithPredefinedSaltAndIterationQuery query, CancellationToken cancellationToken) =>
+        public async Task<string> Handle(HashPasswordWithPredefinedSaltAndIterationQuery query, CancellationToken cancellationToken) =>
             // generate a 128-bit salt using a secure PRNG
 
             // derive a 256-bit subkey (use HMACSHA1 with 10,000 iterations)

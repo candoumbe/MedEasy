@@ -50,6 +50,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MedEasy.Abstractions.ValueConverters;
 
 namespace Identity.API
 {
@@ -63,6 +65,7 @@ namespace Identity.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="env"></param>
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
 
@@ -152,9 +155,9 @@ namespace Identity.API
                 options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
                 options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
                 options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
-                    .GetChildren()
-                    .Select(x => x.Value)
-                    .Distinct();
+                                                .GetChildren()
+                                                .Select(x => x.Value)
+                                                .Distinct();
                 options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
                 options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
@@ -171,40 +174,46 @@ namespace Identity.API
             static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                DbContextOptionsBuilder<IdentityContext> builder = new();
+                if (hostingEnvironment.IsEnvironment("Integration"))
                 {
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite("Datasource=:memory:",
+                                      options => options.UseNodaTime()
+                                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
                 }
                 else
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(configuration.GetConnectionString("identity-db"),
                                       options => options.EnableRetryOnFailure(5)
+                                                        .UseNodaTime()
                                                         .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
                     );
                 }
-                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
+                builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
+                       .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
+                       .ConfigureWarnings(options =>
                 {
                     options.Default(WarningBehavior.Log);
                 });
                 return builder;
             }
 
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-                IClock clock = serviceProvider.GetRequiredService<IClock>();
-                return new IdentityContext(optionsBuilder.Options, clock);
-            });
+            //services.AddTransient(serviceProvider =>
+            //{
+            //    DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+            //    IClock clock = serviceProvider.GetRequiredService<IClock>();
+            //    return new IdentityContext(optionsBuilder.Options, clock);
+            //});
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-           {
+            {
                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
                IClock clock = serviceProvider.GetRequiredService<IClock>();
-               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options, options => new IdentityContext(options, clock));
-           });
+               IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
+                                                               options => new IdentityContext(options, clock));
+             });
 
             return services;
         }
@@ -289,12 +298,10 @@ namespace Identity.API
                        ValidateLifetime = true,
                        LifetimeValidator = (DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
                         {
-                            using (IServiceScope scope = services.BuildServiceProvider().CreateScope())
-                            {
-                                IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
+                            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
+                            IValidator<SecurityToken> securityTokenValidator = scope.ServiceProvider.GetRequiredService<IValidator<SecurityToken>>();
 
-                                return securityTokenValidator.Validate(securityToken).IsValid;
-                            }
+                            return securityTokenValidator.Validate(securityToken).IsValid;
                         },
                        RequireExpirationTime = true,
                        ValidateIssuerSigningKey = true,
@@ -365,7 +372,7 @@ namespace Identity.API
                     config.IncludeXmlComments(documentationPath);
                 }
 
-                OpenApiSecurityScheme securityScheme = new OpenApiSecurityScheme
+                OpenApiSecurityScheme securityScheme = new()
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,

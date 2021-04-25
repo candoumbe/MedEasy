@@ -1,5 +1,6 @@
 ﻿using Documents.CQRS.Queries;
 using Documents.DTO.v1;
+using Documents.Ids;
 
 using FluentAssertions;
 
@@ -17,21 +18,21 @@ namespace Documents.CQRS.UnitTests.Queries
 
         [Fact]
         public void IsQuery() => typeof(GetOneDocumentFileInfoByIdQuery).Should()
-            .BeAssignableTo<IQuery<Guid, Guid, IAsyncEnumerable<DocumentPartInfo>>>();
+            .BeAssignableTo<IQuery<Guid, DocumentId, IAsyncEnumerable<DocumentPartInfo>>>();
 
         [Fact]
         public void Has_A_Unique_Identifier()
         {
             // Arrange
-            Guid documentId = Guid.NewGuid();
+            DocumentId documentId = DocumentId.New();
 
             // Act
-            GetOneDocumentFileInfoByIdQuery instance = new GetOneDocumentFileInfoByIdQuery(documentId);
+            GetOneDocumentFileInfoByIdQuery instance = new(documentId);
 
             // Assert
             instance.Id.Should()
-                .NotBeEmpty().And
-                .NotBe(documentId);
+                .NotBe(Guid.Empty).And
+                .NotBe(documentId.Value);
         }
     }
 }

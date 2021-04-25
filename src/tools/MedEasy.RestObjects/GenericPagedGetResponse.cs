@@ -39,7 +39,7 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// The items of the current page of result
         /// </summary>
-        public IEnumerable<T> Items { get;  }
+        public IEnumerable<T> Items { get; }
 
         /// <summary>
         /// Number of items in the result

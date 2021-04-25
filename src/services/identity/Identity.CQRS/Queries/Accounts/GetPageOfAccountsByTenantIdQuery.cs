@@ -1,6 +1,8 @@
 ﻿using Identity.DTO;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using System;
 
 namespace Identity.CQRS.Queries.Accounts
@@ -13,7 +15,7 @@ namespace Identity.CQRS.Queries.Accounts
         public Guid Id { get; }
 
         public GetPageOfAccountInfoByTenantIdInfo Data { get; }
-     
+
         /// <summary>
         /// Builds a new <see cref="GetPageOfAccountsQuery"/> instance.
         /// </summary>

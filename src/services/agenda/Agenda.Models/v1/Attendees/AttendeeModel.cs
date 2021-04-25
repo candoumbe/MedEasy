@@ -1,9 +1,10 @@
-﻿using MedEasy.Models;
-using System;
+﻿using Agenda.Ids;
+
+using MedEasy.Models;
 
 namespace Agenda.Models.v1.Attendees
 {
-    public class AttendeeModel : ModelBase<Guid>
+    public class AttendeeModel : ModelBase<AttendeeId>
     {
         public string Name { get; set; }
 

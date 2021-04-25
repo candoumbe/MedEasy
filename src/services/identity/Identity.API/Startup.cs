@@ -11,6 +11,9 @@ using System.Linq;
 
 namespace Identity.API
 {
+    /// <summary>
+    /// Startup class
+    /// </summary>
     public class Startup
     {
         private readonly IConfiguration _configuration;

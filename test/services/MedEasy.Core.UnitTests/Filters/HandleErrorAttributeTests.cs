@@ -47,7 +47,7 @@ namespace MedEasy.Core.Filters
         public async Task ShouldReturnsBadRequestWhenHandlingCommandNotValidException()
         {
             // Arrange
-            ActionContext actionContext = new ActionContext(
+            ActionContext actionContext = new(
                new Mock<HttpContext>().Object,
                new Mock<RouteData>().Object,
                new Mock<ActionDescriptor>().Object,
@@ -58,7 +58,7 @@ namespace MedEasy.Core.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            ExceptionContext exceptionContext = new(actionContext, new List<IFilterMetadata>())
             {
                 Exception = new CommandNotValidException<string>("zero", exceptionErrors)
             };
@@ -80,7 +80,7 @@ namespace MedEasy.Core.Filters
         public async Task ShouldReturnsBadRequestWhenHandlingQueryNotValidException()
         {
             // Arrange
-            ActionContext actionContext = new ActionContext(
+            ActionContext actionContext = new(
                new Mock<HttpContext>().Object,
                new Mock<RouteData>().Object,
                new Mock<ActionDescriptor>().Object,
@@ -91,7 +91,7 @@ namespace MedEasy.Core.Filters
                 new ErrorInfo("prop1", "error 1", Error),
                 new ErrorInfo("prop2", "warning 2", Warning)
             };
-            ExceptionContext exceptionContext = new ExceptionContext(actionContext, new List<IFilterMetadata>())
+            ExceptionContext exceptionContext = new(actionContext, new List<IFilterMetadata>())
             {
                 Exception = new QueryNotValidException<Guid>(Guid.NewGuid(), exceptionErrors)
             };

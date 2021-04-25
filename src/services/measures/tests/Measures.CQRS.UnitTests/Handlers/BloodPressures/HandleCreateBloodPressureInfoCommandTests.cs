@@ -1,19 +1,24 @@
 ﻿using AutoMapper;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Measures.Context;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.CQRS.Handlers.BloodPressures;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Mapping;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -21,14 +26,17 @@ using NodaTime.Extensions;
 using NodaTime.Testing;
 
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
@@ -36,22 +44,21 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Handlers")]
-    public class HandleCreateBloodPressureInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateBloodPressureInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private Mock<IMapper> _mapperMock;
-        private Mock<IMediator> _mediatorMock;
-        private HandleCreateBloodPressureInfoCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly HandleCreateBloodPressureInfoCommand _sut;
 
-        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -59,14 +66,6 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _sut = new HandleCreateBloodPressureInfoCommand(_uowFactory, _mapperMock.Object, _mediatorMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _sut = null;
-            _mapperMock = null;
-            _mediatorMock = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -78,10 +77,10 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => (uowFactory, mapper))
                     //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
-                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
+                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.mapper, mediator))
                     //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder != null || tuple.mediator != null)
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator })
                     .Where(tuple => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
@@ -95,9 +94,9 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IMediator mediator)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(mapper)} is null : {(mapper == null)}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {mapper == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleCreateBloodPressureInfoCommand(unitOfWorkFactory, mapper, mediator);
@@ -114,15 +113,15 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         public async Task CreateBloodPressure_With_New_PatientInfo()
         {
             // Arrange
-            CreateBloodPressureInfo newResourceInfo = new CreateBloodPressureInfo
+            CreateBloodPressureInfo newResourceInfo = new()
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
-                PatientId = Guid.NewGuid()
+                PatientId = PatientId.New()
             };
 
-            CreateBloodPressureInfoForPatientIdCommand cmd = new CreateBloodPressureInfoForPatientIdCommand(newResourceInfo);
+            CreateBloodPressureInfoForPatientIdCommand cmd = new(newResourceInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -145,8 +144,8 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         public async Task CreateBloodPressure_When_PatientInfo_Already_Exists()
         {
             // Arrange
-            Guid patientId = Guid.NewGuid();
-            Patient patientBeforeCreate = new Patient(patientId, "Solomon Grundy");
+            PatientId patientId = PatientId.New();
+            Patient patientBeforeCreate = new(patientId, "Solomon Grundy");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -155,7 +154,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     .ConfigureAwait(false);
             }
 
-            CreateBloodPressureInfo newResourceInfo = new CreateBloodPressureInfo
+            CreateBloodPressureInfo newResourceInfo = new()
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
@@ -171,7 +170,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
-            CreateBloodPressureInfoForPatientIdCommand cmd = new CreateBloodPressureInfoForPatientIdCommand(newResourceInfo);
+            CreateBloodPressureInfoForPatientIdCommand cmd = new(newResourceInfo);
 
             // Act
             Option<BloodPressureInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
@@ -184,29 +183,27 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             optionalCreatedResource.MatchSome(async (measureInfo) =>
             {
                 measureInfo.Id.Should()
-                    .NotBeEmpty($"{nameof(BloodPressureInfo.Id)} must be provided by the handler");
+                    .NotBe(BloodPressureId.Empty, $"{nameof(BloodPressureInfo.Id)} must be provided by the handler");
                 measureInfo.PatientId.Should()
-                    .Be(newResourceInfo.PatientId, $"resource's property '{nameof(BloodPressureInfo.PatientId)}' mus be the one carried by the command's {nameof(CreateBloodPressureInfoForPatientIdCommand.Data)}" );
+                    .Be(newResourceInfo.PatientId, $"resource's property '{nameof(BloodPressureInfo.PatientId)}' mus be the one carried by the command's {nameof(CreateBloodPressureInfoForPatientIdCommand.Data)}");
                 measureInfo.DiastolicPressure.Should()
                     .Be(newResourceInfo.DiastolicPressure);
                 measureInfo.SystolicPressure.Should()
                     .Be(newResourceInfo.SystolicPressure);
 
-                using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                {
-                    BloodPressure measureEntity = await uow.Repository<BloodPressure>()
-                        .SingleAsync(x => x.Id == measureInfo.Id)
-                        .ConfigureAwait(false);
+                using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                BloodPressure measureEntity = await uow.Repository<BloodPressure>()
+                    .SingleAsync(x => x.Id == measureInfo.Id)
+                    .ConfigureAwait(false);
 
-                    measureEntity.Id.Should()
-                        .Be(measureInfo.Id);
-                    measureEntity.SystolicPressure.Should()
-                        .Be(measureInfo.SystolicPressure);
-                    measureEntity.DiastolicPressure.Should()
-                        .Be(measureInfo.DiastolicPressure);
-                    measureEntity.DateOfMeasure.Should()
-                        .Be(measureInfo.DateOfMeasure);
-                }
+                measureEntity.Id.Should()
+                    .Be(measureInfo.Id);
+                measureEntity.SystolicPressure.Should()
+                    .Be(measureInfo.SystolicPressure);
+                measureEntity.DiastolicPressure.Should()
+                    .Be(measureInfo.DiastolicPressure);
+                measureEntity.DateOfMeasure.Should()
+                    .Be(measureInfo.DateOfMeasure);
             });
 
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<BloodPressureCreated>(), default), Times.Once, $"{nameof(HandleCreateBloodPressureInfoCommand)} must notify suscriber that a new measure resource was created");

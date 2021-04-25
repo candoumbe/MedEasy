@@ -1,11 +1,13 @@
-﻿using MedEasy.RestObjects;
+﻿using Agenda.Ids;
+
+using MedEasy.RestObjects;
+
 using Newtonsoft.Json;
-using System;
 
 namespace Agenda.DTO
 {
     [JsonObject]
-    public class AttendeeInfo : Resource<Guid>
+    public class AttendeeInfo : Resource<AttendeeId>
     {
         [JsonProperty]
         public string Name { get; set; }

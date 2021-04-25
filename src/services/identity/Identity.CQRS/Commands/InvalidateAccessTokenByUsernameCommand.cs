@@ -1,5 +1,6 @@
 ﻿using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using System;
 
 namespace Identity.CQRS.Commands

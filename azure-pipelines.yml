@@ -35,13 +35,67 @@ stages:
         displayName: 'Compile'
         dependsOn: [  ]
         steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
           - task: CmdLine@2
             inputs:
               script: './build.cmd Restore Compile --skip'
+      - job: CleanDatabaseFolder
+        displayName: 'CleanDatabaseFolder'
+        dependsOn: [  ]
+        steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd CleanDatabaseFolder --skip'
+      - job: UpdateDatabases
+        displayName: 'UpdateDatabases'
+        dependsOn: [ Compile, CleanDatabaseFolder ]
+        steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd UpdateDatabases --skip'
+      - job: IntegrationTests
+        displayName: 'IntegrationTests'
+        dependsOn: [ Compile, UpdateDatabases ]
+        steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd IntegrationTests --skip'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: integration-tests
+              pathtoPublish: 'output/tests-results/integration-tests'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: integration-tests
+              pathtoPublish: 'output/coverage-report/integration-tests'
       - job: UnitTests
         displayName: 'UnitTests'
         dependsOn: [ Compile ]
         steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
           - task: CmdLine@2
             inputs:
               script: './build.cmd UnitTests --skip'
@@ -53,10 +107,27 @@ stages:
             inputs:
               artifactName: unit-tests
               pathtoPublish: 'output/coverage-report/unit-tests'
+      - job: Tests
+        displayName: 'Tests'
+        dependsOn: [ UnitTests, IntegrationTests ]
+        steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd Tests --skip'
       - job: Pack
         displayName: 'Pack'
-        dependsOn: [ UnitTests, Compile ]
+        dependsOn: [ Tests, Compile ]
         steps:
+          - task: Cache@2
+            inputs:
+              key: $(Agent.OS) | **/global.json, **/*.csproj
+              restoreKeys: $(Agent.OS)
+              path: ~/.nuget/packages
           - task: CmdLine@2
             inputs:
               script: './build.cmd Pack --skip'

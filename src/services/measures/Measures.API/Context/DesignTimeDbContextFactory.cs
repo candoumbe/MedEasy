@@ -1,6 +1,10 @@
 ﻿using Measures.Context;
+
+using MedEasy.Abstractions.ValueConverters;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 
 using NodaTime;
@@ -12,7 +16,7 @@ namespace Measures.API.Context
     /// <summary>
     /// Factory class to create <see cref="MeasuresContext"/> during design time.
     /// </summary>
-    public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<MeasuresContext>
+    public class MeasuresDesignTimeDbContextFactory : IDesignTimeDbContextFactory<MeasuresContext>
     {
         /// <summary>
         /// Creates a new <see cref="MeasuresContext"/> instance.
@@ -24,11 +28,17 @@ namespace Measures.API.Context
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
                 .Build();
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            string connectionString = configuration.GetConnectionString("Measures");
-            builder.UseNpgsql(connectionString, b => b.MigrationsAssembly("Measures.Context"));
-            return new MeasuresContext(builder.Options, SystemClock.Instance);
+
+            DbContextOptionsBuilder<MeasuresContext> builder = new();
+            string connectionString = configuration.GetValue<string>(nameof(connectionString));
+            builder.UseSqlite(connectionString, b => b.UseNodaTime()
+                                                       .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName))
+                   .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+
+            return new (builder.Options, SystemClock.Instance);
         }
     }
 }

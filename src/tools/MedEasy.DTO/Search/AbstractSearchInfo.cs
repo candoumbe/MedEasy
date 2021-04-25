@@ -3,7 +3,7 @@
 namespace MedEasy.DTO.Search
 {
     /// <summary>
-    /// Base class
+    /// Base class for classes 
     /// </summary>
     /// <typeparam name="T">Type of the searched resources.</typeparam>
     public abstract class AbstractSearchInfo<T>

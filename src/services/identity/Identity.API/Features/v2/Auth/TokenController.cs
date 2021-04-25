@@ -65,9 +65,9 @@ namespace Identity.API.Features.v2.Auth
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
         [ApiVersion("2.0")]
-        public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired]LoginModel model, [FromHeader(Name = "x-forwarder-for")] IEnumerable<string> ipValues = default, CancellationToken ct = default)
+        public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired] LoginModel model, [FromHeader(Name = "x-forwarder-for")] IEnumerable<string> ipValues = default, CancellationToken ct = default)
         {
-            LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
+            LoginInfo loginInfo = new() { Username = model.Username, Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
                 .ConfigureAwait(false);
 
@@ -76,8 +76,8 @@ namespace Identity.API.Features.v2.Auth
                 {
                     JwtOptions jwtOptions = _jwtOptions.CurrentValue;
                     //_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
-                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = ipValues?.ToArray()?.FirstOrDefault() ?? string.Empty };
-                    JwtInfos jwtInfos = new JwtInfos
+                    AuthenticationInfo authenticationInfo = new() { Location = ipValues?.ToArray()?.FirstOrDefault() ?? string.Empty };
+                    JwtInfos jwtInfos = new()
                     {
                         Key = jwtOptions.Key,
                         Issuer = jwtOptions.Issuer,
@@ -90,7 +90,7 @@ namespace Identity.API.Features.v2.Auth
 
                     (string Token, DateTime Expires) accessToken;
                     (string Token, DateTime Expires) refreshToken;
-                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
                     switch (token.AccessToken)
                     {
                         case JwtSecurityToken jwtToken:

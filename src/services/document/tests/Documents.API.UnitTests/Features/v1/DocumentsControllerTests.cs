@@ -8,6 +8,7 @@ using Documents.CQRS.Queries;
 using Documents.DataStore;
 using Documents.DTO;
 using Documents.DTO.v1;
+using Documents.Ids;
 using Documents.Mapping;
 using Documents.Objects;
 
@@ -20,6 +21,7 @@ using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 
@@ -60,47 +62,35 @@ namespace Documents.API.UnitTests.Features.v1
 {
     [UnitTest]
     [Feature("Documents")]
-    public class DocumentsControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class DocumentsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>
     {
         private ITestOutputHelper _outputHelper;
 
-        private IUnitOfWorkFactory _uowFactory;
-        private static readonly DocumentsApiOptions _apiOptions = new DocumentsApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
-        private Mock<IMediator> _mediatorMock;
-        private Mock<LinkGenerator> _urlHelperMock;
-        private Mock<IOptionsSnapshot<DocumentsApiOptions>> _apiOptionsMock;
-        private DocumentsController _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private static readonly DocumentsApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly Mock<LinkGenerator> _urlHelperMock;
+        private readonly Mock<IOptionsSnapshot<DocumentsApiOptions>> _apiOptionsMock;
+        private readonly DocumentsController _sut;
         private const string _baseUrl = "http://host/api";
-        private static readonly Func<Document, DocumentInfo> entryToDtoMapping = doc => new DocumentInfo
-        {
-            Id = doc.Id,
-            Hash = doc.Hash,
-            CreatedDate = doc.CreatedDate,
-            MimeType = doc.MimeType,
-            Name = doc.Name,
-            UpdatedDate = doc.UpdatedDate
-        };
 
-        private Mock<ILogger<DocumentsController>> _loggerMock;
-        private static readonly ApiVersion _apiVersion = new ApiVersion(1,0);
+        private readonly Mock<ILogger<DocumentsController>> _loggerMock;
+        private static readonly ApiVersion _apiVersion = new(1, 0);
 
-        public DocumentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public DocumentsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<DocumentsStore> database)
         {
             _outputHelper = outputHelper;
 
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) 
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<DocumentsApiOptions>>(Strict);
 
-            DbContextOptionsBuilder<DocumentsStore> dbContextOptionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(dbContextOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(database.OptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
+                DocumentsStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -108,25 +98,23 @@ namespace Documents.API.UnitTests.Features.v1
             _mediatorMock = new Mock<IMediator>(Strict);
             _loggerMock = new Mock<ILogger<DocumentsController>>();
 
-            _sut = new DocumentsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object,
-                _loggerMock.Object, _apiVersion);
+            _sut = new DocumentsController(urlHelper: _urlHelperMock.Object,
+                                           apiOptions: _apiOptionsMock.Object,
+                                           mediator: _mediatorMock.Object,
+                                           _loggerMock.Object,
+                                           _apiVersion);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             _outputHelper = null;
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Document>().Clear();
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-            _uowFactory = null;
-            _urlHelperMock = null;
-            _apiOptionsMock = null;
-            _mediatorMock = null;
-            _sut = null;
-            _loggerMock = null;
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+
+            uow.Repository<Document>().Clear();
+            await uow.SaveChangesAsync()
+                .ConfigureAwait(false);
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -160,7 +148,7 @@ namespace Documents.API.UnitTests.Features.v1
                 }
 
                 Faker<Document> accountFaker = new Faker<Document>()
-                    .CustomInstantiator(faker => new Document(id: Guid.NewGuid(),
+                    .CustomInstantiator(faker => new Document(id: DocumentId.New(),
                         name: faker.System.CommonFileName(),
                         mimeType: faker.System.MimeType())
                     );
@@ -287,7 +275,7 @@ namespace Documents.API.UnitTests.Features.v1
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            DocumentId idToDelete = DocumentId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -303,9 +291,8 @@ namespace Documents.API.UnitTests.Features.v1
         public async Task Get_Returns_The_Element()
         {
             // Arrange
-            Guid documentId = Guid.NewGuid();
-            Document entry = new Document
-            (
+            DocumentId documentId = DocumentId.New();
+            Document entry = new(
                 id: documentId,
                 name: "the batman in action",
                 mimeType: "image/mpeg4"
@@ -354,19 +341,19 @@ namespace Documents.API.UnitTests.Features.v1
 
             DocumentInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             Link file = browsableResource.Links.Single(x => x.Relation == "file");
             file.Method.Should()
                 .Be("GET");
             file.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?action={nameof(DocumentsController.File)}&controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?action={nameof(DocumentsController.File)}&controller={DocumentsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             resource.Id.Should().Be(documentId);
             resource.Name.Should().Be(entry.Name);
@@ -382,7 +369,7 @@ namespace Documents.API.UnitTests.Features.v1
                 .ReturnsAsync(Option.None<DocumentInfo>());
 
             // Act
-            ActionResult<Browsable<DocumentInfo>> actionResult = await _sut.Get(id: Guid.NewGuid(), ct: default)
+            ActionResult<Browsable<DocumentInfo>> actionResult = await _sut.Get(id: DocumentId.New(), ct: default)
                                                                            .ConfigureAwait(false);
 
             // Assert
@@ -394,8 +381,8 @@ namespace Documents.API.UnitTests.Features.v1
         public async Task GetFile_Returns_The_Element()
         {
             // Arrange
-            Faker faker = new Faker();
-            Guid documentId = Guid.NewGuid();
+            Faker faker = new();
+            DocumentId documentId = DocumentId.New();
 
             DocumentPart[] parts = new[]
             {
@@ -404,7 +391,7 @@ namespace Documents.API.UnitTests.Features.v1
                 new DocumentPart(documentId, 2, faker.Random.Bytes(10))
             };
 
-            Document entry = new Document (id: documentId, name: "the batman in action", mimeType: "image/mpeg4");
+            Document entry = new(id: documentId, name: "the batman in action", mimeType: "image/mpeg4");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -453,7 +440,7 @@ namespace Documents.API.UnitTests.Features.v1
                          .ReturnsAsync(AsyncEnumerable.Empty<DocumentPartInfo>());
 
             // Act
-            var chunks = _sut.File(id: Guid.NewGuid(), ct: default);
+            var chunks = _sut.File(id: DocumentId.New(), ct: default);
             bool hasValue = await chunks.GetAsyncEnumerator().MoveNextAsync()
                                         .ConfigureAwait(false);
 
@@ -470,7 +457,7 @@ namespace Documents.API.UnitTests.Features.v1
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            DocumentId idToDelete = DocumentId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -490,7 +477,7 @@ namespace Documents.API.UnitTests.Features.v1
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            DocumentId idToDelete = DocumentId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -505,7 +492,7 @@ namespace Documents.API.UnitTests.Features.v1
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()
         {
-            JsonPatchDocument<DocumentInfo> changes = new JsonPatchDocument<DocumentInfo>();
+            JsonPatchDocument<DocumentInfo> changes = new();
             changes.Replace(x => x.Name, "batman fake");
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, DocumentInfo>>(), It.IsAny<CancellationToken>()))
@@ -524,7 +511,7 @@ namespace Documents.API.UnitTests.Features.v1
         public async Task Patch_Valid_Resource_Returns_NoContentResult()
         {
             // Arrange
-            JsonPatchDocument<DocumentInfo> changes = new JsonPatchDocument<DocumentInfo>();
+            JsonPatchDocument<DocumentInfo> changes = new();
             changes.Replace(x => x.Name, "bruce.wayne@gorham.com");
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, DocumentInfo>>(), It.IsAny<CancellationToken>()))
@@ -545,7 +532,7 @@ namespace Documents.API.UnitTests.Features.v1
         public async Task GivenMediatorReturnDocumentCreated_PostReturns_OkObjectResult()
         {
             // Arrange
-            NewDocumentInfo newDocument = new NewDocumentInfo
+            NewDocumentInfo newDocument = new()
             {
                 Name = $"file-{Guid.NewGuid()}",
                 MimeType = "image/jpeg",
@@ -554,7 +541,7 @@ namespace Documents.API.UnitTests.Features.v1
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateDocumentInfoCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((CreateDocumentInfoCommand cmd, CancellationToken _) =>
-                    Option.Some<DocumentInfo, CreateCommandResult>(new DocumentInfo { Name = cmd.Data.Name, Id = Guid.NewGuid() }));
+                    Option.Some<DocumentInfo, CreateCommandResult>(new DocumentInfo { Name = cmd.Data.Name, Id = DocumentId.New() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newDocument, ct: default)
@@ -584,8 +571,8 @@ namespace Documents.API.UnitTests.Features.v1
             Link linkSelf = links.Single(link => link.Relation == Self);
             linkSelf.Method.Should()
                 .Be("GET");
-            linkSelf.Href.Should()
-                .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id}&version={_apiVersion}");
+            linkSelf.Href.ToLowerInvariant().Should()
+                    .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={DocumentsController.EndpointName}&{nameof(DocumentInfo.Id)}={createdResource.Id.Value}&version={_apiVersion}".ToLowerInvariant());
 
             createdResource.Name.Should()
                 .Be(newDocument.Name);
@@ -607,7 +594,7 @@ namespace Documents.API.UnitTests.Features.v1
             {
                 Faker<Document> accountFaker = new Faker<Document>()
                     .CustomInstantiator(faker => new Document(
-                        id: Guid.NewGuid(),
+                        id: DocumentId.New(),
                         name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne"));
                 {
                     IEnumerable<Document> items = accountFaker.Generate(40);
@@ -624,8 +611,7 @@ namespace Documents.API.UnitTests.Features.v1
                         (
                             count : 40,
                             items :
-                            (Expression<Func<IEnumerable<Browsable<DocumentInfo>>, bool>>)(resources =>
-                                resources.All(x => x.Resource.Name.Like("*Wayne")))
+                            (Expression<Func<IEnumerable<Browsable<DocumentInfo>>, bool>>)(resources => resources.All(x => x.Resource.Name.Like("*Wayne")))
                             ,
                             links :
                             (

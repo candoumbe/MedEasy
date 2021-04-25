@@ -4,6 +4,7 @@ using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Attendees;
@@ -24,6 +25,7 @@ using FluentAssertions.Extensions;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 
@@ -62,7 +64,7 @@ namespace Agenda.API.UnitTests.Resources.v1
 {
     [UnitTest]
     [Feature("Agenda")]
-    public class AttendeesControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class AttendeesControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IMapper> _mapperMock;
@@ -72,21 +74,19 @@ namespace Agenda.API.UnitTests.Resources.v1
         private Mock<IMediator> _mediatorMock;
         private AttendeesController _sut;
         private const string _baseUrl = "agenda";
-        private static readonly ApiVersion apiVersion = new ApiVersion(1, 0);
+        private static readonly ApiVersion ApiVersion = new(1, 0);
 
-        public AttendeesControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public AttendeesControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) 
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
-            DbContextOptionsBuilder<AgendaContext> dbOptions = new DbContextOptionsBuilder<AgendaContext>();
-            dbOptions.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(dbOptions.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
-                AgendaContext dbContext = new AgendaContext(options, new FakeClock(new Instant()));
+                AgendaContext dbContext = new(options, new FakeClock(new Instant()));
                 dbContext.Database.EnsureCreated();
-
                 return dbContext;
             });
 
@@ -107,13 +107,15 @@ namespace Agenda.API.UnitTests.Resources.v1
             _mapperMock.Setup(mock => mock.Map<SearchAttendeeInfo>(It.IsAny<SearchAttendeeModel>()))
                 .Returns((SearchAttendeeModel input) => mapper.Map<SearchAttendeeInfo>(input));
 
-            
+
             _sut = new AttendeesController(urlHelper: _urlHelperMock.Object, mediator: _mediatorMock.Object, apiOptions: _apiOptionsMock.Object,
-                    _mapperMock.Object, apiVersion
+                    _mapperMock.Object, ApiVersion
                 );
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -153,21 +155,21 @@ namespace Agenda.API.UnitTests.Resources.v1
                                     && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     "&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 next :(Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                                 last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last
                                     && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     "&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
                             )  // expected link to last page
                         };
                     }
                 }
 
                 Faker<Attendee> attendeeFaker = new Faker<Attendee>()
-                    .CustomInstantiator(faker => new Attendee(Guid.NewGuid(), faker.Person.FullName));
+                    .CustomInstantiator(faker => new Attendee(AttendeeId.New(), faker.Person.FullName));
 
                 IEnumerable<Attendee> items = attendeeFaker.Generate(20);
 
@@ -178,10 +180,10 @@ namespace Agenda.API.UnitTests.Resources.v1
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=2&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=2&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                 };
 
@@ -192,10 +194,10 @@ namespace Agenda.API.UnitTests.Resources.v1
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         next : (Expression<Func<Link, bool>>) (x => x == null ), // expected link to next page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                 };
 
@@ -206,10 +208,10 @@ namespace Agenda.API.UnitTests.Resources.v1
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                };
             }
@@ -288,7 +290,7 @@ namespace Agenda.API.UnitTests.Resources.v1
         public async Task WhenMediatorReturnsNotFound_GetById_ReturnsNotFoundResult()
         {
             // Arrange
-            Guid attendeeId = Guid.NewGuid();
+            AttendeeId attendeeId = AttendeeId.New();
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IRequest<Option<AttendeeInfo>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<AttendeeInfo>());
@@ -309,7 +311,7 @@ namespace Agenda.API.UnitTests.Resources.v1
         public async Task WhenMediatorReturnsNotFound_GetAppointmentsByParticipantId_Returns_NotFound()
         {
             // Arrange
-            Guid attendeeId = Guid.NewGuid();
+            AttendeeId attendeeId = AttendeeId.New();
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IRequest<Option<IEnumerable<AppointmentInfo>>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<IEnumerable<AppointmentInfo>>());
@@ -334,21 +336,21 @@ namespace Agenda.API.UnitTests.Resources.v1
         public async Task WhenMediatorReturnsData_GetAppointmentsByParticipantId_Returns_Results()
         {
             // Arrange
-            Guid attendeeId = Guid.NewGuid();
-            DateTimeZone utcZone = DateTimeZone.Utc;
+            AttendeeId attendeeId = AttendeeId.New();
+
             Faker<AppointmentInfo> appointmentInfo = new Faker<AppointmentInfo>()
-                .RuleFor(x => x.Id, () => Guid.NewGuid())
+                .RuleFor(x => x.Id, () => AppointmentId.New())
                 .RuleFor(x => x.StartDate, () => 13.January(2010).Add(14.Hours()).AsUtc().ToInstant())
                 .RuleFor(x => x.EndDate, (_, current) => current.StartDate + 1.Hours().ToDuration())
                 .RuleFor(x => x.CreatedDate, (faker) => faker.Noda().Instant.Recent())
                 .RuleFor(x => x.Attendees, _ => new[] {
                     new AttendeeInfo {Name = "Hugo strange", Id = attendeeId },
-                    new AttendeeInfo {Name = "Joker", Id = Guid.NewGuid()}
+                    new AttendeeInfo {Name = "Joker", Id = AttendeeId.New()}
                 })
                 ;
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<IRequest<Option<IEnumerable<AppointmentInfo>>>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.Some(appointmentInfo.GenerateLazy(count : 10)));
+                .ReturnsAsync(Option.Some(appointmentInfo.GenerateLazy(count: 10)));
 
             // Act
             ActionResult<IEnumerable<Browsable<AppointmentModel>>> actionResult = await _sut.Planning(id: attendeeId,
@@ -383,7 +385,7 @@ namespace Agenda.API.UnitTests.Resources.v1
             {
                 (int defaultPageSize, int maxPageSize) pagingOptions = (10, 200);
                 {
-                    SearchAttendeeModel searchInfo = new SearchAttendeeModel
+                    SearchAttendeeModel searchInfo = new()
                     {
                         Name = "bruce",
                         Page = 1,
@@ -404,7 +406,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                                 $"Controller={AttendeesController.EndpointName}" +
                                 $"&name={searchInfo.Name}"+
                                 "&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         (Expression<Func<Link, bool>>)(previous => previous == null),
                         (Expression<Func<Link, bool>>)(next => next == null),
                         (Expression<Func<Link, bool>>) (x => x != null
@@ -414,11 +416,11 @@ namespace Agenda.API.UnitTests.Resources.v1
                                 $"&name={searchInfo.Name}"+
                                 "&page=1" +
                                 "&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase)))
+                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)))
                     };
                 }
                 {
-                    SearchAttendeeModel searchInfo = new SearchAttendeeModel
+                    SearchAttendeeModel searchInfo = new()
                     {
                         Name = "!*Wayne",
                         Page = 1,
@@ -444,7 +446,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                                 $"Controller={AttendeesController.EndpointName}" +
                                 $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 "&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase)),
+                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)),
                             (Expression<Func<Link, bool>>)(previous => previous == null),
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
@@ -453,12 +455,12 @@ namespace Agenda.API.UnitTests.Resources.v1
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     "&page=1&pageSize=30" +
-                                    $"&sort={searchInfo.Sort}&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
                         )
                     };
                 }
                 {
-                    SearchAttendeeModel searchInfo = new SearchAttendeeModel
+                    SearchAttendeeModel searchInfo = new()
                     {
                         Name = "Bruce",
                         Page = 1,
@@ -482,7 +484,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
-                                    $"&page=1&pageSize=30&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    $"&page=1&pageSize=30&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             (Expression<Func<Link, bool>>)(previous => previous == null),
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
@@ -490,7 +492,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
-                                    $"&page=1&pageSize=30&version={apiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&page=1&pageSize=30&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
                         )
                     };
                 }
@@ -568,7 +570,7 @@ namespace Agenda.API.UnitTests.Resources.v1
                         && ($"agenda/{RouteNames.DefaultSearchResourcesApi}/?" +
                         $"controller={AttendeesController.EndpointName}" +
                         $"&name={Uri.EscapeDataString("Bruce*")}" +
-                        $"&page=1&pageSize=30&version={apiVersion}").Equals(pageLinks.First.Href, OrdinalIgnoreCase)
+                        $"&page=1&pageSize=30&version={ApiVersion}").Equals(pageLinks.First.Href, OrdinalIgnoreCase)
                     ),
                     "The result is empty so there's no page with index 2"
                 };
@@ -577,7 +579,7 @@ namespace Agenda.API.UnitTests.Resources.v1
 
         [Theory]
         [MemberData(nameof(SearchReturnsNotFoundCases))]
-        public async Task Search_Returns_NotFound_When_PageIndex_Exceed_PageCount(Page<AttendeeInfo> page, (int defaultPageSize, int maxPageSize) pagingOptions, SearchAttendeeModel query,  Expression<Func<PageLinks, bool>> resultExpectation, string reason)
+        public async Task Search_Returns_NotFound_When_PageIndex_Exceed_PageCount(Page<AttendeeInfo> page, (int defaultPageSize, int maxPageSize) pagingOptions, SearchAttendeeModel query, Expression<Func<PageLinks, bool>> resultExpectation, string reason)
         {
             // Arrange
 

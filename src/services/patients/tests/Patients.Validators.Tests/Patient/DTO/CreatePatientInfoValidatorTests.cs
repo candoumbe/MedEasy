@@ -19,6 +19,7 @@ using static Newtonsoft.Json.JsonConvert;
 using Patients.DTO;
 using Patients.Objects;
 using Xunit.Categories;
+using Patients.Ids;
 
 namespace Patients.Validators.Tests.Features.Patients
 {
@@ -73,44 +74,44 @@ namespace Patients.Validators.Tests.Features.Patients
                 yield return new object[]
                 {
                     new CreatePatientInfo(),
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
+                    ),
                     $"because no {nameof(CreatePatientInfo)}'s data set."
                 };
 
                 yield return new object[]
                 {
                     new CreatePatientInfo() { Firstname = "Bruce" },
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Lastname).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
+                    ),
                     $"because {nameof(CreatePatientInfo.Firstname)} is set and {nameof(CreatePatientInfo.Lastname)} is not"
                 };
 
                 yield return new object[]
                 {
                     new CreatePatientInfo() { Lastname = "Wayne" },
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
-                    )),
+                    ),
                     $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
                 };
 
                 yield return new object[]
                 {
                     new CreatePatientInfo() { Lastname = "Wayne" },
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(CreatePatientInfo.Firstname).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
-                    )),
+                    ),
                     $"because {nameof(CreatePatientInfo.Lastname)} is set and {nameof(CreatePatientInfo.Firstname)} is not"
                 };
             }
@@ -145,11 +146,11 @@ namespace Patients.Validators.Tests.Features.Patients
                         .AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(true));
 
-            CreatePatientInfo info = new CreatePatientInfo
+            CreatePatientInfo info = new()
             {
                 Firstname = "Bruce",
                 Lastname = "Wayne",
-                Id = Guid.NewGuid()
+                Id = PatientId.New()
             };
 
             // Act

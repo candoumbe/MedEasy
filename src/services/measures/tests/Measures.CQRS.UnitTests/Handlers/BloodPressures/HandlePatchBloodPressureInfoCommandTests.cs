@@ -1,21 +1,27 @@
 ﻿using AutoMapper;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Measures.Context;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.CQRS.Handlers.BloodPressures;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Mapping;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -27,31 +33,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandlePatchBloodPressureInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandlePatchBloodPressureInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private IMapper _mapper;
-        private Mock<IMediator> _mediatorMock;
-        private HandlePatchBloodPressureInfoCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IMapper _mapper;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly HandlePatchBloodPressureInfoCommand _sut;
 
-        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandlePatchBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -61,32 +67,23 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
             _sut = new HandlePatchBloodPressureInfoCommand(_uowFactory, _mapper, _mediatorMock.Object);
         }
 
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _mapper = null;
-            _sut = null;
-            _mediatorMock = null;
-        }
-
-
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
             get
             {
-                IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>()};
+                IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IMapper[] mapperCases = { null, Mock.Of<IMapper>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
-                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper})
-                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
-                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator})
-                    .Where(tuple  => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => (uowFactory, mapper))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
+                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.mapper, mediator))
+                    .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator })
+                    .Where(tuple => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
                     .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
-                    
-                return cases;  
+
+                return cases;
             }
         }
 
@@ -95,9 +92,9 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IMediator mediator)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(mapper)} is null : {(mapper == null)}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {mapper == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandlePatchBloodPressureInfoCommand(unitOfWorkFactory, mapper, mediator);
@@ -114,14 +111,14 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         public async Task PatchBloodPressure()
         {
             // Arrange
-            Guid idToPatch = Guid.NewGuid();
+            BloodPressureId idToPatch = BloodPressureId.New();
 
-            Patient patient = new Patient(Guid.NewGuid(), "victor zsasz");
+            Patient patient = new(PatientId.New(), "victor zsasz");
             const float systolic = 120;
             const float diastolic = 80;
 
             patient.AddBloodPressure(
-                measureId : idToPatch,
+                measureId: idToPatch,
                 dateOfMeasure: 23.August(2003).Add(15.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
                 systolic, diastolic
             );
@@ -133,15 +130,15 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
                     .ConfigureAwait(false);
             }
             float systolicNewValue = 130;
-            JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
+            JsonPatchDocument<BloodPressureInfo> patchDocument = new();
             patchDocument.Replace(x => x.SystolicPressure, systolicNewValue);
 
-            PatchInfo<Guid, BloodPressureInfo> patchInfo = new PatchInfo<Guid, BloodPressureInfo>
+            PatchInfo<BloodPressureId, BloodPressureInfo> patchInfo = new()
             {
                 Id = idToPatch,
                 PatchDocument = patchDocument
             };
-            PatchCommand<Guid, BloodPressureInfo> cmd = new PatchCommand<Guid, BloodPressureInfo>(patchInfo);
+            PatchCommand<BloodPressureId, BloodPressureInfo> cmd = new(patchInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);

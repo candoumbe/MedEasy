@@ -1,7 +1,9 @@
 ﻿using MedEasy.CQRS.Core.Exceptions;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +45,7 @@ namespace MedEasy.Core.Filters
                     PropertyInfo piCommandId = properties.Single(x => x.CanRead && x.Name == nameof(CommandNotValidException<int>.CommandId));
                     object commandId = piCommandId.GetValue(exception);
                     errors = (IEnumerable<ErrorInfo>)piErrors.GetValue(exception);
-                    _logger.LogError("Command <{CommandId}> is not valid", commandId) ;
+                    _logger.LogError("Command <{CommandId}> is not valid", commandId);
                 }
                 else
                 {

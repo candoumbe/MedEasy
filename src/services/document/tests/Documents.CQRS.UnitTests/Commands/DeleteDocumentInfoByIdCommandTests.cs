@@ -1,28 +1,33 @@
 ﻿using Documents.CQRS.Commands;
+using Documents.Ids;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using System;
+
 using Xunit;
 using Xunit.Categories;
 
 namespace Documents.CQRS.UnitTests.Commands
 {
-    [Feature("Agenda")]
+    [Feature("Documents")]
     [UnitTest]
-    public class DeleteAppointmentInfoByIdCommandTests
+    public class DeletedocumentByIdCommandTests
     {
 
         [Fact]
         public void IsCommand() => typeof(DeleteDocumentInfoByIdCommand).Should()
-           .BeAssignableTo<ICommand<Guid, Guid, DeleteCommandResult>>();
+           .BeAssignableTo<ICommand<Guid, DocumentId, DeleteCommandResult>>();
 
 
         [Fact]
         public void GivenEmptyGuid_Ctor_Throws_ArgumentException()
         {
             // Act
-            Action action = () => new DeleteDocumentInfoByIdCommand(Guid.Empty);
+            Action action = () => new DeleteDocumentInfoByIdCommand(DocumentId.Empty);
 
             // Assert
             action.Should()

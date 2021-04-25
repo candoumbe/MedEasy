@@ -1,6 +1,8 @@
 ﻿using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Search;
-using System;
+
+using NodaTime;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Agenda.API.Resources.v1.Appointments
@@ -14,13 +16,13 @@ namespace Agenda.API.Resources.v1.Appointments
         /// Min start or end date
         /// </summary>
         [DataType(DataType.DateTime)]
-        public DateTimeOffset? From { get; set; }
+        public ZonedDateTime? From { get; set; }
 
         /// <summary>
         /// Max start or end date
         /// </summary>
         [DataType(DataType.DateTime)]
-        public DateTimeOffset? To { get; set; }
+        public ZonedDateTime? To { get; set; }
 
         /// <summary>
         /// Subject of the appointments

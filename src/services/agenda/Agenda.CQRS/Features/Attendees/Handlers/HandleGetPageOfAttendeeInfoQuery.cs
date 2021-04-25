@@ -32,16 +32,14 @@ namespace Agenda.CQRS.Features.Participants.Handlers
         public async Task<Page<AttendeeInfo>> Handle(GetPageOfAttendeeInfoQuery request, CancellationToken cancellationToken)
         {
             Expression<Func<Attendee, AttendeeInfo>> selector = _expressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                return await uow.Repository<Attendee>()
-                    .ReadPageAsync(selector,
-                        pageSize: request.Data.PageSize,
-                        request.Data.Page,
-                        orderBy: new Sort<AttendeeInfo>(nameof(AttendeeInfo.Name)),
-                        ct: default)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            return await uow.Repository<Attendee>()
+                .ReadPageAsync(selector,
+                    pageSize: request.Data.PageSize,
+                    request.Data.Page,
+                    orderBy: new Sort<AttendeeInfo>(nameof(AttendeeInfo.Name)),
+                    ct: default)
+                .ConfigureAwait(false);
         }
     }
 }

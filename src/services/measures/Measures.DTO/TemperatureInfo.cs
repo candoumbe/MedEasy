@@ -1,9 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Measures.Ids;
 
 namespace Measures.DTO
 {
-    [JsonObject]
-    public class TemperatureInfo : PhysiologicalMeasurementInfo
+    public class TemperatureInfo : PhysiologicalMeasurementInfo<TemperatureId>
     {
         /// <summary>
         /// Value of the measure

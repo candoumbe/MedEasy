@@ -1,15 +1,20 @@
 ﻿using FluentAssertions;
+
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Events.Accounts;
 using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
 using Identity.DataStores;
+using Identity.Ids;
 using Identity.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -20,31 +25,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
     [UnitTest]
-    public class HandleDeleteAccountInfoByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleDeleteAccountInfoByIdCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IMediator> _mediatorMock;
         private HandleDeleteAccountInfoByIdCommand _sut;
 
-        public HandleDeleteAccountInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleDeleteAccountInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -54,7 +58,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _sut = new HandleDeleteAccountInfoByIdCommand(_uowFactory, _mediatorMock.Object);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -108,16 +114,14 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public async Task GivenAccountExists_Delete_Succeed()
         {
             // Arrange
-            Guid idToDelete = Guid.NewGuid();
-            Account entity = new Account
-            (
-                id: idToDelete,
-                name: "victor zsasz",
-                username: "victorzsasz",
-                email: "victor_zsasz@gotham.fr",
-                salt: "knife",
-                passwordHash: "cut_up"
-            );
+            AccountId idToDelete = AccountId.New();
+            Account entity = new(id: idToDelete,
+                                  name: "victor zsasz",
+                                  username: "victorzsasz",
+                                  email: "victor_zsasz@gotham.fr",
+                                  salt: "knife",
+                                  passwordHash: "cut_up"
+                                );
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(entity);
@@ -126,7 +130,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             }
 
 
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(idToDelete);
+            DeleteAccountInfoByIdCommand cmd = new(idToDelete);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -162,27 +166,22 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public async Task GivenAccountIsTenant_Delete_Returns_Conflict()
         {
             // Arrange
-            Guid idToDelete = Guid.NewGuid();
-            Account tenant = new Account
-           (
-               id: Guid.NewGuid(),
-               name: "victor zsasz",
-               username: "victorzsasz",
-               email: "victor_zsasz@gotham.fr",
-               salt: "knife",
-               passwordHash: "cut_up"
-           );
+            AccountId idToDelete = AccountId.New();
+            Account tenant = new(id: AccountId.New(),
+                                  name: "victor zsasz",
+                                  username: "victorzsasz",
+                                  email: "victor_zsasz@gotham.fr",
+                                  salt: "knife",
+                                  passwordHash: "cut_up");
 
-            Account account = new Account
-            (
-                id: idToDelete,
-                name: "victor zsasz",
-                username: "victorzsasz_minion",
-                email: "victor_zsasz_minion@gotham.fr",
-                salt: "knife",
-                passwordHash: "cut_up",
-                tenantId: tenant.Id
-            );
+            Account account = new(id: idToDelete,
+                                   name: "victor zsasz",
+                                   username: "victorzsasz_minion",
+                                   email: "victor_zsasz_minion@gotham.fr",
+                                   salt: "knife",
+                                   passwordHash: "cut_up",
+                                   tenantId: new TenantId(tenant.Id.Value));
+
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(new[] { tenant, account });
@@ -190,15 +189,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .ConfigureAwait(false);
             }
 
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(tenant.Id);
+            DeleteAccountInfoByIdCommand cmd = new(tenant.Id);
 
             // Act
             DeleteCommandResult result = await _sut.Handle(cmd, default)
-                .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
 
             // Assert
             result.Should()
-                .Be(DeleteCommandResult.Failed_Conflict, "The resource to delete is a tenant");
+                  .Be(DeleteCommandResult.Failed_Conflict, "The resource to delete is a tenant");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {

@@ -1,11 +1,15 @@
 ﻿using Identity.DataStores;
 
+using MedEasy.Abstractions.ValueConverters;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 
 using NodaTime;
 
+using System;
 using System.IO;
 
 namespace Identity.API.Context
@@ -25,13 +29,30 @@ namespace Identity.API.Context
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.Development.json")
+                .AddCommandLine(args)
                 .Build();
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
+            DbContextOptionsBuilder<IdentityContext> builder = new();
             string connectionString = configuration.GetConnectionString("Identity");
-            builder.UseSqlite(connectionString,
-                              b => b.UseNodaTime()
-                                    .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
-            return new IdentityContext(builder.Options, SystemClock.Instance);
+
+            string provider = configuration.GetValue("provider", "sqlite")
+                                           ?.ToLowerInvariant();
+            IdentityContext context;
+            switch(provider)
+            {
+                case "sqlite":
+                builder.UseSqlite(connectionString,
+                                  b => b.UseNodaTime()
+                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName))
+                       .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                context = new IdentityContext(builder.Options, SystemClock.Instance);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported provider '{provider}'");
+
+            }
+
+            return context;
         }
     }
 }

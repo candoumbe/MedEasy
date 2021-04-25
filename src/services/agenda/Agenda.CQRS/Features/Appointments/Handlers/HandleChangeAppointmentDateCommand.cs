@@ -1,4 +1,5 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
+using Agenda.Ids;
 using Agenda.Objects;
 
 using AutoMapper;
@@ -37,7 +38,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
         public async Task<ModifyCommandResult> Handle(ChangeAppointmentDateCommand request, CancellationToken cancellationToken)
         {
-            (Guid appointmentId, Instant start, Instant end) = (request.Data.appointmentId, request.Data.start.ToInstant(), request.Data.end.ToInstant());
+            (AppointmentId appointmentId, Instant start, Instant end) = (request.Data.appointmentId, request.Data.start.ToInstant(), request.Data.end.ToInstant());
 
             if (appointmentId == default)
             {

@@ -1,9 +1,9 @@
 ﻿using MedEasy.RestObjects;
+
+using NodaTime;
+
 using System;
 using System.ComponentModel.DataAnnotations;
-using static Newtonsoft.Json.JsonConvert;
-using static Newtonsoft.Json.Formatting;
-using NodaTime;
 
 namespace Measures.DTO
 {
@@ -13,7 +13,7 @@ namespace Measures.DTO
     public class CreateBloodPressureInfo : CreatePhysiologicalMeasureInfo
     {
         [DataType(DataType.DateTime)]
-        public Instant DateOfMeasure{ get; set; }
+        public Instant DateOfMeasure { get; set; }
 
         /// <summary>
         /// The new systolic blod pressure value
@@ -27,6 +27,6 @@ namespace Measures.DTO
         [FormField(Min = 0)]
         public float DiastolicPressure { get; set; }
 
-        public override string ToString() => SerializeObject(this, Indented);
+        public string ToString(Func<CreateBloodPressureInfo, string> format) => format?.Invoke(this);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MedEasy.Objects;
+
 using System;
 
 namespace Patients.Objects
@@ -25,7 +26,7 @@ namespace Patients.Objects
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
         public Doctor(Guid id, string firstname, string lastname)
-            : base (id)
+            : base(id)
         {
             Firstname = firstname;
             Lastname = lastname;

@@ -6,10 +6,12 @@ using Identity.API.Routing;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 
 using MediatR;
@@ -44,19 +46,19 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
     [UnitTest]
     [Feature("Tenants")]
     [Feature("Identity")]
-    public class TenantsControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class TenantsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private ITestOutputHelper _outputHelper;
 
         private IUnitOfWorkFactory _uowFactory;
-        private static readonly IdentityApiOptions _apiOptions = new IdentityApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
+        private static readonly IdentityApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
         private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
-        private TenantsController _sut;
+        private readonly TenantsController _sut;
         private const string _baseUrl = "http://host/api";
 
-        public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
@@ -66,13 +68,9 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
-            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -82,7 +80,9 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _sut = new TenantsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             _outputHelper = null;
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -101,24 +101,20 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task When_Id_Stands_For_Tenant_Get_Redirect_To_AccountsEndpoint()
         {
             // Arrange
-            Guid tenantId = Guid.NewGuid();
-            Account tenant = new Account
-            (
-                id: tenantId,
-                username: "thebatman",
-                passwordHash: "a_super_secret_password",
-                email: "bruce@wayne-entreprise.com",
-                salt: "salt_and_pepper_for_password",
-                tenantId: Guid.NewGuid()
-            );
-            Account newAccount = new Account
-            (
-                id: Guid.NewGuid(),
-                username: "robin",
-                passwordHash: "a_super_secret_password",
-                email: "dick.grayson@wayne-entreprise.com",
-                salt: "salt_and_pepper_for_password",
-                tenantId: tenant.Id
+            TenantId tenantId = TenantId.New();
+            Account tenant = new(id: new(tenantId.Value),
+                                  username: "thebatman",
+                                  passwordHash: "a_super_secret_password",
+                                  email: "bruce@wayne-entreprise.com",
+                                  salt: "salt_and_pepper_for_password",
+                                  tenantId: tenantId);
+
+            Account newAccount = new(id: AccountId.New(),
+                                      username: "robin",
+                                      passwordHash: "a_super_secret_password",
+                                      email: "dick.grayson@wayne-entreprise.com",
+                                      salt: "salt_and_pepper_for_password",
+                                      tenantId: tenantId
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -163,21 +159,19 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                     .BeEquivalentTo(AccountsController.EndpointName);
             redirect.RouteValues[nameof(AccountInfo.Id)].Should()
                     .BeOfType<Guid>().And
-                    .Be(tenantId);
+                    .Be(tenantId.Value);
         }
 
         [Fact]
         public async Task When_Id_DoNotStands_For_Tenant_Get_Returns_NotFoundResult()
         {
             // Arrange
-            Guid accountId = Guid.NewGuid();
-            Account newAccount = new Account
-            (
-                id: accountId,
-                username: "robin",
-                passwordHash: "a_super_secret_password",
-                email: "dick.grayson@wayne-entreprise.com",
-                salt: "salt_and_pepper_for_password"
+            TenantId tenantId = TenantId.New();
+            Account newAccount = new(id: new AccountId(tenantId.Value),
+                                      username: "robin",
+                                      passwordHash: "a_super_secret_password",
+                                      email: "dick.grayson@wayne-entreprise.com",
+                                      salt: "salt_and_pepper_for_password"
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -198,15 +192,15 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 });
 
             // Act
-            IActionResult actionResult = await _sut.Get(accountId, ct: default)
+            IActionResult actionResult = await _sut.Get(new TenantId(newAccount.Id.Value), ct: default)
                                                    .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.Is<IsTenantQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<IsTenantQuery>(q => q.Data == tenantId), It.IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<IsTenantQuery>(), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
-                        .BeAssignableTo<NotFoundResult>($"account <{accountId}> is not a tenant");
+                        .BeAssignableTo<NotFoundResult>($"account <{tenantId}> is not a tenant");
         }
     }
 }

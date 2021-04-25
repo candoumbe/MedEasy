@@ -2,6 +2,7 @@
 
 using Identity.CQRS.Queries.Roles;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.DAL.Interfaces;
@@ -34,14 +35,14 @@ namespace Identity.CQRS.Handlers.Queries
 
         public async Task<Option<IEnumerable<AccountInfo>>> Handle(ListAccountsForRoleQuery request, CancellationToken cancellationToken)
         {
-            Guid roleId = request.Data;
+            RoleId roleId = request.Data;
 
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
 
             return await uow.Repository<Role>().SingleOrDefaultAsync(selector: x => x.Accounts.Select(ar => new AccountInfo { Id = ar.AccountId, Name = ar.Account.Name }),
                                                                      predicate: (Role x) => x.Id == roleId,
                                                                      cancellationToken)
-                                                      .ConfigureAwait(false);
+                                               .ConfigureAwait(false);
         }
     }
 }

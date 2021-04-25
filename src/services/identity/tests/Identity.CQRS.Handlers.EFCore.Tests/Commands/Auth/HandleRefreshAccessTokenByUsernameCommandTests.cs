@@ -9,6 +9,7 @@ using Identity.CQRS.Handlers.Commands;
 using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v1;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.CQRS.Core.Commands.Results;
@@ -47,7 +48,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 {
     [UnitTest]
     [Feature("JWT")]
-    public class HandleRefreshAccessTokenByUsernameCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleRefreshAccessTokenByUsernameCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -58,14 +59,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private const string _signatureKey = "a_very_long_key_to_encrypt_token";
 
-        public HandleRefreshAccessTokenByUsernameCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleRefreshAccessTokenByUsernameCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
-
-            DbContextOptionsBuilder<IdentityContext> dbContextBuilderOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>()
-                .UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextBuilderOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
                 IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -74,7 +71,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             _signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signatureKey)), SecurityAlgorithms.HmacSha256);
-            _clockMock = new (Strict);
+            _clockMock = new(Strict);
             _handleCreateSecurityTokenMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
             _handleCreateSecurityTokenMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreateSecurityTokenCommand cmd, CancellationToken ct) =>
@@ -94,7 +91,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                                                                  _handleCreateSecurityTokenMock.Object);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             _outputHelper = null;
             _handleCreateSecurityTokenMock = null;
@@ -137,7 +136,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                 }
             );
             SecurityToken refreshToken = new JwtSecurityToken(
-                audience : "api",
+                audience: "api",
                 notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
                 expires: utcNow.Minus(1.Days().ToDuration()).ToDateTimeUtc(),
                 signingCredentials: _signingCredentials,
@@ -186,12 +185,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                }
            );
-            Account account = new (id: Guid.NewGuid(),
-                                   name : faker.Person.FullName,
-                                   email : faker.Person.Email,
-                                   passwordHash : faker.Lorem.Word(),
-                                   salt : faker.Lorem.Word(),
-                                   username : faker.Person.UserName);
+            Account account = new(id: AccountId.New(),
+                                   name: faker.Person.FullName,
+                                   email: faker.Person.Email,
+                                   passwordHash: faker.Lorem.Word(),
+                                   salt: faker.Lorem.Word(),
+                                   username: faker.Person.UserName);
 
             account.ChangeRefreshToken(new JwtSecurityTokenHandler().WriteToken(refreshToken));
 
@@ -209,16 +208,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
                 RefreshTokenLifetime = faker.Random.Int(min: 20, max: 30),
                 Audiences = faker.Lorem.Words()
             };
-            SecurityToken accessToken = new JwtSecurityToken(
-                audience: "api",
-                notBefore: utcNow.Minus(2.Days().ToDuration()).ToDateTimeUtc(),
-                expires: utcNow.Plus(2.Days().ToDuration()).ToDateTimeUtc(),
-                signingCredentials: _signingCredentials,
-                claims: new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                }
-            );
+
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             string refreshTokenString = _jwtSecurityTokenHandler.WriteToken(refreshToken);
             string expiredAccessTokenString = _jwtSecurityTokenHandler.WriteToken(refreshToken);

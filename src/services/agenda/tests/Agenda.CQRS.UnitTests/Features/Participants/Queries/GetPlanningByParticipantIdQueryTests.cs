@@ -1,5 +1,6 @@
 ﻿using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DTO;
+using Agenda.Ids;
 
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -34,13 +35,13 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             {
                 yield return new object[]
                 {
-                    (participantId: default(Guid), from : (DateTimeOffset)1.January(2019), to : (DateTimeOffset)31.January(2019)),
+                    (participantId: default(AttendeeId), from : (DateTimeOffset)1.January(2019), to : (DateTimeOffset)31.January(2019)),
                     "Participant ID is not set"
                 };
 
                 yield return new object[]
                 {
-                    (participantId: Guid.NewGuid(), from : (DateTimeOffset)1.January(2019), to : (DateTimeOffset)31.December(2018)),
+                    (participantId: AttendeeId.New(), from : (DateTimeOffset)1.January(2019), to : (DateTimeOffset)31.December(2018)),
                     "Period is not valid (startDate > endDate"
                 };
             }
@@ -48,7 +49,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
 
         [Theory]
         [MemberData(nameof(InvalidArgumentCases))]
-        public void Ctor_Throws_ArgumentException((Guid participantId, DateTimeOffset from, DateTimeOffset to) data, string reason)
+        public void Ctor_Throws_ArgumentException((AttendeeId participantId, DateTimeOffset from, DateTimeOffset to) data, string reason)
         {
             _outputHelper.WriteLine($"Data : {data}");
 

@@ -1,14 +1,21 @@
 ﻿using AutoMapper;
+
 using Measures.CQRS.Events;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +27,9 @@ namespace Measures.CQRS.Handlers.Patients
     /// <summary>
     /// Command runner for <see cref="PatchInfo{TResourceId}"/> commands
     /// </summary>
-    public class HandlePatchPatientInfoCommand : IRequestHandler<PatchCommand<Guid, PatientInfo>, ModifyCommandResult>
+    public class HandlePatchPatientInfoCommand : IRequestHandler<PatchCommand<PatientId, PatientInfo>, ModifyCommandResult>
     {
-        private IUnitOfWorkFactory _uowFactory;
+        private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
@@ -39,36 +46,34 @@ namespace Measures.CQRS.Handlers.Patients
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public async Task<ModifyCommandResult> Handle(PatchCommand<Guid, PatientInfo> command, CancellationToken ct)
+        public async Task<ModifyCommandResult> Handle(PatchCommand<PatientId, PatientInfo> command, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                JsonPatchDocument<PatientInfo> patchDocument = command.Data.PatchDocument;
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            JsonPatchDocument<PatientInfo> patchDocument = command.Data.PatchDocument;
 
-                Guid entityId = command.Data.Id;
-                Option<Patient> source = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id, ct)
-                    .ConfigureAwait(false);
+            PatientId entityId = command.Data.Id;
+            Option<Patient> source = await uow.Repository<Patient>()
+                .SingleOrDefaultAsync(x => x.Id == command.Data.Id, ct)
+                .ConfigureAwait(false);
 
-                ModifyCommandResult result = ModifyCommandResult.Failed_NotFound;
-                source.MatchSome(async entity =>
+            ModifyCommandResult result = ModifyCommandResult.Failed_NotFound;
+            source.MatchSome(async entity =>
+                {
+                    JsonPatchDocument<Patient> changes = _mapper.Map<JsonPatchDocument<PatientInfo>, JsonPatchDocument<Patient>>(patchDocument);
+                    if (changes.Operations.Once(op => op.OperationType != OperationType.Test && op.path == $"/{nameof(Patient.Name)}"))
                     {
-                        JsonPatchDocument<Patient> changes = _mapper.Map<JsonPatchDocument<PatientInfo>, JsonPatchDocument<Patient>>(patchDocument);
-                        if (changes.Operations.Once(op => op.OperationType !=  OperationType.Test && op.path == $"/{nameof(Patient.Name)}"))
-                        {
-                            entity.ChangeNameTo(changes.Operations.Single(op => op.path == $"/{nameof(Patient.Name)}").value?.ToString());
-                        }
-                        await uow.SaveChangesAsync(ct)
-                            .ConfigureAwait(false);
+                        entity.ChangeNameTo(changes.Operations.Single(op => op.path == $"/{nameof(Patient.Name)}").value?.ToString());
+                    }
+                    await uow.SaveChangesAsync(ct)
+                        .ConfigureAwait(false);
 
-                        await _mediator.Publish(new PatientUpdated(entityId), ct)
-                            .ConfigureAwait(false);
+                    await _mediator.Publish(new PatientUpdated(entityId), ct)
+                        .ConfigureAwait(false);
 
-                        result = ModifyCommandResult.Done;
-                    });
+                    result = ModifyCommandResult.Done;
+                });
 
-                return result;
-            }
+            return result;
         }
     }
 }

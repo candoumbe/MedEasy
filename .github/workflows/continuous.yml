@@ -31,5 +31,28 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Cache .tmp, ~/.nuget/packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            .tmp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
       - name: Run './build.cmd UnitTests IntegrationTests'
         run: ./build.cmd UnitTests IntegrationTests
+      - uses: actions/upload-artifact@v1
+        with:
+          name: unit-tests
+          path: output/tests-results/unit-tests
+      - uses: actions/upload-artifact@v1
+        with:
+          name: unit-tests
+          path: output/coverage-report/unit-tests
+      - uses: actions/upload-artifact@v1
+        with:
+          name: integration-tests
+          path: output/tests-results/integration-tests
+      - uses: actions/upload-artifact@v1
+        with:
+          name: integration-tests
+          path: output/coverage-report/integration-tests

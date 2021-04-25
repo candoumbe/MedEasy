@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Events.Accounts;
+using Identity.Ids;
 using Identity.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Ids;
+
 using MediatR;
 
 namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
@@ -32,28 +37,26 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
 
         public async Task<DeleteCommandResult> Handle(DeleteAccountInfoByIdCommand cmd, CancellationToken ct)
         {
-            Guid idToDelete = cmd.Data;
+            AccountId idToDelete = cmd.Data;
 
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
+            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+            DeleteCommandResult cmdResult = DeleteCommandResult.Failed_NotFound;
+            if (await uow.Repository<Account>().AnyAsync(x => x.TenantId == new TenantId(idToDelete.Value), ct).ConfigureAwait(false))
             {
-                DeleteCommandResult cmdResult = DeleteCommandResult.Failed_NotFound;
-                if (await uow.Repository<Account>().AnyAsync(x => x.TenantId == idToDelete, ct).ConfigureAwait(false))
-                {
-                    cmdResult = DeleteCommandResult.Failed_Conflict;
-                }
-                else if(await uow.Repository<Account>().AnyAsync(x => x.Id == idToDelete, ct).ConfigureAwait(false))
-                {
-                    uow.Repository<Account>().Delete(x => x.Id == idToDelete);
-                    await uow.SaveChangesAsync(ct)
-                        .ConfigureAwait(false);
-
-                    await _mediator.Publish(new AccountDeleted(idToDelete), ct)
-                        .ConfigureAwait(false);
-                    cmdResult = DeleteCommandResult.Done;
-                }
-
-                return cmdResult;
+                cmdResult = DeleteCommandResult.Failed_Conflict;
             }
+            else if (await uow.Repository<Account>().AnyAsync(x => x.Id == idToDelete, ct).ConfigureAwait(false))
+            {
+                uow.Repository<Account>().Delete(x => x.Id == idToDelete);
+                await uow.SaveChangesAsync(ct)
+                    .ConfigureAwait(false);
+
+                await _mediator.Publish(new AccountDeleted(idToDelete), ct)
+                    .ConfigureAwait(false);
+                cmdResult = DeleteCommandResult.Done;
+            }
+
+            return cmdResult;
         }
     }
 }

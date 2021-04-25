@@ -22,18 +22,16 @@ namespace Agenda.Validators.UnitTests
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class SearchParticipantInfoValidatorTests : IDisposable
+    public class SearchParticipantInfoValidatorTests
     {
         private static ITestOutputHelper _outputHelper;
-        private SearchParticipantInfoValidator _sut;
+        private readonly SearchParticipantInfoValidator _sut;
 
         public SearchParticipantInfoValidatorTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             _sut = new SearchParticipantInfoValidator();
         }
-
-        public void Dispose() => _sut = null;
 
         public static IEnumerable<object[]> ValidateCases
         {
@@ -66,7 +64,7 @@ namespace Agenda.Validators.UnitTests
                     $"{nameof(SearchAttendeeInfo.PageSize)} is negative"
                 };
 
-                
+
 
                 yield return new object[]
                 {

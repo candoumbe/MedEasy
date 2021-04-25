@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.2.0" />
     <PackageReference Include="Optional" Version="4.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
+    <ProjectReference Include="..\Measures.Ids\Measures.Ids.csproj" />
   </ItemGroup>
 
 </Project>

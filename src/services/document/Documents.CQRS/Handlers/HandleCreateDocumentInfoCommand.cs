@@ -1,5 +1,6 @@
 ﻿using Documents.CQRS.Commands;
 using Documents.DTO.v1;
+using Documents.Ids;
 using Documents.Objects;
 
 using MedEasy.CQRS.Core.Commands.Results;
@@ -33,9 +34,11 @@ namespace Documents.CQRS.Handlers
         public async Task<Option<DocumentInfo, CreateCommandResult>> Handle(CreateDocumentInfoCommand request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            DocumentId documentId = request.Data.Id == DocumentId.Empty || request.Data.Id is null
+                    ? DocumentId.New()
+                    : request.Data.Id;
 
-            Document document = new Document(id: request.Data.Id == Guid.Empty ? Guid.NewGuid() : request.Data.Id,
-                name: request.Data.Name);
+            Document document = new(id: documentId, name: request.Data.Name);
 
             if (!string.IsNullOrWhiteSpace(request.Data.MimeType))
             {

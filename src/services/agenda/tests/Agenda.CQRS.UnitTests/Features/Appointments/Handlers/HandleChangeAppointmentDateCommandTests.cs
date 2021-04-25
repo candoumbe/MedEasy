@@ -1,6 +1,7 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.CQRS.Features.Appointments.Handlers;
 using Agenda.DataStores;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
 
@@ -45,23 +46,18 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
     [UnitTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class HandleChangeAppointmentDateCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleChangeAppointmentDateCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private HandleChangeAppointmentDateCommand _sut;
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactoryMock;
         private IUnitOfWorkFactory _unitOfWorkFactory;
-        private IMapper _mapper;
+        private readonly IMapper _mapper;
 
-        public HandleChangeAppointmentDateCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleChangeAppointmentDateCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<AgendaContext> dbContextOptionsBuilder = new();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(warnings => warnings.Throw());
-
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(dbContextOptionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
                 AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -74,7 +70,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _sut = new HandleChangeAppointmentDateCommand(_unitOfWorkFactoryMock, _mapper);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _unitOfWorkFactoryMock.NewUnitOfWork())
             {
@@ -98,7 +96,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         {
             get
             {
-                Guid[] appointmentIds = { Guid.NewGuid(), default };
+                AppointmentId[] appointmentIds = { AppointmentId.New(), default };
                 ZonedDateTime[] starts = { 23.February(2017).Add(15.Hours()).AsUtc().ToInstant().InUtc(), default };
                 ZonedDateTime[] ends = { 23.February(2017).Add(15.Hours().And(15.Minutes())).AsUtc().ToInstant().InUtc(), default };
 
@@ -113,7 +111,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     yield return @case;
                 }
 
-                yield return new object[] { (appointmentId: Guid.NewGuid(), start: 17.August(2007).AsUtc().ToInstant().InUtc(), end: 17.August(2007).Add(-1.Hours()).AsUtc().ToInstant().InUtc()), "Start property is after end" };
+                yield return new object[] { (appointmentId: AppointmentId.New(), start: 17.August(2007).AsUtc().ToInstant().InUtc(), end: 17.August(2007).Add(-1.Hours()).AsUtc().ToInstant().InUtc()), "Start property is after end" };
             }
         }
 
@@ -126,14 +124,14 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 // Arrange
                 ZonedDateTime zonedDateTimeStart = start.AsUtc().ToInstant().InUtc();
                 ZonedDateTime zonedDateTimeEnd = end.AsUtc().ToInstant().InUtc();
-                ChangeAppointmentDateCommand cmd = new((id, zonedDateTimeStart, zonedDateTimeEnd));
+                ChangeAppointmentDateCommand cmd = new((new AppointmentId(id), zonedDateTimeStart, zonedDateTimeEnd));
 
                 // Act
                 Lazy<Task<ModifyCommandResult>> action = new(async () => await _sut.Handle(cmd, default)
                                                                                    .ConfigureAwait(false));
 
                 // Assert
-                Prop.Throws<CommandNotValidException<Guid>, Task<ModifyCommandResult>>(action)
+                Prop.Throws<CommandNotValidException<AppointmentId>, Task<ModifyCommandResult>>(action)
                     .And(() =>
                     {
                         A.CallTo(_unitOfWorkFactoryMock).MustNotHaveHappened();
@@ -151,19 +149,19 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 yield return new object[]
                 {
                     Enumerable.Empty<Appointment>(),
-                    new ChangeAppointmentDateCommand((Guid.NewGuid(), start: 17.February(2012).Add(13.Hours()).AsUtc().ToInstant().InUtc(), end: 17.February(2012).Add(13.Hours().And(15.Minutes())).AsUtc().ToInstant().InUtc())),
+                    new ChangeAppointmentDateCommand((AppointmentId.New(), start: 17.February(2012).Add(13.Hours()).AsUtc().ToInstant().InUtc(), end: 17.February(2012).Add(13.Hours().And(15.Minutes())).AsUtc().ToInstant().InUtc())),
                     ModifyCommandResult.Failed_NotFound,
                     "Appointment not found in the datastore"
                 };
                 {
-                    Appointment appointment = new (id: Guid.NewGuid(),
+                    Appointment appointment = new(id: AppointmentId.New(),
                                                    subject: "JLA relocation",
                                                    location: "None",
                                                    startDate: 25.April(2012).At(14.Hours()).AsUtc().ToInstant(),
                                                    endDate: 25.April(2012).At(14.Hours().And(15.Minutes())).AsUtc().ToInstant());
 
-                    Attendee batman = new(id: Guid.NewGuid(), name: "Bruce Wayne");
-                    Attendee superman = new(id: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new(id: AttendeeId.New(), name: "Bruce Wayne");
+                    Attendee superman = new(id: AttendeeId.New(), name: "Clark Kent");
 
                     appointment.AddAttendee(batman);
                     appointment.AddAttendee(superman);
@@ -178,29 +176,29 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 }
 
                 {
-                    Appointment appointmentRelocation = new                    (
-                        id: Guid.NewGuid(),
+                    Appointment appointmentRelocation = new(
+                        id: AppointmentId.New(),
                         startDate: 25.April(2012).At(14.Hours()).AsUtc().ToInstant(),
                         endDate: 25.April(2012).At(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                         subject: "JLA relocation",
                         location: "None"
                     );
 
-                    Attendee batman = new(id: Guid.NewGuid(), name: "Bruce Wayne");
-                    Attendee superman = new(id: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new(id: AttendeeId.New(), name: "Bruce Wayne");
+                    Attendee superman = new(id: AttendeeId.New(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
-                    Appointment appointmentEmancipation = new                    (
-                        id: Guid.NewGuid(),
+                    Appointment appointmentEmancipation = new(
+                        id: AppointmentId.New(),
                         startDate: 25.April(2012).At(13.Hours()).AsUtc().ToInstant(),
                         endDate: 25.April(2012).At(14.Hours().And(5.Minutes())).AsUtc().ToInstant(),
                         subject: "I want to leave the JLA",
                         location: "None"
                     );
 
-                    Attendee robin = new(id: Guid.NewGuid(), name: "Dick grayson");
+                    Attendee robin = new(id: AttendeeId.New(), name: "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -215,29 +213,29 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 }
 
                 {
-                    Appointment appointmentRelocation = new                    (
-                        id: Guid.NewGuid(),
+                    Appointment appointmentRelocation = new(
+                        id: AppointmentId.New(),
                         startDate: 25.April(2012).At(14.Hours()).AsUtc().ToInstant(),
                         endDate: 25.April(2012).At(14.Hours().And(15.Minutes())).AsUtc().ToInstant(),
                         subject: "JLA relocation",
                         location: "None"
                     );
 
-                    Attendee batman = new(id: Guid.NewGuid(), name: "Bruce Wayne");
-                    Attendee superman = new(id: Guid.NewGuid(), name: "Clark Kent");
+                    Attendee batman = new(id: AttendeeId.New(), name: "Bruce Wayne");
+                    Attendee superman = new(id: AttendeeId.New(), name: "Clark Kent");
 
                     appointmentRelocation.AddAttendee(batman);
                     appointmentRelocation.AddAttendee(superman);
 
-                    Appointment appointmentEmancipation = new                    (
-                        id: Guid.NewGuid(),
+                    Appointment appointmentEmancipation = new(
+                        id: AppointmentId.New(),
                         startDate: 25.April(2012).At(13.Hours()).AsUtc().ToInstant(),
                         endDate: 25.April(2012).At(14.Hours().And(5.Minutes())).AsUtc().ToInstant(),
                         subject: "I want to leave the JLA",
                         location: "None"
                     );
 
-                    Attendee robin = new(id: Guid.NewGuid(), "Dick grayson");
+                    Attendee robin = new(id: AttendeeId.New(), "Dick grayson");
 
                     appointmentEmancipation.AddAttendee(batman);
                     appointmentEmancipation.AddAttendee(robin);
@@ -282,7 +280,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             if (actual == ModifyCommandResult.Done)
             {
                 using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
-                (Guid appointmentId, ZonedDateTime start, ZonedDateTime end) = cmd.Data;
+                (AppointmentId appointmentId, ZonedDateTime start, ZonedDateTime end) = cmd.Data;
                 bool changesOk = await uow.Repository<Appointment>()
                                           .AnyAsync(app => app.Id == appointmentId
                                                            && app.StartDate == start.ToInstant()

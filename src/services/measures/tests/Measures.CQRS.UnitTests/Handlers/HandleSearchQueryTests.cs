@@ -22,6 +22,7 @@ using Xunit.Categories;
 using static Moq.MockBehavior;
 using static DataFilters.FilterOperator;
 using DataFilters;
+using Measures.Ids;
 
 namespace Measures.CQRS.UnitTests.Handlers
 {
@@ -32,7 +33,7 @@ namespace Measures.CQRS.UnitTests.Handlers
         private Mock<IUnitOfWorkFactory> _uowFactoryMock;
         private HandleSearchQuery _iHandleSearchQuery;
         private Mock<IExpressionBuilder> _expressionBuilderMock;
-        private Mock<ILogger<HandleSearchQuery>> _loggerMock;
+        private readonly Mock<ILogger<HandleSearchQuery>> _loggerMock;
 
         public HandleSearchQueryTests(ITestOutputHelper outputHelper)
         {
@@ -80,13 +81,13 @@ namespace Measures.CQRS.UnitTests.Handlers
                 };
 
                 {
-                    Guid patientId = Guid.NewGuid();
+                    PatientId patientId = PatientId.New();
                     yield return new object[]
                    {
                         new []
                         {
-                            new Objects.Patient(Guid.NewGuid(), "bruce wayne"),
-                            new Objects.Patient(Guid.NewGuid(), "dick grayson"),
+                            new Objects.Patient(PatientId.New(), "bruce wayne"),
+                            new Objects.Patient(PatientId.New(), "dick grayson"),
                             new Objects.Patient(patientId, "damian wayne")
                         },
                         new SearchQueryInfo<PatientInfo>
@@ -134,7 +135,7 @@ namespace Measures.CQRS.UnitTests.Handlers
                     });
 
             // Act
-            SearchQuery<PatientInfo> searchQuery = new SearchQuery<PatientInfo>(search);
+            SearchQuery<PatientInfo> searchQuery = new(search);
             Page<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Objects.Patient, PatientInfo>(searchQuery)
                 .ConfigureAwait(false);
 

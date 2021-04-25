@@ -1,9 +1,14 @@
 ﻿using FluentValidation;
+
 using Measures.DTO;
+
 using MedEasy.DAL.Interfaces;
+
 using Microsoft.AspNetCore.JsonPatch;
+
 using System;
 using System.Linq;
+
 using static System.StringComparison;
 
 namespace Measures.Validators.Commands.BloodPressures

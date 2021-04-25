@@ -1,13 +1,17 @@
-﻿using MedEasy.Objects;
+﻿using Identity.Ids;
+
+using MedEasy.Objects;
+
 using Optional;
 using Optional.Collections;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Identity.Objects
 {
-    public class Role : AuditableEntity<Guid, Role>
+    public class Role : AuditableEntity<RoleId, Role>
     {
         public string Code { get; set; }
 
@@ -28,8 +32,12 @@ namespace Identity.Objects
         /// </summary>
         /// <param name="id"></param>
         /// <param name="code"></param>
-        public Role(Guid id, string code): base(id)
+        public Role(RoleId id, string code) : base(id ?? throw new ArgumentNullException(nameof(id)))
         {
+            if (id == RoleId.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id));
+            }
             Code = code ?? throw new ArgumentNullException(nameof(code));
             _claims = new List<RoleClaim>();
         }
@@ -55,7 +63,7 @@ namespace Identity.Objects
 
             optionRoleClaim.Match(
                 some: rc => rc.Claim.ChangeValueTo(value),
-                none: () => _claims.Add(new RoleClaim(Id, Guid.NewGuid(), type, value))
+                none: () => _claims.Add(new RoleClaim(Id, RoleClaimId.New(), type, value))
             );
         }
 

@@ -1,5 +1,7 @@
 ﻿using Measures.DTO;
+
 using System;
+
 using static Newtonsoft.Json.JsonConvert;
 
 namespace Measures.CQRS.Events.BloodPressures
@@ -14,7 +16,7 @@ namespace Measures.CQRS.Events.BloodPressures
         /// </summary>
         /// <param name="measureInfo"></param>
         public BloodPressureCreated(BloodPressureInfo measureInfo) : base(Guid.NewGuid(), measureInfo)
-        {}
+        { }
 
         public override string ToString() => SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
     }

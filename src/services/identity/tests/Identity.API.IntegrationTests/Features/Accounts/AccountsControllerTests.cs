@@ -1,16 +1,9 @@
 ﻿using FluentAssertions;
 using Identity.DTO;
-#if NETCOREAPP2_0
-using MedEasy.IntegrationTests.Core; 
-#else
-#endif
 using MedEasy.RestObjects;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,12 +16,11 @@ using Bogus;
 using Identity.DTO.v1;
 using Identity.API.Features.v1.Accounts;
 using Identity.API.Fixtures.v1;
-using System.Text;
-using System.Net.Mime;
 using System.Text.Json;
 using NodaTime.Serialization.SystemTextJson;
 using NodaTime;
 using System.Net.Http.Json;
+using Identity.Ids;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
@@ -37,9 +29,10 @@ namespace Identity.API.IntegrationTests.Features.Accounts
     [Feature("Identity")]
     public class AccountsControllerTests : IClassFixture<IdentityApiFixture>
     {
-        private IdentityApiFixture _identityApiFixture;
-        private ITestOutputHelper _outputHelper;
+        private readonly IdentityApiFixture _identityApiFixture;
+        private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1";
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
         public AccountsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
@@ -51,32 +44,29 @@ namespace Identity.API.IntegrationTests.Features.Accounts
         public async Task GivenNoToken_GetAll_Returns_Unauthorized()
         {
             // Arrange
-            HttpRequestMessage headRequest = new HttpRequestMessage(Head, $"{_endpointUrl}/accounts?page=1&pageSize=5");
-            using (HttpClient client = _identityApiFixture.CreateClient())
-            {
-                // Act
-                HttpResponseMessage response = await client.SendAsync(headRequest)
-                    .ConfigureAwait(false);
+            HttpRequestMessage headRequest = new(Head, $"{_endpointUrl}/accounts?page=1&pageSize=5");
+            using HttpClient client = _identityApiFixture.CreateClient();
+            // Act
+            HttpResponseMessage response = await client.SendAsync(headRequest)
+                .ConfigureAwait(false);
 
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("no bearer token was provided");
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("no bearer token was provided");
 
-                response.StatusCode.Should()
-                    .Be(Status401Unauthorized);
-            }
+            response.StatusCode.Should()
+                .Be(Status401Unauthorized);
         }
 
         [Fact]
         public async Task GivenAccount_Post_Creates_Record()
         {
             // Arrange
-            JsonSerializerOptions jsonSerializerOptions = new();
-            jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-            Faker faker = new Faker();
+            Faker faker = new();
             string password = faker.Lorem.Word();
-            NewAccountInfo newAccount = new ()
+            NewAccountInfo newAccount = new()
             {
+                Id = AccountId.New(),
                 Name = faker.Person.FullName,
                 Username = faker.Person.UserName,
                 Password = password,
@@ -88,7 +78,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             _outputHelper.WriteLine($"Address : {httpClient.BaseAddress}");
 
             // Act
-            using HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount, jsonSerializerOptions)
+            using HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount, JsonSerializerOptions)
                                                                  .ConfigureAwait(false);
 
             // Assert
@@ -101,7 +91,7 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             string jsonResponse = await response.Content.ReadAsStringAsync()
                                                         .ConfigureAwait(false);
 
-            JToken jsonToken =  JToken.Parse(jsonResponse);
+            JToken jsonToken = JToken.Parse(jsonResponse);
             JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<AccountInfo>));
             jsonToken.IsValid(responseSchema);
 
@@ -137,10 +127,11 @@ namespace Identity.API.IntegrationTests.Features.Accounts
         public async Task GivenValidToken_Get_Returns_ListOfAccounts()
         {
             // Arrange
-            Faker faker = new Faker();
+            Faker faker = new();
             string password = faker.Lorem.Word();
-            NewAccountInfo newAccount = new NewAccountInfo
+            NewAccountInfo newAccount = new()
             {
+                Id = AccountId.New(),
                 Name = faker.Person.FullName,
                 Username = faker.Person.UserName,
                 Password = password,

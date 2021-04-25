@@ -1,12 +1,18 @@
 ﻿using FluentValidation;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.Validators.Patch;
+
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
 using Patients.DTO;
+using Patients.Ids;
 using Patients.Objects;
+
 using System;
 using System.Linq;
+
 using static FluentValidation.CascadeMode;
 using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
 
@@ -15,7 +21,7 @@ namespace Patients.Validators.Features.Patients.Commands
     /// <summary>
     /// Validates <see cref="PatchInfo{Guid, PatientInfo}"/> instances.
     /// </summary>
-    public class PatchPatientInfoValidator : AbstractValidator<PatchInfo<Guid, PatientInfo>>
+    public class PatchPatientInfoValidator : AbstractValidator<PatchInfo<PatientId, PatientInfo>>
     {
         /// <summary>
         /// Builds a <see cref="PatchPatientInfoValidator"/> instance.
@@ -28,16 +34,16 @@ namespace Patients.Validators.Features.Patients.Commands
                 throw new ArgumentNullException(nameof(unitOfWorkFactory));
             }
 
-            CascadeMode = StopOnFirstFailure;
+            CascadeMode = Stop;
 
             RuleFor(x => x.Id)
-                .NotEqual(Guid.Empty);
+                .NotEqual(PatientId.Empty);
 
             RuleFor(x => x.PatchDocument)
                 .NotNull();
 
             When(
-                x => x.Id != Guid.Empty,
+                x => x.Id != PatientId.Empty,
                 () =>
                 {
                     RuleFor(x => x.PatchDocument)
@@ -45,7 +51,7 @@ namespace Patients.Validators.Features.Patients.Commands
 
                         // The patch document should not replace or remove the resource identifier 
                         .Must(patchDocument => !patchDocument.Operations.Any(op => new[] { Replace, Remove }.Contains(op.OperationType) && string.Compare($"/{nameof(PatientInfo.Id)}", op.path, true) == 0))
-                            .OverridePropertyName(nameof(PatchInfo<Guid, PatientInfo>.PatchDocument))
+                            .OverridePropertyName(nameof(PatchInfo<PatientId, PatientInfo>.PatchDocument))
 
                         // Cannot set lastname to null or empty string
                         .Must(patchDocument => !patchDocument.Operations.Any(op => op.OperationType == Replace

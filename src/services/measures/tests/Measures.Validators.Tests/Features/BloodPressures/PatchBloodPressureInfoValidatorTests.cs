@@ -16,6 +16,7 @@ using static Moq.MockBehavior;
 using static System.StringComparison;
 using Measures.Validators.Commands.BloodPressures;
 using Xunit.Categories;
+using Measures.Ids;
 
 namespace Measures.Validators.Tests.Features.BloodPressures
 {
@@ -64,50 +65,50 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                 yield return new object[]
                 {
                     new JsonPatchDocument<BloodPressureInfo>(),
-                    ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                    (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                        && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                     "Patch document has no operation."
                 };
 
                 {
-                    JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
+                    JsonPatchDocument<BloodPressureInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Id, default);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'replace' operation on '/{nameof(BloodPressureInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
+                    JsonPatchDocument<BloodPressureInfo> patchDocument = new();
                     patchDocument.Remove(x => x.Id);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'remove' operation on '/{nameof(BloodPressureInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<BloodPressureInfo> patchDocument = new JsonPatchDocument<BloodPressureInfo>();
-                    patchDocument.Add(x => x.Id, Guid.NewGuid());
+                    JsonPatchDocument<BloodPressureInfo> patchDocument = new();
+                    patchDocument.Add(x => x.Id, BloodPressureId.New());
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'add' operation on '/{nameof(BloodPressureInfo.Id)}'."
                     };
                 }

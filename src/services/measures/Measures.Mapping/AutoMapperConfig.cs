@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
 
 using MedEasy.Mapping;
@@ -9,8 +10,6 @@ using MedEasy.RestObjects;
 
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
-
-using System;
 
 namespace Measures.Mapping
 {
@@ -23,30 +22,31 @@ namespace Measures.Mapping
         /// Creates a new <see cref="MapperConfiguration"/>
         /// </summary>
         /// <returns></returns>
-        public static MapperConfiguration Build() => new MapperConfiguration(cfg =>
+        public static MapperConfiguration Build() => new(cfg =>
         {
             cfg.CreateCoreMapping();
-            
+
             cfg.CreateMap<Patient, PatientInfo>()
                 .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Name))
-                .IncludeBase<IEntity<Guid>, Resource<Guid>>();
+                .IncludeBase<IEntity<PatientId>, Resource<PatientId>>();
 
-            cfg.CreateMap<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
-                .ForMember(dto => dto.PatientId, opt => opt.MapFrom(entity => entity.PatientId))
+            cfg.CreateMap(typeof(PhysiologicalMeasurement<>), typeof(PhysiologicalMeasurementInfo<>))
+                .ForMember(nameof(PhysiologicalMeasurementInfo<BloodPressureId>.PatientId),
+                           opt => opt.MapFrom(nameof(PhysiologicalMeasurement<BloodPressureId>.PatientId)))
                 .ReverseMap();
 
             cfg.CreateMap<BloodPressure, BloodPressureInfo>()
-                .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
+                .IncludeBase<PhysiologicalMeasurement<BloodPressureId>, PhysiologicalMeasurementInfo<BloodPressureId>>()
                 .ReverseMap();
 
             cfg.CreateMap<Temperature, TemperatureInfo>()
-                .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
+                .IncludeBase<PhysiologicalMeasurement<TemperatureId>, PhysiologicalMeasurementInfo<TemperatureId>>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;
 
             cfg.CreateMap<BodyWeight, BodyWeightInfo>()
-                .IncludeBase<PhysiologicalMeasurement, PhysiologicalMeasurementInfo>()
+                .IncludeBase<PhysiologicalMeasurement<BodyWeightId>, PhysiologicalMeasurementInfo<BodyWeightId>>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 ;

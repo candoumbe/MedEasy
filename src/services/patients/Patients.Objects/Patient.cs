@@ -2,14 +2,14 @@
 
 using NodaTime;
 
-using System;
+using Patients.Ids;
 
 namespace Patients.Objects
 {
     /// <summary>
     /// Patient entity
     /// </summary>
-    public class Patient : AuditableEntity<Guid, Patient>
+    public class Patient : AuditableEntity<PatientId, Patient>
     {
         /// <summary>
         /// Firstname
@@ -39,7 +39,7 @@ namespace Patients.Objects
         /// <param name="lastname"></param>
         /// <param name="birthplace"></param>
         /// <param name="birthDate"></param>
-        public Patient(Guid id, string firstname, string lastname)
+        public Patient(PatientId id, string firstname, string lastname)
             : base(id)
         {
             Firstname = firstname;
@@ -56,7 +56,7 @@ namespace Patients.Objects
             BirthDate = birthDate;
             return this;
         }
-        
+
         /// <summary>
         /// Defines where the patient was born
         /// </summary>
@@ -75,12 +75,12 @@ namespace Patients.Objects
         /// <returns></returns>
         public Patient ChangeFirstnameTo(string newFirstname)
         {
-            Lastname = newFirstname;
+            Firstname = newFirstname;
             return this;
         }
 
         /// <summary>
-        /// Changes the <see cref="Patient"/>'s <see cref="Firstname"/>
+        /// Changes the <see cref="Patient"/>'s <see cref="Lastname"/>
         /// </summary>
         /// <param name="newLastname"></param>
         /// <returns></returns>

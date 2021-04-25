@@ -1,10 +1,15 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -35,16 +40,14 @@ namespace Measures.CQRS.Handlers.BloodPressures
 
         public async Task<Option<BloodPressureInfo>> Handle(GetBloodPressureInfoByIdQuery query, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
-                return await uow.Repository<BloodPressure>()
-                    .SingleOrDefaultAsync(
-                        selector,
-                        (BloodPressure x) => x.Id == query.Data,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
+            return await uow.Repository<BloodPressure>()
+                .SingleOrDefaultAsync(
+                    selector,
+                    (BloodPressure x) => x.Id == query.Data,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

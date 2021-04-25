@@ -1,5 +1,7 @@
 ﻿using MedEasy.CQRS.Core.Commands;
+
 using Patients.DTO;
+
 using System;
 
 namespace Patients.CQRS.Commands

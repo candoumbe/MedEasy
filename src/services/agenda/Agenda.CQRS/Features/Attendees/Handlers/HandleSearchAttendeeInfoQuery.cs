@@ -51,7 +51,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
                 ? filters.Single()
                 : new MultiFilter { Logic = And, Filters = filters };
 
-            SearchQueryInfo<AttendeeInfo> data = new SearchQueryInfo<AttendeeInfo>
+            SearchQueryInfo<AttendeeInfo> data = new()
             {
                 Page = requestData.Page,
                 PageSize = requestData.PageSize,
@@ -59,7 +59,7 @@ namespace Agenda.CQRS.Features.Participants.Handlers
                 Filter = filter
             };
 
-            SearchQuery<AttendeeInfo> query = new SearchQuery<AttendeeInfo>(data);
+            SearchQuery<AttendeeInfo> query = new(data);
 
             return await _handleSearch.Search<Attendee, AttendeeInfo>(query, cancellationToken)
                 .ConfigureAwait(false);

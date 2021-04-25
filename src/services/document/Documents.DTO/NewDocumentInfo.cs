@@ -1,9 +1,12 @@
-﻿using MedEasy.RestObjects;
+﻿using Documents.Ids;
+
+using MedEasy.RestObjects;
+
 using System;
 
 namespace Documents.DTO
 {
-    public class NewDocumentInfo : Resource<Guid>, IEquatable<NewDocumentInfo>
+    public class NewDocumentInfo : Resource<DocumentId>, IEquatable<NewDocumentInfo>
     {
         public string Name { get; set; }
 
@@ -15,6 +18,6 @@ namespace Documents.DTO
 
         public override bool Equals(object obj) => Equals(obj as NewDocumentInfo);
 
-        public override int GetHashCode() => (MimeType, Content).GetHashCode()  ;
+        public override int GetHashCode() => (MimeType, Content).GetHashCode();
     }
 }

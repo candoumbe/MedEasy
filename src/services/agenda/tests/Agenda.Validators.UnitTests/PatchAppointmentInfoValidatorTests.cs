@@ -1,4 +1,5 @@
 ﻿using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Objects;
 
 using FluentAssertions;
@@ -35,12 +36,12 @@ namespace Agenda.Validators.UnitTests
     [UnitTest]
     [Feature("Validators")]
     [Feature("Agenda")]
-    public class PatchAppointmentInfoValidatorTests : IDisposable
+    public class PatchAppointmentInfoValidatorTests
     {
-        private ITestOutputHelper _outputHelper;
-        private Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
-        private Mock<IClock> _datetimeServiceMock;
-        private PatchAppointmentInfoValidator _sut;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+        private readonly Mock<IClock> _datetimeServiceMock;
+        private readonly PatchAppointmentInfoValidator _sut;
 
         public PatchAppointmentInfoValidatorTests(ITestOutputHelper outputHelper)
         {
@@ -51,13 +52,6 @@ namespace Agenda.Validators.UnitTests
             _datetimeServiceMock = new Mock<IClock>(Strict);
 
             _sut = new PatchAppointmentInfoValidator(_datetimeServiceMock.Object, _unitOfWorkFactoryMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _unitOfWorkFactoryMock = null;
-            _datetimeServiceMock = null;
-            _sut = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -93,13 +87,13 @@ namespace Agenda.Validators.UnitTests
             get
             {
                 {
-                    Guid appointmentId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
                     yield return new object[]
                     {
                         Enumerable.Empty<Appointment>(),
-                        new PatchInfo<Guid, AppointmentInfo>
+                        new PatchInfo<AppointmentId, AppointmentInfo>
                         {
-                            Id = Guid.NewGuid(),
+                            Id = AppointmentId.New(),
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
                                 .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant())
@@ -116,7 +110,7 @@ namespace Agenda.Validators.UnitTests
                 }
 
                 {
-                    Guid appointmentId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
                     yield return new object[]
                     {
                         new[]
@@ -128,9 +122,9 @@ namespace Agenda.Validators.UnitTests
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
-                        new PatchInfo<Guid, AppointmentInfo>
+                        new PatchInfo<AppointmentId, AppointmentInfo>
                         {
-                            Id = Guid.NewGuid(),
+                            Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
                                 .Test(x => x.Id, appointmentId)
                                 .Replace(x => x.StartDate, 8.March(2019).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant())
@@ -147,19 +141,18 @@ namespace Agenda.Validators.UnitTests
                 }
 
                 {
-                    Guid appointmentId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
                     yield return new object[]
                     {
                         new[]
                         {
-                            new Appointment(
-                                id: appointmentId,
-                                startDate : 12.January(2019).At(10.Hours()).AsUtc().ToInstant(),
-                                endDate : 12.January(2019).At(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
-                                location: "Somewhere in metropolis",
-                                subject: "unknown")
+                            new Appointment(id: appointmentId,
+                                            startDate : 12.January(2019).At(10.Hours()).AsUtc().ToInstant(),
+                                            endDate : 12.January(2019).At(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
+                                            location: "Somewhere in metropolis",
+                                            subject: "unknown")
                         },
-                        new PatchInfo<Guid, AppointmentInfo>
+                        new PatchInfo<AppointmentId, AppointmentInfo>
                         {
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
@@ -177,7 +170,7 @@ namespace Agenda.Validators.UnitTests
                 }
 
                 {
-                    Guid appointmentId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
                     yield return new object[]
                     {
                         new[]
@@ -190,7 +183,7 @@ namespace Agenda.Validators.UnitTests
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
-                        new PatchInfo<Guid, AppointmentInfo>
+                        new PatchInfo<AppointmentId, AppointmentInfo>
                         {
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
@@ -204,7 +197,7 @@ namespace Agenda.Validators.UnitTests
                 }
 
                 {
-                    Guid appointmentId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
                     yield return new object[]
                     {
                         new[]
@@ -217,7 +210,7 @@ namespace Agenda.Validators.UnitTests
                                 subject: string.Empty,
                                 location: string.Empty)
                         },
-                        new PatchInfo<Guid, AppointmentInfo>
+                        new PatchInfo<AppointmentId, AppointmentInfo>
                         {
                             Id = appointmentId,
                             PatchDocument = new JsonPatchDocument<AppointmentInfo>()
@@ -233,13 +226,13 @@ namespace Agenda.Validators.UnitTests
 
         [Theory]
         [MemberData(nameof(InvalidPatchCases))]
-        public async Task ValidatePatch(IEnumerable<Appointment> appointments, PatchInfo<Guid, AppointmentInfo> patch, Expression<Func<IEnumerable<ValidationFailure>, bool>> errorsExpectation, string reason)
+        public async Task ValidatePatch(IEnumerable<Appointment> appointments, PatchInfo<AppointmentId, AppointmentInfo> patch, Expression<Func<IEnumerable<ValidationFailure>, bool>> errorsExpectation, string reason)
         {
             // Arrange
             _outputHelper.WriteLine($"Appointments : {appointments.Jsonify()}");
             _outputHelper.WriteLine($"Changes : {patch.Jsonify()}");
 
-            int callCount= 0;
+            int callCount = 0;
 
             _unitOfWorkFactoryMock.Setup(mock => mock.NewUnitOfWork()
                                                      .Repository<Appointment>()

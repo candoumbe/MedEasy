@@ -25,7 +25,7 @@ namespace MedEasy.Attributes
         /// <inheritdoc/>
         public override string FormatErrorMessage(string name)
         {
-            return $"{name} must be greather than or equals to {Minimum}" ;
+            return $"{name} must be greather than or equals to {Minimum}";
         }
     }
 }

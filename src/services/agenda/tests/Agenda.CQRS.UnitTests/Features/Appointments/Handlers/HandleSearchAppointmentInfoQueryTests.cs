@@ -3,18 +3,22 @@ using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
+
 using AutoMapper.QueryableExtensions;
+
 using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Extensions;
@@ -25,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -34,7 +39,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
     [Feature("Agenda")]
     [UnitTest]
     [Feature("Search")]
-    public class HandleSearchAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleSearchAppointmentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IHandleSearchQuery _searchQueryHandler;
@@ -42,13 +47,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         private IUnitOfWorkFactory _uowFactory;
         private IExpressionBuilder _expressionBuilder;
 
-        public HandleSearchAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleSearchAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
                 AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -61,7 +62,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _sut = new HandleSearchAppointmentInfoQuery(_searchQueryHandler);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -104,7 +107,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .CustomInstantiator(faker => new Appointment(id: Guid.NewGuid(), subject: faker.Lorem.Sentence(),
+                        .CustomInstantiator(faker => new Appointment(id: AppointmentId.New(), subject: faker.Lorem.Sentence(),
                                                                      location: faker.Address.City(),
                                                                      startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
                                                                      endDate: 1.January(2010).At(14.Hours()).AsUtc().ToInstant()));
@@ -132,7 +135,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
+                            id: AppointmentId.New(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
                             startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
@@ -163,7 +166,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
-                        .CustomInstantiator(faker => new Appointment(id: Guid.NewGuid(),
+                        .CustomInstantiator(faker => new Appointment(id: AppointmentId.New(),
                                                                      subject: faker.Lorem.Sentence(),
                                                                      location: faker.Address.City(),
                                                                      startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
@@ -197,7 +200,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
+                            id: AppointmentId.New(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
                             startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),
@@ -231,7 +234,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
+                            id: AppointmentId.New(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
                             startDate: 1.January(2010).At(13.Hours()).AsUtc().ToInstant(),

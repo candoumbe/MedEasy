@@ -1,10 +1,9 @@
-﻿using MedEasy.DTO.Search;
+﻿using Measures.Ids;
+
+using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
-using Newtonsoft.Json;
 
 using NodaTime;
-
-using System;
 
 namespace Measures.DTO
 {
@@ -12,7 +11,6 @@ namespace Measures.DTO
     /// Base class for writing Search classes for 
     /// </summary>
     /// <typeparam name="TMeasureInfo"></typeparam>
-    [JsonObject]
     public abstract class SearchMeasureInfo<TMeasureInfo> : AbstractSearchInfo<TMeasureInfo>
     {
         /// <summary>
@@ -27,6 +25,6 @@ namespace Measures.DTO
         public ZonedDateTime? To { get; set; }
 
         [FormField(Description = "Id of the patient")]
-        public Guid? PatientId { get; set; }
+        public PatientId PatientId { get; set; }
     }
 }

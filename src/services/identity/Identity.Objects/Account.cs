@@ -1,4 +1,7 @@
-﻿using MedEasy.Objects;
+﻿using Identity.Ids;
+
+using MedEasy.Ids;
+using MedEasy.Objects;
 
 using NodaTime;
 
@@ -10,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Identity.Objects
 {
-    public class Account : AuditableEntity<Guid, Account>, IMayHaveTenant
+    public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
 
     {
         /// <summary>
@@ -58,7 +61,7 @@ namespace Identity.Objects
         /// <summary>
         /// Id of the owner of the element
         /// </summary>
-        public Guid? TenantId { get; private set; }
+        public TenantId TenantId { get; private set; }
 
         private readonly IList<AccountRole> _roles;
 
@@ -81,7 +84,7 @@ namespace Identity.Objects
         /// <param name="isActive">Indicates if the account is active.</param>
         /// <param name="tenantid">Tenant's identifier.</param>
         /// <param name="refreshToken">Token that can be used to give the account a new access token.</param>
-        public Account(Guid id,
+        public Account(AccountId id,
                        string username,
                        string email,
                        string passwordHash,
@@ -89,7 +92,7 @@ namespace Identity.Objects
                        string name = "",
                        bool locked = false,
                        bool isActive = false,
-                       Guid? tenantId = null,
+                       TenantId? tenantId = null,
                        string refreshToken = null) : base(id)
         {
             Username = username;
@@ -103,7 +106,6 @@ namespace Identity.Objects
             RefreshToken = refreshToken;
             _roles = new List<AccountRole>();
             _claims = new List<AccountClaim>();
-            
         }
 
         /// <summary>
@@ -157,7 +159,7 @@ namespace Identity.Objects
 
             optionClaim.Match(
                 some: ac => ac.ChangeValueTo(value),
-                () => _claims.Add(new AccountClaim(Id, Guid.NewGuid(), type, value, start, end))
+                () => _claims.Add(new AccountClaim(Id, AccountClaimId.New(), type, value, start, end))
             );
         }
 
@@ -181,9 +183,9 @@ namespace Identity.Objects
         /// </summary>
         /// <param name="tenantId"></param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
-        public void OwnsBy(Guid? tenantId)
+        public void OwnsBy(TenantId? tenantId)
         {
-            if (tenantId == Guid.Empty)
+            if (tenantId == MedEasy.Ids.TenantId.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(tenantId), tenantId, "Tenant ID cannot be empty");
             }

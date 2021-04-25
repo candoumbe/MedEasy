@@ -7,6 +7,7 @@ using Xunit.Categories;
 using Measures.Objects.Exceptions;
 using NodaTime.Extensions;
 using NodaTime;
+using Measures.Ids;
 
 namespace Measures.Objects.Tests
 {
@@ -17,7 +18,7 @@ namespace Measures.Objects.Tests
         public void Ctor_Should_Throws_ArgumentOutRangeException_When_UUID_IsEmpty()
         {
             // Act
-            Action ctor = () => new Patient(Guid.Empty, "John Doe");
+            Action ctor = () => new Patient(PatientId.Empty, "John Doe");
 
             // Assert
             ctor.Should()
@@ -28,11 +29,11 @@ namespace Measures.Objects.Tests
         public void Ctor_Should_Create_Valid_Instance()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            PatientId id = PatientId.New();
             const string initialName = "John Doe";
 
             // Act
-            Patient expected = new Patient(id, initialName);
+            Patient expected = new(id, initialName);
 
             // Assert
             expected.Id.Should()
@@ -53,7 +54,7 @@ namespace Measures.Objects.Tests
         public void ChangeName_Set_Name_Property(string newName, string expected, string reason)
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+            Patient patient = new(PatientId.New(), "John Doe");
 
             // Act
             patient.ChangeNameTo(newName);
@@ -67,7 +68,7 @@ namespace Measures.Objects.Tests
         public void ChangingName_To_Null_Throws_ArgumentNullException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "clark kent");
+            Patient patient = new(PatientId.New(), "clark kent");
 
             // Act
             Action changingName = () => patient.ChangeNameTo(null);
@@ -83,19 +84,19 @@ namespace Measures.Objects.Tests
         {
             get
             {
-                yield return new object[] { Guid.NewGuid(), 10.April(2012).AsUtc().ToInstant(), 120, 80 };
+                yield return new object[] { BloodPressureId.New(), 10.April(2012).AsUtc().ToInstant(), 120, 80 };
             }
         }
 
         [Theory]
         [MemberData(nameof(AddBloodPressureCases))]
-        public void AddingBloodPressure_Should_AddMeasure(Guid measureId, Instant dateOfMeasure, float systolic, float diastolic)
+        public void AddingBloodPressure_Should_AddMeasure(BloodPressureId measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+            Patient patient = new(PatientId.New(), "John Doe");
 
             // Act
-            patient.AddBloodPressure(measureId, dateOfMeasure , systolic, diastolic);
+            patient.AddBloodPressure(measureId, dateOfMeasure, systolic, diastolic);
 
             // Assert
             BloodPressure measure = patient.BloodPressures.Should()
@@ -115,10 +116,10 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithNoId_Throws_ArgumentOutOfRangeException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+            Patient patient = new(PatientId.New(), "John Doe");
 
             // Act
-            Action addWithNoId = () => patient.AddBloodPressure(Guid.Empty, 22.April(2014).AsUtc().ToInstant(), systolic: 150, diastolic: 80);
+            Action addWithNoId = () => patient.AddBloodPressure(BloodPressureId.Empty, 22.April(2014).AsUtc().ToInstant(), systolic: 150, diastolic: 80);
 
             // Assert
             addWithNoId.Should()
@@ -129,13 +130,13 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithExistingId_Throws_DuplicateIdException()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
+            Patient patient = new(PatientId.New(), "John Doe");
 
-            Guid measureId = Guid.NewGuid();
+            BloodPressureId measureId = BloodPressureId.New();
             patient.AddBloodPressure(measureId, 18.April(2012).AsUtc().ToInstant(), systolic: 120, diastolic: 50);
 
             // Act
-            Action addMeasureWithDuplicateId = () => patient.AddBloodPressure(measureId, 18.April(2013).AsUtc().ToInstant(), systolic: 130 , diastolic: 90);
+            Action addMeasureWithDuplicateId = () => patient.AddBloodPressure(measureId, 18.April(2013).AsUtc().ToInstant(), systolic: 130, diastolic: 90);
 
             // Assert
             addMeasureWithDuplicateId.Should()
@@ -146,10 +147,10 @@ namespace Measures.Objects.Tests
         public void RemoveExistingBloodPressure_Should_Remove_TheMeasure()
         {
             // Arrange
-            Patient patient = new Patient(Guid.NewGuid(), "John Doe");
-            Guid measureId = Guid.NewGuid();
+            Patient patient = new(PatientId.New(), "John Doe");
+            BloodPressureId measureId = BloodPressureId.New();
 
-            patient.AddBloodPressure(measureId, 10.April(2014).AsUtc().ToInstant(), systolic : 120, diastolic : 80);
+            patient.AddBloodPressure(measureId, 10.April(2014).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
 
             // Act
             patient.DeleteBloodPressure(measureId);

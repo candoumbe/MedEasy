@@ -1,10 +1,11 @@
-﻿using MedEasy.RestObjects;
+﻿using Identity.Ids;
 
-using System;
+using MedEasy.Ids;
+using MedEasy.RestObjects;
 
 namespace Identity.DTO
 {
-    public class SearchAccountInfoResult : Resource<Guid>
+    public class SearchAccountInfoResult : Resource<AccountId>
     {
         public string Username { get; set; }
 
@@ -17,6 +18,6 @@ namespace Identity.DTO
         /// </summary>
         public string Name { get; set; }
 
-        public Guid? TenantId { get; set; }
+        public TenantId? TenantId { get; set; }
     }
 }

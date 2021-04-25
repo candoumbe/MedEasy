@@ -1,4 +1,5 @@
 ﻿using MedEasy.CQRS.Core.Queries;
+
 using System;
 
 namespace Identity.CQRS.Queries

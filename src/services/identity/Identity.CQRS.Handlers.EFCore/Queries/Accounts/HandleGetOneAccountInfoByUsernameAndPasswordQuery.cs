@@ -42,20 +42,19 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
             Expression<Func<AccountClaim, ClaimInfo>> userClaimToClaimInfoSelector = _expressionBuilder.GetMapExpression<AccountClaim, ClaimInfo>();
 
             var usernameAndPassword = await uow.Repository<Account>()
-                                        .SingleOrDefaultAsync(
-                                            x => new
-                                            {
-                                                x.Id,
-                                                x.Name,
-                                                x.Username,
-                                                x.Email,
-                                                x.PasswordHash,
-                                                x.Salt
-                                            },
-                                            (Account x) => x.Username == data.Username,
-                                            ct
-                                        )
-                                        .ConfigureAwait(false);
+                                                .SingleOrDefaultAsync(x => new
+                                                                      {
+                                                                          x.Id,
+                                                                          x.Name,
+                                                                          x.Username,
+                                                                          x.Email,
+                                                                          x.PasswordHash,
+                                                                          x.Salt
+                                                                      },
+                                                                      (Account x) => x.Username == data.Username,
+                                                                      ct
+                                                )
+                                                .ConfigureAwait(false);
 
             return await usernameAndPassword.Match(
                 some: async userFoundData =>

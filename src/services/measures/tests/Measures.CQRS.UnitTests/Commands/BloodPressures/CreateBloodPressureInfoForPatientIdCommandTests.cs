@@ -1,7 +1,10 @@
 ﻿using FluentAssertions;
+
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.DTO;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -26,7 +29,7 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
         [Fact]
         public void Ctor_Is_Valid()
         {
-            CreateBloodPressureInfoForPatientIdCommand instance = new CreateBloodPressureInfoForPatientIdCommand(new CreateBloodPressureInfo()
+            CreateBloodPressureInfoForPatientIdCommand instance = new(new CreateBloodPressureInfo()
             {
             });
 

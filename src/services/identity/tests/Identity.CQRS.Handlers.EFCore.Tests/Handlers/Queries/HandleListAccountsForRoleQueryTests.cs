@@ -8,6 +8,7 @@ using Identity.CQRS.Handlers.Queries;
 using Identity.CQRS.Queries.Roles;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
 
@@ -16,8 +17,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -36,7 +35,7 @@ using Xunit.Abstractions;
 
 namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
 {
-    public class HandleListAccountsForRoleQueryTests : IClassFixture<SqliteDatabaseFixture>
+    public class HandleListAccountsForRoleQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -45,29 +44,25 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
 
         private readonly HandleListAccountsForRoleQuery _sut;
 
-        public HandleListAccountsForRoleQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleListAccountsForRoleQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                   .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) => {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
 
             _roleFaker = new Faker<Role>()
                     .CustomInstantiator((faker) => new Role(
-                        id: Guid.NewGuid(),
+                        id: RoleId.New(),
                         code: faker.Lorem.Word()
                     ));
 
             _sut = new HandleListAccountsForRoleQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
-
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
@@ -111,7 +106,7 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
         public async Task Handle_returns_none_when_account_does_not_exist()
         {
             // Act
-            Option<IEnumerable<AccountInfo>> optionalResource = await _sut.Handle(new ListAccountsForRoleQuery(Guid.NewGuid()), default)
+            Option<IEnumerable<AccountInfo>> optionalResource = await _sut.Handle(new ListAccountsForRoleQuery(RoleId.New()), default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -131,7 +126,7 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
             await uow.SaveChangesAsync()
                      .ConfigureAwait(false);
 
-            ListAccountsForRoleQuery query = new ListAccountsForRoleQuery(role.Id);
+            ListAccountsForRoleQuery query = new(role.Id);
 
             // Act
             Option<IEnumerable<AccountInfo>> optionAccounts = await _sut.Handle(query, default)
@@ -150,10 +145,10 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
             // Arrange
             Role role = _roleFaker.Generate();
             role.AddOrUpdateClaim("documents", "read");
-            
-            Faker faker = new Faker();
 
-            Account account = new Account(Guid.NewGuid(), faker.Internet.UserName(), faker.Internet.Email(), "a_random_password", "a_salt");
+            Faker faker = new();
+
+            Account account = new(AccountId.New(), faker.Internet.UserName(), faker.Internet.Email(), "a_random_password", "a_salt");
 
             account.AddRole(role);
 
@@ -164,7 +159,7 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
             await uow.SaveChangesAsync()
                      .ConfigureAwait(false);
 
-            ListAccountsForRoleQuery query = new ListAccountsForRoleQuery(role.Id);
+            ListAccountsForRoleQuery query = new(role.Id);
 
             // Act
             Option<IEnumerable<AccountInfo>> optionAccounts = await _sut.Handle(query, default)
@@ -174,10 +169,11 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
             optionAccounts.HasValue.Should()
                                 .BeTrue("the role exists and was found");
 
-            optionAccounts.MatchSome(accounts => {
-                    accounts.Should()
-                         .HaveCount(1).And
-                         .Contain(acc => acc.Id == account.Id, "account has the specified role");
+            optionAccounts.MatchSome(accounts =>
+            {
+                accounts.Should()
+                     .HaveCount(1).And
+                     .Contain(acc => acc.Id == account.Id, "account has the specified role");
             });
         }
     }

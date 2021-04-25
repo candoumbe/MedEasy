@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
+
 using FluentAssertions;
-using FluentAssertions.Extensions;
+
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Events.Accounts;
 using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
@@ -8,28 +9,36 @@ using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
 using NodaTime.Testing;
 
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Identity.CQRS.UnitTests.Handlers.Accounts
@@ -37,7 +46,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
     [UnitTest]
     [Feature("Accounts")]
     [Feature("Handlers")]
-    public class HandleCreateAccountInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateAccountInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -45,15 +54,13 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         private Mock<IMediator> _mediatorMock;
         private HandleCreateAccountInfoCommand _sut;
 
-        public HandleCreateAccountInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleCreateAccountInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -63,7 +70,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
             _sut = new HandleCreateAccountInfoCommand(_uowFactory, mapper: _mapperMock.Object, mediator: _mediatorMock.Object);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -86,10 +95,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => (uowFactory, mapper))
                     //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
-                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
+                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.mapper, mediator))
                     //.Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder != null || tuple.mediator != null)
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator })
                     .Where(tuple => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
@@ -123,14 +132,11 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         {
             // Arrange
             Guid resourceId = Guid.NewGuid();
-            Account existingAccount = new Account
-            (
-                id: Guid.NewGuid(),
-                username : "thebatman",
-                email: "thecaped@crusader.com",
-                passwordHash : "fjeiozfjzfdcvqcnjifozjffkjioj",
-                salt : "some_salt_and_pepper"
-            );
+            Account existingAccount = new(id: AccountId.New(),
+                                           username: "thebatman",
+                                           email: "thecaped@crusader.com",
+                                           passwordHash: "fjeiozfjzfdcvqcnjifozjffkjioj",
+                                           salt: "some_salt_and_pepper");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -139,7 +145,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .ConfigureAwait(false);
             }
 
-            NewAccountInfo newResourceInfo = new NewAccountInfo
+            NewAccountInfo newResourceInfo = new()
             {
                 Username = existingAccount.Username,
                 Password = "thecapedcrusader",
@@ -155,7 +161,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
-            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newResourceInfo);
+            CreateAccountInfoCommand cmd = new(newResourceInfo);
 
             // Act
             Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
@@ -184,7 +190,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         {
             // Arrange
 
-            NewAccountInfo newResourceInfo = new NewAccountInfo
+            NewAccountInfo newResourceInfo = new()
             {
                 Username = "thebatman",
                 Password = "thecapedcrusader",
@@ -192,7 +198,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 Email = "b.wayne@gotham.com"
             };
 
-            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newResourceInfo);
+            CreateAccountInfoCommand cmd = new(newResourceInfo);
 
             // Act
             Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
@@ -220,9 +226,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
         public async Task GivenCorrectData_Handler_Create_Account()
         {
             // Arrange
-            NewAccountInfo newAccount = new NewAccountInfo
+            NewAccountInfo newAccount = new()
             {
-                Name ="Bruce Wayne",
+                Id = AccountId.New(),
+                Name = "Bruce Wayne",
                 Username = "thebatman",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader",
@@ -244,7 +251,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                 .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
                 {
                     using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-                    DateTimeOffset now = 10.January(2010).At(10.Hours().And(37.Minutes()));
                     Option<Account> optionalAccount = await uow.Repository<Account>()
                         .SingleOrDefaultAsync(x => x.Id == query.Data, ct)
                         .ConfigureAwait(false);
@@ -255,7 +261,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                             using IUnitOfWork unitOfWorkClaims = _uowFactory.NewUnitOfWork();
                             IEnumerable<ClaimInfo> claimsOverride = await unitOfWorkClaims.Repository<Account>()
                                                                                             .SingleAsync(selector: acc => acc.Claims.Select(ac => new ClaimInfo { Type = ac.Claim.Type, Value = ac.Claim.Value })
-                                                                                                    .ToList(),
+                                                                                                                                    .ToList(),
                                                                                                 predicate: (Account acc) => acc.Id == account.Id,
                                                                                                 ct)
                                                                                             .ConfigureAwait(false);
@@ -263,7 +269,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                             IEnumerable<string> claimsTypesGranted = claimsOverride.Select(x => x.Type)
                                                                                    .ToArray();
 
-                            AccountInfo accountInfo = new AccountInfo
+                            AccountInfo accountInfo = new()
                             {
                                 Username = account.Name,
                                 Email = account.Email,
@@ -282,7 +288,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .ConfigureAwait(false);
                 });
 
-            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
+            CreateAccountInfoCommand cmd = new(newAccount);
 
             // Act
             Option<AccountInfo, CreateCommandResult> optionalResult = await _sut.Handle(cmd, default)
@@ -315,7 +321,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     newEntity.Salt.Should()
                         .NotBeNullOrWhiteSpace();
                     newEntity.Id.Should()
-                        .NotBeEmpty("Id must not be empty");
+                        .NotBe(AccountId.Empty, "Id must not be empty");
                     newEntity.Email.Should()
                         .Be(resource.Email);
                     newEntity.EmailConfirmed.Should()

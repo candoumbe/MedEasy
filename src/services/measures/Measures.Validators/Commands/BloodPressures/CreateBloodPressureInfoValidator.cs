@@ -1,9 +1,14 @@
 ﻿using FluentValidation;
+
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using System;
 using System.Threading;
+
 using static FluentValidation.Severity;
 
 namespace Measures.Validators.Commands.BloodPressures
@@ -40,14 +45,12 @@ namespace Measures.Validators.Commands.BloodPressures
                 () =>
                 {
                     RuleFor(x => x.PatientId)
-                        .MustAsync(async (Guid patientId, CancellationToken ct) =>
+                        .MustAsync(async (PatientId patientId, CancellationToken ct) =>
                         {
-                            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-                            {
-                                return await uow.Repository<Patient>()
-                                    .AnyAsync(x => x.Id == patientId, ct)
-                                    .ConfigureAwait(false);
-                            }
+                            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+                            return await uow.Repository<Patient>()
+                                            .AnyAsync(x => x.Id == patientId, ct)
+                                            .ConfigureAwait(false);
                         });
                 }
             );

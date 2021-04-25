@@ -2,6 +2,7 @@
 
 using Identity.CQRS.Queries.Roles;
 using Identity.DTO;
+using Identity.Ids;
 
 using MedEasy.CQRS.Core.Queries;
 
@@ -28,7 +29,7 @@ namespace Identity.CQRS.Handlers.EFCore.Tests.Queries.Roles
         public void IsValid() => typeof(ListAccountsForRoleQuery).Should()
                                                                  .NotHaveDefaultConstructor().And
                                                                  .NotBeStatic().And
-                                                                 .HaveConstructor(new[] { typeof(Guid) }).And
-                                                                 .BeDerivedFrom<QueryBase<Guid, Guid, Option<IEnumerable<AccountInfo>>>>();
+                                                                 .HaveConstructor(new[] { typeof(RoleId) }).And
+                                                                 .BeDerivedFrom<QueryBase<Guid, RoleId, Option<IEnumerable<AccountInfo>>>>();
     }
 }

@@ -1,18 +1,25 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
 using Measures.Context;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Events;
 using Measures.CQRS.Handlers.Patients;
+using Measures.Ids;
 using Measures.Mapping;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -24,31 +31,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleDeletePatientInfoByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleDeletePatientInfoByIdCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private IExpressionBuilder _expressionBuilder;
-        private Mock<IMediator> _mediatorMock;
-        private HandleDeletePatientInfoByIdCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly HandleDeletePatientInfoByIdCommand _sut;
 
-        public HandleDeletePatientInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleDeletePatientInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -56,14 +63,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _sut = new HandleDeletePatientInfoByIdCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _expressionBuilder = null;
-            _sut = null;
-            _mediatorMock = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -74,15 +73,13 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
-                IEnumerable<object[]> cases = uowFactorieCases
+                return uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder })
                     .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.expressionBuilder, mediator))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator })
                     .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null)
                     .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator });
-
-                return cases;
             }
         }
 
@@ -90,9 +87,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleDeletePatientInfoByIdCommand(unitOfWorkFactory, expressionBuilder, mediator);
@@ -109,8 +106,8 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public async Task DeletePatient()
         {
             // Arrange
-            Guid idToDelete = Guid.NewGuid();
-            Patient patient = new Patient(idToDelete, "victor zsasz");
+            PatientId idToDelete = PatientId.New();
+            Patient patient = new(idToDelete, "victor zsasz");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(patient);
@@ -118,7 +115,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     .ConfigureAwait(false);
             }
 
-            DeletePatientInfoByIdCommand cmd = new DeletePatientInfoByIdCommand(idToDelete);
+            DeletePatientInfoByIdCommand cmd = new(idToDelete);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -148,15 +145,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             get
             {
                 {
-                    Guid idPatient = Guid.NewGuid();
+                    PatientId idPatient = PatientId.New();
                     yield return new object[]
                     {
                         new Patient(idPatient, "Solomon"),
 
                         new []
                         {
-                            new BloodPressure(Guid.NewGuid(),
-                                idPatient,
+                            new BloodPressure(idPatient,
+                                BloodPressureId.New(),
                                 dateOfMeasure: 30.September(2007).AsUtc().ToInstant(),
                                 systolicPressure : 120,
                                 diastolicPressure : 80

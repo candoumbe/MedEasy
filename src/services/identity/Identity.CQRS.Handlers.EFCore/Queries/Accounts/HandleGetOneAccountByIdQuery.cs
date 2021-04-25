@@ -1,10 +1,15 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,25 +39,23 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
         public async Task<Option<AccountInfo>> Handle(GetOneAccountByIdQuery query, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                // TODO use a selector
-                Option<Account> optionalAccount = await uow.Repository<Account>()
-                    .SingleOrDefaultAsync(x => x.Id== query.Data,
-                    ct)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            // TODO use a selector
+            Option<Account> optionalAccount = await uow.Repository<Account>()
+                                                       .SingleOrDefaultAsync(x => x.Id == query.Data,
+                                                                             ct)
+                                                       .ConfigureAwait(false);
 
-                return optionalAccount.Match(
-                    some: account => Option.Some(new AccountInfo
-                    {
-                        Id = account.Id,
-                        Email = account.Email,
-                        Name = account.Name,
-                        Username = account.Username
-                    }),
-                    none: () => Option.None<AccountInfo>()
-                );
-            }
+            return optionalAccount.Match(
+                some: account => Option.Some(new AccountInfo
+                {
+                    Id = account.Id,
+                    Email = account.Email,
+                    Name = account.Name,
+                    Username = account.Username
+                }),
+                none: () => Option.None<AccountInfo>()
+            );
         }
     }
 }

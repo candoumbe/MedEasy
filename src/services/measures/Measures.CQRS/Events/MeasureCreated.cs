@@ -1,4 +1,5 @@
 ﻿using MedEasy.CQRS.Core.Events;
+
 using System;
 
 namespace Measures.CQRS.Events
@@ -17,6 +18,6 @@ namespace Measures.CQRS.Events
         /// <param name="eventId">Event's identifier. Should uniquely identifies an event accross the entire system</param>
         /// <param name="data">Data associated with the event</param>
         protected MeasureCreated(TId eventId, TMeasure data) : base(eventId, data)
-        {}
+        { }
     }
 }

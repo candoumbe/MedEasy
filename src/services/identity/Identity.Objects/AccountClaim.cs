@@ -1,8 +1,8 @@
-﻿using MedEasy.Objects;
+﻿using Identity.Ids;
+
+using MedEasy.Objects;
 
 using NodaTime;
-
-using System;
 
 namespace Identity.Objects
 {
@@ -12,9 +12,9 @@ namespace Identity.Objects
     /// <remarks>
     /// This association takes precedence over a <see cref="RoleClaim"/> association for a given <see cref="Claim"/>.
     /// </remarks>
-    public class AccountClaim : Entity<Guid, AccountClaim>
+    public class AccountClaim : Entity<AccountClaimId, AccountClaim>
     {
-        public Guid AccountId { get;  }
+        public AccountId AccountId { get; }
 
         public Claim Claim { get; private set; }
 
@@ -28,12 +28,12 @@ namespace Identity.Objects
         /// </summary>
         public Instant? End { get; }
 
-        private AccountClaim(Guid accountId, Guid id) : base(id)
+        private AccountClaim(AccountId accountId, AccountClaimId id) : base(id)
         {
             AccountId = accountId;
         }
 
-        public AccountClaim(Guid accountId, Guid id, string type, string value, Instant start, Instant? end) : this (accountId, id)
+        public AccountClaim(AccountId accountId, AccountClaimId id, string type, string value, Instant start, Instant? end) : this(accountId, id)
         {
             AccountId = accountId;
             Claim = new Claim(type, value);

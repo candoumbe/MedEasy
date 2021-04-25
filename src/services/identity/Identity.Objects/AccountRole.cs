@@ -1,5 +1,5 @@
 ﻿
-using System;
+using Identity.Ids;
 
 namespace Identity.Objects
 {
@@ -8,15 +8,15 @@ namespace Identity.Objects
     /// </summary>
     public class AccountRole
     {
-        public Guid AccountId { get; }
+        public AccountId AccountId { get; }
 
-        public Guid RoleId { get; }
+        public RoleId RoleId { get; }
 
         public Role Role { get; set; }
 
         public Account Account { get; }
 
-        public AccountRole(Guid accountId, Guid roleId)
+        public AccountRole(AccountId accountId, RoleId roleId)
         {
             AccountId = accountId;
             RoleId = roleId;

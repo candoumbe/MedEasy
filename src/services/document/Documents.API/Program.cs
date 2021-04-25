@@ -36,26 +36,24 @@ namespace Documents.API
 
             try
             {
-                if (!context.Database.IsInMemory())
-                {
-                    logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
-                    // Forces database migrations on startup
-                    RetryPolicy policy = Policy
-                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
-                        .WaitAndRetryAsync(
-                            retryCount: 5,
-                            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                            onRetry: (exception, _, attempt, __) =>
-                                logger?.LogError(exception, "Error while upgrading database (Attempt {Attempt})", attempt)
-                            );
-                    logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
+                logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
+                // Forces database migrations on startup
+                RetryPolicy policy = Policy
+                    .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                    .WaitAndRetryAsync(
+                        retryCount: 5,
+                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                        onRetry: (exception, _, attempt, __) =>
+                            logger?.LogError(exception, "Error while upgrading database (Attempt {Attempt})", attempt)
+                        );
+                logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
 
-                    // Forces datastore migration on startup
-                    await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                        .ConfigureAwait(false);
+                // Forces datastore migration on startup
+                await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
+                    .ConfigureAwait(false);
 
-                    logger?.LogInformation("{ApplicationContext} store updated", hostingEnvironment.ApplicationName);
-                }
+                logger?.LogInformation("{ApplicationContext} store updated", hostingEnvironment.ApplicationName);
+
                 await host.RunAsync()
                     .ConfigureAwait(false);
 

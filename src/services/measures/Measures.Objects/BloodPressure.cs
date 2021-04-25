@@ -1,4 +1,6 @@
-﻿using NodaTime;
+﻿using Measures.Ids;
+
+using NodaTime;
 
 using System;
 
@@ -10,7 +12,7 @@ namespace Measures.Objects
     /// <remarks>
     /// All mesures are expressed in milimeters of mercury (mm Hg) 
     /// </remarks>
-    public class BloodPressure : PhysiologicalMeasurement
+    public class BloodPressure : PhysiologicalMeasurement<BloodPressureId>
     {
         /// <summary>
         /// Gets/sets the blood pressure
@@ -29,8 +31,8 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure">dDate of the measure</param>
         /// <param name="diastolicPressure">The diastolic measure</param>
         /// <param name="systolicPressure">The systolic measure</param>
-        public BloodPressure(Guid patientId, Guid id,  Instant dateOfMeasure, float diastolicPressure, float systolicPressure)
-            : base (patientId, id, dateOfMeasure)
+        public BloodPressure(PatientId patientId, BloodPressureId id, Instant dateOfMeasure, float diastolicPressure, float systolicPressure)
+            : base(patientId, id, dateOfMeasure)
         {
             DiastolicPressure = diastolicPressure;
             SystolicPressure = systolicPressure;

@@ -49,14 +49,13 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             Instant utcNow = _dateTimeService.GetCurrentInstant();
 
             return await uow.Repository<Appointment>()
-                .WhereAsync(
-                    selector,
-                    (Appointment x) => utcNow <= x.EndDate,
-                    new Sort<AppointmentInfo>(nameof(Appointment.StartDate)),
-                    request.Data.PageSize,
-                    request.Data.Page,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                            .WhereAsync(selector,
+                                        (AppointmentInfo x) => utcNow <= x.EndDate,
+                                        new Sort<AppointmentInfo>(nameof(Appointment.StartDate)),
+                                        request.Data.PageSize,
+                                        request.Data.Page,
+                                        cancellationToken)
+                            .ConfigureAwait(false);
         }
     }
 }

@@ -5,12 +5,14 @@
     <TargetFrameworks>net5.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.1" />
+    <Compile Remove="Queries\Patients\**" />
+    <EmbeddedResource Remove="Queries\Patients\**" />
+    <None Remove="Queries\Patients\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
     <ProjectReference Include="..\..\Measures.Context\Measures.Context.csproj" />
     <ProjectReference Include="..\..\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\..\Measures.DTO\Measures.DTO.csproj" />
@@ -18,10 +20,6 @@
     <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Queries\Patients\" />
   </ItemGroup>
 
 </Project>

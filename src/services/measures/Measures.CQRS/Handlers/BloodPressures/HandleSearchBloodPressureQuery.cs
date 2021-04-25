@@ -1,9 +1,12 @@
 ﻿using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using MediatR;
+
 using System.Threading;
 using System.Threading.Tasks;
 

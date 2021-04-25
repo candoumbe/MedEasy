@@ -5,10 +5,10 @@ using AutoMapper;
 using MedEasy.Mapping;
 using MedEasy.Objects;
 using MedEasy.RestObjects;
-using System;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Models.v1.Attendees;
 using Agenda.DTO.Resources.Search;
+using Agenda.Ids;
 
 namespace Agenda.Mapping
 {
@@ -18,16 +18,16 @@ namespace Agenda.Mapping
         /// Builds mappings between entities and dtos
         /// </summary>
         /// <returns></returns>
-        public static MapperConfiguration Build() => new MapperConfiguration((cfg) =>
+        public static MapperConfiguration Build() => new((cfg) =>
         {
             cfg.CreateCoreMapping();
             cfg.CreateMap<NewAppointmentInfo, Appointment>()
                 .IgnoreAllPropertiesWithAnInaccessibleSetter()
-                .ConstructUsing((dto) => new Appointment(id: Guid.NewGuid(),
-                                                         startDate: dto.StartDate.ToInstant(),
-                                                         endDate: dto.EndDate.ToInstant(),
-                                                         subject: dto.Subject,
-                                                         location: dto.Location))
+                .ConstructUsing((dto) => new Appointment(AppointmentId.New(),
+                                                         dto.Subject,
+                                                         dto.Location,
+                                                         dto.StartDate.ToInstant(),
+                                                         dto.EndDate.ToInstant()))
                 .ForMember(entity => entity.CreatedDate, opt => opt.Ignore())
                 .ForMember(entity => entity.CreatedBy, opt => opt.Ignore())
                 .ForMember(entity => entity.UpdatedDate, opt => opt.Ignore())
@@ -50,12 +50,12 @@ namespace Agenda.Mapping
             cfg.CreateMap<Appointment, AppointmentInfo>()
                 .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
                 .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
-                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
+                .IncludeBase<IEntity<AppointmentId>, Resource<AppointmentId>>()
                 .ForMember(dto => dto.Attendees, opt => opt.MapFrom(entity => entity.Attendees));
 
             cfg.CreateMap<AppointmentModel, AppointmentInfo>()
                 .ForMember(dto => dto.StartDate, opt => opt.MapFrom(model => model.StartDate.ToInstant()))
-                .ForMember(dto => dto.EndDate,   opt => opt.MapFrom(model => model.EndDate.ToInstant()))
+                .ForMember(dto => dto.EndDate, opt => opt.MapFrom(model => model.EndDate.ToInstant()))
                 .ReverseMap()
                 .ForMember(model => model.StartDate, opt => opt.MapFrom(dto => dto.StartDate.InUtc()))
                 .ForMember(model => model.EndDate, opt => opt.MapFrom(dto => dto.EndDate.InUtc()))
@@ -64,7 +64,7 @@ namespace Agenda.Mapping
             cfg.CreateMap<Attendee, AttendeeInfo>()
                 .ForMember(dto => dto.CreatedDate, opt => opt.MapFrom(entity => entity.CreatedDate))
                 .ForMember(dto => dto.UpdatedDate, opt => opt.MapFrom(entity => entity.UpdatedDate))
-                .IncludeBase<IEntity<Guid>, Resource<Guid>>()
+                .IncludeBase<IEntity<AttendeeId>, Resource<AttendeeId>>()
                 .ReverseMap()
                 .ConstructUsing(dto => new Attendee(dto.Id, dto.Name, dto.Email, dto.PhoneNumber))
                 ;
@@ -73,6 +73,9 @@ namespace Agenda.Mapping
                 .ReverseMap();
 
             cfg.CreateMap<SearchAppointmentInfo, SearchAppointmentModel>()
+                .ReverseMap();
+
+            cfg.CreateMap<SearchAttendeeInfo, SearchAttendeeModel>()
                 .ReverseMap();
         });
     }

@@ -1,17 +1,22 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using FluentAssertions;
+
 using Measures.Context;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Events;
 using Measures.CQRS.Handlers.Patients;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Mapping;
 using Measures.Objects;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -22,31 +27,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleCreatePatientInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreatePatientInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private IExpressionBuilder _expressionBuilder;
-        private Mock<IMediator> _mediatorMock;
-        private HandleCreatePatientInfoCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly HandleCreatePatientInfoCommand _sut;
 
-        public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -54,14 +59,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _mediatorMock = new Mock<IMediator>(Strict);
 
             _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _expressionBuilder = null;
-            _sut = null;
-            _mediatorMock = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -88,9 +85,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
@@ -107,12 +104,12 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public async Task CreatePatientWithNoIdProvided()
         {
             // Arrange
-            NewPatientInfo resourceInfo = new NewPatientInfo
+            NewPatientInfo resourceInfo = new()
             {
                 Name = "victor zsasz",
             };
 
-            CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(resourceInfo);
+            CreatePatientInfoCommand cmd = new(resourceInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -129,34 +126,33 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             createdResource.Should()
                 .NotBeNull();
             createdResource.Id.Should()
-                .NotBeEmpty();
+                .NotBe(PatientId.Empty).And
+                .NotBeNull();
             createdResource.Name.Should()
                 .Be(resourceInfo.Name?.ToTitleCase());
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.Id == createdResource.Id)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            bool createSuccessful = await uow.Repository<Patient>()
+                .AnyAsync(x => x.Id == createdResource.Id)
+                .ConfigureAwait(false);
 
-                createSuccessful.Should().BeTrue("element should be present after handling the create command");
-            }
+            createSuccessful.Should().BeTrue("element should be present after handling the create command");
         }
 
         [Fact]
         public async Task CreatePatientWithIdProvided()
         {
             // Arrange
-            Guid desiredId = Guid.NewGuid();
-            NewPatientInfo resourceInfo = new NewPatientInfo
+            PatientId desiredId = PatientId.New();
+            NewPatientInfo resourceInfo = new()
             {
                 Name = "victor zsasz",
                 Id = desiredId
             };
 
-            CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(resourceInfo);
+            CreatePatientInfoCommand cmd = new(resourceInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -179,27 +175,25 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                bool createSuccessful = await uow.Repository<Patient>()
-                    .AnyAsync(x => x.Id == createdResource.Id)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            bool createSuccessful = await uow.Repository<Patient>()
+                .AnyAsync(x => x.Id == createdResource.Id)
+                .ConfigureAwait(false);
 
-                createSuccessful.Should().BeTrue("element should be present after handling the create command");
-            }
+            createSuccessful.Should().BeTrue("element should be present after handling the create command");
         }
 
         [Fact]
-        public void GivenCommandWithEmptyId_HandlesThrows_Exception()
+        public void Given_command_with_empty_id_Handles_throws_InvalidOperationException()
         {
             // Arrange
-            NewPatientInfo data = new NewPatientInfo
+            NewPatientInfo data = new()
             {
                 Name = "Grundy",
-                Id = Guid.Empty
+                Id = PatientId.Empty
             };
 
-            CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(data);
+            CreatePatientInfoCommand cmd = new(data);
 
             // Act
             Func<Task> action = async () => await _sut.Handle(cmd, default)
@@ -207,7 +201,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
             // Assert
             action.Should()
-                .Throw<InvalidOperationException>($"{nameof(CreatePatientInfoCommand.Data)} is not valid");
+                .NotThrow<InvalidOperationException>($"{nameof(CreatePatientInfoCommand.Data)} will provide a new id");
         }
     }
 }

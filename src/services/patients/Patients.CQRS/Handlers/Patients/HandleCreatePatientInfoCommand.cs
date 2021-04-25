@@ -7,6 +7,7 @@ using MediatR;
 using Patients.CQRS.Commands;
 using Patients.CQRS.Events;
 using Patients.DTO;
+using Patients.Ids;
 using Patients.Objects;
 
 using System;
@@ -47,7 +48,7 @@ namespace Patients.CQRS.Handlers.Patients
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             CreatePatientInfo newResourceInfo = cmd.Data;
 
-            Patient entity = new(newResourceInfo.Id ?? Guid.NewGuid(),
+            Patient entity = new(newResourceInfo.Id ?? PatientId.New(),
                                  firstname: newResourceInfo.Firstname?.ToTitleCase(),
                                  lastname: newResourceInfo.Lastname?.ToUpperInvariant()
             );

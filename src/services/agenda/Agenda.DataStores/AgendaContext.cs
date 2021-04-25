@@ -1,5 +1,7 @@
 ﻿using Agenda.Objects;
+
 using MedEasy.DataStores.Core.Relational;
+
 using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
@@ -47,21 +49,10 @@ namespace Agenda.DataStores
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AppointmentAttendee>()
-                .HasKey(ap => new { ap.AppointmentId, ap.AttendeeId });
-
-            modelBuilder.Entity<AppointmentAttendee>()
-                .HasOne(ap => ap.Appointment)
-                .WithMany(a => a.Attendees)
-                .HasForeignKey(ap => ap.AppointmentId);
-
-            modelBuilder.Entity<AppointmentAttendee>()
-                .HasOne(ap => ap.Attendee)
-                .WithMany(a => a.Appointments)
-                .HasForeignKey(ap => ap.AttendeeId);
-
             modelBuilder.Entity<Appointment>(entity =>
             {
+                entity.Property(x => x.Id);
+
                 entity.Property(x => x.Location)
                     .HasMaxLength(_normalTextLength);
 
@@ -74,9 +65,12 @@ namespace Agenda.DataStores
 
                 entity.Property(x => x.EndDate)
                       .IsRequired();
-            });
 
-            modelBuilder.Entity<Attendee>(entity =>
+                entity.HasMany(x => x.Attendees)
+                      .WithMany(x => x.Appointments)
+                      .UsingEntity(j => j.ToTable("AppointmentAttendee"));
+            })
+                .Entity<Attendee>(entity =>
             {
                 entity.Property(x => x.Name)
                     .HasMaxLength(_normalTextLength)
@@ -86,7 +80,6 @@ namespace Agenda.DataStores
                     .HasMaxLength(_normalTextLength)
                     .IsRequired()
                     .HasDefaultValue(string.Empty);
-
             });
         }
     }

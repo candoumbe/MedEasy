@@ -5,6 +5,7 @@ using FluentAssertions;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers.Commands;
 using Identity.DataStores;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.CQRS.Core.Commands.Results;
@@ -14,7 +15,6 @@ using MedEasy.IntegrationTests.Core;
 
 using MediatR;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using Moq;
@@ -34,21 +34,18 @@ using Claim = System.Security.Claims.Claim;
 
 namespace Identity.CQRS.UnitTests.Handlers.Commands
 {
-    public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private Mock<IClock> _datetimeServiceMock;
         private IUnitOfWorkFactory _uowFactory;
         private HandleInvalidateAccessTokenByUsernameCommand _sut;
 
-        public HandleInvalidateAccessTokenByUsernameCommandTests(SqliteDatabaseFixture databaseFixture)
+        public HandleInvalidateAccessTokenByUsernameCommandTests(SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _datetimeServiceMock = new Mock<IClock>(Strict);
-            DbContextOptionsBuilder<IdentityContext> dbContextBuilderOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>()
-                .UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextBuilderOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -72,7 +69,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
         public async Task InvalidateUnknownUsername_Returns_NotFound()
         {
             // Arrange
-            InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand("thejoker");
+            InvalidateAccessTokenByUsernameCommand cmd = new("thejoker");
 
             // Act
             InvalidateAccessCommandResult cmdResult = await _sut.Handle(cmd, default)
@@ -87,7 +84,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
         public async Task InvalidateUnknownUsername_Returns_Ok_When_User_Try_Invalidate_Itself()
         {
             // Arrange
-            Faker faker = new Faker();
+            Faker faker = new();
             const string username = "administrator";
             SecurityToken securityToken = new JwtSecurityToken(
                 issuer: "server",
@@ -98,13 +95,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
                     new Claim(JwtRegisteredClaimNames.UniqueName, username)
                 }
             );
-            Account account = new Account
-            (
+            Account account = new(
                 username: username,
-                passwordHash : faker.Lorem.Word(),
-                salt : faker.Lorem.Word(),
-                name : "Victor Jones",
-                id: Guid.NewGuid(),
+                passwordHash: faker.Lorem.Word(),
+                salt: faker.Lorem.Word(),
+                name: "Victor Jones",
+                id: AccountId.New(),
                 email: "victor.jones@home.dc"
             );
             account.ChangeRefreshToken(securityToken.ToString());
@@ -116,7 +112,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Commands
                     .ConfigureAwait(false);
             }
 
-            InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand(username);
+            InvalidateAccessTokenByUsernameCommand cmd = new(username);
 
             // Act
             InvalidateAccessCommandResult cmdResult = await _sut.Handle(cmd, default)

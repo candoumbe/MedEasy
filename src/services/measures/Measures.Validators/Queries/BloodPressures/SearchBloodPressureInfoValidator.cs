@@ -4,8 +4,6 @@ using Measures.DTO;
 
 using MedEasy.Validators.Validators;
 
-using NodaTime.Extensions;
-
 namespace Measures.Validators.Queries.BloodPressures
 {
     /// <summary>

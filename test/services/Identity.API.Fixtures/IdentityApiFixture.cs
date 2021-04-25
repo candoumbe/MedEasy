@@ -1,8 +1,19 @@
 using Identity.API.Features.v1.Accounts;
+using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.v1;
 
+using MedEasy.DAL.EFStore;
+using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+using NodaTime;
 
 using System;
 using System.Net.Http;
@@ -16,9 +27,9 @@ using static Newtonsoft.Json.JsonConvert;
 namespace Identity.API.Fixtures
 {
     [Obsolete("Use the versioned equivalent instead")]
-    public class IdentityApiFixture : IntegrationFixture<Startup>
+    public class IdentityApiFixture : IntegrationFixture<Program>
     {
-        private string _version;
+        private readonly string _version;
 
         public IdentityApiFixture() => _version = "1";
 
@@ -28,6 +39,26 @@ namespace Identity.API.Fixtures
             client.Timeout = TimeSpan.FromMinutes(2);
         }
 
+        
+        protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.ConfigureTestServices(services =>
+                                                                             {
+                                                                                 services.Remove<IUnitOfWorkFactory>();
+                                                                                 services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
+                                                                                 {
+                                                                                     DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>().UseSqlite("Datasource=:memory:",
+                                                                                                   options => options.UseNodaTime()
+                                                                                                                     .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
+                                                                                     IClock clock = serviceProvider.GetRequiredService<IClock>();
+                                                                                     return new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options,
+                                                                                                                                     options =>
+                                                                                                                                     {
+                                                                                                                                         IdentityContext context = new IdentityContext(options, clock);
+                                                                                                                                         context.Database.EnsureCreated();
+                                                                                                                                         return context;
+
+                                                                                                                                     });
+                                                                                 });
+                                                                             });
 
         /// <summary>
         /// Register a new account

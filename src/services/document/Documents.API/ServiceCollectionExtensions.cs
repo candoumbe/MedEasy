@@ -29,9 +29,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-
 using NodaTime;
 
 using System;
@@ -42,9 +39,10 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
 using NodaTime.Serialization.SystemTextJson;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MedEasy.Abstractions.ValueConverters;
+using Microsoft.Data.Sqlite;
 
 namespace Documents.API
 {
@@ -58,6 +56,7 @@ namespace Documents.API
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="env"></param>
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
             services.AddControllers(config =>
@@ -65,7 +64,6 @@ namespace Documents.API
                 config.Filters.Add<FormatFilterAttribute>();
                 config.Filters.Add<ValidateModelActionFilter>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
-                //options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
                 // The following policy forces every request to be authenticated
@@ -159,10 +157,15 @@ namespace Documents.API
             static DbContextOptionsBuilder<DocumentsStore> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<DocumentsStore> builder = new DbContextOptionsBuilder<DocumentsStore>();
+                DbContextOptionsBuilder<DocumentsStore> builder = new();
+                builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                        options.UseNodaTime()
+                               .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName);
+                    });
                 }
                 else
                 {
@@ -170,6 +173,7 @@ namespace Documents.API
                     builder.UseNpgsql(
                         configuration.GetConnectionString("documents-db"),
                         options => options.EnableRetryOnFailure(5)
+                            .UseNodaTime()
                             .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
                     );
                 }
@@ -274,7 +278,7 @@ namespace Documents.API
                        ValidateLifetime = true,
                        RequireExpirationTime = true,
                        ValidateIssuerSigningKey = true,
-                       ValidIssuer =   configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                       ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
                        ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
                    };
@@ -320,7 +324,7 @@ namespace Documents.API
                     config.IncludeXmlComments(documentationPath);
                 }
 
-                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
+                OpenApiSecurityScheme bearerSecurityScheme = new()
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,

@@ -1,8 +1,15 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+
+using FluentAssertions;
+
 using Measures.CQRS.Queries.BloodPressures;
+using Measures.Ids;
+
 using MedEasy.RestObjects;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -26,27 +33,27 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
             {
                 yield return new object[]
                 {
-                    Guid.Empty, null,
-                    $"Guid.Empty is not valid for patientId and null is not valid for pagination arguments"
+                    PatientId.Empty, null,
+                    $"PatientId.Empty is not valid for patientId and null is not valid for pagination arguments"
                 };
 
                 yield return new object[]
                 {
-                    Guid.NewGuid(), null,
+                    PatientId.New(), null,
                     $"null not a valid argument for patientId"
                 };
 
                 yield return new object[]
                 {
-                    Guid.Empty, new PaginationConfiguration(),
-                    $"Guid.Empty is not valid for patientId"
+                    PatientId.Empty, new PaginationConfiguration(),
+                    $"PatientId.Empty is not valid for patientId"
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorWithIndividualParameterCases))]
-        public void GivenDefaultParameters_Ctor_ThrowsArgumentOutOfRangeException(Guid patientId, PaginationConfiguration pagination, string reason)
+        public void GivenDefaultParameters_Ctor_ThrowsArgumentOutOfRangeException(PatientId patientId, PaginationConfiguration pagination, string reason)
         {
             // Act
             Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(patientId, pagination);
@@ -62,28 +69,30 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
         {
             get
             {
+                Faker faker = new();
                 yield return new object[]
                 {
-                    default((Guid, PaginationConfiguration)),
-                    $"{default((Guid, PaginationConfiguration))} is not a valid argument"
+                    null,
+                    new PaginationConfiguration { Page = faker.Random.Int(min:1), PageSize = faker.Random.Int(min:1) },
+                    $"{default((PatientId, PaginationConfiguration))} is not a valid argument"
                 };
 
                 yield return new object[]
                 {
-                    new ValueTuple<Guid, PaginationConfiguration>(Guid.Empty, null),
-                    $"<default((Guid, PaginationConfiguration))> is not a valid argument"
+                    PatientId.Empty,
+                    null,
+                    $"{nameof(PatientId)} cannot be empty"
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorWithTupleCases))]
-        public void GivenDefaultParameters_CtorWithTuple_ThrowsArgumentOutOfRangeException((Guid, PaginationConfiguration) data, string reason)
+        public void GivenDefaultParameters_CtorWithTuple_ThrowsArgumentOutOfRangeException(PatientId patientId, PaginationConfiguration pagination, string reason)
         {
-            _outputHelper.WriteLine($"{nameof(data)} : <{data}>");
-
+            
             // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(data);
+            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(patientId, pagination);
 
             // Assert
             action.Should()
@@ -96,14 +105,12 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
         public void GivenSameData_TwoInstances_Have_DifferentIds()
         {
             // Arrange
-            Guid patientId = Guid.NewGuid();
-            PaginationConfiguration pagination = new PaginationConfiguration();
-
-            (Guid, PaginationConfiguration) data = (patientId, pagination);
+            PatientId patientId = PatientId.New();
+            PaginationConfiguration pagination = new();
 
             // Act
-            GetPageOfBloodPressureInfoByPatientIdQuery first = new GetPageOfBloodPressureInfoByPatientIdQuery(data);
-            GetPageOfBloodPressureInfoByPatientIdQuery second = new GetPageOfBloodPressureInfoByPatientIdQuery(data);
+            GetPageOfBloodPressureInfoByPatientIdQuery first = new(patientId, pagination);
+            GetPageOfBloodPressureInfoByPatientIdQuery second = new(patientId, pagination);
 
             first.Id.Should()
                 .NotBeEmpty();

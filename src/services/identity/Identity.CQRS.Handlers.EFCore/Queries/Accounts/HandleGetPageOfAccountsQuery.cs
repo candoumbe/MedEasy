@@ -22,7 +22,7 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
     /// <summary>
     /// Handles <see cref="GetPageOfAccountQuery"/> queries
     /// </summary>
-    public class HandleGetPageOfAccountsQuery : 
+    public class HandleGetPageOfAccountsQuery :
         IRequestHandler<GetPageOfAccountsQuery, Page<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

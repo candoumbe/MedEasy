@@ -120,7 +120,8 @@ namespace Identity.Validators.UnitTests
             validationResult
                 .IsValid
                 .Should()
-                .Be(expectedValidity, reason);        }
+                .Be(expectedValidity, reason);
+        }
 
         [Fact]
         public void IsValidator() => typeof(SecurityTokenLifetimeValidator).Should()

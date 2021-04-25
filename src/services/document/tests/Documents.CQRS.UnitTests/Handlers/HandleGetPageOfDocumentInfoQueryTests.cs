@@ -6,7 +6,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,32 +20,29 @@ using Documents.CQRS.Queries;
 using Documents.DataStore;
 using NodaTime.Testing;
 using NodaTime;
+using Documents.Ids;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
     [Feature(nameof(Documents))]
     [UnitTest]
-    public class HandleGetPageOfDocumentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetPageOfDocumentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>
     {
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfDocumentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
         private static readonly Faker<Document> documentFaker = new Faker<Document>()
                         .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
+                            id: DocumentId.New(),
                             name: faker.PickRandom("pdf", "txt", "odt"),
                             mimeType: faker.System.MimeType())
                         );
 
-        public HandleGetPageOfDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetPageOfDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<DocumentsStore> database)
         {
-            DbContextOptionsBuilder<DocumentsStore> optionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(database.OptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
+                DocumentsStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -54,7 +50,9 @@ namespace Documents.CQRS.UnitTests.Handlers
             _outputHelper = outputHelper;
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -78,7 +76,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                     (1, 10),
                     (Expression<Func<Page<DocumentInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
-                        && page.Entries != null && page.Entries.Count() == 0
+                        && page.Entries != null && page.Entries.Exactly(0)
                     ),
                     "DataStore is empty"
                 };
@@ -117,7 +115,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                     .ConfigureAwait(false);
                 _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
             }
-            GetPageOfDocumentInfoQuery request = new GetPageOfDocumentInfoQuery(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
+            GetPageOfDocumentInfoQuery request = new(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
 
             // Act
             Page<DocumentInfo> page = await _sut.Handle(request, cancellationToken: default)

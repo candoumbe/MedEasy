@@ -5,6 +5,7 @@ using Measures.API.Routing;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
+using Measures.Ids;
 
 using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
@@ -97,7 +98,7 @@ namespace Measures.API.Features.v1.BloodPressures
         [ProducesResponseType(Status400BadRequest)]
         public async Task<IActionResult> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken cancellationToken = default)
         {
-            PaginationConfiguration pagination = new PaginationConfiguration { Page = page, PageSize = Math.Min(pageSize, _apiOptions.Value.MaxPageSize) };
+            PaginationConfiguration pagination = new() { Page = page, PageSize = Math.Min(pageSize, _apiOptions.Value.MaxPageSize) };
 
             Page<BloodPressureInfo> result = await _mediator.Send(new GetPageOfBloodPressureInfoQuery(pagination), cancellationToken)
                                                             .ConfigureAwait(false);
@@ -128,12 +129,12 @@ namespace Measures.API.Features.v1.BloodPressures
                         new Link
                         {
                             Relation = LinkRelation.Self,
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id, version})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, id = x.Id.Value, version})
                         }
                     }
                 });
 
-            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
+            GenericPagedGetResponse<Browsable<BloodPressureInfo>> response = new(
                 resources,
                 firstPageUrl,
                 previousPageUrl,
@@ -156,7 +157,7 @@ namespace Measures.API.Features.v1.BloodPressures
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status200OK)]
-        public async Task<ActionResult<Browsable<BloodPressureInfo>>> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Browsable<BloodPressureInfo>>> Get([RequireNonDefault] BloodPressureId id, CancellationToken cancellationToken = default)
         {
             Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
                     .ConfigureAwait(false);
@@ -173,19 +174,19 @@ namespace Measures.API.Features.v1.BloodPressures
                             {
                                 Relation = LinkRelation.Self,
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value, version })
                             },
                             new Link
                             {
                                 Relation = "delete",
                                 Method = "DELETE",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, bloodPressure.Id, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value, version })
                             },
                             new Link
                             {
                                 Relation = "patient",
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId.Value, version })
                             }
                         }
                     };
@@ -260,7 +261,7 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <response code="400">if <paramref name="id"/> is empty.</response>
         /// <response code="404">if resource is not found.</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Delete([RequireNonDefault] BloodPressureId id, CancellationToken cancellationToken = default)
         {
             DeleteCommandResult result = await _mediator.Send(new DeleteBloodPressureInfoByIdCommand(id), cancellationToken)
                                                         .ConfigureAwait(false);
@@ -319,8 +320,12 @@ namespace Measures.API.Features.v1.BloodPressures
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.From.Value.ToInstant()),
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: GreaterThan, value: search.From.Value.ToInstant())
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure),
+                                   @operator: EqualTo,
+                                   value: search.From.Value.ToInstant()),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure),
+                                   @operator: GreaterThan,
+                                   value: search.From.Value.ToInstant())
                     }
                 });
             }
@@ -331,18 +336,24 @@ namespace Measures.API.Features.v1.BloodPressures
                     Logic = Or,
                     Filters = new[]
                     {
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: EqualTo, value: search.To.Value.ToInstant()),
-                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure), @operator: LessThan, value: search.To.Value.ToInstant())
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure),
+                                   @operator: EqualTo,
+                                   value: search.To.Value.ToInstant()),
+                        new Filter(field: nameof(BloodPressureInfo.DateOfMeasure),
+                                   @operator: LessThan,
+                                   value: search.To.Value.ToInstant())
                     }
                 });
             }
 
-            if (search.PatientId.HasValue)
+            if (search.PatientId is not null)
             {
-                filters.Add(new Filter(field: nameof(BloodPressureInfo.PatientId), @operator: EqualTo, value: search.PatientId.Value));
+                filters.Add(new Filter(field: nameof(BloodPressureInfo.PatientId),
+                                       @operator: EqualTo,
+                                       value: search.PatientId));
             }
 
-            SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new SearchQueryInfo<BloodPressureInfo>
+            SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new()
             {
                 Page = search.Page,
                 PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize),
@@ -370,7 +381,7 @@ namespace Measures.API.Features.v1.BloodPressures
                                                                    Page = 1,
                                                                    search.PageSize,
                                                                    search.Sort,
-                                                                   search.PatientId
+                                                                   patientId = search.PatientId?.Value
                                                                });
                 string previousPageUrl = hasPreviousPage
                         ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
@@ -382,7 +393,7 @@ namespace Measures.API.Features.v1.BloodPressures
                                                        Page = search.Page - 1,
                                                        search.PageSize,
                                                        search.Sort,
-                                                       search.PatientId
+                                                       patientId = search.PatientId?.Value
                                                    })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
@@ -395,7 +406,7 @@ namespace Measures.API.Features.v1.BloodPressures
                                                        Page = search.Page + 1,
                                                        search.PageSize,
                                                        search.Sort,
-                                                       search.PatientId
+                                                       patientId = search.PatientId?.Value
                                                    })
                         : null;
 
@@ -408,7 +419,7 @@ namespace Measures.API.Features.v1.BloodPressures
                                                                   Page = pageOfResult.Count,
                                                                   search.PageSize,
                                                                   search.Sort,
-                                                                  search.PatientId
+                                                                  patientId = search.PatientId?.Value
                                                               });
 
                 IEnumerable<Browsable<BloodPressureInfo>> resources = pageOfResult.Entries
@@ -422,12 +433,12 @@ namespace Measures.API.Features.v1.BloodPressures
                                 {
                                     Relation = LinkRelation.Self,
                                     Method = "GET",
-                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id })
+                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = x.Id.Value })
                                 }
                             }
                         });
 
-                GenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new GenericPagedGetResponse<Browsable<BloodPressureInfo>>(
+                GenericPagedGetResponse<Browsable<BloodPressureInfo>> reponse = new(
                     resources,
                     first: firstPageUrl,
                     previous: previousPageUrl,
@@ -475,15 +486,15 @@ namespace Measures.API.Features.v1.BloodPressures
         /// <response code="404">Resource to "PATCH" not found, the patient resource was not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(ErrorObject), 400)]
-        public async Task<IActionResult> Patch([RequireNonDefault] Guid id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Patch([RequireNonDefault] BloodPressureId id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)
         {
-            PatchInfo<Guid, BloodPressureInfo> info = new PatchInfo<Guid, BloodPressureInfo>
+            PatchInfo<BloodPressureId, BloodPressureInfo> info = new()
             {
                 Id = id,
                 PatchDocument = changes
             };
 
-            PatchCommand<Guid, BloodPressureInfo> cmd = new PatchCommand<Guid, BloodPressureInfo>(info);
+            PatchCommand<BloodPressureId, BloodPressureInfo> cmd = new(info);
 
             ModifyCommandResult result = await _mediator.Send(cmd, cancellationToken)
                 .ConfigureAwait(false);

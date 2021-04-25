@@ -9,7 +9,6 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -26,24 +25,19 @@ namespace Documents.CQRS.UnitTests.Handlers
 {
     [Feature(nameof(Documents))]
     [UnitTest]
-    public class HandleCreateDocumentInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateDocumentInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _unitOfWorkFactory;
         private HandleCreateDocumentInfoCommand _sut;
 
-        public HandleCreateDocumentInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleCreateDocumentInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<DocumentsStore> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<DocumentsStore> dbContextOptionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(warnings => warnings.Throw());
-
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<DocumentsStore>(dbContextOptionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<DocumentsStore>(database.OptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
+                DocumentsStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -54,7 +48,9 @@ namespace Documents.CQRS.UnitTests.Handlers
             _sut = new HandleCreateDocumentInfoCommand(_unitOfWorkFactory);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
             {
@@ -97,7 +93,7 @@ namespace Documents.CQRS.UnitTests.Handlers
             _outputHelper.WriteLine($"{nameof(info)} : {info}");
 
             // Arrange
-            CreateDocumentInfoCommand cmd = new CreateDocumentInfoCommand(info);
+            CreateDocumentInfoCommand cmd = new(info);
 
             // Act
             Option<DocumentInfo, CreateCommandResult> optionalDocument = await _sut.Handle(cmd, default)
@@ -113,13 +109,11 @@ namespace Documents.CQRS.UnitTests.Handlers
                     .NotBeNull().And
                     .Match(createdResourceExpectation);
 
-                using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-                {
-                    bool createdInDatastore = await uow.Repository<Objects.Document>().AnyAsync(x => x.Id == document.Id)
-                        .ConfigureAwait(false);
-                    createdInDatastore.Should()
-                        .BeTrue();
-                }
+                using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+                bool createdInDatastore = await uow.Repository<Objects.Document>().AnyAsync(x => x.Id == document.Id)
+                    .ConfigureAwait(false);
+                createdInDatastore.Should()
+                    .BeTrue();
             });
         }
     }

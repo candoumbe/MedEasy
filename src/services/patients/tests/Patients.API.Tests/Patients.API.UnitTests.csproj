@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\Patients.API\Patients.API.csproj" />
     <ProjectReference Include="..\..\Patients.DTO\Patients.DTO.csproj" />
     <ProjectReference Include="..\..\Patients.Objects\Patients.Objects.csproj" />

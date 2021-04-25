@@ -1,7 +1,10 @@
 ﻿using FluentAssertions;
+
 using Identity.CQRS.Commands.Accounts;
 using Identity.DTO;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -23,7 +26,7 @@ namespace Identity.CQRS.UnitTests.Commands.Accounts
         [Fact]
         public void Ctor_Is_Valid()
         {
-            CreateAccountInfoCommand instance = new CreateAccountInfoCommand(new NewAccountInfo()
+            CreateAccountInfoCommand instance = new(new NewAccountInfo()
             {
             });
 

@@ -24,7 +24,7 @@ namespace Identity.CQRS.UnitTests.Queries.Accounts
         public void GivenNullParameter_Ctor_Throws_ArgumentNullException()
         {
             // Act
-            Action action = () => new GetOneAccountByIdQuery(id : default);
+            Action action = () => new GetOneAccountByIdQuery(id: default);
 
             // Assert
             action.Should()

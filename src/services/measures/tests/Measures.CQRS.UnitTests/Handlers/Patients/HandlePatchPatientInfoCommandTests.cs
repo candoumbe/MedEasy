@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
@@ -6,20 +7,23 @@ using Measures.Context;
 using Measures.CQRS.Events;
 using Measures.CQRS.Handlers.Patients;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Mapping;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DTO;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
-using NodaTime;
 using NodaTime.Extensions;
 using NodaTime.Testing;
 
@@ -28,33 +32,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Moq.MockBehavior;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandlePatchPatientInfoCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandlePatchPatientInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private IMapper _mapper;
-        private Mock<IMediator> _mediatorMock;
-        private HandlePatchPatientInfoCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IMapper _mapper;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly HandlePatchPatientInfoCommand _sut;
 
-        public HandlePatchPatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandlePatchPatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                   .EnableDetailedErrors()
-                   .EnableSensitiveDataLogging();
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new DateTime().AsUtc().ToInstant()));
+                MeasuresContext context = new(options, new FakeClock(new DateTime().AsUtc().ToInstant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -63,15 +65,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
             _sut = new HandlePatchPatientInfoCommand(_uowFactory, _mapper, _mediatorMock.Object);
         }
-
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _mapper = null;
-            _sut = null;
-            _mediatorMock = null;
-        }
-
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
         {
@@ -82,9 +75,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
 
                 IEnumerable<object[]> cases = uowFactorieCases
-                    .CrossJoin(mapperCases, (uowFactory, mapper) => ((uowFactory, mapper)))
+                    .CrossJoin(mapperCases, (uowFactory, mapper) => (uowFactory, mapper))
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper) tuple) => new { tuple.uowFactory, tuple.mapper })
-                    .CrossJoin(mediatorCases, (a, mediator) => ((a.uowFactory, a.mapper, mediator)))
+                    .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.mapper, mediator))
                     .Select(((IUnitOfWorkFactory uowFactory, IMapper mapper, IMediator mediator) tuple) => new { tuple.uowFactory, tuple.mapper, tuple.mediator })
                     .Where(tuple => tuple.uowFactory == null || tuple.mapper == null || tuple.mediator == null)
                     .Select(tuple => (new object[] { tuple.uowFactory, tuple.mapper, tuple.mediator }));
@@ -98,9 +91,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper, IMediator mediator)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(mapper)} is null : {(mapper == null)}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {(mediator == null)}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(mapper)} is null : {mapper == null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandlePatchPatientInfoCommand(unitOfWorkFactory, mapper, mediator);
@@ -117,8 +110,8 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         public async Task PatchPatient()
         {
             // Arrange
-            Guid idToPatch = Guid.NewGuid();
-            Patient entity = new Patient(idToPatch, "victor zsasz");
+            PatientId idToPatch = PatientId.New();
+            Patient entity = new(idToPatch, "victor zsasz");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -127,15 +120,15 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     .ConfigureAwait(false);
             }
 
-            JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+            JsonPatchDocument<PatientInfo> patchDocument = new();
             patchDocument.Replace(x => x.Name, "Darkseid");
 
-            PatchInfo<Guid, PatientInfo> patchInfo = new ()
+            PatchInfo<PatientId, PatientInfo> patchInfo = new()
             {
                 Id = idToPatch,
                 PatchDocument = patchDocument
             };
-            PatchCommand<Guid, PatientInfo> cmd = new PatchCommand<Guid, PatientInfo>(patchInfo);
+            PatchCommand<PatientId, PatientInfo> cmd = new(patchInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);

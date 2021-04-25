@@ -23,7 +23,7 @@
         /// <summary>
         /// Tags associated with the services.
         /// </summary>
-        public string[] Tags { get;  set; }
+        public string[] Tags { get; set; }
 
         public ConsultCheckConfig Check { get; set; }
     }

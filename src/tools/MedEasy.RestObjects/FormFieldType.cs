@@ -11,5 +11,5 @@
         Integer,
         Number,
         Decimal
-    } 
+    }
 }

@@ -2,6 +2,7 @@
 using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
 
@@ -14,8 +15,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Testing;
@@ -34,30 +33,28 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleGetPageOfParticipantInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetPageOfParticipantInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfAttendeeInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
 
-        public HandleGetPageOfParticipantInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetPageOfParticipantInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
 {
-                AgendaContext context = new(options, new FakeClock(new Instant()));
-                context.Database.EnsureCreated();
-                return context;
-            });
+    AgendaContext context = new(options, new FakeClock(new Instant()));
+    context.Database.EnsureCreated();
+    return context;
+});
 
             _sut = new HandleGetPageOfAttendeeInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
             _outputHelper = outputHelper;
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -92,13 +89,13 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     (page:2, pageSize: 10),
                     (Expression<Func<Page<AttendeeInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
-                        && page.Entries != null && page.Entries.Count() == 0
+                        && page.Entries != null && page.Entries.Exactly(0)
                     ),
                     "DataStore is empty"
                 };
                 {
                     Faker<Attendee> attendeeFaker = new Faker<Attendee>()
-                        .CustomInstantiator((faker) => new Attendee(Guid.NewGuid(), faker.Person.FullName));
+                        .CustomInstantiator((faker) => new Attendee(AttendeeId.New(), faker.Person.FullName));
 
                     IEnumerable<Attendee> items = attendeeFaker.Generate(50);
                     yield return new object[]
@@ -133,7 +130,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     .ConfigureAwait(false);
                 _outputHelper.WriteLine($"DataStore count : {appointmentsCount}");
             }
-            
+
             GetPageOfAttendeeInfoQuery request = new(new PaginationConfiguration { Page = pagination.page, PageSize = pagination.pageSize });
 
             // Act

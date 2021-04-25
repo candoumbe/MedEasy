@@ -1,3 +1,5 @@
+using Documents.Ids;
+
 using FluentAssertions;
 
 using System;
@@ -15,12 +17,12 @@ namespace Documents.Objects.Tests
         public void Ctor_builds_a_valid_instance()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
 
             // Act
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             // Assert
             document.Id.Should()
@@ -39,10 +41,10 @@ namespace Documents.Objects.Tests
         public void Changing_size_for_a_document_with_status_Done_throws_InvalidOperationException()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
             document.Lock();
 
             // Act
@@ -57,10 +59,10 @@ namespace Documents.Objects.Tests
         public void Changing_hash_for_a_document_with_status_Done_throws_InvalidOperationException()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             document.Lock();
 
@@ -76,10 +78,10 @@ namespace Documents.Objects.Tests
         public void Changing_hash_for_a_document_to_null_throws_ArgumentNullException()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             // Act
             Action changingHashToNull = () => document.UpdateHash(null);
@@ -93,10 +95,10 @@ namespace Documents.Objects.Tests
         public void Changing_size_to_negative_value_throws_ArgumentOutOfRangeException()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             // Act
             Action changingSizeToNegativeValue = () => document.UpdateSize(-1);
@@ -110,10 +112,10 @@ namespace Documents.Objects.Tests
         public void Changing_name_null_throws_ArgumentNullRangeException()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             // Act
             Action changingNameToNull = () => document.ChangeNameTo(null);
@@ -127,10 +129,10 @@ namespace Documents.Objects.Tests
         public void Lock_change_status_to_done()
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            DocumentId id = DocumentId.New();
             string name = $"Document {Guid.NewGuid()}";
             string mimeType = $"application/octet-stream+{Guid.NewGuid()}";
-            Document document = new Document(id, name, mimeType);
+            Document document = new(id, name, mimeType);
 
             // Act
             document.Lock();

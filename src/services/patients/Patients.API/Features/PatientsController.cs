@@ -1,11 +1,15 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using DataFilters;
+
 using FluentValidation.Results;
+
 using MedEasy.Attributes;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO.Search;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +17,21 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Optional;
+
 using Patients.API.Routing;
 using Patients.DTO;
+using Patients.Ids;
 using Patients.Objects;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Patients.API.Controllers
@@ -32,7 +41,7 @@ namespace Patients.API.Controllers
     /// </summary>
     [Route("[controller]")]
     [ApiController]
-    public class PatientsController : AbstractBaseController<Patient, PatientInfo, Guid>
+    public class PatientsController : AbstractBaseController<Patient, PatientInfo, PatientId>
     {
         private IOptionsSnapshot<PatientsApiOptions> ApiOptions { get; }
 
@@ -70,58 +79,55 @@ namespace Patients.API.Controllers
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-            {
-                pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-                Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                Page<PatientInfo> result = await uow.Repository<Patient>()
-                    .ReadPageAsync(
-                        selector,
-                        pagination.PageSize,
-                        pagination.Page,
-                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate),  SortDirection.Descending),
-                        cancellationToken).ConfigureAwait(false);
+            using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+            pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
+            Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            Page<PatientInfo> result = await uow.Repository<Patient>()
+                .ReadPageAsync(
+                    selector,
+                    pagination.PageSize,
+                    pagination.Page,
+                    new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending),
+                    cancellationToken).ConfigureAwait(false);
 
-                int count = result.Entries.Count();
-                bool hasPreviousPage = count > 0 && pagination.Page > 1;
+            int count = result.Entries.Count();
+            bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-                string firstPageUrl = UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
-                string previousPageUrl = hasPreviousPage
-                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
-                        : null;
+            string firstPageUrl = UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
+            string previousPageUrl = hasPreviousPage
+                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
+                    : null;
 
-                string nextPageUrl = pagination.Page < result.Count
-                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
-                        : null;
-                string lastPageUrl = result.Count > 0
-                        ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                        : firstPageUrl;
+            string nextPageUrl = pagination.Page < result.Count
+                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
+                    : null;
+            string lastPageUrl = result.Count > 0
+                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
+                    : firstPageUrl;
 
-                IEnumerable<Browsable<PatientInfo>> resources = result.Entries
-                    .Select(x => new Browsable<PatientInfo>
+            IEnumerable<Browsable<PatientInfo>> resources = result.Entries
+                .Select(x => new Browsable<PatientInfo>
+                {
+                    Resource = x,
+                    Links = new[]
                     {
-                        Resource = x,
-                        Links = new[]
-                        {
                             new Link
                             {
                                 Relation = LinkRelation.Self,
                                 Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
                             }
-                        }
-                    });
+                    }
+                });
 
-                GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
-                        resources,
-                        firstPageUrl,
-                        previousPageUrl,
-                        nextPageUrl,
-                        lastPageUrl,
-                        result.Total);
+            GenericPagedGetResponse<Browsable<PatientInfo>> response = new(
+                    resources,
+                    firstPageUrl,
+                    previousPageUrl,
+                    nextPageUrl,
+                    lastPageUrl,
+                    result.Total);
 
-                return new OkObjectResult(response);
-
-            }
+            return new OkObjectResult(response);
         }
 
         /// <summary>
@@ -136,19 +142,19 @@ namespace Patients.API.Controllers
         [HttpGet("{id}")]
         [HttpOptions("{id}")]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
-        public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
             using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
             {
                 Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
                 Option<PatientInfo> result = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(selector, (Patient x) =>  x.Id == id, cancellationToken).ConfigureAwait(false);
+                    .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
 
                 actionResult = result.Match<IActionResult>(
                     some: resource =>
                     {
-                        Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
+                        Browsable<PatientInfo> browsableResource = new()
                         {
                             Resource = resource,
                             Links = new[]
@@ -191,26 +197,25 @@ namespace Patients.API.Controllers
         {
             if (newPatient.Id == default)
             {
-                newPatient.Id = Guid.NewGuid();
+                newPatient.Id = PatientId.New();
             }
-            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
+            using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+
+            Patient patient = new Patient(newPatient.Id, newPatient.Firstname, newPatient.Lastname)
+                .WasBornIn(newPatient.BirthPlace)
+                .WasBornOn(newPatient.BirthDate);
+
+            patient = uow.Repository<Patient>().Create(patient);
+
+            await uow.SaveChangesAsync().ConfigureAwait(false);
+            Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            PatientInfo resource = mapEntityToResource.Compile()(patient);
+
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new Browsable<PatientInfo>
             {
-
-                Patient patient = new Patient(newPatient.Id.GetValueOrDefault(Guid.NewGuid()), newPatient.Firstname, newPatient.Lastname)
-                    .WasBornIn(newPatient.BirthPlace)
-                    .WasBornOn(newPatient.BirthDate);
-
-                patient = uow.Repository<Patient>().Create(patient);
-
-                await uow.SaveChangesAsync().ConfigureAwait(false);
-                Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                PatientInfo resource = mapEntityToResource.Compile()(patient);
-
-                return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new Browsable<PatientInfo>
+                Resource = resource,
+                Links = new[]
                 {
-                    Resource = resource,
-                    Links = new[]
-                    {
                         new Link
                         {
                             Relation = "delete",
@@ -218,8 +223,7 @@ namespace Patients.API.Controllers
                             Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })
                         }
                     }
-                });
-            }
+            });
         }
 
         // DELETE measures/bloodpressures/5
@@ -233,21 +237,19 @@ namespace Patients.API.Controllers
         /// <response code="204">if the operation succeed</response>
         /// <response code="400">if <paramref name="id"/> is not valid.</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Delete([FromRoute] PatientId id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
-            if (id == default)
+            if (PatientId.Empty == id)
             {
                 actionResult = new BadRequestResult();
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-                {
-                    uow.Repository<Patient>().Delete(x => x.Id == id);
-                    await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                    actionResult = new NoContentResult();
-                }
+                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+                uow.Repository<Patient>().Delete(x => x.Id == id);
+                await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                actionResult = new NoContentResult();
             }
 
             return actionResult;
@@ -283,7 +285,7 @@ namespace Patients.API.Controllers
         /// <response code="404">Resource not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
-        public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Patch(PatientId id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
 
@@ -293,7 +295,7 @@ namespace Patients.API.Controllers
                 [$"/{nameof(Patient.Lastname)}"] = (patient, value) => patient.ChangeLastnameTo(value?.ToString()),
                 [$"/{nameof(Patient.BirthPlace)}"] = (patient, value) => patient.WasBornIn(value?.ToString()),
             };
-            
+
 
             if (id == default)
             {
@@ -301,58 +303,56 @@ namespace Patients.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-                {
-                    Option<Patient> optionalPatient = await uow.Repository<Patient>()
-                        .SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
-                        .ConfigureAwait(false);
+                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+                Option<Patient> optionalPatient = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
+                    .ConfigureAwait(false);
 
-                    actionResult = await optionalPatient.Match(
-                        some: async (patient) =>
+                actionResult = await optionalPatient.Match(
+                    some: async (patient) =>
+                    {
+                        IActionResult patchActionResult = new NoContentResult();
+
+                        Func<Operation<PatientInfo>, Operation<Patient>> converter = ExpressionBuilder.GetMapExpression<Operation<PatientInfo>, Operation<Patient>>().Compile();
+                        Operation<Patient>[] operations =
+                             changes.Operations
+                             .AsParallel()
+                             .Select(converter)
+                             .ToArray();
+
+                        bool canKeepPatching = true;
+                        int currentOperationIndex = 0;
+
+                        while (canKeepPatching && currentOperationIndex < operations.Count())
                         {
-                            IActionResult patchActionResult = new NoContentResult();
+                            Operation<Patient> currentOperation = operations[currentOperationIndex];
 
-                            Func<Operation<PatientInfo>, Operation<Patient>> converter = ExpressionBuilder.GetMapExpression<Operation<PatientInfo>, Operation<Patient>>().Compile();
-                            Operation<Patient>[] operations =
-                                 changes.Operations
-                                 .AsParallel()
-                                 .Select(converter)
-                                 .ToArray();
-
-                            bool canKeepPatching = true;
-                            int currentOperationIndex = 0;
-
-                            while (canKeepPatching && currentOperationIndex < operations.Count())
+                            switch (currentOperation.OperationType)
                             {
-                                Operation<Patient> currentOperation = operations[currentOperationIndex];
-
-                                switch (currentOperation.OperationType)
-                                {
-                                    case OperationType.Add:
-                                    case OperationType.Replace:
-                                        if (patchActions.TryGetValue(currentOperation.path, out Action<Patient, object> actionToTake))
-                                        {
-                                            actionToTake.Invoke(patient, currentOperation.value);
-                                        }
-                                        break;
-                                    default:
-                                        canKeepPatching = false;
-                                        actionResult = new BadRequestObjectResult($"Unsupported {currentOperation.OperationType} on {currentOperation.path}");
-                                        break;
-                                }
-
-                                currentOperationIndex++;
+                                case OperationType.Add:
+                                case OperationType.Replace:
+                                    if (patchActions.TryGetValue(currentOperation.path, out Action<Patient, object> actionToTake))
+                                    {
+                                        actionToTake.Invoke(patient, currentOperation.value);
+                                    }
+                                    break;
+                                default:
+                                    canKeepPatching = false;
+                                    actionResult = new BadRequestObjectResult($"Unsupported {currentOperation.OperationType} on {currentOperation.path}");
+                                    break;
                             }
 
-                            await uow.SaveChangesAsync(cancellationToken)
-                                .ConfigureAwait(false);
+                            currentOperationIndex++;
+                        }
 
-                            return patchActionResult;
-                        },
-                        none: () => Task.FromResult((IActionResult)new NotFoundResult())
-                    )
-                    .ConfigureAwait(false);
-                }
+                        await uow.SaveChangesAsync(cancellationToken)
+                            .ConfigureAwait(false);
+
+                        return patchActionResult;
+                    },
+                    none: () => Task.FromResult((IActionResult)new NotFoundResult())
+                )
+                .ConfigureAwait(false);
             }
 
             return actionResult;
@@ -392,7 +392,7 @@ namespace Patients.API.Controllers
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery]SearchPatientInfo search, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Firstname))
@@ -405,7 +405,7 @@ namespace Patients.API.Controllers
                 filters.Add($"{nameof(search.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
             }
 
-            SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
+            SearchQueryInfo<PatientInfo> searchQuery = new()
             {
                 Filter = filters.Count == 1
                     ? filters.Single()
@@ -423,7 +423,7 @@ namespace Patients.API.Controllers
             }
             else
             {
-                GenericPagedGetResponse<Browsable<PatientInfo>> page = new GenericPagedGetResponse<Browsable<PatientInfo>>(
+                GenericPagedGetResponse<Browsable<PatientInfo>> page = new(
                         items: pageOfResources.Entries.Select(x => new Browsable<PatientInfo>
                         {
                             Resource = x,
@@ -432,7 +432,7 @@ namespace Patients.API.Controllers
                             {
                                 Method = "GET",
                                 Relation = LinkRelation.Self,
-                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, x.Id })
+                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, Id = x.Id.Value })
                             }
                             }
                         }),

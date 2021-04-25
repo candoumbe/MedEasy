@@ -1,8 +1,12 @@
 ﻿using FluentAssertions;
+
 using MedEasy.CQRS.Core.Commands;
+
 using Patients.CQRS.Commands;
 using Patients.DTO;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

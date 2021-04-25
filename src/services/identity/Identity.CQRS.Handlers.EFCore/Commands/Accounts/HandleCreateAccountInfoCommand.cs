@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
 
 namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
@@ -41,7 +46,9 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             Option<AccountInfo, CreateCommandResult> cmdResult = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
             NewAccountInfo data = request.Data;
-            if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>().AnyAsync(x => x.Username == data.Username, ct).ConfigureAwait(false))
+            if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>()
+                                                                   .AnyAsync(x => x.Username == data.Username, ct)
+                                                                   .ConfigureAwait(false))
             {
                 (string salt, string passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
                                                                     .ConfigureAwait(false);
@@ -52,10 +59,10 @@ namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
                 uow.Repository<Account>().Create(newEntity);
 
                 await uow.SaveChangesAsync(ct)
-                    .ConfigureAwait(false);
+                         .ConfigureAwait(false);
 
                 Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.Id), ct)
-                    .ConfigureAwait(false);
+                                                                         .ConfigureAwait(false);
 
                 optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));
             }

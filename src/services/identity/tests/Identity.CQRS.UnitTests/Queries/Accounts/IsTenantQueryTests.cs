@@ -3,6 +3,7 @@
 using Identity.CQRS.Queries.Accounts;
 
 using MedEasy.CQRS.Core.Queries;
+using MedEasy.Ids;
 
 using System;
 
@@ -16,8 +17,7 @@ namespace Identity.CQRS.UnitTests.Queries.Accounts
     public class IsTenantQueryTests
     {
         [Fact]
-        public void IsQuery() => typeof(IsTenantQuery)
-            .Should()
-            .Implement<IQuery<Guid, Guid, bool>>();
+        public void IsQuery() => typeof(IsTenantQuery).Should()
+                                                      .Implement<IQuery<Guid, TenantId, bool>>();
     }
 }

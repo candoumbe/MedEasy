@@ -42,6 +42,8 @@ using Identity.API.Features.v1.Accounts;
 using Microsoft.AspNetCore.Http;
 using NodaTime.Testing;
 using NodaTime;
+using Identity.Ids;
+using MedEasy.Ids;
 
 namespace Identity.API.UnitTests.Features.v1.Accounts
 {
@@ -51,63 +53,53 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
     [UnitTest]
     [Feature("Accounts")]
     [Feature("Identity")]
-    public class AccountsControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class AccountsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
 
-        private IUnitOfWorkFactory _uowFactory;
-        private static readonly IdentityApiOptions _apiOptions = new IdentityApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
-        private Mock<IMediator> _mediatorMock;
-        private Mock<LinkGenerator> _urlHelperMock;
-        private Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
-        private AccountsController _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private static readonly IdentityApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly Mock<LinkGenerator> _urlHelperMock;
+        private readonly Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
+        private readonly AccountsController _sut;
         private const string _baseUrl = "http://host/api";
         private static ApiVersion _apiVersion;
 
-        public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
-
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) =>
+                $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
-            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            dbContextOptionsBuilder
-                .EnableDetailedErrors()
-                .UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
 
             _mediatorMock = new Mock<IMediator>(Strict);
-            _apiVersion = new ApiVersion(1,0);
+            _apiVersion = new ApiVersion(1, 0);
 
             _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object, _apiVersion);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
-            _outputHelper = null;
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Clear();
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
-            _uowFactory = null;
-            _urlHelperMock = null;
-            _apiOptionsMock = null;
-            _mediatorMock = null;
-            _sut = null;
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -137,7 +129,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 }
 
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
+                    .CustomInstantiator(faker => new Account(id: AccountId.New(),
                         username: faker.Internet.UserName(),
                         email: faker.Internet.Email(),
                         passwordHash: string.Empty,
@@ -251,7 +243,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            AccountId idToDelete = AccountId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -267,7 +259,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task Get_Returns_The_Element()
         {
             // Arrange
-            Guid accountId = Guid.NewGuid();
+            AccountId accountId = AccountId.New();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Account>().Create(new Account
@@ -287,15 +279,13 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneAccountByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Account>()
-                                        .SingleOrDefaultAsync(
-                                            x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username },
-                                            (Account x) => x.Id == query.Data,
-                                            ct)
-                                        .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return await uow.Repository<Account>()
+                                    .SingleOrDefaultAsync(
+                                        x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username },
+                                        (Account x) => x.Id == query.Data,
+                                        ct)
+                                    .ConfigureAwait(false);
                 });
 
             // Act
@@ -324,13 +314,13 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be("thebatman");
@@ -341,25 +331,22 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task Get_Returns_The_Element_With_Tenant()
         {
             // Arrange
-            Guid accountId = Guid.NewGuid();
+            AccountId accountId = AccountId.New();
 
-            Account tenant = new Account
-            (
-                id: Guid.NewGuid(),
-                username: "thebatman",
-                passwordHash: "a_super_secret_password",
-                email: "bruce@wayne-entreprise.com",
-                salt: "salt_and_pepper_for_password",
-                tenantId: Guid.NewGuid()
+            Account tenant = new(id: AccountId.New(),
+                                  username: "thebatman",
+                                  passwordHash: "a_super_secret_password",
+                                  email: "bruce@wayne-entreprise.com",
+                                  salt: "salt_and_pepper_for_password",
+                                  tenantId: TenantId.New()
             );
-            Account newAccount = new Account
-            (
+            Account newAccount = new(
                 id: accountId,
                 username: "robin",
                 passwordHash: "a_super_secret_password",
                 email: "dick.grayson@wayne-entreprise.com",
                 salt: "salt_and_pepper_for_password",
-                tenantId: tenant.Id
+                tenantId: new(tenant.Id.Value)
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -373,15 +360,13 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneAccountByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
                 {
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Account>()
-                                        .SingleOrDefaultAsync(
-                                            x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
-                                            (Account x) => x.Id == query.Data,
-                                            ct)
-                                        .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return await uow.Repository<Account>()
+                                    .SingleOrDefaultAsync(
+                                        x => new AccountInfo { Id = x.Id, Email = x.Email, Username = x.Username, TenantId = x.TenantId },
+                                        (Account x) => x.Id == query.Data,
+                                        ct)
+                                    .ConfigureAwait(false);
                 });
 
             // Act
@@ -411,17 +396,17 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             Link tenantLink = browsableResource.Links.Single(x => x.Relation == "tenant");
             tenantLink.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId.Value}&version={_apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={_apiVersion}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be(newAccount.Username);
@@ -437,7 +422,8 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 .ReturnsAsync(Option.None<AccountInfo>());
 
             // Act
-            IActionResult actionResult = await _sut.Get(id: Guid.NewGuid(), ct: default);
+            IActionResult actionResult = await _sut.Get(id: AccountId.New(), ct: default)
+                                                   .ConfigureAwait(false);
 
             // Assert
             actionResult.Should()
@@ -452,7 +438,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            AccountId idToDelete = AccountId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -472,7 +458,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            AccountId idToDelete = AccountId.New();
             IActionResult actionResult = await _sut.Delete(idToDelete, ct: default)
                 .ConfigureAwait(false);
 
@@ -487,7 +473,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()
         {
-            JsonPatchDocument<AccountInfo> changes = new JsonPatchDocument<AccountInfo>();
+            JsonPatchDocument<AccountInfo> changes = new();
             changes.Replace(x => x.Email, "bruce.wayne@gorham.com");
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, AccountInfo>>(), It.IsAny<CancellationToken>()))
@@ -506,7 +492,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task Patch_Valid_Resource_Returns_NoContentResult()
         {
             // Arrange
-            JsonPatchDocument<AccountInfo> changes = new JsonPatchDocument<AccountInfo>();
+            JsonPatchDocument<AccountInfo> changes = new();
             changes.Replace(x => x.Email, "bruce.wayne@gorham.com");
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, AccountInfo>>(), It.IsAny<CancellationToken>()))
@@ -527,7 +513,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task GivenMediatorReturnsConflict_PostReturns_ConflictedResult()
         {
             // Arrange
-            NewAccountInfo newAccount = new NewAccountInfo
+            NewAccountInfo newAccount = new()
             {
                 Username = "thebatman",
                 Email = "b.wayne@gotham.com"
@@ -554,14 +540,14 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
         public async Task GivenMediatorReturnAccountCreated_PostReturns_OkObjectResult()
         {
             // Arrange
-            NewAccountInfo newAccount = new NewAccountInfo
+            NewAccountInfo newAccount = new()
             {
                 Username = "thebatman",
                 Email = "b.wayne@gotham.com"
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken _) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = Guid.NewGuid() }));
+                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken _) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = AccountId.New() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newAccount, ct: default)
@@ -592,7 +578,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             linkSelf.Method.Should()
                            .Be("GET");
             linkSelf.Href.Should()
-                         .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id}&version={_apiVersion}");
+                         .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id.Value}&version={_apiVersion}");
 
             createdResource.Username.Should()
                                     .Be(newAccount.Username);
@@ -614,7 +600,7 @@ namespace Identity.API.UnitTests.Features.v1.Accounts
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator(faker => new Account(
-                        id: Guid.NewGuid(),
+                        id: AccountId.New(),
                         name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
                         email: faker.Internet.ExampleEmail(),
                         passwordHash: faker.Lorem.Word(),

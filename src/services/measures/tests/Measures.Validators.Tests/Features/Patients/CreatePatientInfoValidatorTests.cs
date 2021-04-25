@@ -1,14 +1,21 @@
 
 using FluentAssertions;
+
 using FluentValidation;
 using FluentValidation.Results;
+
 using Measures.Context;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
 using Measures.Validators.Features.Patients.DTO;
+
+using MedEasy.Abstractions.ValueConverters;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 using NodaTime;
 using NodaTime.Testing;
@@ -17,9 +24,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static FluentValidation.Severity;
 using static Newtonsoft.Json.JsonConvert;
 
@@ -40,8 +49,9 @@ namespace Measures.Validators.Tests.Features.Patients
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
+            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new();
+            dbContextOptionsBuilder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
+                .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
             _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options, new FakeClock(new Instant())));
             _validator = new CreatePatientInfoValidator(_uowFactory);
         }
@@ -75,11 +85,11 @@ namespace Measures.Validators.Tests.Features.Patients
                 yield return new object[]
                 {
                     new NewPatientInfo(),
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Name).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
+                    ),
                     $"because no {nameof(NewPatientInfo)}'s data set."
                 };
 
@@ -92,13 +102,13 @@ namespace Measures.Validators.Tests.Features.Patients
 
                 yield return new object[]
                 {
-                    new NewPatientInfo() { Name = "Bruce Wayne", Id = Guid.Empty },
-                    ((Expression<Func<ValidationResult, bool>>)
+                    new NewPatientInfo() { Name = "Bruce Wayne", Id = PatientId.Empty },
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
-                    $"because {nameof(NewPatientInfo.Id)} is set to {Guid.Empty}"
+                    ),
+                    $"because {nameof(NewPatientInfo.Id)} is set to {PatientId.Empty}"
                 };
             }
         }
@@ -124,7 +134,7 @@ namespace Measures.Validators.Tests.Features.Patients
         public async Task Should_Fails_When_Id_AlreadyExists()
         {
             // Arrange
-            Guid patientId = Guid.NewGuid();
+            PatientId patientId = PatientId.New();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Patient>().Create(new Patient(patientId, "Grundy"));
@@ -132,7 +142,7 @@ namespace Measures.Validators.Tests.Features.Patients
                     .ConfigureAwait(false);
             }
 
-            NewPatientInfo info = new NewPatientInfo
+            NewPatientInfo info = new()
             {
                 Name = "Bruce Wayne",
                 Id = patientId

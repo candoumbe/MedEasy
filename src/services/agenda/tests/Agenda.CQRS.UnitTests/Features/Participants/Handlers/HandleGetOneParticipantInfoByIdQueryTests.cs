@@ -2,21 +2,25 @@
 using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
+
 using AutoMapper;
+
 using FluentAssertions;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Testing;
 
 using Optional;
-using System;
+
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -25,18 +29,15 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleGetOneParticipantInfoByIdQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetOneParticipantInfoByIdQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private IUnitOfWorkFactory _uowFactory;
         private IMapper _mapper;
         private HandleGetOneParticipantInfoByIdQuery _sut;
 
-        public HandleGetOneParticipantInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetOneParticipantInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
                 AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -47,12 +48,14 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             _sut = new HandleGetOneParticipantInfoByIdQuery(_uowFactory, _mapper);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
                 uow.Repository<Attendee>().Clear();
-                
+
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -66,7 +69,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         public async Task GivenEmptyDataStore_Handle_Returns_None()
         {
             // Arrange
-            GetOneAttendeeInfoByIdQuery request = new(Guid.NewGuid());
+            GetOneAttendeeInfoByIdQuery request = new(AttendeeId.New());
 
             // Act
             Option<AttendeeInfo> optionalParticipant = await _sut.Handle(request, cancellationToken: default)
@@ -80,7 +83,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
         public async Task GivenRecordExistsInDataStore_Get_Returns_Some()
         {
             // Arrange
-            Guid attendeeId = Guid.NewGuid();
+            AttendeeId attendeeId = AttendeeId.New();
             Attendee attendee = new(id: attendeeId, name: "Bruce Wayne");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

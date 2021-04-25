@@ -7,6 +7,7 @@ using AutoMapper;
 
 using FluentValidation.AspNetCore;
 
+using MedEasy.Abstractions.ValueConverters;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
@@ -23,7 +24,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,6 +52,8 @@ namespace Agenda.API
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+        private const string IntegrationTestEnvironmentName = "IntegrationTest";
+
         /// <summary>
         /// Configure service for MVC
         /// </summary>
@@ -64,7 +69,7 @@ namespace Agenda.API
                         builder.AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowAnyOrigin()
-                            //.AllowCredentials()
+                    //.AllowCredentials()
                     );
                 })
                 .AddControllers(options =>
@@ -96,8 +101,7 @@ namespace Agenda.API
                     jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     jsonSerializerOptions.WriteIndented = true;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-                })
-            .AddXmlSerializerFormatters();
+                });
 
             //services.Configure<ApiBehaviorOptions>(options =>
             //{
@@ -132,7 +136,7 @@ namespace Agenda.API
             services.AddHsts(options =>
             {
                 options.Preload = true;
-                if (env.IsDevelopment() || env.IsEnvironment("IntegrationTest"))
+                if (env.IsDevelopment() || env.IsEnvironment(IntegrationTestEnvironmentName))
                 {
                     options.ExcludedHosts.Remove("localhost");
                     options.ExcludedHosts.Remove("127.0.0.1");
@@ -152,31 +156,38 @@ namespace Agenda.API
         /// Adds required dependencies to access API datastores
         /// </summary>
         /// <param name="services"></param>
-        /// 
-        /// 
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
             static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
-                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+                using IServiceScope scope = serviceProvider.CreateScope();
+                IHostEnvironment hostingEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<AgendaContext> builder = new();
+                builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                string connectionString = configuration.GetConnectionString("agenda");
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(connectionString, options =>
+                    {
+                        options.UseNodaTime()
+                               .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName);
+                    });
                 }
                 else
                 {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseNpgsql(
-                        configuration.GetConnectionString("agenda-db"),
-                        options => options.EnableRetryOnFailure(5)
-                                          .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
+                    builder.UseNpgsql(connectionString,
+                                    options => options.EnableRetryOnFailure(5).UseNodaTime()
+                                                        .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
                 builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
+
+            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
+            IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
             services.AddTransient(serviceProvider =>
             {
@@ -308,7 +319,7 @@ namespace Agenda.API
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer =   configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                        ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
                         ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"])),
                     };
@@ -324,7 +335,8 @@ namespace Agenda.API
         /// <returns></returns>
         public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
         {
-            services.AddApiVersioning(options => {
+            services.AddApiVersioning(options =>
+            {
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;

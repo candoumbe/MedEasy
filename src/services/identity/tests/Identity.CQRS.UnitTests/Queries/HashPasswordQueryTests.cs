@@ -1,6 +1,9 @@
 ﻿using FluentAssertions;
+
 using Identity.CQRS.Queries;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;

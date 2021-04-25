@@ -3,6 +3,7 @@
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Events;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
 
 using MedEasy.DAL.Interfaces;
@@ -44,28 +45,21 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<PatientInfo> Handle(CreatePatientInfoCommand cmd, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                NewPatientInfo newResourceInfo = cmd.Data;
-                if (newResourceInfo.Id.HasValue && newResourceInfo.Id.Value == default)
-                {
-                    throw new InvalidOperationException();
-                }
-                NewPatientInfo data = cmd.Data;
-                Patient entity = new Patient(data.Id ?? Guid.NewGuid(), data.Name)
-                    .WasBornIn(data.BirthDate);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            NewPatientInfo newResourceInfo = cmd.Data;
+            NewPatientInfo data = cmd.Data;
+            Patient entity = new Patient(data.Id ?? PatientId.New(), data.Name).WasBornIn(data.BirthDate);
 
-                uow.Repository<Patient>().Create(entity);
-                await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+            uow.Repository<Patient>().Create(entity);
+            await uow.SaveChangesAsync(ct).ConfigureAwait(false);
 
-                Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            Expression<Func<Patient, PatientInfo>> mapEntityToDtoExpression = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
 
-                PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
+            PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
 
-                await _mediator.Publish(new PatientCreated(patientInfo), ct);
+            await _mediator.Publish(new PatientCreated(patientInfo), ct).ConfigureAwait(false);
 
-                return patientInfo;
-            }
+            return patientInfo;
         }
     }
 }
