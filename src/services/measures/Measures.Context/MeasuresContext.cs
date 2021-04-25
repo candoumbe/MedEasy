@@ -59,12 +59,14 @@ namespace Measures.Context
                       .HasPrincipalKey(patient => patient.Id);
             });
 
-            modelBuilder.Entity<BloodPressure>(entity => {
+            modelBuilder.Entity<BloodPressure>(entity =>
+            {
                 entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
                 entity.HasIndex(x => x.Id);
             });
 
-            modelBuilder.Entity<Temperature>(entity => {
+            modelBuilder.Entity<Temperature>(entity =>
+            {
                 entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
                 entity.HasIndex(x => x.Id);
             });

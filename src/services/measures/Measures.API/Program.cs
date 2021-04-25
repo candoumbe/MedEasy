@@ -35,7 +35,7 @@ namespace Measures.API
                 .Build();
 
             using IServiceScope scope = host.Services.CreateScope();
-            
+
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             MeasuresContext context = services.GetRequiredService<MeasuresContext>();
@@ -45,26 +45,25 @@ namespace Measures.API
 
             try
             {
-                if (!context.Database.IsInMemory())
-                {
-                    logger?.LogInformation("Upgrading {ApplicationContext}' store", environment.ApplicationName);
-                    // Forces database migrations on startup
-                    RetryPolicy policy = Policy
-                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
-                        .WaitAndRetryAsync(
-                            retryCount: 5,
-                            sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
-                            onRetry: (exception, timeSpan, attempt, pollyContext) =>
-                                logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
-                            );
-                    logger?.LogInformation("Starting {ApplicationContext}' store migration", environment.ApplicationName);
 
-                    // Forces datastore migration on startup
-                    await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                        .ConfigureAwait(false);
+                logger?.LogInformation("Upgrading {ApplicationContext}' store", environment.ApplicationName);
+                // Forces database migrations on startup
+                RetryPolicy policy = Policy
+                    .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                    .WaitAndRetryAsync(
+                        retryCount: 5,
+                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                        onRetry: (exception, timeSpan, attempt, pollyContext) =>
+                            logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
+                        );
+                logger?.LogInformation("Starting {ApplicationContext}' store migration", environment.ApplicationName);
 
-                    logger?.LogInformation("{ApplicationContext} store upgraded", environment.ApplicationName);
-                }
+                // Forces datastore migration on startup
+                await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
+                    .ConfigureAwait(false);
+
+                logger?.LogInformation("{ApplicationContext} store upgraded", environment.ApplicationName);
+
                 await host.RunAsync()
                     .ConfigureAwait(false);
 

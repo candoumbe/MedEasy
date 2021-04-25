@@ -1,4 +1,5 @@
 ﻿using System;
+
 using MedEasy.RestObjects;
 
 namespace MedEasy.CQRS.Core.Queries

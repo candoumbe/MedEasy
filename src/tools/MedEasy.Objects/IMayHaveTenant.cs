@@ -1,4 +1,4 @@
-﻿using System;
+﻿using MedEasy.Ids;
 
 namespace MedEasy.Objects
 {
@@ -7,13 +7,13 @@ namespace MedEasy.Objects
     /// </summary>
     public interface IMayHaveTenant
     {
-        Guid? TenantId { get; }
+        TenantId TenantId { get; }
 
         /// <summary>
         /// Defines the <see cref="Tenantid"/>
         /// </summary>
         /// <param name="tenantId"></param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
-        void OwnsBy(Guid? tenantId);
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="TenantId.Empty"/></exception>
+        void OwnsBy(TenantId tenantId);
     }
 }

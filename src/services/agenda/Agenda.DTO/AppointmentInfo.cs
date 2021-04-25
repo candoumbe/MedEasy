@@ -1,17 +1,17 @@
-﻿using MedEasy.RestObjects;
+﻿using Agenda.Ids;
+
+using MedEasy.RestObjects;
 
 using NodaTime;
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace Agenda.DTO
 {
     /// <summary>
     /// An <see cref="Appointment"/> beetween two or more people
     /// </summary>
-    public class AppointmentInfo : Resource<Guid>
+    public class AppointmentInfo : Resource<AppointmentId>
     {
         /// <summary>
         /// Location of the appointment

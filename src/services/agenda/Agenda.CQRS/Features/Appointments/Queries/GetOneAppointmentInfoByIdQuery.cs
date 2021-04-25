@@ -1,4 +1,5 @@
 ﻿using Agenda.DTO;
+using Agenda.Ids;
 
 using MedEasy.CQRS.Core.Queries;
 
@@ -11,14 +12,14 @@ namespace Agenda.CQRS.Features.Appointments.Queries
     /// <summary>
     /// A query to get an <see cref="AppointmentInfo"/>
     /// </summary>
-    public class GetOneAppointmentInfoByIdQuery : GetOneResourceQuery<Guid, Guid, Option<AppointmentInfo>>
+    public class GetOneAppointmentInfoByIdQuery : GetOneResourceQuery<Guid, AppointmentId, Option<AppointmentInfo>>
     {
         /// <summary>
         /// Builds a new <see cref="GetOneAppointmentInfoByIdQuery"/> instance.
         /// </summary>
         /// <param name="appointmentId">id of the <see cref="AppointmentInfo"/> to retrieve</param>
         /// <exception cref="ArgumentException">if <paramref name="appointmentId"/> is <see cref="Guid.Empty"/></exception>
-        public GetOneAppointmentInfoByIdQuery(Guid appointmentId) : base(Guid.NewGuid(), appointmentId)
+        public GetOneAppointmentInfoByIdQuery(AppointmentId appointmentId) : base(Guid.NewGuid(), appointmentId)
         {
         }
     }

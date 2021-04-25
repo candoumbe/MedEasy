@@ -1,5 +1,7 @@
 ﻿using MedEasy.RestObjects;
-using System;
+
+using Patients.Ids;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Patients.DTO
@@ -7,7 +9,7 @@ namespace Patients.DTO
     /// <summary>
     /// Data to create a new <see cref="DoctorInfo"/> resource.
     /// </summary>
-    public class CreateDoctorInfo : Resource<Guid>
+    public class CreateDoctorInfo : Resource<DoctorId>
     {
         /// <summary>
         /// Patient's first name

@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.*" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.1" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -52,7 +52,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         {
             // Arrange
             const string password = "thecapedcrusader";
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Name = "Bruce Wayne",
                 Username = "thebatman",
@@ -61,63 +61,61 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 Email = "bruce.wayne@gotham.com"
             };
 
-            using (HttpClient client = _identityApiFixture.CreateClient())
+            using HttpClient client = _identityApiFixture.CreateClient();
+            await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                    .ConfigureAwait(false);
+
+            LoginInfo loginInfo = new()
             {
-                await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                        .ConfigureAwait(false);
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
 
-                LoginInfo loginInfo = new LoginInfo
-                {
-                    Username = newAccountInfo.Username,
-                    Password = newAccountInfo.Password
-                };
+            HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                .ConfigureAwait(false);
 
-                HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                    .ConfigureAwait(false);
+            _outputHelper.WriteLine($"Status code : {response.StatusCode}");
 
-                _outputHelper.WriteLine($"Status code : {response.StatusCode}");
+            response.IsSuccessStatusCode.Should()
+                .BeTrue();
+            response.StatusCode.Should()
+                .Be(Status200OK);
 
-                response.IsSuccessStatusCode.Should()
-                    .BeTrue();
-                response.StatusCode.Should()
-                    .Be(Status200OK);
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            _outputHelper.WriteLine($"HTTP content : '{json}'");
 
-                _outputHelper.WriteLine($"HTTP content : '{json}'");
+            BearerTokenInfo tokenInfo = JToken.Parse(json)
+                .ToObject<BearerTokenInfo>();
 
-                BearerTokenInfo tokenInfo = JToken.Parse(json)
-                    .ToObject<BearerTokenInfo>();
+            SecurityToken accessToken = new JwtSecurityToken(tokenInfo.AccessToken.Token);
+            TimeSpan accessDuration = accessToken.ValidTo - accessToken.ValidFrom;
+            _outputHelper.WriteLine($"Access token valid from <{accessToken.ValidFrom}> to <{accessToken.ValidTo}>");
+            _outputHelper.WriteLine($"The access token will expire in {accessDuration.TotalSeconds} seconds");
+            _outputHelper.WriteLine($"Waiting for the token to expire");
 
-                SecurityToken accessToken = new JwtSecurityToken(tokenInfo.AccessToken.Token);
-                TimeSpan accessDuration = accessToken.ValidTo - accessToken.ValidFrom;
-                _outputHelper.WriteLine($"Access token valid from <{accessToken.ValidFrom}> to <{accessToken.ValidTo}>");
-                _outputHelper.WriteLine($"The access token will expire in {accessDuration.TotalSeconds} seconds");
-                _outputHelper.WriteLine($"Waiting for the token to expire");
+            SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken.Token);
 
-                SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken.Token);
+            // wait for the access token to expire
+            Thread.Sleep(accessDuration + 1.Seconds());
 
-                // wait for the access token to expire
-                Thread.Sleep(accessDuration + 1.Seconds());
+            _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
 
-                _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
+            string path = $"{_accountsEndpointBaseUrl}?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
+            _outputHelper.WriteLine($"Test URL : <{path}>");
 
-                string path = $"{_accountsEndpointBaseUrl}?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
-                _outputHelper.WriteLine($"Test URL : <{path}>");
+            HttpRequestMessage request = new(Head, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken.Token);
+            // Act
+            response = await client.SendAsync(request)
+                .ConfigureAwait(false);
 
-                HttpRequestMessage request = new HttpRequestMessage(Head, path);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken.Token);
-                // Act
-                response = await client.SendAsync(request)
-                    .ConfigureAwait(false);
-
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("The access token has expired");
-                response.StatusCode.Should()
-                    .Be(Status401Unauthorized, "The token has expired");
-            }
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("The access token has expired");
+            response.StatusCode.Should()
+                .Be(Status401Unauthorized, "The token has expired");
         }
 
         [Fact]
@@ -125,7 +123,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         {
             // Arrange
             const string password = "thecapedcrusader";
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Name = "Bruce Wayne",
                 Username = $"thebatman_{Guid.NewGuid()}",
@@ -138,7 +136,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                         .ConfigureAwait(false);
 
-            LoginInfo loginInfo = new LoginInfo
+            LoginInfo loginInfo = new()
             {
                 Username = newAccountInfo.Username,
                 Password = newAccountInfo.Password
@@ -179,8 +177,8 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         {
             // Arrange
             const string password = "thecapedcrusader";
-            Faker faker = new Faker();
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            Faker faker = new();
+            NewAccountInfo newAccountInfo = new()
             {
                 Name = faker.Person.FullName,
                 Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
@@ -189,64 +187,62 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 Email = faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString())
             };
 
-            using (HttpClient client = _identityApiFixture.CreateClient())
+            using HttpClient client = _identityApiFixture.CreateClient();
+            HttpResponseMessage response = await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+            response.EnsureSuccessStatusCode();
+
+            LoginInfo loginInfo = new()
             {
-                HttpResponseMessage response = await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                    .ConfigureAwait(false);
+                Username = newAccountInfo.Username,
+                Password = newAccountInfo.Password
+            };
 
-                _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
-                response.EnsureSuccessStatusCode();
+            response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+                .ConfigureAwait(false);
 
-                LoginInfo loginInfo = new LoginInfo
-                {
-                    Username = newAccountInfo.Username,
-                    Password = newAccountInfo.Password
-                };
+            _outputHelper.WriteLine($"Status code : {response.StatusCode}");
 
-                response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                    .ConfigureAwait(false);
+            response.IsSuccessStatusCode.Should()
+                .BeTrue();
+            response.StatusCode.Should()
+                .Be(Status200OK);
 
-                _outputHelper.WriteLine($"Status code : {response.StatusCode}");
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
-                response.IsSuccessStatusCode.Should()
-                    .BeTrue();
-                response.StatusCode.Should()
-                    .Be(Status200OK);
+            BearerTokenInfo tokenInfo = JToken.Parse(json)
+                .ToObject<BearerTokenInfo>();
 
-                string json = await response.Content.ReadAsStringAsync()
-                    .ConfigureAwait(false);
+            HttpRequestMessage requestInvalidateToken = new(Delete, $"/{_version}/auth/token/{newAccountInfo.Username}");
+            AuthenticationHeaderValue bearerTokenHeader = new("Bearer", tokenInfo.AccessToken.Token);
+            requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
+            response = await client.SendAsync(requestInvalidateToken)
+                .ConfigureAwait(false);
 
-                BearerTokenInfo tokenInfo = JToken.Parse(json)
-                    .ToObject<BearerTokenInfo>();
+            response.EnsureSuccessStatusCode();
+            _outputHelper.WriteLine($"Refresh token was successfully revoked");
 
-                HttpRequestMessage requestInvalidateToken = new HttpRequestMessage(Delete, $"/{_version}/auth/token/{newAccountInfo.Username}");
-                AuthenticationHeaderValue bearerTokenHeader = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken.Token);
-                requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
-                response = await client.SendAsync(requestInvalidateToken)
-                    .ConfigureAwait(false);
+            HttpRequestMessage refreshTokenRequest = new(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
+            refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
-                response.EnsureSuccessStatusCode();
-                _outputHelper.WriteLine($"Refresh token was successfully revoked");
+            RefreshAccessTokenInfo refreshAccessTokenInfo = new() { AccessToken = tokenInfo.AccessToken.Token, RefreshToken = tokenInfo.RefreshToken.Token };
+            refreshTokenRequest.Content = new StringContent(refreshAccessTokenInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json);
 
-                HttpRequestMessage refreshTokenRequest = new HttpRequestMessage(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
-                refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
+            // Act
+            response = await client.SendAsync(refreshTokenRequest)
+                .ConfigureAwait(false);
 
-                RefreshAccessTokenInfo refreshAccessTokenInfo = new RefreshAccessTokenInfo { AccessToken = tokenInfo.AccessToken.Token, RefreshToken = tokenInfo.RefreshToken.Token };
-                refreshTokenRequest.Content = new StringContent(refreshAccessTokenInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json);
+            // Assert
+            string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            _outputHelper.WriteLine($"Response content : {responseContent}");
 
-                // Act
-                response = await client.SendAsync(refreshTokenRequest)
-                    .ConfigureAwait(false);
-
-                // Assert
-                string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                _outputHelper.WriteLine($"Response content : {responseContent}");
-
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("The refresh token was revoked and can no longer be used to refresh an access token");
-                response.StatusCode.Should()
-                    .Be(Status401Unauthorized, "The token has expired");
-            }
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("The refresh token was revoked and can no longer be used to refresh an access token");
+            response.StatusCode.Should()
+                .Be(Status401Unauthorized, "The token has expired");
         }
     }
 }

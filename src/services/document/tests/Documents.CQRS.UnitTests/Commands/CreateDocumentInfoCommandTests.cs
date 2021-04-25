@@ -13,15 +13,12 @@ namespace Documents.CQRS.UnitTests.Commands
 {
     [Feature(nameof(Documents))]
     [UnitTest]
-    public class CreateDocumentInfoCommandTests : IDisposable
+    public class CreateDocumentInfoCommandTests
     {
-
-        public void Dispose() { }
-
         [Fact]
         public void Ctor_Is_Valid()
         {
-            CreateDocumentInfoCommand instance = new CreateDocumentInfoCommand(new NewDocumentInfo()
+            CreateDocumentInfoCommand instance = new(new NewDocumentInfo()
             {
             });
 
@@ -48,7 +45,7 @@ namespace Documents.CQRS.UnitTests.Commands
             get
             {
                 {
-                    NewDocumentInfo data = new NewDocumentInfo { Name = "Wayne tower schema", MimeType = "application/octect-stream", Content = new byte[] { 123 } };
+                    NewDocumentInfo data = new() { Name = "Wayne tower schema", MimeType = "application/octect-stream", Content = new byte[] { 123 } };
                     yield return new object[]
                             {
                     new CreateDocumentInfoCommand(data),
@@ -57,7 +54,7 @@ namespace Documents.CQRS.UnitTests.Commands
                     $"two {nameof(CreateDocumentInfoCommand)} instances with same {nameof(CreateDocumentInfoCommand.Data)}"
                             };
                 }
-                
+
                 yield return new object[]
                 {
                     new CreateDocumentInfoCommand(new NewDocumentInfo { Name = "Wayne tower schema", MimeType = "application/jpg", Content= new byte[]{ 123 }  }),

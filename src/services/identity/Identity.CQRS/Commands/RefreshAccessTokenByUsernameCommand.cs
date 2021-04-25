@@ -1,8 +1,11 @@
 ﻿using Identity.DTO;
 using Identity.DTO.v1;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using Optional;
+
 using System;
 
 namespace Identity.CQRS.Commands
@@ -16,7 +19,7 @@ namespace Identity.CQRS.Commands
         /// Builds a new <see cref="InvalidateAccessTokenByUsernameCommand"/> instance
         /// </summary>
         /// <param name="data"></param>
-        public RefreshAccessTokenByUsernameCommand((string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions)  data) : base(Guid.NewGuid(), data)
+        public RefreshAccessTokenByUsernameCommand((string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions) data) : base(Guid.NewGuid(), data)
         {
             if (string.IsNullOrWhiteSpace(data.username))
             {

@@ -1,7 +1,11 @@
 ﻿using FluentAssertions;
+
 using FluentValidation.Results;
+
 using MedEasy.RestObjects;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,7 +38,7 @@ namespace MedEasy.Validators.Tests
         public void ValidateTest(int page, int pageSize)
         {
             // Arrange
-            PaginationConfiguration pagination = new PaginationConfiguration
+            PaginationConfiguration pagination = new()
             {
                 Page = page,
                 PageSize = pageSize

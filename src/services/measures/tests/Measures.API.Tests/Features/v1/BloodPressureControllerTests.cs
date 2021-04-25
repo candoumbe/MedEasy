@@ -47,6 +47,8 @@ using static MedEasy.RestObjects.LinkRelation;
 using NodaTime.Testing;
 using NodaTime;
 using NodaTime.Extensions;
+using Measures.Ids;
+using MedEasy.Ids;
 
 namespace Measures.API.Tests.Features.v1.BloodPressures
 {
@@ -56,36 +58,33 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class BloodPressuresControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
 
-        private IUnitOfWorkFactory _uowFactory;
-        private static readonly MeasuresApiOptions _apiOptions = new MeasuresApiOptions { DefaultPageSize = 30, MaxPageSize = 200 };
-        private Mock<IMediator> _mediatorMock;
-        private readonly static ApiVersion apiVersion = new ApiVersion(1, 0);
-        private Mock<LinkGenerator> _urlHelperMock;
-        private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
-        private BloodPressuresController _controller;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private static readonly MeasuresApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly static ApiVersion apiVersion = new(1, 0);
+        private readonly Mock<LinkGenerator> _urlHelperMock;
+        private readonly Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
+        private readonly BloodPressuresController _controller;
         private const string _baseUrl = "http://host/api";
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
-            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<MeasuresContext>();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new (options, new FakeClock(new Instant()));
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -95,23 +94,13 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             _controller = new BloodPressuresController(_urlHelperMock.Object, _apiOptionsMock.Object, _mediatorMock.Object, apiVersion);
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _uowFactory = null;
-            _urlHelperMock = null;
-            _apiOptionsMock = null;
-            _mediatorMock = null;
-            _controller = null;
-        }
-
         public static IEnumerable<object[]> GetAllTestCases
         {
             get
             {
                 int[] pageSizes = { 1, 10, 500 };
                 int[] pages = { 1, 10, 500 };
-                Faker faker = new Faker();
+                Faker faker = new();
                 foreach (int pageSize in pageSizes)
                 {
                     foreach (int page in pages)
@@ -135,18 +124,18 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(_ => new BloodPressure(
-                            id: Guid.NewGuid(),
-                            patientId: Guid.NewGuid(),
+                            id: BloodPressureId.New(),
+                            patientId: PatientId.New(),
                             dateOfMeasure: 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
                             systolicPressure: 120, diastolicPressure: 80
-                        )) ;
+                        ));
 
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
                     foreach (BloodPressure measure in bloodPressureFaker.Generate(400))
                     {
-                        patient.AddBloodPressure(Guid.NewGuid(), 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
+                        patient.AddBloodPressure(BloodPressureId.New(), 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
                     }
                     yield return new object[]
                     {
@@ -164,7 +153,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((measure) =>
                     {
@@ -185,8 +174,8 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     };
                 }
                 {
-                    Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
-                    patient.AddBloodPressure(Guid.NewGuid(),
+                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    patient.AddBloodPressure(BloodPressureId.New(),
                                              10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
                                              systolic: 120,
                                              diastolic: 80);
@@ -233,7 +222,6 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
                         IEnumerable<BloodPressure> measures = items.SelectMany(x => x.BloodPressures).OfType<BloodPressure>();
 
-                        int total = measures.Count();
                         _outputHelper.WriteLine($"Measures count : {measures.Count()}");
 
                         IEnumerable<BloodPressureInfo> results = measures.Select(selector.Compile())
@@ -245,7 +233,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     });
 
             // Act
-            IActionResult actionResult = await _controller.Get(page: page, pageSize : pageSize)
+            IActionResult actionResult = await _controller.Get(page: page, pageSize: pageSize)
                 .ConfigureAwait(false);
 
             // Assert
@@ -283,7 +271,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 Faker<Patient> patientFaker = new Faker<Patient>()
                     .CustomInstantiator(faker =>
                     {
-                        Patient patient = new Patient(Guid.NewGuid(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                        Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
                         patient.ChangeNameTo(faker.Person.FullName);
 
@@ -293,8 +281,8 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     .CustomInstantiator(faker =>
                     {
                         return new BloodPressure(
-                            id: Guid.NewGuid(),
-                            patientId: Guid.NewGuid(),
+                            id: BloodPressureId.New(),
+                            patientId: PatientId.New(),
                             dateOfMeasure: faker.Noda().Instant.Between(start: 1.January(2001).AsUtc().ToInstant(), end: 31.January(2001).AsUtc().ToInstant()),
                             diastolicPressure: 80,
                             systolicPressure: 120
@@ -339,8 +327,8 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 }
 
                 {
-                    Patient patient =  patientFaker.Generate();
-                    patient.AddBloodPressure(Guid.NewGuid(),
+                    Patient patient = patientFaker.Generate();
+                    patient.AddBloodPressure(BloodPressureId.New(),
                                              dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                              diastolic: 80,
                                              systolic: 120);
@@ -371,7 +359,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
 
                     Patient patient = patientFaker.Generate();
-                    patient.AddBloodPressure(Guid.NewGuid(),
+                    patient.AddBloodPressure(BloodPressureId.New(),
                                              dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                              systolic: 120,
                                              diastolic: 80);
@@ -387,10 +375,10 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                               (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
                                 resources.Count() == 1 && resources.All(x => x.Resource.PatientId == patient.Id)),
                             links : (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                             )
                         )
                     };
@@ -482,14 +470,14 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
                     new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013).AsUtc().ToInstant().InUtc() },
                     (maxPageSize : 30, defaultPageSize : 30),
-                    new [] { new Patient( Guid.NewGuid(), "Starr", 18.August(1983).AsLocal().ToLocalDateTime().Date) },
+                    new [] { new Patient( PatientId.New(), "Starr", 18.August(1983).AsLocal().ToLocalDateTime().Date) },
                     "page index is not 1 and there's no result for the search query"
                 };
 
                 {
 
-                    Patient patient = new Patient(Guid.NewGuid(), "Homelander", 18.August(1983).AsUtc().ToLocalDateTime().Date);
-                    patient.AddBloodPressure(Guid.NewGuid(), 22.January(1987).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
+                    Patient patient = new(PatientId.New(), "Homelander", 18.August(1983).AsUtc().ToLocalDateTime().Date);
+                    patient.AddBloodPressure(BloodPressureId.New(), 22.January(1987).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
 
                     yield return new object[]
                     {
@@ -556,7 +544,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            BloodPressureId idToDelete = BloodPressureId.New();
             IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
@@ -572,11 +560,11 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         public async Task Get_Returns_The_Element()
         {
             // Arrange
-            Guid measureId = Guid.NewGuid();
+            BloodPressureId measureId = BloodPressureId.New();
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient patient = new Patient(Guid.NewGuid(), "Bruce Wayne", 12.December(1953).ToLocalDateTime().Date);
+                Patient patient = new(PatientId.New(), "Bruce Wayne", 12.December(1953).ToLocalDateTime().Date);
 
                 patient.AddBloodPressure(
                         measureId,
@@ -632,25 +620,25 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             BloodPressureInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={apiVersion}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={apiVersion}");
 
             Link linkToPatient = browsableResource.Links.Single(x => x.Relation == "patient");
             linkToPatient.Method.Should()
                 .Be("GET");
             linkToPatient.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.PatientId}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.PatientId.Value}&version={apiVersion}");
 
             resource.Id.Should().Be(measureId);
             resource.SystolicPressure.Should().Be(150);
             resource.DiastolicPressure.Should().Be(90);
             resource.PatientId.Should()
-                .NotBeEmpty();
+                .NotBe(PatientId.Empty);
         }
 
         [Fact]
@@ -661,7 +649,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 .ReturnsAsync(Option.None<BloodPressureInfo>());
 
             // Act
-            ActionResult<Browsable<BloodPressureInfo>> actionResult = await _controller.Get(Guid.NewGuid())
+            ActionResult<Browsable<BloodPressureInfo>> actionResult = await _controller.Get(BloodPressureId.New())
                                                                                        .ConfigureAwait(false);
 
             // Assert
@@ -677,7 +665,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 .ReturnsAsync(DeleteCommandResult.Done);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            BloodPressureId idToDelete = BloodPressureId.New();
             IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
@@ -697,7 +685,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 .ReturnsAsync(DeleteCommandResult.Failed_NotFound);
 
             // Act
-            Guid idToDelete = Guid.NewGuid();
+            BloodPressureId idToDelete = BloodPressureId.New();
             IActionResult actionResult = await _controller.Delete(idToDelete)
                 .ConfigureAwait(false);
 
@@ -712,14 +700,14 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         [Fact]
         public async Task Patch_UnknownEntity_Returns_NotFound()
         {
-            JsonPatchDocument<BloodPressureInfo> changes = new JsonPatchDocument<BloodPressureInfo>();
+            JsonPatchDocument<BloodPressureInfo> changes = new();
             changes.Replace(x => x.SystolicPressure, 120);
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<BloodPressureId, BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Failed_NotFound);
 
             // Act
-            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+            IActionResult actionResult = await _controller.Patch(BloodPressureId.New(), changes)
                 .ConfigureAwait(false);
 
             // Assert
@@ -731,18 +719,18 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         public async Task Patch_Valid_Resource_Returns_NoContentResult()
         {
             // Arrange
-            JsonPatchDocument<BloodPressureInfo> changes = new JsonPatchDocument<BloodPressureInfo>();
+            JsonPatchDocument<BloodPressureInfo> changes = new();
             changes.Replace(x => x.DiastolicPressure, 90);
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<Guid, BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<BloodPressureId, BloodPressureInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Done);
 
             // Act
-            IActionResult actionResult = await _controller.Patch(Guid.NewGuid(), changes)
+            IActionResult actionResult = await _controller.Patch(BloodPressureId.New(), changes)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PatchCommand<Guid, BloodPressureInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<PatchCommand<BloodPressureId, BloodPressureInfo>>(), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
                 .BeAssignableTo<NoContentResult>();

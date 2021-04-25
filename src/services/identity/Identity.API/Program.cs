@@ -22,10 +22,16 @@ using System.Threading.Tasks;
 
 namespace Identity.API
 {
-#pragma warning disable RCS1102 // Make class static.
+    /// <summary>
+    /// Entry point of the application
+    /// </summary>
     public class Program
-#pragma warning restore RCS1102 // Make class static.
     {
+        /// <summary>
+        /// Main method of the program
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public static async Task Main(string[] args)
         {
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
@@ -48,7 +54,7 @@ namespace Identity.API
                         .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
                         .WaitAndRetryAsync(
                             retryCount: 5,
-                            sleepDurationProvider: (retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
+                            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                             onRetry: (exception, timeSpan, attempt, pollyContext) =>
 
                                 logger?.LogError(exception, "Error while upgrading database schema (Attempt {Attempt})", attempt)
@@ -70,25 +76,13 @@ namespace Identity.API
             {
                 logger?.LogError(ex, "An error occurred on startup.");
             }
-
-            finally
-            {
-
-            }
         }
 
-        /// <summary>
-        /// Builds the host
-        /// </summary>
-        /// <param name="args">command line arguments</param>
-        /// <returns></returns>
 
         /// <summary>
         /// Builds the host
         /// </summary>
         /// <param name="args">command line arguments</param>
-        /// <returns></returns>
-
         public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
                            .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
                                                                        .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
@@ -111,14 +105,6 @@ namespace Identity.API
                                options.ClearProviders() // removes all default providers
                                    .AddSerilog()
                                    .AddConsole();
-                           })
-                           .ConfigureAppConfiguration((context, builder) =>
-
-                               builder
-                                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                                   .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                                   .AddEnvironmentVariables()
-                                   .AddCommandLine(args)
-                           );
+                           });
     }
 }

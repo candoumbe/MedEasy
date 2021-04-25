@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using Agenda.Ids;
+
+using FluentAssertions;
 using FluentAssertions.Extensions;
 
 using NodaTime;
@@ -25,10 +27,10 @@ namespace Agenda.Objects.UnitTests
         public void ChangingAppointment_Subject_ToNull_Throws_ArgumentNullException()
         {
             // Arrange
-            Appointment attendee = new(id: Guid.NewGuid(),
+            Appointment attendee = new(id: AppointmentId.New(),
                                        subject: "JLA",
                                        location: "Wayne Manor",
-                                       startDate :12.July(2018).At(12.Hours()).AsUtc().ToInstant(),
+                                       startDate: 12.July(2018).At(12.Hours()).AsUtc().ToInstant(),
                                        endDate: 12.July(2018).At(12.Hours().And(30.Minutes())).AsUtc().ToInstant());
 
             // Act
@@ -44,7 +46,7 @@ namespace Agenda.Objects.UnitTests
             get
             {
                 Appointment appointment = new(
-                    id: Guid.NewGuid(),
+                    id: AppointmentId.New(),
                     subject: "Daily meeting",
                     location: "My office",
                     startDate: 12.April(2017).At(14.Hours()).AsUtc().ToInstant(),

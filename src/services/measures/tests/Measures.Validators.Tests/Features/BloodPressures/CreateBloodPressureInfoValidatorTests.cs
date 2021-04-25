@@ -18,6 +18,7 @@ using static Moq.MockBehavior;
 using System.Linq;
 using Measures.Validators.Commands.BloodPressures;
 using Xunit.Categories;
+using Measures.Ids;
 
 namespace Measures.Validators.Tests.Features.BloodPressures
 {
@@ -72,13 +73,13 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                 {
                     new CreateBloodPressureInfo(),
                     Enumerable.Empty<Patient>(),
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 3
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.PatientId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.SystolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
-                    )),
+                    ),
                     $"because no {nameof(CreateBloodPressureInfo)}'s data set."
                 };
 
@@ -86,15 +87,15 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                 {
                     new CreateBloodPressureInfo {
                         SystolicPressure = 80, DiastolicPressure = 120,
-                        PatientId = Guid.NewGuid()
+                        PatientId = PatientId.New()
                     } ,
                     Enumerable.Empty<Patient>(),
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 2
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.PatientId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                    )),
+                    ),
                     $"because {nameof(CreateBloodPressureInfo.SystolicPressure)} < {nameof(CreateBloodPressureInfo.DiastolicPressure)} " +
                     $"and {nameof(CreateBloodPressureInfo.PatientId)} does not exist."
                 };
@@ -103,20 +104,20 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                 {
                     new CreateBloodPressureInfo {
                         SystolicPressure = 120, DiastolicPressure = 80,
-                        PatientId = Guid.NewGuid()
+                        PatientId = PatientId.New()
                     },
                     Enumerable.Empty<Patient>(),
-                    ((Expression<Func<ValidationResult, bool>>)
+                    (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.PatientId)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
-                    )),
+                    ),
                     $"{nameof(CreateBloodPressureInfo.PatientId)} does not exist."
 
                 };
 
                 {
-                    Guid patientId = Guid.NewGuid();
+                    PatientId patientId = PatientId.New();
                     yield return new object[]
                     {
                         new CreateBloodPressureInfo {
@@ -126,7 +127,7 @@ namespace Measures.Validators.Tests.Features.BloodPressures
                         new []{
                             new Patient(patientId, "Freeze")
                         },
-                        ((Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid)),
+                        (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
                         $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)} exists and " +
                         $"other {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)}'s properties " +
                         "cannot be set at the same time."
@@ -145,7 +146,7 @@ namespace Measures.Validators.Tests.Features.BloodPressures
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
 
             // Arrange
-            _uowFactoryMock.Setup(mock =>  mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(patients.Any(x => x.Id == info.PatientId)));
 
             // Act

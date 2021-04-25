@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Measures.Ids;
 
 namespace Measures.DTO
 {
@@ -10,6 +10,6 @@ namespace Measures.DTO
         /// <summary>
         /// Patient which the measure is created for
         /// </summary
-        public Guid PatientId { get; set; }
+        public PatientId PatientId { get; set; }
     }
 }

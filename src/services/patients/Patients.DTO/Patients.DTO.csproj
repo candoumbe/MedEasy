@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
+    <ProjectReference Include="..\Patients.Ids\Patients.Ids.csproj" />
   </ItemGroup>
 </Project>

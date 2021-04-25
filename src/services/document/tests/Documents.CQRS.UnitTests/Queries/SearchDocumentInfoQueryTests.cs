@@ -1,9 +1,13 @@
 ﻿using Documents.CQRS.Queries;
 using Documents.DTO.v1;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using System;
+
 using Xunit;
 using Xunit.Categories;
 

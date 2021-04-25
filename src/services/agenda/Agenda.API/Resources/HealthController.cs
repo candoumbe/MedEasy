@@ -1,9 +1,13 @@
 ﻿using Agenda.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using Microsoft.AspNetCore.Mvc;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.Resources
@@ -34,17 +38,15 @@ namespace Agenda.API.Resources
             IActionResult actionResult;
             try
             {
-                using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-                {
-                    await uow.Repository<Attendee>().AnyAsync(ct)
-                        .ConfigureAwait(false);
+                using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+                await uow.Repository<Attendee>().AnyAsync(ct)
+                    .ConfigureAwait(false);
 
-                    actionResult = new NoContentResult();
-                }
+                actionResult = new NoContentResult();
             }
             catch (Exception)
             {
-                actionResult =  new StatusCodeResult(Status500InternalServerError);
+                actionResult = new StatusCodeResult(Status500InternalServerError);
             }
 
             return actionResult;

@@ -57,7 +57,7 @@ namespace Measures.API.IntegrationTests.v1
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new JSchema
+        private static readonly JSchema _pageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -108,9 +108,9 @@ namespace Measures.API.IntegrationTests.v1
         public async Task GetAll_With_No_Data()
         {
             // Arrange
-            Faker faker = new Faker();
+            Faker faker = new();
             string password = faker.Lorem.Word();
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Username = faker.Person.UserName,
                 Email = faker.Person.Email,
@@ -122,7 +122,7 @@ namespace Measures.API.IntegrationTests.v1
                 .ConfigureAwait(false);
 
             using HttpClient client = _sut.CreateClient();
-            HttpRequestMessage getAllRequest = new HttpRequestMessage(Get, _endpointUrl);
+            HttpRequestMessage getAllRequest = new(Get, _endpointUrl);
             getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             // Act
@@ -167,8 +167,8 @@ namespace Measures.API.IntegrationTests.v1
 
             // Arrange
             const string password = "thecapedcrusader";
-            Faker faker = new Faker();
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            Faker faker = new();
+            NewAccountInfo newAccountInfo = new()
             {
                 Name = faker.Person.FullName,
                 Username = faker.Person.UserName,
@@ -180,7 +180,7 @@ namespace Measures.API.IntegrationTests.v1
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                                                                .ConfigureAwait(false);
 
-            HttpRequestMessage getAllRequest = new HttpRequestMessage(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
+            HttpRequestMessage getAllRequest = new(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
             getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
             using HttpClient client = _sut.CreateClient();

@@ -1,5 +1,8 @@
 ﻿namespace Identity.API.Features.v1.Auth
 {
+    /// <summary>
+    /// Defines the shape of a "refresh tol
+    /// </summary>
     public class RefreshAccessTokenModel
     {
         /// <summary>

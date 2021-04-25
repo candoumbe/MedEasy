@@ -1,4 +1,5 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
+using Agenda.Ids;
 
 using FluentAssertions;
 
@@ -17,7 +18,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
         public void GivenEmptyGuid_Ctor_Throws_ArgumentException()
         {
             // Act
-            Action action = () => new DeleteAppointmentInfoByIdCommand(Guid.Empty);
+            Action action = () => new DeleteAppointmentInfoByIdCommand(AppointmentId.Empty);
 
             // Assert
             action.Should()

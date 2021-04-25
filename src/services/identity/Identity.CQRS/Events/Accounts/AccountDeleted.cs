@@ -1,5 +1,6 @@
-﻿using MediatR;
-using System;
+﻿using Identity.Ids;
+
+using MediatR;
 
 namespace Identity.CQRS.Events.Accounts
 {
@@ -11,12 +12,12 @@ namespace Identity.CQRS.Events.Accounts
         /// <summary>
         /// Id of the deleted account
         /// </summary>
-        public Guid AccountId { get; }
+        public AccountId AccountId { get; }
 
         /// <summary>
         /// Builds a new <see cref="AccountDeleted"/> instance
         /// </summary>
         /// <param name="accountId">id of the deleted account</param>
-        public AccountDeleted(Guid accountId) => AccountId = accountId;
+        public AccountDeleted(AccountId accountId) => AccountId = accountId;
     }
 }

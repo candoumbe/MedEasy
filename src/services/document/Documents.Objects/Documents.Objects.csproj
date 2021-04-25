@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
+    <ProjectReference Include="..\Documents.Ids\Documents.Ids.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,7 +17,7 @@ namespace Patients.Validators.Features.Doctors.DTO
         /// <param name="uowFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         public CreateDoctorInfoValidator(IUnitOfWorkFactory uowFactory)
         {
-            CascadeMode = StopOnFirstFailure;
+            CascadeMode = Stop;
 
             When(x => !string.IsNullOrWhiteSpace(x.Lastname), () =>
             {
@@ -33,18 +33,18 @@ namespace Patients.Validators.Features.Doctors.DTO
                 .MinimumLength(2)
                 .MaximumLength(100);
 
-        //    RuleFor(x => x.SpecialtyId)
-        //        .NotEqual(Guid.Empty)
-        //        .MustAsync(async (specialtyId, cancellationToken) =>
-        //        {
-        //            using (IUnitOfWork uow = uowFactory.New())
-        //            {
-        //                return await uow.Repository<Specialty>()
-        //                    .AnyAsync(x => x.UUID == specialtyId)
-        //                    .ConfigureAwait(false);
-        //            }
-        //        })
-        //        .When(x => x.SpecialtyId.HasValue);
+            //    RuleFor(x => x.SpecialtyId)
+            //        .NotEqual(Guid.Empty)
+            //        .MustAsync(async (specialtyId, cancellationToken) =>
+            //        {
+            //            using (IUnitOfWork uow = uowFactory.New())
+            //            {
+            //                return await uow.Repository<Specialty>()
+            //                    .AnyAsync(x => x.UUID == specialtyId)
+            //                    .ConfigureAwait(false);
+            //            }
+            //        })
+            //        .When(x => x.SpecialtyId.HasValue);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// <see cref="Link"/> to the first page of result
         /// </summary>
-        public Link First { get;  }
+        public Link First { get; }
 
         /// <summary>
         /// <see cref="Link"/> to the next page of result
@@ -46,7 +46,7 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// <see cref="Link"/> to the previous page of result
         /// </summary>
-        public Link Previous { get;}
+        public Link Previous { get; }
     }
 }
 

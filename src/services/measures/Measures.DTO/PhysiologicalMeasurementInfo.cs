@@ -1,4 +1,7 @@
-﻿using MedEasy.RestObjects;
+﻿using Measures.Ids;
+
+using MedEasy.Ids;
+using MedEasy.RestObjects;
 
 using NodaTime;
 
@@ -10,12 +13,14 @@ namespace Measures.DTO
     /// <summary>
     /// Base class for physiological measure resources
     /// </summary>
-    public abstract class PhysiologicalMeasurementInfo : Resource<Guid>
+    /// <typeparam name="TId">Type of the identifier</typeparam>
+    public abstract class PhysiologicalMeasurementInfo<TId> : Resource<TId>
+        where TId : StronglyTypedId<Guid>, IEquatable<TId>
     {
         /// <summary>
         /// Id of the <see cref="PatientInfo"/> resource the measure was taken on
         /// </summary>
-        public Guid PatientId { get; set; }
+        public PatientId PatientId { get; set; }
 
         /// <summary>
         /// When the measure was made

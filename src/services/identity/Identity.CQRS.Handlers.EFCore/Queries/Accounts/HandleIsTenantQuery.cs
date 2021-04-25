@@ -28,12 +28,10 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
         public async Task<bool> Handle(IsTenantQuery request, CancellationToken ct)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                return await uow.Repository<Account>()
-                    .AnyAsync(x => x.TenantId == request.Data)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            return await uow.Repository<Account>()
+                .AnyAsync(x => x.TenantId == request.Data)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -1,5 +1,9 @@
+using Agenda.Ids;
+
 using FluentAssertions;
+
 using System;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -13,7 +17,7 @@ namespace Agenda.Objects.UnitTests
         public void ChangingAttendee_Name_ToNull_Throws_ArgumentNullException()
         {
             // Arrange
-            Attendee attendee = new Attendee(Guid.NewGuid(), "Bruce");
+            Attendee attendee = new(AttendeeId.New(), "Bruce");
 
             // Act
             Action action = () => attendee.ChangeNameTo(null);
@@ -27,7 +31,7 @@ namespace Agenda.Objects.UnitTests
         public void CreatingAttendee_With_Null_Name_Throws_ArgumentNullException()
         {
             // Act
-            Action action = () => new Attendee(Guid.NewGuid(),  null);
+            Action action = () => new Attendee(AttendeeId.New(), null);
 
             // Assert
             action.Should()
@@ -38,7 +42,7 @@ namespace Agenda.Objects.UnitTests
         public void CreatingAttendee_With_Empty_UUID_Throws_ArgumentException()
         {
             // Arrange
-            Guid id = Guid.Empty;
+            AttendeeId id = AttendeeId.Empty;
 
             // Act
             Action action = () => new Attendee(id, "Bruce Wayne");
@@ -55,10 +59,10 @@ namespace Agenda.Objects.UnitTests
         public void Ctor_Builds_ValidObject(string name, string expectedName)
         {
             // Arrange
-            Guid id = Guid.NewGuid();
+            AttendeeId id = AttendeeId.New();
 
             // Act
-            Attendee attendee = new Attendee(id, name);
+            Attendee attendee = new(id, name);
 
             // Assert
             attendee.Id.Should()

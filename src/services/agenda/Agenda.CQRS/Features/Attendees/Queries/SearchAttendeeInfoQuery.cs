@@ -1,7 +1,9 @@
 ﻿using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using System;
 
 namespace Agenda.CQRS.Features.Participants.Queries

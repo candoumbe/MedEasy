@@ -2,6 +2,7 @@ using FluentValidation;
 using MedEasy.DAL.Interfaces;
 using Measures.DTO;
 using System;
+using Measures.Ids;
 
 namespace Measures.Validators.Features.Patients.DTO
 {
@@ -21,20 +22,19 @@ namespace Measures.Validators.Features.Patients.DTO
                 throw new ArgumentNullException(nameof(uowFactory));
             }
 
-            When(x => x.Id.HasValue, () =>
+            When(x => x.Id is not null, () =>
             {
                 RuleFor(x => x.Id)
-                    .NotEqual(default(Guid));
+                    .NotEqual(PatientId.Empty);
 
                 RuleFor(x => x.Id)
                     .MustAsync(async (id, ct) =>
                     {
-                        using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
-                        {
-                            return !await uow.Repository<Objects.Patient>()
-                                .AnyAsync(p => p.Id == id, ct)
-                                .ConfigureAwait(false);
-                        }
+                        using IUnitOfWork uow = uowFactory.NewUnitOfWork();
+
+                        return !await uow.Repository<Objects.Patient>()
+                            .AnyAsync(p => p.Id == id, ct)
+                            .ConfigureAwait(false);
                     })
                     .WithErrorCode("BAD_REQUEST")
                     .When(x => x.Id.Value != default);

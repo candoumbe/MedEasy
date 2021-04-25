@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
+
+using MedEasy.Abstractions.ValueConverters;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -10,11 +13,17 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace MedEasy.IntegrationTests.Core
 {
-    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint> where TEntryPoint : class
+    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>
+        where TEntryPoint : class
     {
         /// <summary>
         /// Name of the scheme used to fake a successfull authentication. 
@@ -22,10 +31,8 @@ namespace MedEasy.IntegrationTests.Core
         public const string Scheme = "FakeAuthentication";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
-            => builder
-                      //.UseContentRoot(".")
-                      .UseEnvironment("IntegrationTest");
-
+            => builder.UseEnvironment("IntegrationTest")
+                      .CaptureStartupErrors(true);
 
         /// <summary>
         /// Initializes a <see cref="HttpClient"/> instance that can be later used to call endpoints where authorization/authentication is required
@@ -38,7 +45,6 @@ namespace MedEasy.IntegrationTests.Core
         /// </para>
         /// </summary>
         /// <param name="claims">Claims for the authenticate user</param>
-        /// <returns></returns>
         public HttpClient CreateAuthenticatedHttpClientWithClaims(IEnumerable<Claim> claims)
         {
             return WithWebHostBuilder(builder =>
@@ -55,7 +61,7 @@ namespace MedEasy.IntegrationTests.Core
                             opts.Filters.Remove(item);
                         }
                     });
-                    //services.AddTransient<IAuthorizationHandler, DummyAuthorizationHandler>();
+
                     services.AddTransient<DummyClaimsProvider>((_) => new DummyClaimsProvider(Scheme, claims))
                             .AddAuthorization(opts =>
                             {

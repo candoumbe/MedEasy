@@ -14,7 +14,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -35,22 +34,19 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
     [UnitTest]
     [Feature("Agenda")]
-    public class HandleSearchParticipantInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleSearchParticipantInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private Mock<IHandleSearchQuery> _handleSearchQueryMock;
-        private HandleSearchAttendeeInfoQuery _sut;
-        private IUnitOfWorkFactory _uowFactory;
-        private IMapper _mapper;
+        private readonly Mock<IHandleSearchQuery> _handleSearchQueryMock;
+        private readonly HandleSearchAttendeeInfoQuery _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IMapper _mapper;
 
-        public HandleSearchParticipantInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleSearchParticipantInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
                 AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -59,16 +55,9 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
             _mapper = AutoMapperConfig.Build().CreateMapper();
             _handleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
 
-            _sut = new HandleSearchAttendeeInfoQuery(handleSearch : _handleSearchQueryMock.Object);
+            _sut = new HandleSearchAttendeeInfoQuery(handleSearch: _handleSearchQueryMock.Object);
         }
 
-        public void Dispose()
-        {
-            _handleSearchQueryMock = null;
-            _mapper = null;
-            _uowFactory = null;
-            _sut = null;
-        }
 
         [Fact]
         public void IsHandler()
@@ -124,18 +113,16 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
                     Expression<Func<Attendee, AttendeeInfo>> selector = AutoMapperConfig.Build().CreateMapper()
                         .ConfigurationProvider.ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
 
-                    using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Attendee>()
-                            .WhereAsync(
-                                selector,
-                                predicate : request.Data.Filter?.ToExpression<AttendeeInfo>(),
-                                request.Data.Sort,
-                                pageSize: request.Data.PageSize,
-                                page : request.Data.Page,
-                                ct)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    return await uow.Repository<Attendee>()
+                        .WhereAsync(
+                            selector,
+                            predicate: request.Data.Filter?.ToExpression<AttendeeInfo>(),
+                            request.Data.Sort,
+                            pageSize: request.Data.PageSize,
+                            page: request.Data.Page,
+                            ct)
+                        .ConfigureAwait(false);
                 });
 
             SearchAttendeeInfoQuery query = new(data);

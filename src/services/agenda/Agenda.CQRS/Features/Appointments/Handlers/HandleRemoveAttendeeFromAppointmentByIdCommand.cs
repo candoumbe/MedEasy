@@ -1,9 +1,14 @@
 ﻿using Agenda.CQRS.Features.Appointments.Commands;
 using Agenda.Objects;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+using MedEasy.DAL.Repositories;
+
 using MediatR;
+
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,25 +32,28 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
 
         public async Task<DeleteCommandResult> Handle(RemoveAttendeeFromAppointmentByIdCommand request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork())
-            {
-                var optionalAppointment = await uow.Repository<AppointmentAttendee>()
-                                 .SingleOrDefaultAsync(
-                                    selector: ap => new { ap.AppointmentId, ap.AttendeeId  },
-                                    predicate : (AppointmentAttendee ap) => ap.AppointmentId == request.Data.appointmentId && ap.AttendeeId == request.Data.attendeeId, cancellationToken)
-                                 .ConfigureAwait(false);
+            using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
+            var optionalAppointment = await uow.Repository<Appointment>()
+                                               .SingleOrDefaultAsync(appointment => appointment.Id == request.Data.appointmentId,
+                                                                     includedProperties: new[] {IncludeClause<Appointment>.Create<IEnumerable<Attendee>>(x => x.Attendees)},
+                                                                     cancellationToken)
+                                               .ConfigureAwait(false);
 
-                return await optionalAppointment.Match(
-                    some: async (appointment) =>
+            return await optionalAppointment.Match(
+                some: async (appointment) =>
+                {
+                    DeleteCommandResult result = DeleteCommandResult.Failed_NotFound;
+                    if (appointment.Attendees.AtLeastOnce(x => x.Id == request.Data.attendeeId))
                     {
-                        uow.Repository<AppointmentAttendee>().Delete(ap => ap.AttendeeId == appointment.AttendeeId && ap.AppointmentId == ap.AppointmentId);
+                        appointment.RemoveAttendee(request.Data.attendeeId);
                         await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                        return DeleteCommandResult.Done;
-                    },
-                    none: () => Task.FromResult(DeleteCommandResult.Failed_NotFound)
-                 )
-                 .ConfigureAwait(false);
-            }
+                        result = DeleteCommandResult.Done;
+                    }
+                    return result;
+                },
+                none: () => Task.FromResult(DeleteCommandResult.Failed_NotFound)
+             )
+             .ConfigureAwait(false);
         }
     }
 }

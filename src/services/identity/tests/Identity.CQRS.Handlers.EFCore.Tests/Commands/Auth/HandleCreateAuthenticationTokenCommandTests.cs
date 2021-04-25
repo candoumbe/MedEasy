@@ -10,6 +10,7 @@ using Identity.CQRS.Handlers;
 using Identity.CQRS.Handlers.EFCore.Commands.Auth;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
 
@@ -51,7 +52,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
     [Feature("Identity")]
     [Feature("JWT")]
     [Feature("Authentication")]
-    public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteDatabaseFixture>
+    public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IClock> _dateTimeServiceMock;
@@ -59,18 +60,19 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenCommandMock;
 
-        public HandleCreateAuthenticationTokenCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleCreateAuthenticationTokenCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
 
             _dateTimeServiceMock = new Mock<IClock>(Strict);
 
-            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                                   .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options,
-                                                                   (options) => new(options, new FakeClock(new Instant())));
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
+                                                                   (options) =>
+                                                                   {
+                                                                       IdentityContext context =  new(options, new FakeClock(new Instant()));
+                                                                       context.Database.EnsureCreated();
+                                                                       return context;
+                                                                   });
             _handleCreateSecurityTokenCommandMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
 
             _sut = new HandleCreateAuthenticationTokenCommand(dateTimeService: _dateTimeServiceMock.Object, unitOfWorkFactory: _uowFactory, _handleCreateSecurityTokenCommandMock.Object);
@@ -87,11 +89,6 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             uow.Repository<Role>().Clear();
             await uow.SaveChangesAsync()
                      .ConfigureAwait(false);
-
-            _handleCreateSecurityTokenCommandMock = null;
-            _uowFactory = null;
-            _sut = null;
-            _dateTimeServiceMock = null;
         }
 
         [Fact]
@@ -105,7 +102,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         {
             // Arrange
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
-            Account account = new(id: Guid.NewGuid(),
+            Account account = new(id: AccountId.New(),
                                   username: "thebatman",
                                   email: "bwayne@wayne-enterprise.com",
                                   name: "Bruce Wayne",
@@ -299,7 +296,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             // Arrange
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
             Faker faker = new();
-            Account account = new (id: Guid.NewGuid(),
+            Account account = new(id: AccountId.New(),
                                    username: "thebatman",
                                    email: "bwayne@wayne-enterprise.com",
                                    name: "Bruce Wayne",

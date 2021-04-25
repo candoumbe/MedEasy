@@ -1,11 +1,13 @@
-﻿using MedEasy.RestObjects;
-using System;
+﻿using Identity.Ids;
+
+using MedEasy.Ids;
+using MedEasy.RestObjects;
+
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Identity.DTO
 {
-    public class AccountInfo : Resource<Guid>
+    public class AccountInfo : Resource<AccountId>
     {
         public string Username { get; set; }
 
@@ -18,7 +20,7 @@ namespace Identity.DTO
         /// </summary>
         public string Name { get; set; }
 
-        public Guid? TenantId { get; set; }
+        public TenantId TenantId { get; set; }
 
         public IEnumerable<ClaimInfo> Claims { get; set; }
 

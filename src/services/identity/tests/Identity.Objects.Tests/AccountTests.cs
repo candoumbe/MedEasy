@@ -1,7 +1,13 @@
 using Bogus;
+
 using FakeItEasy;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
+
+using Identity.Ids;
+
+using MedEasy.Ids;
 
 using NodaTime;
 using NodaTime.Extensions;
@@ -10,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -26,14 +33,14 @@ namespace Identity.Objects.Tests
         public AccountTests()
         {
             _accountFaker = new Faker<Account>()
-                    .CustomInstantiator((faker) => new Account(id: Guid.NewGuid(),
+                    .CustomInstantiator((faker) => new Account(id: AccountId.New(),
                                                                username: faker.Internet.UserName(),
                                                                email: faker.Internet.Email(),
                                                                passwordHash: faker.Internet.Password(),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
                                                                salt: faker.Lorem.Word(),
-                                                               tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                                                               tenantId: faker.PickRandom(new[] { TenantId.New(), default }),
                                                                refreshToken: faker.Lorem.Word()));
         }
 
@@ -42,14 +49,14 @@ namespace Identity.Objects.Tests
             get
             {
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator((faker) => new Account(id: Guid.NewGuid(),
+                    .CustomInstantiator((faker) => new Account(id: AccountId.New(),
                                                                username: faker.Internet.UserName(),
                                                                email: faker.Internet.Email(),
                                                                passwordHash: faker.Internet.Password(),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
                                                                salt: faker.Lorem.Word(),
-                                                               tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
+                                                               tenantId: faker.PickRandom(new[] { TenantId.New(), default }),
                                                                refreshToken: faker.Lorem.Word()));
                 {
                     Instant utcNow = 12.December(2010).AsUtc().ToInstant();
@@ -94,7 +101,7 @@ namespace Identity.Objects.Tests
                                 Expression<Func<Account, bool>> accountExpectation)
         {
             // Act
-            account.AddOrUpdateClaim(type : claim.type,  value : claim.value, claim.start, claim.end);
+            account.AddOrUpdateClaim(type: claim.type, value: claim.value, claim.start, claim.end);
 
             // Assert
             account.Should()
@@ -106,17 +113,15 @@ namespace Identity.Objects.Tests
             get
             {
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator((faker) => new Account(
-                        id: Guid.NewGuid(),
-                        username: faker.Internet.UserName(),
-                        email: faker.Internet.Email(),
-                        passwordHash: faker.Internet.Password(),
-                        locked: faker.PickRandom(new[] { true, false }),
-                        isActive: faker.PickRandom(new[] { true, false }),
-                        salt: faker.Lorem.Word(),
-                        tenantId: faker.PickRandom(new[] { Guid.NewGuid(), default }),
-                        refreshToken: faker.Lorem.Word()
-                    ));
+                    .CustomInstantiator((faker) => new Account(id: AccountId.New(),
+                                                               username: faker.Internet.UserName(),
+                                                               email: faker.Internet.Email(),
+                                                               passwordHash: faker.Internet.Password(),
+                                                               locked: faker.PickRandom(new[] { true, false }),
+                                                               isActive: faker.PickRandom(new[] { true, false }),
+                                                               salt: faker.Lorem.Word(),
+                                                               tenantId: faker.PickRandom(new[] { TenantId.New(), default }),
+                                                               refreshToken: faker.Lorem.Word()));
                 {
                     Instant utcNow = 12.December(2010).AsUtc().ToInstant();
 
@@ -124,7 +129,7 @@ namespace Identity.Objects.Tests
                     {
                         accountFaker.Generate(),
                         "create",
-                        ((Expression<Func<Account, bool>>)(account => !account.Claims.Any())),
+                        (Expression<Func<Account, bool>>)(account => !account.Claims.Any()),
                         "Account has no claim"
                     };
                 }
@@ -137,7 +142,7 @@ namespace Identity.Objects.Tests
                     {
                         account,
                         "create",
-                        ((Expression<Func<Account, bool>>)(acc => !acc.Claims.Any())),
+                        (Expression<Func<Account, bool>>)(acc => !acc.Claims.Any()),
                         "The corresponding claim must no longer exists"
                     };
                 }
@@ -226,7 +231,7 @@ namespace Identity.Objects.Tests
             Account account = _accountFaker;
 
             // Act
-            Action action = () => account.OwnsBy(Guid.Empty);
+            Action action = () => account.OwnsBy(TenantId.Empty);
 
             // Assert
             action.Should()
@@ -241,7 +246,7 @@ namespace Identity.Objects.Tests
             // Arrange
             Account account = _accountFaker;
 
-            Role adminRole = new Role(Guid.NewGuid(), "admin");
+            Role adminRole = new(RoleId.New(), "admin");
 
             // Act
             account.AddRole(adminRole);

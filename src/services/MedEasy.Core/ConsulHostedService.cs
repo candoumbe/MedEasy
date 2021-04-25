@@ -49,11 +49,11 @@ namespace MedEasy.Core.Infrastructure
             IServerAddressesFeature addresses = _server.Features.Get<IServerAddressesFeature>();
             string address = addresses.Addresses.First();
 
-            Uri uri = new Uri(address);
+            Uri uri = new(address);
             ConsulConfig consulConfig = _consulOptions.Value;
             _registrationID = $"{consulConfig.ServiceID}-{uri.Port}";
 
-            AgentServiceRegistration registration = new AgentServiceRegistration()
+            AgentServiceRegistration registration = new()
             {
                 ID = _registrationID,
                 Name = consulConfig.ServiceName,
@@ -68,7 +68,7 @@ namespace MedEasy.Core.Infrastructure
                 {
                     HTTP = $"{uri.Scheme}://{uri.Host}:{uri.Port}{consulConfig.Check.HealthEndpoint}",
                     Timeout = TimeSpan.FromSeconds(consulConfig.Check.Timeout),
-                    Interval = TimeSpan.FromSeconds(consulConfig.Check.Interval)                    
+                    Interval = TimeSpan.FromSeconds(consulConfig.Check.Interval)
                 };
             }
 

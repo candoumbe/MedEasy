@@ -51,34 +51,45 @@ using NodaTime.Testing;
 using NodaTime;
 using System.Text.Json;
 using NodaTime.Serialization.SystemTextJson;
+using Agenda.Ids;
+using MedEasy.Ids;
 
 namespace Agenda.API.UnitTests.Features
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class AppointmentsControllerTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class AppointmentsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
-        private ITestOutputHelper _outputHelper;
-        private Mock<LinkGenerator> _urlHelperMock;
-        private IUnitOfWorkFactory _uowFactory;
-        private Mock<IOptionsSnapshot<AgendaApiOptions>> _apiOptionsMock;
-        private Mock<IMediator> _mediatorMock;
-        private AppointmentsController _sut;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly SqliteEfCoreDatabaseFixture<AgendaContext> _database;
+        private readonly Mock<LinkGenerator> _urlHelperMock;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly Mock<IOptionsSnapshot<AgendaApiOptions>> _apiOptionsMock;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly AppointmentsController _sut;
+        private readonly FakeClock _clock;
         private const string _baseUrl = "agenda";
-        private Mock<IMapper> _mapperMock;
-        private static readonly ApiVersion _apiVersion = new ApiVersion(1, 0);
+        private readonly Mock<IMapper> _mapperMock;
+        private static readonly ApiVersion _apiVersion = new(1, 0);
+        private readonly SqliteEfCoreDatabaseFixture<AgendaContext> _sqliteEfCoreDatabaseFixture;
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;
-
+            _database = database;
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                          .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                          .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
+                          => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+            _clock = new FakeClock(new Instant());
 
-            DbContextOptionsBuilder<AgendaContext> dbOptions = new DbContextOptionsBuilder<AgendaContext>().UseInMemoryDatabase($"{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(dbOptions.Options, (options) => new(options, new FakeClock(new Instant())));
-
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                AgendaContext context = new(options, _clock);
+                context.Database.EnsureCreated();
+                return context;
+            });
+            _database = database;
             _apiOptionsMock = new Mock<IOptionsSnapshot<AgendaApiOptions>>(Strict);
 
             _mediatorMock = new Mock<IMediator>(Strict);
@@ -103,22 +114,16 @@ namespace Agenda.API.UnitTests.Features
                                               _apiVersion);
         }
 
-        public async void Dispose()
-        {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Attendee>().Clear();
-                uow.Repository<Appointment>().Clear();
+        public Task InitializeAsync() => Task.CompletedTask;
 
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-            _uowFactory = null;
-            _outputHelper = null;
-            _urlHelperMock = null;
-            _apiOptionsMock = null;
-            _mediatorMock = null;
-            _sut = null;
+        public async Task DisposeAsync()
+        {
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            uow.Repository<Attendee>().Clear();
+            uow.Repository<Appointment>().Clear();
+
+            await uow.SaveChangesAsync()
+                     .ConfigureAwait(false);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -231,7 +236,7 @@ namespace Agenda.API.UnitTests.Features
         public async Task GivenNoDataFromMediator_GetAppointmentById_Returns_NotFound()
         {
             // Arrange
-            Guid appointmentId = Guid.NewGuid();
+            AppointmentId appointmentId = AppointmentId.New();
 
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<AppointmentInfo>());
@@ -255,18 +260,18 @@ namespace Agenda.API.UnitTests.Features
         public async Task GivenOneResultFromMediator_GetAppointmentById_Returns_Ok()
         {
             // Arrange
-            Guid appointmentId = Guid.NewGuid();
-
+            AppointmentId appointmentId = AppointmentId.New();
+            _clock.Reset(1.July(2013).Add(12.Seconds()).AsUtc().ToInstant());
             Appointment appointment = new(id: appointmentId,
                                           subject: "Confidential",
                                           location: "Wayne Tower",
-                                          startDate: 12.July(2013).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant(),
-                                          endDate: 12.July(2013).Add(14.Hours().And(45.Minutes())).AsUtc().ToInstant()
+                                          startDate: 12.July(2013).Add(14.Hours().And(30.Minutes()).And(10.Milliseconds())).AsUtc().ToInstant(),
+                                          endDate: 12.July(2013).Add(14.Hours().And(45.Minutes()).And(15.Milliseconds())).AsUtc().ToInstant()
 
             );
 
-            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name: "Bruce Wayne"));
-            appointment.AddAttendee(new Attendee(id: Guid.NewGuid(), name: "Dick Grayson"));
+            appointment.AddAttendee(new Attendee(id: AttendeeId.New(), name: "Bruce Wayne"));
+            appointment.AddAttendee(new Attendee(id: AttendeeId.New(), name: "Dick Grayson"));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -279,14 +284,16 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetOneAppointmentInfoByIdQuery query, CancellationToken ct) =>
                 {
-                    _outputHelper.WriteLine($"Executing query : {SerializeObject(query)}");
+                    _outputHelper.WriteLine($"Executing query : {query.Jsonify()}");
                     using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
                     Expression<Func<Appointment, AppointmentInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
 
                     _outputHelper.WriteLine($"selector : {selector}");
 
                     AppointmentInfo appointmentInfo = await uow.Repository<Appointment>()
-                                                               .SingleAsync(selector, x => x.Id == query.Data, ct)
+                                                               .SingleAsync(selector,
+                                                                            x => x.Id == query.Data,
+                                                                            ct)
                                                                .ConfigureAwait(false);
 
                     return appointmentInfo.Some();
@@ -322,11 +329,11 @@ namespace Agenda.API.UnitTests.Features
 
             Link selfLink = links.Single(link => link.Relation == Self);
             selfLink.Method.Should().Be("GET");
-            selfLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}&version={_apiVersion}");
+            selfLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId.Value}&version={_apiVersion}");
 
             Link deleteLink = links.Single(link => link.Relation == "delete");
             deleteLink.Method.Should().Be("DELETE");
-            deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}&version={_apiVersion}");
+            deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId.Value}&version={_apiVersion}");
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -368,12 +375,12 @@ namespace Agenda.API.UnitTests.Features
                 }
 
                 Faker<Attendee> participantFaker = new Faker<Attendee>()
-                    .CustomInstantiator(faker => new Attendee(Guid.NewGuid(), faker.Person.FullName));
+                    .CustomInstantiator(faker => new Attendee(AttendeeId.New(), faker.Person.FullName));
 
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .RuleFor(appointment => appointment.EndDate, (_, appointment) => appointment.StartDate + 11.Hours().ToDuration())
-                        .CustomInstantiator(_ => new(id: Guid.NewGuid(),
+                        .CustomInstantiator(_ => new(id: AppointmentId.New(),
                                                       subject: string.Empty,
                                                       location: string.Empty,
                                                       startDate: 10.January(2016).At(10.Hours()).AsUtc().ToInstant(),
@@ -563,7 +570,7 @@ namespace Agenda.API.UnitTests.Features
 
                 {
                     Faker<AppointmentInfo> appointmentFaker = new Faker<AppointmentInfo>()
-                        .RuleFor(x => x.Id, Guid.NewGuid())
+                        .RuleFor(x => x.Id, AppointmentId.New())
                         .RuleFor(x => x.Location, faker => faker.Address.City())
                         .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence(wordCount: 5))
                         .RuleFor(x => x.StartDate, faker => faker.Noda().Instant.Recent())
@@ -694,7 +701,6 @@ namespace Agenda.API.UnitTests.Features
             _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
             _mapperMock.VerifyNoOtherCalls();
 
-
             GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
 
             _outputHelper.WriteLine($"response : {response}");
@@ -735,8 +741,8 @@ namespace Agenda.API.UnitTests.Features
                 Location = "Gotham",
                 Attendees = new[]
                 {
-                    new AttendeeModel { Id = Guid.NewGuid(), Name = "Dick Grayson", UpdatedDate = 10.January(2005).AsUtc().ToInstant() },
-                    new AttendeeModel { Id = Guid.NewGuid(), Name = "Bruce Wayne", UpdatedDate = 10.January(2005).AsUtc().ToInstant() }
+                    new AttendeeModel { Id = AttendeeId.New(), Name = "Dick Grayson", UpdatedDate = 10.January(2005).AsUtc().ToInstant() },
+                    new AttendeeModel { Id = AttendeeId.New(), Name = "Bruce Wayne", UpdatedDate = 10.January(2005).AsUtc().ToInstant() }
                 }
             };
 
@@ -770,7 +776,7 @@ namespace Agenda.API.UnitTests.Features
 
             routeValues[nameof(AppointmentInfo.Id)].Should()
                 .BeAssignableTo<Guid>().Which.Should()
-                .NotBeEmpty();
+                .NotBe(Guid.Empty);
             routeValues["controller"].Should()
                 .BeAssignableTo<string>().Which.Should()
                 .Be(AppointmentsController.EndpointName);
@@ -783,7 +789,8 @@ namespace Agenda.API.UnitTests.Features
                 .NotBeNull();
 
             resource.Id.Should()
-                .NotBeEmpty();
+                .NotBe(AppointmentId.Empty).And
+                .NotBeNull();
             resource.StartDate.Should()
                 .Be(newAppointment.StartDate.ToInstant());
             resource.EndDate.Should()
@@ -811,9 +818,9 @@ namespace Agenda.API.UnitTests.Features
             linkToSelf.Method.Should()
                 .Be("GET");
             linkToSelf.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id.Value}&version={_apiVersion}");
 
-            IEnumerable<Guid> participantsGuids = participants.Select(p => p.Id);
+            IEnumerable<AttendeeId> participantsGuids = participants.Select(p => p.Id);
             IEnumerable<Link> linksToParticipants = links.Where(link => link.Relation.Like("get-participant-*"));
             linksToParticipants.Should()
                                .HaveSameCount(participantsGuids, "Link(s) to GET participant(s) details must be provided").And
@@ -858,8 +865,8 @@ namespace Agenda.API.UnitTests.Features
         public async Task GivenMediatorCompleteCommandExecution_Delete_Returns_ActionResult(DeleteCommandResult cmdResult, Expression<Func<IActionResult, bool>> actionResultExpectation, string reason)
         {
             // Arrange
-            Guid appointmentId = Guid.NewGuid();
-            Guid participantId = Guid.NewGuid();
+            AppointmentId appointmentId = AppointmentId.New();
+            AttendeeId participantId = AttendeeId.New();
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RemoveAttendeeFromAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cmdResult);

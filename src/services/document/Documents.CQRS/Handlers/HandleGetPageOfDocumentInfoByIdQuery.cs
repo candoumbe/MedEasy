@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Documents.CQRS.Handlers
 {
-    public class HandleGetPageOfDocumentInfoQuery: IRequestHandler<GetPageOfDocumentInfoQuery, Page<DocumentInfo>>
+    public class HandleGetPageOfDocumentInfoQuery : IRequestHandler<GetPageOfDocumentInfoQuery, Page<DocumentInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
 
@@ -29,25 +29,23 @@ namespace Documents.CQRS.Handlers
 
         public async Task<Page<DocumentInfo>> Handle(GetPageOfDocumentInfoQuery request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                return await uow.Repository<Document>()
-                    .ReadPageAsync(
-                        selector: doc => new DocumentInfo
-                        {
-                            Name = doc.Name,
-                            Id = doc.Id,
-                            MimeType = doc.MimeType,
-                            Hash = doc.Hash,
-                            CreatedDate = doc.CreatedDate,
-                            UpdatedDate = doc.UpdatedDate
-                        },
-                        page: request.Data.Page,
-                        pageSize: request.Data.PageSize,
-                        orderBy : nameof(DocumentInfo.Name).ToSort<DocumentInfo>(),
-                        ct : cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            return await uow.Repository<Document>()
+                .ReadPageAsync(
+                    selector: doc => new DocumentInfo
+                    {
+                        Name = doc.Name,
+                        Id = doc.Id,
+                        MimeType = doc.MimeType,
+                        Hash = doc.Hash,
+                        CreatedDate = doc.CreatedDate,
+                        UpdatedDate = doc.UpdatedDate
+                    },
+                    page: request.Data.Page,
+                    pageSize: request.Data.PageSize,
+                    orderBy: nameof(DocumentInfo.Name).ToSort<DocumentInfo>(),
+                    ct: cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

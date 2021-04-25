@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Routing;
+using MedEasy.Ids;
 
 namespace Patients.API.Controllers
 {
@@ -20,7 +21,7 @@ namespace Patients.API.Controllers
     /// </summary>
     [ApiController]
     public abstract class AbstractBaseController<TEntity, TResource, TResourceId>
-        where TEntity : class, IEntity<Guid>
+        where TEntity : class, IEntity<StronglyTypedId<Guid>>
         where TResource : Resource<TResourceId>
         where TResourceId : IEquatable<TResourceId>
     {
@@ -72,21 +73,19 @@ namespace Patients.API.Controllers
         /// <returns></returns>
         protected async Task<Page<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
         {
-            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-            {
-                Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (_ => true);
-                Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
+            using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+            Expression<Func<TEntity, bool>> filter = search.Filter?.ToExpression<TEntity>() ?? (_ => true);
+            Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
 
-                return await uow.Repository<TEntity>()
-                    .WhereAsync(
-                        selector,
-                        filter ,
-                        search.Sort,
-                        search.Page,
-                        search.PageSize,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            return await uow.Repository<TEntity>()
+                .WhereAsync(
+                    selector,
+                    filter,
+                    search.Sort,
+                    search.Page,
+                    search.PageSize,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

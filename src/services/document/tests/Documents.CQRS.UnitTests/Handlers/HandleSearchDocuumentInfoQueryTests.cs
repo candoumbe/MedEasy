@@ -1,18 +1,22 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Bogus;
+
 using Documents.CQRS.Handlers;
 using Documents.CQRS.Queries;
 using Documents.DataStore;
 using Documents.DTO.v1;
+using Documents.Ids;
 using Documents.Mapping;
 using Documents.Objects;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Testing;
@@ -22,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -31,7 +36,7 @@ namespace Documents.CQRS.UnitTests.Handlers
     [Feature(nameof(Documents))]
     [UnitTest]
     [Feature("Search")]
-    public class HandleSearchDocumentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleSearchDocumentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IHandleSearchQuery _searchQueryHandler;
@@ -40,20 +45,16 @@ namespace Documents.CQRS.UnitTests.Handlers
         private IExpressionBuilder _expressionBuilder;
         private static readonly Faker<Document> documentFaker = new Faker<Document>()
                         .CustomInstantiator(faker => new Document(
-                            id: Guid.NewGuid(),
+                            id: DocumentId.New(),
                             name: faker.PickRandom("pdf", "txt", "odt"),
                             mimeType: faker.System.MimeType())
                         );
 
-        public HandleSearchDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleSearchDocumentInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<DocumentsStore> database)
         {
-            DbContextOptionsBuilder<DocumentsStore> optionsBuilder = new DbContextOptionsBuilder<DocumentsStore>();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging();
-
-            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(database.OptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
+                DocumentsStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -64,7 +65,9 @@ namespace Documents.CQRS.UnitTests.Handlers
             _sut = new HandleSearchDocumentInfoQuery(_searchQueryHandler);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -84,7 +87,7 @@ namespace Documents.CQRS.UnitTests.Handlers
             get
             {
                 {
-                    SearchDocumentInfo searchDocumentInfo = new SearchDocumentInfo
+                    SearchDocumentInfo searchDocumentInfo = new()
                     {
                         Page = 1,
                         PageSize = 10
@@ -122,7 +125,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                 }
 
                 {
-                    
+
                     IEnumerable<Document> documents = documentFaker.Generate(100);
                     yield return new object[]
                     {
@@ -144,11 +147,12 @@ namespace Documents.CQRS.UnitTests.Handlers
 
                 {
                     IEnumerable<Document> documents = documentFaker.Generate(100)
-                                                                   .Select(doc => {
+                                                                   .Select(doc =>
+                                                                   {
                                                                        doc.ChangeNameTo($"{doc.Name}.pdf");
 
                                                                        return doc;
-                                                                    });
+                                                                   });
                     yield return new object[]
                     {
                         documents,
@@ -188,7 +192,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                 _outputHelper.WriteLine($"Search criteria : {searchCriteria.Jsonify()}");
             }
 
-            SearchDocumentInfoQuery request = new SearchDocumentInfoQuery(searchCriteria);
+            SearchDocumentInfoQuery request = new(searchCriteria);
 
             // Act
             Page<DocumentInfo> page = await _sut.Handle(request, default)

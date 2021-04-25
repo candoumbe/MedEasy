@@ -17,7 +17,7 @@ namespace Agenda.CQRS.Features.Appointments.Queries
         /// Builds a new <see cref="GetPageOfAppointmentInfoQuery"/> instance.
         /// </summary>
         /// <param name="pagination"></param>
-        public GetPageOfAppointmentInfoQuery(PaginationConfiguration pagination): base(Guid.NewGuid(), pagination)
+        public GetPageOfAppointmentInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
         {
 
         }

@@ -4,6 +4,7 @@ using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
+using Identity.Ids;
 
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -84,14 +85,14 @@ namespace Identity.API.Features.v1.Accounts
             IdentityApiOptions apiOptions = _apiOptions.Value;
             paginationConfiguration.PageSize = Math.Min(paginationConfiguration.PageSize, apiOptions.MaxPageSize);
 
-            GetPageOfAccountsQuery query = new GetPageOfAccountsQuery(paginationConfiguration);
+            GetPageOfAccountsQuery query = new(paginationConfiguration);
 
             Page<AccountInfo> page = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
             string version = _apiVersion?.ToString();
 
-            GenericPagedGetResponse<Browsable<AccountInfo>> result = new GenericPagedGetResponse<Browsable<AccountInfo>>(
+            GenericPagedGetResponse<Browsable<AccountInfo>> result = new(
                 page.Entries.Select(resource => new Browsable<AccountInfo>
                 {
                     Resource = resource,
@@ -101,7 +102,7 @@ namespace Identity.API.Features.v1.Accounts
                         {
                             Relation = Self,
                             Method = "GET",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, resource.Id, version})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, Id = resource.Id.Value, version})
                         }
                     }
                 }),
@@ -130,10 +131,11 @@ namespace Identity.API.Features.v1.Accounts
         /// <response code="404">Resource to delete was not found</response>
         /// <response code="409">Resource cannot be deleted</response>
         /// <response code="403"></response>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Delete(AccountId id, CancellationToken ct = default)
         {
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(id);
+            DeleteAccountInfoByIdCommand cmd = new(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -155,7 +157,7 @@ namespace Identity.API.Features.v1.Accounts
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Get(AccountId id, CancellationToken ct = default)
         {
             Option<AccountInfo> optionalAccount = await _mediator.Send(new GetOneAccountByIdQuery(id), ct)
                 .ConfigureAwait(false);
@@ -167,16 +169,16 @@ namespace Identity.API.Features.v1.Accounts
                {
                    IList<Link> links = new List<Link>
                    {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.Id.Value, version }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.Id, version }) }
                    };
 
-                   if (account.TenantId.HasValue)
+                   if (account.TenantId is not null)
                    {
                        links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = account.TenantId, version }) });
                    }
 
-                   Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
+                   Browsable<AccountInfo> browsableResource = new()
                    {
                        Resource = account,
                        Links = links
@@ -225,12 +227,12 @@ namespace Identity.API.Features.v1.Accounts
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Patch(Guid id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
-            PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
+            PatchInfo<Guid, AccountInfo> data = new()
             {
                 Id = id,
                 PatchDocument = changes
             };
-            PatchCommand<Guid, AccountInfo> cmd = new PatchCommand<Guid, AccountInfo>(data);
+            PatchCommand<Guid, AccountInfo> cmd = new(data);
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
@@ -259,7 +261,7 @@ namespace Identity.API.Features.v1.Accounts
         [ProducesResponseType(typeof(Browsable<AccountInfo>), Status201Created)]
         public async Task<ActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
         {
-            CreateAccountInfoCommand cmd = new CreateAccountInfoCommand(newAccount);
+            CreateAccountInfoCommand cmd = new(newAccount);
 
             Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
@@ -268,7 +270,7 @@ namespace Identity.API.Features.v1.Accounts
                 some: account =>
                 {
                     string version = _apiVersion?.ToString();
-                    Browsable<AccountInfo> browsableResource = new Browsable<AccountInfo>
+                    Browsable<AccountInfo> browsableResource = new()
                     {
                         Resource = account,
                         Links = new[]
@@ -277,12 +279,12 @@ namespace Identity.API.Features.v1.Accounts
                             {
                                 Relation = Self,
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, account.Id , version})
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, Id = account.Id.Value , version})
                             }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, account.Id, version }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.Id.Value, version }, browsableResource);
                 },
                 none: cmdError => cmdError switch
                 {
@@ -313,7 +315,7 @@ namespace Identity.API.Features.v1.Accounts
                 filters.Add($"{nameof(AccountInfo.Email)}={search.Email}".ToFilter<AccountInfo>());
             }
 
-            SearchQueryInfo<SearchAccountInfoResult> searchQuery = new SearchQueryInfo<SearchAccountInfoResult>
+            SearchQueryInfo<SearchAccountInfoResult> searchQuery = new()
             {
                 Page = search.Page,
                 PageSize = search.PageSize,

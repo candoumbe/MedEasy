@@ -1,6 +1,8 @@
 ﻿using Measures.DTO;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.RestObjects;
+
 using System;
 
 namespace Measures.CQRS.Queries.BloodPressures

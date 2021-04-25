@@ -13,7 +13,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.DTO.Search;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -30,28 +29,26 @@ using static Moq.MockBehavior;
 using DataFilters;
 using NodaTime.Testing;
 using NodaTime;
+using Measures.Ids;
 
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleSearchPatientInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleSearchPatientInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
-        private ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
-        private HandleSearchPatientInfosQuery _sut;
-        private Mock<IExpressionBuilder> _expressionBuilderMock;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly Mock<IHandleSearchQuery> _iHandleSearchQueryMock;
+        private readonly HandleSearchPatientInfosQuery _sut;
+        private readonly Mock<IExpressionBuilder> _expressionBuilderMock;
 
-        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            //builder.UseSqlite(database.Connection);
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -60,15 +57,6 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
 
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
             _sut = new HandleSearchPatientInfosQuery(_iHandleSearchQueryMock.Object);
-        }
-
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _uowFactory = null;
-            _expressionBuilderMock = null;
-
-            _sut = null;
         }
 
         public static IEnumerable<object[]> SearchPatientCases
@@ -84,20 +72,20 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                         Page = 1,
                         PageSize = 3
                     },
-                    ((Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                    (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                         && !x.Entries.Any()
                         && x.Count == 1
-                        && x.Size == 3))
+                        && x.Size == 3)
                 };
 
                 {
-                    Guid patientId = Guid.NewGuid();
+                    PatientId patientId = PatientId.New();
                     yield return new object[]
                     {
                         new []
                         {
-                            new Patient(Guid.NewGuid(), "bruce wayne"),
-                            new Patient(Guid.NewGuid(), "dick grayson"),
+                            new Patient(PatientId.New(), "bruce wayne"),
+                            new Patient(PatientId.New(), "dick grayson"),
                             new Patient(patientId, "damian wayne"),
                         },
                         new SearchQueryInfo<PatientInfo>
@@ -145,24 +133,25 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                .Returns((Type sourceType, Type destinationType, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(sourceType, destinationType, parameters, membersToExpand));
 
             _iHandleSearchQueryMock.Setup(mock => mock.Search<Patient, PatientInfo>(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
-                .Returns(async (SearchQuery<PatientInfo> query, CancellationToken ct) => {
+                .Returns(async (SearchQuery<PatientInfo> query, CancellationToken ct) =>
+                {
                     {
                         Expression<Func<PatientInfo, bool>> filter = query.Data.Filter.ToExpression<PatientInfo>();
                         Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                             .GetMapExpression<Patient, PatientInfo>();
 
-                        //ISort<PatientInfo> sort = (query.Data.Sort ?? );
+                        ISort<PatientInfo> sort = query.Data.Sort ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending);
 
                         using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
                         return await uow.Repository<Patient>()
-                                        .WhereAsync(selector, filter, new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending), query.Data.PageSize, query.Data.Page, ct)
+                                        .WhereAsync(selector, filter, sort, query.Data.PageSize, query.Data.Page, ct)
                                         .ConfigureAwait(false);
                     }
                 });
 
             // Act
-            SearchQuery<PatientInfo> searchQuery = new SearchQuery<PatientInfo>(search);
+            SearchQuery<PatientInfo> searchQuery = new(search);
             Page<PatientInfo> pageOfResult = await _sut.Handle(searchQuery, default)
                 .ConfigureAwait(false);
 

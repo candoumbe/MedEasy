@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using Identity.API.Features.Auth;
 using Identity.API.Features.v1.Auth;
 using Identity.CQRS.Commands;
@@ -7,23 +8,29 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;
+using Identity.Ids;
+
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+
 using Moq;
 
 using NodaTime;
 using NodaTime.Testing;
 
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -33,9 +40,11 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Moq.MockBehavior;
 
@@ -44,27 +53,24 @@ namespace Identity.API.UnitTests.Features.v1.Auth
     [UnitTest]
     [Feature("Identity")]
     [Feature("Accounts")]
-    public class TokenControllerUnitTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class TokenControllerUnitTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
-        private ITestOutputHelper _outputHelper;
-        private Mock<IMediator> _mediatorMock;
-        private Mock<IOptionsSnapshot<JwtOptions>> _jwtOptionsMock;
-        private JwtOptions _jwtOptions;
-        private Mock<IHttpContextAccessor> _httpContextMock;
-        private TokenController _sut;
-        private IUnitOfWorkFactory _unitOfWorkFactory;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly Mock<IOptionsSnapshot<JwtOptions>> _jwtOptionsMock;
+        private readonly JwtOptions _jwtOptions;
+        private readonly Mock<IHttpContextAccessor> _httpContextMock;
+        private readonly TokenController _sut;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            DbContextOptionsBuilder<IdentityContext> optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
-            optionsBuilder.UseSqlite(databaseFixture.Connection, x => x.UseNodaTime());
-
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(optionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -88,22 +94,11 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             _sut = new TokenController(mediator: _mediatorMock.Object, jwtOptions: _jwtOptionsMock.Object, _httpContextMock.Object);
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _mediatorMock = null;
-            _sut = null;
-            _unitOfWorkFactory = null;
-            _jwtOptionsMock = null;
-            _httpContextMock = null;
-            _jwtOptions = null;
-        }
-
         [Fact]
         public async Task GivenAccountDoesNotExist_Post_Returns_NotFound()
         {
             // Arrange
-            LoginModel model = new LoginModel { Username = "Bruce", Password = "CapedCrusader" };
+            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<AccountInfo>());
 
@@ -124,11 +119,11 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenAccountExists_Post_Returns_ValidToken()
         {
             // Arrange
-            LoginModel model = new LoginModel { Username = "Bruce", Password = "CapedCrusader" };
-            AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = "Paris" };
-            AccountInfo accountInfo = new AccountInfo
+            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
+            AuthenticationInfo authenticationInfo = new() { Location = "Paris" };
+            AccountInfo accountInfo = new()
             {
-                Id = Guid.NewGuid(),
+                Id = AccountId.New(),
                 Username = model.Username,
                 Email = "brucewayne@gotham.com",
                 Name = "Bruce Wayne"
@@ -293,7 +288,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             const string username = "thejoker";
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.NotFound));
-            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            RefreshAccessTokenInfo refreshAccessToken = new()
             {
                 AccessToken = "access",
                 RefreshToken = "refresh"
@@ -318,7 +313,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             const string username = "thejoker";
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Conflict));
-            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            RefreshAccessTokenInfo refreshAccessToken = new()
             {
                 AccessToken = "access",
                 RefreshToken = "refresh"
@@ -343,14 +338,14 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         {
             // Arrange
             const string username = "thejoker";
-            BearerTokenInfo bearerToken = new BearerTokenInfo
+            BearerTokenInfo bearerToken = new()
             {
                 AccessToken = "<header-access>.<payload>.<signature>",
                 RefreshToken = "<header-refresh>.<payload>.<signature>"
             };
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.Some<BearerTokenInfo, RefreshAccessCommandResult>(bearerToken));
-            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            RefreshAccessTokenInfo refreshAccessToken = new()
             {
                 AccessToken = "access",
                 RefreshToken = "refresh"
@@ -378,7 +373,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized));
-            RefreshAccessTokenInfo refreshAccessToken = new RefreshAccessTokenInfo
+            RefreshAccessTokenInfo refreshAccessToken = new()
             {
                 AccessToken = "access",
                 RefreshToken = "refresh"

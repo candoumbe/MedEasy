@@ -52,7 +52,7 @@ namespace MedEasy.RestObjects
         public override int GetHashCode() => (Page, PageSize).GetHashCode();
 
         public bool Equals(PaginationConfiguration other) => (Page, PageSize) == (other?.Page, other?.PageSize);
-        
+
         public override string ToString() => this.Jsonify();
     }
 }

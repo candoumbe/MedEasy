@@ -6,21 +6,20 @@ using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-
-using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 using NodaTime.Testing;
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -32,23 +31,21 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
     [UnitTest]
     [Feature("Identity")]
-    public class HandleGetPageOfAccountsQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetPageOfAccountsQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
-        private ITestOutputHelper _outputHelper;
-        private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
-        private HandleGetPageOfAccountsQuery _sut;
-        private FakeClock _clock;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly EFUnitOfWorkFactory<IdentityContext> _uowFactory;
+        private readonly HandleGetPageOfAccountsQuery _sut;
+        private readonly FakeClock _clock;
 
-        public HandleGetPageOfAccountsQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public HandleGetPageOfAccountsQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
             _clock = new FakeClock(new Instant());
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, _clock);
+                IdentityContext context = new(options, _clock);
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -56,23 +53,16 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
             _sut = new HandleGetPageOfAccountsQuery(_uowFactory, expressionBuilder: AutoMapperConfig.Build().ExpressionBuilder);
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _sut = null;
-            _uowFactory = null;
-        }
-
         [Fact]
         public async Task GivenNoUser_Handler_Returns_None()
         {
             // Arrange
-            PaginationConfiguration data = new PaginationConfiguration
+            PaginationConfiguration data = new()
             {
                 PageSize = 10,
                 Page = 1,
             };
-            GetPageOfAccountsQuery query = new GetPageOfAccountsQuery(data);
+            GetPageOfAccountsQuery query = new(data);
 
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)
@@ -93,15 +83,16 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
         public async Task GivenAccounts_Handler_Returns_AccountsThatBelongToTenant()
         {
             // Arrange
-            Guid tenantId = Guid.NewGuid();
+            TenantId tenantId = TenantId.New();
             IEnumerable<Account> accounts = new Faker<Account>()
-                .CustomInstantiator(faker => {
-                    Account account = new Account(id: Guid.NewGuid(),
-                               tenantId: tenantId,
-                               email: faker.Internet.Email(),
-                               username: faker.Person.UserName,
-                               passwordHash: string.Empty,
-                               salt: string.Empty)
+                .CustomInstantiator(faker =>
+                {
+                    Account account = new(id: AccountId.New(),
+                                          tenantId: tenantId,
+                                          email: faker.Internet.Email(),
+                                          username: faker.Person.UserName,
+                                          passwordHash: string.Empty,
+                                          salt: string.Empty)
                     {
                         CreatedDate = faker.Noda().Instant.Recent()
                     };
@@ -117,12 +108,12 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
                     .ConfigureAwait(false);
             }
 
-            PaginationConfiguration data = new PaginationConfiguration
+            PaginationConfiguration data = new()
             {
                 PageSize = 10,
                 Page = 1
             };
-            GetPageOfAccountsQuery query = new GetPageOfAccountsQuery(data);
+            GetPageOfAccountsQuery query = new(data);
 
             // Act
             Page<AccountInfo> pageOfAccounts = await _sut.Handle(query, default)

@@ -1,7 +1,11 @@
 using FluentValidation;
+
 using MedEasy.DAL.Interfaces;
+
 using Patients.DTO;
+
 using System;
+
 using static FluentValidation.CascadeMode;
 using static FluentValidation.Severity;
 
@@ -23,7 +27,7 @@ namespace Patients.Validators.Features.Patients.DTO
                 throw new ArgumentNullException(nameof(uowFactory));
             }
 
-            CascadeMode = StopOnFirstFailure;
+            CascadeMode = Stop;
 
             When(x => !string.IsNullOrWhiteSpace(x.Lastname), () =>
             {
@@ -34,12 +38,11 @@ namespace Patients.Validators.Features.Patients.DTO
             RuleFor(x => x.Id)
                 .MustAsync(async (id, cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
-                    {
-                        return !await uow.Repository<Objects.Patient>()
-                            .AnyAsync(p => p.Id == id)
-                            .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
+
+                    return !await uow.Repository<Objects.Patient>()
+                        .AnyAsync(p => p.Id == id, cancellationToken)
+                        .ConfigureAwait(false);
                 })
                 .When(x => x.Id != default);
 
@@ -54,12 +57,10 @@ namespace Patients.Validators.Features.Patients.DTO
                 .NotEqual(Guid.Empty)
                 .MustAsync(async (mainDoctorId, cancellationToken) =>
                 {
-                    using (IUnitOfWork uow = uowFactory.NewUnitOfWork())
-                    {
-                        return await uow.Repository<Objects.Doctor>()
-                                .AnyAsync(doc => doc.Id == mainDoctorId, cancellationToken)
-                                .ConfigureAwait(false);
-                    }
+                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
+                    return await uow.Repository<Objects.Doctor>()
+                            .AnyAsync(doc => doc.Id == mainDoctorId, cancellationToken)
+                            .ConfigureAwait(false);
                 })
                 .When(x => x.MainDoctorId.HasValue);
         }

@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+
 using System;
 using System.Linq;
+
 using Xunit;
 
 namespace MedEasy.RestObjects.Tests

@@ -22,9 +22,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-
 using NodaTime;
 
 using Patients.Context;
@@ -40,9 +37,10 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.DateFormatHandling;
-using static Newtonsoft.Json.DateTimeZoneHandling;
 using NodaTime.Serialization.SystemTextJson;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MedEasy.Abstractions.ValueConverters;
+using Microsoft.Data.Sqlite;
 
 namespace Patients.API
 {
@@ -90,35 +88,35 @@ namespace Patients.API
                 })
                 .AddXmlSerializerFormatters();
 
-                services.AddCors(options =>
-                {
-                    options.AddPolicy("AllowAnyOrigin", builder =>
-                        builder.AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .AllowAnyOrigin()
-                    );
-                });
-                services.AddOptions();
-                services.Configure<PatientsApiOptions>((options) =>
-                {
-                    options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 30);
-                    options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 100);
-                });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAnyOrigin", builder =>
+                    builder.AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowAnyOrigin()
+                );
+            });
+            services.AddOptions();
+            services.Configure<PatientsApiOptions>((options) =>
+            {
+                options.DefaultPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 30);
+                options.MaxPageSize = configuration.GetValue($"APIOptions:{nameof(PatientsApiOptions.DefaultPageSize)}", 100);
+            });
 
-                services.Configure<ApiBehaviorOptions>(options =>
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = (context) =>
                 {
-                    options.InvalidModelStateResponseFactory = (context) =>
+                    IDictionary<string, IEnumerable<string>> errors = context.ModelState
+                        .Where(element => !string.IsNullOrWhiteSpace(element.Key))
+                        .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
+                    ValidationProblemDetails validationProblem = new()
                     {
-                        IDictionary<string, IEnumerable<string>> errors = context.ModelState
-                            .Where(element => !string.IsNullOrWhiteSpace(element.Key))
-                            .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
-                        ValidationProblemDetails validationProblem = new ValidationProblemDetails
-                        {
-                            Title = "Validation failed",
-                            Detail = $"{errors.Count} validation errors",
-                            Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
-                                ? Status400BadRequest
-                            : Status422UnprocessableEntity
+                        Title = "Validation failed",
+                        Detail = $"{errors.Count} validation errors",
+                        Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
+                            ? Status400BadRequest
+                        : Status422UnprocessableEntity
                     };
                     foreach ((string key, IEnumerable<string> details) in errors)
                     {
@@ -146,10 +144,15 @@ namespace Patients.API
             static DbContextOptionsBuilder<PatientsContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<PatientsContext> builder = new DbContextOptionsBuilder<PatientsContext>();
+                DbContextOptionsBuilder<PatientsContext> builder = new();
+                builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                        options.UseNodaTime()
+                               .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName);
+                    });
                 }
                 else
                 {
@@ -157,7 +160,8 @@ namespace Patients.API
                     builder.UseNpgsql(
                         configuration.GetConnectionString("patients-db"),
                         options => options.EnableRetryOnFailure(5)
-                            .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
+                                          .UseNodaTime()
+                                          .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -271,7 +275,7 @@ namespace Patients.API
                     config.IncludeXmlComments(documentationPath);
                 }
 
-                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
+                OpenApiSecurityScheme bearerSecurityScheme = new()
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,

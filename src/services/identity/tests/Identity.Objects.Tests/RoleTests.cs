@@ -2,6 +2,8 @@
 
 using FluentAssertions;
 
+using Identity.Ids;
+
 using System;
 
 using Xunit;
@@ -18,13 +20,13 @@ namespace Identity.Objects.Tests
         {
             _outputHelper = outputHelper;
             _roleFaker = new Faker<Role>()
-                .CustomInstantiator(faker => new Role(Guid.NewGuid(), faker.Hacker.Abbreviation()));
+                .CustomInstantiator(faker => new Role(RoleId.New(), faker.Hacker.Abbreviation()));
         }
 
         [Fact]
         public void Ctor_throws_ArgumentOutOfRangeException_when_id_is_empty()
         {
-            Action invalidCtor = () => new Role(Guid.Empty, "a_role");
+            Action invalidCtor = () => new Role(RoleId.Empty, "a_role");
 
             // Assert
             invalidCtor.Should()
@@ -32,9 +34,20 @@ namespace Identity.Objects.Tests
         }
 
         [Fact]
+        public void Ctor_throws_ArgumentNullException_when_id_is_null()
+        {
+            Action invalidCtor = () => new Role(null, "a_role");
+
+            // Assert
+            invalidCtor.Should()
+                       .ThrowExactly<ArgumentNullException>("id cannot be empty");
+        }
+
+
+        [Fact]
         public void Ctor_throws_ArgumentNullException_when_code_is_null()
         {
-            Action invalidCtor = () => new Role(Guid.NewGuid(), null);
+            Action invalidCtor = () => new Role(RoleId.New(), null);
 
             // Assert
             invalidCtor.Should()

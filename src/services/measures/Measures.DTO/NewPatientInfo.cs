@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Measures.Ids;
+
 
 using NodaTime;
 
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
@@ -10,18 +10,16 @@ namespace Measures.DTO
     /// <summary>
     /// data to provide when creating a new patient resource
     /// </summary>
-    [JsonObject]
     public class NewPatientInfo
     {
         /// <summary>
         /// Id of the resource to create
         /// </summary>
-        public Guid? Id { get; set; }
+        public PatientId Id { get; set; }
 
         /// <summary>
         /// Patient's firstname
         /// </summary>
-        [JsonProperty]
         [Required]
         [StringLength(255)]
         public string Name { get; set; }
@@ -29,7 +27,6 @@ namespace Measures.DTO
         /// <summary>
         /// Patient's birth date
         /// </summary>
-        [JsonProperty]
         public LocalDate? BirthDate { get; set; }
     }
 }

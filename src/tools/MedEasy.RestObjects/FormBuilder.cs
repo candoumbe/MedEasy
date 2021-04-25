@@ -15,20 +15,28 @@ namespace MedEasy.RestObjects
     /// <typeparam name="T">Type to build a <see cref="Form"/> for.</typeparam>
     public class FormBuilder<T>
     {
-        private static readonly HashSet<Type> _dateTypes = new HashSet<Type>
+        private static readonly HashSet<Type> _dateTypes = new()
         {
-            typeof(DateTime), typeof(DateTime?),
-            typeof(DateTimeOffset), typeof(DateTimeOffset?),
+            typeof(DateTime),
+            typeof(DateTime?),
+            typeof(DateTimeOffset),
+            typeof(DateTimeOffset?),
         };
 
-        private static readonly HashSet<Type> _numericTypes = new HashSet<Type>
+        private static readonly HashSet<Type> _numericTypes = new()
         {
-            typeof(int), typeof(int?),
-            typeof(float), typeof(float?),
-            typeof(long), typeof(long?),
-            typeof(double), typeof(double?),
-            typeof(short), typeof(short?),
-            typeof(decimal), typeof(decimal?),
+            typeof(int),
+            typeof(int?),
+            typeof(float),
+            typeof(float?),
+            typeof(long),
+            typeof(long?),
+            typeof(double),
+            typeof(double?),
+            typeof(short),
+            typeof(short?),
+            typeof(decimal),
+            typeof(decimal?),
 
         };
 
@@ -57,9 +65,9 @@ namespace MedEasy.RestObjects
         /// <returns></returns>
         public FormBuilder<T> AddField<TProperty>(Expression<Func<T, TProperty>> property, FormFieldAttributeOverrides attributes = null)
         {
-            if(property.Body is MemberExpression me)
+            if (property.Body is MemberExpression me)
             {
-                FormField field = new FormField { Name = me.Member.Name };
+                FormField field = new() { Name = me.Member.Name };
                 Option<FormFieldAttributeOverrides> optionalAttributesOverride = attributes.SomeNotNull();
                 Option<FormFieldAttribute> optionalFormFieldAttribute = me.Member.GetCustomAttribute<FormFieldAttribute>()
                     .SomeNotNull();
@@ -78,7 +86,7 @@ namespace MedEasy.RestObjects
                     {
                         if (attr.IsDescriptionSet)
                         {
-                            field.Description = attr.Description; 
+                            field.Description = attr.Description;
                         }
                         if (attr.IsSecretSet)
                         {
@@ -93,7 +101,7 @@ namespace MedEasy.RestObjects
                         field.Pattern = attr.Pattern;
                         if (attr.IsTypeSet)
                         {
-                            field.Type = attr.Type; 
+                            field.Type = attr.Type;
                         }
                         if (attr.IsMinSet)
                         {
@@ -109,7 +117,7 @@ namespace MedEasy.RestObjects
                         }
                     });
 
-                optionalAttributesOverride.MatchSome((attrs) => 
+                optionalAttributesOverride.MatchSome((attrs) =>
                 {
                     if (attrs.Min.HasValue)
                     {
@@ -143,10 +151,10 @@ namespace MedEasy.RestObjects
                     }
                 });
 
-                
+
                 field.Label = field.Name;
                 field.Enabled = attributes?.Enabled;
-                
+
 
                 _fields.Add(field);
             }
@@ -154,19 +162,19 @@ namespace MedEasy.RestObjects
             return this;
         }
 
-        
+
         /// <summary>
         /// Builds a <see cref="Form"/> instance according to the current configuration.
         /// </summary>
         /// <returns></returns>
         public Form Build()
         {
-            Form form = new Form
+            Form form = new()
             {
                 Meta = _meta,
                 Items = _fields,
             };
-            
+
             return form;
         }
     }

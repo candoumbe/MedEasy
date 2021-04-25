@@ -78,7 +78,8 @@ namespace Identity.DataStores
                 });
             });
 
-            builder.Entity<AccountRole>(entity => {
+            builder.Entity<AccountRole>(entity =>
+            {
                 entity.HasKey(x => new { x.AccountId, x.RoleId });
 
                 entity.HasOne(ar => ar.Role)

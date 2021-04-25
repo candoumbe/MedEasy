@@ -1,6 +1,8 @@
 ﻿using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DTO;
+
 using Newtonsoft.Json;
+
 using System;
 
 namespace MedEasy.CQRS.Core.Commands

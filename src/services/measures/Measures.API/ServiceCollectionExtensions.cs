@@ -9,6 +9,7 @@ using Measures.CQRS.Queries.Patients;
 using Measures.Mapping;
 using Measures.Validators.Commands.BloodPressures;
 
+using MedEasy.Abstractions.ValueConverters;
 using MedEasy.Core.Filters;
 using MedEasy.CQRS.Core.Handlers;
 using MedEasy.DAL.EFStore;
@@ -25,7 +26,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -151,10 +154,16 @@ namespace Measures.API
             static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
+                DbContextOptionsBuilder<MeasuresContext> builder = new();
+                builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+
+
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
+                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                        options.UseNodaTime()
+                               .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName);
+                    });
                 }
                 else
                 {
@@ -162,7 +171,8 @@ namespace Measures.API
                     builder.UseNpgsql(
                         configuration.GetConnectionString("measures-db"),
                         options => options.EnableRetryOnFailure(5)
-                            .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
+                                          .UseNodaTime()
+                                          .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -177,7 +187,7 @@ namespace Measures.API
             {
                 DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
-                
+
                 return new MeasuresContext(optionsBuilder.Options, clock);
             });
 
@@ -316,7 +326,7 @@ namespace Measures.API
                     config.IncludeXmlComments(documentationPath);
                 }
 
-                OpenApiSecurityScheme bearerSecurityScheme = new OpenApiSecurityScheme
+                OpenApiSecurityScheme bearerSecurityScheme = new()
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,

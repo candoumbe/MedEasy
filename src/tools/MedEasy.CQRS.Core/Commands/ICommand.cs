@@ -1,4 +1,5 @@
 ﻿using MediatR;
+
 using System;
 
 namespace MedEasy.CQRS.Core.Commands
@@ -16,7 +17,7 @@ namespace MedEasy.CQRS.Core.Commands
     /// <typeparam name="TKey">type of the command identifier</typeparam>
     /// <typeparam name="TData">type of data the command carries</typeparam>
     public interface ICommand<TKey, TData, TResult> : IRequest<TResult>
-        where TKey : IEquatable<TKey> 
+        where TKey : IEquatable<TKey>
     {
         /// <summary>
         /// Id of the command. Should be unique to identify the command

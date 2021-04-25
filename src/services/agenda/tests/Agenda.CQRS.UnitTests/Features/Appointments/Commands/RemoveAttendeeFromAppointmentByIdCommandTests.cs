@@ -1,10 +1,15 @@
 using Agenda.CQRS.Features.Appointments.Commands;
+using Agenda.Ids;
+
 using FluentAssertions;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -16,7 +21,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
     {
         [Fact]
         public void ClassDefinition() => typeof(RemoveAttendeeFromAppointmentByIdCommand).Should()
-                .BeDerivedFrom<CommandBase<Guid, (Guid appointmentId, Guid attendeeId), DeleteCommandResult>>().And
+                .BeDerivedFrom<CommandBase<Guid, (AppointmentId appointmentId, AttendeeId attendeeId), DeleteCommandResult>>().And
                 .NotBeAbstract().And
                 .NotHaveDefaultConstructor();
 
@@ -24,11 +29,11 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
         public void Ctor_Is_Valid()
         {
             // Arrange
-            Guid appointmentId = Guid.NewGuid();
-            Guid participantId = Guid.NewGuid();
+            AppointmentId appointmentId = AppointmentId.New();
+            AttendeeId participantId = AttendeeId.New();
 
             // Act
-            RemoveAttendeeFromAppointmentByIdCommand instance = new(data : (appointmentId, participantId));
+            RemoveAttendeeFromAppointmentByIdCommand instance = new(data: (appointmentId, participantId));
 
             // Assert
             instance.Id.Should()
@@ -43,20 +48,21 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
         {
             get
             {
-                Guid[] guids = { Guid.Empty, default, Guid.NewGuid() };
+                AppointmentId[] appointmentIds = { AppointmentId.Empty, default, AppointmentId.New() };
+                AttendeeId[] attendeeIds = { AttendeeId.Empty, default, AttendeeId.New() };
 
-                return guids.CrossJoin(guids)
-                    .Where(tuple => tuple.Item1 == default || tuple.Item2 == default)
-                    .Select(tuple => new object[] { tuple.Item1, tuple.Item2});
+                return appointmentIds.CrossJoin(attendeeIds)
+                                     .Where(tuple => tuple.Item1 == default || tuple.Item1 == null || tuple.Item2 == default || tuple.Item2 == null)
+                                     .Select(tuple => new object[] { tuple.Item1, tuple.Item2 });
             }
         }
 
         [Theory]
         [MemberData(nameof(InvalidParametersForCtorCases))]
-        public void Ctor_Throws_ArgumentException(Guid appointmentId, Guid participantId)
+        public void Ctor_Throws_ArgumentException(AppointmentId appointmentId, AttendeeId participantId)
         {
             // Act
-            Action action = () => new RemoveAttendeeFromAppointmentByIdCommand(data : (appointmentId, participantId));
+            Action action = () => new RemoveAttendeeFromAppointmentByIdCommand(data: (appointmentId, participantId));
 
             // Assert
             action.Should()
@@ -70,8 +76,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
             get
             {
                 {
-                    Guid appointmentId = Guid.NewGuid();
-                    Guid participantId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
+                    AttendeeId participantId = AttendeeId.New();
 
                     yield return new object[]
                     {

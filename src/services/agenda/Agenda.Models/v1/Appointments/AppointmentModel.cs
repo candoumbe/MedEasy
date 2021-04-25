@@ -1,10 +1,10 @@
-﻿using Agenda.Models.v1.Attendees;
+﻿using Agenda.Ids;
+using Agenda.Models.v1.Attendees;
 
 using MedEasy.RestObjects;
 
 using NodaTime;
 
-using System;
 using System.Collections.Generic;
 
 namespace Agenda.Models.v1.Appointments
@@ -13,7 +13,7 @@ namespace Agenda.Models.v1.Appointments
     /// An <see cref="Appointment"/> beetween two or more people
     /// </summary>
 
-    public class AppointmentModel : Resource<Guid>
+    public class AppointmentModel : Resource<AppointmentId>
     {
         /// <summary>
         /// Location of the appointment

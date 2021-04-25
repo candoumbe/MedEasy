@@ -1,6 +1,10 @@
 ﻿using Measures.DTO;
+using Measures.Ids;
+
 using MedEasy.CQRS.Core.Queries;
+
 using Optional;
+
 using System;
 
 namespace Measures.CQRS.Queries.Patients
@@ -11,13 +15,13 @@ namespace Measures.CQRS.Queries.Patients
     /// <remarks>
     /// Execution of a <see cref="GetPatientInfoByIdQuery"/> returns an <see cref="Option{PatientInfo}"/>
     /// </remarks>
-    public class GetPatientInfoByIdQuery : GetOneResourceQuery<Guid, Guid, Option<PatientInfo>>
+    public class GetPatientInfoByIdQuery : GetOneResourceQuery<Guid, PatientId, Option<PatientInfo>>
     {
         /// <summary>
         /// Builds a new <see cref="GetPatientInfoByIdQuery"/> instance.
         /// </summary>
         /// <param name="id">id of the resource to read</param>
-        public GetPatientInfoByIdQuery(Guid id) : base(Guid.NewGuid(), id)
+        public GetPatientInfoByIdQuery(PatientId id) : base(Guid.NewGuid(), id)
         {
         }
     }

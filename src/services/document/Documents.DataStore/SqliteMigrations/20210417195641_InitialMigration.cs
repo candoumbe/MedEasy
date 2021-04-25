@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Documents.DataStore.Migrations
+namespace Documents.DataStore.SqliteMigrations
 {
     public partial class InitialMigration : Migration
     {
@@ -11,16 +11,16 @@ namespace Documents.DataStore.Migrations
                 name: "Document",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    CreatedDate = table.Column<DateTime>(nullable: false),
-                    CreatedBy = table.Column<string>(maxLength: 255, nullable: true),
-                    UpdatedDate = table.Column<DateTime>(nullable: false),
-                    UpdatedBy = table.Column<string>(maxLength: 255, nullable: true),
-                    Name = table.Column<string>(maxLength: 255, nullable: false),
-                    MimeType = table.Column<string>(maxLength: 255, nullable: false, defaultValue: "application/octect-stream"),
-                    Hash = table.Column<string>(nullable: true),
-                    Size = table.Column<long>(nullable: false),
-                    Status = table.Column<string>(nullable: false, defaultValue: "Ongoing")
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    MimeType = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false, defaultValue: "application/octect-stream"),
+                    Hash = table.Column<string>(type: "TEXT", nullable: true),
+                    Size = table.Column<long>(type: "INTEGER", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false, defaultValue: "Ongoing"),
+                    CreatedDate = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedBy = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    UpdatedDate = table.Column<string>(type: "TEXT", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,9 +31,9 @@ namespace Documents.DataStore.Migrations
                 name: "DocumentPart",
                 columns: table => new
                 {
-                    Position = table.Column<int>(nullable: false),
-                    DocumentId = table.Column<Guid>(nullable: false),
-                    Content = table.Column<byte[]>(nullable: false)
+                    Position = table.Column<int>(type: "INTEGER", nullable: false),
+                    DocumentId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Content = table.Column<byte[]>(type: "BLOB", nullable: false)
                 },
                 constraints: table =>
                 {

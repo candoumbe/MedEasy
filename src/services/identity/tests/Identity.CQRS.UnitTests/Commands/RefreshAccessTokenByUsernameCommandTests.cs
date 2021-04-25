@@ -33,13 +33,13 @@ namespace Identity.CQRS.UnitTests.Commands
 
         [Fact]
         public void IsCommand() => typeof(RefreshAccessTokenByUsernameCommand).Should()
-.Implement<ICommand<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
+                                                                              .Implement<ICommand<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
 
         public static IEnumerable<object[]> InvalidCtorCases
         {
             get
             {
-                yield return new object[] { null, null, null, null, "all parameters are null"};
+                yield return new object[] { null, null, null, null, "all parameters are null" };
                 yield return new object[] { string.Empty, "header-access.payload.signature", "header-refresh.payload.signature", new JwtInfos(), "username is empty" };
                 yield return new object[] { "   ", "header-access.payload.signature", "header-refresh.payload.signature", new JwtInfos(), "username is whitespace" };
                 yield return new object[] { "thejoker", string.Empty, "header-refresh.payload.signature", new JwtInfos(), "expiredAccessToken is empty" };

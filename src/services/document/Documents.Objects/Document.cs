@@ -1,4 +1,6 @@
-﻿using MedEasy.Objects;
+﻿using Documents.Ids;
+
+using MedEasy.Objects;
 
 using System;
 using System.Collections.Generic;
@@ -8,21 +10,23 @@ namespace Documents.Objects
     /// <summary>
     /// A document submitted in the system
     /// </summary>
-    public class Document : AuditableEntity<Guid, Document>
+    public class Document : AuditableEntity<DocumentId, Document>
     {
-
         /// <summary>
         /// Name of the document
         /// </summary>
         public string Name { get; private set; }
 
-        private IList<DocumentPart> _parts;
+        private readonly IList<DocumentPart> _parts;
 
         /// <summary>
         /// Document's parts
         /// </summary>
         public IEnumerable<DocumentPart> Parts => _parts;
 
+        /// <summary>
+        /// Gets the MOME type of the document
+        /// </summary>
         public string MimeType { get; private set; }
 
         /// <summary>
@@ -40,6 +44,9 @@ namespace Documents.Objects
         /// </summary>
         public Status Status { get; private set; }
 
+        /// <summary>
+        /// Default MIME type
+        /// </summary>
         public const string DefaultMimeType = "application/octect-stream";
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace Documents.Objects
         /// <param name="id">Id of the document</param>
         /// <param name="name"></param>
         /// <param name="mimeType"></param>
-        public Document(Guid id, string name, string mimeType = DefaultMimeType) : base(id)
+        public Document(DocumentId id, string name, string mimeType = DefaultMimeType) : base(id)
         {
             Name = name;
             MimeType = mimeType;
@@ -131,21 +138,5 @@ namespace Documents.Objects
         /// </para>
         /// </summary>
         public void Lock() => Status = Status.Done;
-    }
-
-    /// <summary>
-    /// Status of the documents in the Storage
-    /// </summary>
-    public enum Status
-    {
-        /// <summary>
-        /// <see cref="Status"/> of <see cref="Document"/>s which upload is ongoing
-        /// </summary>
-        Ongoing,
-
-        /// <summary>
-        /// <see cref="Status"/> of <see cref="Document"/>s which upload is finished.
-        /// </summary>
-        Done
     }
 }

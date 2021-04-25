@@ -31,9 +31,9 @@ namespace MedEasy.IntegrationTests.Core
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            ClaimsIdentity identity = new ClaimsIdentity(_claimsProvider.Claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            AuthenticationTicket ticket = new AuthenticationTicket(principal, _claimsProvider.Scheme);
+            ClaimsIdentity identity = new(_claimsProvider.Claims);
+            ClaimsPrincipal principal = new(identity);
+            AuthenticationTicket ticket = new(principal, _claimsProvider.Scheme);
 
             AuthenticateResult result = AuthenticateResult.Success(ticket);
 

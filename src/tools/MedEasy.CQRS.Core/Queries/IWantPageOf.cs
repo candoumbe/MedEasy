@@ -1,5 +1,6 @@
 ﻿using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
+
 using System;
 
 namespace MedEasy.CQRS.Core.Queries

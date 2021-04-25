@@ -1,4 +1,5 @@
 ﻿using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Objects;
 
 using FluentValidation;
@@ -22,7 +23,7 @@ namespace Agenda.Validators
     /// <summary>
     /// Validates <see cref="PatchInfo{Guid, AppointmentInfo}"/> instances.
     /// </summary>
-    public class PatchAppointmentInfoValidator : AbstractValidator<PatchInfo<Guid, AppointmentInfo>>
+    public class PatchAppointmentInfoValidator : AbstractValidator<PatchInfo<AppointmentId, AppointmentInfo>>
     {
         /// <summary>
         /// Builds a <see cref="PatchAppointmentInfoValidator"/> instance.
@@ -30,7 +31,7 @@ namespace Agenda.Validators
         /// <param name="unitOfWorkFactory">Factory for building <see cref="IUnitOfWork"/> instances.</param>
         public PatchAppointmentInfoValidator(IClock datetimeService, IUnitOfWorkFactory unitOfWorkFactory)
         {
-            bool IsFieldOperation(Operation op, string path) => string.Compare(path, op.path, ignoreCase: true) == 0;
+            static bool IsFieldOperation(Operation op, string path) => string.Compare(path, op.path, ignoreCase: true) == 0;
 
             if (unitOfWorkFactory == null)
             {
@@ -41,24 +42,25 @@ namespace Agenda.Validators
             {
                 throw new ArgumentNullException(nameof(datetimeService));
             }
-            CascadeMode = StopOnFirstFailure;
+            CascadeMode = Stop;
 
             RuleFor(x => x.Id)
-                .NotEqual(Guid.Empty);
+                .NotEqual(AppointmentId.Empty);
 
             RuleFor(x => x.PatchDocument)
                 .NotNull();
 
             When(
-                x => x.Id != Guid.Empty,
+                x => x.Id != AppointmentId.Empty,
                 () =>
                 {
                     RuleFor(x => x.PatchDocument)
                         .SetValidator(new JsonPatchDocumentValidator<AppointmentInfo>() { CascadeMode = CascadeMode })
 
                         // The patch document should not replace or remove the resource identifier 
-                        .Must(patchDocument => !patchDocument.Operations.Any(op => new[] { Replace, Remove }.Contains(op.OperationType) && string.Compare($"/{nameof(AppointmentInfo.Id)}", op.path, true) == 0))
-                            .OverridePropertyName(nameof(PatchInfo<Guid, AppointmentInfo>.PatchDocument))
+                        .Must(patchDocument => !patchDocument.Operations.Any(op => new[] { Replace, Remove }.Contains(op.OperationType)
+                                                                                   && string.Compare($"/{nameof(AppointmentInfo.Id)}", op.path, true) == 0))
+                            .OverridePropertyName(nameof(PatchInfo<AppointmentId, AppointmentInfo>.PatchDocument))
 
                         .MustAsync(async (context, patchInfo, cancellationToken) =>
                         {

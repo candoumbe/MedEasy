@@ -24,7 +24,6 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
 using Identity.API.Fixtures.v2;
-using Newtonsoft.Json;
 
 namespace Documents.API.IntegrationTests.Features.v1
 {
@@ -50,7 +49,7 @@ namespace Documents.API.IntegrationTests.Features.v1
             // Arrange
             string requestUri = $"{_endpointUrl}?page=1&pageSize=5";
             _outputHelper.WriteLine($"Requested URI : {requestUri}");
-            HttpRequestMessage headRequest = new HttpRequestMessage(Head, requestUri);
+            HttpRequestMessage headRequest = new(Head, requestUri);
             using HttpClient client = _sut.CreateClient();
 
             // Act
@@ -69,17 +68,17 @@ namespace Documents.API.IntegrationTests.Features.v1
         public async Task GivenDocument_Post_Creates_Record()
         {
             // Arrange
-            Faker faker = new Faker();
+            Faker faker = new();
             string password = faker.Lorem.Word();
 
-            NewDocumentInfo newResourceInfo = new NewDocumentInfo
+            NewDocumentInfo newResourceInfo = new()
             {
                 Name = faker.System.CommonFileName(),
                 MimeType = faker.System.CommonFileType(),
                 Content = faker.Hacker.Random.Bytes(20),
             };
 
-            NewAccountInfo newAccountInfo = new NewAccountInfo
+            NewAccountInfo newAccountInfo = new()
             {
                 Name = faker.Person.FullName,
                 Email = faker.Person.Email,
@@ -141,9 +140,9 @@ namespace Documents.API.IntegrationTests.Features.v1
         public async Task GivenValidToken_Get_Returns_ListOfDocuments()
         {
             // Arrange
-            Faker faker = new Faker();
+            Faker faker = new();
             string password = faker.Lorem.Word();
-            NewAccountInfo newAccount = new NewAccountInfo
+            NewAccountInfo newAccount = new()
             {
                 Name = faker.Person.FullName,
                 Username = faker.Person.UserName,

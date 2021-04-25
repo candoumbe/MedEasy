@@ -4,9 +4,8 @@ using Documents.DataStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Documents.DataStore.Migrations
+namespace Documents.DataStore.SqliteMigrations
 {
     [DbContext(typeof(DocumentsStore))]
     partial class DocumentsStoreModelSnapshot : ModelSnapshot
@@ -15,54 +14,50 @@ namespace Documents.DataStore.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                .HasAnnotation("ProductVersion", "3.1.3")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("ProductVersion", "5.0.5");
 
             modelBuilder.Entity("Documents.Objects.Document", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("character varying(255)")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("CreatedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Hash")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MimeType")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("character varying(255)")
                         .HasMaxLength(255)
+                        .HasColumnType("TEXT")
                         .HasDefaultValue("application/octect-stream");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("character varying(255)")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.Property<long>("Size")
-                        .HasColumnType("bigint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
+                        .HasColumnType("TEXT")
                         .HasDefaultValue("Ongoing");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("character varying(255)")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("UpdatedDate")
-                        .IsConcurrencyToken()
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("UpdatedDate")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -72,14 +67,14 @@ namespace Documents.DataStore.Migrations
             modelBuilder.Entity("Documents.Objects.DocumentPart", b =>
                 {
                     b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Position")
-                        .HasColumnType("integer");
+                        .HasColumnType("INTEGER");
 
                     b.Property<byte[]>("Content")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("BLOB");
 
                     b.HasKey("DocumentId", "Position");
 
@@ -93,6 +88,11 @@ namespace Documents.DataStore.Migrations
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Documents.Objects.Document", b =>
+                {
+                    b.Navigation("Parts");
                 });
 #pragma warning restore 612, 618
         }

@@ -4,6 +4,7 @@ using FluentAssertions.Extensions;
 using Identity.CQRS.Commands;
 using Identity.CQRS.Handlers;
 using Identity.DTO;
+using Identity.Ids;
 
 using MediatR;
 
@@ -64,7 +65,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             // Arrange
 
             Instant utcNow = 1.February(2007).Add(14.Hours()).AsUtc().ToInstant();
-            JwtSecurityTokenOptions jwtSecurityTokenOptions = new ()
+            JwtSecurityTokenOptions jwtSecurityTokenOptions = new()
             {
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
@@ -74,7 +75,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
 
             IEnumerable<ClaimInfo> claims = Enumerable.Empty<ClaimInfo>();
 
-            CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtSecurityTokenOptions, claims));
+            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtSecurityTokenOptions, claims));
             _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
@@ -110,9 +111,9 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
         public async Task TwoTokenForSameAccount_Have_Differents_Ids()
         {
             // Arrange
-            AccountInfo accountInfo = new AccountInfo
+            AccountInfo accountInfo = new()
             {
-                Id = Guid.NewGuid(),
+                Id = AccountId.New(),
                 Username = "thebatman",
                 Email = "bwayne@wayne-enterprise.com",
                 Name = "Bruce Wayne",
@@ -125,7 +126,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
                 }
             };
 
-            JwtSecurityTokenOptions jwtInfos = new JwtSecurityTokenOptions
+            JwtSecurityTokenOptions jwtInfos = new()
             {
                 Issuer = "http://localhost:10000",
                 Audiences = new[] { "api1", "api2" },
@@ -134,15 +135,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             };
 
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
-            AuthenticationInfo authInfo = new () { Location = "Paris" };
-            CreateSecurityTokenCommand createRefreshTokenCommand = new CreateSecurityTokenCommand((jwtInfos, Enumerable.Empty<ClaimInfo>()));
+            AuthenticationInfo authInfo = new() { Location = "Paris" };
+            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtInfos, Enumerable.Empty<ClaimInfo>()));
             _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
             SecurityToken tokenOne = await _sut.Handle(createRefreshTokenCommand, ct: default)
                 .ConfigureAwait(false);
 
-            SecurityToken tokenTwo= await _sut.Handle(createRefreshTokenCommand, ct: default)
+            SecurityToken tokenTwo = await _sut.Handle(createRefreshTokenCommand, ct: default)
                 .ConfigureAwait(false);
 
             // Assert

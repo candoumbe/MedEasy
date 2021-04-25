@@ -1,5 +1,6 @@
 ﻿using MedEasy.CQRS.Core.Queries;
 using MedEasy.DAL.Repositories;
+
 using System.Threading;
 using System.Threading.Tasks;
 

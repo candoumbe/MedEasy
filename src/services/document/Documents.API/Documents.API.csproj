@@ -12,9 +12,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.6.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.*" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />

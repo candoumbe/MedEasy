@@ -20,7 +20,7 @@ namespace MedEasy.RestObjects
         /// <summary>
         /// Validation errors
         /// </summary>
-        public IDictionary<string, IEnumerable<string>> Errors { get; set;}
+        public IDictionary<string, IEnumerable<string>> Errors { get; set; }
 
         public ErrorObject()
         {

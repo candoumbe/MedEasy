@@ -2,6 +2,7 @@
 
 using Identity.CQRS.Queries.Roles;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.DAL.Interfaces;
@@ -34,7 +35,7 @@ namespace Identity.CQRS.Handlers.Queries
 
         public async Task<Option<IEnumerable<RoleInfo>>> Handle(ListRolesForAccountQuery request, CancellationToken cancellationToken)
         {
-            Guid accountId = request.Data;
+            AccountId accountId = request.Data;
 
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
 

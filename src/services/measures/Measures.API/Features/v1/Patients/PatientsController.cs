@@ -7,6 +7,7 @@ using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Commands.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
+using Measures.Ids;
 
 using MedEasy.Attributes;
 using MedEasy.CQRS.Core.Commands;
@@ -74,6 +75,7 @@ namespace Measures.API.Features.v1.Patients
         /// </summary>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
+        /// <param name="apiVersion"></param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
         public PatientsController(LinkGenerator urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
         {
@@ -86,8 +88,7 @@ namespace Measures.API.Features.v1.Patients
         /// <summary>
         /// Gets all the resources of the endpoint
         /// </summary>
-        /// <param name="page">index of the page of resources to get</param>
-        /// <param name="pageSize">index of the page of resources to get</param>
+        /// <param name="pagination">Sets the resultset size and index</param>
         /// <param name="cancellationToken">Notifies to cancel the execution of the request</param>
         /// <remarks>
         /// Resources are returned as pages. The <paramref name="pagination"/>'s value is used has a hint by the server
@@ -138,7 +139,7 @@ namespace Measures.API.Features.v1.Patients
                     }
                 });
 
-            GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
+            GenericPagedGetResponse<Browsable<PatientInfo>> response = new(
                 resources,
                 firstPageUrl,
                 previousPageUrl,
@@ -161,7 +162,7 @@ namespace Measures.API.Features.v1.Patients
         [HttpOptions("{id}")]
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
-        public async Task<IActionResult> Get([RequireNonDefault] Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
             Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
                 .ConfigureAwait(false);
@@ -170,7 +171,7 @@ namespace Measures.API.Features.v1.Patients
                 some: resource =>
                 {
                     string version = _apiVersion.ToString();
-                    Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
+                    Browsable<PatientInfo> browsableResource = new()
                     {
                         Resource = resource,
                         Links = new[]
@@ -244,7 +245,7 @@ namespace Measures.API.Features.v1.Patients
         [HttpOptions("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Search([FromQuery, RequireNonDefault]SearchPatientInfo search, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
             IList<IFilter> filters = new List<IFilter>();
             if (!string.IsNullOrEmpty(search.Name))
@@ -252,7 +253,7 @@ namespace Measures.API.Features.v1.Patients
                 filters.Add($"{nameof(search.Name)}={search.Name}".ToFilter<PatientInfo>());
             }
 
-            SearchQueryInfo<PatientInfo> searchQuery = new SearchQueryInfo<PatientInfo>
+            SearchQueryInfo<PatientInfo> searchQuery = new()
             {
                 Filter = filters.Count == 1
                     ? filters.Single()
@@ -268,7 +269,7 @@ namespace Measures.API.Features.v1.Patients
 
             if (searchQuery.Page <= page.Count)
             {
-                GenericPagedGetResponse<Browsable<PatientInfo>> response = new GenericPagedGetResponse<Browsable<PatientInfo>>(
+                GenericPagedGetResponse<Browsable<PatientInfo>> response = new(
                         items: page.Entries.Select(x => new Browsable<PatientInfo>
                         {
                             Resource = x,
@@ -345,7 +346,7 @@ namespace Measures.API.Features.v1.Patients
         [HttpDelete("{id}")]
         [ProducesResponseType(Status204NoContent)]
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
-        public async Task<IActionResult> Delete([RequireNonDefault] Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Delete([RequireNonDefault] PatientId id, CancellationToken ct = default)
         {
             DeleteCommandResult result = await _mediator.Send(new DeletePatientInfoByIdCommand(id), ct)
                 .ConfigureAwait(false);
@@ -369,9 +370,9 @@ namespace Measures.API.Features.v1.Patients
         /// <returns></returns>
         [HttpGet("{id}/bloodpressures")]
         [HttpHead("{id}/bloodpressures")]
-        public async Task<IActionResult> GetBloodPressures([RequireNonDefault] Guid id, [FromQuery, RequireNonDefault]PaginationConfiguration pagination, CancellationToken ct = default)
+        public async Task<IActionResult> GetBloodPressures([RequireNonDefault] PatientId id, [FromQuery, RequireNonDefault] PaginationConfiguration pagination, CancellationToken ct = default)
         {
-            GetPatientInfoByIdQuery query = new GetPatientInfoByIdQuery(id);
+            GetPatientInfoByIdQuery query = new(id);
             Option<PatientInfo> result = await _mediator.Send(query, ct)
                 .ConfigureAwait(false);
 
@@ -405,9 +406,9 @@ namespace Measures.API.Features.v1.Patients
         [HttpPost("{id}/bloodpressures")]
         [ProducesResponseType(typeof(Browsable<BloodPressureInfo>), Status201Created)]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] Guid id, [FromBody]NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> PostBloodPressure([RequireNonDefault] PatientId id, [FromBody] NewBloodPressureModel newResource, CancellationToken cancellationToken = default)
         {
-            CreateBloodPressureInfo createBloodPressureInfo = new CreateBloodPressureInfo
+            CreateBloodPressureInfo createBloodPressureInfo = new()
             {
                 PatientId = id,
                 DateOfMeasure = newResource.DateOfMeasure,
@@ -422,7 +423,7 @@ namespace Measures.API.Features.v1.Patients
                 some: (resource) =>
                 {
                     string version = _apiVersion.ToString();
-                    Browsable<BloodPressureInfo> browsableResource = new Browsable<BloodPressureInfo>
+                    Browsable<BloodPressureInfo> browsableResource = new()
                     {
                         Resource = resource,
                         Links = new[]
@@ -475,13 +476,13 @@ namespace Measures.API.Features.v1.Patients
         [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
-            CreatePatientInfoCommand cmd = new CreatePatientInfoCommand(newPatient);
+            CreatePatientInfoCommand cmd = new(newPatient);
 
             PatientInfo resource = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
             string version = _apiVersion.ToString();
-            Browsable<PatientInfo> browsableResource = new Browsable<PatientInfo>
+            Browsable<PatientInfo> browsableResource = new()
             {
                 Resource = resource,
                 Links = new[]
@@ -501,7 +502,7 @@ namespace Measures.API.Features.v1.Patients
                 }
             };
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, resource.Id, version }, browsableResource);
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id, version }, browsableResource);
         }
 
         /// <summary>
@@ -516,14 +517,14 @@ namespace Measures.API.Features.v1.Patients
         /// <reponse code="400"><paramref name="id"/> or <paramref name="changes"/> are not valid</reponse>
         [HttpPatch("{id}")]
         [ProducesResponseType(Status204NoContent)]
-        public async Task<IActionResult> Patch([RequireNonDefault]Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken ct = default)
+        public async Task<IActionResult> Patch([RequireNonDefault] Guid id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken ct = default)
         {
-            PatchInfo<Guid, PatientInfo> patchInfo = new PatchInfo<Guid, PatientInfo>
+            PatchInfo<Guid, PatientInfo> patchInfo = new()
             {
                 Id = id,
                 PatchDocument = changes
             };
-            PatchCommand<Guid, PatientInfo> cmd = new PatchCommand<Guid, PatientInfo>(patchInfo);
+            PatchCommand<Guid, PatientInfo> cmd = new(patchInfo);
 
             ModifyCommandResult result = await _mediator.Send(cmd, ct)
                                                         .ConfigureAwait(false);

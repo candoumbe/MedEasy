@@ -1,12 +1,17 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using DataFilters;
+
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.RestObjects;
+
 using MediatR;
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -37,21 +42,19 @@ namespace Measures.CQRS.Handlers.Patients
         public async Task<Page<PatientInfo>> Handle(GetPageOfPatientInfoQuery query, CancellationToken cancellationToken)
         {
             PaginationConfiguration pagination = query.Data;
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                Page<PatientInfo> result = await uow.Repository<Patient>()
-                    .ReadPageAsync(
-                        selector,
-                        pagination.PageSize,
-                        pagination.Page,
-                        new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending),
-                        cancellationToken)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            Page<PatientInfo> result = await uow.Repository<Patient>()
+                .ReadPageAsync(
+                    selector,
+                    pagination.PageSize,
+                    pagination.Page,
+                    new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending),
+                    cancellationToken)
+                .ConfigureAwait(false);
 
 
-                return result;
-            }
+            return result;
         }
     }
 }

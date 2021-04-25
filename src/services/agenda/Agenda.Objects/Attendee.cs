@@ -1,4 +1,6 @@
-﻿using MedEasy.Objects;
+﻿using Agenda.Ids;
+
+using MedEasy.Objects;
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ namespace Agenda.Objects
     /// <summary>
     /// Participant of a <see cref="Appointment"/>
     /// </summary>
-    public class Attendee : AuditableEntity<Guid, Attendee>
+    public class Attendee : AuditableEntity<AttendeeId, Attendee>
     {
         private string _name;
 
@@ -32,10 +34,11 @@ namespace Agenda.Objects
         /// </summary>
         public string Email { get; private set; }
 
-        private readonly IList<AppointmentAttendee> _appointments;
+        private readonly IList<Appointment> _appointments;
 
         [JsonIgnore]
-        public IEnumerable<AppointmentAttendee> Appointments => _appointments;
+        public IEnumerable<Appointment> Appointments => _appointments;
+
 
         /// <summary>
         /// Builds a new <see cref="Attendee"/> instance
@@ -43,12 +46,16 @@ namespace Agenda.Objects
         /// <param name="name">Name of the participant</param>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c></exception>
         /// <exception cref="ArgumentException"><paramref name="id"/> is <c>Guid.Empty</c></exception>
-        public Attendee(Guid id, string name, string email = null, string phoneNumber = null) : base(id)
+        public Attendee(AttendeeId id, string name, string email = null, string phoneNumber = null) : base(id)
         {
+            if (id == AttendeeId.Empty)
+            {
+                throw new ArgumentException(nameof(id), $"{nameof(id)} cannot be {AttendeeId.Empty}");
+            }
             Name = name;
             Email = email;
             PhoneNumber = phoneNumber;
-            _appointments = new List<AppointmentAttendee>();
+            _appointments = new List<Appointment>();
         }
 
         /// <summary>

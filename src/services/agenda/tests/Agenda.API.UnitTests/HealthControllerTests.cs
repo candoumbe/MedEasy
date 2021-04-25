@@ -43,7 +43,7 @@ namespace Agenda.API.UnitTests
             _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Attendee>().AnyAsync(It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<bool>(true));
             // Act
-            IActionResult actionResult = await _sut.Status(ct : default)
+            IActionResult actionResult = await _sut.Status(ct: default)
                 .ConfigureAwait(false);
 
             // Assert

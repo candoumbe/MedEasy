@@ -3,6 +3,7 @@
 using FluentValidation.Results;
 
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Validators.Commands.Patients;
 
 using MedEasy.DAL.Interfaces;
@@ -74,57 +75,57 @@ namespace Measures.Validators.Tests.Features.Patients
                 yield return new object[]
                 {
                     new JsonPatchDocument<PatientInfo>(),
-                    ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                    (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                         && vr.Errors.Count == 1
-                        && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                        && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                     "Patch document has no operation."
                 };
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Id, default);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'replace' operation on '/{nameof(PatientInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Remove(x => x.Id);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'remove' operation on '/{nameof(PatientInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
-                    patchDocument.Add(x => x.Id, Guid.NewGuid());
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
+                    patchDocument.Add(x => x.Id, PatientId.New());
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error))),
+                            && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
                         $"patch docment cannot contains any 'add' operation on '/{nameof(PatientInfo.Id)}'."
                     };
                 }
 
                 string computeLongString(int desiredLength)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
 
                     while (sb.Length < desiredLength)
                     {
@@ -135,28 +136,28 @@ namespace Measures.Validators.Tests.Features.Patients
                 }
                 {
                     string nameIsTooLong = computeLongString(101);
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
+                        (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase)
-                                && error.Severity == Error))),
+                                && error.Severity == Error)),
                         $"new {nameof(PatientInfo.Name)} cannot contain more than 100 characters."
                     };
                 }
                 {
                     string nameIsTooLong = computeLongString(100);
-                    JsonPatchDocument<PatientInfo> patchDocument = new JsonPatchDocument<PatientInfo>();
+                    JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
                     {
                         patchDocument,
-                        ((Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid)),
+                        (Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid),
                         $"new {nameof(PatientInfo.Name)} is 100 characters long."
                     };
                 }

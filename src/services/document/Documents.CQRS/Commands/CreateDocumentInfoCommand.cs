@@ -1,8 +1,11 @@
 ﻿using Documents.DTO;
 using Documents.DTO.v1;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using Optional;
+
 using System;
 
 namespace Documents.CQRS.Commands

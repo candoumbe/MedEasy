@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Measures.Ids;
+
+using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
 {
-    public class BodyWeightInfo : PhysiologicalMeasurementInfo
+    public sealed class BodyWeightInfo : PhysiologicalMeasurementInfo<BodyWeightId>
     {
         /// <summary>
         /// Value of the measure

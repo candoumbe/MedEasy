@@ -7,13 +7,14 @@ using Measures.Objects.Exceptions;
 using Optional;
 using Optional.Collections;
 using NodaTime;
+using Measures.Ids;
 
 namespace Measures.Objects
 {
     /// <summary>
     /// Patient that owns measures data
     /// </summary>
-    public class Patient : AuditableEntity<Guid, Patient>
+    public class Patient : AuditableEntity<PatientId, Patient>
     {
         /// <summary>
         /// Name of the patient
@@ -34,14 +35,19 @@ namespace Measures.Objects
         public IEnumerable<Temperature> Temperatures => _temperatures;
 
 
-        
+
         /// <summary>
         /// Builds a new <see cref="Patient"/> instance.
         /// </summary>
         /// <param name="id">instance unique identitifer</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="Guid.Empty"/></exception>
-        public Patient(Guid id, string name, LocalDate? birthDate = null) : base(id)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="PatientId.Empty"/></exception>
+        public Patient(PatientId id, string name, LocalDate? birthDate = null) : base(id)
         {
+            if (id == PatientId.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id));
+            }
+
             Name = name?.Trim().ToTitleCase();
             BirthDate = birthDate;
             _bloodPressures = new List<BloodPressure>();
@@ -70,8 +76,23 @@ namespace Measures.Objects
         /// <param name="dateOfMeasure"></param>
         /// <param name="systolic"></param>
         /// <param name="diastolic"></param>
-        public void AddBloodPressure(Guid measureId, Instant dateOfMeasure, float systolic, float diastolic)
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="measureId"/> is <c>BloodPressureId.Empty</c>.
+        /// <paramref name="systolic"/>  is less than <c>0</c>.
+        /// <paramref name="diastolic"/> is less than <c>0</c>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="measureId"/> is <c>null</c>.</exception>
+        public void AddBloodPressure(BloodPressureId measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
+            if (measureId is null)
+            {
+                throw new ArgumentNullException(nameof(measureId));
+            }
+            if (measureId == BloodPressureId.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(measureId), measureId, $"{nameof(measureId)} cannot be null or empty");
+            }
+
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
                 throw new DuplicateIdException();
@@ -84,7 +105,7 @@ namespace Measures.Objects
         /// Removes the <see cref="BloodPressure"/> with the specified id
         /// </summary>
         /// <param name="measureId">id of the measure to delete</param>
-        public void DeleteBloodPressure(Guid measureId)
+        public void DeleteBloodPressure(BloodPressureId measureId)
         {
             Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrNone(m => m.Id == measureId);
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
@@ -96,7 +117,7 @@ namespace Measures.Objects
         /// <param name="measureId">id of the measure. this could later be used to retrieve the created measure.</param>
         /// <param name="dateOfMeasure"></param>
         /// <param name="value">The new temperature value to add</param>
-        public void AddTemperature(Guid measureId, Instant dateOfMeasure, float value)
+        public void AddTemperature(TemperatureId measureId, Instant dateOfMeasure, float value)
         {
             if (_bloodPressures.AtLeastOnce(m => m.Id == measureId))
             {
@@ -109,7 +130,7 @@ namespace Measures.Objects
         /// Removes the <see cref="BloodPressure"/> with the specified id
         /// </summary>
         /// <param name="measureId">id of the measure to delete</param>
-        public void DeleteTemperature(Guid measureId)
+        public void DeleteTemperature(TemperatureId measureId)
         {
             Option<BloodPressure> optionalMeasureToDelete = _bloodPressures.SingleOrDefault(m => m.Id == measureId)
                                                                            .SomeNotNull();

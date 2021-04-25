@@ -6,14 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.2.4" />
-    <PackageReference Include="Roslynator.Analyzers" Version="2.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.DTO\MedEasy.DTO.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.Ids\MedEasy.Ids.csproj" />
+    <ProjectReference Include="..\Identity.Ids\Identity.Ids.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using MedEasy.DTO.Search;
+
 using System;
 
 namespace Patients.DTO

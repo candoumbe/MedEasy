@@ -1,7 +1,11 @@
 using Agenda.CQRS.Features.Appointments.Commands;
+using Agenda.Ids;
+
 using FluentAssertions;
+
 using System;
 using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Categories;
 
@@ -15,11 +19,11 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
         public void Ctor_Is_Valid()
         {
             // Arrange
-            Guid appointmentId = Guid.NewGuid();
-            Guid participantId = Guid.NewGuid();
+            AppointmentId appointmentId = AppointmentId.New();
+            AttendeeId participantId = AttendeeId.New();
 
             // Act
-            AddAttendeeToAppointmentCommand instance = new(data : (appointmentId, participantId));
+            AddAttendeeToAppointmentCommand instance = new(data: (appointmentId, participantId));
 
             // Assert
             instance.Id.Should()
@@ -48,8 +52,8 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
             get
             {
                 {
-                    Guid appointmentId = Guid.NewGuid();
-                    Guid participantId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
+                    AttendeeId participantId = AttendeeId.New();
 
                     yield return new object[]
                     {
@@ -61,13 +65,13 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
                 }
 
                 {
-                    Guid appointmentId = Guid.NewGuid();
-                    Guid participantId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
+                    AttendeeId participantId = AttendeeId.New();
 
                     yield return new object[]
                     {
                         new AddAttendeeToAppointmentCommand((appointmentId, participantId)),
-                        new AddAttendeeToAppointmentCommand((appointmentId, Guid.NewGuid())),
+                        new AddAttendeeToAppointmentCommand((appointmentId, AttendeeId.New())),
                         false,
                         $"two {nameof(AddAttendeeToAppointmentCommand)} commands with different {nameof(AddAttendeeToAppointmentCommand.Data.attendeeId)} data"
                     };

@@ -8,7 +8,7 @@ namespace MedEasy.RestObjects
     /// Describes the properties a browsable resource must implements
     /// </summary>
     /// <typeparam name="T">Type of the resource identifier</typeparam>
-    public interface IResource<T>
+    public interface IResource<out T>
         where T : IEquatable<T>
     {
         /// <summary>

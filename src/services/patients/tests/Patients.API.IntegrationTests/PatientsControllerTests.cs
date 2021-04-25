@@ -67,7 +67,7 @@ namespace Patients.API.IntegrationTests
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new ()
+        private static readonly JSchema _pageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -189,20 +189,18 @@ namespace Patients.API.IntegrationTests
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
-            using (HttpClient client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
-                HttpRequestMessage message = new(method, url);
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            HttpRequestMessage message = new(method, url);
 
-                // Act
-                HttpResponseMessage response = await client.SendAsync(message)
-                    .ConfigureAwait(false);
+            // Act
+            HttpResponseMessage response = await client.SendAsync(message)
+                .ConfigureAwait(false);
 
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeTrue($"'{method}' HTTP method must be supported");
-                ((int)response.StatusCode).Should().Be(Status200OK);
-            }
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeTrue($"'{method}' HTTP method must be supported");
+            ((int)response.StatusCode).Should().Be(Status200OK);
         }
 
         public static IEnumerable<object[]> RequestWithEmptyIdReturnsBadRequestCases
@@ -302,20 +300,18 @@ namespace Patients.API.IntegrationTests
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
-            using (HttpClient client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
 
-                // Act
-                HttpResponseMessage response = await client.GetAsync(url)
-                    .ConfigureAwait(false);
+            // Act
+            HttpResponseMessage response = await client.GetAsync(url)
+                .ConfigureAwait(false);
 
-                // Assert
-                response.IsSuccessStatusCode.Should()
-                    .BeFalse("The page of results doesn't exist");
-                ((int)response.StatusCode).Should()
-                    .Be(Status404NotFound);
-            }
+            // Assert
+            response.IsSuccessStatusCode.Should()
+                .BeFalse("The page of results doesn't exist");
+            ((int)response.StatusCode).Should()
+                .Be(Status404NotFound);
         }
 
         [Fact]

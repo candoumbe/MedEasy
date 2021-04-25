@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Documents.CQRS.Handlers
 {
-    public class HandleGetOneDocumentInfoByIdQuery: IRequestHandler<GetOneDocumentInfoByIdQuery, Option<DocumentInfo>>
+    public class HandleGetOneDocumentInfoByIdQuery : IRequestHandler<GetOneDocumentInfoByIdQuery, Option<DocumentInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
 
@@ -29,23 +29,21 @@ namespace Documents.CQRS.Handlers
 
         public async Task<Option<DocumentInfo>> Handle(GetOneDocumentInfoByIdQuery request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                return await uow.Repository<Document>()
-                    .SingleOrDefaultAsync(
-                        selector: doc => new DocumentInfo
-                        {
-                            Name = doc.Name,
-                            Id = doc.Id,
-                            MimeType = doc.MimeType,
-                            Hash = doc.Hash,
-                            CreatedDate = doc.CreatedDate,
-                            UpdatedDate = doc.UpdatedDate
-                        },
-                        predicate: (DocumentInfo doc) => doc.Id == request.Data,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            return await uow.Repository<Document>()
+                .SingleOrDefaultAsync(
+                    selector: doc => new DocumentInfo
+                    {
+                        Name = doc.Name,
+                        Id = doc.Id,
+                        MimeType = doc.MimeType,
+                        Hash = doc.Hash,
+                        CreatedDate = doc.CreatedDate,
+                        UpdatedDate = doc.UpdatedDate
+                    },
+                    predicate: (DocumentInfo doc) => doc.Id == request.Data,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

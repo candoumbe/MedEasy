@@ -1,4 +1,5 @@
 ﻿using Agenda.CQRS.Features.Participants.Queries;
+using Agenda.Ids;
 
 using FluentAssertions;
 
@@ -18,7 +19,7 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
         public void Ctor_Is_Valid()
         {
             // Arrange
-            Guid participantId = Guid.NewGuid();
+            AttendeeId participantId = AttendeeId.New();
 
             // Act
             GetOneAttendeeInfoByIdQuery instance = new(participantId);
@@ -48,8 +49,8 @@ namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
             get
             {
                 {
-                    Guid appointmentId = Guid.NewGuid();
-                    Guid participantId = Guid.NewGuid();
+                    AppointmentId appointmentId = AppointmentId.New();
+                    AttendeeId participantId = AttendeeId.New();
 
                     yield return new object[]
                     {

@@ -2,6 +2,9 @@
 
 namespace Identity.API.Features.Auth
 {
+    /// <summary>
+    /// Wraps JWT Options.
+    /// </summary>
     public class JwtOptions
     {
         /// <summary>

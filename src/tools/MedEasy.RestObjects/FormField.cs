@@ -75,7 +75,7 @@ namespace MedEasy.RestObjects
         /// </summary>
 #if NETSTANDARD1_1
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-#endif        
+#endif
         public int? Min { get; set; }
 
         /// <summary>

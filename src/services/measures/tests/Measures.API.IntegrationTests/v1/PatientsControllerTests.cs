@@ -32,7 +32,6 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using System.Text.Json;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
@@ -151,7 +150,6 @@ namespace Measures.API.IntegrationTests.v1
 
             // Assert
             ((int)response.StatusCode).Should().Be(Status200OK);
-            HttpContentHeaders headers = response.Content.Headers;
 
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
@@ -186,12 +184,6 @@ namespace Measures.API.IntegrationTests.v1
                 Email = $"batman_{Guid.NewGuid().ToString("N")}@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
             };
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
@@ -237,12 +229,6 @@ namespace Measures.API.IntegrationTests.v1
                 Email = $"batman_{Guid.NewGuid()}@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
             };
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
@@ -303,12 +289,6 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
@@ -337,12 +317,6 @@ namespace Measures.API.IntegrationTests.v1
                 ConfirmPassword = "thecapedcrusader"
             };
 
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
                 .ConfigureAwait(false);
 
@@ -360,42 +334,18 @@ namespace Measures.API.IntegrationTests.v1
             HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient, jsonSerializerOptions)
                                                        .ConfigureAwait(false);
 
-            string json = await response.Content.ReadAsStringAsync()
-                                                .ConfigureAwait(false);
-            _outputHelper.WriteLine($"Response : {json}");
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
             response.IsSuccessStatusCode.Should()
                                         .BeTrue("Creating the resource should succeed");
 
-            Guid patientId = JToken.Parse(json).ToObject<Browsable<PatientInfo>>().Resource.Id;
+            Browsable<PatientInfo> patientId = await response.Content.ReadFromJsonAsync<Browsable<PatientInfo>>()
+                                                                     .ConfigureAwait(false);
 
             NewBloodPressureModel resourceToCreate = new()
             {
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.January(2002).Add(23.Hours().And(36.Minutes())).AsUtc().ToInstant()
-            };
-
-            JSchema createdResourceSchema = new()
-            {
-                Type = JSchemaType.Object,
-                Properties =
-                {
-                    [nameof(Browsable<BloodPressureInfo>.Resource).ToLower()] = new JSchema
-                    {
-                        Type = JSchemaType.Object,
-                        Properties =
-                        {
-                            [nameof(BloodPressureInfo.SystolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
-                            [nameof(BloodPressureInfo.DiastolicPressure).ToLower()] = new JSchema { Type = JSchemaType.Number },
-                            [nameof(BloodPressureInfo.DateOfMeasure).ToLower()] = new JSchema { Type = JSchemaType.String },
-                            [nameof(BloodPressureInfo.UpdatedDate).ToLower()] = new JSchema { Type = JSchemaType.String },
-                            [nameof(BloodPressureInfo.Id).ToLower()] = new JSchema { Type = JSchemaType.String },
-                        },
-                        AllowAdditionalItems = false
-                    }
-                },
-                AllowAdditionalItems = false
             };
 
             // Act
@@ -410,13 +360,6 @@ namespace Measures.API.IntegrationTests.v1
 
             response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
             ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
-
-            json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            JToken jToken = JToken.Parse(json);
-            jToken.IsValid(createdResourceSchema).Should()
-                .BeTrue();
 
             Uri location = response.Headers.Location;
             _outputHelper.WriteLine($"Location of the resource : <{location}>");
@@ -467,12 +410,6 @@ namespace Measures.API.IntegrationTests.v1
                 Email = $"{username}@gotham.fr",
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
             };
 
             BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)

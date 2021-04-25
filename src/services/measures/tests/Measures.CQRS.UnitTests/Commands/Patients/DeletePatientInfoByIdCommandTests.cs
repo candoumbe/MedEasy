@@ -1,6 +1,10 @@
 ﻿using FluentAssertions;
+
 using Measures.CQRS.Commands.Patients;
+using Measures.Ids;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -9,24 +13,20 @@ namespace Measures.CQRS.UnitTests.Commands.Patients
 {
     [UnitTest]
     [Feature("Commands")]
-    public class DeletePatientInfoByIdCommandTests : IDisposable
+    public class DeletePatientInfoByIdCommandTests
     {
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
 
         public DeletePatientInfoByIdCommandTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-        }
 
         [Fact]
         public void Ctor_Is_Valid()
         {
-            DeletePatientInfoByIdCommand instance = new DeletePatientInfoByIdCommand(Guid.NewGuid());
+            DeletePatientInfoByIdCommand instance = new(PatientId.New());
 
             // Assert
             instance.Id.Should()

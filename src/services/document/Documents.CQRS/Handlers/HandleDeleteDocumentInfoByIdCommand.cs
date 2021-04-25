@@ -28,14 +28,12 @@ namespace Documents.CQRS.Handlers
 
         public async Task<DeleteCommandResult> Handle(DeleteDocumentInfoByIdCommand request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Document>().Delete(x => x.Id == request.Data);
-                await uow.SaveChangesAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            uow.Repository<Document>().Delete(x => x.Id == request.Data);
+            await uow.SaveChangesAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-                return DeleteCommandResult.Done;
-            }
+            return DeleteCommandResult.Done;
         }
     }
 }

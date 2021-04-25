@@ -53,18 +53,18 @@ namespace MedEasy.Core.UnitTests.Attributes
         public void ShouldReturnBadRequesWhenModelStateIsNotValid()
         {
             // Arrange
-            ModelStateDictionary modelState = new ModelStateDictionary();
+            ModelStateDictionary modelState = new();
             modelState.AddModelError("name", "invalid");
 
             _httpContextMock.SetupGet(mock => mock.Request.Method).Returns(HttpMethods.Get);
 
-            ActionContext actionContext = new ActionContext(
+            ActionContext actionContext = new(
                _httpContextMock.Object,
                new Mock<RouteData>().Object,
                new Mock<ActionDescriptor>().Object,
                modelState);
 
-            ActionExecutingContext actionExecutingContext = new ActionExecutingContext(
+            ActionExecutingContext actionExecutingContext = new(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),

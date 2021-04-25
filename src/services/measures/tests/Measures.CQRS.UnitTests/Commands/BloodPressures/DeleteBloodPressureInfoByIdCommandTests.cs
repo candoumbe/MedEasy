@@ -1,6 +1,10 @@
 ﻿using FluentAssertions;
+
 using Measures.CQRS.Commands.BloodPressures;
+using Measures.Ids;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -25,7 +29,7 @@ namespace Measures.CQRS.UnitTests.Commands.BloodPressures
         [Fact]
         public void Ctor_Is_Valid()
         {
-            DeleteBloodPressureInfoByIdCommand instance = new DeleteBloodPressureInfoByIdCommand(Guid.NewGuid());
+            DeleteBloodPressureInfoByIdCommand instance = new(BloodPressureId.New());
 
             // Assert
             instance.Id.Should()

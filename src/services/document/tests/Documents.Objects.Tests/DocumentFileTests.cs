@@ -1,5 +1,9 @@
+using Documents.Ids;
+
 using FluentAssertions;
+
 using System;
+
 using Xunit;
 
 namespace Documents.Objects.Tests
@@ -11,7 +15,7 @@ namespace Documents.Objects.Tests
         public void Ctor_throws_ArgumentOutOfRangeException_when_DocumentId_is_empty()
         {
             // Act
-            Action action = () => new DocumentPart(Guid.Empty, 0, new byte[] { 1 });
+            Action action = () => new DocumentPart(DocumentId.Empty, 0, new byte[] { 1 });
 
             // Assert
             action.Should()
@@ -22,7 +26,7 @@ namespace Documents.Objects.Tests
         public void Ctor_throws_ArgumentOutOfRangeException_when_position_is_lt_0()
         {
             // Act
-            Action action = () => new DocumentPart(Guid.NewGuid(), -1, new byte[] { 1 });
+            Action action = () => new DocumentPart(DocumentId.New(), -1, new byte[] { 1 });
 
             // Assert
             action.Should()
@@ -33,7 +37,7 @@ namespace Documents.Objects.Tests
         public void Ctor_throws_ArgumentNullException_When_content_is_null()
         {
             // Act
-            Action action = () => new DocumentPart(Guid.NewGuid(), 10, null);
+            Action action = () => new DocumentPart(DocumentId.New(), 10, null);
 
             // Assert
             action.Should()

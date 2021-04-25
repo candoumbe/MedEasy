@@ -1,4 +1,5 @@
 ﻿using MediatR;
+
 using System;
 
 namespace MedEasy.CQRS.Core.Queries

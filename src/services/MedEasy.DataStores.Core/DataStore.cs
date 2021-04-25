@@ -4,7 +4,6 @@ using MedEasy.Objects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 using NodaTime;
 
@@ -99,7 +98,9 @@ namespace MedEasy.DataStores.Core.Relational
 
         private IEnumerable<EntityEntry> GetModifiedEntities() => ChangeTracker.Entries()
             .AsParallel()
-            .Where(x => typeof(IAuditableEntity).IsAssignableFrom(x.Entity.GetType()) && (x.State == EntityState.Added || x.State == EntityState.Modified))
+            .Where(x => (x.Entity is IAuditableEntity)
+            && (x.State == EntityState.Added
+                || x.State == EntityState.Modified))
 #if DEBUG
             .ToArray()
 #endif
@@ -108,7 +109,7 @@ namespace MedEasy.DataStores.Core.Relational
         private Action<EntityEntry> UpdateModifiedEntry
             => x =>
             {
-                IAuditableEntity auditableEntity = (IAuditableEntity)(x.Entity);
+                IAuditableEntity auditableEntity = (IAuditableEntity)x.Entity;
                 Instant now = _clock.GetCurrentInstant();
                 if (x.State == EntityState.Added)
                 {

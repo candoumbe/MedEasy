@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Identity.Ids;
+
+using MedEasy.Ids;
 
 namespace Identity.DTO
 {
@@ -7,6 +9,8 @@ namespace Identity.DTO
     /// </summary>
     public class NewAccountInfo
     {
+        public AccountId Id { get; set; }
+
         /// <summary>
         /// Name associated with the account
         /// </summary>
@@ -16,7 +20,7 @@ namespace Identity.DTO
         /// Desired username
         /// </summary>
         public string Username { get; set; }
-        
+
         /// <summary>
         /// Password
         /// </summary>
@@ -33,6 +37,6 @@ namespace Identity.DTO
         public string Email { get; set; }
 
 
-        public Guid? TenantId { get; set; }
+        public TenantId TenantId { get; set; }
     }
 }

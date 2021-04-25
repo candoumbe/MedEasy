@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+
 using System;
 using System.Runtime.Serialization;
+
 using static Newtonsoft.Json.JsonConvert;
 
 namespace MedEasy.CQRS.Core.Commands

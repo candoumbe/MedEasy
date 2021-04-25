@@ -6,6 +6,7 @@ using MedEasy.IntegrationTests.Core;
 
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace Identity.API.Fixtures.v2
             using HttpClient client = CreateClient();
             string uri = $"/v1/{AccountsController.EndpointName}";
 
-            using HttpResponseMessage response = await client.PostAsync(uri, new StringContent(newAccount.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, new StringContent(newAccount.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                              .ConfigureAwait(false);
 
             string responseContent = await response.Content.ReadAsStringAsync()

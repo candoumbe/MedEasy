@@ -1,10 +1,15 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
 using Measures.Objects;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -35,19 +40,17 @@ namespace Measures.CQRS.Handlers.Patients
 
         public async Task<Option<PatientInfo>> Handle(GetPatientInfoByIdQuery query, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                Option<PatientInfo> result = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(
-                        selector,
-                        (Patient x) => x.Id == query.Data,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Expression<Func<Patient, PatientInfo>> selector = _expressionBuilder.GetMapExpression<Patient, PatientInfo>();
+            Option<PatientInfo> result = await uow.Repository<Patient>()
+                .SingleOrDefaultAsync(
+                    selector,
+                    (Patient x) => x.Id == query.Data,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
 
-                return result;
-            }
+            return result;
         }
     }
 }

@@ -6,13 +6,13 @@ using FluentValidation;
 
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Moq;
@@ -36,21 +36,20 @@ namespace Identity.Validators.UnitTests
 {
     [UnitTest]
     [Feature("Accounts")]
-    public class NewAccountInfoValidatorTests : IAsyncLifetime, IClassFixture<SqliteDatabaseFixture>
+    public class NewAccountInfoValidatorTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
-        private ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private Mock<ILogger<NewAccountInfoValidator>> _loggerMock;
-        private NewAccountInfoValidator _sut;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly Mock<ILogger<NewAccountInfoValidator>> _loggerMock;
+        private readonly NewAccountInfoValidator _sut;
 
-        public NewAccountInfoValidatorTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture databaseFixture)
+        public NewAccountInfoValidatorTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<IdentityContext> dbContextOptionsBuilder = new();
-            dbContextOptionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(dbContextOptionsBuilder.Options, (options) =>
+
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -94,11 +93,11 @@ namespace Identity.Validators.UnitTests
                 };
 
                 {
-                    Account account = new Account(id: Guid.NewGuid(),
-                                                  username: faker.Person.UserName,
-                                                  passwordHash: faker.Lorem.Word(),
-                                                  salt: faker.Lorem.Word(),
-                                                  email: faker.Internet.Email("joker"));
+                    Account account = new(id: AccountId.New(),
+                                           username: faker.Person.UserName,
+                                           passwordHash: faker.Lorem.Word(),
+                                           salt: faker.Lorem.Word(),
+                                           email: faker.Internet.Email("joker"));
                     yield return new object[]
                     {
                         new[] {account},
@@ -120,14 +119,11 @@ namespace Identity.Validators.UnitTests
                 }
 
                 {
-                    Account account = new Account
-                    (
-                        username: "joker",
-                        passwordHash: faker.Lorem.Word(),
-                        salt: faker.Lorem.Word(),
-                        email: faker.Internet.Email("joker"),
-                        id: Guid.NewGuid()
-                    );
+                    Account account = new(username: "joker",
+                                           passwordHash: faker.Lorem.Word(),
+                                           salt: faker.Lorem.Word(),
+                                           email: faker.Internet.Email("joker"),
+                                           id: AccountId.New());
                     yield return new object[]
                     {
                         new[] {account},
@@ -149,13 +145,12 @@ namespace Identity.Validators.UnitTests
                 }
 
                 {
-                    Account account = new Account
-                    (
+                    Account account = new(
                         username: "joker",
                         passwordHash: faker.Lorem.Word(),
                         salt: faker.Lorem.Word(),
                         email: "joker@card-city.com",
-                        id: Guid.NewGuid()
+                        id: AccountId.New()
                     );
 
                     yield return new object[]

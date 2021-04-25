@@ -1,10 +1,13 @@
 ﻿using FluentValidation;
+
 using MedEasy.DTO.Search;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+
 using static FluentValidation.Severity;
 using static System.StringSplitOptions;
 
@@ -16,7 +19,7 @@ namespace MedEasy.Validators.Validators
     /// <typeparam name="T">Type constraint of the <see cref="AbstractSearchInfo{T}"/></typeparam>
     public class AbstractSearchInfoValidator<T> : AbstractValidator<AbstractSearchInfo<T>>
     {
-        private static Regex _sortRegex => new Regex(AbstractSearchInfo<T>.SortPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        private static Regex _sortRegex => new(AbstractSearchInfo<T>.SortPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         public AbstractSearchInfoValidator()
         {
@@ -38,7 +41,8 @@ namespace MedEasy.Validators.Validators
                     IEnumerable<string> extractUnknownPropertiesNames(IEnumerable<string> fields)
                     {
                         IEnumerable<string> sortFields = fields
-                                .Select(fieldName => {
+                                .Select(fieldName =>
+                                {
                                     string sanitizedFieldName = Regex.Replace(fieldName, @"(-|\+|\!)+", string.Empty);
                                     return sanitizedFieldName.Trim();
                                 });

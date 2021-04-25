@@ -1,12 +1,15 @@
 ﻿using AutoMapper.QueryableExtensions;
+
 using FluentAssertions;
+
 using Measures.Context;
 using Measures.CQRS.Handlers.Patients;
 using Measures.Mapping;
+
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
+
 using Moq;
 
 using NodaTime;
@@ -15,6 +18,7 @@ using NodaTime.Testing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -22,32 +26,24 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleGetPageOfPatientInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetPageOfPatientInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private HandleGetPageOfPatientInfoQuery _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly HandleGetPageOfPatientInfoQuery _sut;
 
-        public HandleGetPageOfPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetPageOfPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new DbContextOptionsBuilder<MeasuresContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) => {
-                MeasuresContext context = new MeasuresContext(options, new FakeClock(new Instant()));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            {
+                MeasuresContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
 
             _sut = new HandleGetPageOfPatientInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
-        }
-        
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _sut = null;
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -56,7 +52,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             {
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
-                
+
                 IEnumerable<object[]> cases = uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null)
@@ -71,9 +67,9 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {(unitOfWorkFactory == null)}");
-            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {(expressionBuilder == null)}");
-            
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
+
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleGetOnePatientInfoByIdQuery(unitOfWorkFactory, expressionBuilder);

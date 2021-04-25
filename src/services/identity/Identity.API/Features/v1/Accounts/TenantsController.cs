@@ -3,10 +3,13 @@ using Identity.API.Routing;
 using Identity.CQRS.Commands.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
+using Identity.Ids;
+using Identity.Objects;
 
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DTO;
+using MedEasy.Ids;
 
 using MediatR;
 
@@ -60,9 +63,9 @@ namespace Identity.API.Features.Accounts
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(Status204NoContent)]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Delete(AccountId id, CancellationToken ct = default)
         {
-            DeleteAccountInfoByIdCommand cmd = new DeleteAccountInfoByIdCommand(id);
+            DeleteAccountInfoByIdCommand cmd = new(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -95,17 +98,17 @@ namespace Identity.API.Features.Accounts
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Get(TenantId id, CancellationToken ct = default)
         {
             bool isTenant = await _mediator.Send(new IsTenantQuery(id), ct)
                 .ConfigureAwait(false);
 
             return isTenant
                 ? new RedirectToRouteResult(
-                           RouteNames.DefaultGetOneByIdApi, new { controller = AccountsController.EndpointName, id },
+                           RouteNames.DefaultGetOneByIdApi, new { controller = AccountsController.EndpointName, id = id.Value },
                            permanent: false,
                            preserveMethod: true)
-                : (IActionResult)new NotFoundResult();
+                : new NotFoundResult();
         }
 
         /// <summary>
@@ -140,12 +143,12 @@ namespace Identity.API.Features.Accounts
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         public async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
         {
-            PatchInfo<Guid, AccountInfo> data = new PatchInfo<Guid, AccountInfo>
+            PatchInfo<Guid, AccountInfo> data = new()
             {
                 Id = id,
                 PatchDocument = changes
             };
-            PatchCommand<Guid, AccountInfo> cmd = new PatchCommand<Guid, AccountInfo>(data);
+            PatchCommand<Guid, AccountInfo> cmd = new(data);
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);

@@ -7,15 +7,15 @@ using FluentAssertions;
 using Identity.CQRS.Handlers.Queries.Accounts;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DataStores;
+using Identity.Ids;
 using Identity.Objects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -40,29 +40,28 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]
-    public class HandleIsTenantQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleIsTenantQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleIsTenantQuery _sut;
 
-        public HandleIsTenantQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleIsTenantQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<IdentityContext> builder = new DbContextOptionsBuilder<IdentityContext>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}");
-
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                IdentityContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
             _sut = new HandleIsTenantQuery(_uowFactory);
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -117,7 +116,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     yield return new object[]
                     {
                         Enumerable.Empty<Account>(),
-                        Guid.NewGuid(),
+                        TenantId.New(),
                         false,
                         "Account data store is empty"
                     };
@@ -127,15 +126,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     yield return new object[]
                     {
                         Enumerable.Empty<Account>(),
-                        Guid.Empty,
+                        TenantId.Empty,
                         false,
                         "Account data store is empty"
                     };
                 }
                 {
-                    Guid tenantId = Guid.NewGuid();
+                    TenantId tenantId = TenantId.New();
                     Faker<Account> accountFaker = new Faker<Account>()
-                        .CustomInstantiator(faker => new Account(id: Guid.NewGuid(),
+                        .CustomInstantiator(faker => new Account(id: AccountId.New(),
                             name: faker.Person.FullName,
                             username: faker.Person.UserName,
                             email: faker.Internet.Email(),
@@ -148,15 +147,15 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     yield return new object[]
                     {
                         accounts,
-                        Guid.Empty,
+                        TenantId.Empty,
                         false,
-                        $"<{Guid.Empty}> is not a tenant id"
+                        $"<{TenantId.Empty}> is not a tenant id"
                     };
 
                     yield return new object[]
                     {
                         accounts,
-                        Guid.NewGuid(),
+                        TenantId.New(),
                         false,
                         "The searched account id is not a tenant"
                     };
@@ -174,10 +173,10 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
 
         [Theory]
         [MemberData(nameof(HandleCases))]
-        public async Task Handle(IEnumerable<Account> accounts, Guid accountId, bool expectedResult, string reason)
+        public async Task Handle(IEnumerable<Account> accounts, TenantId tenantId, bool expectedResult, string reason)
         {
             _outputHelper.WriteLine($"Account datastore : {SerializeObject(accounts, Formatting.Indented)}");
-            _outputHelper.WriteLine($"Searched tenant id : {accountId}");
+            _outputHelper.WriteLine($"Searched tenant id : {tenantId}");
 
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -187,7 +186,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Accounts
                     .ConfigureAwait(false);
             }
 
-            IsTenantQuery request = new IsTenantQuery(accountId);
+            IsTenantQuery request = new(tenantId);
             // Act
             bool isTenant = await _sut.Handle(request, default)
                 .ConfigureAwait(false);

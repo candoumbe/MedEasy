@@ -1,7 +1,10 @@
 ﻿using Measures.DTO;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
+
 using Optional;
+
 using System;
 
 namespace Measures.CQRS.Commands.BloodPressures

@@ -49,7 +49,7 @@ namespace MedEasy.Core.Filters
 
             if (!context.ModelState.IsValid || context.ModelState.ErrorCount > 0)
             {
-                ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails
+                ValidationProblemDetails validationProblemDetails = new()
                 {
                     Title = "Validation failed",
                     Status = Status400BadRequest
@@ -67,7 +67,7 @@ namespace MedEasy.Core.Filters
                     }
                 }
 
-                BadRequestObjectResult result = new BadRequestObjectResult(validationProblemDetails);
+                BadRequestObjectResult result = new(validationProblemDetails);
 
                 if (IsPost(context.HttpContext.Request.Method))
                 {

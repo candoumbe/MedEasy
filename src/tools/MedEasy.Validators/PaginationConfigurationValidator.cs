@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
+
 using MedEasy.RestObjects;
+
 using static FluentValidation.Severity;
 
 namespace MedEasy.Validators

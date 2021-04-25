@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static MedEasy.RestObjects.LinkRelation;
 using Microsoft.AspNetCore.Routing;
+using Agenda.Ids;
 
 namespace Agenda.API.Resources.v1
 {
@@ -83,16 +84,15 @@ namespace Agenda.API.Resources.v1
                     Relation = Self,
                     Method = "GET",
                     Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                    new { controller = EndpointName, newResource.Id, version })
+                                                    new { controller = EndpointName, id = newResource.Id.Value, version })
                 }
             }
             .Concat(participants.Select(p => new Link
             {
-                Relation = $"get-participant-{p.Id}",
+                Relation = $"get-participant-{p.Id.Value}",
                 Method = "GET",
-                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id, version })
-            })
-            )
+                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, id = p.Id.Value, version })
+            }))
 #if DEBUG
             .ToArray()
 #endif
@@ -105,7 +105,7 @@ namespace Agenda.API.Resources.v1
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi,
-                                            new { controller = EndpointName, newResource.Id, version },
+                                            new { controller = EndpointName, id = newResource.Id.Value, version },
                                             browsableResource);
         }
 
@@ -144,7 +144,7 @@ namespace Agenda.API.Resources.v1
                                                                                   Relation = Self,
                                                                                   Method = "GET",
                                                                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                                                                                  new {controller = EndpointName, x.Id, version})
+                                                                                                                  new {controller = EndpointName, id = x.Id.Value, version})
                                                                               }
                                                                           }
                                                                       });
@@ -178,7 +178,7 @@ namespace Agenda.API.Resources.v1
         [HttpHead("{id}")]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
-        public async Task<ActionResult<Browsable<AppointmentModel>>> Get(Guid id, CancellationToken ct = default)
+        public async Task<ActionResult<Browsable<AppointmentModel>>> Get([RequireNonDefault] AppointmentId id, CancellationToken ct = default)
         {
             Option<AppointmentInfo> optionalAppointment = await _mediator.Send(new GetOneAppointmentInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
@@ -219,16 +219,19 @@ namespace Agenda.API.Resources.v1
         /// <param name="search">Search criteria</param>
         /// <param name="ct">Notfies to cancel the search operation</param>
         /// <remarks>
-        /// <para>All criteria are combined as a AND.</para>
+        /// <para>All criteria are combined with and a <c>AND</c>.</para>
         /// <para>
         /// Advanded search :
         /// Several operators that can be used to make an advanced search :
         /// '*' : match zero or more characters in a string property.
         /// </para>
-        /// <para>
-        ///     // GET api/appointments/search?location=Gotham
+        /// <example>
+        /// Issuing the following HTTP request
+        /// <code>
+        ///     GET api/appointments/search?location=Gotham HTTP/1.1
+        /// </code>
         ///     will match all resources which have exactly 'Gotham' in the `location` property
-        /// </para>
+        /// </example>
         /// <para>
         ///     // GET api/appointments/search?location=C*tral
         ///     will match match all resources which starts with 'C' and ends with 'tral'.
@@ -295,7 +298,9 @@ namespace Agenda.API.Resources.v1
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
-        public async Task<IActionResult> Delete(Guid id, Guid attendeeId, CancellationToken ct = default)
+        public async Task<IActionResult> Delete([RequireNonDefault] AppointmentId id,
+                                                [RequireNonDefault] AttendeeId attendeeId,
+                                                CancellationToken ct = default)
         {
             RemoveAttendeeFromAppointmentByIdCommand cmd = new(data: (id, attendeeId));
 

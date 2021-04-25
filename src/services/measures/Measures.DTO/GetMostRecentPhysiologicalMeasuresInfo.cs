@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Measures.Ids;
+
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Measures.DTO
@@ -11,7 +13,7 @@ namespace Measures.DTO
         /// <summary>
         /// Id of the patient to get one measure from
         /// </summary>
-        public Guid PatientId { get; set; }
+        public PatientId PatientId { get; set; }
 
         /// <summary>
         /// Number of measures to return

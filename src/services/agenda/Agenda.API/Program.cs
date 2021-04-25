@@ -6,15 +6,19 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
-using Polly.Retry;
 using Serilog;
 using System;
 using Npgsql;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Data.Sqlite;
+using System.Linq;
 
 namespace Agenda.API
 {
+    /// <summary>
+    /// Entry class
+    /// </summary>
 #pragma warning disable RCS1102 // Make class static.
     public class Program
 #pragma warning restore RCS1102 // Make class static.
@@ -30,30 +34,37 @@ namespace Agenda.API
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             IHostEnvironment env = services.GetRequiredService<IHostEnvironment>();
             AgendaContext context = services.GetRequiredService<AgendaContext>();
+
             logger?.LogInformation("Starting {ApplicationContext}", env.ApplicationName);
 
             try
             {
-                if (!context.Database.IsInMemory())
+                logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
+                // Forces database migrations on startup
+                PolicyBuilder policy = env.IsEnvironment("IntegrationTest")
+                    ? Policy.Handle<SqliteException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                    : Policy.Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true));
+
+                logger?.LogInformation("Starting {ApplictationContext} database migration", env.ApplicationName);
+                string[] migrations = (await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false))
+                                                                     .ToArray();
+                logger?.LogDebug("{MigrationCount} of pending migrations for {ApplicationContext}", migrations.Length, env.ApplicationName);
+                foreach (string migrationName in migrations)
                 {
-                    logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
-                    // Forces database migrations on startup
-                    RetryPolicy policy = Policy
-                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
-                        .WaitAndRetryAsync(
-                            retryCount: 5,
-                            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                            onRetry: (exception, _, attempt, __) =>
-                                logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})")
-                            );
-                    logger?.LogInformation("Starting {ApplictationContext} database migration", env.ApplicationName);
-
-                    // Forces datastore migration on startup
-                    await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                        .ConfigureAwait(false);
-
-                    logger?.LogInformation("{ApplicationContext} updated", env.ApplicationName);
+                    logger?.LogInformation("Migration : {MigrationName}", migrationName);
                 }
+
+                await policy.WaitAndRetryAsync(retryCount: 5,
+                                               sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                                               onRetry: (exception, _, attempt, __) => logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})"))
+                            .ExecuteAsync(async () =>
+                            {
+                                await context.Database.MigrateAsync().ConfigureAwait(false);
+                            })
+                            .ConfigureAwait(false);
+
+                logger?.LogInformation("{ApplicationContext} updated", env.ApplicationName);
+
                 await host.RunAsync()
                     .ConfigureAwait(false);
 

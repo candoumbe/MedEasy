@@ -1,5 +1,7 @@
 ﻿using Agenda.DTO;
+
 using MedEasy.CQRS.Core.Commands;
+
 using System;
 
 namespace Agenda.CQRS.Features.Appointments.Commands

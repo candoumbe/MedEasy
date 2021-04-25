@@ -1,7 +1,5 @@
 ﻿using NodaTime;
 
-using System;
-
 namespace Measures.API.Features.Patients
 {
     /// <summary>

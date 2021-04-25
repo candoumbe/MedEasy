@@ -1,11 +1,16 @@
 ﻿using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DTO;
 using Agenda.Objects;
+
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Optional;
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -18,8 +23,8 @@ namespace Agenda.CQRS.Features.Participants.Handlers
     /// </summary>
     public class HandleGetOneParticipantInfoByIdQuery : IRequestHandler<GetOneAttendeeInfoByIdQuery, Option<AttendeeInfo>>
     {
-        private IUnitOfWorkFactory _uowFactory;
-        private IMapper _mapper;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Builds a <see cref="HandleGetOneParticipantInfoByIdQuery"/> instance.
@@ -34,14 +39,12 @@ namespace Agenda.CQRS.Features.Participants.Handlers
 
         public async Task<Option<AttendeeInfo>> Handle(GetOneAttendeeInfoByIdQuery request, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                Expression<Func<Attendee, AttendeeInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            Expression<Func<Attendee, AttendeeInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
 
-                return await uow.Repository<Attendee>()
-                    .SingleOrDefaultAsync(selector, (Attendee x) => x.Id == request.Data, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            return await uow.Repository<Attendee>()
+                .SingleOrDefaultAsync(selector, (Attendee x) => x.Id == request.Data, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

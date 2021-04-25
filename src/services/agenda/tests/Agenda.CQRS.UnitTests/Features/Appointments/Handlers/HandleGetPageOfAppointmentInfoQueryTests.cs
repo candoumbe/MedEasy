@@ -2,6 +2,7 @@
 using Agenda.CQRS.Features.Appointments.Queries;
 using Agenda.DataStores;
 using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Mapping;
 using Agenda.Objects;
 
@@ -15,8 +16,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
-
-using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -40,21 +39,16 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
     [Feature("Agenda")]
     [UnitTest]
-    public class HandleGetPageOfAppointmentInfoQueryTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleGetPageOfAppointmentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>
     {
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IClock> _dateTimeServiceMock;
         private HandleGetPageOfAppointmentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
 
-        public HandleGetPageOfAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleGetPageOfAppointmentInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
-            DbContextOptionsBuilder<AgendaContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                          .EnableSensitiveDataLogging()
-                          .EnableDetailedErrors();
-
-            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(optionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {
                 AgendaContext context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
@@ -65,7 +59,9 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
             _outputHelper = outputHelper;
         }
 
-        public async void Dispose()
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public async Task DisposeAsync()
         {
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -103,16 +99,16 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
                     Enumerable.Empty<Appointment>(),
                     1.January(2010).AsUtc().ToInstant(),
                     (2, 10),
-                    ((Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
+                    (Expression<Func<Page<AppointmentInfo>, bool>>)(page => page.Count == 1
                         && page.Total == 0
                         && page.Entries != null && !page.Entries.Any()
-                    )),
+                    ),
                     "DataStore is empty"
                 };
                 {
                     Faker<Appointment> appointmentFaker = new Faker<Appointment>()
                         .CustomInstantiator(faker => new Appointment(
-                            id: Guid.NewGuid(),
+                            id: AppointmentId.New(),
                             subject: faker.Lorem.Sentence(),
                             location: faker.Address.City(),
                             startDate: 10.April(2000).At(13.Hours()).AsUtc().ToInstant(),

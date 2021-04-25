@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+
 using EventStore.ClientAPI;
+
 using MedEasy.CQRS.Core.Events;
 
 namespace MedEasy.EventSourcing
@@ -22,7 +24,7 @@ namespace MedEasy.EventSourcing
                 .ConfigureAwait(false);
 
             string json = @event.Jsonify();
-            EventData eventData = new EventData(@event.Id, @event.GetType().Name, true, Encoding.UTF8.GetBytes(json), Array.Empty<byte>());
+            EventData eventData = new(@event.Id, @event.GetType().Name, true, Encoding.UTF8.GetBytes(json), Array.Empty<byte>());
 
             await _connection.AppendToStreamAsync(@event.GetType().Name, ExpectedVersion.Any, eventData)
                 .ConfigureAwait(false);

@@ -1,9 +1,9 @@
 ﻿using MedEasy.RestObjects;
-using Newtonsoft.Json;
 
 using NodaTime;
 
-using System;
+using Patients.Ids;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Patients.DTO
@@ -11,13 +11,11 @@ namespace Patients.DTO
     /// <summary>
     /// Informations on a patient
     /// </summary>
-    [JsonObject]
-    public class PatientInfo : Resource<Guid>
+    public class PatientInfo : Resource<PatientId>
     {
         /// <summary>
         /// Patient's firstname
         /// </summary>
-        [JsonProperty(PropertyName = nameof(Firstname))]
         [Required]
         [StringLength(255)]
         public string Firstname { get; set; }
@@ -25,12 +23,10 @@ namespace Patients.DTO
         /// <summary>
         /// Patient's lastname
         /// </summary>
-        [JsonProperty(PropertyName = nameof(Lastname))]
         [Required]
         [StringLength(255)]
         public string Lastname { get; set; }
 
-        [JsonProperty(PropertyName = nameof(Fullname))]
         public string Fullname => $"{Firstname?.Trim()}{(string.IsNullOrWhiteSpace(Firstname?.Trim()) ? string.Empty : " ")}{Lastname}";
 
         /// <summary>
@@ -41,6 +37,6 @@ namespace Patients.DTO
         /// <summary>
         /// Id of the main doctor
         /// </summary>
-        public Guid? MainDoctorId { get; set; }
+        public DoctorId MainDoctorId { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MedEasy.CQRS.Core.Events;
+
 using System;
 
 namespace Measures.CQRS.Events

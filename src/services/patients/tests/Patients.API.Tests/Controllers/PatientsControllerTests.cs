@@ -7,12 +7,13 @@ using FluentAssertions.Extensions;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
+using MedEasy.Ids;
+using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,7 @@ using Patients.API.Controllers;
 using Patients.API.Routing;
 using Patients.Context;
 using Patients.DTO;
+using Patients.Ids;
 using Patients.Mapping;
 using Patients.Objects;
 
@@ -49,38 +51,34 @@ namespace Patients.API.UnitTests.Controllers
 {
     [UnitTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IDisposable
+    public class PatientsControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<PatientsContext>>
     {
-        private Mock<LinkGenerator> _urlHelperMock;
-        private Mock<ILogger<PatientsController>> _loggerMock;
-        private PatientsController _sut;
-        private ITestOutputHelper _outputHelper;
-        private IActionContextAccessor _actionContextAccessor;
-        private IUnitOfWorkFactory _factory;
-        private IExpressionBuilder _expressionBuilder;
-        private Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
+        private readonly Mock<LinkGenerator> _urlHelperMock;
+        private readonly Mock<ILogger<PatientsController>> _loggerMock;
+        private readonly PatientsController _sut;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly IUnitOfWorkFactory _factory;
+        private readonly IExpressionBuilder _expressionBuilder;
+        private readonly Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";
 
-        public PatientsControllerTests(ITestOutputHelper outputHelper)
+        public PatientsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<PatientsContext> database)
         {
             _outputHelper = outputHelper;
             _loggerMock = new Mock<ILogger<PatientsController>>(Strict);
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
-            _actionContextAccessor = new ActionContextAccessor()
-            {
-                ActionContext = new ActionContext()
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
-
-            DbContextOptionsBuilder<PatientsContext> dbOptions = new();
-            dbOptions.UseInMemoryDatabase($"InMemoryMedEasyDb_{Guid.NewGuid()}");
-            _factory = new EFUnitOfWorkFactory<PatientsContext>(dbOptions.Options,
-                                                                (options) => new PatientsContext(options, new FakeClock(new Instant())));
+            _factory = new EFUnitOfWorkFactory<PatientsContext>(database.OptionsBuilder.Options,
+                                                                (options) =>
+                                                                {
+                                                                    PatientsContext context = new PatientsContext(options, new FakeClock(new Instant()));
+                                                                    context.Database.EnsureCreated();
+                                                                    
+                                                                    return context;
+                                                                });
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
@@ -90,20 +88,7 @@ namespace Patients.API.UnitTests.Controllers
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
                 _expressionBuilder,
-                    _factory);
-        }
-
-        public void Dispose()
-        {
-            _loggerMock = null;
-            _urlHelperMock = null;
-            _sut = null;
-            _outputHelper = null;
-            _actionContextAccessor = null;
-            _apiOptionsMock = null;
-
-            _factory = null;
-            _expressionBuilder = null;
+                _factory);
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -141,7 +126,7 @@ namespace Patients.API.UnitTests.Controllers
                 }
 
                 Faker<Patient> patientFaker = new Faker<Patient>()
-                    .CustomInstantiator(faker => new Patient(Guid.NewGuid(), faker.Person.FirstName, faker.Person.LastName));
+                    .CustomInstantiator(faker => new Patient(PatientId.New(), faker.Person.FirstName, faker.Person.LastName));
 
                 {
                     IEnumerable<Patient> items = patientFaker.Generate(400);
@@ -175,7 +160,7 @@ namespace Patients.API.UnitTests.Controllers
                 yield return new object[]
                     {
                         new [] {
-                            new Patient(Guid.NewGuid(), firstname: "Bruce",  lastname: "Wayne")
+                            new Patient(PatientId.New(), firstname: "Bruce",  lastname: "Wayne")
                         },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
@@ -439,7 +424,7 @@ namespace Patients.API.UnitTests.Controllers
                     JsonPatchDocument<PatientInfo> patchDocument = new();
                     patchDocument.Add(x => x.Lastname, "Grayson");
 
-                    Guid patientId = Guid.NewGuid();
+                    PatientId patientId = PatientId.New();
                     yield return new object[]
                     {
                         new Patient(patientId, firstname: null,  lastname: "Wayne")
@@ -491,7 +476,7 @@ namespace Patients.API.UnitTests.Controllers
             patchDocument.Replace(x => x.Firstname, "John");
 
             // Act
-            IActionResult actionResult = await _sut.Patch(Guid.NewGuid(), patchDocument)
+            IActionResult actionResult = await _sut.Patch(PatientId.New(), patchDocument)
                 .ConfigureAwait(false);
 
             // Assert
@@ -504,7 +489,7 @@ namespace Patients.API.UnitTests.Controllers
         public async Task GetWithUnknownIdShouldReturnNotFound()
         {
             //Act
-            IActionResult actionResult = await _sut.Get(Guid.NewGuid())
+            IActionResult actionResult = await _sut.Get(PatientId.New())
                 .ConfigureAwait(false);
 
             //Assert
@@ -518,7 +503,7 @@ namespace Patients.API.UnitTests.Controllers
         public async Task Get()
         {
             //Arrange
-            Guid patientId = Guid.NewGuid();
+            PatientId patientId = PatientId.New();
             PatientInfo expectedResource = new()
             {
                 Id = patientId,
@@ -650,7 +635,7 @@ namespace Patients.API.UnitTests.Controllers
             //Arrange
 
             //Act
-            IActionResult actionResult = await _sut.Delete(Guid.Empty)
+            IActionResult actionResult = await _sut.Delete(PatientId.Empty)
                 .ConfigureAwait(false);
 
             //Assert

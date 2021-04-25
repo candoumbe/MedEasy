@@ -60,7 +60,7 @@ namespace MedEasy.Validators.Tests.Patch
                     "Patch document has no operations"
                 };
                 {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+                    JsonPatchDocument<SuperHero> patch = new();
                     patch.Replace(x => x.Lastname, string.Empty);
                     patch.Replace(x => x.Lastname, string.Empty);
 
@@ -82,7 +82,7 @@ namespace MedEasy.Validators.Tests.Patch
                 }
 
                 {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+                    JsonPatchDocument<SuperHero> patch = new();
                     patch.Replace(x => x.Lastname, string.Empty);
                     patch.Replace(x => x.Lastname, string.Empty);
                     patch.Replace(x => x.Firstname, null);
@@ -105,7 +105,7 @@ namespace MedEasy.Validators.Tests.Patch
                 }
 
                 {
-                    JsonPatchDocument<SuperHero> patch = new JsonPatchDocument<SuperHero>();
+                    JsonPatchDocument<SuperHero> patch = new();
                     patch.Replace(x => x.Lastname, string.Empty);
 
                     yield return new object[]

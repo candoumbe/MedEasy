@@ -61,7 +61,7 @@ namespace MedEasy.Core.UnitTests.Infrastructure
                     .CrossJoin(consulConfigs, (tuple, consulConfig) => new { tuple.server, tuple.consulClient, consulConfig })
                     .CrossJoin(loggers, (tuple, logger) => new { tuple.server, tuple.consulClient, tuple.consulConfig, logger })
                     .Where(tuple => tuple.server == null || tuple.consulClient == null || tuple.consulConfig == null || tuple.logger == null)
-                    .Select(tuple => new object[]{ tuple.server, tuple.consulClient, tuple.consulConfig, tuple.logger });
+                    .Select(tuple => new object[] { tuple.server, tuple.consulClient, tuple.consulConfig, tuple.logger });
             }
         }
 
@@ -95,12 +95,12 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             A.CallTo(() => serverAddressesFeature.Addresses)
                 .Returns(new[] { serverAddress });
 
-            ConsulConfig consulConfig = new ConsulConfig
+            ConsulConfig consulConfig = new()
             {
                 Address = "http://localhost",
                 ServiceName = "MyUsefullService",
                 ServiceID = $"MyUsefullService-{Guid.NewGuid()}",
-                Tags = new []{ "api", "service" },
+                Tags = new[] { "api", "service" },
                 Check = new ConsultCheckConfig
                 {
                     HealthEndpoint = "/health/status",
@@ -151,7 +151,7 @@ namespace MedEasy.Core.UnitTests.Infrastructure
             A.CallTo(() => serverAddressesFeature.Addresses)
                 .Returns(new[] { serverAddress });
 
-            ConsulConfig consulConfig = new ConsulConfig
+            ConsulConfig consulConfig = new()
             {
                 Address = "http://localhost",
                 ServiceName = "MyUsefullService",

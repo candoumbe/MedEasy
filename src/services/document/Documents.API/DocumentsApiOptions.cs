@@ -1,5 +1,8 @@
 ﻿namespace Documents.API
 {
+    /// <summary>
+    /// Wraps options that can affect the behavior of the API
+    /// </summary>
     public class DocumentsApiOptions
     {
         /// <summary>

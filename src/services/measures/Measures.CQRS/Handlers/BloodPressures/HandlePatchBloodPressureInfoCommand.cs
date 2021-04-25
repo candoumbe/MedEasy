@@ -1,14 +1,21 @@
 ﻿using AutoMapper;
+
 using Measures.CQRS.Events.BloodPressures;
 using Measures.DTO;
+using Measures.Ids;
 using Measures.Objects;
+
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.Interfaces;
+
 using MediatR;
+
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+
 using Optional;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +27,9 @@ namespace Measures.CQRS.Handlers.BloodPressures
     /// <summary>
     /// Command runner for <see cref="PatchInfo{TResourceId}"/> commands
     /// </summary>
-    public class HandlePatchBloodPressureInfoCommand : IRequestHandler<PatchCommand<Guid, BloodPressureInfo>, ModifyCommandResult>
+    public class HandlePatchBloodPressureInfoCommand : IRequestHandler<PatchCommand<BloodPressureId, BloodPressureInfo>, ModifyCommandResult>
     {
-        private IUnitOfWorkFactory _uowFactory;
+        private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IDictionary<string, Action<BloodPressure, object>> _actions;
@@ -46,49 +53,47 @@ namespace Measures.CQRS.Handlers.BloodPressures
             };
         }
 
-        public async Task<ModifyCommandResult> Handle(PatchCommand<Guid, BloodPressureInfo> command, CancellationToken cancellationToken)
+        public async Task<ModifyCommandResult> Handle(PatchCommand<BloodPressureId, BloodPressureInfo> command, CancellationToken cancellationToken)
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                JsonPatchDocument<BloodPressureInfo> patchDocument = command.Data.PatchDocument;
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            JsonPatchDocument<BloodPressureInfo> patchDocument = command.Data.PatchDocument;
 
-                Guid entityId = command.Data.Id;
-                Option<BloodPressure> source = await uow.Repository<BloodPressure>()
-                    .SingleOrDefaultAsync(x => x.Id == command.Data.Id, cancellationToken)
-                    .ConfigureAwait(false);
+            BloodPressureId entityId = command.Data.Id;
+            Option<BloodPressure> source = await uow.Repository<BloodPressure>()
+                .SingleOrDefaultAsync(x => x.Id == command.Data.Id, cancellationToken)
+                .ConfigureAwait(false);
 
-                return await source.Match(
-                    some: async entity =>
+            return await source.Match(
+                some: async entity =>
+               {
+                   JsonPatchDocument<BloodPressure> changes = _mapper.Map<JsonPatchDocument<BloodPressureInfo>, JsonPatchDocument<BloodPressure>>(patchDocument);
+
+                   bool continueChange = true;
+                   int currentChangeIndex = 0;
+                   Operation<BloodPressure>[] operations = changes.Operations.Where(op => op.OperationType != OperationType.Test)
+                       .ToArray();
+                   while (currentChangeIndex < operations.Length && continueChange)
                    {
-                       JsonPatchDocument<BloodPressure> changes = _mapper.Map<JsonPatchDocument<BloodPressureInfo>, JsonPatchDocument<BloodPressure>>(patchDocument);
+                       Operation<BloodPressure> op = operations[currentChangeIndex];
 
-                       bool continueChange = true;
-                       int currentChangeIndex = 0;
-                       Operation<BloodPressure>[] operations = changes.Operations.Where(op => op.OperationType != OperationType.Test)
-                           .ToArray();
-                       while (currentChangeIndex < operations.Length && continueChange)
+                       if (_actions.TryGetValue(op.path, out Action<BloodPressure, object> action))
                        {
-                           Operation<BloodPressure> op = operations[currentChangeIndex];
-
-                           if (_actions.TryGetValue(op.path, out Action<BloodPressure, object> action))
-                           {
-                               action.Invoke(entity, op.value);
-                           }
-
-                           currentChangeIndex++;
+                           action.Invoke(entity, op.value);
                        }
 
-                       await uow.SaveChangesAsync(cancellationToken)
-                           .ConfigureAwait(false);
+                       currentChangeIndex++;
+                   }
 
-                       await _mediator.Publish(new BloodPressureUpdated(entityId), cancellationToken)
-                           .ConfigureAwait(false);
+                   await uow.SaveChangesAsync(cancellationToken)
+                       .ConfigureAwait(false);
 
-                       return ModifyCommandResult.Done;
-                   },
-                   none: () => Task.FromResult(ModifyCommandResult.Failed_NotFound)
-                );
-            }
+                   await _mediator.Publish(new BloodPressureUpdated(entityId), cancellationToken)
+                       .ConfigureAwait(false);
+
+                   return ModifyCommandResult.Done;
+               },
+               none: () => Task.FromResult(ModifyCommandResult.Failed_NotFound)
+            );
         }
     }
 }

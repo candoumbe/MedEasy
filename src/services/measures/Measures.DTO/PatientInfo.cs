@@ -1,15 +1,15 @@
-﻿using MedEasy.RestObjects;
+﻿using Measures.Ids;
+
+using MedEasy.RestObjects;
 
 using NodaTime;
-
-using System;
 
 namespace Measures.DTO
 {
     /// <summary>
     /// Informations on a patient
     /// </summary>
-    public class PatientInfo : Resource<Guid>
+    public class PatientInfo : Resource<PatientId>
     {
         public string Name { get; set; }
 

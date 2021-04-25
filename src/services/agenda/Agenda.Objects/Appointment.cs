@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Optional;
 using NodaTime;
+using Agenda.Ids;
 
 namespace Agenda.Objects
 {
     /// <summary>
     /// An meeting wih a location and a subject
     /// </summary>
-    public class Appointment : AuditableEntity<Guid, Appointment>
+    public class Appointment : AuditableEntity<AppointmentId, Appointment>
     {
-        private readonly HashSet<AppointmentAttendee> _attendees;
+        private readonly IList<Attendee> _attendees;
 
         /// <summary>
         /// Location of the appointment
@@ -37,37 +38,36 @@ namespace Agenda.Objects
         /// <summary>
         /// Participants of the <see cref="Appointment"/>
         /// </summary>
-        public IEnumerable<AppointmentAttendee> Attendees => _attendees;
+        public IList<Attendee> Attendees => _attendees;
 
         public AppointmentStatus Status { get; }
 
-        
-        public Appointment(Guid id, string subject, string location, Instant startDate, Instant endDate) : base(id)
+        public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id)
         {
             Subject = subject;
             Location = location ?? string.Empty;
             StartDate = startDate;
             EndDate = endDate;
-            _attendees = new HashSet<AppointmentAttendee>();
+            _attendees = new List<Attendee>();
         }
 
         /// <summary>
-        /// Adds an attendee to the current <see cref=""/>
+        /// Adds an attendee to the current instance
         /// </summary>
         /// <param name="attendee">The participant to add</param>
         public void AddAttendee(Attendee attendee)
         {
-            _attendees.Add(new AppointmentAttendee { Attendee = attendee , Appointment = this});
+            _attendees.Add(attendee);
         }
 
         /// <summary>
         /// Removes the <see cref="Attendee"/> with the specified <see cref="Attendee.UUID"/>
         /// </summary>
         /// <param name="attendeeId">ID of the attendee to remove</param>
-        public void RemoveAttendee(Guid attendeeId)
+        public void RemoveAttendee(AttendeeId attendeeId)
         {
-            Option<AppointmentAttendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Attendee.Id == attendeeId)
-                                                                      .SomeNotNull();
+            Option<Attendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
+                                                           .SomeNotNull();
 
             optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
         }

@@ -5,7 +5,6 @@ using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,38 +14,29 @@ using Documents.CQRS.Commands;
 using Documents.DataStore;
 using NodaTime.Testing;
 using NodaTime;
+using Documents.Ids;
 
 namespace Documents.CQRS.UnitTests.Handlers
 {
     [Feature(nameof(Documents))]
     [UnitTest]
-    public class HandleDeleteDocumentInfoByIdCommandTests : IDisposable, IClassFixture<SqliteDatabaseFixture>
+    public class HandleDeleteDocumentInfoByIdCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private IUnitOfWorkFactory _uowFactory;
-        private HandleDeleteDocumentInfoByIdCommand _sut;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly HandleDeleteDocumentInfoByIdCommand _sut;
 
-        public HandleDeleteDocumentInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteDatabaseFixture database)
+        public HandleDeleteDocumentInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<DocumentsStore> database)
         {
             _outputHelper = outputHelper;
-            DbContextOptionsBuilder<DocumentsStore> builder = new DbContextOptionsBuilder<DocumentsStore>();
-            builder.UseInMemoryDatabase($"{Guid.NewGuid()}")
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(warnings => warnings.Throw());
 
-            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<DocumentsStore>(database.OptionsBuilder.Options, (options) =>
             {
-                DocumentsStore context = new DocumentsStore(options, new FakeClock(new Instant()));
+                DocumentsStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
             _sut = new HandleDeleteDocumentInfoByIdCommand(_uowFactory);
-        }
-
-        public void Dispose()
-        {
-            _uowFactory = null;
-            _sut = null;
         }
 
         [Fact]
@@ -64,8 +54,8 @@ namespace Documents.CQRS.UnitTests.Handlers
         public async Task GivenRecordExists_Handle_Returns_DeleteOk()
         {
             // Arrange
-            Guid documentid = Guid.NewGuid();
-            Document document = new Document(id: documentid, name: "afile");
+            DocumentId documentid = DocumentId.New();
+            Document document = new(id: documentid, name: "afile");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -74,7 +64,7 @@ namespace Documents.CQRS.UnitTests.Handlers
                     .ConfigureAwait(false);
             }
 
-            DeleteDocumentInfoByIdCommand cmd = new DeleteDocumentInfoByIdCommand(documentid);
+            DeleteDocumentInfoByIdCommand cmd = new(documentid);
             // Act
             DeleteCommandResult cmdResult = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);

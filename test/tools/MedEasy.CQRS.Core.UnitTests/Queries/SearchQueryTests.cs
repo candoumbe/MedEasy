@@ -1,7 +1,10 @@
 ﻿using FluentAssertions;
+
 using MedEasy.CQRS.Core.Queries;
 using MedEasy.DTO.Search;
+
 using System;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
@@ -36,10 +39,10 @@ namespace MedEasy.CQRS.Core.UnitTests.Queries
         public void Ctor_Create_Valid_Instance()
         {
             // Arrange
-            SearchQueryInfo<SuperHero> info = new SearchQueryInfo<SuperHero>();
+            SearchQueryInfo<SuperHero> info = new();
 
             // Act
-            SearchQuery<SuperHero> instance = new SearchQuery<SuperHero>(info);
+            SearchQuery<SuperHero> instance = new(info);
 
             // Assert
             instance.Id.Should()

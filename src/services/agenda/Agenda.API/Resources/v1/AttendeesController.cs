@@ -2,6 +2,7 @@
 using Agenda.CQRS.Features.Participants.Queries;
 using Agenda.DTO;
 using Agenda.DTO.Resources.Search;
+using Agenda.Ids;
 using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Attendees;
 
@@ -58,7 +59,7 @@ namespace Agenda.API.Resources.v1
 
         /// <summary>
         /// Gets a page of participants resources. 
-        /// The number of resources the page contains may be less than <see cref="pageSize"/>
+        /// The number of resources the page contains may be less than <paramref name="pageSize"/>.
         /// </summary>
         /// <param name="page">index of the page of results (1 for the first page, 2 for the next, ...)</param>
         /// <param name="pageSize">Number of resources per page</param>
@@ -111,7 +112,7 @@ namespace Agenda.API.Resources.v1
 
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<IActionResult> Get(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Get([RequireNonDefault] AttendeeId id, CancellationToken ct = default)
         {
             Option<AttendeeInfo> optionalResource = await _mediator.Send(new GetOneAttendeeInfoByIdQuery(id), ct)
                 .ConfigureAwait(false);
@@ -158,7 +159,7 @@ namespace Agenda.API.Resources.v1
         [HttpHead("{id}/planning")]
         [HttpGet("{id}/planning")]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<Browsable<AppointmentModel>>>> Planning([RequireNonDefault] Guid id, DateTimeOffset from, DateTimeOffset to = default, CancellationToken ct = default)
+        public async Task<ActionResult<IEnumerable<Browsable<AppointmentModel>>>> Planning([RequireNonDefault] AttendeeId id, DateTimeOffset from, DateTimeOffset to = default, CancellationToken ct = default)
         {
             IRequest<Option<IEnumerable<AppointmentInfo>>> query = new GetPlanningByAttendeeIdQuery(id, from, to);
 
@@ -261,7 +262,8 @@ namespace Agenda.API.Resources.v1
                             {
                                 Relation = Self,
                                 Method = "GET",
-                                Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id, version })}
+                                Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id, version })
+                            }
                         }
                     }),
                     first: linkToFirstPage,

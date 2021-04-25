@@ -1,6 +1,6 @@
 using Agenda.API.Resources.v1;
 using Agenda.API.Resources.v1.Appointments;
-using Agenda.DTO;
+using Agenda.Ids;
 using Agenda.Models.v1.Appointments;
 using Agenda.Models.v1.Attendees;
 
@@ -28,9 +28,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Net.Mime;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -38,7 +36,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
-using static MedEasy.RestObjects.LinkRelation;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace Agenda.API.IntegrationTests.v1
@@ -46,13 +43,13 @@ namespace Agenda.API.IntegrationTests.v1
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IClassFixture<IntegrationFixture<Startup>>
+    public class AppointmentsControllerTests : IClassFixture<IntegrationFixture<Program>>
     {
-        private readonly IntegrationFixture<Startup> _server;
+        private readonly IntegrationFixture<Program> _server;
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/appointments";
 
-        private static readonly JSchema _errorObjectSchema = new JSchema
+        private static readonly JSchema _errorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -72,7 +69,7 @@ namespace Agenda.API.IntegrationTests.v1
         /// <summary>
         /// Schema of an <see cref="AppointmentModel"/> resource once translated to json
         /// </summary>
-        private static readonly JSchema _appointmentResourceSchema = new JSchema
+        private static readonly JSchema _appointmentResourceSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -96,7 +93,7 @@ namespace Agenda.API.IntegrationTests.v1
             }
         };
 
-        private static readonly JSchema _browsableResourceSchema = new JSchema
+        private static readonly JSchema _browsableResourceSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -109,7 +106,7 @@ namespace Agenda.API.IntegrationTests.v1
             }
         };
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Program> fixture)
         {
             _outputHelper = outputHelper;
             _server = fixture;
@@ -173,8 +170,8 @@ namespace Agenda.API.IntegrationTests.v1
             errorObject.Errors.Should()
                               .NotBeEmpty();
 
-            errorObject.Errors.ContainsKey("page").Should().Be(page <= 0,"page <= 0 is not a valid value");
-            errorObject.Errors.ContainsKey("pageSize").Should().Be(pageSize <=0, "pageSize <= 0 is not a valid value");
+            errorObject.Errors.ContainsKey("page").Should().Be(page <= 0, "page <= 0 is not a valid value");
+            errorObject.Errors.ContainsKey("pageSize").Should().Be(pageSize <= 0, "pageSize <= 0 is not a valid value");
         }
 
         public static IEnumerable<object[]> InvalidSearchCases
@@ -214,7 +211,7 @@ namespace Agenda.API.IntegrationTests.v1
             string url = $"{_endpointUrl}/{nameof(AppointmentsController.Search)}{queryString}";
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, url);
+            HttpRequestMessage request = new(HttpMethod.Head, url);
 
             // Arrange
             url = $"{_endpointUrl}/{Guid.Empty}";
@@ -258,7 +255,7 @@ namespace Agenda.API.IntegrationTests.v1
             // Arrange
             string url = $"{_endpointUrl}/search?sort={Uri.EscapeDataString("+startDate")}";
 
-            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(verb), url);
+            HttpRequestMessage request = new(new HttpMethod(verb), url);
 
             IEnumerable<Claim> claims = new[]
             {
@@ -302,7 +299,7 @@ namespace Agenda.API.IntegrationTests.v1
             // Arrange
             string path = $"{_endpointUrl}{url}";
             _outputHelper.WriteLine($"path under test : {path}");
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, path);
+            HttpRequestMessage request = new(HttpMethod.Head, path);
             IEnumerable<Claim> claims = new[]
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
@@ -335,8 +332,11 @@ namespace Agenda.API.IntegrationTests.v1
         public async Task When_posting_valid_data_post_create_the_resource()
         {
             // Arrange
+            JsonSerializerOptions jsonSerializerOptions = new();
+            jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+
             Faker<AttendeeModel> participantFaker = new Faker<AttendeeModel>()
-                .RuleFor(x => x.Id, () => Guid.NewGuid())
+                .RuleFor(x => x.Id, () => AttendeeId.New())
                 .RuleFor(x => x.Name, faker => faker.Name.FullName())
                 .RuleFor(x => x.UpdatedDate, faker => faker.Noda().Instant.Recent());
 
@@ -349,7 +349,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             NewAppointmentModel newAppointment = appointmentFaker.Generate();
 
-            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Jsonify()}");
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Jsonify(jsonSerializerOptions)}");
             _outputHelper.WriteLine($"Url : {_endpointUrl}");
 
             IEnumerable<Claim> claims = new[]
@@ -357,9 +357,7 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            JsonSerializerOptions jsonSerializerOptions = new();
-            jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-
+            
             // Act
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, jsonSerializerOptions)
                                                        .ConfigureAwait(false);
@@ -370,8 +368,10 @@ namespace Agenda.API.IntegrationTests.v1
                 .BeTrue("The resource creation must succeed");
             ((int)response.StatusCode).Should().Be(Status201Created);
 
-            //string json = await response.Content.ReadAsStringAsync()
-            //                                    .ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync()
+                                                .ConfigureAwait(false);
+
+            _outputHelper.WriteLine($"json : {json}");
 
             //Browsable<AppointmentInfo> browsableResource = JsonSerializer.Deserialize<Browsable<AppointmentInfo>>(json, jsonSerializerOptions);
             //IEnumerable<Link> links = browsableResource.Links;
@@ -397,16 +397,14 @@ namespace Agenda.API.IntegrationTests.v1
             // Arrange
             Faker<AttendeeModel> participantFaker = new Faker<AttendeeModel>("en")
                         .RuleFor(x => x.Name, faker => faker.Name.FullName())
-                        .RuleFor(x => x.Id, () => Guid.NewGuid());
+                        .RuleFor(x => x.Id, () => AttendeeId.New());
 
-            Faker<NewAppointmentModel> appointmentFaker = new Faker<NewAppointmentModel>("en")
+            NewAppointmentModel newAppointmentModel = new Faker<NewAppointmentModel>("en")
                 .RuleFor(x => x.Attendees, (faker) => participantFaker.Generate(faker.Random.Int(min: 2, max: 5)))
                 .RuleFor(x => x.Location, faker => faker.Address.City())
                 .RuleFor(x => x.Subject, faker => faker.Lorem.Sentence())
                 .RuleFor(x => x.StartDate, faker => faker.Noda().Instant.Future(reference: 1.January(DateTime.UtcNow.Year + 1).Add(1.Hours()).AsUtc().ToInstant()).InUtc())
                 .RuleFor(x => x.EndDate, (_, appointment) => appointment.StartDate + 1.Hours().ToDuration());
-
-            NewAppointmentModel newAppointmentModel = appointmentFaker;
 
             IEnumerable<Claim> claims = new[]
             {
@@ -416,32 +414,19 @@ namespace Agenda.API.IntegrationTests.v1
             JsonSerializerOptions serializerOptions = new();
             serializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
-            HttpResponseMessage response = await client.PostAsync(_endpointUrl, new StringContent(newAppointmentModel.Jsonify(serializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel, serializerOptions)
                                                        .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"Creation of the appointment for the integration test response stats : {response.StatusCode}");
-            string json = await response.Content.ReadAsStringAsync()
-                                                .ConfigureAwait(false);
-
-            _outputHelper.WriteLine($"Response content : {json}");
-
-            JObject browsableAppointmentModel = JObject.Parse(json);
-
-            _outputHelper.WriteLine($"Resource created : {browsableAppointmentModel}");
-
-            JToken resource = browsableAppointmentModel[nameof(Browsable<AppointmentModel>.Resource).ToCamelCase()];
-            var attendees = from attendee in resource[nameof(AppointmentModel.Attendees).ToCamelCase()]
-                                                   select new
-                                                   {
-                                                       Id = attendee.Value<string>(nameof(AttendeeModel.Id).ToCamelCase()),
-                                                       Name = attendee.Value<string>(nameof(AttendeeModel.Name).ToCamelCase()),
-                                                   };
-            int participantCountBeforeDelete = attendees.Count();
+            _outputHelper.WriteLine($"Creation of the appointment for the integration test response status : {response.StatusCode}");
+            Browsable<AppointmentModel> browsableAppointment = await response.Content.ReadFromJsonAsync<Browsable<AppointmentModel>>(serializerOptions)
+                                                                                     .ConfigureAwait(false);
+            AppointmentModel resource = browsableAppointment.Resource;
+            IEnumerable<AttendeeModel> attendees = resource.Attendees;
 
             var attendeeToDelete = new Faker().PickRandom(attendees);
 
-            string appointmentId = resource.Value<string>(nameof(AppointmentModel.Id).ToCamelCase());
-            string attendeeId = attendeeToDelete.Id;
+            AppointmentId appointmentId = resource.Id;
+            AttendeeId attendeeId = attendeeToDelete.Id;
             string deletePath = $"{_endpointUrl}/{appointmentId}/attendees/{attendeeId}";
 
             _outputHelper.WriteLine($"delete url : <{deletePath}>");

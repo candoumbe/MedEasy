@@ -1,4 +1,6 @@
-﻿using NodaTime;
+﻿using Measures.Ids;
+
+using NodaTime;
 
 using System;
 
@@ -7,7 +9,7 @@ namespace Measures.Objects
     /// <summary>
     /// An instance of this class represents a temperature measurement
     /// </summary>
-    public class Temperature : PhysiologicalMeasurement, IEquatable<Temperature>
+    public sealed class Temperature : PhysiologicalMeasurement<TemperatureId>, IEquatable<Temperature>
     {
         /// <summary>
         /// Gets / sets the temperature
@@ -21,8 +23,8 @@ namespace Measures.Objects
         /// <param name="patientId"></param>
         /// <param name="dateOfMeasure"></param>
         /// <param name="value"></param>
-        public Temperature(Guid id, Guid patientId, Instant dateOfMeasure, float value)
-            : base(id, patientId, dateOfMeasure)
+        public Temperature(TemperatureId id, PatientId patientId, Instant dateOfMeasure, float value)
+            : base(patientId, id, dateOfMeasure)
         {
             Value = value;
         }

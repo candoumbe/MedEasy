@@ -4,6 +4,7 @@ using Documents.CQRS.Commands;
 using Documents.CQRS.Queries;
 using Documents.DTO;
 using Documents.DTO.v1;
+using Documents.Ids;
 
 using MedEasy.CQRS.Core.Commands;
 using MedEasy.CQRS.Core.Commands.Results;
@@ -109,7 +110,7 @@ namespace Documents.API.Features.v1
                             Relation = Self,
                             Title = resource.Name,
                             Method = "GET",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, resource.Id, version })
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, id = resource.Id.Value, version })
                         }
                     }
                 }),
@@ -139,7 +140,7 @@ namespace Documents.API.Features.v1
         /// <response code="409">Resource cannot be deleted</response>
         /// <response code="403"></response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
+        public async Task<IActionResult> Delete(DocumentId id, CancellationToken ct = default)
         {
             DeleteDocumentInfoByIdCommand cmd = new(id);
             DeleteCommandResult cmdResult = await _mediator.Send(cmd, ct)
@@ -163,7 +164,7 @@ namespace Documents.API.Features.v1
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<ActionResult<Browsable<DocumentInfo>>> Get([FromQuery] Guid id, CancellationToken ct = default)
+        public async Task<ActionResult<Browsable<DocumentInfo>>> Get([FromQuery] DocumentId id, CancellationToken ct = default)
         {
             Option<DocumentInfo> optionalDocument = await _mediator.Send(new GetOneDocumentInfoByIdQuery(id), ct)
                                                                    .ConfigureAwait(false);
@@ -174,9 +175,9 @@ namespace Documents.API.Features.v1
                     string version = _apiVersion.ToString();
                     IList<Link> links = new List<Link>
                     {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, version }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, version }) },
-                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File), version }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, version }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, version }) },
+                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, action=nameof(File), version }) }
                     };
 
                     return new Browsable<DocumentInfo>
@@ -198,7 +199,7 @@ namespace Documents.API.Features.v1
         [HttpGet("{id}/[action]")]
         [ProducesResponseType(Status200OK)]
         [ProducesResponseType(Status404NotFound)]
-        public async IAsyncEnumerable<DocumentPartInfo> File(Guid id, CancellationToken ct = default)
+        public async IAsyncEnumerable<DocumentPartInfo> File(DocumentId id, CancellationToken ct = default)
         {
             IAsyncEnumerable<DocumentPartInfo> parts = await _mediator.Send(new GetOneDocumentFileInfoByIdQuery(id), ct)
                                                                       .ConfigureAwait(false);
@@ -296,12 +297,12 @@ namespace Documents.API.Features.v1
                             {
                                 Relation = Self,
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, doc.Id })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, id = doc.Id.Value })
                             }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, doc.Id, version }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = doc.Id.Value, version }, browsableResource);
                 },
                 none: cmdError =>
                 {
@@ -347,7 +348,7 @@ namespace Documents.API.Features.v1
             };
 
             Page<DocumentInfo> searchResult = await _mediator.Send(new SearchQuery<DocumentInfo>(searchQuery), ct)
-                .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             bool hasNextPage = search.Page < searchResult.Count;
             string version = _apiVersion.ToString();
@@ -360,15 +361,18 @@ namespace Documents.API.Features.v1
                         Resource = x,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id, version } ) }
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = x.Id.Value, version } ) }
                         }
                     };
                 }),
-                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName, version }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                                new { page = 1, search.PageSize, search.Name, search.Sort, search.MimeType, controller = EndpointName, version }),
                 next: hasNextPage
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                               new { page = search.Page + 1, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version })
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
+                                               new { page = searchResult.Count, search.PageSize, search.Name, search.MimeType, search.Sort, controller = EndpointName, version }),
                 total: searchResult.Total
             ));
         }

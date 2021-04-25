@@ -3,7 +3,6 @@ using Patients.DTO;
 using MedEasy.RestObjects;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -24,7 +23,6 @@ namespace Patients.API.Controllers
     [Route("/")]
     public class RootController
     {
-        private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IHostEnvironment _hostingEnvironment;
         private readonly LinkGenerator _urlHelper;
         private readonly IOptions<PatientsApiOptions> _apiOptions;
@@ -36,6 +34,7 @@ namespace Patients.API.Controllers
         /// <param name="hostingEnvironment">Gives access to hosting environment</param>
         /// <param name="urlHelper"></param>
         /// <param name="apiOptions">Gives access to the API configuration</param>
+        /// <param name="apiVersion"></param>
         public RootController(IHostEnvironment hostingEnvironment, LinkGenerator urlHelper, IOptions<PatientsApiOptions> apiOptions, ApiVersion apiVersion)
         {
             _hostingEnvironment = hostingEnvironment;

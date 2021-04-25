@@ -40,7 +40,15 @@ namespace Identity.API.Features.v1.Auth
         private readonly IOptionsSnapshot<JwtOptions> _jwtOptions;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public TokenController(IMediator mediator, IOptionsSnapshot<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
+        /// <summary>
+        /// Builds a new <see cref="TokenController"/> instance. 
+        /// </summary>
+        /// <param name="mediator"></param>
+        /// <param name="jwtOptions"></param>
+        /// <param name="httpContextAccessor"></param>
+        public TokenController(IMediator mediator,
+                               IOptionsSnapshot<JwtOptions> jwtOptions,
+                               IHttpContextAccessor httpContextAccessor)
         {
             _mediator = mediator;
             _jwtOptions = jwtOptions;
@@ -59,9 +67,9 @@ namespace Identity.API.Features.v1.Auth
         [AllowAnonymous]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
-        public async ValueTask<IActionResult> Post([FromBody, BindRequired]LoginModel model, CancellationToken ct = default)
+        public async ValueTask<IActionResult> Post([FromBody, BindRequired] LoginModel model, CancellationToken ct = default)
         {
-            LoginInfo loginInfo = new LoginInfo { Username = model.Username, Password = model.Password };
+            LoginInfo loginInfo = new() { Username = model.Username, Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
                 .ConfigureAwait(false);
 
@@ -70,8 +78,8 @@ namespace Identity.API.Features.v1.Auth
                 {
                     JwtOptions jwtOptions = _jwtOptions.Value;
                     _httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
-                    AuthenticationInfo authenticationInfo = new AuthenticationInfo { Location = ipValues.ToArray().FirstOrDefault() ?? string.Empty };
-                    JwtInfos jwtInfos = new JwtInfos
+                    AuthenticationInfo authenticationInfo = new() { Location = ipValues.ToArray().FirstOrDefault() ?? string.Empty };
+                    JwtInfos jwtInfos = new()
                     {
                         Key = jwtOptions.Key,
                         Issuer = jwtOptions.Issuer,
@@ -84,7 +92,7 @@ namespace Identity.API.Features.v1.Auth
 
                     string accessTokenString;
                     string refreshTokenString;
-                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
                     switch (token.AccessToken)
                     {
                         case JwtSecurityToken jwtToken:
@@ -128,7 +136,7 @@ namespace Identity.API.Features.v1.Auth
         [ProducesResponseType(Status204NoContent)]
         public async Task<IActionResult> Invalidate(string username, CancellationToken ct = default)
         {
-            InvalidateAccessTokenByUsernameCommand cmd = new InvalidateAccessTokenByUsernameCommand(username);
+            InvalidateAccessTokenByUsernameCommand cmd = new(username);
             InvalidateAccessCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -168,7 +176,7 @@ namespace Identity.API.Features.v1.Auth
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;
-            JwtInfos jwtInfos = new ()
+            JwtInfos jwtInfos = new()
             {
                 AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
                 Audiences = jwtOptions.Audiences,
@@ -176,7 +184,7 @@ namespace Identity.API.Features.v1.Auth
                 Key = jwtOptions.Key,
                 RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
             };
-            RefreshAccessTokenByUsernameCommand request = new ((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
+            RefreshAccessTokenByUsernameCommand request = new((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(request, ct)
                 .ConfigureAwait(false);
 

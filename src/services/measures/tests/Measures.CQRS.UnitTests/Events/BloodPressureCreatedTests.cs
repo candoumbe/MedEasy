@@ -35,7 +35,7 @@ namespace Measures.CQRS.UnitTests.Events
                 };
 
                 {
-                    BloodPressureCreated bloodPressureCreated = new BloodPressureCreated(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 });
+                    BloodPressureCreated bloodPressureCreated = new(new BloodPressureInfo { DateOfMeasure = 1.January(2010).AsUtc().ToInstant(), SystolicPressure = 120, DiastolicPressure = 80 });
                     yield return new object[]
                     {
                         bloodPressureCreated,

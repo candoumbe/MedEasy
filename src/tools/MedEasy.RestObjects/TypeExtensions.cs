@@ -17,7 +17,7 @@ namespace System
         /// <returns><see cref="Form"/> representation of <paramref name="t"/></returns>
         public static Form ToForm(this Type t, Link linkToForm)
         {
-            Form f = new Form() { Meta = linkToForm };
+            Form f = new() { Meta = linkToForm };
 
             IEnumerable<PropertyInfo> properties = t.GetRuntimeProperties()
                 .Where(x => x.CanRead && PrimitiveTypes.Contains(x.PropertyType))
@@ -26,7 +26,7 @@ namespace System
             IList<FormField> fields = new List<FormField>(properties.Count());
             foreach (PropertyInfo pi in properties)
             {
-                FormField ff = new FormField { Name = pi.Name };
+                FormField ff = new() { Name = pi.Name };
 
                 IEnumerable<Attribute> attributes = pi.GetCustomAttributes(inherit: true)
 #if !NETSTANDARD1_1
