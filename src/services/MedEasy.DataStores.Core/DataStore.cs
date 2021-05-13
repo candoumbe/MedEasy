@@ -62,8 +62,8 @@ namespace MedEasy.DataStores.Core.Relational
                     builder.Entity(entity.Name).Property(typeof(string), nameof(IAuditableEntity.UpdatedBy))
                         .HasMaxLength(NormalTextLength);
 
-                    //builder.Entity(entity.Name).Property(typeof(Instant), nameof(IAuditableEntity.UpdatedDate))
-                    //       .IsConcurrencyToken();
+                    builder.Entity(entity.Name).Property(typeof(Instant?), nameof(IAuditableEntity.UpdatedDate))
+                           .IsConcurrencyToken();
                 }
 
                 if (entity.ClrType.IsAssignableToGenericType(typeof(IEntity<>)))

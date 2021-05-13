@@ -159,22 +159,24 @@ namespace Documents.API
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<DocumentsStore> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                string connectionString = configuration.GetConnectionString("documents");
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                    builder.UseSqlite(connectionString, options =>
+                    {
                         options.UseNodaTime()
                                .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName);
                     });
                 }
                 else
                 {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("documents-db"),
+                        connectionString,
                         options => options.EnableRetryOnFailure(5)
-                            .UseNodaTime()
-                            .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
+                                          .UseNodaTime()
+                                          .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -185,6 +187,7 @@ namespace Documents.API
                 return builder;
             }
 
+            // The following line is only required to be able to perform migration on startup
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<DocumentsStore> optionsBuilder = BuildDbContextOptions(serviceProvider);

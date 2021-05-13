@@ -209,7 +209,7 @@ namespace Agenda.API.Resources.v1
         /// </para>
         /// <para>
         ///     // GET /participants/search?name=C*tral
-        ///     will match match all resources where name starts with 'C' and ends with 'tral'.
+        ///     will match all resources where name starts with 'C' and ends with 'tral'.
         /// </para>
         /// <para>'?' : match exactly one charcter in a string property.</para>
         /// <para>'!' : negate a criterion</para>

@@ -7,6 +7,7 @@ using Identity.API.Fixtures.v1;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v2;
+using Identity.Ids;
 
 using MedEasy.RestObjects;
 
@@ -14,12 +15,17 @@ using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json.Linq;
 
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,6 +46,15 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         private readonly IdentityApiFixture _identityApiFixture;
         private const string _version = "v2";
         private readonly string _accountsEndpointBaseUrl = "/v1/accounts";
+        private static JsonSerializerOptions JsonSerializerOptions
+        {
+            get
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
+                return options;
+            }
+        }
 
         public TokenControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
@@ -48,12 +63,13 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         }
 
         [Fact]
-        public async Task GivenExpiredAccessToken_calling_api_returns_unauthorized()
+        public async Task Given_expired_access_token_calling_api_should_return_Unauthorized()
         {
             // Arrange
             const string password = "thecapedcrusader";
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = "Bruce Wayne",
                 Username = "thebatman",
                 Password = password,
@@ -62,7 +78,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
                     .ConfigureAwait(false);
 
             LoginInfo loginInfo = new()
@@ -71,7 +87,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 Password = newAccountInfo.Password
             };
 
-            HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -125,6 +141,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             const string password = "thecapedcrusader";
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = "Bruce Wayne",
                 Username = $"thebatman_{Guid.NewGuid()}",
                 Password = password,
@@ -133,7 +150,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
                         .ConfigureAwait(false);
 
             LoginInfo loginInfo = new()
@@ -143,7 +160,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             // Act
-            HttpResponseMessage response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
                 .ConfigureAwait(false);
 
             // Assert
@@ -173,13 +190,14 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
         }
 
         [Fact]
-        public async Task GivenValidAccessToken_Calling_Invalidate_Make_Token_Invalid()
+        public async Task Given_valid_access_token_calling_Invalidate_make_token_invalid()
         {
             // Arrange
             const string password = "thecapedcrusader";
             Faker faker = new();
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = faker.Person.FullName,
                 Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
                 Password = password,
@@ -188,8 +206,8 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            HttpResponseMessage response = await client.PostAsync(_accountsEndpointBaseUrl, new StringContent(newAccountInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                .ConfigureAwait(false);
+            HttpResponseMessage response = await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo, JsonSerializerOptions)
+                                                       .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
             response.EnsureSuccessStatusCode();
@@ -200,8 +218,8 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 Password = newAccountInfo.Password
             };
 
-            response = await client.PostAsync($"/{_version}/auth/token", new StringContent(loginInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
-                .ConfigureAwait(false);
+            response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+                                   .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
 
@@ -223,7 +241,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v2
                 .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            _outputHelper.WriteLine($"Refresh token was successfully revoked");
+            _outputHelper.WriteLine("Refresh token was successfully revoked");
 
             HttpRequestMessage refreshTokenRequest = new(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
             refreshTokenRequest.Headers.Authorization = bearerTokenHeader;

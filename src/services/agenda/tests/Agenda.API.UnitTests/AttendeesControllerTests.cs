@@ -25,7 +25,6 @@ using FluentAssertions.Extensions;
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.DAL.Repositories;
-using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 
@@ -80,8 +79,8 @@ namespace Agenda.API.UnitTests.Resources.v1
         {
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) 
-                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
             {

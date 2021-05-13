@@ -15,7 +15,8 @@ namespace MedEasy.IntegrationTests.Core
         /// <returns></returns>
         public static IServiceCollection Remove<TType>(this IServiceCollection services)
         {
-            IEnumerable<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType.IsAssignableFrom(typeof(TType)));
+            IEnumerable<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType.IsAssignableFrom(typeof(TType)))
+                                                                 .ToArray();
 
             foreach (ServiceDescriptor item in descriptors)
             {

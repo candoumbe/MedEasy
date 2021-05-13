@@ -1,24 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Security.Claims;
-
-using MedEasy.Abstractions.ValueConverters;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
 
 namespace MedEasy.IntegrationTests.Core
 {
@@ -26,31 +18,34 @@ namespace MedEasy.IntegrationTests.Core
         where TEntryPoint : class
     {
         /// <summary>
-        /// Name of the scheme used to fake a successfull authentication. 
+        /// Name of the scheme used to fake a successfull authentication.
         /// </summary>
         public const string Scheme = "FakeAuthentication";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
             => builder.UseEnvironment("IntegrationTest")
-                      .CaptureStartupErrors(true);
+                      .CaptureStartupErrors(true)
+                ;
 
         /// <summary>
-        /// Initializes a <see cref="HttpClient"/> instance that can be later used to call endpoints where authorization/authentication is required
-        /// 
-        /// <para>
-        /// This method removes all <see cref="AuthorizeFilter"/>s and replace it with a <see cref="DummyAuthenticationHandler"/> that succeeds only if 
-        /// <list type="bullet">
-        ///     <item><paramref name="claims"/> is not empty and contains at least one non null value</item>
-        /// </list>
-        /// </para>
+        /// Initializes a <see cref="HttpClient"/> instance that can be later used to call
+        /// endpoints where authorization/authentication is required
         /// </summary>
         /// <param name="claims">Claims for the authenticate user</param>
+        /// <remarks>
+        /// <para>
+        /// This method removes all <see cref="AuthorizeFilter"/>s and replace it with a
+        /// <see cref="DummyAuthenticationHandler"/> that succeeds only if <paramref name="claims"/> is not empty and contains at least one 
+        /// non null value</item>
+        /// </para>
+        /// </remarks>
         public HttpClient CreateAuthenticatedHttpClientWithClaims(IEnumerable<Claim> claims)
         {
             return WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices(services =>
-                {
+                builder.UseEnvironment("IntegrationTest");
+                builder.ConfigureServices(services =>
+                {   
                     services.AddControllers(opts =>
                     {
                         AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
@@ -73,6 +68,8 @@ namespace MedEasy.IntegrationTests.Core
                 });
             })
                             .CreateClient();
+
+
         }
     }
 }

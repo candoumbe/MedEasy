@@ -2,7 +2,7 @@
 
 using FluentAssertions;
 
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Handlers.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
@@ -32,19 +32,19 @@ using Xunit.Categories;
 namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
     [UnitTest]
-    public class HandleGetOneBloodPressureInfoByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
+    public class HandleGetOneBloodPressureInfoByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly HandleGetOneBloodPressureInfoByIdQuery _sut;
 
-        public HandleGetOneBloodPressureInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
+        public HandleGetOneBloodPressureInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(database.OptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new(options, new FakeClock(new Instant()));
+                MeasuresStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

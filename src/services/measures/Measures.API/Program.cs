@@ -1,4 +1,4 @@
-﻿using Measures.Context;
+﻿using Measures.DataStores;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +38,7 @@ namespace Measures.API
 
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-            MeasuresContext context = services.GetRequiredService<MeasuresContext>();
+            MeasuresStore context = services.GetRequiredService<MeasuresStore>();
             IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
 
             logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);

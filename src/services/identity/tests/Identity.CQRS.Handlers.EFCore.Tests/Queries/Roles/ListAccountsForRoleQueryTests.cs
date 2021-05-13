@@ -17,8 +17,8 @@ using Xunit.Categories;
 
 namespace Identity.CQRS.Handlers.EFCore.Tests.Queries.Roles
 {
-     [UnitTest]
-     [Feature("Identity")]
+    [UnitTest]
+    [Feature("Identity")]
     public class ListAccountsForRoleQueryTests
     {
         private readonly ITestOutputHelper _outputHelper;

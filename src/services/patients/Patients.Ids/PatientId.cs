@@ -11,6 +11,10 @@ namespace Patients.Ids
         public static PatientId Empty => new(Guid.Empty);
         public static PatientId New() => new(Guid.NewGuid());
 
+#pragma warning disable S1185 // Overriding members should do more than simply call the same member in the base class
+        public override string ToString() => base.ToString();
+#pragma warning restore S1185 // Overriding members should do more than simply call the same member in the base class
+
         public class EfValueConverter : ValueConverter<PatientId, Guid>
         {
             public EfValueConverter(ConverterMappingHints mappingHints = null)

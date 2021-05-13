@@ -8,6 +8,7 @@ using Identity.API.Fixtures.v1;
 using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;
+using Identity.Ids;
 
 using MedEasy.RestObjects;
 
@@ -46,12 +47,22 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
         private readonly IdentityApiFixture _identityApiFixture;
         private const string _version = "v1";
         private readonly string _endpointUrl = $"/{_version}";
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+        private static JsonSerializerOptions JsonSerializerOptions
+        {
+            get
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
+                return options;
+            }
+        }
+        private readonly Faker _faker;
 
         public TokenControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
+            _faker = new();
             _outputHelper = outputHelper;
-            _identityApiFixture = identityFixture;
+            _identityApiFixture = identityFixture;          
         }
 
         [Fact]
@@ -61,6 +72,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             const string password = "thecapedcrusader";
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = "Bruce Wayne",
                 Username = "thebatman",
                 Password = password,
@@ -102,8 +114,6 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             _outputHelper.WriteLine($"The access token will expire in {accessDuration.TotalSeconds} seconds");
             _outputHelper.WriteLine($"Waiting for the token to expire");
 
-            SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken);
-
             // wait for the access token to expire
             Thread.Sleep(accessDuration + 1.Seconds());
 
@@ -114,6 +124,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
 
             HttpRequestMessage request = new(Head, path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenInfo.AccessToken);
+
             // Act
             response = await client.SendAsync(request)
                 .ConfigureAwait(false);
@@ -132,6 +143,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             const string password = "thecapedcrusader";
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = "Bruce Wayne",
                 Username = $"thebatman_{Guid.NewGuid()}",
                 Password = password,
@@ -187,6 +199,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             Faker faker = new();
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = faker.Person.FullName,
                 Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
                 Password = password,
@@ -213,7 +226,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
 
             response.IsSuccessStatusCode.Should()
-                .BeTrue();
+                        .BeTrue();
             response.StatusCode.Should()
                 .Be(Status200OK);
 

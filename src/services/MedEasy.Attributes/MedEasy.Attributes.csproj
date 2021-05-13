@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\..\core.props"/>
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -7,6 +8,5 @@
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
-    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.2.0" />
   </ItemGroup>
 </Project>

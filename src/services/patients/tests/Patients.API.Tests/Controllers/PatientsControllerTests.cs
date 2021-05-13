@@ -7,7 +7,6 @@ using FluentAssertions.Extensions;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
-using MedEasy.Ids;
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
 
@@ -69,14 +68,13 @@ namespace Patients.API.UnitTests.Controllers
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
                 .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _factory = new EFUnitOfWorkFactory<PatientsContext>(database.OptionsBuilder.Options,
                                                                 (options) =>
                                                                 {
                                                                     PatientsContext context = new PatientsContext(options, new FakeClock(new Instant()));
                                                                     context.Database.EnsureCreated();
-                                                                    
                                                                     return context;
                                                                 });
 
@@ -179,9 +177,14 @@ namespace Patients.API.UnitTests.Controllers
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,
-            int expectedCount,
-            Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation)
+        public async Task GetAll(IEnumerable<Patient> items,
+                                 int pageSize,
+                                 int page,
+                                 int expectedCount,
+                                 Expression<Func<Link, bool>> firstPageUrlExpectation,
+                                 Expression<Func<Link, bool>> previousPageUrlExpectation,
+                                 Expression<Func<Link, bool>> nextPageUrlExpectation,
+                                 Expression<Func<Link, bool>> lastPageUrlExpectation)
         {
             _outputHelper.WriteLine($"Testing {nameof(PatientsController.Get)}({nameof(PaginationConfiguration)})");
             _outputHelper.WriteLine($"Page size : {pageSize}");
@@ -379,8 +382,9 @@ namespace Patients.API.UnitTests.Controllers
 
         [Theory]
         [MemberData(nameof(SearchCases))]
-        public async Task Search(IEnumerable<PatientInfo> entries, SearchPatientInfo searchRequest,
-        (Expression<Func<Link, bool>> firstPageLink, Expression<Func<Link, bool>> previousPageLink, Expression<Func<Link, bool>> nextPageLink, Expression<Func<Link, bool>> lastPageLink) linksExpectation)
+        public async Task Search(IEnumerable<PatientInfo> entries,
+                                 SearchPatientInfo searchRequest,
+                                 (Expression<Func<Link, bool>> firstPageLink, Expression<Func<Link, bool>> previousPageLink, Expression<Func<Link, bool>> nextPageLink, Expression<Func<Link, bool>> lastPageLink) linksExpectation)
         {
             _outputHelper.WriteLine($"Entries : {SerializeObject(entries)}");
             _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
@@ -438,7 +442,9 @@ namespace Patients.API.UnitTests.Controllers
 
         [Theory]
         [MemberData(nameof(PatchCases))]
-        public async Task Patch(Patient source, JsonPatchDocument<PatientInfo> patchDocument, Expression<Func<Patient, bool>> patchResultExpectation)
+        public async Task Patch(Patient source,
+                                JsonPatchDocument<PatientInfo> patchDocument,
+                                Expression<Func<Patient, bool>> patchResultExpectation)
         {
             _outputHelper.WriteLine($"Patient : {SerializeObject(source)}");
             _outputHelper.WriteLine($"Patch : {SerializeObject(patchDocument)}");
@@ -542,7 +548,7 @@ namespace Patients.API.UnitTests.Controllers
             Link self = links.Single(x => x.Relation == LinkRelation.Self);
             self.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={patientId}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={patientId.Value}");
             self.Relation.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo(LinkRelation.Self);
@@ -552,7 +558,7 @@ namespace Patients.API.UnitTests.Controllers
             Link linkDelete = links.Single(x => x.Relation == "delete");
             linkDelete.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={expectedResource.Id}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={expectedResource.Id.Value}");
 
             PatientInfo actualResource = result.Resource;
             actualResource.Should().NotBeNull();
@@ -567,7 +573,6 @@ namespace Patients.API.UnitTests.Controllers
         public async Task Post()
         {
             //Arrange
-            Guid patientId = Guid.NewGuid();
 
             //Act
             CreatePatientInfo info = new()
@@ -607,8 +612,8 @@ namespace Patients.API.UnitTests.Controllers
                 .Be(PatientsController.EndpointName);
 
             Browsable<PatientInfo> browsableResource = createdActionResult.Value.Should()
-                .NotBeNull().And
-                .BeAssignableTo<Browsable<PatientInfo>>().Which;
+                                                                                .NotBeNull().And
+                                                                                .BeAssignableTo<Browsable<PatientInfo>>().Which;
 
             PatientInfo createdResource = browsableResource.Resource;
 

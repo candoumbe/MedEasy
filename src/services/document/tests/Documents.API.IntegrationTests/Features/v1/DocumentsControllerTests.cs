@@ -1,47 +1,85 @@
 ﻿using Bogus;
+
 using Documents.DTO;
 using Documents.DTO.v1;
+using Documents.Ids;
+
 using FluentAssertions;
+
+using Identity.API.Fixtures.v2;
 using Identity.DTO;
-using Identity.DTO.v2;
+using Identity.Ids;
+
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
+
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
+
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.JsonConvert;
 using static System.Net.Http.HttpMethod;
-using Identity.API.Fixtures.v2;
 
 namespace Documents.API.IntegrationTests.Features.v1
 {
     [IntegrationTest]
     [Feature(nameof(Documents))]
-    public class DocumentsControllerTests : IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
+    public class DocumentsControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
     {
         private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/documents/";
         private readonly IntegrationFixture<Startup> _sut;
+        private readonly Faker _faker;
+
+        private JsonSerializerOptions SerializerOptions
+        {
+            get
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
+                return options;
+
+            }
+        }
+
+
 
         public DocumentsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture, IntegrationFixture<Startup> sut)
         {
+            _faker = new();
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
+            _identityApiFixture.Email = _faker.Person.Email;
+            _identityApiFixture.Password = _faker.Internet.Password();
             _sut = sut;
         }
+
+        public async Task InitializeAsync()
+        {
+            await _identityApiFixture.LogIn().ConfigureAwait(false);
+        }
+
+        public Task DisposeAsync() => Task.CompletedTask;
+
 
         [Fact]
         public async Task GivenNoToken_HeadAll_Returns_Unauthorized()
@@ -80,6 +118,7 @@ namespace Documents.API.IntegrationTests.Features.v1
 
             NewAccountInfo newAccountInfo = new()
             {
+                Id = AccountId.New(),
                 Name = faker.Person.FullName,
                 Email = faker.Person.Email,
                 Password = password,
@@ -87,17 +126,14 @@ namespace Documents.API.IntegrationTests.Features.v1
                 Username = faker.Person.UserName
             };
 
-            BearerTokenInfo tokenInfo = await _identityApiFixture.RegisterAndLogIn(newAccountInfo)
-                                                                 .ConfigureAwait(false);
 
-            HttpContent content = new StringContent(SerializeObject(newResourceInfo), Encoding.Default, "application/json");
 
             using HttpClient client = _sut.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, tokenInfo.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityApiFixture.Tokens.AccessToken.Token);
 
             // Act
-            using HttpResponseMessage response = await client.PostAsync(_endpointUrl, content)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newResourceInfo, SerializerOptions)
+                                                            .ConfigureAwait(false);
 
             // Assert
             _outputHelper.WriteLine($"Response : {response}");
@@ -113,7 +149,9 @@ namespace Documents.API.IntegrationTests.Features.v1
             JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<DocumentInfo>));
             jsonToken.IsValid(responseSchema);
 
-            IEnumerable<Link> links = jsonToken[nameof(Browsable<DocumentInfo>.Links).ToCamelCase()].ToObject<IEnumerable<Link>>();
+            Browsable<DocumentInfo> browsableDocument = await response.Content.ReadFromJsonAsync<Browsable<DocumentInfo>>(SerializerOptions)
+                                                                              .ConfigureAwait(false);
+            IEnumerable<Link> links = browsableDocument.Links;
             links.Should()
                 .NotBeEmpty().And
                 .NotContainNulls().And
@@ -125,41 +163,28 @@ namespace Documents.API.IntegrationTests.Features.v1
             Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
             linkToSelf.Method.Should()
                              .Be("GET");
-            JToken jsonResource = jsonToken[nameof(Browsable<DocumentInfo>.Resource).ToCamelCase()];
-            jsonResource.Value<string>(nameof(DocumentInfo.Name).ToCamelCase()).Should()
-                                                                 .Be(newResourceInfo.Name);
-            jsonResource.Value<string>(nameof(DocumentInfo.MimeType).ToCamelCase()).Should()
-                                                                     .Be(newResourceInfo.MimeType);
-            jsonResource.Value<string>(nameof(DocumentInfo.Hash).ToCamelCase()).Should()
-                                                                 .NotBeNullOrWhiteSpace();
-            jsonResource.Value<string>(nameof(DocumentInfo.Id).ToCamelCase()).Should()
-                                                               .NotBeNullOrWhiteSpace();
+
+            DocumentInfo document = browsableDocument.Resource;
+            document.Name.Should()
+                         .Be(newResourceInfo.Name);
+            document.MimeType.Should()
+                             .Be(newResourceInfo.MimeType);
+            document.Hash.Should()
+                         .NotBeNullOrWhiteSpace();
+            document.Id.Should()
+                       .NotBeNull().And
+                       .NotBe(DocumentId.Empty);
         }
 
         [Fact]
         public async Task GivenValidToken_Get_Returns_ListOfDocuments()
         {
             // Arrange
-            Faker faker = new();
-            string password = faker.Lorem.Word();
-            NewAccountInfo newAccount = new()
-            {
-                Name = faker.Person.FullName,
-                Username = faker.Person.UserName,
-                Password = password,
-                ConfirmPassword = password,
-                Email = faker.Person.Email
-            };
 
-            _outputHelper.WriteLine($"Registering account {newAccount.Jsonify()}");
-
-            BearerTokenInfo bearerInfo = await _identityApiFixture.RegisterAndLogIn(newAccount)
-                                                                  .ConfigureAwait(false);
-
-            _outputHelper.WriteLine($"Bearer : {bearerInfo.Jsonify()}");
+            _outputHelper.WriteLine($"Bearer : {_identityApiFixture.Tokens.AccessToken.Jsonify()}");
 
             using HttpClient client = _sut.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _identityApiFixture.Tokens.AccessToken.Token);
 
             // Act
             using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}?page=1")
@@ -197,7 +222,7 @@ namespace Documents.API.IntegrationTests.Features.v1
         //    BearerTokenInfo bearerInfo = await _identityApiFixture.Register(newAccount)
         //        .ConfigureAwait(false);
         //    SearchAccountInfo search = new SearchAccountInfo
-        //    {
+        //    {>
         //        UserName = newAccount.Username,
         //        Page = 1,
         //        PageSize = 10

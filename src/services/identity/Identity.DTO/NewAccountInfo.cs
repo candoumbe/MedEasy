@@ -36,7 +36,9 @@ namespace Identity.DTO
         /// </summary>
         public string Email { get; set; }
 
-
+        /// <summary>
+        /// Owner of the account
+        /// </summary>
         public TenantId TenantId { get; set; }
     }
 }

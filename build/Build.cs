@@ -31,7 +31,6 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using Nuke.Common.Tools.EntityFramework;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Dynamic;
 
 namespace MedEasy.ContinuousIntegration
 {
@@ -302,7 +301,7 @@ namespace MedEasy.ContinuousIntegration
                     string connectionString = DatabaseFolder / $"{databaseName}.db".ToLowerInvariant();
                     Project apiProject = Solution.GetProject(apiProjectName);
                     Info($"API project is '{apiProjectName}' ({apiProject.Path})");
-
+                    string dataSource = string.Empty;
                     if (UpdateConnectionString)
                     {
                         Info("Updating appsettings.IntegrationTest.json file");
@@ -314,7 +313,8 @@ namespace MedEasy.ContinuousIntegration
                                                                .ConfigureAwait(false);
                             JObject appSettings = JObject.Parse(appSettingsJson);
                             JObject connectionStrings = appSettings[connectionStringsPropertyName].As<JObject>() ?? new JObject();
-                            connectionStrings.TryAdd($"{databaseName}", @$"DataSource=""{connectionString}""");
+                            dataSource = @$"DataSource=""{connectionString}""";
+                            connectionStrings.TryAdd($"{databaseName}", dataSource);
                             appSettings.Remove(connectionStringsPropertyName);
                             appSettings.Add(connectionStringsPropertyName, connectionStrings);
 
@@ -324,36 +324,39 @@ namespace MedEasy.ContinuousIntegration
                             await File.WriteAllLinesAsync(tempFileName, new[] { JsonConvert.SerializeObject(appSettings, Formatting.Indented) })
                                       .ConfigureAwait(false);
 
-                            File.Replace(tempFileName, appSettingsFilePath, appSettingsFilePath.Parent / "appSettings.IntegrationTest_backup.json");
+                            File.Replace(tempFileName, appSettingsFilePath, null);
                         }
                         else
                         {
-                            Warn("'appsettings.integrationTest.json' file not found. "); 
+                            Warn("'appsettings.integrationTest.json' file not found. ");
                         }
                     }
-                    
-                    Info("Pending migrations : ");
-                    EntityFrameworkMigrationsList(_ => _
-                        .SetProject(datastoreProject)
-                        .SetStartupProject(apiProject)
-                        .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
-                        .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{connectionString}"""))
-                        .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
-                    );
 
-                    Info($"Updating '{databaseName}' database");
+                    if (!string.IsNullOrWhiteSpace(dataSource))
+                    {
+                        Info("Pending migrations : ");
+                        EntityFrameworkMigrationsList(_ => _
+                            .SetProject(datastoreProject)
+                            .SetStartupProject(apiProject)
+                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
+                            .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
+                            .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
+                        );
 
-                    EntityFrameworkDatabaseUpdate(_ => _
-                        .SetStartupProject(apiProject)
-                        .SetProject(datastoreProject)
-                        .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
-                        .ToggleJson()
-                        .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
-                        .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{connectionString}"""))
-                        .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
-                    );
+                        Info($"Updating '{databaseName}' database");
 
-                    Info($"'{databaseName}' database updated");
+                        EntityFrameworkDatabaseUpdate(_ => _
+                            .SetStartupProject(apiProject)
+                            .SetProject(datastoreProject)
+                            .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
+                            .ToggleJson()
+                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
+                            .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
+                            .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
+                        );
+
+                        Info($"'{databaseName}' database updated");
+                    }
                 }
             });
 
@@ -680,6 +683,8 @@ namespace MedEasy.ContinuousIntegration
             .DependsOn(Compile, TyeInstall)
             .Executes(() =>
             {
+                
+
                 Tye("run --dashboard --logs seq=http://localhost:55340");
             });
 

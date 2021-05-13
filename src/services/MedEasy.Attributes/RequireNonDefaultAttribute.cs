@@ -17,31 +17,12 @@ namespace MedEasy.Attributes
     [AttributeUsage(Parameter | Property | Class, AllowMultiple = false, Inherited = false)]
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
-        /// <summary>
-        /// List of all types that can be directly converted to their string representation
-        /// </summary>
-        private static Type[] _primitiveTypes =
-        {
-            typeof(string),
-
-            typeof(int),
-            typeof(long),
-            typeof(short),
-            typeof(decimal),
-            typeof(float),
-
-            typeof(DateTime), typeof(DateTime?),
-            typeof(DateTimeOffset), typeof(DateTimeOffset?),
-            typeof(Guid), typeof(Guid?),
-            typeof(bool), typeof(bool?)
-        };
-        public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must have a non default value";
+        public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must not have a default value";
 
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             ValidationResult validationResult = ValidationResult.Success;
-            //try
-            //{
+
             if (value == null)
             {
                 validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));

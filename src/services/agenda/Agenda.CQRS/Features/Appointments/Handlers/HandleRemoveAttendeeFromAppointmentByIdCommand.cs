@@ -35,7 +35,7 @@ namespace Agenda.CQRS.Features.Appointments.Handlers
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
             var optionalAppointment = await uow.Repository<Appointment>()
                                                .SingleOrDefaultAsync(appointment => appointment.Id == request.Data.appointmentId,
-                                                                     includedProperties: new[] {IncludeClause<Appointment>.Create<IEnumerable<Attendee>>(x => x.Attendees)},
+                                                                     includedProperties: new[] { IncludeClause<Appointment>.Create<IEnumerable<Attendee>>(x => x.Attendees) },
                                                                      cancellationToken)
                                                .ConfigureAwait(false);
 

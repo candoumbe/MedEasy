@@ -37,6 +37,7 @@ using Xunit.Abstractions;
 using Xunit.Categories;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
+using static MedEasy.RestObjects.LinkRelation;
 
 namespace Agenda.API.IntegrationTests.v1
 {
@@ -92,7 +93,16 @@ namespace Agenda.API.IntegrationTests.v1
                 nameof(AppointmentModel.Attendees).ToCamelCase(),
             }
         };
+        private static JsonSerializerOptions SerializerOptions
+        {
+            get
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
 
+                return options;
+            }
+        }
         private static readonly JSchema _browsableResourceSchema = new()
         {
             Type = JSchemaType.Object,
@@ -111,6 +121,7 @@ namespace Agenda.API.IntegrationTests.v1
             _outputHelper = outputHelper;
             _server = fixture;
         }
+
 
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
@@ -287,14 +298,14 @@ namespace Agenda.API.IntegrationTests.v1
 
                 yield return new object[]
                 {
-                    $"/search?{new { page=1, pageSize=10, from = 1.January(DateTime.UtcNow.Year)}.ToQueryString()}",
+                    $"/search?{new { page=1, pageSize=10, from = new LocalDate(2019, 10, 12)} }",
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(GetCountCases))]
-        public async Task Enpoint_Provides_CountsHeaders(string url)
+        public async Task Given_a_head_request_that_target_a_endpoint_that_return_a_collection_Response_should_contain_count_headers(string url)
         {
             // Arrange
             string path = $"{_endpointUrl}{url}";
@@ -332,9 +343,6 @@ namespace Agenda.API.IntegrationTests.v1
         public async Task When_posting_valid_data_post_create_the_resource()
         {
             // Arrange
-            JsonSerializerOptions jsonSerializerOptions = new();
-            jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-
             Faker<AttendeeModel> participantFaker = new Faker<AttendeeModel>()
                 .RuleFor(x => x.Id, () => AttendeeId.New())
                 .RuleFor(x => x.Name, faker => faker.Name.FullName())
@@ -349,7 +357,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             NewAppointmentModel newAppointment = appointmentFaker.Generate();
 
-            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Jsonify(jsonSerializerOptions)}");
+            _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment.Jsonify(SerializerOptions)}");
             _outputHelper.WriteLine($"Url : {_endpointUrl}");
 
             IEnumerable<Claim> claims = new[]
@@ -357,9 +365,9 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            
+
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, jsonSerializerOptions)
+            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, SerializerOptions)
                                                        .ConfigureAwait(false);
 
             // Assert
@@ -368,15 +376,12 @@ namespace Agenda.API.IntegrationTests.v1
                 .BeTrue("The resource creation must succeed");
             ((int)response.StatusCode).Should().Be(Status201Created);
 
-            string json = await response.Content.ReadAsStringAsync()
-                                                .ConfigureAwait(false);
+            Browsable<AppointmentModel> browsableResource = await response.Content.ReadFromJsonAsync<Browsable<AppointmentModel>>(SerializerOptions)
+                                                                                  .ConfigureAwait(false);
 
-            _outputHelper.WriteLine($"json : {json}");
-
-            //Browsable<AppointmentInfo> browsableResource = JsonSerializer.Deserialize<Browsable<AppointmentInfo>>(json, jsonSerializerOptions);
-            //IEnumerable<Link> links = browsableResource.Links;
-            //links.Should()
-            //     .ContainSingle(link => link.Relation == Self);
+            IEnumerable<Link> links = browsableResource.Links;
+            links.Should()
+                 .ContainSingle(link => link.Relation == Self);
 
             Uri location = response.Headers.Location;
 
@@ -392,7 +397,7 @@ namespace Agenda.API.IntegrationTests.v1
         }
 
         [Fact]
-        public async Task RemoveParticipantFromAppointment_MustComplete()
+        public async Task Given_attendee_exists_on_appointment_DeleteAttendee_should_complete()
         {
             // Arrange
             Faker<AttendeeModel> participantFaker = new Faker<AttendeeModel>("en")
@@ -411,19 +416,17 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            JsonSerializerOptions serializerOptions = new();
-            serializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel, serializerOptions)
+            HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel, SerializerOptions)
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Creation of the appointment for the integration test response status : {response.StatusCode}");
-            Browsable<AppointmentModel> browsableAppointment = await response.Content.ReadFromJsonAsync<Browsable<AppointmentModel>>(serializerOptions)
+            Browsable<AppointmentModel> browsableAppointment = await response.Content.ReadFromJsonAsync<Browsable<AppointmentModel>>(SerializerOptions)
                                                                                      .ConfigureAwait(false);
             AppointmentModel resource = browsableAppointment.Resource;
             IEnumerable<AttendeeModel> attendees = resource.Attendees;
 
-            var attendeeToDelete = new Faker().PickRandom(attendees);
+            AttendeeModel attendeeToDelete = new Faker().PickRandom(attendees);
 
             AppointmentId appointmentId = resource.Id;
             AttendeeId attendeeId = attendeeToDelete.Id;

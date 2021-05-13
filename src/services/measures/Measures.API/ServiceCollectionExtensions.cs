@@ -3,7 +3,7 @@
 using FluentValidation.AspNetCore;
 
 using Measures.API.Features.Auth;
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Handlers.BloodPressures;
 using Measures.CQRS.Queries.Patients;
 using Measures.Mapping;
@@ -151,28 +151,31 @@ namespace Measures.API
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
-            static DbContextOptionsBuilder<MeasuresContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<MeasuresStore> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<MeasuresContext> builder = new();
+                DbContextOptionsBuilder<MeasuresStore> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                string connectionString = configuration.GetConnectionString("measures");
 
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                    builder.UseSqlite(connectionString, options =>
+                    {
                         options.UseNodaTime()
-                               .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName);
+                               .MigrationsAssembly(typeof(MeasuresStore).Assembly.FullName);
                     });
                 }
                 else
                 {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("measures-db"),
+                        connectionString,
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
-                                          .MigrationsAssembly(typeof(MeasuresContext).Assembly.FullName)
+                                          .MigrationsAssembly(typeof(MeasuresStore).Assembly.FullName)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -185,18 +188,18 @@ namespace Measures.API
 
             services.AddTransient(serviceProvider =>
             {
-                DbContextOptionsBuilder<MeasuresContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<MeasuresStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new MeasuresContext(optionsBuilder.Options, clock);
+                return new MeasuresStore(optionsBuilder.Options, clock);
             });
 
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresContext>>(serviceProvider =>
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<MeasuresStore>>(serviceProvider =>
             {
-                DbContextOptionsBuilder<MeasuresContext> builder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<MeasuresStore> builder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, options => new MeasuresContext(options, clock));
+                return new EFUnitOfWorkFactory<MeasuresStore>(builder.Options, options => new MeasuresStore(options, clock));
             });
 
             return services;

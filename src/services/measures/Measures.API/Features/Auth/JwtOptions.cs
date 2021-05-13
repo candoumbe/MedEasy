@@ -11,7 +11,7 @@
         public string Key { get; set; }
 
         /// <summary>
-        /// Issuer of of the JWT
+        /// Issuer of the JWT
         /// </summary>
         public string Issuer { get; set; }
 

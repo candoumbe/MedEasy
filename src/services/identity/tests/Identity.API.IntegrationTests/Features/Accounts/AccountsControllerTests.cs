@@ -21,24 +21,47 @@ using NodaTime.Serialization.SystemTextJson;
 using NodaTime;
 using System.Net.Http.Json;
 using Identity.Ids;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace Identity.API.IntegrationTests.Features.Accounts
 {
     [IntegrationTest]
     [Feature("Accounts")]
     [Feature("Identity")]
-    public class AccountsControllerTests : IClassFixture<IdentityApiFixture>
+    public class AccountsControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>
     {
         private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1";
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+        private readonly Faker _faker;
+
+        private static JsonSerializerOptions JsonSerializerOptions
+        {
+            get
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
+                return options;
+            }
+        }
 
         public AccountsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture)
         {
+            _faker = new();
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
+            _identityApiFixture.Email = _faker.Person.Email;
+            _identityApiFixture.Password = _faker.Internet.Password();
         }
+
+
+        ///<inheritdoc/>
+        public async Task InitializeAsync() => await _identityApiFixture.LogIn().ConfigureAwait(false);
+
+        ///<inheritdoc/>
+        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GivenNoToken_GetAll_Returns_Unauthorized()
@@ -95,61 +118,44 @@ namespace Identity.API.IntegrationTests.Features.Accounts
             JSchema responseSchema = new JSchemaGenerator().Generate(typeof(Browsable<AccountInfo>));
             jsonToken.IsValid(responseSchema);
 
-            // TODO reactivate and try to understand why this won't deserialize properly
-            //Browsable<AccountInfo> browsableAccountInfo = JsonSerializer.Deserialize<Browsable<AccountInfo>>(jsonResponse, jsonSerializerOptions);
+            _outputHelper.WriteLine($"Json: {jsonResponse}");
 
-            //IEnumerable<Link> links = browsableAccountInfo.Links;
-            //links.Should()
-            //    .NotBeEmpty().And
-            //    .NotContainNulls().And
-            //    .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"{nameof(Link.Href)} must be explicitely specified for each link").And
-            //    .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"{nameof(Link.Relation)} must be explicitely specified for each link").And
-            //    .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"{nameof(Link.Method)} must be explicitely specified for each link").And
-            //    .Contain(link => link.Relation == LinkRelation.Self, $"a direct link to the resource must be provided").And
-            //    .HaveCount(1);
+            Browsable<AccountInfo> browsableAccountInfo = JsonSerializer.Deserialize<Browsable<AccountInfo>>(jsonResponse, JsonSerializerOptions);
 
-            //Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
-            //linkToSelf.Method.Should()
-            //                 .Be("GET");
+            IEnumerable<Link> links = browsableAccountInfo.Links;
+            links.Should()
+                .NotBeEmpty().And
+                .NotContainNulls().And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Href), $"{nameof(Link.Href)} must be explicitely specified for each link").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Relation), $"{nameof(Link.Relation)} must be explicitely specified for each link").And
+                .NotContain(link => string.IsNullOrWhiteSpace(link.Method), $"{nameof(Link.Method)} must be explicitely specified for each link").And
+                .Contain(link => link.Relation == LinkRelation.Self, "a direct link to the resource must be provided").And
+                .HaveCount(1);
 
-            //AccountInfo accountInfo = browsableAccountInfo.Resource;
+            Link linkToSelf = links.Single(link => link.Relation == LinkRelation.Self);
+            linkToSelf.Method.Should()
+                             .Be("GET");
 
-            //accountInfo.Name.Should()
-            //                .Be(newAccount.Name);
-            //accountInfo.Email.Should()
-            //                 .Be(newAccount.Email);
-            //accountInfo.Id.Should()
-            //              .NotBeEmpty();
+            AccountInfo accountInfo = browsableAccountInfo.Resource;
+
+            accountInfo.Name.Should()
+                            .Be(newAccount.Name);
+            accountInfo.Email.Should()
+                             .Be(newAccount.Email);
+            accountInfo.Id.Should()
+                          .NotBe(AccountId.Empty);
         }
 
         [Fact]
-
-        public async Task GivenValidToken_Get_Returns_ListOfAccounts()
+        public async Task Given_valid_token_Get_should_returns_list_of_accounts()
         {
             // Arrange
-            Faker faker = new();
-            string password = faker.Lorem.Word();
-            NewAccountInfo newAccount = new()
-            {
-                Id = AccountId.New(),
-                Name = faker.Person.FullName,
-                Username = faker.Person.UserName,
-                Password = password,
-                ConfirmPassword = password,
-                Email = faker.Person.Email
-            };
-
-            _outputHelper.WriteLine($"Registering account {newAccount}");
-
-            BearerTokenInfo bearerInfo = await _identityApiFixture.RegisterAndConnect(newAccount)
-                .ConfigureAwait(false);
-
             using HttpClient client = _identityApiFixture.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerInfo.AccessToken);
-
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _identityApiFixture.Tokens.AccessToken);
+            _outputHelper.WriteLine($"bearer : {_identityApiFixture.Tokens.Jsonify()}");
             // Act
             using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts?page=1")
-                .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
             _outputHelper.WriteLine($"Response : {response}");

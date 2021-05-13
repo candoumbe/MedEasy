@@ -43,14 +43,14 @@ namespace Identity.CQRS.Handlers.Queries.Accounts
 
             var usernameAndPassword = await uow.Repository<Account>()
                                                 .SingleOrDefaultAsync(x => new
-                                                                      {
-                                                                          x.Id,
-                                                                          x.Name,
-                                                                          x.Username,
-                                                                          x.Email,
-                                                                          x.PasswordHash,
-                                                                          x.Salt
-                                                                      },
+                                                {
+                                                    x.Id,
+                                                    x.Name,
+                                                    x.Username,
+                                                    x.Email,
+                                                    x.PasswordHash,
+                                                    x.Salt
+                                                },
                                                                       (Account x) => x.Username == data.Username,
                                                                       ct
                                                 )

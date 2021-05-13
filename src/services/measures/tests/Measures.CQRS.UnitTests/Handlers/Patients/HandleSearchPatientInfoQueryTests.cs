@@ -1,7 +1,7 @@
 ﻿
 using AutoMapper.QueryableExtensions;
 using FluentAssertions;
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Handlers.Patients;
 using Measures.DTO;
 using Measures.Mapping;
@@ -34,7 +34,7 @@ using Measures.Ids;
 namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
     [UnitTest]
-    public class HandleSearchPatientInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
+    public class HandleSearchPatientInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -42,22 +42,21 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         private readonly HandleSearchPatientInfosQuery _sut;
         private readonly Mock<IExpressionBuilder> _expressionBuilderMock;
 
-        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
+        public HandleSearchPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
-            {
-                MeasuresContext context = new(options, new FakeClock(new Instant()));
-                context.Database.EnsureCreated();
-                return context;
-            });
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(database.OptionsBuilder.Options, (options) => new(options, new FakeClock(new Instant())));
 
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
             _iHandleSearchQueryMock = new Mock<IHandleSearchQuery>(Strict);
             _sut = new HandleSearchPatientInfosQuery(_iHandleSearchQueryMock.Object);
         }
+
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public Task DisposeAsync() => Task.CompletedTask;
 
         public static IEnumerable<object[]> SearchPatientCases
         {
@@ -135,25 +134,28 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
             _iHandleSearchQueryMock.Setup(mock => mock.Search<Patient, PatientInfo>(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()))
                 .Returns(async (SearchQuery<PatientInfo> query, CancellationToken ct) =>
                 {
-                    {
-                        Expression<Func<PatientInfo, bool>> filter = query.Data.Filter.ToExpression<PatientInfo>();
-                        Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
-                            .GetMapExpression<Patient, PatientInfo>();
+                    Expression<Func<PatientInfo, bool>> filter = query.Data.Filter.ToExpression<PatientInfo>();
+                    Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
+                        .GetMapExpression<Patient, PatientInfo>();
 
-                        ISort<PatientInfo> sort = query.Data.Sort ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending);
+                    ISort<PatientInfo> sort = query.Data.Sort ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending);
 
-                        using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
-                        return await uow.Repository<Patient>()
-                                        .WhereAsync(selector, filter, sort, query.Data.PageSize, query.Data.Page, ct)
-                                        .ConfigureAwait(false);
-                    }
+                    return await uow.Repository<Patient>()
+                                    .WhereAsync(selector,
+                                                filter,
+                                                sort,
+                                                query.Data.PageSize,
+                                                query.Data.Page,
+                                                ct)
+                                    .ConfigureAwait(false);
                 });
 
             // Act
             SearchQuery<PatientInfo> searchQuery = new(search);
             Page<PatientInfo> pageOfResult = await _sut.Handle(searchQuery, default)
-                .ConfigureAwait(false);
+                                                       .ConfigureAwait(false);
 
             // Assert
             _iHandleSearchQueryMock.Verify(mock => mock.Search<Patient, PatientInfo>(It.IsAny<SearchQuery<PatientInfo>>(), It.IsAny<CancellationToken>()), Times.Once);

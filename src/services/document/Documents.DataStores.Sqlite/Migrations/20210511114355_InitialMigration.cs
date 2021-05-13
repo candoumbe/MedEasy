@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Documents.DataStore.SqliteMigrations
+namespace Documents.DataStores.Sqlite.Migrations
 {
     public partial class InitialMigration : Migration
     {

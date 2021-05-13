@@ -15,13 +15,11 @@ namespace Agenda.API.Resources.v1.Appointments
         /// <summary>
         /// Min start or end date
         /// </summary>
-        [DataType(DataType.DateTime)]
         public ZonedDateTime? From { get; set; }
 
         /// <summary>
         /// Max start or end date
         /// </summary>
-        [DataType(DataType.DateTime)]
         public ZonedDateTime? To { get; set; }
 
         /// <summary>

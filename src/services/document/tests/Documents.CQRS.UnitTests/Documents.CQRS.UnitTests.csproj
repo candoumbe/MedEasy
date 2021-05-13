@@ -12,7 +12,7 @@
     <ProjectReference Include="..\..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
     <ProjectReference Include="..\..\Documents.CQRS\Documents.CQRS.csproj" />
-    <ProjectReference Include="..\..\Documents.DataStore\Documents.DataStore.csproj" />
+    <ProjectReference Include="..\..\Documents.DataStores\Documents.DataStores.csproj" />
     <ProjectReference Include="..\..\Documents.Mapping\Documents.Mapping.csproj" />
     <ProjectReference Include="..\..\Documents.Objects\Documents.Objects.csproj" />
   </ItemGroup>

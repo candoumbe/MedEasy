@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 
-namespace Measures.Context
+namespace Measures.DataStores
 {
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>
-    public class MeasuresContext : DataStore<MeasuresContext>
+    public class MeasuresStore : DataStore<MeasuresStore>
     {
         /// <summary>
         /// Usual size for the "normal" text
@@ -24,11 +24,11 @@ namespace Measures.Context
         private const int _shortTextLength = 50;
 
         /// <summary>
-        /// Builds a new <see cref="MeasuresContext"/> instance.
+        /// Builds a new <see cref="MeasuresStore"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
         /// <param name="clock"><see cref="IClock"/> implementation used when current time is needed</param>
-        public MeasuresContext(DbContextOptions<MeasuresContext> options, IClock clock) : base(options, clock)
+        public MeasuresStore(DbContextOptions<MeasuresStore> options, IClock clock) : base(options, clock)
         {
         }
 

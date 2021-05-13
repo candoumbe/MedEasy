@@ -14,14 +14,13 @@ namespace MedEasy.IntegrationTests.Core
 
         public SqliteEfCoreDatabaseFixture()
         {
-            _connection = new ("Datasource=:memory:");
-            _connection?.Open();
+            _connection = new("Datasource=:memory:");
+            _connection.Open();
             OptionsBuilder = new DbContextOptionsBuilder<TContext>()
                     .UseSqlite(_connection, x => x.UseNodaTime()
                                                   .MigrationsAssembly(typeof(TContext).Assembly.FullName)
                     )
                     .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
         }
-
     }
 }

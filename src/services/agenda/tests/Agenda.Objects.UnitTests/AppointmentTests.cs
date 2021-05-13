@@ -11,9 +11,11 @@ using System.Collections.Generic;
 
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace Agenda.Objects.UnitTests
 {
+    [UnitTest]
     public class AppointmentTests
     {
         private readonly ITestOutputHelper _outputHelper;

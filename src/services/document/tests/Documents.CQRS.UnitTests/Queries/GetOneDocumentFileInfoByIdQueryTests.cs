@@ -10,9 +10,11 @@ using System;
 using System.Collections.Generic;
 
 using Xunit;
+using Xunit.Categories;
 
 namespace Documents.CQRS.UnitTests.Queries
 {
+    [UnitTest]
     public class GetOneDocumentFileInfoByIdQueryTests
     {
 

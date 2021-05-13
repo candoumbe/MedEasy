@@ -74,7 +74,7 @@ namespace Patients.API.Controllers
         /// <response code="400"><paramref name="pagination"/> is not valid</response>
         /// <response code="404"><paramref name="pagination"/> is outside range of available page</response>
         [HttpGet, HttpHead, HttpOptions]
-        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
@@ -83,12 +83,12 @@ namespace Patients.API.Controllers
             pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
             Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
             Page<PatientInfo> result = await uow.Repository<Patient>()
-                .ReadPageAsync(
-                    selector,
-                    pagination.PageSize,
-                    pagination.Page,
-                    new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending),
-                    cancellationToken).ConfigureAwait(false);
+                                                .ReadPageAsync(
+                                                    selector,
+                                                    pagination.PageSize,
+                                                    pagination.Page,
+                                                    new Sort<PatientInfo>(nameof(PatientInfo.Lastname), SortDirection.Descending),
+                                                    cancellationToken).ConfigureAwait(false);
 
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pagination.Page > 1;
@@ -141,45 +141,52 @@ namespace Patients.API.Controllers
         [HttpHead("{id}")]
         [HttpGet("{id}")]
         [HttpOptions("{id}")]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
-        public async Task<IActionResult> Get([RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status200OK)]
+        public async Task<IActionResult> Get([FromRoute, RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
-            using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
+            if (id == PatientId.Empty)
             {
-                Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                Option<PatientInfo> result = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
+                actionResult = new BadRequestResult();
+            }
+            else
+            {
+                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
+                {
+                    Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+                    Option<PatientInfo> result = await uow.Repository<Patient>()
+                        .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
 
-                actionResult = result.Match<IActionResult>(
-                    some: resource =>
-                    {
-                        Browsable<PatientInfo> browsableResource = new()
+                    actionResult = result.Match<IActionResult>(
+                        some: resource =>
                         {
-                            Resource = resource,
-                            Links = new[]
+                            Browsable<PatientInfo> browsableResource = new()
                             {
+                                Resource = resource,
+                                Links = new[]
+                                {
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
-                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
+                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
                                         Method = "GET"
                                     },
                                     new Link
                                     {
                                         Relation = "delete",
-                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }),
+                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
                                         Method = "DELETE"
                                     }
-                            }
-                        };
-                        return new OkObjectResult(browsableResource);
-                    },
-                    none: () => new NotFoundResult()
-                );
+                                }
+                            };
+                            return new OkObjectResult(browsableResource);
+                        },
+                        none: () => new NotFoundResult()
+                    );
+
+                }
 
             }
-
             return actionResult;
         }
 
@@ -187,13 +194,13 @@ namespace Patients.API.Controllers
         /// Creates a new <see cref="PatientInfo"/> resource.
         /// </summary>
         /// <param name="newPatient">data used to create the resource</param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="201">the resource was created successfully</response>
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 201)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken cancellationToken = default)
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
+        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), Status400BadRequest)]
+        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
         {
             if (newPatient.Id == default)
             {
@@ -207,11 +214,11 @@ namespace Patients.API.Controllers
 
             patient = uow.Repository<Patient>().Create(patient);
 
-            await uow.SaveChangesAsync().ConfigureAwait(false);
+            await uow.SaveChangesAsync(ct).ConfigureAwait(false);
             Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
             PatientInfo resource = mapEntityToResource.Compile()(patient);
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new Browsable<PatientInfo>
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }, new Browsable<PatientInfo>
             {
                 Resource = resource,
                 Links = new[]
@@ -220,7 +227,7 @@ namespace Patients.API.Controllers
                         {
                             Relation = "delete",
                             Method = "DELETE",
-                            Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id })
+                            Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value })
                         }
                     }
             });
@@ -237,7 +244,7 @@ namespace Patients.API.Controllers
         /// <response code="204">if the operation succeed</response>
         /// <response code="400">if <paramref name="id"/> is not valid.</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] PatientId id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Delete([FromRoute, RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
             if (PatientId.Empty == id)
@@ -263,8 +270,10 @@ namespace Patients.API.Controllers
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
         /// </para>
-        /// <para>    // PATCH api/Patients/3594c436-8595-444d-9e6b-2686c4904725</para>
-        /// <para>
+        /// <example>
+        /// <c>PATCH api/Patients/3594c436-8595-444d-9e6b-2686c4904725</c>
+        /// with the following body
+        /// <code>
         ///     [
         ///         {
         ///             "op": "update",
@@ -273,7 +282,8 @@ namespace Patients.API.Controllers
         ///             "value": "John"
         ///       }
         ///     ]
-        /// </para>
+        /// </code>
+        /// </example>
         /// <para>The set of changes to apply will be applied atomically and in the order they're declared. </para>
         /// 
         /// </remarks>
@@ -285,7 +295,7 @@ namespace Patients.API.Controllers
         /// <response code="404">Resource not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
-        public async Task<IActionResult> Patch(PatientId id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Patch([FromRoute, RequireNonDefault] PatientId id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
         {
             IActionResult actionResult;
 
@@ -376,7 +386,7 @@ namespace Patients.API.Controllers
         /// </para>
         /// <para>
         ///     // GET api/Doctors/Search?Firstname=B*e
-        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        ///     will match all resources which starts with 'B' and ends with 'e'.
         /// </para>
         /// <para>'?' : match exactly one charcter in a string property.</para>
         /// <para>'!' : negate a criteria</para>
@@ -412,7 +422,7 @@ namespace Patients.API.Controllers
                     : new MultiFilter { Logic = FilterLogic.And, Filters = filters },
                 Page = search.Page,
                 PageSize = search.PageSize,
-                Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending)
+                Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.Lastname), SortDirection.Descending)
             };
 
             Page<PatientInfo> pageOfResources = await Search(searchQuery, cancellationToken).ConfigureAwait(false);
