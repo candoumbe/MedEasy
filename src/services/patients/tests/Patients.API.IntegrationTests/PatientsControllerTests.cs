@@ -22,17 +22,20 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
 using System.Text;
 using System.Net.Mime;
+using Identity.Ids;
+using Bogus;
 
 namespace Patients.API.IntegrationTests
 {
     [IntegrationTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IDisposable, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>
+    public class PatientsControllerTests : IAsyncLifetime, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>
     {
         private IntegrationFixture<Startup> _server;
         private ITestOutputHelper _outputHelper;
         private IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/patients";
+        private readonly Faker _faker;
 
         private static readonly JSchema _errorObjectSchema = new()
         {
@@ -102,41 +105,27 @@ namespace Patients.API.IntegrationTests
 
         public PatientsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture, IdentityApiFixture identityFixture)
         {
+            _faker = new();
             _outputHelper = outputHelper;
             _server = fixture;
             _identityServer = identityFixture;
+            _identityServer.Email = _faker.Person.Email;
+            _identityServer.Password = _faker.Internet.Password();
         }
 
-        public void Dispose()
+        public async Task InitializeAsync()
         {
-            _outputHelper = null;
-            _server = null;
-            _identityServer = null;
+            await _identityServer.LogIn().ConfigureAwait(false);
         }
+
+        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = $"robin_{Guid.NewGuid()}",
-                Email = $"batman_{Guid.NewGuid()}@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             // Act
             HttpResponseMessage response = await client.GetAsync("/patients")
@@ -149,8 +138,6 @@ namespace Patients.API.IntegrationTests
             _outputHelper.WriteLine($"json : {json}");
 
             ((int)response.StatusCode).Should().Be(Status200OK);
-            HttpContentHeaders headers = response.Content.Headers;
-
             JToken jToken = JToken.Parse(json);
             jToken.IsValid(_pageResponseSchema).Should().BeTrue();
         }
@@ -173,24 +160,8 @@ namespace Patients.API.IntegrationTests
             _outputHelper.WriteLine($"Perfoming HTTP <{method}> on <{url}>");
 
             // Arrange
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = $"dick_{Guid.NewGuid()}",
-                Email = $"batman_{Guid.NewGuid().ToString("N")}@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
             HttpRequestMessage message = new(method, url);
 
             // Act
@@ -224,19 +195,8 @@ namespace Patients.API.IntegrationTests
             string url = $"{_endpointUrl}/{Guid.Empty}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = $"robin_{Guid.NewGuid()}",
-                Email = $"batman_{Guid.NewGuid()}@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
-
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
             HttpRequestMessage message = new(method, url);
 
             // Act
@@ -282,26 +242,8 @@ namespace Patients.API.IntegrationTests
         {
             // Arrange
             string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
-            _outputHelper.WriteLine($"Requested url : <{url}>");
-
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = $"batman_{Guid.NewGuid()}",
-                Email = $"batman_{Guid.NewGuid()}@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url)
@@ -318,21 +260,10 @@ namespace Patients.API.IntegrationTests
         public async Task Create_Resource()
         {
             // Arrange
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = $"robin_{Guid.NewGuid()}",
-                Email = "robin@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
-
-            _outputHelper.WriteLine($"Token : {bearerToken}");
+            _outputHelper.WriteLine($"Token : {_identityServer.Tokens.AccessToken}");
 
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             CreatePatientInfo newPatient = new()
             {
@@ -345,13 +276,6 @@ namespace Patients.API.IntegrationTests
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
-
-            string json = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            _outputHelper.WriteLine($"created resource : {json}");
-
-            string patientId = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Resource).ToLower()][nameof(PatientInfo.Id).ToLower()].ToString();
 
             //Assert
             Uri location = response.Headers.Location;
@@ -375,26 +299,8 @@ namespace Patients.API.IntegrationTests
                 Lastname = "Freeze"
             };
 
-            string username = $"batman_{Guid.NewGuid()}";
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = username,
-                Email = $"{username}@gotham.fr",
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader"
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
-
-            LoginInfo loginInfo = new()
-            {
-                Username = newAccountInfo.Username,
-                Password = newAccountInfo.Password
-            };
-
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             HttpResponseMessage response = await client.PostAsync("/patients", new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                                        .ConfigureAwait(false);
@@ -415,7 +321,7 @@ namespace Patients.API.IntegrationTests
                     Method = Head,
                     RequestUri = new Uri(link.Href)
                 };
-                headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+                headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
                 // Act
                 response = await client2.SendAsync(headRequestMessage)

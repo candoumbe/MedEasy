@@ -11,7 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		azure-pipelines.yaml = azure-pipelines.yaml
 		core-api.props = core-api.props
 		core.props = core.props
-		Directory.Build.props = Directory.Build.props
 		GitVersion.yml = GitVersion.yml
 		global.json = global.json
 		Nuget.config = Nuget.config
@@ -51,7 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "measures", "measures", "{40
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.API", "src\services\Measures\Measures.API\Measures.API.csproj", "{73C38CD7-4FC0-4439-9A0A-B6061DB0C858}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Context", "src\services\Measures\Measures.Context\Measures.Context.csproj", "{558071AA-6A59-4D5C-9998-3D021CC5CE3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DataStores", "src\services\Measures\Measures.DataStores\Measures.DataStores.csproj", "{558071AA-6A59-4D5C-9998-3D021CC5CE3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.CQRS", "src\services\Measures\Measures.CQRS\Measures.CQRS.csproj", "{CC2396CF-2660-4A41-98D4-10AAE4CBBD47}"
 EndProject
@@ -197,7 +196,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Objects.Tests", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Validators.UnitTests", "src\services\identity\tests\Identity.Validators.UnitTests\Identity.Validators.UnitTests.csproj", "{097B9327-2067-4F01-8C0D-A5A25209A4BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documents.DataStore", "src\services\document\Documents.DataStore\Documents.DataStore.csproj", "{52B6B608-259F-446B-A300-50F68EF7A15D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documents.DataStores", "src\services\document\Documents.DataStores\Documents.DataStores.csproj", "{52B6B608-259F-446B-A300-50F68EF7A15D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{31B0776C-621D-493B-B358-93A11391A8B6}"
 EndProject
@@ -247,13 +246,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Ids", "src\service
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Ids", "src\tools\MedEasy.Ids\MedEasy.Ids.csproj", "{A75C8B6A-3A15-4564-ADBC-DE4DBC537542}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.Ids", "src\services\agenda\Agenda.Ids\Agenda.Ids.csproj", "{C5C0008E-06D8-4D5D-9820-3405F10F446A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.Ids", "src\services\agenda\Agenda.Ids\Agenda.Ids.csproj", "{C5C0008E-06D8-4D5D-9820-3405F10F446A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Documents.Ids", "src\services\document\Documents.Ids\Documents.Ids.csproj", "{7948C3CE-C388-4B6A-A6B0-E3B10D019EFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documents.Ids", "src\services\document\Documents.Ids\Documents.Ids.csproj", "{7948C3CE-C388-4B6A-A6B0-E3B10D019EFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Measures.Ids", "src\services\measures\Measures.Ids\Measures.Ids.csproj", "{0CAF7769-5C96-450F-8287-7989C3062047}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Ids", "src\services\measures\Measures.Ids\Measures.Ids.csproj", "{0CAF7769-5C96-450F-8287-7989C3062047}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patients.Ids", "src\services\patients\Patients.Ids\Patients.Ids.csproj", "{3250DB8D-F8F1-4112-83CB-D06AA5D03742}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Ids", "src\services\patients\Patients.Ids\Patients.Ids.csproj", "{3250DB8D-F8F1-4112-83CB-D06AA5D03742}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DataStores.Sqlite", "src\services\patients\Patients.DataStores.Sqlite\Patients.DataStores.Sqlite.csproj", "{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Documents.DataStores.Sqlite", "src\services\document\Documents.DataStores.Sqlite\Documents.DataStores.Sqlite.csproj", "{762118DF-F212-490A-8A0A-A5FD6F700EB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Measures.DataStores.Sqlite", "src\services\measures\Measures.DataStores.Sqlite\Measures.DataStores.Sqlite.csproj", "{A3F6DF20-61E3-416C-AF95-CE523AF095F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1803,6 +1808,54 @@ Global
 		{3250DB8D-F8F1-4112-83CB-D06AA5D03742}.Release|x64.Build.0 = Release|Any CPU
 		{3250DB8D-F8F1-4112-83CB-D06AA5D03742}.Release|x86.ActiveCfg = Release|Any CPU
 		{3250DB8D-F8F1-4112-83CB-D06AA5D03742}.Release|x86.Build.0 = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|ARM.Build.0 = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|x64.Build.0 = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Debug|x86.Build.0 = Debug|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|ARM.ActiveCfg = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|ARM.Build.0 = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|x64.ActiveCfg = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|x64.Build.0 = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|x86.ActiveCfg = Release|Any CPU
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78}.Release|x86.Build.0 = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|x64.Build.0 = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Debug|x86.Build.0 = Debug|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|ARM.Build.0 = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|x64.ActiveCfg = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|x64.Build.0 = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0}.Release|x86.Build.0 = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|ARM.Build.0 = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Debug|x86.Build.0 = Debug|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|ARM.ActiveCfg = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|ARM.Build.0 = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|x64.Build.0 = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|x86.ActiveCfg = Release|Any CPU
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1923,6 +1976,9 @@ Global
 		{7948C3CE-C388-4B6A-A6B0-E3B10D019EFE} = {1C4FC2BC-4B69-4DC9-B216-A97439657F8F}
 		{0CAF7769-5C96-450F-8287-7989C3062047} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
 		{3250DB8D-F8F1-4112-83CB-D06AA5D03742} = {FE9172AB-55D7-43C8-8D7E-022EB1781051}
+		{91D3AAAE-13AB-4A75-A489-67E5EAAC0A78} = {FE9172AB-55D7-43C8-8D7E-022EB1781051}
+		{762118DF-F212-490A-8A0A-A5FD6F700EB0} = {1C4FC2BC-4B69-4DC9-B216-A97439657F8F}
+		{A3F6DF20-61E3-416C-AF95-CE523AF095F1} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

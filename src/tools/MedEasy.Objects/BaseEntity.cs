@@ -16,7 +16,7 @@ namespace MedEasy.Objects
         /// true si les objets spécifiés sont égaux ; sinon, false.
         /// </returns>
         /// <param name="x">Premier objet de type <paramref name="T"/> à comparer.</param><param name="y">Deuxième objet de type <paramref name="T"/> à comparer.</param>
-        public virtual bool Equals(T x, T y) => x.Equals(y);
+        public virtual bool Equals(T x, T y) => x?.Equals(y) ?? false;
 
         /// <summary>
         /// Retourne un code de hachage pour l'objet spécifié.

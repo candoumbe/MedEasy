@@ -5,6 +5,7 @@ using FluentAssertions;
 using Identity.API.Fixtures.v2;
 using Identity.DTO;
 using Identity.DTO.v2;
+using Identity.Ids;
 
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
@@ -20,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -32,15 +34,19 @@ using static System.Net.Http.HttpMethod;
 
 namespace Measures.API.IntegrationTests.v1
 {
+    /// <summary>
+    /// Integration tests for endpoints related to <see cref="BloodPressureModel"/>
+    /// </summary>
     [IntegrationTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IDisposable, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
+    public class BloodPressuresControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
     {
         private IntegrationFixture<Startup> _sut;
         private IdentityApiFixture _identityServer;
         private ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/bloodpressures";
+        private readonly Faker _faker;
 
         private static readonly JSchema _pageLink = new()
         {
@@ -87,43 +93,29 @@ namespace Measures.API.IntegrationTests.v1
                     nameof(GenericPagedGetResponse<object>.Links).ToLower(),
                     nameof(GenericPagedGetResponse<object>.Total).ToLower()
                 }
-
         };
 
         public BloodPressuresControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> sut, IdentityApiFixture identityFixture)
         {
+            _faker = new();
             _outputHelper = outputHelper;
             _sut = sut;
             _identityServer = identityFixture;
+            _identityServer.Email = _faker.Person.Email;
+            _identityServer.Password = _faker.Person.Email;
         }
 
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _sut = null;
-            _identityServer = null;
-        }
+        public async Task InitializeAsync() => await _identityServer.LogIn().ConfigureAwait(false);
+
+        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
-            Faker faker = new();
-            string password = faker.Lorem.Word();
-            NewAccountInfo newAccountInfo = new()
-            {
-                Username = faker.Person.UserName,
-                Email = faker.Person.Email,
-                Password = password,
-                ConfirmPassword = password
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                .ConfigureAwait(false);
-
             using HttpClient client = _sut.CreateClient();
             HttpRequestMessage getAllRequest = new(Get, _endpointUrl);
-            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             // Act
             using HttpResponseMessage response = await client.SendAsync(getAllRequest)
@@ -136,8 +128,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"json : {json}");
 
             ((int)response.StatusCode).Should().Be(Status200OK);
-            HttpContentHeaders headers = response.Content.Headers;
-
+            
             JToken pageResponseToken = JToken.Parse(json);
             pageResponseToken.IsValid(_pageResponseSchema).Should()
                              .BeTrue();
@@ -166,22 +157,9 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Paging configuration : {SerializeObject(new { page, pageSize })}");
 
             // Arrange
-            const string password = "thecapedcrusader";
-            Faker faker = new();
-            NewAccountInfo newAccountInfo = new()
-            {
-                Name = faker.Person.FullName,
-                Username = faker.Person.UserName,
-                Password = password,
-                ConfirmPassword = password,
-                Email = faker.Person.Email
-            };
-
-            BearerTokenInfo bearerToken = await _identityServer.RegisterAndLogIn(newAccountInfo)
-                                                               .ConfigureAwait(false);
-
+            
             HttpRequestMessage getAllRequest = new(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
-            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, bearerToken.AccessToken.Token);
+            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             using HttpClient client = _sut.CreateClient();
             // Act

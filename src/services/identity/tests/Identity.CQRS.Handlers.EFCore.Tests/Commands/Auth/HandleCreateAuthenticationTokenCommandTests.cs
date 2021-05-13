@@ -69,7 +69,7 @@ namespace Identity.CQRS.UnitTests.Handlers.Queries
             _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
                                                                    (options) =>
                                                                    {
-                                                                       IdentityContext context =  new(options, new FakeClock(new Instant()));
+                                                                       IdentityContext context = new(options, new FakeClock(new Instant()));
                                                                        context.Database.EnsureCreated();
                                                                        return context;
                                                                    });

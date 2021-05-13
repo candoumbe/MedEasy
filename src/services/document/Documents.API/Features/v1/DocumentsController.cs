@@ -45,6 +45,9 @@ namespace Documents.API.Features.v1
     [ProducesResponseType(Status401Unauthorized)]
     public class DocumentsController
     {
+        /// <summary>
+        /// Name of the endpoint
+        /// </summary>
         public static string EndpointName => nameof(DocumentsController)
             .Replace(nameof(Controller), string.Empty);
 
@@ -110,7 +113,7 @@ namespace Documents.API.Features.v1
                             Relation = Self,
                             Title = resource.Name,
                             Method = "GET",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, id = resource.Id.Value, version })
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller= EndpointName, resource.Id, version })
                         }
                     }
                 }),
@@ -175,9 +178,9 @@ namespace Documents.API.Features.v1
                     string version = _apiVersion.ToString();
                     IList<Link> links = new List<Link>
                     {
-                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, version }) },
-                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, version }) },
-                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = document.Id.Value, action=nameof(File), version }) }
+                        new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, version }) },
+                        new Link { Relation = "delete",Method = "DELETE", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, version }) },
+                        new Link { Relation = "file", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, document.Id, action=nameof(File), version }) }
                     };
 
                     return new Browsable<DocumentInfo>
@@ -297,12 +300,12 @@ namespace Documents.API.Features.v1
                             {
                                 Relation = Self,
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, id = doc.Id.Value })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {version,  controller = EndpointName, doc.Id})
                             }
                         }
                     };
 
-                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = doc.Id.Value, version }, browsableResource);
+                    return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, doc.Id, version }, browsableResource);
                 },
                 none: cmdError =>
                 {
@@ -361,7 +364,7 @@ namespace Documents.API.Features.v1
                         Resource = x,
                         Links = new[]
                         {
-                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = x.Id.Value, version } ) }
+                            new Link { Relation = Self, Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { x.Id, version } ) }
                         }
                     };
                 }),

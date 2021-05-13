@@ -6,7 +6,7 @@ using FluentAssertions.Extensions;
 using Measures.API.Features.v1.BloodPressures;
 using Measures.API.Features.v1.Patients;
 using Measures.API.Routing;
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.DTO;
@@ -58,7 +58,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
+    public class BloodPressuresControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
 
@@ -71,7 +71,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         private readonly BloodPressuresController _controller;
         private const string _baseUrl = "http://host/api";
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
             _outputHelper = outputHelper;
 
@@ -82,9 +82,9 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<MeasuresApiOptions>>(Strict);
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(database.OptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new(options, new FakeClock(new Instant()));
+                MeasuresStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

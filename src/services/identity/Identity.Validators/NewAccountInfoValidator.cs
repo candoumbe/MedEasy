@@ -1,28 +1,16 @@
 ﻿using FluentValidation;
 
 using Identity.DTO;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using Microsoft.Extensions.Logging;
 
 namespace Identity.Validators
 {
     public class NewAccountInfoValidator : AbstractValidator<NewAccountInfo>
     {
-        public NewAccountInfoValidator(IUnitOfWorkFactory uowFactory, ILogger<NewAccountInfoValidator> logger)
+        public NewAccountInfoValidator()
         {
             RuleFor(x => x.Email)
                 .NotEmpty()
-                .EmailAddress()
-                .MustAsync(async (email, ct) =>
-                {
-                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
-                    return !await uow.Repository<Account>().AnyAsync(x => x.Email == email, ct)
-                        .ConfigureAwait(false);
-                })
-                .WithMessage(newAccountInfo => $"'{newAccountInfo.Email}' is already associated to another account");
+                .EmailAddress();
 
             RuleFor(x => x.Password)
                 .NotNull();
@@ -32,19 +20,7 @@ namespace Identity.Validators
                 .Equal(x => x.Password);
 
             RuleFor(x => x.Username)
-                .NotEmpty()
-                .MustAsync(async (username, ct) =>
-                {
-                    logger?.LogDebug("Validating username {Username}", username);
-                    using IUnitOfWork uow = uowFactory.NewUnitOfWork();
-                    bool alreadyUsed = await uow.Repository<Account>().AnyAsync(x => x.Username == username, ct)
-                                                                      .ConfigureAwait(false);
-
-                    logger?.LogDebug($"Username {{Username}} {(alreadyUsed ? string.Empty : "not ")}already used", username);
-
-                    return !alreadyUsed;
-                })
-                .WithMessage(newAccountinfo => $"An account with the username '{newAccountinfo.Username}' already exists");
+                .NotEmpty();
         }
     }
 }

@@ -21,6 +21,9 @@ using System.Threading.Tasks;
 
 namespace Identity.CQRS.Handlers.Commands
 {
+    /// <summary>
+    /// Handle <see cref=""/>
+    /// </summary>
     public class HandleRefreshAccessTokenByUsernameCommand : IRequestHandler<RefreshAccessTokenByUsernameCommand, Option<BearerTokenInfo, RefreshAccessCommandResult>>
     {
         private readonly IClock _datetimeService;
@@ -82,7 +85,7 @@ namespace Identity.CQRS.Handlers.Commands
                         Task<SecurityToken> newRefreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createNewRefreshTokenCmd, ct);
 
                         await Task.WhenAll(newAccessTokenTask, newRefreshTokenTask)
-                        .ConfigureAwait(false);
+                                  .ConfigureAwait(false);
 
                         account.ChangeRefreshToken((await newRefreshTokenTask).ToString());
 

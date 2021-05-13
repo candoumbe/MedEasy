@@ -40,7 +40,11 @@ namespace MedEasy.Ids.Converters
 
         public static bool IsStronglyTypedId(Type type) => IsStronglyTypedId(type, out _);
 
+#if NETSTANDARD2_0
+        public static bool IsStronglyTypedId(Type type, out Type idType)
+#else
         public static bool IsStronglyTypedId(Type type, [NotNullWhen(true)] out Type idType)
+#endif
         {
             if (type is null)
             {

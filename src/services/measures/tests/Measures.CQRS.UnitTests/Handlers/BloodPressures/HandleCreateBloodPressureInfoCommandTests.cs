@@ -3,7 +3,7 @@
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Commands.BloodPressures;
 using Measures.CQRS.Events.BloodPressures;
 using Measures.CQRS.Handlers.BloodPressures;
@@ -44,7 +44,7 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Handlers")]
-    public class HandleCreateBloodPressureInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
+    public class HandleCreateBloodPressureInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -52,13 +52,13 @@ namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
         private readonly Mock<IMediator> _mediatorMock;
         private readonly HandleCreateBloodPressureInfoCommand _sut;
 
-        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> databaseFixture)
+        public HandleCreateBloodPressureInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                MeasuresContext context = new(options, new FakeClock(new Instant()));
+                MeasuresStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

@@ -160,7 +160,7 @@ namespace Measures.API.Features.v1.BloodPressures
         public async Task<ActionResult<Browsable<BloodPressureInfo>>> Get([RequireNonDefault] BloodPressureId id, CancellationToken cancellationToken = default)
         {
             Option<BloodPressureInfo> result = await _mediator.Send(new GetBloodPressureInfoByIdQuery(id), cancellationToken)
-                    .ConfigureAwait(false);
+                                                              .ConfigureAwait(false);
 
             return result.Match<ActionResult<Browsable<BloodPressureInfo>>>(
                 some: bloodPressure =>

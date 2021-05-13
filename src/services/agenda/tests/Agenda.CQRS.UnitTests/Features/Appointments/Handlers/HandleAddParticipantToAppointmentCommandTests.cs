@@ -13,7 +13,6 @@ using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 using NodaTime;
 using NodaTime.Extensions;
@@ -34,8 +33,7 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly HandleAddParticipantToAppointmentCommand _sut;
-        private DatabaseFacade _databaseFacade;
-
+        
         public HandleAddParticipantToAppointmentCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;

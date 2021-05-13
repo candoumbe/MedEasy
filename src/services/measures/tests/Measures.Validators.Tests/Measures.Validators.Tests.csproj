@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj" />
-    <ProjectReference Include="..\..\Measures.Context\Measures.Context.csproj" />
+    <ProjectReference Include="..\..\Measures.DataStores\Measures.DataStores.csproj" />
     <ProjectReference Include="..\..\Measures.DTO\Measures.DTO.csproj" />
     <ProjectReference Include="..\..\Measures.Validators\Measures.Validators.csproj" />
     <ProjectReference Include="..\..\Measures.Objects\Measures.Objects.csproj" />

@@ -43,7 +43,7 @@ namespace Patients.API.UnitTests.Controllers
             _hostingEnvironmentMock = new Mock<IHostEnvironment>(Strict);
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) 
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
                 => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _optionsMock = new Mock<IOptions<PatientsApiOptions>>(Strict);

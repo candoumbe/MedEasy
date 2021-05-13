@@ -52,7 +52,7 @@ using NodaTime;
 using System.Text.Json;
 using NodaTime.Serialization.SystemTextJson;
 using Agenda.Ids;
-using MedEasy.Ids;
+using static Moq.It;
 
 namespace Agenda.API.UnitTests.Features
 {
@@ -78,9 +78,9 @@ namespace Agenda.API.UnitTests.Features
             _outputHelper = outputHelper;
             _database = database;
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
-            _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
+            _urlHelperMock.Setup(mock => mock.GetPathByAddress(IsAny<string>(), IsAny<RouteValueDictionary>(), IsAny<PathString>(), IsAny<FragmentString>(), IsAny<LinkOptions>()))
                           .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                          => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+                          => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
             _clock = new FakeClock(new Instant());
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
@@ -97,14 +97,14 @@ namespace Agenda.API.UnitTests.Features
             _mapperMock = new Mock<IMapper>(Strict);
 
             IMapper mapper = AutoMapperConfig.Build().CreateMapper();
-            _mapperMock.Setup(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()))
+            _mapperMock.Setup(mock => mock.Map<IEnumerable<AppointmentModel>>(IsAny<IEnumerable<AppointmentInfo>>()))
                 .Returns((IEnumerable<AppointmentInfo> input) => mapper.Map<IEnumerable<AppointmentModel>>(input));
-            _mapperMock.Setup(mock => mock.Map<AppointmentModel>(It.IsAny<AppointmentInfo>()))
+            _mapperMock.Setup(mock => mock.Map<AppointmentModel>(IsAny<AppointmentInfo>()))
                 .Returns((AppointmentInfo input) => mapper.Map<AppointmentModel>(input));
-            _mapperMock.Setup(mock => mock.Map<SearchAppointmentInfo>(It.IsAny<SearchAppointmentModel>()))
+            _mapperMock.Setup(mock => mock.Map<SearchAppointmentInfo>(IsAny<SearchAppointmentModel>()))
                 .Returns((SearchAppointmentModel input) => mapper.Map<SearchAppointmentInfo>(input));
 
-            _mapperMock.Setup(mock => mock.Map<NewAppointmentInfo>(It.IsAny<NewAppointmentModel>()))
+            _mapperMock.Setup(mock => mock.Map<NewAppointmentInfo>(IsAny<NewAppointmentModel>()))
                 .Returns((NewAppointmentModel input) => mapper.Map<NewAppointmentInfo>(input));
 
             _sut = new AppointmentsController(_urlHelperMock.Object,
@@ -178,7 +178,7 @@ namespace Agenda.API.UnitTests.Features
 
             _apiOptionsMock.Setup(mock => mock.Value).Returns(new AgendaApiOptions { MaxPageSize = 200, DefaultPageSize = 30 });
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<GetPageOfAppointmentInfoQuery>(), IsAny<CancellationToken>()))
                 .Returns((GetPageOfAppointmentInfoQuery request, CancellationToken _) => Task.FromResult(Page<AppointmentInfo>.Empty(request.Data.PageSize)));
 
 
@@ -187,13 +187,13 @@ namespace Agenda.API.UnitTests.Features
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Page<AppointmentInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfAppointmentInfoQuery>(q => q.Data.Page == page && q.Data.PageSize == pageSize), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<IRequest<Page<AppointmentInfo>>>(), IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(Is<GetPageOfAppointmentInfoQuery>(q => q.Data.Page == page && q.Data.PageSize == pageSize), IsAny<CancellationToken>()), Times.Once);
 
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
             _apiOptionsMock.VerifyNoOtherCalls();
 
-            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
             _mapperMock.VerifyNoOtherCalls();
 
             actionResult.Should()
@@ -238,7 +238,7 @@ namespace Agenda.API.UnitTests.Features
             // Arrange
             AppointmentId appointmentId = AppointmentId.New();
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsNotNull<GetOneAppointmentInfoByIdQuery>(), IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<AppointmentInfo>());
 
             // Act
@@ -246,10 +246,10 @@ namespace Agenda.API.UnitTests.Features
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<IRequest<Option<AppointmentInfo>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<IRequest<Option<AppointmentInfo>>>(), IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsNotNull<GetOneAppointmentInfoByIdQuery>(), IsAny<CancellationToken>()), Times.Once);
 
-            _mapperMock.Verify(mock => mock.Map<AppointmentModel>(It.IsAny<AppointmentInfo>()), Times.Never);
+            _mapperMock.Verify(mock => mock.Map<AppointmentModel>(IsAny<AppointmentInfo>()), Times.Never);
             _mapperMock.VerifyNoOtherCalls();
 
             actionResult.Result.Should()
@@ -281,7 +281,7 @@ namespace Agenda.API.UnitTests.Features
                     .ConfigureAwait(false);
             }
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<GetOneAppointmentInfoByIdQuery>(), IsAny<CancellationToken>()))
                 .Returns(async (GetOneAppointmentInfoByIdQuery query, CancellationToken ct) =>
                 {
                     _outputHelper.WriteLine($"Executing query : {query.Jsonify()}");
@@ -304,7 +304,7 @@ namespace Agenda.API.UnitTests.Features
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetOneAppointmentInfoByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<GetOneAppointmentInfoByIdQuery>(), IsAny<CancellationToken>()), Times.Once);
 
             Browsable<AppointmentModel> browsableResource = actionResult.Value;
 
@@ -329,11 +329,11 @@ namespace Agenda.API.UnitTests.Features
 
             Link selfLink = links.Single(link => link.Relation == Self);
             selfLink.Method.Should().Be("GET");
-            selfLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId.Value}&version={_apiVersion}");
+            selfLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}&version={_apiVersion}");
 
             Link deleteLink = links.Single(link => link.Relation == "delete");
             deleteLink.Method.Should().Be("DELETE");
-            deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId.Value}&version={_apiVersion}");
+            deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}&version={_apiVersion}");
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -479,7 +479,7 @@ namespace Agenda.API.UnitTests.Features
                             .ConfigureAwait(false);
             }
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<GetPageOfAppointmentInfoQuery>(), IsAny<CancellationToken>()))
                                  .Returns(async (GetPageOfAppointmentInfoQuery query, CancellationToken ct) =>
                                  {
                                      using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
@@ -513,10 +513,10 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"{nameof(AppointmentsController)}.{nameof(AppointmentsController.Get)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
             _apiOptionsMock.VerifyNoOtherCalls();
 
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<GetPageOfAppointmentInfoQuery>(), IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.VerifyNoOtherCalls();
 
-            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Exactly(actionResult.Value != null ? 1 : 0));
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(IsAny<IEnumerable<AppointmentInfo>>()), Times.Exactly(actionResult.Value != null ? 1 : 0));
             _mapperMock.VerifyNoOtherCalls();
 
             actionResult.Should()
@@ -680,7 +680,7 @@ namespace Agenda.API.UnitTests.Features
             _outputHelper.WriteLine($"Mediator response: {SerializeObject(page, Indented)}");
 
             // Arrange
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<SearchAppointmentInfoQuery>(), IsAny<CancellationToken>()))
                 .ReturnsAsync(page);
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });
@@ -693,12 +693,12 @@ namespace Agenda.API.UnitTests.Features
             _apiOptionsMock.VerifyGet(mock => mock.Value, Times.Once, $"{nameof(AppointmentsController)}.{nameof(AppointmentsController.Search)} must always check that {nameof(PaginationConfiguration.PageSize)} don't exceed {nameof(AgendaApiOptions.MaxPageSize)} value");
             _apiOptionsMock.VerifyNoOtherCalls();
 
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.IsAny<SearchAppointmentInfoQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<SearchAppointmentInfoQuery>(), IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(IsAny<SearchAppointmentInfoQuery>(), IsAny<CancellationToken>()), Times.Once);
             _mediatorMock.VerifyNoOtherCalls();
 
-            _mapperMock.Verify(mock => mock.Map<SearchAppointmentInfo>(It.IsAny<SearchAppointmentModel>()), Times.Once);
-            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(It.IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<SearchAppointmentInfo>(IsAny<SearchAppointmentModel>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<IEnumerable<AppointmentModel>>(IsAny<IEnumerable<AppointmentInfo>>()), Times.Once);
             _mapperMock.VerifyNoOtherCalls();
 
             GenericPagedGetResponse<Browsable<AppointmentModel>> response = actionResult.Value;
@@ -746,13 +746,14 @@ namespace Agenda.API.UnitTests.Features
                 }
             };
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAppointmentInfoCommand>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<CreateAppointmentInfoCommand>(), IsAny<CancellationToken>()))
                 .Returns((CreateAppointmentInfoCommand cmd, CancellationToken ct) =>
                 {
                     return new HandleCreateAppointmentInfoCommand(_uowFactory, AutoMapperConfig.Build().CreateMapper())
                         .Handle(cmd, ct);
                 });
-
+            _mapperMock.Setup(mock => mock.Map<AppointmentInfo, AppointmentModel>(IsAny<AppointmentInfo>()))
+                       .Returns((AppointmentInfo info) => AutoMapperConfig.Build().CreateMapper().Map<AppointmentInfo, AppointmentModel>(info));
             _outputHelper.WriteLine($"{nameof(newAppointment)} : {newAppointment}");
 
             // Act
@@ -760,8 +761,9 @@ namespace Agenda.API.UnitTests.Features
                                                    .ConfigureAwait(false);
 
             // Assert
-            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(It.IsAny<NewAppointmentModel>()), Times.Once);
-            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(It.Is<NewAppointmentModel>(input => input == newAppointment)), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(IsAny<NewAppointmentModel>()), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<NewAppointmentInfo>(Is<NewAppointmentModel>(input => input == newAppointment)), Times.Once);
+            _mapperMock.Verify(mock => mock.Map<AppointmentInfo, AppointmentModel>(IsAny<AppointmentInfo>()), Times.Once);
             _mapperMock.VerifyNoOtherCalls();
 
             CreatedAtRouteResult createdAtRouteResult = actionResult.Should()
@@ -775,16 +777,16 @@ namespace Agenda.API.UnitTests.Features
                 .ContainKey("controller");
 
             routeValues[nameof(AppointmentInfo.Id)].Should()
-                .BeAssignableTo<Guid>().Which.Should()
-                .NotBe(Guid.Empty);
+                .BeAssignableTo<AppointmentId>().Which.Should()
+                .NotBe(AppointmentId.Empty);
             routeValues["controller"].Should()
                 .BeAssignableTo<string>().Which.Should()
                 .Be(AppointmentsController.EndpointName);
 
-            Browsable<AppointmentInfo> browsableResource = createdAtRouteResult.Value.Should()
-                .BeAssignableTo<Browsable<AppointmentInfo>>().Which;
+            Browsable<AppointmentModel> browsableResource = createdAtRouteResult.Value.Should()
+                .BeAssignableTo<Browsable<AppointmentModel>>().Which;
 
-            AppointmentInfo resource = browsableResource.Resource;
+            AppointmentModel resource = browsableResource.Resource;
             resource.Should()
                 .NotBeNull();
 
@@ -792,14 +794,14 @@ namespace Agenda.API.UnitTests.Features
                 .NotBe(AppointmentId.Empty).And
                 .NotBeNull();
             resource.StartDate.Should()
-                .Be(newAppointment.StartDate.ToInstant());
+                .Be(newAppointment.StartDate);
             resource.EndDate.Should()
-                .Be(newAppointment.EndDate.ToInstant());
+                .Be(newAppointment.EndDate);
             resource.Subject.Should()
                 .Be(newAppointment.Subject);
             resource.Location.Should()
                 .Be(newAppointment.Location);
-            IEnumerable<AttendeeInfo> participants = resource.Attendees;
+            IEnumerable<AttendeeModel> participants = resource.Attendees;
             participants.Should()
                 .HaveSameCount(newAppointment.Attendees).And
                 .OnlyContain(item => item.Id != default).And
@@ -868,7 +870,7 @@ namespace Agenda.API.UnitTests.Features
             AppointmentId appointmentId = AppointmentId.New();
             AttendeeId participantId = AttendeeId.New();
 
-            _mediatorMock.Setup(mock => mock.Send(It.IsAny<RemoveAttendeeFromAppointmentByIdCommand>(), It.IsAny<CancellationToken>()))
+            _mediatorMock.Setup(mock => mock.Send(IsAny<RemoveAttendeeFromAppointmentByIdCommand>(), IsAny<CancellationToken>()))
                 .ReturnsAsync(cmdResult);
 
             // Act

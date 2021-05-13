@@ -249,3 +249,8 @@ ModelManifest.xml
 /.logs
 # Tye - Tye runner
 /.tye
+
+#SQLite files
+*.db-wal
+*.db-shm
+/databases

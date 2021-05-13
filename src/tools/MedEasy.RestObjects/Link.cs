@@ -40,9 +40,7 @@ namespace MedEasy.RestObjects
         /// </summary>
         /// <remarks>
         /// A template url is a url with generic placeholder.
-        /// 
-        /// <code>api/patients/{id?}</code> is a template url as it contiains one placeholder
-        /// 
+        /// <c>api/patients/{id?}</c> is a template url as it contiains one placeholder
         /// </remarks>
         public bool? Template { get; set; }
 

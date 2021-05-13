@@ -14,7 +14,7 @@ using System.IO;
 namespace Agenda.API.Context
 {
     /// <summary>
-    /// Factory class to create <see cref="AgendaContext"/> during design time.
+    /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="AgendaContext"/>.
     /// </summary>
     public class AgendaDesignTimeDbContextFactory : IDesignTimeDbContextFactory<AgendaContext>
     {

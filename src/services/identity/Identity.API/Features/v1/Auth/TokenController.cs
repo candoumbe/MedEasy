@@ -168,11 +168,14 @@ namespace Identity.API.Features.v1.Auth
         /// <param name="username">Username of the account to renew access token for</param>
         /// <param name="refreshAccessToken">Access token and refresh token to renew</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <response code="200">Un nouveau jeton d'accès a été forgé</response>
+        /// <response code="404">l'utilisateur n'existe pas.</response>
+        /// <response code="404">l'utilisateur n'existe pas.</response>
         [HttpPut("{username}")]
         [ApiVersion("1.0")]
         [ApiVersion("2.0")]
         [ProducesResponseType(typeof(BearerTokenInfo), Status200OK)]
+
         public async Task<IActionResult> Refresh(string username, [FromBody] RefreshAccessTokenInfo refreshAccessToken, CancellationToken ct = default)
         {
             JwtOptions jwtOptions = _jwtOptions.Value;

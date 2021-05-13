@@ -4,7 +4,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 
-using Measures.Context;
+using Measures.DataStores;
 using Measures.DTO;
 using Measures.Ids;
 using Measures.Objects;
@@ -49,10 +49,10 @@ namespace Measures.Validators.Tests.Features.Patients
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> dbContextOptionsBuilder = new();
+            DbContextOptionsBuilder<MeasuresStore> dbContextOptionsBuilder = new();
             dbContextOptionsBuilder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
                 .UseInMemoryDatabase($"InMemory_{Guid.NewGuid()}");
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(dbContextOptionsBuilder.Options, (options) => new MeasuresContext(options, new FakeClock(new Instant())));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(dbContextOptionsBuilder.Options, (options) => new (options, new FakeClock(new Instant())));
             _validator = new CreatePatientInfoValidator(_uowFactory);
         }
 

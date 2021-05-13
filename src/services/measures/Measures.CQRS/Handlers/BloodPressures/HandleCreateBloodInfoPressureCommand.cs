@@ -57,10 +57,10 @@ namespace Measures.CQRS.Handlers.BloodPressures
                 some: async _ =>
                 {
                     BloodPressure newEntity = new(patientId: data.PatientId,
-                                                                id: BloodPressureId.New(),
-                                                                data.DateOfMeasure,
-                                                                data.DiastolicPressure,
-                                                                data.SystolicPressure);
+                                                  id: BloodPressureId.New(),
+                                                  data.DateOfMeasure,
+                                                  data.DiastolicPressure,
+                                                  data.SystolicPressure);
 
                     uow.Repository<BloodPressure>().Create(newEntity);
                     await uow.SaveChangesAsync(cancellationToken)

@@ -37,19 +37,18 @@ namespace Identity.API.Context
             string provider = configuration.GetValue("provider", "sqlite")
                                            ?.ToLowerInvariant();
             IdentityContext context;
-            switch(provider)
+            switch (provider)
             {
                 case "sqlite":
-                builder.UseSqlite(connectionString,
-                                  b => b.UseNodaTime()
-                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName))
-                       .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                context = new IdentityContext(builder.Options, SystemClock.Instance);
+                    builder.UseSqlite(connectionString,
+                                      b => b.UseNodaTime()
+                                            .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName))
+                           .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                    context = new IdentityContext(builder.Options, SystemClock.Instance);
                     break;
 
                 default:
                     throw new InvalidOperationException($"Unsupported provider '{provider}'");
-
             }
 
             return context;

@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Microsoft.EntityFrameworkCore.Migrations;
+
 using NodaTime;
 
 namespace Agenda.DataStores.SqliteMigrations

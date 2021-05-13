@@ -164,18 +164,29 @@ namespace Measures.API.Features.v1.Patients
         [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
         public async Task<IActionResult> Get([RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
-            Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
-                .ConfigureAwait(false);
+            IActionResult actionResult;
 
-            return result.Match<IActionResult>(
-                some: resource =>
-                {
-                    string version = _apiVersion.ToString();
-                    Browsable<PatientInfo> browsableResource = new()
+            if (id == PatientId.Empty)
+            {
+                actionResult = new BadRequestResult();
+            }
+
+            else
+            {
+
+
+                Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
+                    .ConfigureAwait(false);
+
+                actionResult = result.Match<IActionResult>(
+                    some: resource =>
                     {
-                        Resource = resource,
-                        Links = new[]
+                        string version = _apiVersion.ToString();
+                        Browsable<PatientInfo> browsableResource = new()
                         {
+                            Resource = resource,
+                            Links = new[]
+                            {
                             new Link
                             {
                                 Relation = LinkRelation.Self,
@@ -201,12 +212,15 @@ namespace Measures.API.Features.v1.Patients
                                                                      version
                                                                  })
                             }
-                        }
-                    };
-                    return new OkObjectResult(browsableResource);
-                },
-                none: () => new NotFoundResult()
-            );
+                            }
+                        };
+                        return new OkObjectResult(browsableResource);
+                    },
+                    none: () => new NotFoundResult()
+                );
+            }
+
+            return actionResult;
         }
 
         /// <summary>
@@ -227,7 +241,7 @@ namespace Measures.API.Features.v1.Patients
         /// </para>
         /// <para>
         ///     // GET api/Doctors/Search?Firstname=B*e
-        ///     will match match all resources which starts with 'B' and ends with 'e'.
+        ///     will match all resources which starts with 'B' and ends with 'e'.
         /// </para>
         /// <para>'?' : match exactly one charcter in a string property.</para>
         /// <para>'!' : negate a criteria</para>

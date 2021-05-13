@@ -35,16 +35,23 @@ namespace Measures.CQRS.Queries.BloodPressures
         /// </summary>
         /// <param name="id">id of the patient</param>
         /// <param name="pagination">paging configuration</param>
+        /// <exception cref="ArgumentNullException">either <paramref name="id"/> or <paramref name="pagination"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="PatientId.Empty"/>.</exception>
         public GetPageOfBloodPressureInfoByPatientIdQuery(PatientId id, PaginationConfiguration pagination) : this((id, pagination))
         {
-            if (id == PatientId.Empty)
+            if (id is null)
             {
-                throw new ArgumentOutOfRangeException(nameof(id));
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (pagination is null)
             {
-                throw new ArgumentOutOfRangeException(nameof(pagination));
+                throw new ArgumentNullException(nameof(pagination));
+            }
+
+            if (id == PatientId.Empty)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id));
             }
         }
     }

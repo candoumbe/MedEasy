@@ -1,5 +1,8 @@
 ﻿namespace Patients.API
 {
+    /// <summary>
+    /// Options associated with JWT computation.
+    /// </summary>
     public class JwtOptions
     {
         /// <summary>

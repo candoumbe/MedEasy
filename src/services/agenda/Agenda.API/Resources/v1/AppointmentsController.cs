@@ -26,6 +26,9 @@ using Agenda.Ids;
 
 namespace Agenda.API.Resources.v1
 {
+    /// <summary>
+    /// Handles <see cref="AppointmentInfo"/> resources.
+    /// </summary>
     [ApiVersion("1.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]
@@ -84,28 +87,28 @@ namespace Agenda.API.Resources.v1
                     Relation = Self,
                     Method = "GET",
                     Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                    new { controller = EndpointName, id = newResource.Id.Value, version })
+                                                    new { controller = EndpointName, newResource.Id, version })
                 }
             }
             .Concat(participants.Select(p => new Link
             {
                 Relation = $"get-participant-{p.Id.Value}",
                 Method = "GET",
-                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, id = p.Id.Value, version })
+                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id, version })
             }))
 #if DEBUG
             .ToArray()
 #endif
             ;
 
-            Browsable<AppointmentInfo> browsableResource = new()
+            Browsable<AppointmentModel> browsableResource = new()
             {
-                Resource = newResource,
+                Resource = _mapper.Map<AppointmentInfo, AppointmentModel>( newResource),
                 Links = links
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi,
-                                            new { controller = EndpointName, id = newResource.Id.Value, version },
+                                            new { controller = EndpointName, newResource.Id, version },
                                             browsableResource);
         }
 
@@ -144,7 +147,7 @@ namespace Agenda.API.Resources.v1
                                                                                   Relation = Self,
                                                                                   Method = "GET",
                                                                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                                                                                  new {controller = EndpointName, id = x.Id.Value, version})
+                                                                                                                  new {controller = EndpointName, x.Id, version})
                                                                               }
                                                                           }
                                                                       });
@@ -234,7 +237,7 @@ namespace Agenda.API.Resources.v1
         /// </example>
         /// <para>
         ///     // GET api/appointments/search?location=C*tral
-        ///     will match match all resources which starts with 'C' and ends with 'tral'.
+        ///     will match all resources which starts with <c>C</c> and ends with <c>tral</c>.
         /// </para>
         /// <para>'?' : match exactly one charcter in a string property.</para>
         /// <para>'!' : negate a criterion</para>

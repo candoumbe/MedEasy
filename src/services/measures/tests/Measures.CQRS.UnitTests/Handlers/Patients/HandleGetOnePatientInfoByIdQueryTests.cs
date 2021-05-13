@@ -2,7 +2,7 @@
 
 using FluentAssertions;
 
-using Measures.Context;
+using Measures.DataStores;
 using Measures.CQRS.Handlers.Patients;
 using Measures.CQRS.Queries.Patients;
 using Measures.DTO;
@@ -38,23 +38,23 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Patients")]
-    public class HandleGetOnePatientInfoByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresContext>>
+    public class HandleGetOnePatientInfoByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly HandleGetOnePatientInfoByIdQuery _sut;
 
-        public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresContext> database)
+        public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
             _outputHelper = outputHelper;
 
-            DbContextOptionsBuilder<MeasuresContext> builder = new();
+            DbContextOptionsBuilder<MeasuresStore> builder = new();
             builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
                 .UseInMemoryDatabase($"{Guid.NewGuid()}");
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresContext>(builder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(builder.Options, (options) =>
             {
-                MeasuresContext context = new(options, new FakeClock(new Instant()));
+                MeasuresStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });

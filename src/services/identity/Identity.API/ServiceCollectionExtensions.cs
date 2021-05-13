@@ -89,8 +89,8 @@ namespace Identity.API
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                jsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
 
@@ -175,16 +175,17 @@ namespace Identity.API
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<IdentityContext> builder = new();
-                if (hostingEnvironment.IsEnvironment("Integration"))
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                string connectionString = configuration.GetConnectionString("identity");
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseSqlite("Datasource=:memory:",
+                    builder.UseSqlite(connectionString,
                                       options => options.UseNodaTime()
                                                         .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
                 }
                 else
                 {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                    builder.UseNpgsql(configuration.GetConnectionString("identity-db"),
+                    builder.UseNpgsql(connectionString,
                                       options => options.EnableRetryOnFailure(5)
                                                         .UseNodaTime()
                                                         .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
@@ -199,21 +200,21 @@ namespace Identity.API
                 return builder;
             }
 
-            //services.AddTransient(serviceProvider =>
-            //{
-            //    DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-            //    IClock clock = serviceProvider.GetRequiredService<IClock>();
-            //    return new IdentityContext(optionsBuilder.Options, clock);
-            //});
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new IdentityContext(optionsBuilder.Options, clock);
+            });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
             {
-               DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
-               IClock clock = serviceProvider.GetRequiredService<IClock>();
-               IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-               return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
-                                                               options => new IdentityContext(options, clock));
-             });
+                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+
+                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
+                                                                options => new IdentityContext(options, clock));
+            });
 
             return services;
         }

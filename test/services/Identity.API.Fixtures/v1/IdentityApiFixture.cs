@@ -1,13 +1,10 @@
-using Humanizer;
-
 using Identity.API.Features.v1.Accounts;
 using Identity.DataStores;
 using Identity.DTO;
+using Identity.DTO.Auth;
 using Identity.DTO.v1;
+using Identity.Ids;
 
-using MedEasy.Abstractions.ValueConverters;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
 
 using Microsoft.AspNetCore.Authentication;
@@ -15,58 +12,68 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-
-using static Newtonsoft.Json.JsonConvert;
-
 
 namespace Identity.API.Fixtures.v1
 {
-    public class IdentityApiFixture : IntegrationFixture<Program>
+    public class IdentityApiFixture : IntegrationFixture<Startup>
     {
-        private readonly static JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+        public static JsonSerializerOptions SerializerOptions
+        {
+            get
+
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                options.PropertyNameCaseInsensitive = true;
+                return options;
+            }
+        }
+
+        /// <summary>
+        /// Gets/sets the email to use to create an account or to log in
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Password to use to create an account or to login
+        /// </summary>
+        public string Password { get; set; }
+
+        /// <summary>
+        ///  Name of the account
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The current token
+        /// </summary>
+        public BearerTokenInfo Tokens { get; private set; }
+
+
 
         protected override void ConfigureClient(HttpClient client)
         {
-            client.BaseAddress = new Uri("http://localhost");
-            client.Timeout = 1.Minutes();
+            client.BaseAddress = new Uri("http://local");
+            client.Timeout = TimeSpan.FromMinutes(2);
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
-            {
-                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<IdentityContext> builder = new();
-                builder.UseSqlite("Datasource=:memory:",
-                                      options => options.UseNodaTime()
-                                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName))
-                       .UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
-                       .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
-                       .ConfigureWarnings(options =>
-                       {
-                           options.Default(WarningBehavior.Log);
-                       });
-                return builder;
-            }
-
             base.ConfigureWebHost(builder);
             builder.ConfigureTestServices(services =>
             {
@@ -90,65 +97,104 @@ namespace Identity.API.Fixtures.v1
                         .AddAuthentication(Scheme)
                         .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
 
-                services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-                {
-                    DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
-                    IClock clock = serviceProvider.GetRequiredService<IClock>();
-                    IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                    return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
-                                                                    options =>
-                                                                    {
-                                                                        IdentityContext context = new IdentityContext(options, clock);
-                                                                        context.Database.EnsureCreated();
-                                                                        return context;
-                                                                    });
-                });
 
+                ServiceProvider sp = services.BuildServiceProvider();
+
+                using IServiceScope scope = sp.CreateScope();
+                IServiceProvider scopedServices = scope.ServiceProvider;
+                IdentityContext db = scopedServices.GetRequiredService<IdentityContext>();
+
+                db.Database.Migrate();
             });
         }
 
         /// <summary>
-        /// Register a new account and log with it.
-        /// <para>
-        /// </para>
+        /// Register a new account and 
         /// </summary>
         /// <param name="newAccount">Account to register</param>
-        /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async ValueTask<BearerTokenInfo> RegisterAndConnect(NewAccountInfo newAccount)
+        private async Task Register(CancellationToken ct = default)
         {
             // Create account
             using HttpClient client = CreateClient();
-            string uri = $"/v1/{AccountsController.EndpointName}";
+            string uri = $"/v2/{AccountsController.EndpointName}";
 
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount, JsonSerializerOptions)
+            NewAccountInfo newAccount = new()
+            {
+                Email = Email,
+                Password = Password,
+                ConfirmPassword = Password,
+                Name = Email,
+                Username = Email,
+                Id = AccountId.New()
+            };
+
+            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount, SerializerOptions, ct)
                                                              .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 
             // Get Token
-            return await Connect(new LoginInfo { Username = newAccount.Username, Password = newAccount.Password })
-                .ConfigureAwait(false);
+            await LogIn(ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Connects a previously registered accouunt
         /// </summary>
-        /// <param name="loginInfo"></param>
-        /// <returns><see cref="BearerTokenInfo"/> elemane which contains bearer token for the newly registered account</returns>
-        public async Task<BearerTokenInfo> Connect(LoginInfo loginInfo)
+        public async Task LogIn(CancellationToken ct = default)
         {
             using HttpClient client = CreateClient();
-            const string uri = "/v1/auth/token";
+            const string uri = "/v2/auth/token";
 
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, loginInfo, JsonSerializerOptions)
-                                                             .ConfigureAwait(false);
+            if (Tokens is null)
+            {
+                await Register().ConfigureAwait(false);
+                using HttpResponseMessage response = await client.PostAsJsonAsync(uri, new { Username = Email, Password }, SerializerOptions, ct)
+                    .ConfigureAwait(false);
 
-            response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
+                                                  .ConfigureAwait(false);
 
-            string tokenJson = await response.Content.ReadAsStringAsync()
-                                             .ConfigureAwait(false);
+                }
+                else
+                {
+                    JwtSecurityToken jwt = new(Tokens.AccessToken);
 
-            return DeserializeObject<BearerTokenInfo>(tokenJson);
+                    if (jwt.ValidTo < DateTime.UtcNow)
+                    {
+                        await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
+                            .ConfigureAwait(false);
+
+                    }
+
+                }
+
+            } 
+
+        }
+
+
+        /// <summary>
+        /// Refreshes access token for the specified <paramref name="username"/>.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="refreshTokenInfo"></param>
+        /// <returns></returns>
+        public async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
+        {
+            using HttpClient client = CreateClient();
+            string uri = $"/v2/auth/token/{username}/refresh";
+
+            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, refreshTokenInfo, SerializerOptions, ct)
+                .ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
+                                         .ConfigureAwait(false);
+            }
+
         }
     }
 }

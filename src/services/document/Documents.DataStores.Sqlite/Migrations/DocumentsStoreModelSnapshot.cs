@@ -3,16 +3,14 @@ using System;
 using Documents.DataStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Documents.DataStore.SqliteMigrations
+namespace Documents.DataStores.Sqlite.Migrations
 {
     [DbContext(typeof(DocumentsStore))]
-    [Migration("20210417195641_InitialMigration")]
-    partial class InitialMigration
+    partial class DocumentsStoreModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

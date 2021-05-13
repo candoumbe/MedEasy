@@ -40,7 +40,6 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 using NodaTime.Serialization.SystemTextJson;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MedEasy.Abstractions.ValueConverters;
-using Microsoft.Data.Sqlite;
 
 namespace Patients.API
 {
@@ -146,19 +145,21 @@ namespace Patients.API
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<PatientsContext> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                string connectionString = configuration.GetConnectionString("patients");
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseSqlite(new SqliteConnection("DataSource=:memory:"), options => {
+                    builder.UseSqlite(connectionString, options =>
+                    {
                         options.UseNodaTime()
                                .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName);
                     });
                 }
                 else
                 {
-                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                     builder.UseNpgsql(
-                        configuration.GetConnectionString("patients-db"),
+                        connectionString,
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
                                           .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
@@ -182,7 +183,6 @@ namespace Patients.API
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsContext>>(serviceProvider =>
             {
-                IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<PatientsContext> builder = BuildDbContextOptions(serviceProvider);
 
                 IClock clock = serviceProvider.GetRequiredService<IClock>();

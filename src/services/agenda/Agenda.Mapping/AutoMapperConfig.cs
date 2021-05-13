@@ -53,6 +53,10 @@ namespace Agenda.Mapping
                 .IncludeBase<IEntity<AppointmentId>, Resource<AppointmentId>>()
                 .ForMember(dto => dto.Attendees, opt => opt.MapFrom(entity => entity.Attendees));
 
+            cfg.CreateMap<AppointmentInfo, AppointmentModel>()
+               .ForMember(model => model.StartDate, opt => opt.MapFrom(info => info.StartDate.InUtc()))
+               .ForMember(model => model.EndDate, opt => opt.MapFrom(info => info.EndDate.InUtc()));
+
             cfg.CreateMap<AppointmentModel, AppointmentInfo>()
                 .ForMember(dto => dto.StartDate, opt => opt.MapFrom(model => model.StartDate.ToInstant()))
                 .ForMember(dto => dto.EndDate, opt => opt.MapFrom(model => model.EndDate.ToInstant()))

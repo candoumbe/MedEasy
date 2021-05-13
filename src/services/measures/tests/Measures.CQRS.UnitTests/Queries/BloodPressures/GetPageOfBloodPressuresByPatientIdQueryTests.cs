@@ -2,6 +2,9 @@
 
 using FluentAssertions;
 
+using FsCheck;
+using FsCheck.Xunit;
+
 using Measures.CQRS.Queries.BloodPressures;
 using Measures.Ids;
 
@@ -27,44 +30,6 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
             _outputHelper = outputHelper;
         }
 
-        public static IEnumerable<object[]> CtorWithIndividualParameterCases
-        {
-            get
-            {
-                yield return new object[]
-                {
-                    PatientId.Empty, null,
-                    $"PatientId.Empty is not valid for patientId and null is not valid for pagination arguments"
-                };
-
-                yield return new object[]
-                {
-                    PatientId.New(), null,
-                    $"null not a valid argument for patientId"
-                };
-
-                yield return new object[]
-                {
-                    PatientId.Empty, new PaginationConfiguration(),
-                    $"PatientId.Empty is not valid for patientId"
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(CtorWithIndividualParameterCases))]
-        public void GivenDefaultParameters_Ctor_ThrowsArgumentOutOfRangeException(PatientId patientId, PaginationConfiguration pagination, string reason)
-        {
-            // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(patientId, pagination);
-
-            // Assert
-            action.Should()
-                .ThrowExactly<ArgumentOutOfRangeException>(reason).Which
-                .ParamName.Should()
-                    .NotBeNullOrWhiteSpace();
-        }
-
         public static IEnumerable<object[]> CtorWithTupleCases
         {
             get
@@ -74,51 +39,84 @@ namespace Measures.CQRS.UnitTests.Queries.BloodPressures
                 {
                     null,
                     new PaginationConfiguration { Page = faker.Random.Int(min:1), PageSize = faker.Random.Int(min:1) },
-                    $"{default((PatientId, PaginationConfiguration))} is not a valid argument"
+                    $"null is not a valid value for {nameof(PatientId)}"
                 };
 
                 yield return new object[]
                 {
                     PatientId.Empty,
+                    new PaginationConfiguration { Page = faker.Random.Int(min:1), PageSize = faker.Random.Int(min:1) },
+                    $"{nameof(PatientId)}.{nameof(PatientId.Empty)} is not a valid value for {nameof(PatientId)}"
+                };
+
+                yield return new object[]
+                {
+                    PatientId.New(),
                     null,
-                    $"{nameof(PatientId)} cannot be empty"
+                    $"null is not a valid value for {nameof(PaginationConfiguration)}"
                 };
             }
         }
 
-        [Theory]
-        [MemberData(nameof(CtorWithTupleCases))]
-        public void GivenDefaultParameters_CtorWithTuple_ThrowsArgumentOutOfRangeException(PatientId patientId, PaginationConfiguration pagination, string reason)
+        [Property]
+        public void Given_PatientId_is_null_constructor_should_throw_ArgumentNullException(PositiveInt page, PositiveInt pageSize)
         {
-            
+            // Arrange
+            PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
+
             // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(patientId, pagination);
+            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(null, pagination);
 
             // Assert
             action.Should()
-                .ThrowExactly<ArgumentOutOfRangeException>(reason).Which
+                .Throw<ArgumentNullException>().Which
+                .ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
+        }
+
+        [Property]
+        public void Given_PatientId_is_empty_constructor_should_throw_ArgumentOutOfRangeException(PositiveInt page, PositiveInt pageSize)
+        {
+            // Arrange
+            PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
+
+            // Act
+            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(PatientId.Empty, pagination);
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentOutOfRangeException>().Which
                 .ParamName.Should()
                     .NotBeNullOrWhiteSpace();
         }
 
         [Fact]
-        public void GivenSameData_TwoInstances_Have_DifferentIds()
+        public void Given_pagination_is_null_constructor_should_throw_ArgumentNullException()
+        {
+            // Act
+            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(PatientId.New(), null);
+
+            // Assert
+            action.Should()
+                .Throw<ArgumentNullException>().Which
+                .ParamName.Should()
+                    .NotBeNullOrWhiteSpace();
+        }
+
+        [Property]
+        public Property Given_samedata_two_instances_have_different_Id(Guid patientGuidId, PositiveInt page, PositiveInt pageSize)
         {
             // Arrange
-            PatientId patientId = PatientId.New();
-            PaginationConfiguration pagination = new();
+            PatientId id = new (patientGuidId);
+            PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
 
             // Act
-            GetPageOfBloodPressureInfoByPatientIdQuery first = new(patientId, pagination);
-            GetPageOfBloodPressureInfoByPatientIdQuery second = new(patientId, pagination);
+            GetPageOfBloodPressureInfoByPatientIdQuery first = new(id, pagination);
+            GetPageOfBloodPressureInfoByPatientIdQuery second = new(id, pagination);
 
-            first.Id.Should()
-                .NotBeEmpty();
-            second.Id.Should()
-                .NotBeEmpty();
-
-            first.Should()
-                .NotBeSameAs(second);
+            return (first.Id != Guid.Empty
+                    && second.Id != Guid.Empty
+                    && first.Id != second.Id).ToProperty();
         }
     }
 }
