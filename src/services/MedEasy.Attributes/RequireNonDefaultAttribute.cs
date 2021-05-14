@@ -11,9 +11,6 @@ namespace MedEasy.Attributes
     /// <summary>
     /// Marks a property/parameter/class so that its value cannot be its default.
     /// </summary>
-    /// <remarks>
-    /// </remarks>
-
     [AttributeUsage(Parameter | Property | Class, AllowMultiple = false, Inherited = false)]
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
@@ -23,7 +20,7 @@ namespace MedEasy.Attributes
         {
             ValidationResult validationResult = ValidationResult.Success;
 
-            if (value == null)
+            if (value is null)
             {
                 validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));
             }

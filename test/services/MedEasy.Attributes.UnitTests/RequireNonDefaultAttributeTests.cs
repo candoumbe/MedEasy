@@ -14,9 +14,12 @@ using Xunit.Categories;
 
 namespace MedEasy.AttributesUnitTests
 {
+    /// <summary>
+    /// Tests for <see cref="RequireNonDefaultAttribute"/> types.
+    /// </summary>
     [UnitTest]
     [Feature("Validation")]
-    public class RequireNonDefaultAttributeTests : IDisposable
+    public class RequireNonDefaultAttributeTests
     {
         private readonly ITestOutputHelper _outputHelper;
         private RequireNonDefaultAttribute _sut;
@@ -38,7 +41,6 @@ namespace MedEasy.AttributesUnitTests
             _sut = new RequireNonDefaultAttribute();
         }
 
-        public void Dispose() => _sut = null;
 
         [Fact]
         public void IsProperlySet() =>

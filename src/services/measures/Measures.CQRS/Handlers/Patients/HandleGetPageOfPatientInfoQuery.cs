@@ -49,7 +49,7 @@ namespace Measures.CQRS.Handlers.Patients
                     selector,
                     pagination.PageSize,
                     pagination.Page,
-                    new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending),
+                    new Sort<PatientInfo>(nameof(PatientInfo.Name), SortDirection.Descending),
                     cancellationToken)
                 .ConfigureAwait(false);
 

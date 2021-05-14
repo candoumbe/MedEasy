@@ -46,7 +46,13 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(database.OptionsBuilder.Options, (options) => new(options, new FakeClock(new Instant())));
+            _uowFactory = new EFUnitOfWorkFactory<MeasuresStore>(database.OptionsBuilder.Options, (options) => {
+                MeasuresStore store = new(options, new FakeClock(new Instant()));
+
+                store.Database.EnsureCreated();
+                return store;
+
+                });
 
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);
 
@@ -138,7 +144,7 @@ namespace Measures.CQRS.UnitTests.Handlers.Patients
                     Expression<Func<Patient, PatientInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder
                         .GetMapExpression<Patient, PatientInfo>();
 
-                    ISort<PatientInfo> sort = query.Data.Sort ?? new Sort<PatientInfo>(nameof(PatientInfo.UpdatedDate), SortDirection.Descending);
+                    ISort<PatientInfo> sort = query.Data.Sort ?? new Sort<PatientInfo>(nameof(PatientInfo.BirthDate), SortDirection.Descending);
 
                     using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 

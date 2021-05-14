@@ -151,20 +151,19 @@ namespace Patients.API.Controllers
             }
             else
             {
-                using (IUnitOfWork uow = UowFactory.NewUnitOfWork())
-                {
-                    Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                    Option<PatientInfo> result = await uow.Repository<Patient>()
-                        .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
+                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+                Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
+                Option<PatientInfo> result = await uow.Repository<Patient>()
+                    .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
 
-                    actionResult = result.Match<IActionResult>(
-                        some: resource =>
+                actionResult = result.Match<IActionResult>(
+                    some: resource =>
+                    {
+                        Browsable<PatientInfo> browsableResource = new()
                         {
-                            Browsable<PatientInfo> browsableResource = new()
+                            Resource = resource,
+                            Links = new[]
                             {
-                                Resource = resource,
-                                Links = new[]
-                                {
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
@@ -177,14 +176,12 @@ namespace Patients.API.Controllers
                                         Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
                                         Method = "DELETE"
                                     }
-                                }
-                            };
-                            return new OkObjectResult(browsableResource);
-                        },
-                        none: () => new NotFoundResult()
-                    );
-
-                }
+                            }
+                        };
+                        return new OkObjectResult(browsableResource);
+                    },
+                    none: () => new NotFoundResult()
+                );
 
             }
             return actionResult;

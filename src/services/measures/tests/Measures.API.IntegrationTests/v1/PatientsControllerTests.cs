@@ -1,12 +1,13 @@
+using Bogus;
+
 using FluentAssertions;
 using FluentAssertions.Extensions;
 
 using Identity.API.Fixtures.v2;
-using Identity.DTO;
-using Identity.DTO.v2;
 
 using Measures.API.Features.Patients;
 using Measures.DTO;
+using Measures.Ids;
 
 using MedEasy.IntegrationTests.Core;
 using MedEasy.RestObjects;
@@ -17,13 +18,16 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 
+using NodaTime;
 using NodaTime.Extensions;
+using NodaTime.Serialization.SystemTextJson;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
@@ -35,12 +39,6 @@ using Xunit.Categories;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static System.Net.Http.HttpMethod;
-using System.Net.Http.Json;
-using NodaTime.Serialization.SystemTextJson;
-using NodaTime;
-using Identity.Ids;
-using Bogus;
-using Measures.Ids;
 
 namespace Measures.API.IntegrationTests.v1
 {
@@ -54,6 +52,7 @@ namespace Measures.API.IntegrationTests.v1
         private const string _version = "v1";
         private readonly Faker _faker;
         private readonly static string _baseUrl = $"/{_version}/patients";
+        private readonly JsonSerializerOptions _serializerOptions;
 
         private static readonly JSchema _errorObjectSchema = new()
         {
@@ -128,6 +127,7 @@ namespace Measures.API.IntegrationTests.v1
             _identityServer = identityFixture;
             _identityServer.Email = _faker.Person.Email;
             _identityServer.Password = _faker.Internet.Password();
+            _serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         }
 
         public async Task InitializeAsync()
@@ -208,7 +208,7 @@ namespace Measures.API.IntegrationTests.v1
 
         [Theory]
         [MemberData(nameof(RequestWithEmptyIdReturnsBadRequestCases))]
-        public async Task Get_With_Empty_Id_Returns_Bad_Request(HttpMethod method)
+        public async Task Given_empty_id_Get_returns_NotFound(HttpMethod method)
         {
             _outputHelper.WriteLine($"method : <{method}>");
 
@@ -231,37 +231,13 @@ namespace Measures.API.IntegrationTests.v1
                 .Be(Status400BadRequest, "the requested patient id is empty");
 
             ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
-
-            if (method == Get)
-            {
-                string content = await response.Content.ReadAsStringAsync()
-                        .ConfigureAwait(false);
-
-                _outputHelper.WriteLine($"Bad request content : {content}");
-
-                content.Should()
-                    .NotBeNullOrEmpty();
-
-                JToken token = JToken.Parse(content);
-                token.IsValid(_errorObjectSchema)
-                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
-
-                ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
-                errorObject.Title.Should()
-                           .NotBeNullOrWhiteSpace();
-                errorObject.Errors.Should()
-                    .HaveCount(1).And
-                    .ContainKey("id").WhichValue.Should()
-                        .HaveCount(1).And
-                        .HaveElementAt(0, "'id' must not have a default value");
-            }
         }
 
         [Fact]
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
             // Arrange
-            string url = $"{_baseUrl}/search?page=2&page10&firstname=Bruce";
+            string url = $"{_baseUrl}/search?page=2&page10&name=*Bruce*&sort=name";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             using HttpClient client = _server.CreateClient();
@@ -302,7 +278,7 @@ namespace Measures.API.IntegrationTests.v1
 
             Browsable<PatientInfo> browsablePatient = await response.Content.ReadFromJsonAsync<Browsable<PatientInfo>>()
                                                                      .ConfigureAwait(false);
-            
+
             PatientId patientId = browsablePatient.Resource.Id;
             NewBloodPressureModel resourceToCreate = new()
             {
@@ -358,28 +334,28 @@ namespace Measures.API.IntegrationTests.v1
 
         [Theory]
         [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
-        public async Task PostInvalidBloodPressure_Returns_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
+        public async Task Given_invalid_BloodPressure_Post_should_return_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
         {
             // Arrange
             NewPatientInfo newPatientInfo = new()
             {
-                Name = "Solomon Grundy"
+                Name = _faker.Person.FullName
             };
             _outputHelper.WriteLine($"Token : {_identityServer.Tokens.AccessToken.Jsonify()}");
 
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
-            HttpResponseMessage response = await client.PostAsync(_baseUrl, new StringContent(newPatientInfo.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatientInfo, _serializerOptions)
                                                              .ConfigureAwait(false);
 
-            string json = await response.Content.ReadAsStringAsync()
-                                                .ConfigureAwait(false);
-            PatientInfo patientInfo = JsonSerializer.Deserialize<PatientInfo>(json);
+            PatientInfo patientInfo = await response.Content.ReadFromJsonAsync<PatientInfo>(_serializerOptions);
 
             // Act
             _outputHelper.WriteLine($"Invalid resource : {invalidResource}");
-            response = await client.PostAsync($"{_baseUrl}/{patientInfo.Id}/bloodpressures", new StringContent(invalidResource.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            string requestUri = $"{_baseUrl}/{patientInfo.Id}/bloodpressures";
+            _outputHelper.WriteLine($"URL : {requestUri}");
+            response = await client.PostAsync(requestUri, new StringContent(invalidResource.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
                                    .ConfigureAwait(false);
 
             // Assert
