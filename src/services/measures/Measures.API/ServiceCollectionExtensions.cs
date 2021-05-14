@@ -66,7 +66,7 @@ namespace Measures.API
             services.AddControllers(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
-                config.Filters.Add<ValidateModelActionFilter>();
+                config.Filters.Add<ValidateModelActionFilterAttribute>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
@@ -86,6 +86,7 @@ namespace Measures.API
                     .RegisterValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
                     .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
                     ;
+                options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
             })
             .AddJsonOptions(options =>
             {

@@ -127,7 +127,7 @@ namespace Measures.API.IntegrationTests.v1
             _identityServer = identityFixture;
             _identityServer.Email = _faker.Person.Email;
             _identityServer.Password = _faker.Internet.Password();
-            _serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            _serializerOptions = new (JsonSerializerDefaults.Web);
         }
 
         public async Task InitializeAsync()
@@ -228,9 +228,7 @@ namespace Measures.API.IntegrationTests.v1
             response.IsSuccessStatusCode.Should()
                 .BeFalse("the requested patient id is empty");
             ((int)response.StatusCode).Should()
-                .Be(Status400BadRequest, "the requested patient id is empty");
-
-            ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
+                .Be(Status404NotFound, "the requested patient id is empty");
         }
 
         [Fact]
@@ -314,15 +312,17 @@ namespace Measures.API.IntegrationTests.v1
         {
             get
             {
+
+
                 yield return new object[]
                 {
-                    new CreateBloodPressureInfo(),
+                    new NewBloodPressureModel(),
                     "No data set onto the resource"
                 };
 
                 yield return new object[]
                 {
-                    new CreateBloodPressureInfo {
+                    new NewBloodPressureModel {
                         SystolicPressure = 120,
                         DiastolicPressure = 80,
                         DateOfMeasure = 20.June(2003).AsUtc().ToInstant()
@@ -334,7 +334,7 @@ namespace Measures.API.IntegrationTests.v1
 
         [Theory]
         [MemberData(nameof(InvalidRequestToCreateABloodPressureResourceCases))]
-        public async Task Given_invalid_BloodPressure_Post_should_return_BadRequest(CreateBloodPressureInfo invalidResource, string reason)
+        public async Task Given_invalid_BloodPressure_Post_should_return_BadRequest(NewBloodPressureModel invalidResource, string reason)
         {
             // Arrange
             NewPatientInfo newPatientInfo = new()
@@ -347,15 +347,16 @@ namespace Measures.API.IntegrationTests.v1
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatientInfo, _serializerOptions)
-                                                             .ConfigureAwait(false);
+                                                       .ConfigureAwait(false);
 
-            PatientInfo patientInfo = await response.Content.ReadFromJsonAsync<PatientInfo>(_serializerOptions);
+            Browsable<PatientInfo> browsablePatientInfo = await response.Content.ReadFromJsonAsync<Browsable<PatientInfo>>(_serializerOptions)
+                                                                                .ConfigureAwait(false);
 
             // Act
-            _outputHelper.WriteLine($"Invalid resource : {invalidResource}");
-            string requestUri = $"{_baseUrl}/{patientInfo.Id}/bloodpressures";
+            _outputHelper.WriteLine($"Invalid resource : {invalidResource.Jsonify()}");
+            string requestUri = $"{_baseUrl}/{browsablePatientInfo.Resource.Id}/bloodpressures";
             _outputHelper.WriteLine($"URL : {requestUri}");
-            response = await client.PostAsync(requestUri, new StringContent(invalidResource.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            response = await client.PostAsJsonAsync(requestUri, invalidResource, _serializerOptions)
                                    .ConfigureAwait(false);
 
             // Assert
@@ -370,7 +371,7 @@ namespace Measures.API.IntegrationTests.v1
                 .NotBeNullOrWhiteSpace();
 
             string content = await response.Content.ReadAsStringAsync()
-               .ConfigureAwait(false);
+                                                   .ConfigureAwait(false);
             _outputHelper.WriteLine($"Response content : {content}");
 
             JToken.Parse(content).IsValid(_errorObjectSchema)

@@ -50,7 +50,7 @@ namespace Patients.API.UnitTests.Controllers
 {
     [UnitTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<PatientsContext>>
+    public class PatientsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<PatientsContext>>
     {
         private readonly Mock<LinkGenerator> _urlHelperMock;
         private readonly Mock<ILogger<PatientsController>> _loggerMock;
@@ -88,6 +88,19 @@ namespace Patients.API.UnitTests.Controllers
                 _expressionBuilder,
                 _factory);
         }
+
+        ///<inheritdoc/>
+        public async Task InitializeAsync() => await DisposeAsync().ConfigureAwait(false);
+
+        ///<inheritdoc/>
+        public async Task DisposeAsync()
+        {
+            using IUnitOfWork uow = _factory.NewUnitOfWork();
+            uow.Repository<Patient>().Clear();
+
+            await uow.SaveChangesAsync().ConfigureAwait(false);
+        }
+
 
         public static IEnumerable<object[]> GetAllTestCases
         {

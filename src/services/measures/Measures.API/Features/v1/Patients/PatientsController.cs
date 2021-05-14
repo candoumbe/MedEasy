@@ -161,32 +161,22 @@ namespace Measures.API.Features.v1.Patients
         [HttpHead("{id}")]
         [HttpOptions("{id}")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Browsable<PatientInfo>), 200)]
+        [ProducesResponseType(typeof(Browsable<PatientInfo>), Status200OK)]
+        [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Get([RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
-            IActionResult actionResult;
+            Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
+                .ConfigureAwait(false);
 
-            if (id == PatientId.Empty)
-            {
-                actionResult = new BadRequestResult();
-            }
-
-            else
-            {
-
-
-                Option<PatientInfo> result = await _mediator.Send(new GetPatientInfoByIdQuery(id), cancellationToken)
-                    .ConfigureAwait(false);
-
-                actionResult = result.Match<IActionResult>(
-                    some: resource =>
+            return result.Match<IActionResult>(
+                some: resource =>
+                {
+                    string version = _apiVersion.ToString();
+                    Browsable<PatientInfo> browsableResource = new()
                     {
-                        string version = _apiVersion.ToString();
-                        Browsable<PatientInfo> browsableResource = new()
+                        Resource = resource,
+                        Links = new[]
                         {
-                            Resource = resource,
-                            Links = new[]
-                            {
                             new Link
                             {
                                 Relation = LinkRelation.Self,
@@ -212,15 +202,12 @@ namespace Measures.API.Features.v1.Patients
                                                                      version
                                                                  })
                             }
-                            }
-                        };
-                        return new OkObjectResult(browsableResource);
-                    },
-                    none: () => new NotFoundResult()
-                );
-            }
-
-            return actionResult;
+                        }
+                    };
+                    return new OkObjectResult(browsableResource);
+                },
+                none: () => new NotFoundResult()
+            );
         }
 
         /// <summary>
@@ -249,7 +236,6 @@ namespace Measures.API.Features.v1.Patients
         ///     // GET api/Doctors/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not "Bruce"
         /// </para>
-        ///     
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
@@ -487,13 +473,12 @@ namespace Measures.API.Features.v1.Patients
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
-        [ProducesResponseType(typeof(ErrorObject), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] NewPatientInfo newPatient, CancellationToken ct = default)
         {
             CreatePatientInfoCommand cmd = new(newPatient);
 
             PatientInfo resource = await _mediator.Send(cmd, ct)
-                .ConfigureAwait(false);
+                                                  .ConfigureAwait(false);
 
             string version = _apiVersion.ToString();
             Browsable<PatientInfo> browsableResource = new()

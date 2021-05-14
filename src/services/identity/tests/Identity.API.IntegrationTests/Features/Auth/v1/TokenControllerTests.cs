@@ -12,6 +12,7 @@ using Identity.Ids;
 
 using MedEasy.RestObjects;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json.Linq;
@@ -62,7 +63,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
         {
             _faker = new();
             _outputHelper = outputHelper;
-            _identityApiFixture = identityFixture;          
+            _identityApiFixture = identityFixture;
         }
 
         [Fact]
@@ -137,7 +138,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
         }
 
         [Fact]
-        public async Task GivenUserExists_Token_ReturnsValidToken()
+        public async Task Given_User_Exists_Token_ReturnsValidToken()
         {
             // Arrange
             const string password = "thecapedcrusader";
@@ -192,7 +193,7 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
         }
 
         [Fact]
-        public async Task GivenValidAccessToken_Calling_Invalidate_Make_Token_Invalid()
+        public async Task Given_valid_accesstoken_calling_invalidate_make_token_invalid()
         {
             // Arrange
             const string password = "thecapedcrusader";
@@ -233,17 +234,19 @@ namespace Identity.API.IntegrationTests.Features.Auth.v1
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
+            _outputHelper.WriteLine($"Token : {json}");
+
             BearerTokenInfo tokenInfo = JToken.Parse(json)
                 .ToObject<BearerTokenInfo>();
 
             HttpRequestMessage requestInvalidateToken = new(Delete, $"{_version}/auth/token/{newAccountInfo.Username}");
-            AuthenticationHeaderValue bearerTokenHeader = new("Bearer", tokenInfo.AccessToken);
+            AuthenticationHeaderValue bearerTokenHeader = new(JwtBearerDefaults.AuthenticationScheme, tokenInfo.AccessToken);
             requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
             response = await client.SendAsync(requestInvalidateToken)
                 .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            _outputHelper.WriteLine($"Refresh token was successfully revoked");
+            _outputHelper.WriteLine("Refresh token was successfully revoked");
 
             HttpRequestMessage refreshTokenRequest = new(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
             refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
