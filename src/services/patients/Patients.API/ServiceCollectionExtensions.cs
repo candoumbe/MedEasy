@@ -60,7 +60,7 @@ namespace Patients.API
                 .AddControllers(config =>
                 {
                     config.Filters.Add<FormatFilterAttribute>();
-                    config.Filters.Add<ValidateModelActionFilter>();
+                    config.Filters.Add<ValidateModelActionFilterAttribute>();
                     config.Filters.Add<AddCountHeadersFilterAttribute>();
 
                     config.Filters.Add<HandleErrorAttribute>();

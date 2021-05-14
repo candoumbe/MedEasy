@@ -107,8 +107,8 @@ namespace MedEasy.Ids.Converters
             _innerConverter.CanConvertFrom(context, sourceType);
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
             _innerConverter.CanConvertTo(context, destinationType);
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) =>
-            _innerConverter.ConvertFrom(context, culture, value);
+        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) => _innerConverter.ConvertFrom(context, culture, value);
+
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) =>
             _innerConverter.ConvertTo(context, culture, value, destinationType);
 

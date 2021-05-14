@@ -37,11 +37,12 @@ namespace Measures.Validators.Commands.BloodPressures
                 .WithSeverity(Warning);
 
             RuleFor(x => x.PatientId)
-                .NotEmpty()
+                .NotNull()
+                .NotEqual(PatientId.Empty)
                 .WithSeverity(Error);
 
             When(
-                x => x.PatientId != default,
+                x => x.PatientId is not null && x.PatientId != PatientId.Empty,
                 () =>
                 {
                     RuleFor(x => x.PatientId)

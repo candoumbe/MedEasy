@@ -29,14 +29,14 @@ namespace MedEasy.Core.UnitTests.Attributes
     public class ValidateModelFilterTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;
-        private ValidateModelActionFilter _sut;
+        private ValidateModelActionFilterAttribute _sut;
         private Mock<HttpContext> _httpContextMock;
         private Mock<ControllerActionDescriptor> _controllerActionDescriptorMock;
 
         public ValidateModelFilterTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _sut = new ValidateModelActionFilter();
+            _sut = new ValidateModelActionFilterAttribute();
             _httpContextMock = new Mock<HttpContext>(Strict);
             _controllerActionDescriptorMock = new Mock<ControllerActionDescriptor>(Strict);
         }

@@ -282,7 +282,7 @@ namespace Patients.API.Controllers
         /// </code>
         /// </example>
         /// <para>The set of changes to apply will be applied atomically and in the order they're declared. </para>
-        /// 
+        ///
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
@@ -391,7 +391,7 @@ namespace Patients.API.Controllers
         ///     // GET api/Doctors/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not "Bruce"
         /// </para>
-        ///     
+        ///
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>

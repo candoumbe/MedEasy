@@ -150,7 +150,7 @@ namespace MedEasy.ContinuousIntegration
         /// <summary>
         /// Path to the folder that contains databases used by integration tests.
         /// </summary>
-        public AbsolutePath DatabaseFolder => RootDirectory / "databases";
+        public AbsolutePath DatabaseFolder => OutputDirectory / "databases";
 
         public const string MainBranchName = "main";
 
@@ -276,7 +276,7 @@ namespace MedEasy.ContinuousIntegration
             .Description($"Cleans '{DatabaseFolder}'")
             .Executes(() =>
             {
-                EnsureCleanDirectory(OutputDirectory / "databases");
+                EnsureCleanDirectory(DatabaseFolder);
             });
 
         [Parameter("Indicates if the connection strings should be updated in appsettings.integrationtest.json file (Default = true)")]

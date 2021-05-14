@@ -14,9 +14,9 @@ namespace MedEasy.Core.Filters
     /// <summary>
     /// Filter to validate model
     /// </summary>
-    public class ValidateModelActionFilter : ActionFilterAttribute
+    public class ValidateModelActionFilterAttribute : ActionFilterAttribute
     {
-        public ValidateModelActionFilter() => Order = 1;
+        public ValidateModelActionFilterAttribute() => Order = 1;
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
