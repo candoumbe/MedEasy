@@ -304,7 +304,7 @@ namespace Identity.API
 
                             return securityTokenValidator.Validate(securityToken).IsValid;
                         },
-                       RequireExpirationTime = true,
+                       RequireExpirationTime = false,
                        ValidateIssuerSigningKey = true,
                        ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
                        ValidAudiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")

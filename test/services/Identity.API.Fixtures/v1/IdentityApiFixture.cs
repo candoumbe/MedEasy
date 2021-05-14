@@ -94,7 +94,7 @@ namespace Identity.API.Fixtures.v1
                             opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
                                                                                          .Build());
                         })
-                        .AddAuthentication(Scheme)
+                        .AddAuthentication("Bearer")
                         .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
 
 
