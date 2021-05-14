@@ -116,7 +116,7 @@ namespace Identity.API.Fixtures.v1
         {
             // Create account
             using HttpClient client = CreateClient();
-            string uri = $"/v2/{AccountsController.EndpointName}";
+            string uri = $"/v1/{AccountsController.EndpointName}";
 
             NewAccountInfo newAccount = new()
             {
@@ -143,11 +143,10 @@ namespace Identity.API.Fixtures.v1
         public async Task LogIn(CancellationToken ct = default)
         {
             using HttpClient client = CreateClient();
-            const string uri = "/v2/auth/token";
+            const string uri = "/v1/auth/token";
 
             if (Tokens is null)
             {
-                await Register().ConfigureAwait(false);
                 using HttpResponseMessage response = await client.PostAsJsonAsync(uri, new { Username = Email, Password }, SerializerOptions, ct)
                     .ConfigureAwait(false);
 
@@ -159,19 +158,21 @@ namespace Identity.API.Fixtures.v1
                 }
                 else
                 {
-                    JwtSecurityToken jwt = new(Tokens.AccessToken);
+                    await Register(ct).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                JwtSecurityToken jwt = new(Tokens.AccessToken);
 
-                    if (jwt.ValidTo < DateTime.UtcNow)
-                    {
-                        await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
-                            .ConfigureAwait(false);
-
-                    }
+                if (jwt.ValidTo < DateTime.UtcNow)
+                {
+                    await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
+                        .ConfigureAwait(false);
 
                 }
 
-            } 
-
+            }
         }
 
 

@@ -210,31 +210,6 @@ namespace Patients.API.IntegrationTests
                 .Be(Status400BadRequest, "the requested patient id is empty");
 
             ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
-
-            if (method == Get)
-            {
-                string content = await response.Content.ReadAsStringAsync()
-                        .ConfigureAwait(false);
-
-                _outputHelper.WriteLine($"Bad request content : {content}");
-
-                content.Should()
-                    .NotBeNullOrEmpty();
-
-                JToken token = JToken.Parse(content);
-                token.IsValid(_errorObjectSchema)
-
-                    .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
-
-                ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
-                errorObject.Title.Should()
-                    .Be("Validation failed");
-                errorObject.Errors.Should()
-                    .HaveCount(1).And
-                    .ContainKey("id").WhichValue.Should()
-                        .HaveCount(1).And
-                        .HaveElementAt(0, "'id' must have a non default value");
-            }
         }
 
         [Fact]

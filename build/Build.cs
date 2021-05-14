@@ -203,6 +203,10 @@ namespace MedEasy.ContinuousIntegration
                     .SetDisableParallel(false)
                     .When(IsLocalBuild && Interactive, _ => _.SetProperty("NugetInteractive", IsLocalBuild && Interactive))
                 );
+
+
+                DotNetToolRestore(s => s
+                    .SetIgnoreFailedSources(true));
             });
 
         public Target Compile => _ => _
