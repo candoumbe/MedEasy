@@ -18,6 +18,6 @@
         /// </summary>
         public string Name { get; set; }
 
-        public TenantId? TenantId { get; set; }
+        public TenantId TenantId { get; set; }
     }
 }
