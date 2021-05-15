@@ -1,9 +1,6 @@
 <Project>
   <Import Project="core.props"/>
 
-  <PropertyGroup>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-  </PropertyGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
