@@ -236,7 +236,6 @@ namespace MedEasy.ContinuousIntegration
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
-                    .EnableUseSourceLink()
                     .SetNoBuild(InvokedTargets.Contains(Compile))
                     .SetResultsDirectory(UnitTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
@@ -383,8 +382,7 @@ namespace MedEasy.ContinuousIntegration
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
-                    .EnableUseSourceLink()
-                    //.SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(UnitTests))
+                    .SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(UnitTests))
                     .SetResultsDirectory(IntegrationTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .AddProperty("ExcludeByAttribute", "Obsolete")
