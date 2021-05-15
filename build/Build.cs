@@ -285,6 +285,7 @@ namespace MedEasy.ContinuousIntegration
         public Target UpdateDatabases => _ => _
             .Description("Applies any pending migrations on databases")
             .DependsOn(Compile, CleanDatabaseFolder)
+            .Produces(DatabaseFolder / "*.db")
             .Executes(async () =>
             {
                 const string connectionStringsPropertyName = "ConnectionStrings";
