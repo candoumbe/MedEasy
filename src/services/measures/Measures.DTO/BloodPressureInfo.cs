@@ -1,10 +1,10 @@
-﻿using Measures.Ids;
-
-using System;
-using System.Collections.Generic;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+    using System;
+    using System.Collections.Generic;
+
     public sealed class BloodPressureInfo : PhysiologicalMeasurementInfo<BloodPressureId>, IEquatable<BloodPressureInfo>
     {
         /// <summary>

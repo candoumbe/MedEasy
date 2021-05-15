@@ -1,11 +1,11 @@
-﻿using FluentValidation;
-
-using Measures.DTO;
-
-using MedEasy.Validators.Validators;
-
-namespace Measures.Validators.Queries.BloodPressures
+﻿namespace Measures.Validators.Queries.BloodPressures
 {
+    using FluentValidation;
+
+    using Measures.DTO;
+
+    using MedEasy.Validators.Validators;
+
     /// <summary>
     /// Validates <see cref="SearchBloodPressureInfo"/> instances.
     /// </summary>

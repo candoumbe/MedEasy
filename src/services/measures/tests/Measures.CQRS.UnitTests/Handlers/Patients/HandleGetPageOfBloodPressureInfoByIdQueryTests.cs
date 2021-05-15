@@ -1,38 +1,38 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-
-using Measures.DataStores;
-using Measures.CQRS.Handlers.Patients;
-using Measures.CQRS.Queries.BloodPressures;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Mapping;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Handlers.Patients
+﻿namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Queries.BloodPressures;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Mapping;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class HandleGetPageOfBloodPressureInfoByPatientIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {

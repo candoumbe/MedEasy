@@ -1,9 +1,9 @@
-﻿using Documents.Ids;
-
-using System;
-
-namespace Documents.Objects
+﻿namespace Documents.Objects
 {
+    using Documents.Ids;
+
+    using System;
+
     public class DocumentPart
     {
         public byte[] Content { get; }

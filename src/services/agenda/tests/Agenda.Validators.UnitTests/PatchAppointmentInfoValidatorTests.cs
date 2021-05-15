@@ -1,38 +1,38 @@
-﻿using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Objects;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using FluentValidation.Results;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
-
-using Microsoft.AspNetCore.JsonPatch;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-
-namespace Agenda.Validators.UnitTests
+﻿namespace Agenda.Validators.UnitTests
 {
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Objects;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using FluentValidation.Results;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DTO;
+
+    using Microsoft.AspNetCore.JsonPatch;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Validators")]
     [Feature("Agenda")]

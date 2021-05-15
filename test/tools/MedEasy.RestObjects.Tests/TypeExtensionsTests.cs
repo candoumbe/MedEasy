@@ -1,12 +1,12 @@
-﻿using FluentAssertions;
-
-using System;
-using System.Linq;
-
-using Xunit;
-
-namespace MedEasy.RestObjects.Tests
+﻿namespace MedEasy.RestObjects.Tests
 {
+    using FluentAssertions;
+
+    using System;
+    using System.Linq;
+
+    using Xunit;
+
     public class TypeExtensionsTests
     {
         private abstract class Person

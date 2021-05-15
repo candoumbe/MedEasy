@@ -1,14 +1,13 @@
-﻿using FluentAssertions;
-
-using FluentValidation;
-
-using Identity.DTO;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Identity.Validators.UnitTests
+﻿namespace Identity.Validators.UnitTests
 {
+    using FluentAssertions;
+
+    using FluentValidation;
+
+    using Identity.DTO;
+
+    using Xunit;
+    using Xunit.Categories;
 
     [UnitTest]
     [Feature("Validators")]

@@ -1,41 +1,41 @@
-using Agenda.API.Resources.v1;
-using Agenda.API.Resources.v1.Appointments;
-using Agenda.Models.v1.Appointments;
-using Agenda.Models.v1.Attendees;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.Core.Filters;
-using MedEasy.IntegrationTests.Core;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Newtonsoft.Json.JsonConvert;
-using System.Security.Claims;
-using NodaTime.Extensions;
-using System.Net.Http.Json;
-using System.Text.Json;
-using NodaTime.Serialization.SystemTextJson;
-using NodaTime;
-using Agenda.Ids;
-
 namespace Agenda.API.IntegrationTests.v1
 {
+    using Agenda.API.Resources.v1;
+    using Agenda.API.Resources.v1.Appointments;
+    using Agenda.Models.v1.Appointments;
+    using Agenda.Models.v1.Attendees;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.IntegrationTests.Core;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static Newtonsoft.Json.JsonConvert;
+    using System.Security.Claims;
+    using NodaTime.Extensions;
+    using System.Net.Http.Json;
+    using System.Text.Json;
+    using NodaTime.Serialization.SystemTextJson;
+    using NodaTime;
+    using Agenda.Ids;
+
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Attendees")]

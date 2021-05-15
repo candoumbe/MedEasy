@@ -1,27 +1,27 @@
-﻿using FluentAssertions;
-using FluentValidation;
-using FluentValidation.Results;
-using Measures.DTO;
-using Measures.Objects;
-using MedEasy.DAL.Interfaces;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using static Newtonsoft.Json.JsonConvert;
-using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using System.Linq;
-using Measures.Validators.Commands.BloodPressures;
-using Xunit.Categories;
-using Measures.Ids;
-
-namespace Measures.Validators.Tests.Features.BloodPressures
+﻿namespace Measures.Validators.Tests.Features.BloodPressures
 {
+    using FluentAssertions;
+    using FluentValidation;
+    using FluentValidation.Results;
+    using Measures.DTO;
+    using Measures.Objects;
+    using MedEasy.DAL.Interfaces;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using static Newtonsoft.Json.JsonConvert;
+    using static FluentValidation.Severity;
+    using static Moq.MockBehavior;
+    using System.Linq;
+    using Measures.Validators.Commands.BloodPressures;
+    using Xunit.Categories;
+    using Measures.Ids;
+
     [UnitTest]
     [Feature("Validation")]
     public class CreateBloodPressureInfoValidatorTests : IDisposable

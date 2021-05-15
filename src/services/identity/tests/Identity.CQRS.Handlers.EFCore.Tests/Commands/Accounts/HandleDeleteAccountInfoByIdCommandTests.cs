@@ -1,39 +1,39 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Events.Accounts;
-using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
-using Identity.DataStores;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Ids;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Identity.CQRS.UnitTests.Handlers.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.CQRS.Events.Accounts;
+    using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
+    using Identity.DataStores;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     public class HandleDeleteAccountInfoByIdCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {

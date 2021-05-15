@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
-
-using static System.AttributeTargets;
-
-namespace MedEasy.Attributes
+﻿namespace MedEasy.Attributes
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.Linq;
+    using System.Reflection;
+
+    using static System.AttributeTargets;
+
     /// <summary>
     /// Marks a property/parameter/class so that its value cannot be its default.
     /// </summary>

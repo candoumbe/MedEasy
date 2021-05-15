@@ -1,24 +1,24 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using DataFilters;
-
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-
-using MediatR;
-
-using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Queries.Accounts
+﻿namespace Identity.CQRS.Handlers.Queries.Accounts
 {
+    using AutoMapper.QueryableExtensions;
+
+    using DataFilters;
+
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DTO;
+    using Identity.Objects;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+
+    using MediatR;
+
+    using System;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="GetPageOfAccountsByTenantIdQuery"/> queries
     /// </summary>

@@ -1,7 +1,7 @@
-﻿using Measures.Ids;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
     /// <summary>
     /// Base class for data to provide when creating any physiological measure informations
     /// </summary>

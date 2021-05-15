@@ -1,51 +1,51 @@
-﻿using AutoMapper;
-
-using Documents.CQRS.Queries;
-using Documents.DataStore;
-using Documents.Mapping;
-
-using FluentValidation.AspNetCore;
-
-using MedEasy.Core.Filters;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using NodaTime;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using NodaTime.Serialization.SystemTextJson;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MedEasy.Abstractions.ValueConverters;
-using Microsoft.Data.Sqlite;
-
-namespace Documents.API
+﻿namespace Documents.API
 {
+    using AutoMapper;
+
+    using Documents.CQRS.Queries;
+    using Documents.DataStore;
+    using Documents.Mapping;
+
+    using FluentValidation.AspNetCore;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Versioning;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.OpenApi.Models;
+
+    using NodaTime;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Text;
+    using System.Text.Json.Serialization;
+    using System.Text.Json;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using NodaTime.Serialization.SystemTextJson;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using MedEasy.Abstractions.ValueConverters;
+    using Microsoft.Data.Sqlite;
+
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>

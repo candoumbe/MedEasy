@@ -1,32 +1,32 @@
-﻿using Agenda.CQRS.Features.Participants.Handlers;
-using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Objects;
-
-using AutoMapper;
-
-using FluentAssertions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
+    using Agenda.CQRS.Features.Participants.Handlers;
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+
+    using AutoMapper;
+
+    using FluentAssertions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class HandleGetOneParticipantInfoByIdQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

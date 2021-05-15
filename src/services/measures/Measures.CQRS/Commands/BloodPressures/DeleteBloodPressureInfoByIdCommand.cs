@@ -1,12 +1,12 @@
-﻿using Measures.Ids;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-namespace Measures.CQRS.Commands.BloodPressures
+﻿namespace Measures.CQRS.Commands.BloodPressures
 {
+    using Measures.Ids;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
     /// <summary>
     /// Command to delete a new <see cref="BloodPressureInfo"/>.
     /// </summary>

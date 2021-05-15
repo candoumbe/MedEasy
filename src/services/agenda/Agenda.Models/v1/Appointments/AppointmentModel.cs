@@ -1,14 +1,14 @@
-﻿using Agenda.Ids;
-using Agenda.Models.v1.Attendees;
-
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-using System.Collections.Generic;
-
-namespace Agenda.Models.v1.Appointments
+﻿namespace Agenda.Models.v1.Appointments
 {
+    using Agenda.Ids;
+    using Agenda.Models.v1.Attendees;
+
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
+    using System.Collections.Generic;
+
     /// <summary>
     /// An <see cref="Appointment"/> beetween two or more people
     /// </summary>

@@ -1,22 +1,22 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Queries.Roles;
-using Identity.DTO;
-using Identity.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.Handlers.EFCore.Tests.Queries.Roles
+﻿namespace Identity.CQRS.Handlers.EFCore.Tests.Queries.Roles
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Queries.Roles;
+    using Identity.DTO;
+    using Identity.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Identity")]
     public class ListAccountsForRoleQueryTests

@@ -1,11 +1,11 @@
-﻿using MedEasy.RestObjects;
-
-using Patients.Ids;
-
-using System.ComponentModel.DataAnnotations;
-
-namespace Patients.DTO
+﻿namespace Patients.DTO
 {
+    using MedEasy.RestObjects;
+
+    using Patients.Ids;
+
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Data to create a new <see cref="DoctorInfo"/> resource.
     /// </summary>

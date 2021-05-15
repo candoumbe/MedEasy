@@ -1,9 +1,9 @@
-﻿using Measures.Ids;
-
-using System;
-
-namespace Measures.CQRS.Events.BloodPressures
+﻿namespace Measures.CQRS.Events.BloodPressures
 {
+    using Measures.Ids;
+
+    using System;
+
     /// <summary>
     /// Event that notifies the deletion of a <see cref="BloodPressureInfo"/> resource .
     /// </summary>

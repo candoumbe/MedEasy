@@ -1,18 +1,18 @@
-﻿using FluentAssertions;
-
-using MedEasy.CQRS.Core.Commands;
-
-using Patients.CQRS.Commands;
-using Patients.DTO;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Patients.CQRS.UnitTests.Commands
+﻿namespace Patients.CQRS.UnitTests.Commands
 {
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Commands;
+
+    using Patients.CQRS.Commands;
+    using Patients.DTO;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Patients")]
     [Feature("Commands")]

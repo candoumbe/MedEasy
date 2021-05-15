@@ -1,21 +1,21 @@
-﻿using Patients.API.Routing;
-using Patients.DTO;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using static MedEasy.RestObjects.FormFieldType;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Routing;
-
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+﻿// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Patients.API.Controllers
 {
+    using Patients.API.Routing;
+    using Patients.DTO;
+    using MedEasy.RestObjects;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Options;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using static MedEasy.RestObjects.FormFieldType;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.AspNetCore.Routing;
+
     /// <summary>
     /// Controller that describe 
     /// </summary>

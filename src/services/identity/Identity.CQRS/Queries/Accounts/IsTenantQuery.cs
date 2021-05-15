@@ -1,10 +1,10 @@
-﻿using MedEasy.CQRS.Core.Queries;
-using MedEasy.Ids;
-
-using System;
-
-namespace Identity.CQRS.Queries.Accounts
+﻿namespace Identity.CQRS.Queries.Accounts
 {
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.Ids;
+
+    using System;
+
     /// <summary>
     /// Query to check if a <see cref="Guid"/> stands for an "tenant"
     /// </summary>

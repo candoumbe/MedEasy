@@ -1,15 +1,15 @@
-﻿using Identity.CQRS.Queries;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Queries
+﻿namespace Identity.CQRS.Handlers.Queries
 {
+    using Identity.CQRS.Queries;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleHashPasswordWithPredefinedSaltAndIterationQuery : IRequestHandler<HashPasswordWithPredefinedSaltAndIterationQuery, string>
     {
         public async Task<string> Handle(HashPasswordWithPredefinedSaltAndIterationQuery query, CancellationToken cancellationToken) =>

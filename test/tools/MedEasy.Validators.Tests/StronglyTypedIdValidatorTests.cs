@@ -1,17 +1,17 @@
-﻿
-using FluentAssertions;
-
-using FluentValidation;
-
-using MedEasy.Ids;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace MedEasy.Validators.Tests
+﻿namespace MedEasy.Validators.Tests
 {
+
+    using FluentAssertions;
+
+    using FluentValidation;
+
+    using MedEasy.Ids;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     public class StronglyTypedIdValidatorTests
     {

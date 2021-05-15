@@ -1,9 +1,9 @@
-﻿using MediatR;
-
-using System;
-
-namespace MedEasy.CQRS.Core.Commands
+﻿namespace MedEasy.CQRS.Core.Commands
 {
+    using MediatR;
+
+    using System;
+
     /// <summary>
     /// <para>
     /// Defines the shape of a command in Command & Query Responsability Separation pattern.

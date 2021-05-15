@@ -1,10 +1,10 @@
-﻿using MedEasy.DAL.Repositories;
-using MedEasy.RestObjects;
-
-using System;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using MedEasy.DAL.Repositories;
+    using MedEasy.RestObjects;
+
+    using System;
+
     /// <summary>
     /// Describes a query to get a page of <see cref="TResult"/> elements.
     /// </summary>

@@ -1,23 +1,23 @@
-﻿using FluentValidation;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
-using MedEasy.Validators.Patch;
-
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-using Patients.DTO;
-using Patients.Ids;
-using Patients.Objects;
-
-using System;
-using System.Linq;
-
-using static FluentValidation.CascadeMode;
-using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
-
-namespace Patients.Validators.Features.Patients.Commands
+﻿namespace Patients.Validators.Features.Patients.Commands
 {
+    using FluentValidation;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DTO;
+    using MedEasy.Validators.Patch;
+
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
+    using global::Patients.DTO;
+    using global::Patients.Ids;
+    using global::Patients.Objects;
+
+    using System;
+    using System.Linq;
+
+    using static FluentValidation.CascadeMode;
+    using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
+
     /// <summary>
     /// Validates <see cref="PatchInfo{Guid, PatientInfo}"/> instances.
     /// </summary>

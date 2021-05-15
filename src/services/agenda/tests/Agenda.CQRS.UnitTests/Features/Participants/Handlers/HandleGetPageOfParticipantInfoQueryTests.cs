@@ -1,36 +1,36 @@
-﻿using Agenda.CQRS.Features.Participants.Handlers;
-using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Objects;
-
-using Bogus;
-
-using FluentAssertions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
+    using Agenda.CQRS.Features.Participants.Handlers;
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+
+    using Bogus;
+
+    using FluentAssertions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class HandleGetPageOfParticipantInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

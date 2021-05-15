@@ -1,14 +1,14 @@
-﻿using Measures.DTO;
-using Measures.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-
-namespace Measures.CQRS.Queries.Patients
+﻿namespace Measures.CQRS.Queries.Patients
 {
+    using Measures.DTO;
+    using Measures.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     /// Query to read a <see cref="PatientInfo"/> resource by its id.
     /// </summary>

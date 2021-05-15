@@ -1,29 +1,29 @@
-﻿using AutoMapper;
-
-using Measures.CQRS.Events.BloodPressures;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Measures.CQRS.Handlers.BloodPressures
+﻿namespace Measures.CQRS.Handlers.BloodPressures
 {
+    using AutoMapper;
+
+    using Measures.CQRS.Events.BloodPressures;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Command runner for <see cref="PatchInfo{TResourceId}"/> commands
     /// </summary>

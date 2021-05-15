@@ -1,12 +1,12 @@
-﻿using Identity.Ids;
-
-using MedEasy.Ids;
-using MedEasy.RestObjects;
-
-using System.Collections.Generic;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using Identity.Ids;
+
+    using MedEasy.Ids;
+    using MedEasy.RestObjects;
+
+    using System.Collections.Generic;
+
     public class AccountInfo : Resource<AccountId>
     {
         public string Username { get; set; }

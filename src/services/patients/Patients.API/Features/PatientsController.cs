@@ -1,41 +1,41 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using DataFilters;
-
-using FluentValidation.Results;
-
-using MedEasy.Attributes;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.DTO.Search;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Optional;
-
-using Patients.API.Routing;
-using Patients.DTO;
-using Patients.Ids;
-using Patients.Objects;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Patients.API.Controllers
+﻿namespace Patients.API.Controllers
 {
+    using AutoMapper.QueryableExtensions;
+
+    using DataFilters;
+
+    using FluentValidation.Results;
+
+    using MedEasy.Attributes;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.DTO.Search;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    using Optional;
+
+    using Patients.API.Routing;
+    using Patients.DTO;
+    using Patients.Ids;
+    using Patients.Objects;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Endpoint for <see cref="PatientInfo"/> resources.
     /// </summary>

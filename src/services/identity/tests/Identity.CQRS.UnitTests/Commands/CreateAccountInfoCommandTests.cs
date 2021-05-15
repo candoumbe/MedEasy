@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Commands.Accounts;
-using Identity.DTO;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Commands.Accounts
+﻿namespace Identity.CQRS.UnitTests.Commands.Accounts
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.DTO;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class CreateAccountInfoForPatientIdCommandTests : IDisposable
     {

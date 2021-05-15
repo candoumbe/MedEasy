@@ -1,16 +1,16 @@
-using System;
-using Xunit;
-using FluentAssertions;
-using FluentAssertions.Extensions;
-using System.Collections.Generic;
-using Xunit.Categories;
-using Measures.Objects.Exceptions;
-using NodaTime.Extensions;
-using NodaTime;
-using Measures.Ids;
-
 namespace Measures.Objects.Tests
 {
+    using System;
+    using Xunit;
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+    using System.Collections.Generic;
+    using Xunit.Categories;
+    using Measures.Objects.Exceptions;
+    using NodaTime.Extensions;
+    using NodaTime;
+    using Measures.Ids;
+
     [UnitTest]
     public class PatientTests
     {

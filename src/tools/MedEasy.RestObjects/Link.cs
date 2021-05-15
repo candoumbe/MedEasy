@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System;
+
     /// <summary>
     /// Link representation
     /// </summary>

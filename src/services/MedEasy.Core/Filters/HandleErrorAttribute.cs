@@ -1,17 +1,17 @@
-﻿using MedEasy.CQRS.Core.Exceptions;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-
-namespace MedEasy.Core.Filters
+﻿namespace MedEasy.Core.Filters
 {
+    using MedEasy.CQRS.Core.Exceptions;
+
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.Extensions.Logging;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Attribute to apply to handle exceptions
     /// </summary>

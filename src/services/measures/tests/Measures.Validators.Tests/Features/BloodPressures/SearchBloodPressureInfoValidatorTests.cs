@@ -1,30 +1,30 @@
-﻿using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using FluentValidation.Results;
-
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Validators.Queries.BloodPressures;
-
-using Newtonsoft.Json;
-
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-
-using static FluentValidation.Severity;
-using static Newtonsoft.Json.JsonConvert;
-
-namespace Measures.Validators.Tests.Features.Queries.BloodPressures
+﻿namespace Measures.Validators.Tests.Features.Queries.BloodPressures
 {
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using FluentValidation.Results;
+
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Validators.Queries.BloodPressures;
+
+    using Newtonsoft.Json;
+
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
+    using static FluentValidation.Severity;
+    using static Newtonsoft.Json.JsonConvert;
+
     public class SearchBloodPressureInfoValidatorTests : IDisposable
     {
         private readonly ITestOutputHelper _outputHelper;

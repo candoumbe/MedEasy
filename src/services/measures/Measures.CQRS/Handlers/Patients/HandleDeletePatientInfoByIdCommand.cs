@@ -1,21 +1,21 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Measures.CQRS.Commands.Patients;
-using Measures.CQRS.Events;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Measures.CQRS.Handlers.Patients
+﻿namespace Measures.CQRS.Handlers.Patients
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Measures.CQRS.Commands.Patients;
+    using Measures.CQRS.Events;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="DeletePatientInfoByIdCommand"/>s
     /// </summary>

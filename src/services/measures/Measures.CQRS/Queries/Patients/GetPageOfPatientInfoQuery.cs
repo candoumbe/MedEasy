@@ -1,12 +1,12 @@
-﻿using Measures.DTO;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.RestObjects;
-
-using System;
-
-namespace Measures.CQRS.Queries.Patients
+﻿namespace Measures.CQRS.Queries.Patients
 {
+    using Measures.DTO;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.RestObjects;
+
+    using System;
+
     /// <summary>
     /// Query to get a <see cref="MedEasy.DAL.Repositories.Page{T}"/> of <see cref="PatientInfo"/>s.
     /// </summary>

@@ -1,10 +1,10 @@
-﻿using Identity.Ids;
-
-using MedEasy.Ids;
-using MedEasy.RestObjects;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using Identity.Ids;
+
+    using MedEasy.Ids;
+    using MedEasy.RestObjects;
+
     public class SearchAccountInfoResult : Resource<AccountId>
     {
         public string Username { get; set; }

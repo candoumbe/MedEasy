@@ -1,47 +1,47 @@
-﻿
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.CQRS.Handlers.Queries.Accounts;
-using Identity.CQRS.Queries;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.CQRS.Handlers.Queries.Accounts;
+    using Identity.CQRS.Queries;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Identity")]
     public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>

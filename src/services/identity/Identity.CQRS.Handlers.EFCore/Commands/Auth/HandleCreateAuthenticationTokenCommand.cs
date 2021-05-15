@@ -1,26 +1,26 @@
-﻿using Identity.CQRS.Commands;
-using Identity.DTO;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Microsoft.IdentityModel.Tokens;
-
-using NodaTime;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
+﻿namespace Identity.CQRS.Handlers.EFCore.Commands.Auth
 {
+    using Identity.CQRS.Commands;
+    using Identity.DTO;
+    using Identity.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using NodaTime;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles creation of token suitable for authenticating an <see cref="AccountInfo"/>.
     /// </summary>

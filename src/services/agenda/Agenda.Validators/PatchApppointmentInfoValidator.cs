@@ -1,25 +1,25 @@
-﻿using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Objects;
-
-using FluentValidation;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DTO;
-using MedEasy.Validators.Patch;
-
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-using NodaTime;
-
-using System;
-using System.Linq;
-
-using static FluentValidation.CascadeMode;
-using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
-
-namespace Agenda.Validators
+﻿namespace Agenda.Validators
 {
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Objects;
+
+    using FluentValidation;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DTO;
+    using MedEasy.Validators.Patch;
+
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
+    using NodaTime;
+
+    using System;
+    using System.Linq;
+
+    using static FluentValidation.CascadeMode;
+    using static Microsoft.AspNetCore.JsonPatch.Operations.OperationType;
+
     /// <summary>
     /// Validates <see cref="PatchInfo{Guid, AppointmentInfo}"/> instances.
     /// </summary>

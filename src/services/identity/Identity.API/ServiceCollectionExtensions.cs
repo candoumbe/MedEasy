@@ -1,60 +1,60 @@
-﻿using AutoMapper;
-
-using FluentValidation;
-using FluentValidation.AspNetCore;
-
-using Identity.API.Features.Auth;
-using Identity.CQRS.Handlers;
-using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.Mapping;
-using Identity.Objects;
-using Identity.Validators;
-
-using MedEasy.Core.Filters;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-
-using Swashbuckle.NodaTime.AspNetCore;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MedEasy.Abstractions.ValueConverters;
-
-namespace Identity.API
+﻿namespace Identity.API
 {
+    using AutoMapper;
+
+    using FluentValidation;
+    using FluentValidation.AspNetCore;
+
+    using Identity.API.Features.Auth;
+    using Identity.CQRS.Handlers;
+    using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.Mapping;
+    using Identity.Objects;
+    using Identity.Validators;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
+    using Microsoft.AspNetCore.Mvc.Versioning;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.OpenApi.Models;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using Swashbuckle.NodaTime.AspNetCore;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Text.Json.Serialization;
+    using System.Text.Json;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using MedEasy.Abstractions.ValueConverters;
+
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>

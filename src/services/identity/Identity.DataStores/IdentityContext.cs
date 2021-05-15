@@ -1,13 +1,13 @@
-﻿using Identity.Objects;
-
-using MedEasy.DataStores.Core.Relational;
-
-using Microsoft.EntityFrameworkCore;
-
-using NodaTime;
-
-namespace Identity.DataStores
+﻿namespace Identity.DataStores
 {
+    using Identity.Objects;
+
+    using MedEasy.DataStores.Core.Relational;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using NodaTime;
+
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>

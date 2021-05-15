@@ -1,17 +1,16 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-
-namespace MedEasy.IntegrationTests.Core
+﻿namespace MedEasy.IntegrationTests.Core
 {
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Text.Encodings.Web;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// A dummy <see cref="AuthenticationHandler{AuthenticationSchemeOptions}"/> that always succeed.

@@ -1,41 +1,41 @@
-﻿using DataFilters;
-
-using Documents.CQRS.Commands;
-using Documents.CQRS.Queries;
-using Documents.DTO;
-using Documents.DTO.v1;
-using Documents.Ids;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-using MedEasy.DTO;
-using MedEasy.DTO.Search;
-using MedEasy.RestObjects;
-
-using MediatR;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static MedEasy.RestObjects.LinkRelation;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Documents.API.Features.v1
+﻿namespace Documents.API.Features.v1
 {
+    using DataFilters;
+
+    using Documents.CQRS.Commands;
+    using Documents.CQRS.Queries;
+    using Documents.DTO;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.DTO;
+    using MedEasy.DTO.Search;
+    using MedEasy.RestObjects;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static MedEasy.RestObjects.LinkRelation;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Controller that handles <see cref="DocumentInfo"/>s
     /// </summary>

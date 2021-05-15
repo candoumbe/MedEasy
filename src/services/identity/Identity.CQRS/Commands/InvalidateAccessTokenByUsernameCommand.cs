@@ -1,10 +1,10 @@
-﻿using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-namespace Identity.CQRS.Commands
+﻿namespace Identity.CQRS.Commands
 {
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
     /// <summary>
     /// Command to invalidate an access token for an account.
     /// </summary>

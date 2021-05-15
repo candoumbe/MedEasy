@@ -1,8 +1,8 @@
-﻿using MedEasy.Attributes;
-using MedEasy.RestObjects;
-
-namespace Agenda.Models.v1.Search
+﻿namespace Agenda.Models.v1.Search
 {
+    using MedEasy.Attributes;
+    using MedEasy.RestObjects;
+
     public abstract class AbstractSearchModel<T>
     {
         public const string SortPattern = @"^\s*(-|\+)?(([A-Za-z])\w*)+(\s*,\s*((-|\+)?(([A-Za-z])\w*)+)\s*)*$";

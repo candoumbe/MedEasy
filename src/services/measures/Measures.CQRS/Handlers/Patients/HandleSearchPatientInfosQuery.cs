@@ -1,18 +1,18 @@
-﻿using Measures.DTO;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-
-using MediatR;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Measures.CQRS.Handlers.Patients
+﻿namespace Measures.CQRS.Handlers.Patients
 {
+    using Measures.DTO;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+
+    using MediatR;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="SearchQuery{PatientInfo}"/> instances.
     /// </summary>

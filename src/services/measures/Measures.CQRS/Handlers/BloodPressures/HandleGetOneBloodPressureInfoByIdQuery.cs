@@ -1,22 +1,22 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Measures.CQRS.Queries.BloodPressures;
-using Measures.DTO;
-using Measures.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Measures.CQRS.Handlers.BloodPressures
+﻿namespace Measures.CQRS.Handlers.BloodPressures
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Measures.CQRS.Queries.BloodPressures;
+    using Measures.DTO;
+    using Measures.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="GetBloodPressureInfoByIdQuery"/>s
     /// </summary>

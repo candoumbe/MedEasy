@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using static Newtonsoft.Json.JsonConvert;
-using static Newtonsoft.Json.NullValueHandling;
-using Newtonsoft.Json;
-using NodaTime;
-
-namespace Agenda.DTO
+﻿namespace Agenda.DTO
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using static Newtonsoft.Json.JsonConvert;
+    using static Newtonsoft.Json.NullValueHandling;
+    using Newtonsoft.Json;
+    using NodaTime;
+
     /// <summary>
     /// Contains data to create a new <see cref="Appointment"/> beetween two or more person
     /// </summary>

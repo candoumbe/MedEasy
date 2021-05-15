@@ -1,24 +1,24 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Identity.CQRS.Queries.Roles;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Queries
+﻿namespace Identity.CQRS.Handlers.Queries
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Identity.CQRS.Queries.Roles;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles queries to list roles for a specific account
     /// </summary>

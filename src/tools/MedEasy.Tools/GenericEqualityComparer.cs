@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
-
 namespace MedEasy.Tools
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Generic equality comparer
     /// </summary>

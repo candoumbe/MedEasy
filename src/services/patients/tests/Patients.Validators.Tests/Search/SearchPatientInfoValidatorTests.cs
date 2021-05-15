@@ -1,26 +1,26 @@
-﻿using FluentAssertions;
-
-using FluentValidation.Results;
-
-using MedEasy.DTO.Search;
-
-using Patients.DTO;
-using Patients.Validators.Features.Patients.Queries;
-
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-using static Newtonsoft.Json.JsonConvert;
-
-namespace Patients.Validators.Tests.Search
+﻿namespace Patients.Validators.Tests.Search
 {
+    using FluentAssertions;
+
+    using FluentValidation.Results;
+
+    using MedEasy.DTO.Search;
+
+    using Patients.DTO;
+    using Patients.Validators.Features.Patients.Queries;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+    using static Newtonsoft.Json.JsonConvert;
+
     [UnitTest]
     [Feature("Measures")]
     public class SearchPatientInfoValidatorTests : IDisposable

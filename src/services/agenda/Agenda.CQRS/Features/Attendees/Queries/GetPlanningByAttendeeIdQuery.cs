@@ -1,15 +1,15 @@
-﻿using Agenda.DTO;
-using Agenda.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-
-namespace Agenda.CQRS.Features.Participants.Queries
+﻿namespace Agenda.CQRS.Features.Participants.Queries
 {
+    using Agenda.DTO;
+    using Agenda.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Query to retrieve a planning for the specified participant between two date.
     /// </summary>

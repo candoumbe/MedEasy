@@ -1,11 +1,11 @@
-﻿using FluentValidation;
-
-using MedEasy.RestObjects;
-
-using static FluentValidation.Severity;
-
-namespace MedEasy.Validators
+﻿namespace MedEasy.Validators
 {
+    using FluentValidation;
+
+    using MedEasy.RestObjects;
+
+    using static FluentValidation.Severity;
+
     /// <summary>
     /// Validator for <see cref="PaginationConfiguration"/>
     /// </summary>

@@ -1,12 +1,12 @@
-﻿using MedEasy.RestObjects;
-
-using NodaTime;
-
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// data to provide when creating a new blood pressure info
     /// </summary>

@@ -1,12 +1,12 @@
-﻿using System;
-using Xunit.Abstractions;
-using FluentAssertions;
-using Xunit;
-using Identity.CQRS.Queries.Accounts;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Queries.Accounts
+﻿namespace Identity.CQRS.UnitTests.Queries.Accounts
 {
+    using System;
+    using Xunit.Abstractions;
+    using FluentAssertions;
+    using Xunit;
+    using Identity.CQRS.Queries.Accounts;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Accounts")]
     public class GetPageOfAccountsByTenantIdQueryTests : IDisposable

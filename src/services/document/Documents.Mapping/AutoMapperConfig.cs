@@ -1,15 +1,15 @@
-﻿using AutoMapper;
-
-using Documents.DTO.v1;
-using Documents.Ids;
-using Documents.Objects;
-
-using MedEasy.Mapping;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-
-namespace Documents.Mapping
+﻿namespace Documents.Mapping
 {
+    using AutoMapper;
+
+    using Documents.DTO.v1;
+    using Documents.Ids;
+    using Documents.Objects;
+
+    using MedEasy.Mapping;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+
     public static class AutoMapperConfig
     {
         /// <summary>

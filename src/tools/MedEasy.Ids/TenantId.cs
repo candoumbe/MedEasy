@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using System;
-
-namespace MedEasy.Ids
+﻿namespace MedEasy.Ids
 {
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using System;
+
     /// <summary>
     /// Identifier for thent
     /// </summary>

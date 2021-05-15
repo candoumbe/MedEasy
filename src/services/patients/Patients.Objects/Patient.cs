@@ -1,11 +1,11 @@
-﻿using MedEasy.Objects;
-
-using NodaTime;
-
-using Patients.Ids;
-
-namespace Patients.Objects
+﻿namespace Patients.Objects
 {
+    using MedEasy.Objects;
+
+    using NodaTime;
+
+    using Patients.Ids;
+
     /// <summary>
     /// Patient entity
     /// </summary>

@@ -1,45 +1,45 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Measures.DataStores;
-using Measures.CQRS.Commands.Patients;
-using Measures.CQRS.Events;
-using Measures.CQRS.Handlers.Patients;
-using Measures.Ids;
-using Measures.Mapping;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Measures.CQRS.UnitTests.Handlers.Patients
+﻿namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Commands.Patients;
+    using Measures.CQRS.Events;
+    using Measures.CQRS.Handlers.Patients;
+    using Measures.Ids;
+    using Measures.Mapping;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     public class HandleDeletePatientInfoByIdCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {

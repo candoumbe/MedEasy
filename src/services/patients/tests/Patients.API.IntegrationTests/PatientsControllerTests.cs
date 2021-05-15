@@ -1,32 +1,32 @@
-using FluentAssertions;
-using Identity.API.Fixtures.v2;
-using Identity.DTO;
-using Identity.DTO.v2;
-using Patients.DTO;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static System.Net.Http.HttpMethod;
-using System.Text;
-using System.Net.Mime;
-using Identity.Ids;
-using Bogus;
-
 namespace Patients.API.IntegrationTests
 {
+    using FluentAssertions;
+    using Identity.API.Fixtures.v2;
+    using Identity.DTO;
+    using Identity.DTO.v2;
+    using Patients.DTO;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Mvc;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static System.Net.Http.HttpMethod;
+    using System.Text;
+    using System.Net.Mime;
+    using Identity.Ids;
+    using Bogus;
+
     [IntegrationTest]
     [Feature("Patients")]
     public class PatientsControllerTests : IAsyncLifetime, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>

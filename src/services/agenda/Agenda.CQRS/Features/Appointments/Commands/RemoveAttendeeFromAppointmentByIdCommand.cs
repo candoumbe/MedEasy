@@ -1,12 +1,12 @@
-﻿using Agenda.Ids;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-namespace Agenda.CQRS.Features.Appointments.Commands
+﻿namespace Agenda.CQRS.Features.Appointments.Commands
 {
+    using Agenda.Ids;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
     /// <summary>
     /// Command to add an existing <see cref="DTO.AttendeeInfo"/> to an existing <see cref="DTO.AppointmentInfo"/>
     /// </summary>

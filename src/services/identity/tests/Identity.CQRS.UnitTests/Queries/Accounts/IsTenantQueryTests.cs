@@ -1,17 +1,17 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Queries.Accounts;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.Ids;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Queries.Accounts
+﻿namespace Identity.CQRS.UnitTests.Queries.Accounts
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Queries.Accounts;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.Ids;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Query")]
     public class IsTenantQueryTests

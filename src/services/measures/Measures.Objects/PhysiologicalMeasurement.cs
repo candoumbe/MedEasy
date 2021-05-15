@@ -1,14 +1,14 @@
-﻿using Measures.Ids;
-
-using MedEasy.Ids;
-using MedEasy.Objects;
-
-using NodaTime;
-
-using System;
-
-namespace Measures.Objects
+﻿namespace Measures.Objects
 {
+    using Measures.Ids;
+
+    using MedEasy.Ids;
+    using MedEasy.Objects;
+
+    using NodaTime;
+
+    using System;
+
     public abstract class PhysiologicalMeasurement<TId> : AuditableEntity<TId, PhysiologicalMeasurement<TId>>
         where TId : StronglyTypedId<Guid>
     {

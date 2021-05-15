@@ -1,9 +1,9 @@
-﻿using MediatR;
-
-using System;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using MediatR;
+
+    using System;
+
     /// <summary>
     /// Defines the shape of a "query" in CQRS design pattern.
     /// <para>

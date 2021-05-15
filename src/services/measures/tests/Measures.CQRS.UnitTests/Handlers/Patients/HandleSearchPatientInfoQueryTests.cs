@@ -1,38 +1,38 @@
-﻿
-using AutoMapper.QueryableExtensions;
-using FluentAssertions;
-using Measures.DataStores;
-using Measures.CQRS.Handlers.Patients;
-using Measures.DTO;
-using Measures.Mapping;
-using Measures.Objects;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.DTO.Search;
-using MedEasy.IntegrationTests.Core;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using static DataFilters.FilterOperator;
-using static Moq.MockBehavior;
-using DataFilters;
-using NodaTime.Testing;
-using NodaTime;
-using Measures.Ids;
-
-namespace Measures.CQRS.UnitTests.Handlers.Patients
+﻿namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
+
+    using AutoMapper.QueryableExtensions;
+    using FluentAssertions;
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.Patients;
+    using Measures.DTO;
+    using Measures.Mapping;
+    using Measures.Objects;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.DTO.Search;
+    using MedEasy.IntegrationTests.Core;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using static DataFilters.FilterOperator;
+    using static Moq.MockBehavior;
+    using DataFilters;
+    using NodaTime.Testing;
+    using NodaTime;
+    using Measures.Ids;
+
     [UnitTest]
     public class HandleSearchPatientInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {

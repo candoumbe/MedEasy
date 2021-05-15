@@ -1,18 +1,18 @@
-﻿using Agenda.DataStores;
-
-using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-
-using NodaTime;
-
-using System.IO;
-
-namespace Agenda.API.Context
+﻿namespace Agenda.API.Context
 {
+    using Agenda.DataStores;
+
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+
+    using NodaTime;
+
+    using System.IO;
+
     /// <summary>
     /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="AgendaContext"/>.
     /// </summary>

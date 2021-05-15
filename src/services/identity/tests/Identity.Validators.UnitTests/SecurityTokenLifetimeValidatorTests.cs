@@ -1,28 +1,28 @@
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using FluentValidation;
-using FluentValidation.Results;
-
-using Microsoft.IdentityModel.Tokens;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
 namespace Identity.Validators.UnitTests
 {
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using FluentValidation;
+    using FluentValidation.Results;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Validation")]
     [Feature("Authentication")]

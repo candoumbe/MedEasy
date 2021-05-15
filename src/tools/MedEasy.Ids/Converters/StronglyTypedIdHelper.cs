@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-
-namespace MedEasy.Ids.Converters
+﻿namespace MedEasy.Ids.Converters
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq.Expressions;
+
     public static class StronglyTypedIdHelper
     {
         private static readonly ConcurrentDictionary<Type, Delegate> StronglyTypedIdFactories = new();

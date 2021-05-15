@@ -1,9 +1,9 @@
-﻿using MedEasy.Objects;
-
-using System;
-
-namespace Patients.Objects
+﻿namespace Patients.Objects
 {
+    using MedEasy.Objects;
+
+    using System;
+
     /// <summary>
     /// Contains informations about <see cref="Doctor"/>
     /// </summary>

@@ -1,31 +1,31 @@
-﻿using AutoMapper.QueryableExtensions;
-using FluentAssertions;
-using Measures.DTO;
-using Measures.Mapping;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.DTO.Search;
-using Microsoft.Extensions.Logging;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using static Moq.MockBehavior;
-using static DataFilters.FilterOperator;
-using DataFilters;
-using Measures.Ids;
-
-namespace Measures.CQRS.UnitTests.Handlers
+﻿namespace Measures.CQRS.UnitTests.Handlers
 {
+    using AutoMapper.QueryableExtensions;
+    using FluentAssertions;
+    using Measures.DTO;
+    using Measures.Mapping;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.DTO.Search;
+    using Microsoft.Extensions.Logging;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using static Moq.MockBehavior;
+    using static DataFilters.FilterOperator;
+    using DataFilters;
+    using Measures.Ids;
+
     [UnitTest]
     public class HandleSearchQueryTests : IDisposable
     {

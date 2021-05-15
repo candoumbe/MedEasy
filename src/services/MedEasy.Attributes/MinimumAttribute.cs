@@ -1,8 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace MedEasy.Attributes
+﻿namespace MedEasy.Attributes
 {
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public class MinimumAttribute : RangeAttribute
     {

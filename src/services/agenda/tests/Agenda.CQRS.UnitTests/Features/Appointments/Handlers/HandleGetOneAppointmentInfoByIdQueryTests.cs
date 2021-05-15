@@ -1,35 +1,35 @@
-﻿using Agenda.CQRS.Features.Appointments.Handlers;
-using Agenda.CQRS.Features.Appointments.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Objects;
-
-using AutoMapper;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Optional;
-
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Handlers;
+    using Agenda.CQRS.Features.Appointments.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+
+    using AutoMapper;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class HandleGetOneAppointmentInfoByIdQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

@@ -1,14 +1,14 @@
-﻿using Agenda.DTO;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-
-using Optional;
-
-using System;
-
-namespace Agenda.CQRS.Features.Participants.Queries
+﻿namespace Agenda.CQRS.Features.Participants.Queries
 {
+    using Agenda.DTO;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     /// Query to list all <see cref="AppointmentInfo"/> for an <see cref="AttendeeInfo"/>
     /// </summary>

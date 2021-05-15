@@ -1,20 +1,20 @@
-using System;
-using Xunit;
-using Xunit.Abstractions;
-using Moq;
-using static Moq.MockBehavior;
-using EventStore.ClientAPI;
-using FluentAssertions;
-using System.Threading.Tasks;
-using MedEasy.CQRS.Core.Events;
-using Xunit.Categories;
-using System.Collections.Generic;
-using System.Text;
-using System.Collections.Concurrent;
-using System.Linq;
-
 namespace MedEasy.EventSourcing.EventStore.UnitTests
 {
+    using System;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Moq;
+    using static Moq.MockBehavior;
+    using global::EventStore.ClientAPI;
+    using FluentAssertions;
+    using System.Threading.Tasks;
+    using MedEasy.CQRS.Core.Events;
+    using Xunit.Categories;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Collections.Concurrent;
+    using System.Linq;
+
     [UnitTest]
     [Feature("EventSourcing")]
     public class EventStoreTests : IDisposable

@@ -1,19 +1,19 @@
-﻿using Documents.CQRS.Queries;
-using Documents.DTO.v1;
-using Documents.Ids;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Queries;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Documents.CQRS.UnitTests.Queries
+﻿namespace Documents.CQRS.UnitTests.Queries
 {
+    using Documents.CQRS.Queries;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     public class GetOneDocumentFileInfoByIdQueryTests
     {

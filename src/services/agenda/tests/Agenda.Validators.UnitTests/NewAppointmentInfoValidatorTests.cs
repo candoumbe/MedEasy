@@ -1,30 +1,30 @@
-using Agenda.DTO;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using FluentValidation.Results;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
-
 namespace Agenda.Validators.UnitTests
 {
+    using Agenda.DTO;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using FluentValidation.Results;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+    using static Moq.MockBehavior;
+    using static Newtonsoft.Json.JsonConvert;
+
     [Feature("Agenda")]
     [UnitTest]
     public class NewAppointmentInfoValidatorTests

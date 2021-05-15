@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using System;
+
     public abstract class QueryBase<TKey, TData, TResult> : IQuery<TKey, TData, TResult>
         where TKey : IEquatable<TKey>
     {

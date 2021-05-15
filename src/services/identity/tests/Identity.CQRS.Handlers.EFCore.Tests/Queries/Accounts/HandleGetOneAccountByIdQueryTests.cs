@@ -1,38 +1,38 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-
-using Identity.CQRS.Handlers.Queries.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Handlers.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Handlers.Queries.Accounts;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]

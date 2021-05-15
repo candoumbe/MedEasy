@@ -1,15 +1,15 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Ids;
-
-using FluentAssertions;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Ids;
+
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class DeleteAppointmentInfoByIdCommandTests

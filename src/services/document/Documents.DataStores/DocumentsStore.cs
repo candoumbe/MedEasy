@@ -1,13 +1,13 @@
-﻿using Documents.Objects;
-
-using MedEasy.DataStores.Core.Relational;
-
-using Microsoft.EntityFrameworkCore;
-
-using NodaTime;
-
-namespace Documents.DataStore
+﻿namespace Documents.DataStore
 {
+    using Documents.Objects;
+
+    using MedEasy.DataStores.Core.Relational;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using NodaTime;
+
     public class DocumentsStore : DataStore<DocumentsStore>
     {
         public DbSet<Document> Documents { get; set; }

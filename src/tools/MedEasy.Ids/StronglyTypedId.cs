@@ -1,9 +1,9 @@
-﻿using MedEasy.Ids.Converters;
-
-using System.ComponentModel;
-
-namespace MedEasy.Ids
+﻿namespace MedEasy.Ids
 {
+    using MedEasy.Ids.Converters;
+
+    using System.ComponentModel;
+
     /// <summary>
     /// Base class for storngly typed ids.
     /// </summary>

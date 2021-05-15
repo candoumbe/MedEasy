@@ -1,8 +1,8 @@
-﻿using Xunit;
-using Xunit.Categories;
-
-namespace Agenda.Mapping.UnitTests
+﻿namespace Agenda.Mapping.UnitTests
 {
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Agenda")]
     [Feature("Mapping")]

@@ -1,18 +1,18 @@
-﻿using Consul;
-
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
-
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-
-namespace MedEasy.Core.Infrastructure
+﻿namespace MedEasy.Core.Infrastructure
 {
+    using Consul;
+
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Hosting;
+
+    using System;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.AspNetCore.Hosting.Server.Features;
+
     /// <summary>
     /// <see cref="IHostedService"/> implemenation for automatic registration on a Consul host (<see cref="https://www.consul.io/"/> for more details). 
     /// </summary>

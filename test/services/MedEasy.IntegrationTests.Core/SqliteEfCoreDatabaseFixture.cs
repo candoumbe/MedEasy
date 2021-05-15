@@ -1,11 +1,11 @@
-﻿using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-namespace MedEasy.IntegrationTests.Core
+﻿namespace MedEasy.IntegrationTests.Core
 {
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.Data.Sqlite;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
     public class SqliteEfCoreDatabaseFixture<TContext> where TContext : DbContext
     {
         public DbContextOptionsBuilder<TContext> OptionsBuilder { get; }

@@ -1,27 +1,27 @@
-﻿using Identity.DataStores;
-
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-using Npgsql;
-
-using Optional;
-
-using Polly;
-using Polly.Retry;
-
-using Serilog;
-
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-
-namespace Identity.API
+﻿namespace Identity.API
 {
+    using Identity.DataStores;
+
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+
+    using Npgsql;
+
+    using Optional;
+
+    using Polly;
+    using Polly.Retry;
+
+    using Serilog;
+
+    using System;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Entry point of the application
     /// </summary>

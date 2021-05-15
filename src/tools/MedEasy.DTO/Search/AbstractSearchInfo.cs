@@ -1,7 +1,7 @@
-﻿using MedEasy.RestObjects;
-
-namespace MedEasy.DTO.Search
+﻿namespace MedEasy.DTO.Search
 {
+    using MedEasy.RestObjects;
+
     /// <summary>
     /// Base class for classes 
     /// </summary>

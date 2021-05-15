@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Identity.DTO.v2
+﻿namespace Identity.DTO.v2
 {
+    using System;
+
     public class TokenInfo
     {
         public string Token { get; set; }

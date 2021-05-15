@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace MedEasy.CQRS.Core.Events
+﻿namespace MedEasy.CQRS.Core.Events
 {
+    using System.Threading.Tasks;
+
     public interface IEventStore
     {
         /// <summary>

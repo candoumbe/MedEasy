@@ -1,15 +1,15 @@
-﻿using Measures.Ids;
-
-using MedEasy.Ids;
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+    using MedEasy.Ids;
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Base class for physiological measure resources
     /// </summary>

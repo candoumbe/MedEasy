@@ -1,49 +1,49 @@
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.API.Features.Auth;
-using Identity.API.Features.v1.Auth;
-using Identity.CQRS.Commands;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.DTO.v2;
-using Identity.Ids;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
 namespace Identity.API.UnitTests.Features.v2.Auth
 {
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.API.Features.Auth;
+    using Identity.API.Features.v1.Auth;
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.DTO.v2;
+    using Identity.Ids;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Security.Claims;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Identity")]
     [Feature("Accounts")]

@@ -1,11 +1,11 @@
-﻿using Measures.Ids;
-
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
     /// <summary>
     /// Informations on a patient
     /// </summary>

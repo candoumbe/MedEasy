@@ -1,11 +1,11 @@
-﻿using MedEasy.Ids;
-
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using System;
-
-namespace Measures.Ids
+﻿namespace Measures.Ids
 {
+    using MedEasy.Ids;
+
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using System;
+
     public record PatientId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static PatientId New() => new(Guid.NewGuid());

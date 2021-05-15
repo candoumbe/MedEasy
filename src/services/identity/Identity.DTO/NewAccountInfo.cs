@@ -1,9 +1,9 @@
-﻿using Identity.Ids;
-
-using MedEasy.Ids;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using Identity.Ids;
+
+    using MedEasy.Ids;
+
     /// <summary>
     /// Wraps 
     /// </summary>

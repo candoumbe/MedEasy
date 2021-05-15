@@ -1,9 +1,9 @@
-﻿using DataFilters;
-
-using System;
-
-namespace MedEasy.DTO.Search
+﻿namespace MedEasy.DTO.Search
 {
+    using DataFilters;
+
+    using System;
+
     /// <summary>
     /// Represents a request for a search on resources of type.
     /// </summary>

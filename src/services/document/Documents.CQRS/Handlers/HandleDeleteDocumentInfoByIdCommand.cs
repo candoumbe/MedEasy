@@ -1,17 +1,17 @@
-﻿using Documents.CQRS.Commands;
-using Documents.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Documents.CQRS.Handlers
+﻿namespace Documents.CQRS.Handlers
 {
+    using Documents.CQRS.Commands;
+    using Documents.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleDeleteDocumentInfoByIdCommand : IRequestHandler<DeleteDocumentInfoByIdCommand, DeleteCommandResult>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

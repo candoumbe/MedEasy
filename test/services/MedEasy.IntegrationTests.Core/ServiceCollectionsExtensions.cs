@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using System.Collections.Generic;
-using System.Linq;
-
-namespace MedEasy.IntegrationTests.Core
+﻿namespace MedEasy.IntegrationTests.Core
 {
+    using Microsoft.Extensions.DependencyInjection;
+
+    using System.Collections.Generic;
+    using System.Linq;
+
     public static class ServiceCollectionsExtensions
     {
         /// <summary>

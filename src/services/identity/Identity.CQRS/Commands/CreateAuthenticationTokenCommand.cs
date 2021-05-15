@@ -1,11 +1,11 @@
-﻿using Identity.DTO;
-
-using MedEasy.CQRS.Core.Commands;
-
-using System;
-
-namespace Identity.CQRS.Commands
+﻿namespace Identity.CQRS.Commands
 {
+    using Identity.DTO;
+
+    using MedEasy.CQRS.Core.Commands;
+
+    using System;
+
     /// <summary>
     /// Requests creation of a token which can be later used to authenticate an <see cref="AccountInfo"/>.
     /// </summary>

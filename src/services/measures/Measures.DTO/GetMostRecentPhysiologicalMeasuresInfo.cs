@@ -1,10 +1,10 @@
-﻿using Measures.Ids;
-
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Data to provide when querying many physiological measure information
     /// </summary>

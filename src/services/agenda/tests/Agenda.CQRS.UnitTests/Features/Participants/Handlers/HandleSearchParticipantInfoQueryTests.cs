@@ -1,37 +1,37 @@
-﻿using Agenda.CQRS.Features.Participants.Handlers;
-using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.DTO.Resources.Search;
-using Agenda.Mapping;
-using Agenda.Objects;
-using AutoMapper;
-using FluentAssertions;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MediatR;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using AutoMapper.QueryableExtensions;
-using static Moq.MockBehavior;
-using DataFilters;
-using NodaTime.Testing;
-using NodaTime;
-
-namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Participants.Handlers
 {
+    using Agenda.CQRS.Features.Participants.Handlers;
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.DTO.Resources.Search;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+    using AutoMapper;
+    using FluentAssertions;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MediatR;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using AutoMapper.QueryableExtensions;
+    using static Moq.MockBehavior;
+    using DataFilters;
+    using NodaTime.Testing;
+    using NodaTime;
+
     [UnitTest]
     [Feature("Agenda")]
     public class HandleSearchParticipantInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

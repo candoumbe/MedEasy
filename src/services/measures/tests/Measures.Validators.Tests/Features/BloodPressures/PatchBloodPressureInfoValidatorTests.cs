@@ -1,25 +1,25 @@
-﻿using FluentAssertions;
-using FluentValidation.Results;
-using Measures.DTO;
-using MedEasy.DAL.Interfaces;
-using Microsoft.AspNetCore.JsonPatch;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using static FluentValidation.Severity;
-using static Newtonsoft.Json.JsonConvert;
-using static Moq.MockBehavior;
-using static System.StringComparison;
-using Measures.Validators.Commands.BloodPressures;
-using Xunit.Categories;
-using Measures.Ids;
-
-namespace Measures.Validators.Tests.Features.BloodPressures
+﻿namespace Measures.Validators.Tests.Features.BloodPressures
 {
+    using FluentAssertions;
+    using FluentValidation.Results;
+    using Measures.DTO;
+    using MedEasy.DAL.Interfaces;
+    using Microsoft.AspNetCore.JsonPatch;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using static FluentValidation.Severity;
+    using static Newtonsoft.Json.JsonConvert;
+    using static Moq.MockBehavior;
+    using static System.StringComparison;
+    using Measures.Validators.Commands.BloodPressures;
+    using Xunit.Categories;
+    using Measures.Ids;
+
     [UnitTest]
     public class PatchBloodPressureInfoValidatorTests : IDisposable
     {

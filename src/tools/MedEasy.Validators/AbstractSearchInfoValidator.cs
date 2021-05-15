@@ -1,18 +1,18 @@
-﻿using FluentValidation;
-
-using MedEasy.DTO.Search;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-
-using static FluentValidation.Severity;
-using static System.StringSplitOptions;
-
-namespace MedEasy.Validators.Validators
+﻿namespace MedEasy.Validators.Validators
 {
+    using FluentValidation;
+
+    using MedEasy.DTO.Search;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text.RegularExpressions;
+
+    using static FluentValidation.Severity;
+    using static System.StringSplitOptions;
+
     /// <summary>
     /// Validator for <see cref="AbstractSearchInfo{T}"/> instances
     /// </summary>

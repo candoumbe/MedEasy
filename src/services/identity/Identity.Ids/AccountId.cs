@@ -1,11 +1,11 @@
-﻿using MedEasy.Ids;
-
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using System;
-
-namespace Identity.Ids
+﻿namespace Identity.Ids
 {
+    using MedEasy.Ids;
+
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using System;
+
     /// <summary>
     /// <see cref="Account"/>'s identifier
     /// </summary>

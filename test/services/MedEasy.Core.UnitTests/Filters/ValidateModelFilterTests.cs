@@ -1,29 +1,29 @@
-﻿using FluentAssertions;
-
-using MedEasy.Core.Filters;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-
-using Moq;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static Moq.MockBehavior;
-
-namespace MedEasy.Core.UnitTests.Attributes
+﻿namespace MedEasy.Core.UnitTests.Attributes
 {
+    using FluentAssertions;
+
+    using MedEasy.Core.Filters;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Abstractions;
+    using Microsoft.AspNetCore.Mvc.Controllers;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Routing;
+
+    using Moq;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Category("Filters")]
     public class ValidateModelFilterTests : IDisposable

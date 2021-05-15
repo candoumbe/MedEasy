@@ -1,24 +1,24 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Identity.CQRS.Queries;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Queries.Accounts
+﻿namespace Identity.CQRS.Handlers.Queries.Accounts
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Identity.CQRS.Queries;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DTO;
+    using Identity.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleGetOneAccountInfoByUsernameAndPasswordQuery : IRequestHandler<GetOneAccountByUsernameAndPasswordQuery, Option<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

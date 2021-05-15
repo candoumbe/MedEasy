@@ -1,7 +1,7 @@
-﻿using MedEasy.DTO.Search;
-
-namespace Agenda.DTO.Resources.Search
+﻿namespace Agenda.DTO.Resources.Search
 {
+    using MedEasy.DTO.Search;
+
     /// <summary>
     /// Wraps criteria to search
     /// </summary>

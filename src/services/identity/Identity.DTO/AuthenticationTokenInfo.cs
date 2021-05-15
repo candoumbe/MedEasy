@@ -1,7 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using Microsoft.IdentityModel.Tokens;
+
     public class AuthenticationTokenInfo
     {
         public SecurityToken AccessToken { get; set; }

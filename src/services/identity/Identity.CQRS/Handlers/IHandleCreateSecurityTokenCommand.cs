@@ -1,11 +1,11 @@
-﻿using Identity.CQRS.Commands;
-
-using MediatR;
-
-using Microsoft.IdentityModel.Tokens;
-
-namespace Identity.CQRS.Handlers
+﻿namespace Identity.CQRS.Handlers
 {
+    using Identity.CQRS.Commands;
+
+    using MediatR;
+
+    using Microsoft.IdentityModel.Tokens;
+
     /// <summary>
     /// Handles creation of <see cref="SecurityToken"/>.
     /// </summary>

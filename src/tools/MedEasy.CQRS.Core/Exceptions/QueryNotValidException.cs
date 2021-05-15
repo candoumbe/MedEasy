@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MedEasy.CQRS.Core.Exceptions
+﻿namespace MedEasy.CQRS.Core.Exceptions
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Exception thrown when a query is not valid
     /// </summary>

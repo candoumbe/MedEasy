@@ -1,32 +1,32 @@
-﻿using FluentAssertions;
-using Identity.DTO;
-using MedEasy.RestObjects;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using static System.Net.Http.HttpMethod;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using System.Net.Http.Headers;
-using Bogus;
-using Identity.DTO.v1;
-using Identity.API.Features.v1.Accounts;
-using Identity.API.Fixtures.v1;
-using System.Text.Json;
-using NodaTime.Serialization.SystemTextJson;
-using NodaTime;
-using System.Net.Http.Json;
-using Identity.Ids;
-using System.Collections.Generic;
-using System.Linq;
-using System;
-
-namespace Identity.API.IntegrationTests.Features.Accounts
+﻿namespace Identity.API.IntegrationTests.Features.Accounts
 {
+    using FluentAssertions;
+    using Identity.DTO;
+    using MedEasy.RestObjects;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+    using Newtonsoft.Json.Schema.Generation;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using static System.Net.Http.HttpMethod;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using System.Net.Http.Headers;
+    using Bogus;
+    using Identity.DTO.v1;
+    using Identity.API.Features.v1.Accounts;
+    using Identity.API.Fixtures.v1;
+    using System.Text.Json;
+    using NodaTime.Serialization.SystemTextJson;
+    using NodaTime;
+    using System.Net.Http.Json;
+    using Identity.Ids;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System;
+
     [IntegrationTest]
     [Feature("Accounts")]
     [Feature("Identity")]

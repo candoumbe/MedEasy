@@ -1,11 +1,11 @@
-﻿using MedEasy.CQRS.Core.Commands;
-
-using Patients.DTO;
-
-using System;
-
-namespace Patients.CQRS.Commands
+﻿namespace Patients.CQRS.Commands
 {
+    using MedEasy.CQRS.Core.Commands;
+
+    using Patients.DTO;
+
+    using System;
+
     /// <summary>
     /// Command to create a new <see cref="PatientInfo"/>
     /// </summary>

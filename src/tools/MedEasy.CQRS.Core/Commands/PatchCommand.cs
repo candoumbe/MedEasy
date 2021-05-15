@@ -1,12 +1,12 @@
-﻿using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DTO;
-
-using Newtonsoft.Json;
-
-using System;
-
-namespace MedEasy.CQRS.Core.Commands
+﻿namespace MedEasy.CQRS.Core.Commands
 {
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DTO;
+
+    using Newtonsoft.Json;
+
+    using System;
+
     /// <summary>
     /// Command to patch a <see cref="TResourceId"/> resource
     /// </summary>

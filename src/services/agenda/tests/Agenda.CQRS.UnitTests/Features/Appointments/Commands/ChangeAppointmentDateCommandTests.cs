@@ -1,21 +1,21 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Ids;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using NodaTime;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Commands
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Ids;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using NodaTime;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Agenda")]
     [Feature("Appointments")]

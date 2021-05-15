@@ -1,14 +1,13 @@
-﻿using Agenda.Models.v1.Attendees;
-
-using NodaTime;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-
-namespace Agenda.Models.v1.Appointments
+﻿namespace Agenda.Models.v1.Appointments
 {
+    using Agenda.Models.v1.Attendees;
+
+    using NodaTime;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Contains data to create a new <see cref="Appointment"/> beetween two or more person
     /// </summary>

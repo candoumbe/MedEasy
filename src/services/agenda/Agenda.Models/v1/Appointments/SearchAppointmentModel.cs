@@ -1,12 +1,12 @@
-﻿using Agenda.Models.v1.Appointments;
-using Agenda.Models.v1.Search;
-
-using NodaTime;
-
-using System.ComponentModel.DataAnnotations;
-
-namespace Agenda.API.Resources.v1.Appointments
+﻿namespace Agenda.API.Resources.v1.Appointments
 {
+    using Agenda.Models.v1.Appointments;
+    using Agenda.Models.v1.Search;
+
+    using NodaTime;
+
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Data to search <see cref="AppointmentModel"/>s
     /// </summary>

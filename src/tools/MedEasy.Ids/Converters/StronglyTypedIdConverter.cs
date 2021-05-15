@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Globalization;
-
-namespace MedEasy.Ids.Converters
+﻿namespace MedEasy.Ids.Converters
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.ComponentModel;
+    using System.Globalization;
+
     public class StronglyTypedIdConverter<TValue> : TypeConverter where TValue : notnull
     {
         private static readonly TypeConverter IdValueConverter = GetIdValueConverter();

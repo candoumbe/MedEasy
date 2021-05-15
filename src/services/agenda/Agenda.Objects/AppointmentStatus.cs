@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Agenda.Objects
+﻿namespace Agenda.Objects
 {
+    using System;
+
     [Flags]
     public enum AppointmentStatus
     {

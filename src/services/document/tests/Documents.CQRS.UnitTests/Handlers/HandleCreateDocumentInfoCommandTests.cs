@@ -1,28 +1,28 @@
-﻿using Bogus;
-using Documents.CQRS.Commands;
-using Documents.CQRS.Handlers;
-using Documents.DTO;
-using Documents.DTO.v1;
-using FakeItEasy;
-using FluentAssertions;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-using Optional;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using Documents.DataStore;
-using NodaTime.Testing;
-using NodaTime;
-
-namespace Documents.CQRS.UnitTests.Handlers
+﻿namespace Documents.CQRS.UnitTests.Handlers
 {
+    using Bogus;
+    using Documents.CQRS.Commands;
+    using Documents.CQRS.Handlers;
+    using Documents.DTO;
+    using Documents.DTO.v1;
+    using FakeItEasy;
+    using FluentAssertions;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+    using Optional;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using Documents.DataStore;
+    using NodaTime.Testing;
+    using NodaTime;
+
     [Feature(nameof(Documents))]
     [UnitTest]
     public class HandleCreateDocumentInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>

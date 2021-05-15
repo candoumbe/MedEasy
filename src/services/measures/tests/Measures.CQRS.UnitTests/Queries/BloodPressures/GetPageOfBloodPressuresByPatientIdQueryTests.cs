@@ -1,24 +1,24 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using FsCheck;
-using FsCheck.Xunit;
-
-using Measures.CQRS.Queries.BloodPressures;
-using Measures.Ids;
-
-using MedEasy.RestObjects;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Queries.BloodPressures
+﻿namespace Measures.CQRS.UnitTests.Queries.BloodPressures
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using FsCheck;
+    using FsCheck.Xunit;
+
+    using Measures.CQRS.Queries.BloodPressures;
+    using Measures.Ids;
+
+    using MedEasy.RestObjects;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature("Measures")]
     [UnitTest]
     public class GetPageOfBloodPressuresByPatientIdQueryTests

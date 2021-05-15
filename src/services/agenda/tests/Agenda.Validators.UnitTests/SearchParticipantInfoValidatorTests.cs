@@ -1,25 +1,25 @@
-using Agenda.DTO;
-using Agenda.DTO.Resources.Search;
-
-using FluentAssertions;
-
-using FluentValidation.Results;
-
-using MedEasy.DTO.Search;
-
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-
 namespace Agenda.Validators.UnitTests
 {
+    using Agenda.DTO;
+    using Agenda.DTO.Resources.Search;
+
+    using FluentAssertions;
+
+    using FluentValidation.Results;
+
+    using MedEasy.DTO.Search;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+
     [Feature("Agenda")]
     [UnitTest]
     public class SearchParticipantInfoValidatorTests

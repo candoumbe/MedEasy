@@ -1,18 +1,18 @@
-﻿using AutoMapper;
-
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.Mapping;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-namespace Identity.Mapping
+﻿namespace Identity.Mapping
 {
+    using AutoMapper;
+
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.Mapping;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
     /// <summary>
     /// Contains mappings configuration
     /// </summary>

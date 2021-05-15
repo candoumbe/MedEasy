@@ -1,16 +1,16 @@
-﻿using MedEasy.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Measures.Objects.Exceptions;
-using Optional;
-using Optional.Collections;
-using NodaTime;
-using Measures.Ids;
-
-namespace Measures.Objects
+﻿namespace Measures.Objects
 {
+    using MedEasy.Objects;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Measures.Objects.Exceptions;
+    using Optional;
+    using Optional.Collections;
+    using NodaTime;
+    using Measures.Ids;
+
     /// <summary>
     /// Patient that owns measures data
     /// </summary>

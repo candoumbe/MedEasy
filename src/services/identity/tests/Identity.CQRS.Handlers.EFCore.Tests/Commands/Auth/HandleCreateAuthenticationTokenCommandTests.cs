@@ -1,53 +1,53 @@
-﻿using AutoMapper;
-
-using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.CQRS.Commands;
-using Identity.CQRS.Handlers;
-using Identity.CQRS.Handlers.EFCore.Commands.Auth;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-using Claim = System.Security.Claims.Claim;
-
-namespace Identity.CQRS.UnitTests.Handlers.Queries
+﻿namespace Identity.CQRS.UnitTests.Handlers.Queries
 {
+    using AutoMapper;
+
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Handlers;
+    using Identity.CQRS.Handlers.EFCore.Commands.Auth;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.IdentityModel.Tokens;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
+    using Claim = System.Security.Claims.Claim;
+
     [UnitTest]
     [Feature("Identity")]
     [Feature("JWT")]

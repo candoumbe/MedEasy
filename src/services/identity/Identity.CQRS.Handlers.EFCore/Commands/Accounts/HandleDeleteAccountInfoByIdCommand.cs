@@ -1,20 +1,20 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Events.Accounts;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Ids;
-
-using MediatR;
-
-namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
+﻿namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.CQRS.Events.Accounts;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
+
+    using MediatR;
+
     /// <summary>
     /// Handles <see cref="DeleteAccountByIdCommand"/>s
     /// </summary>

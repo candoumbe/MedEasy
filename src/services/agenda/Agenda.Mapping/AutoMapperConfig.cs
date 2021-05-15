@@ -1,17 +1,17 @@
-﻿using Agenda.Models.v1.Appointments;
-using Agenda.DTO;
-using Agenda.Objects;
-using AutoMapper;
-using MedEasy.Mapping;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-using Agenda.API.Resources.v1.Appointments;
-using Agenda.Models.v1.Attendees;
-using Agenda.DTO.Resources.Search;
-using Agenda.Ids;
-
-namespace Agenda.Mapping
+﻿namespace Agenda.Mapping
 {
+    using Agenda.Models.v1.Appointments;
+    using Agenda.DTO;
+    using Agenda.Objects;
+    using AutoMapper;
+    using MedEasy.Mapping;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+    using Agenda.API.Resources.v1.Appointments;
+    using Agenda.Models.v1.Attendees;
+    using Agenda.DTO.Resources.Search;
+    using Agenda.Ids;
+
     public static class AutoMapperConfig
     {
         /// <summary>

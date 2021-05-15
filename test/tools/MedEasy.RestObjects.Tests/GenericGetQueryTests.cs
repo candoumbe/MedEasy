@@ -1,11 +1,11 @@
-﻿using FluentAssertions;
-
-using MedEasy.RestObjects;
-
-using Xunit;
-
-namespace MedEasy.Tests.RestObjects
+﻿namespace MedEasy.Tests.RestObjects
 {
+    using FluentAssertions;
+
+    using MedEasy.RestObjects;
+
+    using Xunit;
+
     public class GenericGetQueryTests
     {
         [Fact]

@@ -1,16 +1,16 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using Identity.Ids;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-
-namespace Identity.Objects.Tests
+﻿namespace Identity.Objects.Tests
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using Identity.Ids;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
     public class RoleTests
     {
         private readonly Faker<Role> _roleFaker;

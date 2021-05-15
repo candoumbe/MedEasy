@@ -1,9 +1,9 @@
-﻿using NodaTime;
-
-using System;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using NodaTime;
+
+    using System;
+
     /// <summary>
     /// Describes the properties a browsable resource must implements
     /// </summary>

@@ -1,18 +1,18 @@
-﻿using Documents.CQRS.Queries;
-using Documents.DTO.v1;
-using Documents.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Documents.CQRS.Handlers
+﻿namespace Documents.CQRS.Handlers
 {
+    using Documents.CQRS.Queries;
+    using Documents.DTO.v1;
+    using Documents.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleGetOneDocumentInfoByIdQuery : IRequestHandler<GetOneDocumentInfoByIdQuery, Option<DocumentInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

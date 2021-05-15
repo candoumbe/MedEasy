@@ -1,14 +1,14 @@
-using Documents.Ids;
-
-using FluentAssertions;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
 namespace Documents.Objects.Tests
 {
+    using Documents.Ids;
+
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Documents")]
     public class DocumentTests

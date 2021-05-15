@@ -1,18 +1,18 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Commands;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Commands
+﻿namespace Identity.CQRS.UnitTests.Commands
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Commands;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Authentication")]
     [Feature("JWT")]

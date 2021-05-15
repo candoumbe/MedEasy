@@ -1,9 +1,9 @@
-﻿using FluentValidation;
-
-using Identity.DTO;
-
-namespace Identity.Validators
+﻿namespace Identity.Validators
 {
+    using FluentValidation;
+
+    using Identity.DTO;
+
     public class NewAccountInfoValidator : AbstractValidator<NewAccountInfo>
     {
         public NewAccountInfoValidator()

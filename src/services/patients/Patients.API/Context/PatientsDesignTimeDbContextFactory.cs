@@ -1,19 +1,19 @@
-﻿using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-
-using NodaTime;
-
-using Patients.Context;
-
-using System;
-using System.IO;
-
-namespace Patients.API.Context
+﻿namespace Patients.API.Context
 {
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+
+    using NodaTime;
+
+    using Patients.Context;
+
+    using System;
+    using System.IO;
+
     /// <summary>
     /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="PatientsContext"/>.
     /// </summary>

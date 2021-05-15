@@ -1,20 +1,20 @@
-﻿using System;
-using System.Threading.Tasks;
-using MedEasy.DAL.Interfaces;
-using static Moq.MockBehavior;
-using Moq;
-using System.Threading;
-using Agenda.Objects;
-using Agenda.API.Resources;
-using Microsoft.AspNetCore.Mvc;
-using Xunit;
-using FluentAssertions;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using System.Collections.Generic;
-using Xunit.Categories;
-
-namespace Agenda.API.UnitTests
+﻿namespace Agenda.API.UnitTests
 {
+    using System;
+    using System.Threading.Tasks;
+    using MedEasy.DAL.Interfaces;
+    using static Moq.MockBehavior;
+    using Moq;
+    using System.Threading;
+    using Agenda.Objects;
+    using Agenda.API.Resources;
+    using Microsoft.AspNetCore.Mvc;
+    using Xunit;
+    using FluentAssertions;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using System.Collections.Generic;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Health")]
     public class HealthControllerTests : IDisposable

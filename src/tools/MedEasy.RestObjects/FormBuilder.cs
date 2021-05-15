@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-
-using Optional;
-
-using static MedEasy.RestObjects.FormFieldType;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Reflection;
+
+    using Optional;
+
+    using static MedEasy.RestObjects.FormFieldType;
+
     /// <summary>
     /// Helper class to build a <see cref="Form"/> instance
     /// </summary>

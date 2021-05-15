@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using System.Collections.Generic;
+
     public class RoleInfo
     {
         /// <summary>

@@ -1,16 +1,16 @@
-using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Ids;
-
-using FluentAssertions;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Categories;
-
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Ids;
+
+    using FluentAssertions;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class AddAttendeeToAppointmentCommandTests

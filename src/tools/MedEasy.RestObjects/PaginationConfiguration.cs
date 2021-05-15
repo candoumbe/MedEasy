@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System;
+
     /// <summary>
     /// An instance of this class holds parameters of a "GET" query.
     /// </summary>

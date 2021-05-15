@@ -1,16 +1,16 @@
-﻿using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.Ids;
-
-using FluentAssertions;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
+﻿namespace Agenda.CQRS.UnitTests.Features.Participants.Queries
 {
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.Ids;
+
+    using FluentAssertions;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class GetOneParticipantInfoByIdQueryTests

@@ -1,7 +1,7 @@
-﻿using MedEasy.DTO.Search;
-
-namespace Identity.DTO
+﻿namespace Identity.DTO
 {
+    using MedEasy.DTO.Search;
+
     public class SearchAccountInfo : AbstractSearchInfo<AccountInfo>
     {
         /// <summary>

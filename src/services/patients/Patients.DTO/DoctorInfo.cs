@@ -1,13 +1,13 @@
-﻿using MedEasy.RestObjects;
-
-using Newtonsoft.Json;
-
-using Patients.Ids;
-
-using System.ComponentModel.DataAnnotations;
-
-namespace Patients.DTO
+﻿namespace Patients.DTO
 {
+    using MedEasy.RestObjects;
+
+    using Newtonsoft.Json;
+
+    using Patients.Ids;
+
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Informations on a patient
     /// </summary>

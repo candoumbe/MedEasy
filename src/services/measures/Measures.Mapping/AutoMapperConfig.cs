@@ -1,18 +1,18 @@
-﻿using AutoMapper;
-
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Objects;
-
-using MedEasy.Mapping;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-namespace Measures.Mapping
+﻿namespace Measures.Mapping
 {
+    using AutoMapper;
+
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Objects;
+
+    using MedEasy.Mapping;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
     /// <summary>
     /// Contains mappings configuration
     /// </summary>

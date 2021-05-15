@@ -1,11 +1,11 @@
-﻿using MedEasy.Ids;
-
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using System;
-
-namespace Agenda.Ids
+﻿namespace Agenda.Ids
 {
+    using MedEasy.Ids;
+
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using System;
+
     public record AttendeeId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static AttendeeId New() => new(Guid.NewGuid());

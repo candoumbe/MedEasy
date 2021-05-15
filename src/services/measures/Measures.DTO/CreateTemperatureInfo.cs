@@ -1,8 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// data to provide when creating a new temperature info
     /// </summary>

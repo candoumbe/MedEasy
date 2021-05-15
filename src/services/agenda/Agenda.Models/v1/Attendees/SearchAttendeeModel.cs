@@ -1,7 +1,7 @@
-﻿using Agenda.Models.v1.Search;
-
-namespace Agenda.Models.v1.Attendees
+﻿namespace Agenda.Models.v1.Attendees
 {
+    using Agenda.Models.v1.Search;
+
     public class SearchAttendeeModel : AbstractSearchModel<AttendeeModel>
     {
         /// <summary>

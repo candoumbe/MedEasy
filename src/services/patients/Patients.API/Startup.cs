@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Patients.API.Routing;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-
-namespace Patients.API
+﻿namespace Patients.API
 {
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Patients.API.Routing;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
+
     public class Startup
     {
         private readonly IConfiguration _configuration;

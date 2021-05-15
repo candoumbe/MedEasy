@@ -1,14 +1,14 @@
-﻿using Measures.DTO;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using Optional;
-
-using System;
-
-namespace Measures.CQRS.Commands.BloodPressures
+﻿namespace Measures.CQRS.Commands.BloodPressures
 {
+    using Measures.DTO;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     /// Command to create a new <see cref="BloodPressureInfo"/> and attach it to 
     /// its <see cref="PatientInfo"/> resource.

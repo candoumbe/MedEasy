@@ -1,18 +1,18 @@
-﻿using AutoMapper;
-
-using MedEasy.Mapping;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-
-using Patients.DTO;
-using Patients.Ids;
-using Patients.Objects;
-
-namespace Patients.Mapping
+﻿namespace Patients.Mapping
 {
+    using AutoMapper;
+
+    using MedEasy.Mapping;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.JsonPatch.Operations;
+
+    using Patients.DTO;
+    using Patients.Ids;
+    using Patients.Objects;
+
     /// <summary>
     /// Contains mappings configuration
     /// </summary>

@@ -1,14 +1,14 @@
-﻿using Identity.DTO;
-using Identity.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-
-namespace Identity.CQRS.Queries.Accounts
+﻿namespace Identity.CQRS.Queries.Accounts
 {
+    using Identity.DTO;
+    using Identity.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     /// Query to read a <see cref="AccountInfo"/> resource by its id.
     /// </summary>

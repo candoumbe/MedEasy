@@ -1,34 +1,34 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using Identity.CQRS.Handlers.Queries.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.Ids;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Handlers.Queries.Accounts;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.Ids;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Identity")]
     public class HandleGetPageOfAccountsQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>

@@ -1,15 +1,15 @@
-﻿using FluentAssertions;
-
-using Identity.CQRS.Queries;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Identity.CQRS.UnitTests.Queries
+﻿namespace Identity.CQRS.UnitTests.Queries
 {
+    using FluentAssertions;
+
+    using Identity.CQRS.Queries;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Identity")]
     [Feature("Accounts")]

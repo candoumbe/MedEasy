@@ -1,12 +1,12 @@
-using MedEasy.CQRS.Core.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
-using FluentAssertions;
-
 namespace MedEasy.CQRS.Core.UnitTests.Exceptions
 {
+    using MedEasy.CQRS.Core.Exceptions;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Xunit;
+    using FluentAssertions;
+
     public class QueryNotValidExceptionTests
     {
         public static IEnumerable<object[]> CtorThatThrowsArgumentExceptionCases

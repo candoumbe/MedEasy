@@ -1,27 +1,27 @@
-using Bogus;
-
-using FakeItEasy;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.Ids;
-
-using MedEasy.Ids;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-using Xunit;
-using Xunit.Categories;
-
 namespace Identity.Objects.Tests
 {
+    using Bogus;
+
+    using FakeItEasy;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.Ids;
+
+    using MedEasy.Ids;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Identity")]
     [Feature("Domains")]

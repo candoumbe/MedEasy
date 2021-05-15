@@ -1,18 +1,18 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.DTO;
-using Agenda.Objects;
-
-using AutoMapper;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.DTO;
+    using Agenda.Objects;
+
+    using AutoMapper;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleCreateAppointmentInfoCommand : IRequestHandler<CreateAppointmentInfoCommand, AppointmentInfo>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

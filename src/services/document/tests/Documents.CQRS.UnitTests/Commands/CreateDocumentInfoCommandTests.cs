@@ -1,16 +1,16 @@
-using Documents.CQRS.Commands;
-using Documents.DTO;
-
-using FluentAssertions;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Categories;
-
 namespace Documents.CQRS.UnitTests.Commands
 {
+    using Documents.CQRS.Commands;
+    using Documents.DTO;
+
+    using FluentAssertions;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature(nameof(Documents))]
     [UnitTest]
     public class CreateDocumentInfoCommandTests

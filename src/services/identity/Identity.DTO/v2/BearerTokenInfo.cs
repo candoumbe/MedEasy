@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Identity.DTO.v2
+﻿namespace Identity.DTO.v2
 {
+    using System;
+
     /// <summary>
     /// Wraps informations on tokens provided by the identity API
     /// </summary>

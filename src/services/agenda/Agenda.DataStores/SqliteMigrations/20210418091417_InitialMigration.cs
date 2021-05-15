@@ -1,11 +1,11 @@
-﻿using System;
-
-using Microsoft.EntityFrameworkCore.Migrations;
-
-using NodaTime;
-
-namespace Agenda.DataStores.SqliteMigrations
+﻿namespace Agenda.DataStores.SqliteMigrations
 {
+    using System;
+
+    using Microsoft.EntityFrameworkCore.Migrations;
+
+    using NodaTime;
+
     public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

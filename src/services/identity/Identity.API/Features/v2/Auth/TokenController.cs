@@ -1,31 +1,31 @@
-﻿using Identity.API.Features.Auth;
-using Identity.API.Features.v1.Auth;
-using Identity.CQRS.Commands;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
-using Identity.DTO.v2;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Options;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Identity.API.Features.v2.Auth
+﻿namespace Identity.API.Features.v2.Auth
 {
+    using Identity.API.Features.Auth;
+    using Identity.API.Features.v1.Auth;
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DTO;
+    using Identity.DTO.v2;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.Extensions.Options;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Endpoint to handle authentication, token.
     /// </summary>

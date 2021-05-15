@@ -1,28 +1,28 @@
-
-using FluentAssertions;
-using FluentValidation;
-using FluentValidation.Results;
-using Patients.Validators.Features.Patients.DTO;
-using MedEasy.DAL.Interfaces;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Moq.Times;
-using static Newtonsoft.Json.JsonConvert;
-using Patients.DTO;
-using Patients.Objects;
-using Xunit.Categories;
-using Patients.Ids;
-
 namespace Patients.Validators.Tests.Features.Patients
 {
+
+    using FluentAssertions;
+    using FluentValidation;
+    using FluentValidation.Results;
+    using global::Patients.Validators.Features.Patients.DTO;
+    using MedEasy.DAL.Interfaces;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using static FluentValidation.Severity;
+    using static Moq.MockBehavior;
+    using static Moq.Times;
+    using static Newtonsoft.Json.JsonConvert;
+    using global::Patients.DTO;
+    using global::Patients.Objects;
+    using Xunit.Categories;
+    using global::Patients.Ids;
+
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>

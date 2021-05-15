@@ -1,16 +1,16 @@
-using FluentValidation;
-
-using MedEasy.DAL.Interfaces;
-
-using Patients.DTO;
-
-using System;
-
-using static FluentValidation.CascadeMode;
-using static FluentValidation.Severity;
-
 namespace Patients.Validators.Features.Patients.DTO
 {
+    using FluentValidation;
+
+    using MedEasy.DAL.Interfaces;
+
+    using global::Patients.DTO;
+
+    using System;
+
+    using static FluentValidation.CascadeMode;
+    using static FluentValidation.Severity;
+
     /// <summary>
     /// Validates <see cref="CreatePatientInfo"/> instances.
     /// </summary>

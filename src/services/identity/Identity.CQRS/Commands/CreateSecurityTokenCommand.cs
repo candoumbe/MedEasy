@@ -1,14 +1,14 @@
-﻿using Identity.DTO;
-
-using MedEasy.CQRS.Core.Commands;
-
-using Microsoft.IdentityModel.Tokens;
-
-using System;
-using System.Collections.Generic;
-
-namespace Identity.CQRS.Commands
+﻿namespace Identity.CQRS.Commands
 {
+    using Identity.DTO;
+
+    using MedEasy.CQRS.Core.Commands;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using System;
+    using System.Collections.Generic;
+
     public class CreateSecurityTokenCommand : CommandBase<Guid, (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims), SecurityToken>
     {
         /// <summary>

@@ -1,12 +1,12 @@
-﻿using Agenda.DTO;
-using Agenda.DTO.Resources.Search;
-
-using FluentValidation;
-
-using MedEasy.Validators.Validators;
-
-namespace Agenda.Validators
+﻿namespace Agenda.Validators
 {
+    using Agenda.DTO;
+    using Agenda.DTO.Resources.Search;
+
+    using FluentValidation;
+
+    using MedEasy.Validators.Validators;
+
     /// <summary>
     /// Validates <see cref="SearchAttendeeInfo"/> instances.
     /// </summary>

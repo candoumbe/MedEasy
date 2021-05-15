@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Agenda.Objects.Exceptions
+﻿namespace Agenda.Objects.Exceptions
 {
+    using System;
+
     /// <summary>
     /// Exception thrown when passing invalid start/end date when creating/modifying an appointment
     /// </summary>

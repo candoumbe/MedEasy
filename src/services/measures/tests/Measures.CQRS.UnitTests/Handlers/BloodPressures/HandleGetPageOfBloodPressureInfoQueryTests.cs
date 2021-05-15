@@ -1,30 +1,30 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-
-using Measures.DataStores;
-using Measures.CQRS.Handlers.BloodPressures;
-using Measures.Mapping;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
+﻿namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.BloodPressures;
+    using Measures.Mapping;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class HandleGetPageOfBloodPressureInfoQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {

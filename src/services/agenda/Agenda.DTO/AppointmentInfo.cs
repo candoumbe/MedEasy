@@ -1,13 +1,13 @@
-﻿using Agenda.Ids;
-
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-using System.Collections.Generic;
-
-namespace Agenda.DTO
+﻿namespace Agenda.DTO
 {
+    using Agenda.Ids;
+
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
+    using System.Collections.Generic;
+
     /// <summary>
     /// An <see cref="Appointment"/> beetween two or more people
     /// </summary>

@@ -1,27 +1,27 @@
-using FluentAssertions;
-using Patients.API.Controllers;
-using Patients.API.Routing;
-using Patients.DTO;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
-using Xunit.Abstractions;
-using static Moq.MockBehavior;
-using static MedEasy.RestObjects.FormFieldType;
-using Xunit.Categories;
-using Endpoint = MedEasy.RestObjects.Endpoint;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Routing;
-using MedEasy.Ids;
-
 namespace Patients.API.UnitTests.Controllers
 {
+    using FluentAssertions;
+    using Patients.API.Controllers;
+    using Patients.API.Routing;
+    using Patients.DTO;
+    using MedEasy.RestObjects;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Options;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Xunit;
+    using Xunit.Abstractions;
+    using static Moq.MockBehavior;
+    using static MedEasy.RestObjects.FormFieldType;
+    using Xunit.Categories;
+    using Endpoint = MedEasy.RestObjects.Endpoint;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.AspNetCore.Routing;
+    using MedEasy.Ids;
+
     /// <summary>
     /// Unit tests for <see cref="RootController"/>
     /// </summary>

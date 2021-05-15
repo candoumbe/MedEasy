@@ -1,35 +1,35 @@
-﻿using FluentAssertions;
-
-using FluentValidation.Results;
-
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Validators.Commands.Patients;
-
-using MedEasy.DAL.Interfaces;
-
-using Microsoft.AspNetCore.JsonPatch;
-
-using Moq;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
-using static System.StringComparison;
-
-namespace Measures.Validators.Tests.Features.Patients
+﻿namespace Measures.Validators.Tests.Features.Patients
 {
+    using FluentAssertions;
+
+    using FluentValidation.Results;
+
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Validators.Commands.Patients;
+
+    using MedEasy.DAL.Interfaces;
+
+    using Microsoft.AspNetCore.JsonPatch;
+
+    using Moq;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq.Expressions;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+    using static Moq.MockBehavior;
+    using static Newtonsoft.Json.JsonConvert;
+    using static System.StringComparison;
+
     [UnitTest]
     public class PatchPatientInfoValidatorTests : IDisposable
     {

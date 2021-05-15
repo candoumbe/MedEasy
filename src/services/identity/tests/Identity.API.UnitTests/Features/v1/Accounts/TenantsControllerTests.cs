@@ -1,45 +1,45 @@
-﻿using FluentAssertions;
-
-using Identity.API.Features.Accounts;
-using Identity.API.Features.v1.Accounts;
-using Identity.API.Routing;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Ids;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Identity.API.UnitTests.Features.v1.Accounts
+﻿namespace Identity.API.UnitTests.Features.v1.Accounts
 {
+    using FluentAssertions;
+
+    using Identity.API.Features.Accounts;
+    using Identity.API.Features.v1.Accounts;
+    using Identity.API.Routing;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     /// <summary>
     /// Unit tests for <see cref="TenantsController"/>
     /// </summary>

@@ -1,9 +1,9 @@
-﻿using Documents.Ids;
-
-using MedEasy.RestObjects;
-
-namespace Documents.DTO.v1
+﻿namespace Documents.DTO.v1
 {
+    using Documents.Ids;
+
+    using MedEasy.RestObjects;
+
     public class DocumentInfo : Resource<DocumentId>
     {
         /// <summary>

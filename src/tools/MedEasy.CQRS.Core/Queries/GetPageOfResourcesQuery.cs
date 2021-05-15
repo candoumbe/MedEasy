@@ -1,9 +1,9 @@
-﻿using System;
-
-using MedEasy.RestObjects;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using System;
+
+    using MedEasy.RestObjects;
+
     public abstract class GetPageOfResourcesQuery<TQueryId, TResult> : IWantPageOf<TQueryId, TResult>
         where TQueryId : IEquatable<TQueryId>
     {

@@ -1,9 +1,9 @@
-﻿using MedEasy.DTO.Search;
-using System;
-using MedEasy.DAL.Repositories;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using MedEasy.DTO.Search;
+    using System;
+    using MedEasy.DAL.Repositories;
+
     /// <summary>
     /// Query to filter resources
     /// </summary>

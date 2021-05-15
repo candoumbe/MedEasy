@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
-
-using Measures.CQRS.Commands.BloodPressures;
-using Measures.DTO;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Commands.BloodPressures
+﻿namespace Measures.CQRS.UnitTests.Commands.BloodPressures
 {
+    using FluentAssertions;
+
+    using Measures.CQRS.Commands.BloodPressures;
+    using Measures.DTO;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class CreateBloodPressureInfoForPatientIdCommandTests : IDisposable
     {

@@ -1,7 +1,7 @@
-﻿using Measures.Ids;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
     public class TemperatureInfo : PhysiologicalMeasurementInfo<TemperatureId>
     {
         /// <summary>

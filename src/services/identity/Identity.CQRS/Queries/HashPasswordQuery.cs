@@ -1,9 +1,9 @@
-﻿using MedEasy.CQRS.Core.Queries;
-
-using System;
-
-namespace Identity.CQRS.Queries
+﻿namespace Identity.CQRS.Queries
 {
+    using MedEasy.CQRS.Core.Queries;
+
+    using System;
+
     /// <summary>
     /// Request hashing a password
     /// </summary>

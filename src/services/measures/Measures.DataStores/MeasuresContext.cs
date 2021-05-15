@@ -1,13 +1,13 @@
-﻿using Measures.Objects;
-
-using MedEasy.DataStores.Core.Relational;
-
-using Microsoft.EntityFrameworkCore;
-
-using NodaTime;
-
-namespace Measures.DataStores
+﻿namespace Measures.DataStores
 {
+    using Measures.Objects;
+
+    using MedEasy.DataStores.Core.Relational;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using NodaTime;
+
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>

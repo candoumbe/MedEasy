@@ -1,16 +1,16 @@
-﻿using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Primitives;
-
-using System.Collections;
-using System.Collections.Generic;
-
-using static Microsoft.AspNetCore.Http.HttpMethods;
-
-namespace MedEasy.Core.Filters
+﻿namespace MedEasy.Core.Filters
 {
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.Extensions.Primitives;
+
+    using System.Collections;
+    using System.Collections.Generic;
+
+    using static Microsoft.AspNetCore.Http.HttpMethods;
+
     /// <summary>
     /// <para>
     /// Adds 'X-Count' and 'X-Total-Count' headers.

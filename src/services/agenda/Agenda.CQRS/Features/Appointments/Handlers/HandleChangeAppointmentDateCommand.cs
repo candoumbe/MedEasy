@@ -1,27 +1,27 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Ids;
-using Agenda.Objects;
-
-using AutoMapper;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.CQRS.Core.Exceptions;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using NodaTime;
-
-using Optional;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static MedEasy.CQRS.Core.Commands.Results.ModifyCommandResult;
-
-namespace Agenda.CQRS.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Ids;
+    using Agenda.Objects;
+
+    using AutoMapper;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.CQRS.Core.Exceptions;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using NodaTime;
+
+    using Optional;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static MedEasy.CQRS.Core.Commands.Results.ModifyCommandResult;
+
     /// <summary>
     /// Handles <see cref="ChangeAppointmentDateCommand"/>
     /// </summary>

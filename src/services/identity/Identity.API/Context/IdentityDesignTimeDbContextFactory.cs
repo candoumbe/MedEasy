@@ -1,19 +1,19 @@
-﻿using Identity.DataStores;
-
-using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-
-using NodaTime;
-
-using System;
-using System.IO;
-
-namespace Identity.API.Context
+﻿namespace Identity.API.Context
 {
+    using Identity.DataStores;
+
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+
+    using NodaTime;
+
+    using System;
+    using System.IO;
+
     /// <summary>
     /// Factory class to create <see cref="IdentityContext"/> during design time.
     /// </summary>

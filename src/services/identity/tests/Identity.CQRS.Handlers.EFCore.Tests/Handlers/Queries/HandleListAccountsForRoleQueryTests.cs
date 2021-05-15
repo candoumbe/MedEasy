@@ -1,40 +1,40 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using FluentAssertions;
-
-using Identity.CQRS.Handlers.Queries;
-using Identity.CQRS.Queries.Roles;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-
-namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
+﻿namespace Identity.CQRS.Handlers.EFCore.Tests.Handlers.Queries
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Handlers.Queries;
+    using Identity.CQRS.Queries.Roles;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
     public class HandleListAccountsForRoleQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private readonly ITestOutputHelper _outputHelper;

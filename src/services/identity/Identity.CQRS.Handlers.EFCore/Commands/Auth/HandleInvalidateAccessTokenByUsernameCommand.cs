@@ -1,20 +1,20 @@
-﻿using Identity.CQRS.Commands;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using NodaTime;
-
-using Optional;
-
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Commands
+﻿namespace Identity.CQRS.Handlers.Commands
 {
+    using Identity.CQRS.Commands;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using NodaTime;
+
+    using Optional;
+
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleInvalidateAccessTokenByUsernameCommand : IRequestHandler<InvalidateAccessTokenByUsernameCommand, InvalidateAccessCommandResult>
     {
         private readonly IClock _clock;

@@ -1,12 +1,12 @@
-﻿using Agenda.Ids;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-namespace Agenda.CQRS.Features.Appointments.Commands
+﻿namespace Agenda.CQRS.Features.Appointments.Commands
 {
+    using Agenda.Ids;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
     /// <summary>
     /// Command to delete an <see cref="DTO.AppointmentInfo"/> by its <see cref="MedEasy.RestObjects.Resource{T}.Id"/>
     /// </summary>

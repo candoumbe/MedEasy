@@ -1,24 +1,24 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using AutoMapper;
-
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Queries;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
+﻿namespace Identity.CQRS.Handlers.EFCore.Commands.Accounts
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using AutoMapper;
+
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.CQRS.Queries;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DTO;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
     /// <summary>
     /// Handles creation of <see cref="AccountInfo"/>s
     /// </summary>

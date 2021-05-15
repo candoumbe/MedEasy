@@ -1,23 +1,23 @@
-﻿using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DTO;
-using Agenda.Objects;
-
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Participants.Handlers
+﻿namespace Agenda.CQRS.Features.Participants.Handlers
 {
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DTO;
+    using Agenda.Objects;
+
+    using AutoMapper;
+    using AutoMapper.QueryableExtensions;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="GetOneAttendeeInfoByIdQuery"/> queries.
     /// </summary>

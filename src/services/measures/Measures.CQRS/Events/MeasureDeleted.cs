@@ -1,9 +1,9 @@
-﻿using MedEasy.CQRS.Core.Events;
-
-using System;
-
-namespace Measures.CQRS.Events
+﻿namespace Measures.CQRS.Events
 {
+    using MedEasy.CQRS.Core.Events;
+
+    using System;
+
     /// <summary>
     /// Event sent when a new measure was deleted
     /// </summary>

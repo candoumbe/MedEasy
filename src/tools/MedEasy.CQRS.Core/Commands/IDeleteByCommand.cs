@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.CQRS.Core.Commands
+﻿namespace MedEasy.CQRS.Core.Commands
 {
+    using System;
+
     /// <summary>
     /// Command to delete a element
     /// </summary>

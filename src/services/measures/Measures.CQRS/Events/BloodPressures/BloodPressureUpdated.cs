@@ -1,9 +1,9 @@
-﻿using Measures.Ids;
-
-using System;
-
-namespace Measures.CQRS.Events.BloodPressures
+﻿namespace Measures.CQRS.Events.BloodPressures
 {
+    using Measures.Ids;
+
+    using System;
+
     /// <summary>
     /// Notifies that a <see cref="BloodPressureInfo"/> was updated.
     /// </summary>

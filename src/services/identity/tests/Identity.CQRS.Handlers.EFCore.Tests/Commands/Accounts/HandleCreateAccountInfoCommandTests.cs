@@ -1,48 +1,48 @@
-﻿using AutoMapper;
-
-using FluentAssertions;
-
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Events.Accounts;
-using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
-using Identity.CQRS.Queries;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Mapping;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Identity.CQRS.UnitTests.Handlers.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
+    using AutoMapper;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.CQRS.Events.Accounts;
+    using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
+    using Identity.CQRS.Queries;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Mapping;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Accounts")]
     [Feature("Handlers")]

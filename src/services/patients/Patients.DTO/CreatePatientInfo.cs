@@ -1,13 +1,13 @@
-﻿
-using NodaTime;
-
-using Patients.Ids;
-
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Patients.DTO
+﻿namespace Patients.DTO
 {
+
+    using NodaTime;
+
+    using Patients.Ids;
+
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Data to create a new <see cref="PatientInfo"/> resource.
     /// </summary>

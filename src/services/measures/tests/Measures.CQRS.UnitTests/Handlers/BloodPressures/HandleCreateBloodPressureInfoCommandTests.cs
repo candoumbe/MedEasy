@@ -1,46 +1,46 @@
-﻿using AutoMapper;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Measures.DataStores;
-using Measures.CQRS.Commands.BloodPressures;
-using Measures.CQRS.Events.BloodPressures;
-using Measures.CQRS.Handlers.BloodPressures;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Mapping;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
+﻿namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
+    using AutoMapper;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Commands.BloodPressures;
+    using Measures.CQRS.Events.BloodPressures;
+    using Measures.CQRS.Handlers.BloodPressures;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Mapping;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Blood pressures")]
     [Feature("Handlers")]

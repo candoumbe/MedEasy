@@ -1,17 +1,17 @@
-﻿using Agenda.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using Microsoft.AspNetCore.Mvc;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Agenda.API.Resources
+﻿namespace Agenda.API.Resources
 {
+    using Agenda.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using Microsoft.AspNetCore.Mvc;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     [Route("agenda/[controller]")]
     public class HealthController
     {

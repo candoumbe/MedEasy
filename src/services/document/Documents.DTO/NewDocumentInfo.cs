@@ -1,11 +1,11 @@
-﻿using Documents.Ids;
-
-using MedEasy.RestObjects;
-
-using System;
-
-namespace Documents.DTO
+﻿namespace Documents.DTO
 {
+    using Documents.Ids;
+
+    using MedEasy.RestObjects;
+
+    using System;
+
     public class NewDocumentInfo : Resource<DocumentId>, IEquatable<NewDocumentInfo>
     {
         public string Name { get; set; }

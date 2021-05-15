@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-
-namespace MedEasy.CQRS.Core.Exceptions
+﻿namespace MedEasy.CQRS.Core.Exceptions
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Base class for exceptions thrown when validating commands or queries
     /// </summary>

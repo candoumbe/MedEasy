@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = true)]
     public sealed class FormFieldAttribute : Attribute
     {

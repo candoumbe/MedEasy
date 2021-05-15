@@ -1,9 +1,9 @@
-﻿using FluentValidation;
-
-using System;
-
-namespace MedEasy.Validators
+﻿namespace MedEasy.Validators
 {
+    using FluentValidation;
+
+    using System;
+
     /// <summary>
     /// Static class
     /// </summary>

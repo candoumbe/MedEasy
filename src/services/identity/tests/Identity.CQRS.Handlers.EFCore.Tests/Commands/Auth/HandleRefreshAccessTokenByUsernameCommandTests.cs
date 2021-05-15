@@ -1,51 +1,51 @@
-﻿using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.CQRS.Commands;
-using Identity.CQRS.Handlers;
-using Identity.CQRS.Handlers.Commands;
-using Identity.DataStores;
-using Identity.DTO;
-using Identity.DTO.v1;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-using Claim = System.Security.Claims.Claim;
-
-namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
+﻿namespace Identity.CQRS.UnitTests.Handlers.Commands.Auth
 {
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Handlers;
+    using Identity.CQRS.Handlers.Commands;
+    using Identity.DataStores;
+    using Identity.DTO;
+    using Identity.DTO.v1;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.IdentityModel.Tokens;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
+    using Claim = System.Security.Claims.Claim;
+
     [UnitTest]
     [Feature("JWT")]
     public class HandleRefreshAccessTokenByUsernameCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>

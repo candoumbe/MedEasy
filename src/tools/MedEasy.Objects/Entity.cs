@@ -1,7 +1,7 @@
-using System;
-
 namespace MedEasy.Objects
 {
+    using System;
+
     public abstract class Entity<TKey, TEntry> : BaseEntity<TKey> where TEntry : class
     {
 #pragma warning disable IDE0044 // Ajouter un modificateur readonly

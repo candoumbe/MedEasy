@@ -1,23 +1,23 @@
-﻿using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DTO;
-using Agenda.Objects;
-
-using AutoMapper.QueryableExtensions;
-
-using DataFilters;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-
-using MediatR;
-
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Participants.Handlers
+﻿namespace Agenda.CQRS.Features.Participants.Handlers
 {
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DTO;
+    using Agenda.Objects;
+
+    using AutoMapper.QueryableExtensions;
+
+    using DataFilters;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+
+    using MediatR;
+
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleGetPageOfAttendeeInfoQuery : IRequestHandler<GetPageOfAttendeeInfoQuery, Page<AttendeeInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

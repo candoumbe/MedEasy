@@ -1,47 +1,47 @@
-using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.API.Fixtures.v2;
-
-using Measures.API.Features.Patients;
-using Measures.DTO;
-using Measures.Ids;
-
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static System.Net.Http.HttpMethod;
-
 namespace Measures.API.IntegrationTests.v1
 {
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.API.Fixtures.v2;
+
+    using Measures.API.Features.Patients;
+    using Measures.DTO;
+    using Measures.Ids;
+
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Mvc;
+
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Net.Http.Json;
+    using System.Net.Mime;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static System.Net.Http.HttpMethod;
+
     [IntegrationTest]
     [Feature("Patients")]
     public class PatientsControllerTests : IAsyncLifetime, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>

@@ -1,32 +1,32 @@
-﻿using Identity.API.Features.v1.Accounts;
-using Identity.API.Routing;
-using Identity.CQRS.Commands.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DTO;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DTO;
-using MedEasy.Ids;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Identity.API.Features.Accounts
+﻿namespace Identity.API.Features.Accounts
 {
+    using Identity.API.Features.v1.Accounts;
+    using Identity.API.Routing;
+    using Identity.CQRS.Commands.Accounts;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DTO;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DTO;
+    using MedEasy.Ids;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Options;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Handles <see cref="Account"/>s resources
     /// </summary>

@@ -1,12 +1,12 @@
-﻿using Documents.Ids;
-
-using MedEasy.Objects;
-
-using System;
-using System.Collections.Generic;
-
-namespace Documents.Objects
+﻿namespace Documents.Objects
 {
+    using Documents.Ids;
+
+    using MedEasy.Objects;
+
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// A document submitted in the system
     /// </summary>

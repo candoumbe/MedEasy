@@ -1,11 +1,11 @@
-﻿using Measures.DTO;
-
-using System;
-
-using static Newtonsoft.Json.JsonConvert;
-
-namespace Measures.CQRS.Events.BloodPressures
+﻿namespace Measures.CQRS.Events.BloodPressures
 {
+    using Measures.DTO;
+
+    using System;
+
+    using static Newtonsoft.Json.JsonConvert;
+
     /// <summary>
     /// Event that notifies the creation of a new <see cref="BloodPressureInfo"/> resource .
     /// </summary>

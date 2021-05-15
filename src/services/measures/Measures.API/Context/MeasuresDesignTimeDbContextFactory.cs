@@ -1,19 +1,19 @@
-﻿using Measures.DataStores;
-
-using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-
-using NodaTime;
-
-using System;
-using System.IO;
-
-namespace Measures.API.Context
+﻿namespace Measures.API.Context
 {
+    using Measures.DataStores;
+
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+
+    using NodaTime;
+
+    using System;
+    using System.IO;
+
     /// <summary>
     /// Factory class to create <see cref="MeasuresStore"/> during design time.
     /// </summary>

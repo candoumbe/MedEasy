@@ -1,34 +1,34 @@
-﻿using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.CQRS.Commands;
-using Identity.CQRS.Handlers;
-using Identity.DTO;
-using Identity.Ids;
-
-using MediatR;
-
-using Microsoft.IdentityModel.Tokens;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Identity.CQRS.UnitTests.Handlers.Queries
+﻿namespace Identity.CQRS.UnitTests.Handlers.Queries
 {
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Handlers;
+    using Identity.DTO;
+    using Identity.Ids;
+
+    using MediatR;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [UnitTest]
     [Feature("Identity")]
     [Feature("JWT")]

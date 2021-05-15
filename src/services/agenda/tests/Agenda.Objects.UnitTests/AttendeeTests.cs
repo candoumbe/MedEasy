@@ -1,14 +1,14 @@
-using Agenda.Ids;
-
-using FluentAssertions;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
 namespace Agenda.Objects.UnitTests
 {
+    using Agenda.Ids;
+
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class AttendeeTests

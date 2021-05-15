@@ -1,10 +1,10 @@
-﻿using MedEasy.DTO.Search;
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using MedEasy.DTO.Search;
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
     /// <summary>
     /// Wraps seearch criteria for <see cref="PatientInfo"/> resources.
     /// </summary>

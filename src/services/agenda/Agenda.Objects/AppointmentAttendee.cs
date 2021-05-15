@@ -1,9 +1,9 @@
-﻿using Agenda.Ids;
-
-using System.Text.Json.Serialization;
-
-namespace Agenda.Objects
+﻿namespace Agenda.Objects
 {
+    using Agenda.Ids;
+
+    using System.Text.Json.Serialization;
+
     /// <summary>
     /// Relation between a <see cref="Attendee"/> and an <see cref="Appointment"/>
     /// </summary>

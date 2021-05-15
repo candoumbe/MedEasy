@@ -1,48 +1,48 @@
-﻿using AutoMapper;
-
-using FluentValidation;
-using FluentValidation.AspNetCore;
-
-using MedEasy.Core.Filters;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using NodaTime;
-
-using Patients.Context;
-using Patients.Mapping;
-using Patients.Validators.Features.Patients.DTO;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using NodaTime.Serialization.SystemTextJson;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MedEasy.Abstractions.ValueConverters;
-
-namespace Patients.API
+﻿namespace Patients.API
 {
+    using AutoMapper;
+
+    using FluentValidation;
+    using FluentValidation.AspNetCore;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Versioning;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.OpenApi.Models;
+
+    using NodaTime;
+
+    using Patients.Context;
+    using Patients.Mapping;
+    using Patients.Validators.Features.Patients.DTO;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Text.Json.Serialization;
+    using System.Text.Json;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using NodaTime.Serialization.SystemTextJson;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using MedEasy.Abstractions.ValueConverters;
+
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>

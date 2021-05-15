@@ -1,16 +1,16 @@
-﻿using Identity.Ids;
-
-using MedEasy.Objects;
-
-using Optional;
-using Optional.Collections;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
+    using Identity.Ids;
+
+    using MedEasy.Objects;
+
+    using Optional;
+    using Optional.Collections;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class Role : AuditableEntity<RoleId, Role>
     {
         public string Code { get; set; }

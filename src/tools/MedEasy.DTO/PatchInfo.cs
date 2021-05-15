@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
-
-namespace MedEasy.DTO
+﻿namespace MedEasy.DTO
 {
+    using Microsoft.AspNetCore.JsonPatch;
+
     /// <summary>
     /// Embeds a set of change to apply to a resource
     /// </summary>

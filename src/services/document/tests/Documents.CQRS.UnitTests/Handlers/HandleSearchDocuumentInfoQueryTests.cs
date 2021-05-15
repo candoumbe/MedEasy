@@ -1,38 +1,38 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using Documents.CQRS.Handlers;
-using Documents.CQRS.Queries;
-using Documents.DataStore;
-using Documents.DTO.v1;
-using Documents.Ids;
-using Documents.Mapping;
-using Documents.Objects;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Documents.CQRS.UnitTests.Handlers
+﻿namespace Documents.CQRS.UnitTests.Handlers
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using Documents.CQRS.Handlers;
+    using Documents.CQRS.Queries;
+    using Documents.DataStore;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+    using Documents.Mapping;
+    using Documents.Objects;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature(nameof(Documents))]
     [UnitTest]
     [Feature("Search")]

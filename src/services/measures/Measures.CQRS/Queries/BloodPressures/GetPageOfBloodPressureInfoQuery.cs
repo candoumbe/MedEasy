@@ -1,12 +1,12 @@
-﻿using Measures.DTO;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.RestObjects;
-
-using System;
-
-namespace Measures.CQRS.Queries.BloodPressures
+﻿namespace Measures.CQRS.Queries.BloodPressures
 {
+    using Measures.DTO;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.RestObjects;
+
+    using System;
+
     /// <summary>
     /// Query to get a <see cref="MedEasy.DAL.Repositories.Page{T}"/> of <see cref="BloodPressureInfo"/>s.
     /// </summary>

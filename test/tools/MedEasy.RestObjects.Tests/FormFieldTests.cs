@@ -1,12 +1,12 @@
-﻿using FluentAssertions;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-
-namespace MedEasy.RestObjects.Tests
+﻿namespace MedEasy.RestObjects.Tests
 {
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
     public class FormFieldTests : IDisposable
     {
         private ITestOutputHelper _outputHelper;

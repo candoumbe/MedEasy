@@ -1,11 +1,11 @@
-﻿using Identity.DTO;
-
-using MedEasy.CQRS.Core.Events;
-
-using System;
-
-namespace Identity.CQRS.Events.Accounts
+﻿namespace Identity.CQRS.Events.Accounts
 {
+    using Identity.DTO;
+
+    using MedEasy.CQRS.Core.Events;
+
+    using System;
+
     /// <summary>
     /// Event indicating an <see cref="AccountInfo"/> was created
     /// </summary>

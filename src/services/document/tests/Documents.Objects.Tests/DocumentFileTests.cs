@@ -1,13 +1,13 @@
-using Documents.Ids;
-
-using FluentAssertions;
-
-using System;
-
-using Xunit;
-
 namespace Documents.Objects.Tests
 {
+    using Documents.Ids;
+
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+
     public class DocumentFileTests
     {
 

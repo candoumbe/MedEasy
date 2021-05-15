@@ -1,19 +1,19 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-
-using MediatR;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+
+    using MediatR;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles commands that removes a <see cref="Attendee"/> from an <see cref="Appointment"/>
     /// </summary>

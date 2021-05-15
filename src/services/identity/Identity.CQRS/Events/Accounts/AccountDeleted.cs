@@ -1,9 +1,9 @@
-﻿using Identity.Ids;
-
-using MediatR;
-
-namespace Identity.CQRS.Events.Accounts
+﻿namespace Identity.CQRS.Events.Accounts
 {
+    using Identity.Ids;
+
+    using MediatR;
+
     /// <summary>
     /// Event indicating an <see cref="AccountInfo"/> was deleted
     /// </summary>

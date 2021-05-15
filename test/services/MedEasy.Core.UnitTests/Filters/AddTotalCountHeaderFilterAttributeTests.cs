@@ -1,32 +1,32 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using MedEasy.Core.Filters;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-
-using Moq;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static System.StringComparison;
-
-namespace MedEasy.Core.UnitTests.Filters
+﻿namespace MedEasy.Core.UnitTests.Filters
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Abstractions;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Routing;
+
+    using Moq;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static System.StringComparison;
+
     [UnitTest]
     [Feature("Filters")]
     public class AddTotalCountHeaderFilterAttributeTests : IDisposable

@@ -1,7 +1,7 @@
-﻿using NodaTime;
-
-namespace MedEasy.Objects
+﻿namespace MedEasy.Objects
 {
+    using NodaTime;
+
     public interface IAuditableEntity
     {
         Instant? CreatedDate { get; set; }

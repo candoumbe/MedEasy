@@ -1,9 +1,9 @@
-﻿using MediatR;
-
-using System;
-
-namespace MedEasy.CQRS.Core.Events
+﻿namespace MedEasy.CQRS.Core.Events
 {
+    using MediatR;
+
+    using System;
+
     public abstract class NotificationBase : NotificationBase<Guid, object>
     {
         protected NotificationBase(Guid id, object data) : base(id, data)

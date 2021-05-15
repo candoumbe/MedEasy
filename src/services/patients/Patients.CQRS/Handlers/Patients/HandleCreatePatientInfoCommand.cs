@@ -1,22 +1,22 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Patients.CQRS.Commands;
-using Patients.CQRS.Events;
-using Patients.DTO;
-using Patients.Ids;
-using Patients.Objects;
-
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Patients.CQRS.Handlers.Patients
+﻿namespace Patients.CQRS.Handlers.Patients
 {
+    using AutoMapper.QueryableExtensions;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using global::Patients.CQRS.Commands;
+    using global::Patients.CQRS.Events;
+    using global::Patients.DTO;
+    using global::Patients.Ids;
+    using global::Patients.Objects;
+
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="CreatePatientInfoCommand"/>s
     /// </summary>

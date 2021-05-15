@@ -1,7 +1,7 @@
-﻿using MedEasy.Ids;
-
-namespace MedEasy.Objects
+﻿namespace MedEasy.Objects
 {
+    using MedEasy.Ids;
+
     /// <summary>
     /// Adds multitenancy support
     /// </summary>

@@ -1,18 +1,18 @@
-﻿using Identity.Ids;
-
-using MedEasy.Ids;
-using MedEasy.Objects;
-
-using NodaTime;
-
-using Optional;
-using Optional.Collections;
-
-using System;
-using System.Collections.Generic;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
+    using Identity.Ids;
+
+    using MedEasy.Ids;
+    using MedEasy.Objects;
+
+    using NodaTime;
+
+    using Optional;
+    using Optional.Collections;
+
+    using System;
+    using System.Collections.Generic;
+
     public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
 
     {

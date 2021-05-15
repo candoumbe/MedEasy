@@ -1,11 +1,11 @@
-﻿using FluentValidation;
-
-using Microsoft.IdentityModel.Tokens;
-
-using NodaTime;
-
-namespace Identity.Validators
+﻿namespace Identity.Validators
 {
+    using FluentValidation;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using NodaTime;
+
     public class SecurityTokenLifetimeValidator : AbstractValidator<SecurityToken>
     {
         public SecurityTokenLifetimeValidator(IClock datetimeService)

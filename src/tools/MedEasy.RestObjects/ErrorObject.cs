@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Wraps any errors that a serice wish to send to a client
     /// </summary>

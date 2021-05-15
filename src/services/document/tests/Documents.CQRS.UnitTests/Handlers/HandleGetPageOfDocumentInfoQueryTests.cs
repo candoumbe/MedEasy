@@ -1,29 +1,29 @@
-﻿using Bogus;
-using Documents.CQRS.Handlers;
-using Documents.Objects;
-using FluentAssertions;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using MedEasy.DAL.EFStore;
-using Documents.DTO.v1;
-using Documents.CQRS.Queries;
-using Documents.DataStore;
-using NodaTime.Testing;
-using NodaTime;
-using Documents.Ids;
-
-namespace Documents.CQRS.UnitTests.Handlers
+﻿namespace Documents.CQRS.UnitTests.Handlers
 {
+    using Bogus;
+    using Documents.CQRS.Handlers;
+    using Documents.Objects;
+    using FluentAssertions;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using MedEasy.DAL.EFStore;
+    using Documents.DTO.v1;
+    using Documents.CQRS.Queries;
+    using Documents.DataStore;
+    using NodaTime.Testing;
+    using NodaTime;
+    using Documents.Ids;
+
     [Feature(nameof(Documents))]
     [UnitTest]
     public class HandleGetPageOfDocumentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>

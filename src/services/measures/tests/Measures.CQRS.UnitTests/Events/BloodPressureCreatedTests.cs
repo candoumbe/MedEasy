@@ -1,18 +1,18 @@
-﻿using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Measures.CQRS.Events.BloodPressures;
-using Measures.DTO;
-
-using NodaTime.Extensions;
-
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Events
+﻿namespace Measures.CQRS.UnitTests.Events
 {
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Measures.CQRS.Events.BloodPressures;
+    using Measures.DTO;
+
+    using NodaTime.Extensions;
+
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Events")]
     public class BloodPressureCreatedTests

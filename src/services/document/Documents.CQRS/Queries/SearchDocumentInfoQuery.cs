@@ -1,12 +1,12 @@
-﻿using Documents.DTO.v1;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-
-using System;
-
-namespace Documents.CQRS.Queries
+﻿namespace Documents.CQRS.Queries
 {
+    using Documents.DTO.v1;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+
+    using System;
+
     /// <summary>
     /// Query to retrieve a document based on <see cref="DocumentInfo"/>"s criteria.
     /// </summary>

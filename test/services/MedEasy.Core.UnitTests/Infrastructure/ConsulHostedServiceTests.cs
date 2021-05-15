@@ -1,23 +1,23 @@
-﻿using Consul;
-using FakeItEasy;
-using MedEasy.Core.Infrastructure;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit.Abstractions;
-using System.Linq;
-using Xunit;
-using Xunit.Categories;
-using FluentAssertions;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using System.Threading;
-using Microsoft.AspNetCore.Http.Features;
-
-namespace MedEasy.Core.UnitTests.Infrastructure
+﻿namespace MedEasy.Core.UnitTests.Infrastructure
 {
+    using Consul;
+    using FakeItEasy;
+    using MedEasy.Core.Infrastructure;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Xunit.Abstractions;
+    using System.Linq;
+    using Xunit;
+    using Xunit.Categories;
+    using FluentAssertions;
+    using Microsoft.AspNetCore.Hosting.Server.Features;
+    using System.Threading;
+    using Microsoft.AspNetCore.Http.Features;
+
     [UnitTest]
     public class ConsulHostedServiceTests : IDisposable
     {

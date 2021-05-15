@@ -1,8 +1,8 @@
-using Xunit;
-using Xunit.Categories;
-
 namespace Patients.Mapping.UnitTests
 {
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Patients")]
     [Feature("Mapping")]

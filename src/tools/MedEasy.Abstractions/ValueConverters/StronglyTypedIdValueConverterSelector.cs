@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-
-namespace MedEasy.Abstractions.ValueConverters
+﻿namespace MedEasy.Abstractions.ValueConverters
 {
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Custom implementation of <see cref="ValueConverterSelector"/> that avoids client-side evaluation when using strongly typed ids.
     /// (see https://andrewlock.net/strongly-typed-ids-in-ef-core-using-strongly-typed-entity-ids-to-avoid-primitive-obsession-part-4/)

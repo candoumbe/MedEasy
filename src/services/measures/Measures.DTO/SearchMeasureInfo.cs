@@ -1,12 +1,12 @@
-﻿using Measures.Ids;
-
-using MedEasy.DTO.Search;
-using MedEasy.RestObjects;
-
-using NodaTime;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+    using MedEasy.DTO.Search;
+    using MedEasy.RestObjects;
+
+    using NodaTime;
+
     /// <summary>
     /// Base class for writing Search classes for 
     /// </summary>

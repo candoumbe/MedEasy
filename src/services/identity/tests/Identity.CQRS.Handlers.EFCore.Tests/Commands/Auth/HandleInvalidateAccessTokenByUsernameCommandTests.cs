@@ -1,39 +1,39 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using Identity.CQRS.Commands;
-using Identity.CQRS.Handlers.Commands;
-using Identity.DataStores;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Microsoft.IdentityModel.Tokens;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Threading.Tasks;
-
-using Xunit;
-
-using static Moq.MockBehavior;
-
-using Claim = System.Security.Claims.Claim;
-
-namespace Identity.CQRS.UnitTests.Handlers.Commands
+﻿namespace Identity.CQRS.UnitTests.Handlers.Commands
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Commands;
+    using Identity.CQRS.Handlers.Commands;
+    using Identity.DataStores;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Threading.Tasks;
+
+    using Xunit;
+
+    using static Moq.MockBehavior;
+
+    using Claim = System.Security.Claims.Claim;
+
     public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
     {
         private Mock<IClock> _datetimeServiceMock;

@@ -1,9 +1,9 @@
-﻿using System.ComponentModel;
-
-using Nuke.Common.Tooling;
-
-namespace MedEasy.ContinuousIntegration
+﻿namespace MedEasy.ContinuousIntegration
 {
+    using System.ComponentModel;
+
+    using Nuke.Common.Tooling;
+
     /// <summary>
     /// List of services that can be served by MedEasy
     /// </summary>

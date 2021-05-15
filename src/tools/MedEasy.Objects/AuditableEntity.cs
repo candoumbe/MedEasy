@@ -1,7 +1,7 @@
-using NodaTime;
-
 namespace MedEasy.Objects
 {
+    using NodaTime;
+
     public abstract class AuditableEntity<TKey, TEntry> : Entity<TKey, TEntry>, IAuditableEntity where TEntry : class
     {
         public Instant? CreatedDate { get; set; }

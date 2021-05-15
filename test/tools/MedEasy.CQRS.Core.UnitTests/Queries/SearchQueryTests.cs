@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DTO.Search;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace MedEasy.CQRS.Core.UnitTests.Queries
+﻿namespace MedEasy.CQRS.Core.UnitTests.Queries
 {
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DTO.Search;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class SearchQueryTests : IDisposable
     {

@@ -1,13 +1,13 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
-
-using EventStore.ClientAPI;
-
-using MedEasy.CQRS.Core.Events;
-
-namespace MedEasy.EventSourcing
+﻿namespace MedEasy.EventSourcing
 {
+    using System;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    using EventStore.ClientAPI;
+
+    using MedEasy.CQRS.Core.Events;
+
     public class Eventstore : IEventStore
     {
         private readonly IEventStoreConnection _connection;

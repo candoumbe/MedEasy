@@ -1,42 +1,42 @@
-﻿using Agenda.CQRS.Features.Appointments.Handlers;
-using Agenda.CQRS.Features.Appointments.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Objects;
-
-using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Handlers;
+    using Agenda.CQRS.Features.Appointments.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+
     [Feature("Agenda")]
     [UnitTest]
     public class HandleGetPageOfAppointmentInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

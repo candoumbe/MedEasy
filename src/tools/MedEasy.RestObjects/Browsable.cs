@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// A wrapper of a <typeparamref name="T"/> resource with its current <see cref="Links"/>
     /// </summary>

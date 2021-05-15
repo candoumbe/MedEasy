@@ -1,11 +1,12 @@
-﻿#if NETSTANDARD1_1
+﻿#endif
+namespace MedEasy.RestObjects
+{
+#if NETSTANDARD1_1
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 #else
-using System.Text.Json.Serialization;
-#endif
-namespace MedEasy.RestObjects
-{
+    using System.Text.Json.Serialization;
+
     /// <summary>
     /// Form field representation
     /// </summary>

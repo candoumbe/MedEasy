@@ -1,36 +1,36 @@
-﻿using Agenda.API.Routing;
-using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DTO;
-using Agenda.DTO.Resources.Search;
-using Agenda.Ids;
-using Agenda.Models.v1.Appointments;
-using Agenda.Models.v1.Attendees;
-
-using AutoMapper;
-
-using MedEasy.Attributes;
-using MedEasy.DAL.Repositories;
-using MedEasy.RestObjects;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static MedEasy.RestObjects.LinkRelation;
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Agenda.API.Resources.v1
+﻿namespace Agenda.API.Resources.v1
 {
+    using Agenda.API.Routing;
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DTO;
+    using Agenda.DTO.Resources.Search;
+    using Agenda.Ids;
+    using Agenda.Models.v1.Appointments;
+    using Agenda.Models.v1.Attendees;
+
+    using AutoMapper;
+
+    using MedEasy.Attributes;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.RestObjects;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Options;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using static MedEasy.RestObjects.LinkRelation;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]

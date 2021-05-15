@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
-
-using Xunit;
-
-namespace MedEasy.RestObjects.Tests
+﻿namespace MedEasy.RestObjects.Tests
 {
+    using FluentAssertions;
+
+    using Xunit;
+
     public class FormTests
     {
         [Fact]

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MedEasy.Objects
+﻿namespace MedEasy.Objects
 {
+    using System;
+    using System.Collections.Generic;
+
     public abstract class BaseEntity<T> : IEqualityComparer<T>, IEquatable<T>, IEntity<T>
     {
         public virtual T Id { get; }

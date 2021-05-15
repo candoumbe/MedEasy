@@ -1,14 +1,14 @@
-﻿using Agenda.DTO;
-using Agenda.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-
-namespace Agenda.CQRS.Features.Participants.Queries
+﻿namespace Agenda.CQRS.Features.Participants.Queries
 {
+    using Agenda.DTO;
+    using Agenda.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     /// A query to get an <see cref="AttendeeInfo"/>
     /// </summary>

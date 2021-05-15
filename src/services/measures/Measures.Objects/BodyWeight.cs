@@ -1,11 +1,11 @@
-﻿using Measures.Ids;
-
-using NodaTime;
-
-using System;
-
-namespace Measures.Objects
+﻿namespace Measures.Objects
 {
+    using Measures.Ids;
+
+    using NodaTime;
+
+    using System;
+
     /// <summary>
     /// An instance of this class represents a body weight measurement
     /// </summary>

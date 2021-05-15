@@ -1,11 +1,11 @@
-﻿using Agenda.DTO;
-
-using MedEasy.CQRS.Core.Commands;
-
-using System;
-
-namespace Agenda.CQRS.Features.Appointments.Commands
+﻿namespace Agenda.CQRS.Features.Appointments.Commands
 {
+    using Agenda.DTO;
+
+    using MedEasy.CQRS.Core.Commands;
+
+    using System;
+
     /// <summary>
     /// Command to create a new <see cref="AppointmentInfo"/> resource
     /// </summary>

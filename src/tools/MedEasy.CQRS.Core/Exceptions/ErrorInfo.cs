@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-
-namespace MedEasy.CQRS.Core.Exceptions
+﻿namespace MedEasy.CQRS.Core.Exceptions
 {
+    using Newtonsoft.Json;
+
     /// <summary>
     /// Represents an error
     /// </summary>

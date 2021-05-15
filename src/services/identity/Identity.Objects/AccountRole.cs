@@ -1,8 +1,8 @@
-﻿
-using Identity.Ids;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
+
+    using Identity.Ids;
+
     /// <summary>
     /// Relation between a <see cref="Role"/> and an <see cref="Account"/>.
     /// </summary>

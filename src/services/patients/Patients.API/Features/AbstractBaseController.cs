@@ -1,21 +1,21 @@
-﻿using AutoMapper.QueryableExtensions;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using DataFilters;
-using MedEasy.DTO.Search;
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Routing;
-using MedEasy.Ids;
-
-namespace Patients.API.Controllers
+﻿namespace Patients.API.Controllers
 {
+    using AutoMapper.QueryableExtensions;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using DataFilters;
+    using MedEasy.DTO.Search;
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Routing;
+    using MedEasy.Ids;
+
     /// <summary>
     /// Base class for all controllers of the application
     /// </summary>

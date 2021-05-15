@@ -1,7 +1,7 @@
-﻿using MedEasy.DTO.Search;
-
-namespace Documents.DTO.v1
+﻿namespace Documents.DTO.v1
 {
+    using MedEasy.DTO.Search;
+
     public class SearchDocumentInfo : AbstractSearchInfo<DocumentInfo>
     {
         public string Name { get; set; }

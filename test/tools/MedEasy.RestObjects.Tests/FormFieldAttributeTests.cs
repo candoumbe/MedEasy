@@ -1,14 +1,14 @@
-﻿using FluentAssertions;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace MedEasy.RestObjects.Tests
+﻿namespace MedEasy.RestObjects.Tests
 {
+    using FluentAssertions;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("REST")]
     public class FormFieldAttributeTests : IDisposable

@@ -1,24 +1,24 @@
-﻿using Bogus;
-
-using FluentAssertions;
-
-using FluentValidation;
-
-using Identity.DTO;
-
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using ValidationResult = FluentValidation.Results.ValidationResult;
-
-namespace Identity.Validators.UnitTests
+﻿namespace Identity.Validators.UnitTests
 {
+    using Bogus;
+
+    using FluentAssertions;
+
+    using FluentValidation;
+
+    using Identity.DTO;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using ValidationResult = FluentValidation.Results.ValidationResult;
+
     [UnitTest]
     [Feature("Accounts")]
     public class NewAccountInfoValidatorTests

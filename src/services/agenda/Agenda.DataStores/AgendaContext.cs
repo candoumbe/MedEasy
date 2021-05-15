@@ -1,13 +1,13 @@
-﻿using Agenda.Objects;
-
-using MedEasy.DataStores.Core.Relational;
-
-using Microsoft.EntityFrameworkCore;
-
-using NodaTime;
-
-namespace Agenda.DataStores
+﻿namespace Agenda.DataStores
 {
+    using Agenda.Objects;
+
+    using MedEasy.DataStores.Core.Relational;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using NodaTime;
+
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>

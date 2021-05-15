@@ -1,11 +1,11 @@
-﻿using Identity.Ids;
-
-using MedEasy.Objects;
-
-using NodaTime;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
+    using Identity.Ids;
+
+    using MedEasy.Objects;
+
+    using NodaTime;
+
     /// <summary>
     /// Associate a <see cref="Claim"/> to a <see cref="Account"/> for a period of time.
     /// </summary>

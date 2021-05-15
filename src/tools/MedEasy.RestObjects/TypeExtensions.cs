@@ -1,12 +1,12 @@
-﻿using MedEasy.RestObjects;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.ComponentModel.DataAnnotations;
-using static System.Collections.Generic.DictionaryExtensions;
-
-namespace System
+﻿namespace System
 {
+    using MedEasy.RestObjects;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.ComponentModel.DataAnnotations;
+    using static System.Collections.Generic.DictionaryExtensions;
+
     public static class TypeExtensions
     {
         /// <summary>

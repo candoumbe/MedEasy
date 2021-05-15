@@ -1,23 +1,23 @@
-﻿using Documents.CQRS.Handlers;
-using Documents.Objects;
-using FluentAssertions;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-using System;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using Documents.CQRS.Commands;
-using Documents.DataStore;
-using NodaTime.Testing;
-using NodaTime;
-using Documents.Ids;
-
-namespace Documents.CQRS.UnitTests.Handlers
+﻿namespace Documents.CQRS.UnitTests.Handlers
 {
+    using Documents.CQRS.Handlers;
+    using Documents.Objects;
+    using FluentAssertions;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+    using System;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using Documents.CQRS.Commands;
+    using Documents.DataStore;
+    using NodaTime.Testing;
+    using NodaTime;
+    using Documents.Ids;
+
     [Feature(nameof(Documents))]
     [UnitTest]
     public class HandleDeleteDocumentInfoByIdCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>

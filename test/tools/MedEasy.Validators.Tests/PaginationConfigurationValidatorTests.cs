@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
-
-using FluentValidation.Results;
-
-using MedEasy.RestObjects;
-
-using System;
-
-using Xunit;
-using Xunit.Abstractions;
-
-namespace MedEasy.Validators.Tests
+﻿namespace MedEasy.Validators.Tests
 {
+    using FluentAssertions;
+
+    using FluentValidation.Results;
+
+    using MedEasy.RestObjects;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
     /// <summary>
     /// Unit tests for <see cref="PaginationConfiguration"/>
     /// </summary>

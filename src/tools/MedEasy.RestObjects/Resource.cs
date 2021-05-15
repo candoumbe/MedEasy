@@ -1,10 +1,9 @@
-﻿using NodaTime;
-
-using System;
-
-
-namespace MedEasy.RestObjects
+﻿namespace MedEasy.RestObjects
 {
+    using NodaTime;
+
+    using System;
+
     /// <summary>
     /// Bazse class for a resource
     /// </summary>

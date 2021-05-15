@@ -1,45 +1,45 @@
-﻿using Bogus;
-
-using Documents.DTO;
-using Documents.DTO.v1;
-using Documents.Ids;
-
-using FluentAssertions;
-
-using Identity.API.Fixtures.v2;
-using Identity.DTO;
-using Identity.Ids;
-
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
-
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static System.Net.Http.HttpMethod;
-
-namespace Documents.API.IntegrationTests.Features.v1
+﻿namespace Documents.API.IntegrationTests.Features.v1
 {
+    using Bogus;
+
+    using Documents.DTO;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+
+    using FluentAssertions;
+
+    using Identity.API.Fixtures.v2;
+    using Identity.DTO;
+    using Identity.Ids;
+
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+    using Newtonsoft.Json.Schema.Generation;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Net.Http.Json;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static System.Net.Http.HttpMethod;
+
     [IntegrationTest]
     [Feature(nameof(Documents))]
     public class DocumentsControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>

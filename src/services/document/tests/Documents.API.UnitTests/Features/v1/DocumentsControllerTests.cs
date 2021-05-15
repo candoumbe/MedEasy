@@ -1,64 +1,64 @@
-using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using Documents.API.Features.v1;
-using Documents.CQRS.Commands;
-using Documents.CQRS.Queries;
-using Documents.DataStore;
-using Documents.DTO;
-using Documents.DTO.v1;
-using Documents.Ids;
-using Documents.Mapping;
-using Documents.Objects;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static MedEasy.RestObjects.LinkRelation;
-using static Moq.MockBehavior;
-using static System.StringComparison;
-using static System.Uri;
-
 namespace Documents.API.UnitTests.Features.v1
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using Documents.API.Features.v1;
+    using Documents.CQRS.Commands;
+    using Documents.CQRS.Queries;
+    using Documents.DataStore;
+    using Documents.DTO;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+    using Documents.Mapping;
+    using Documents.Objects;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static MedEasy.RestObjects.LinkRelation;
+    using static Moq.MockBehavior;
+    using static System.StringComparison;
+    using static System.Uri;
+
     [UnitTest]
     [Feature("Documents")]
     public class DocumentsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<DocumentsStore>>

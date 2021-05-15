@@ -1,15 +1,15 @@
-﻿using Documents.DTO;
-using Documents.DTO.v1;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using Optional;
-
-using System;
-
-namespace Documents.CQRS.Commands
+﻿namespace Documents.CQRS.Commands
 {
+    using Documents.DTO;
+    using Documents.DTO.v1;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using Optional;
+
+    using System;
+
     /// <summary>
     ///  A <see cref="CommandBase{Guid, NewDocumentInfo, Option}"/> implementation to create a new document
     /// </summary>

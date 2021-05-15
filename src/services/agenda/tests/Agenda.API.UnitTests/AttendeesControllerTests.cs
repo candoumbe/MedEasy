@@ -1,66 +1,66 @@
-﻿using Agenda.API.Resources.v1;
-using Agenda.API.Routing;
-using Agenda.CQRS.Features.Participants.Queries;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.DTO.Resources.Search;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Models.v1.Appointments;
-using Agenda.Models.v1.Attendees;
-using Agenda.Objects;
-
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using DataFilters;
-
-using FakeItEasy;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static MedEasy.RestObjects.LinkRelation;
-using static Moq.MockBehavior;
-using static System.StringComparison;
-
-namespace Agenda.API.UnitTests.Resources.v1
+﻿namespace Agenda.API.UnitTests.Resources.v1
 {
+    using Agenda.API.Resources.v1;
+    using Agenda.API.Routing;
+    using Agenda.CQRS.Features.Participants.Queries;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.DTO.Resources.Search;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Models.v1.Appointments;
+    using Agenda.Models.v1.Attendees;
+    using Agenda.Objects;
+
+    using AutoMapper;
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using DataFilters;
+
+    using FakeItEasy;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static MedEasy.RestObjects.LinkRelation;
+    using static Moq.MockBehavior;
+    using static System.StringComparison;
+
     [UnitTest]
     [Feature("Agenda")]
     public class AttendeesControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

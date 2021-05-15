@@ -1,9 +1,9 @@
-﻿using MedEasy.DTO.Search;
-
-using NodaTime;
-
-namespace Agenda.DTO.Resources.Search
+﻿namespace Agenda.DTO.Resources.Search
 {
+    using MedEasy.DTO.Search;
+
+    using NodaTime;
+
     /// <summary>
     /// Data to search <see cref="AppointmentInfo"/>s
     /// </summary>

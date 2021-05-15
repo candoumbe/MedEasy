@@ -1,12 +1,12 @@
-﻿using Measures.Ids;
-
-
-using NodaTime;
-
-using System.ComponentModel.DataAnnotations;
-
-namespace Measures.DTO
+﻿namespace Measures.DTO
 {
+    using Measures.Ids;
+
+
+    using NodaTime;
+
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// data to provide when creating a new patient resource
     /// </summary>

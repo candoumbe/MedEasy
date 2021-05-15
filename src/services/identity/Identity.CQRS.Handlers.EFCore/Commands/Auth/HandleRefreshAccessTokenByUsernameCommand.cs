@@ -1,26 +1,26 @@
-﻿using Identity.CQRS.Commands;
-using Identity.DTO;
-using Identity.DTO.v1;
-using Identity.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Microsoft.IdentityModel.Tokens;
-
-using NodaTime;
-
-using Optional;
-
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Commands
+﻿namespace Identity.CQRS.Handlers.Commands
 {
+    using Identity.CQRS.Commands;
+    using Identity.DTO;
+    using Identity.DTO.v1;
+    using Identity.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Microsoft.IdentityModel.Tokens;
+
+    using NodaTime;
+
+    using Optional;
+
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handle <see cref=""/>
     /// </summary>

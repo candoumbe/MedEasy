@@ -1,11 +1,11 @@
-﻿using Measures.Ids;
-
-using MedEasy.CQRS.Core.Events;
-
-using System;
-
-namespace Measures.CQRS.Events
+﻿namespace Measures.CQRS.Events
 {
+    using Measures.Ids;
+
+    using MedEasy.CQRS.Core.Events;
+
+    using System;
+
     /// <summary>
     /// Event that notifies a <see cref="PatientInfo"/> resource was updated.
     /// </summary>

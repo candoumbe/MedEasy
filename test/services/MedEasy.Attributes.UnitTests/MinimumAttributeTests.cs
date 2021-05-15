@@ -1,18 +1,18 @@
-﻿using FluentAssertions;
-
-using MedEasy.Attributes;
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace MedEasy.Core.UnitTests.Attributes
+﻿namespace MedEasy.Core.UnitTests.Attributes
 {
+    using FluentAssertions;
+
+    using MedEasy.Attributes;
+
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.Reflection;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Validation")]
     public class MinimumAttributeTests

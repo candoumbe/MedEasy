@@ -1,16 +1,16 @@
-﻿using Identity.CQRS.Queries.Accounts;
-using Identity.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Identity.CQRS.Handlers.Queries.Accounts
+﻿namespace Identity.CQRS.Handlers.Queries.Accounts
 {
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles queries to check if an <see cref="DTO.AccountInfo"/>'s <see cref="DTO.AccountInfo.Id"/> stands for a tenant.
     /// </summary>

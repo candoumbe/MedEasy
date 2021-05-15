@@ -1,13 +1,13 @@
-﻿using Agenda.Ids;
-
-using MedEasy.Objects;
-
-using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
-namespace Agenda.Objects
+﻿namespace Agenda.Objects
 {
+    using Agenda.Ids;
+
+    using MedEasy.Objects;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Text.Json.Serialization;
+
     /// <summary>
     /// Participant of a <see cref="Appointment"/>
     /// </summary>

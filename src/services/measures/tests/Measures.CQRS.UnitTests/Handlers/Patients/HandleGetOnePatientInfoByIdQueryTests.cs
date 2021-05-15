@@ -1,40 +1,40 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-
-using Measures.DataStores;
-using Measures.CQRS.Handlers.Patients;
-using Measures.CQRS.Queries.Patients;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Mapping;
-
-using MedEasy.Abstractions.ValueConverters;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Handlers.Patients
+﻿namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Queries.Patients;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Mapping;
+
+    using MedEasy.Abstractions.ValueConverters;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Patients")]

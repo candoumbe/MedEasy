@@ -1,17 +1,17 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleDeleteAppointmentInfoByIdCommand : IRequestHandler<DeleteAppointmentInfoByIdCommand, DeleteCommandResult>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;

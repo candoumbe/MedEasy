@@ -1,15 +1,15 @@
-using Agenda.DTO;
-using System;
-using FluentAssertions;
-using Xunit;
-using FluentAssertions.Extensions;
-using System.Collections.Generic;
-using Agenda.CQRS.Features.Appointments.Commands;
-using Xunit.Categories;
-using NodaTime.Extensions;
-
 namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
 {
+    using Agenda.DTO;
+    using System;
+    using FluentAssertions;
+    using Xunit;
+    using FluentAssertions.Extensions;
+    using System.Collections.Generic;
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Xunit.Categories;
+    using NodaTime.Extensions;
+
     [Feature("Agenda")]
     [UnitTest]
     public class CreateAppointmentInfoCommandTests : IDisposable

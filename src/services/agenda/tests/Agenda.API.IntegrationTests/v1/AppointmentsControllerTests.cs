@@ -1,46 +1,46 @@
-using Agenda.API.Resources.v1;
-using Agenda.API.Resources.v1.Appointments;
-using Agenda.Ids;
-using Agenda.Models.v1.Appointments;
-using Agenda.Models.v1.Attendees;
-
-using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.Core.Filters;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Mvc;
-
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static MedEasy.RestObjects.LinkRelation;
-
 namespace Agenda.API.IntegrationTests.v1
 {
+    using Agenda.API.Resources.v1;
+    using Agenda.API.Resources.v1.Appointments;
+    using Agenda.Ids;
+    using Agenda.Models.v1.Appointments;
+    using Agenda.Models.v1.Attendees;
+
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.Core.Filters;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Mvc;
+
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Net.Http;
+    using System.Net.Http.Json;
+    using System.Security.Claims;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static MedEasy.RestObjects.LinkRelation;
+
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]

@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-
-using System;
-using System.Runtime.Serialization;
-
-using static Newtonsoft.Json.JsonConvert;
-
-namespace MedEasy.CQRS.Core.Commands
+﻿namespace MedEasy.CQRS.Core.Commands
 {
+    using Newtonsoft.Json;
+
+    using System;
+    using System.Runtime.Serialization;
+
+    using static Newtonsoft.Json.JsonConvert;
+
     /// <summary>
     /// <para>
     /// Base class for building a command that returns a result.</para>

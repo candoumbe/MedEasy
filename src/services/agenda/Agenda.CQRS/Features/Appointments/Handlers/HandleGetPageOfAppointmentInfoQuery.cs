@@ -1,26 +1,26 @@
-﻿
-using Agenda.CQRS.Features.Appointments.Queries;
-using Agenda.DTO;
-using Agenda.Objects;
-
-using AutoMapper.QueryableExtensions;
-
-using DataFilters;
-
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-
-using MediatR;
-
-using NodaTime;
-
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Agenda.CQRS.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
+
+    using Agenda.CQRS.Features.Appointments.Queries;
+    using Agenda.DTO;
+    using Agenda.Objects;
+
+    using AutoMapper.QueryableExtensions;
+
+    using DataFilters;
+
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+
+    using MediatR;
+
+    using NodaTime;
+
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleGetPageOfAppointmentInfoQuery : IRequestHandler<GetPageOfAppointmentInfoQuery, Page<AppointmentInfo>>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;

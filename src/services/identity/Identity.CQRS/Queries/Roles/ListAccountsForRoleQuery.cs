@@ -1,15 +1,15 @@
-﻿using Identity.DTO;
-using Identity.Ids;
-
-using MedEasy.CQRS.Core.Queries;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-
-namespace Identity.CQRS.Queries.Roles
+﻿namespace Identity.CQRS.Queries.Roles
 {
+    using Identity.DTO;
+    using Identity.Ids;
+
+    using MedEasy.CQRS.Core.Queries;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Query to list all accounts that have a specified <see cref="RoleInfo"/>.
     /// </summary>

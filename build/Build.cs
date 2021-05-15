@@ -1,39 +1,39 @@
-using Nuke.Common;
-using Nuke.Common.CI;
-using Nuke.Common.CI.AzurePipelines;
-using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.Execution;
-using Nuke.Common.Git;
-using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Coverlet;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.GitVersion;
-using Nuke.Common.Tools.ReportGenerator;
-using Nuke.Common.Utilities;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.NetworkInformation;
-
-using static Nuke.Common.ChangeLog.ChangelogTasks;
-using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
-using static Nuke.Common.Logger;
-using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.Common.Tools.Git.GitTasks;
-using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
-using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
-using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using Nuke.Common.Tools.EntityFramework;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 
 namespace MedEasy.ContinuousIntegration
 {
+    using Nuke.Common;
+    using Nuke.Common.CI;
+    using Nuke.Common.CI.AzurePipelines;
+    using Nuke.Common.CI.GitHubActions;
+    using Nuke.Common.Execution;
+    using Nuke.Common.Git;
+    using Nuke.Common.IO;
+    using Nuke.Common.ProjectModel;
+    using Nuke.Common.Tooling;
+    using Nuke.Common.Tools.Coverlet;
+    using Nuke.Common.Tools.DotNet;
+    using Nuke.Common.Tools.GitVersion;
+    using Nuke.Common.Tools.ReportGenerator;
+    using Nuke.Common.Utilities;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.NetworkInformation;
+
+    using static Nuke.Common.ChangeLog.ChangelogTasks;
+    using static Nuke.Common.IO.FileSystemTasks;
+    using static Nuke.Common.IO.PathConstruction;
+    using static Nuke.Common.Logger;
+    using static Nuke.Common.Tools.DotNet.DotNetTasks;
+    using static Nuke.Common.Tools.Git.GitTasks;
+    using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
+    using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
+    using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+    using Nuke.Common.Tools.EntityFramework;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
 
     [GitHubActions(
         "continuous",
@@ -194,6 +194,7 @@ namespace MedEasy.ContinuousIntegration
                 EnsureExistingDirectory(CoverageReportUnitTestsHistoryDirectory);
             });
 
+        
         public Target Restore => _ => _
             .Executes(() =>
             {
@@ -203,7 +204,6 @@ namespace MedEasy.ContinuousIntegration
                     .SetDisableParallel(false)
                     .When(IsLocalBuild && Interactive, _ => _.SetProperty("NugetInteractive", IsLocalBuild && Interactive))
                 );
-
 
                 DotNetToolRestore(s => s
                     .SetIgnoreFailedSources(true));
@@ -688,7 +688,7 @@ namespace MedEasy.ContinuousIntegration
             .DependsOn(Compile, TyeInstall)
             .Executes(() =>
             {
-                
+
 
                 Tye("run --dashboard --logs seq=http://localhost:55340");
             });

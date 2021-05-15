@@ -1,25 +1,25 @@
-using Documents.DataStore;
-
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-using Npgsql;
-
-using Polly;
-using Polly.Retry;
-
-using Serilog;
-
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-
 namespace Documents.API
 {
+    using Documents.DataStore;
+
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+
+    using Npgsql;
+
+    using Polly;
+    using Polly.Retry;
+
+    using Serilog;
+
+    using System;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+
     public class Program
     {
         public static async Task Main(string[] args)

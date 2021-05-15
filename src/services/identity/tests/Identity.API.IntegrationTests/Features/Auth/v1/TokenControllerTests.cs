@@ -1,45 +1,45 @@
-﻿using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Identity.API.Features.v1.Accounts;
-using Identity.API.Fixtures.v1;
-using Identity.DTO;
-using Identity.DTO.Auth;
-using Identity.DTO.v1;
-using Identity.Ids;
-
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-
-using Newtonsoft.Json.Linq;
-
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-using static System.Net.Http.HttpMethod;
-
-namespace Identity.API.IntegrationTests.Features.Auth.v1
+﻿namespace Identity.API.IntegrationTests.Features.Auth.v1
 {
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using Identity.API.Features.v1.Accounts;
+    using Identity.API.Fixtures.v1;
+    using Identity.DTO;
+    using Identity.DTO.Auth;
+    using Identity.DTO.v1;
+    using Identity.Ids;
+
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.IdentityModel.Tokens;
+
+    using Newtonsoft.Json.Linq;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Net.Http.Json;
+    using System.Net.Mime;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static System.Net.Http.HttpMethod;
+
     [IntegrationTest]
     [Feature("Authentication")]
     public class TokenControllerTests : IClassFixture<IdentityApiFixture>

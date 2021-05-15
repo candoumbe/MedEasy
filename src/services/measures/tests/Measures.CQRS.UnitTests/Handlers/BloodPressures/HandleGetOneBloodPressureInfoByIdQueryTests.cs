@@ -1,36 +1,36 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using FluentAssertions;
-
-using Measures.DataStores;
-using Measures.CQRS.Handlers.BloodPressures;
-using Measures.CQRS.Queries.BloodPressures;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Mapping;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using Optional;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
+﻿namespace Measures.CQRS.UnitTests.Handlers.BloodPressures
 {
+    using AutoMapper.QueryableExtensions;
+
+    using FluentAssertions;
+
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.BloodPressures;
+    using Measures.CQRS.Queries.BloodPressures;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Mapping;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using Optional;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class HandleGetOneBloodPressureInfoByIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
     {

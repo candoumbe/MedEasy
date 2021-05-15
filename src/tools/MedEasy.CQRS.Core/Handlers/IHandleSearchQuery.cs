@@ -1,11 +1,11 @@
-﻿using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MedEasy.CQRS.Core.Handlers
+﻿namespace MedEasy.CQRS.Core.Handlers
 {
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public interface IHandleSearchQuery
     {
         /// <summary>

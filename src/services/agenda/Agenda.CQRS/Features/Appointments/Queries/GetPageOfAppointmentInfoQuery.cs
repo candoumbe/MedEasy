@@ -1,13 +1,13 @@
-﻿using Agenda.DTO;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-using MedEasy.RestObjects;
-
-using System;
-
-namespace Agenda.CQRS.Features.Appointments.Queries
+﻿namespace Agenda.CQRS.Features.Appointments.Queries
 {
+    using Agenda.DTO;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.RestObjects;
+
+    using System;
+
     /// <summary>
     /// A query to get a page of <see cref="AppointmentInfo"/>
     /// </summary>

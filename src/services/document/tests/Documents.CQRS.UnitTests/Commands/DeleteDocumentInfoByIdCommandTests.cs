@@ -1,18 +1,18 @@
-﻿using Documents.CQRS.Commands;
-using Documents.Ids;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Documents.CQRS.UnitTests.Commands
+﻿namespace Documents.CQRS.UnitTests.Commands
 {
+    using Documents.CQRS.Commands;
+    using Documents.Ids;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [Feature("Documents")]
     [UnitTest]
     public class DeletedocumentByIdCommandTests

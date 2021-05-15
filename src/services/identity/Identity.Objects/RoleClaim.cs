@@ -1,9 +1,9 @@
-﻿using Identity.Ids;
-
-using MedEasy.Objects;
-
-namespace Identity.Objects
+﻿namespace Identity.Objects
 {
+    using Identity.Ids;
+
+    using MedEasy.Objects;
+
     /// <summary>
     /// Association between a <see cref="Claim"/> and a <see cref="Role"/>.
     /// </summary>

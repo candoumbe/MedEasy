@@ -1,23 +1,23 @@
-﻿using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
-using static Moq.MockBehavior;
-using static MedEasy.CQRS.Core.Exceptions.ErrorLevel;
-using MedEasy.CQRS.Core.Exceptions;
-using Xunit.Categories;
-
-namespace MedEasy.Core.Filters
+﻿namespace MedEasy.Core.Filters
 {
+    using FluentAssertions;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Abstractions;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.Logging;
+    using Moq;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Xunit;
+    using static Moq.MockBehavior;
+    using static MedEasy.CQRS.Core.Exceptions.ErrorLevel;
+    using MedEasy.CQRS.Core.Exceptions;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Filters")]
     public class HandleErrorAttributeTests : IDisposable

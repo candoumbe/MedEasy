@@ -1,14 +1,14 @@
-﻿using Agenda.CQRS.Features.Appointments.Queries;
-
-using FluentAssertions;
-
-using System;
-
-using Xunit;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Queries
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Queries
 {
+    using Agenda.CQRS.Features.Appointments.Queries;
+
+    using FluentAssertions;
+
+    using System;
+
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Agenda")]
     public class SearchAppointmentInfoQueryTests

@@ -1,11 +1,11 @@
-﻿using FluentValidation;
-
-using MedEasy.Validators.Validators;
-
-using Patients.DTO;
-
-namespace Patients.Validators.Features.Patients.Queries
+﻿namespace Patients.Validators.Features.Patients.Queries
 {
+    using FluentValidation;
+
+    using MedEasy.Validators.Validators;
+
+    using global::Patients.DTO;
+
     /// <summary>
     /// Validates <see cref="SearchPatientInfo"/> instances.
     /// </summary>

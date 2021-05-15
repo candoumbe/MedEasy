@@ -1,53 +1,53 @@
-using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-using MedEasy.RestObjects;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Moq;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using Patients.API.Controllers;
-using Patients.API.Routing;
-using Patients.Context;
-using Patients.DTO;
-using Patients.Ids;
-using Patients.Mapping;
-using Patients.Objects;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Moq.MockBehavior;
-using static Newtonsoft.Json.JsonConvert;
-using static System.StringComparison;
-
 namespace Patients.API.UnitTests.Controllers
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+    using MedEasy.RestObjects;
+
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.JsonPatch;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    using Moq;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using Patients.API.Controllers;
+    using Patients.API.Routing;
+    using Patients.Context;
+    using Patients.DTO;
+    using Patients.Ids;
+    using Patients.Mapping;
+    using Patients.Objects;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Moq.MockBehavior;
+    using static Newtonsoft.Json.JsonConvert;
+    using static System.StringComparison;
+
     [UnitTest]
     [Feature("Patients")]
     public class PatientsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<PatientsContext>>

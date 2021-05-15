@@ -1,11 +1,11 @@
-﻿using Measures.DTO;
-
-using MedEasy.CQRS.Core.Commands;
-
-using System;
-
-namespace Measures.CQRS.Commands.Patients
+﻿namespace Measures.CQRS.Commands.Patients
 {
+    using Measures.DTO;
+
+    using MedEasy.CQRS.Core.Commands;
+
+    using System;
+
     /// <summary>
     /// Command to create <see cref="PatientInfo"/> resources.
     /// </summary>

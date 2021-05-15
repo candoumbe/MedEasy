@@ -1,13 +1,13 @@
-﻿using MedEasy.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Optional;
-using NodaTime;
-using Agenda.Ids;
-
-namespace Agenda.Objects
+﻿namespace Agenda.Objects
 {
+    using MedEasy.Objects;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Optional;
+    using NodaTime;
+    using Agenda.Ids;
+
     /// <summary>
     /// An meeting wih a location and a subject
     /// </summary>

@@ -1,24 +1,24 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-using Patients.Context;
-
-using Polly;
-using Polly.Retry;
-
-using Serilog;
-
-using System;
-using System.Threading.Tasks;
-using Npgsql;
-using System.Diagnostics;
-
-namespace Patients.API
+﻿namespace Patients.API
 {
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+
+    using Patients.Context;
+
+    using Polly;
+    using Polly.Retry;
+
+    using Serilog;
+
+    using System;
+    using System.Threading.Tasks;
+    using Npgsql;
+    using System.Diagnostics;
+
 #pragma warning disable CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
     public class Program
 #pragma warning restore CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement

@@ -1,20 +1,20 @@
-﻿using Agenda.Ids;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using NodaTime;
-using NodaTime.Extensions;
-
-using System;
-using System.Collections.Generic;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.Objects.UnitTests
+﻿namespace Agenda.Objects.UnitTests
 {
+    using Agenda.Ids;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [UnitTest]
     public class AppointmentTests
     {

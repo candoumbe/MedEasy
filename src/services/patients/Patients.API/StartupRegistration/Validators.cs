@@ -1,12 +1,12 @@
-﻿using FluentValidation;
-
-using Microsoft.Extensions.DependencyInjection;
-
-using Patients.DTO;
-using Patients.Validators.Features.Patients.DTO;
-
-namespace Patients.API.StartupRegistration
+﻿namespace Patients.API.StartupRegistration
 {
+    using FluentValidation;
+
+    using Microsoft.Extensions.DependencyInjection;
+
+    using Patients.DTO;
+    using Patients.Validators.Features.Patients.DTO;
+
     /// <summary>
     /// Helper class to register validators.
     /// </summary>

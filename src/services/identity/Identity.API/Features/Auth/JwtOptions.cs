@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Identity.API.Features.Auth
+﻿namespace Identity.API.Features.Auth
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Wraps JWT Options.
     /// </summary>

@@ -1,12 +1,12 @@
-﻿using Documents.Ids;
-
-using MedEasy.CQRS.Core.Commands;
-using MedEasy.CQRS.Core.Commands.Results;
-
-using System;
-
-namespace Documents.CQRS.Commands
+﻿namespace Documents.CQRS.Commands
 {
+    using Documents.Ids;
+
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using System;
+
     /// <summary>
     ///  A <see cref="CommandBase{Guid, NewDocumentInfo, Option}"/> implementation to delete a new document
     /// </summary>

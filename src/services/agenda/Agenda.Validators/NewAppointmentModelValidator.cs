@@ -1,13 +1,13 @@
-﻿using Agenda.DTO;
-
-using FluentValidation;
-
-using NodaTime;
-
-using System;
-
-namespace Agenda.Validators
+﻿namespace Agenda.Validators
 {
+    using Agenda.DTO;
+
+    using FluentValidation;
+
+    using NodaTime;
+
+    using System;
+
     /// <summary>
     /// Validates <see cref="NewAppointmentInfo"/> instances.
     /// </summary>

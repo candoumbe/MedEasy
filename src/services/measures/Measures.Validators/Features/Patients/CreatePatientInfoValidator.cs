@@ -1,11 +1,11 @@
-using FluentValidation;
-using MedEasy.DAL.Interfaces;
-using Measures.DTO;
-using System;
-using Measures.Ids;
-
 namespace Measures.Validators.Features.Patients.DTO
 {
+    using FluentValidation;
+    using MedEasy.DAL.Interfaces;
+    using Measures.DTO;
+    using System;
+    using Measures.Ids;
+
     /// <summary>
     /// Validates <see cref="NewPatientInfo"/> instances.
     /// </summary>

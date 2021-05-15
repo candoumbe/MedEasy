@@ -1,22 +1,22 @@
-﻿using Documents.CQRS.Commands;
-using Documents.DTO.v1;
-using Documents.Ids;
-using Documents.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Documents.CQRS.Handlers
+﻿namespace Documents.CQRS.Handlers
 {
+    using Documents.CQRS.Commands;
+    using Documents.DTO.v1;
+    using Documents.Ids;
+    using Documents.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Security.Cryptography;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HandleCreateDocumentInfoCommand : IRequestHandler<CreateDocumentInfoCommand, Option<DocumentInfo, CreateCommandResult>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

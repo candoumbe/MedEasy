@@ -1,42 +1,42 @@
-﻿using AutoMapper.QueryableExtensions;
-
-using Bogus;
-
-using FluentAssertions;
-
-using Identity.CQRS.Handlers.Queries.Accounts;
-using Identity.CQRS.Queries.Accounts;
-using Identity.DataStores;
-using Identity.Ids;
-using Identity.Objects;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Ids;
-using MedEasy.IntegrationTests.Core;
-
-using MediatR;
-
-using Moq;
-
-using Newtonsoft.Json;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static Newtonsoft.Json.JsonConvert;
-
-namespace Identity.CQRS.UnitTests.Handlers.Accounts
+﻿namespace Identity.CQRS.UnitTests.Handlers.Accounts
 {
+    using AutoMapper.QueryableExtensions;
+
+    using Bogus;
+
+    using FluentAssertions;
+
+    using Identity.CQRS.Handlers.Queries.Accounts;
+    using Identity.CQRS.Queries.Accounts;
+    using Identity.DataStores;
+    using Identity.Ids;
+    using Identity.Objects;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
+    using MedEasy.IntegrationTests.Core;
+
+    using MediatR;
+
+    using Moq;
+
+    using Newtonsoft.Json;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static Newtonsoft.Json.JsonConvert;
+
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]

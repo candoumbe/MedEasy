@@ -1,8 +1,8 @@
-﻿using MedEasy.Attributes;
-using MedEasy.RestObjects;
-
-namespace Measures.API.Features.Patients
+﻿namespace Measures.API.Features.Patients
 {
+    using MedEasy.Attributes;
+    using MedEasy.RestObjects;
+
     /// <summary>
     /// Model to create a new blood pressure
     /// </summary>

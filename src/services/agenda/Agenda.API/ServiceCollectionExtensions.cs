@@ -1,51 +1,51 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.DataStores;
-using Agenda.Mapping;
-using Agenda.Validators;
-
-using AutoMapper;
-
-using FluentValidation.AspNetCore;
-
-using MedEasy.Abstractions.ValueConverters;
-using MedEasy.Core.Filters;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Validators;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Agenda.API
+﻿namespace Agenda.API
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.DataStores;
+    using Agenda.Mapping;
+    using Agenda.Validators;
+
+    using AutoMapper;
+
+    using FluentValidation.AspNetCore;
+
+    using MedEasy.Abstractions.ValueConverters;
+    using MedEasy.Core.Filters;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Validators;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Versioning;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.OpenApi.Models;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.IO;
+    using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>

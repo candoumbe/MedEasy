@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using System;
+
     /// <summary>
     /// Base class for building queries to get one resource.
     /// </summary>

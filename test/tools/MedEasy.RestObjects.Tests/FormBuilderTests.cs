@@ -1,17 +1,17 @@
-﻿using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-using Newtonsoft.Json;
-using static Newtonsoft.Json.JsonConvert;
-using static MedEasy.RestObjects.FormFieldType;
-using System.Linq;
-
-namespace MedEasy.RestObjects.Tests
+﻿namespace MedEasy.RestObjects.Tests
 {
+    using FluentAssertions;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+    using Newtonsoft.Json;
+    using static Newtonsoft.Json.JsonConvert;
+    using static MedEasy.RestObjects.FormFieldType;
+    using System.Linq;
+
     [UnitTest]
     public class FormBuilderTests
     {

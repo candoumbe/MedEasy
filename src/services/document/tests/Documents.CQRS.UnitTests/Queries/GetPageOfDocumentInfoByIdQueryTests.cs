@@ -1,18 +1,18 @@
-﻿using Documents.CQRS.Queries;
-using Documents.DTO.v1;
-
-using FluentAssertions;
-
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Repositories;
-using MedEasy.RestObjects;
-
-using System;
-
-using Xunit;
-
-namespace Documents.CQRS.UnitTests.Queries
+﻿namespace Documents.CQRS.UnitTests.Queries
 {
+    using Documents.CQRS.Queries;
+    using Documents.DTO.v1;
+
+    using FluentAssertions;
+
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Repositories;
+    using MedEasy.RestObjects;
+
+    using System;
+
+    using Xunit;
+
     public class GetPageOfDocumentInfoQueryTests
     {
         [Fact]

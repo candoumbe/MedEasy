@@ -1,18 +1,18 @@
-﻿using AutoMapper.QueryableExtensions;
-using DataFilters;
-using MedEasy.CQRS.Core.Queries;
-using MedEasy.DAL.Interfaces;
-using MedEasy.DAL.Repositories;
-using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using static System.Linq.Expressions.ExpressionExtensions;
-using System.Diagnostics;
-using MedEasy.DTO.Search;
-
-namespace MedEasy.CQRS.Core.Handlers
+﻿namespace MedEasy.CQRS.Core.Handlers
 {
+    using AutoMapper.QueryableExtensions;
+    using DataFilters;
+    using MedEasy.CQRS.Core.Queries;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.DAL.Repositories;
+    using System;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using static System.Linq.Expressions.ExpressionExtensions;
+    using System.Diagnostics;
+    using MedEasy.DTO.Search;
+
     /// <summary>
     /// Generic handler for search queries 
     /// </summary>

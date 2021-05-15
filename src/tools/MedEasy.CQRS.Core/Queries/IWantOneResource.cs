@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace MedEasy.CQRS.Core.Queries
+﻿namespace MedEasy.CQRS.Core.Queries
 {
+    using System;
+
     /// <summary>
     /// Defines the shape of a "query" to get one resource 
     /// <para>

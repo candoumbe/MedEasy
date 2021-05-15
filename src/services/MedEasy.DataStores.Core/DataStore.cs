@@ -1,20 +1,20 @@
-﻿using MedEasy.DAL.Interfaces;
-using MedEasy.Objects;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
-
-using NodaTime;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MedEasy.DataStores.Core.Relational
+﻿namespace MedEasy.DataStores.Core.Relational
 {
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Objects;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.ChangeTracking;
+    using Microsoft.EntityFrameworkCore.Metadata;
+
+    using NodaTime;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Base class for creating a datastore specialized class.
     /// </summary>

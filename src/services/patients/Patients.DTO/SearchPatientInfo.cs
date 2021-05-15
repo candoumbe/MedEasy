@@ -1,9 +1,9 @@
-﻿using MedEasy.DTO.Search;
-
-using System;
-
-namespace Patients.DTO
+﻿namespace Patients.DTO
 {
+    using MedEasy.DTO.Search;
+
+    using System;
+
     /// <summary>
     /// Wraps search criteria for <see cref="PatientInfo"/> resources.
     /// </summary>

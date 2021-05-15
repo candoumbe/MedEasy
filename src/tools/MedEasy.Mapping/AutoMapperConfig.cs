@@ -1,12 +1,12 @@
-﻿using AutoMapper;
-
-using MedEasy.Objects;
-using MedEasy.RestObjects;
-
-using System;
-
-namespace MedEasy.Mapping
+﻿namespace MedEasy.Mapping
 {
+    using AutoMapper;
+
+    using MedEasy.Objects;
+    using MedEasy.RestObjects;
+
+    using System;
+
     public static class AutoMapperConfig
     {
         public static void CreateCoreMapping(this IMapperConfigurationExpression cfg)

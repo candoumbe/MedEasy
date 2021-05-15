@@ -1,19 +1,19 @@
-﻿using Documents.DataStore;
-
-using MedEasy.Abstractions.ValueConverters;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-
-using NodaTime;
-
-using System;
-using System.IO;
-
-namespace Documents.API.Context
+﻿namespace Documents.API.Context
 {
+    using Documents.DataStore;
+
+    using MedEasy.Abstractions.ValueConverters;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+
+    using NodaTime;
+
+    using System;
+    using System.IO;
+
     /// <summary>
     /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="DocumentsStore"/>.
     /// </summary>

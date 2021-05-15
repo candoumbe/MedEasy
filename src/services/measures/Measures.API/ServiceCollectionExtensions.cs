@@ -1,55 +1,55 @@
-﻿using AutoMapper;
-
-using FluentValidation.AspNetCore;
-
-using Measures.API.Features.Auth;
-using Measures.DataStores;
-using Measures.CQRS.Handlers.BloodPressures;
-using Measures.CQRS.Queries.Patients;
-using Measures.Mapping;
-using Measures.Validators.Commands.BloodPressures;
-
-using MedEasy.Abstractions.ValueConverters;
-using MedEasy.Core.Filters;
-using MedEasy.CQRS.Core.Handlers;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.Validators;
-
-using MediatR;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-using static Microsoft.AspNetCore.Http.StatusCodes;
-
-namespace Measures.API
+﻿namespace Measures.API
 {
+    using AutoMapper;
+
+    using FluentValidation.AspNetCore;
+
+    using Measures.API.Features.Auth;
+    using Measures.DataStores;
+    using Measures.CQRS.Handlers.BloodPressures;
+    using Measures.CQRS.Queries.Patients;
+    using Measures.Mapping;
+    using Measures.Validators.Commands.BloodPressures;
+
+    using MedEasy.Abstractions.ValueConverters;
+    using MedEasy.Core.Filters;
+    using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.Validators;
+
+    using MediatR;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Versioning;
+    using Microsoft.Data.Sqlite;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.OpenApi.Models;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>

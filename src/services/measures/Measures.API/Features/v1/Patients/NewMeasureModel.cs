@@ -1,7 +1,7 @@
-﻿using NodaTime;
-
-namespace Measures.API.Features.Patients
+﻿namespace Measures.API.Features.Patients
 {
+    using NodaTime;
+
     /// <summary>
     /// Base class for model to create new measure
     /// </summary>

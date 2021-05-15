@@ -1,13 +1,13 @@
-﻿using MedEasy.DataStores.Core.Relational;
-
-using Microsoft.EntityFrameworkCore;
-
-using NodaTime;
-
-using Patients.Objects;
-
-namespace Patients.Context
+﻿namespace Patients.Context
 {
+    using MedEasy.DataStores.Core.Relational;
+
+    using Microsoft.EntityFrameworkCore;
+
+    using NodaTime;
+
+    using Patients.Objects;
+
     public class PatientsContext : DataStore<PatientsContext>
     {
         /// <summary>

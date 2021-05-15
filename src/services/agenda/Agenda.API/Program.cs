@@ -1,21 +1,21 @@
-﻿using Agenda.DataStores;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Polly;
-using Serilog;
-using System;
-using Npgsql;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Microsoft.Data.Sqlite;
-using System.Linq;
-
-namespace Agenda.API
+﻿namespace Agenda.API
 {
+    using Agenda.DataStores;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Polly;
+    using Serilog;
+    using System;
+    using Npgsql;
+    using System.Threading.Tasks;
+    using System.Diagnostics;
+    using Microsoft.Data.Sqlite;
+    using System.Linq;
+
     /// <summary>
     /// Entry class
     /// </summary>

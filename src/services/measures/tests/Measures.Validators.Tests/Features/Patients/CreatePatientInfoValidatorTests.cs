@@ -1,39 +1,39 @@
-
-using FluentAssertions;
-
-using FluentValidation;
-using FluentValidation.Results;
-
-using Measures.DataStores;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Objects;
-using Measures.Validators.Features.Patients.DTO;
-
-using MedEasy.Abstractions.ValueConverters;
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-using NodaTime;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-using static FluentValidation.Severity;
-using static Newtonsoft.Json.JsonConvert;
-
 namespace Measures.Validators.Tests.Features.Patients
 {
+
+    using FluentAssertions;
+
+    using FluentValidation;
+    using FluentValidation.Results;
+
+    using Measures.DataStores;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Objects;
+    using Measures.Validators.Features.Patients.DTO;
+
+    using MedEasy.Abstractions.ValueConverters;
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
+    using static FluentValidation.Severity;
+    using static Newtonsoft.Json.JsonConvert;
+
     /// <summary>
     /// Unit tests for <see cref="CreatePatientInfoValidator"/> class.
     /// </summary>

@@ -1,18 +1,18 @@
-﻿using FluentValidation;
-
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Objects;
-
-using MedEasy.DAL.Interfaces;
-
-using System;
-using System.Threading;
-
-using static FluentValidation.Severity;
-
-namespace Measures.Validators.Commands.BloodPressures
+﻿namespace Measures.Validators.Commands.BloodPressures
 {
+    using FluentValidation;
+
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Objects;
+
+    using MedEasy.DAL.Interfaces;
+
+    using System;
+    using System.Threading;
+
+    using static FluentValidation.Severity;
+
     /// <summary>
     /// Validator for <see cref="CreateBloodPressureInfo"/> instances.
     /// </summary>

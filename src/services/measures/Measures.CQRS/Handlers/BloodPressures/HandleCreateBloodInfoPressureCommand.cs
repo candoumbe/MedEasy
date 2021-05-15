@@ -1,24 +1,24 @@
-﻿using AutoMapper;
-
-using Measures.CQRS.Commands.BloodPressures;
-using Measures.CQRS.Events.BloodPressures;
-using Measures.DTO;
-using Measures.Ids;
-using Measures.Objects;
-
-using MedEasy.CQRS.Core.Commands.Results;
-using MedEasy.DAL.Interfaces;
-
-using MediatR;
-
-using Optional;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Measures.CQRS.Handlers.BloodPressures
+﻿namespace Measures.CQRS.Handlers.BloodPressures
 {
+    using AutoMapper;
+
+    using Measures.CQRS.Commands.BloodPressures;
+    using Measures.CQRS.Events.BloodPressures;
+    using Measures.DTO;
+    using Measures.Ids;
+    using Measures.Objects;
+
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.DAL.Interfaces;
+
+    using MediatR;
+
+    using Optional;
+
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Handles <see cref="CreateBloodPressureInfoForPatientIdCommand"/>s
     /// </summary>

@@ -1,40 +1,40 @@
-﻿using Agenda.CQRS.Features.Appointments.Commands;
-using Agenda.CQRS.Features.Appointments.Handlers;
-using Agenda.DataStores;
-using Agenda.DTO;
-using Agenda.Ids;
-using Agenda.Mapping;
-using Agenda.Objects;
-
-using AutoMapper;
-
-using Bogus;
-
-using FakeItEasy;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using MedEasy.DAL.EFStore;
-using MedEasy.DAL.Interfaces;
-using MedEasy.IntegrationTests.Core;
-
-using NodaTime;
-using NodaTime.Extensions;
-using NodaTime.Testing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
+﻿namespace Agenda.CQRS.UnitTests.Features.Appointments.Handlers
 {
+    using Agenda.CQRS.Features.Appointments.Commands;
+    using Agenda.CQRS.Features.Appointments.Handlers;
+    using Agenda.DataStores;
+    using Agenda.DTO;
+    using Agenda.Ids;
+    using Agenda.Mapping;
+    using Agenda.Objects;
+
+    using AutoMapper;
+
+    using Bogus;
+
+    using FakeItEasy;
+
+    using FluentAssertions;
+    using FluentAssertions.Extensions;
+
+    using MedEasy.DAL.EFStore;
+    using MedEasy.DAL.Interfaces;
+    using MedEasy.IntegrationTests.Core;
+
+    using NodaTime;
+    using NodaTime.Extensions;
+    using NodaTime.Testing;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     [Feature("Agenda")]
     [UnitTest]
     public class HandleCreateAppointmentInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<AgendaContext>>

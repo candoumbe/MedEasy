@@ -1,8 +1,8 @@
-using Xunit;
-using Xunit.Categories;
-
 namespace Identity.Mapping.UnitTests
 {
+    using Xunit;
+    using Xunit.Categories;
+
     [UnitTest]
     [Feature("Mapping")]
     [Feature("Identity")]

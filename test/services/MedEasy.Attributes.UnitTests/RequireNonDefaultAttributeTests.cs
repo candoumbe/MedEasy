@@ -1,19 +1,19 @@
-﻿using FluentAssertions;
-
-using MedEasy.Attributes;
-
-using Newtonsoft.Json;
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
-
-namespace MedEasy.AttributesUnitTests
+﻿namespace MedEasy.AttributesUnitTests
 {
+    using FluentAssertions;
+
+    using MedEasy.Attributes;
+
+    using Newtonsoft.Json;
+
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
+    using Xunit;
+    using Xunit.Abstractions;
+    using Xunit.Categories;
+
     /// <summary>
     /// Tests for <see cref="RequireNonDefaultAttribute"/> types.
     /// </summary>
