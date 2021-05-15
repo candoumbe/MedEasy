@@ -41,7 +41,7 @@ namespace MedEasy.ContinuousIntegration
         OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(UnitTests) }
+        InvokedTargets = new[] { nameof(UnitTests), nameof(IntegrationTests) }
     )]
     [GitHubActions(
         "deployment",
