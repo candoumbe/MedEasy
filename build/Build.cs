@@ -41,7 +41,19 @@ namespace MedEasy.ContinuousIntegration
         OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(UnitTests), nameof(IntegrationTests) }
+        InvokedTargets = new[] { nameof(UnitTests) },
+        OnPullRequestExcludePaths = new[]
+        {
+            "**/*.md",
+            "LICENCE",
+            "docs"
+        },
+        OnPushExcludePaths = new[]
+        {
+            "**/*.md",
+            "LICENCE",
+            "docs"
+        }
     )]
     [GitHubActions(
         "deployment",
@@ -52,8 +64,20 @@ namespace MedEasy.ContinuousIntegration
         ImportSecrets = new[]
                         {
                             nameof(NugetApiKey),
-                        })
-    ]
+                        },
+        OnPullRequestExcludePaths = new[]
+        {
+            "**/*.md",
+            "LICENCE",
+            "docs"
+        },
+        OnPushExcludePaths = new[]
+        {
+            "**/*.md",
+            "LICENCE",
+            "docs"
+        }
+    )]
     [AzurePipelines(
         suffix: "release",
         AzurePipelinesImage.WindowsLatest,

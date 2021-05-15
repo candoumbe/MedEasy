@@ -21,9 +21,17 @@ on:
     branches-ignore:
       - main
       - release/*
+    paths:
+      - !**/*.md
+      - !LICENCE
+      - !docs
   pull_request:
     branches:
       - develop
+    paths:
+      - !**/*.md
+      - !LICENCE
+      - !docs
 
 jobs:
   windows-latest:
@@ -38,8 +46,8 @@ jobs:
             .tmp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: Run './build.cmd UnitTests IntegrationTests'
-        run: ./build.cmd UnitTests IntegrationTests
+      - name: Run './build.cmd UnitTests'
+        run: ./build.cmd UnitTests
       - uses: actions/upload-artifact@v1
         with:
           name: unit-tests
@@ -48,15 +56,3 @@ jobs:
         with:
           name: unit-tests
           path: output/coverage-report/unit-tests
-      - uses: actions/upload-artifact@v1
-        with:
-          name: databases
-          path: output/databases
-      - uses: actions/upload-artifact@v1
-        with:
-          name: integration-tests
-          path: output/tests-results/integration-tests
-      - uses: actions/upload-artifact@v1
-        with:
-          name: integration-tests
-          path: output/coverage-report/integration-tests

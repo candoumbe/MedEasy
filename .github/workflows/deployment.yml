@@ -21,6 +21,15 @@ on:
     branches:
       - main
       - release/*
+    paths:
+      - !**/*.md
+      - !LICENCE
+      - !docs
+  pull_request:
+    paths:
+      - !**/*.md
+      - !LICENCE
+      - !docs
 
 jobs:
   windows-latest:
