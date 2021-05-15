@@ -41,7 +41,7 @@ namespace MedEasy.ContinuousIntegration
         OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(UnitTests), nameof(IntegrationTests) }
+        InvokedTargets = new[] { nameof(UnitTests) }
     )]
     [GitHubActions(
         "deployment",
@@ -49,11 +49,11 @@ namespace MedEasy.ContinuousIntegration
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         InvokedTargets = new[] { nameof(Publish) },
         ImportGitHubTokenAs = nameof(GitHubToken),
-        ImportSecrets =
-            new[]
-            {
-            nameof(NugetApiKey),
-            })]
+        ImportSecrets = new[]
+                        {
+                            nameof(NugetApiKey),
+                        })
+    ]
     [AzurePipelines(
         suffix: "release",
         AzurePipelinesImage.WindowsLatest,
@@ -194,7 +194,7 @@ namespace MedEasy.ContinuousIntegration
                 EnsureExistingDirectory(CoverageReportUnitTestsHistoryDirectory);
             });
 
-        
+
         public Target Restore => _ => _
             .Executes(() =>
             {
