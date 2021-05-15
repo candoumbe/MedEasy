@@ -2,6 +2,8 @@
   <PropertyGroup>
     <Authors>Cyrille NDOUMBE</Authors>
     <LangVersion>latest</LangVersion>
+    <Copyright>2016 - Cyrille NDOUMBE</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
