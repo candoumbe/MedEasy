@@ -12,6 +12,12 @@
   </ItemGroup>
 
 
+  <!-- Exclude tests from code coverage analysis-->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
+  </ItemGroup>
+
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\MedEasy.Attributes\MedEasy.Attributes.csproj" />
   </ItemGroup>
