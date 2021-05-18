@@ -80,7 +80,7 @@
         },
         "Services": {
           "type": "array",
-          "description": "Defines which services should start when running using Tye tool",
+          "description": "Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures).You can also use 'backends' to start all apis or 'datastores' to start all databases at once)",
           "items": {
             "type": "string",
             "enum": []
