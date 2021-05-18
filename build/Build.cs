@@ -34,6 +34,7 @@ namespace MedEasy.ContinuousIntegration
     using Nuke.Common.Tools.EntityFramework;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json;
+    using System.Text;
 
     [GitHubActions(
         "continuous",
@@ -195,15 +196,10 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Token required when publishing artifacts to GitHub")]
         public readonly string GitHubToken;
 
-        [Parameter(@"Defines which services should start when running using Tye tool")]
-        public readonly MedEasyService[] Services =
-        {
-            MedEasyService.Agenda,
-            MedEasyService.Documents,
-            MedEasyService.Identity,
-            MedEasyService.Measures,
-            MedEasyService.Patients
-        };
+        [Parameter("Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures)."
+            +"You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
+        )]
+        public readonly MedEasyService[] Services = { MedEasyService.Backends };
 
         public Target Clean => _ => _
             .Executes(() =>
@@ -703,16 +699,22 @@ namespace MedEasy.ContinuousIntegration
                 }
             });
 
-
         public Target Run => _ => _
             .Requires(() => IsLocalBuild)
-            .Description("Run all services using Tye")
+            .Description("Run services using Tye.")
             .DependsOn(Compile, TyeInstall)
             .Executes(() =>
             {
+                if (Services.Any())
+                {
+                    string services = string.Join(' ', Services.Select(s => $"{s}"));
+                    Tye($"run --tags {services} --dashboard --logs seq=http://localhost:55340");
 
-
-                Tye("run --dashboard --logs seq=http://localhost:55340");
+                }
+                else
+                {
+                    Tye($"run --dashboard --logs seq=http://localhost:55340");
+                }
             });
 
         [PathExecutable]

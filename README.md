@@ -32,7 +32,7 @@ MedEasy works as a set of [independant services](#lnk-services) that operates to
 - each service can work independantly from others
 - each service owns its data : data are never shared by two services.
 - services can be updated independantly from one an other
-- HATEAOS all the way !
+- [HATEAOS](https://en.wikipedia.org/wiki/HATEOAS) all the way !
 
 ### <a id="lnk-services">Available services</a>
 
@@ -58,17 +58,21 @@ application. Relies heavily on JWT
 
 ## <a id="lnk-get-started">Get started</a>
 
-1. Clone the repo
+1. Clone this repo
 2. Install [Nuke tool](https://www.nuget.org/packages/Nuke.GlobalTool/) globally.
+this tool is used to perform various tasks (migrations, running tests, etc.). 
+3. Install [Tye tool](https://www.nuget.org/packages/Microsoft.Tye) locally
 
 You should be good to go !
+
+Run `nuke --help` to see all available options
 
 ## <a id="lnk-contribute">Want to contribute ?</a>
 
 You can start contributing by looking at [`good first issues`](https://github.com/candoumbe/MedEasy/contribute) 
-on the issue trackers.
+on the issue tracker.
 
-Make sure you'
+Make sure you've read the [contribution guidelines](CONTRIBUTING.md)
 
 ## <a id="lnk-contribute">Troubleshooting</a>
-If you find an issue you can submit a pull request (I welcome PR 😀 !!) or open an issue. 
+If you find an issue you can submit a pull request (PRs are welcome 😀 !!) or open an issue. 

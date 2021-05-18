@@ -250,7 +250,10 @@ ModelManifest.xml
 # Tye - Tye runner
 /.tye
 
-#SQLite files
+# SQLite files
 *.db-wal
 *.db-shm
 /databases
+
+# Nuke temp directory
+/.nuke

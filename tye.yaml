@@ -9,14 +9,29 @@ name: medeasy
 services:
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
+  tags:
+  - backends
+  - identity
 - name: measures-api
   project: src/services/Measures/Measures.API/Measures.API.csproj
+  tags:
+  - backends
+  - measures
 - name: patients-api
   project: src/services/Patients/Patients.API/Patients.API.csproj
+  tags:
+  - backends
+  - patients
 - name: agenda-api
   project: src/services/agenda/Agenda.API/Agenda.API.csproj
+  tags:
+  - backends
+  - agenda
 - name: documents-api
   project: src/services/document/Documents.API/Documents.API.csproj
+  tags:
+  - backends
+  - documents
 - name: identity-db
   image: postgres:12-alpine
   env:
@@ -26,6 +41,10 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+  tags:
+  - backends
+  - identity
+  - databases
 - name: measures-db
   image: postgres:12-alpine
   env:
@@ -35,6 +54,10 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+  tags:
+  - backends
+  - measures
+  - databases
 - name: documents-db
   image: postgres:12-alpine
   env:
@@ -44,6 +67,10 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+  tags:
+  - backends
+  - documents
+  - databases
 - name: patients-db
   image: postgres:12-alpine
   env:
@@ -53,6 +80,10 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+  tags:
+  - backends
+  - patients
+  - databases
 - name: agenda-db
   image: postgres:12-alpine
   env:
@@ -62,6 +93,10 @@ services:
   bindings:
     - containerPort: 5432
       connectionString: Server=${host};Port=${port};Database=${env:POSTGRES_DB};User ID=${env:POSTGRES_USER};Password=${env:POSTGRES_PASSWORD};
+  tags:
+  - backends
+  - agenda
+  - databases
 - name: seq
   image: datalust/seq
   env:
@@ -75,3 +110,10 @@ services:
     - name: internal
       containerPort: 5341
       port : 55341
+  tags:
+  - backends
+  - agenda
+  - documents
+  - identity
+  - patients
+  - measures

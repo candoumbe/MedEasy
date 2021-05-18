@@ -33,6 +33,18 @@
         /// </summary>
         public static MedEasyService Patients => new() { Value = nameof(Patients) };
 
+        /// <summary>
+        /// All backend services
+        /// </summary>
+        public static MedEasyService Backends => new() { Value = nameof(Backends) };
+
+        /// <summary>
+        /// All database services
+        /// </summary>
+        public static MedEasyService Datastores => new() { Value = nameof(Datastores) };
+
+
+
         public static implicit operator string(MedEasyService service) => service.Value;
     }
 }
