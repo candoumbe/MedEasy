@@ -256,4 +256,4 @@ ModelManifest.xml
 /databases
 
 # Nuke temp directory
-.nuke/
+/.nuke
