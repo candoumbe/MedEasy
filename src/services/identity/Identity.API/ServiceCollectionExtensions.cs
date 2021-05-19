@@ -14,12 +14,16 @@
     using Identity.Objects;
     using Identity.Validators;
 
+    using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
 
     using MediatR;
+
+    using MicroElements.Swashbuckle.NodaTime;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
@@ -31,6 +35,7 @@
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.AspNetCore.Mvc.Versioning;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -41,19 +46,17 @@
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
-    using Swashbuckle.NodaTime.AspNetCore;
+   
 
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-    using MedEasy.Abstractions.ValueConverters;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -380,7 +383,7 @@
                     Description = "Token to access the API",
                     Type = SecuritySchemeType.ApiKey
                 };
-                config.AddSecurityDefinition("Bearer", securityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -388,7 +391,8 @@
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
-                config.ConfigureForNodaTime();
+
+                config.ConfigureForNodaTimeWithSystemTextJson();
             });
 
             return services;

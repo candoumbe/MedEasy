@@ -13,38 +13,37 @@
         /// <summary>
         /// Identity service
         /// </summary>
-        public static MedEasyService Identity => new() { Value = nameof(Identity) };
+        public static readonly MedEasyService Identity = new() { Value = nameof(Identity) };
         /// <summary>
         /// Measures service
         /// </summary>
-        public static MedEasyService Measures => new() { Value = nameof(Measures) };
+        public static readonly MedEasyService Measures = new() { Value = nameof(Measures) };
         /// <summary>
         /// Documents service
         /// </summary>
-        public static MedEasyService Documents => new() { Value = nameof(Documents) };
+        public static readonly MedEasyService Documents = new() { Value = nameof(Documents) };
 
         /// <summary>
         /// Agenda service
         /// </summary>
-        public static MedEasyService Agenda => new() { Value = nameof(Agenda) };
+        public static readonly MedEasyService Agenda = new() { Value = nameof(Agenda) };
 
         /// <summary>
         /// Patients service
         /// </summary>
-        public static MedEasyService Patients => new() { Value = nameof(Patients) };
+        public static readonly MedEasyService Patients = new() { Value = nameof(Patients) };
 
         /// <summary>
         /// All backend services
         /// </summary>
-        public static MedEasyService Backends => new() { Value = nameof(Backends) };
+        public static readonly MedEasyService Backends = new() { Value = nameof(Backends) };
 
         /// <summary>
         /// All database services
         /// </summary>
-        public static MedEasyService Datastores => new() { Value = nameof(Datastores) };
+        public static readonly MedEasyService Datastores = new() { Value = nameof(Datastores) };
 
-
-
+        ///<inheritdoc/>
         public static implicit operator string(MedEasyService service) => service.Value;
     }
 }

@@ -7,7 +7,7 @@
     using MediatR;
 
     using global::Patients.CQRS.Commands;
-    using global::Patients.CQRS.Events;
+    using global::Patients.Events;
     using global::Patients.DTO;
     using global::Patients.Ids;
     using global::Patients.Objects;
@@ -16,15 +16,18 @@
     using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
+    using MassTransit;
+using MassTransit.Transports;
 
-    /// <summary>
-    /// Handles <see cref="CreatePatientInfoCommand"/>s
-    /// </summary>
+/// <summary>
+/// Handles <see cref="CreatePatientInfoCommand"/>s
+/// </summary>
     public class HandleCreatePatientInfoCommand : IRequestHandler<CreatePatientInfoCommand, PatientInfo>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly IMediator _mediator;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreatePatientInfoCommand"/> instance.
@@ -32,14 +35,15 @@
         /// <param name="uowFactory"></param>
         /// <param name="expressionBuilder"></param>
         /// <param name="mediator">Mediator</param>
-        /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/>, <paramref name="expressionBuilder"/> or 
         /// <paramref name="mediator"/> is <c>null</c>.
+        /// <exception cref="ArgumentNullException">if <paramref name="uowFactory"/>, <paramref name="expressionBuilder"/> or 
         /// </exception>
-        public HandleCreatePatientInfoCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
+        public HandleCreatePatientInfoCommand(IUnitOfWorkFactory uowFactory, IExpressionBuilder expressionBuilder, IMediator mediator, IPublishEndpoint publishEndpoint)
         {
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
         }
 
 
@@ -62,7 +66,7 @@
             PatientInfo patientInfo = mapEntityToDtoExpression.Compile().Invoke(entity);
 
 
-            await _mediator.Publish(new PatientCreated(patientInfo), cancellationToken)
+            await _publishEndpoint.Publish(new PatientCaseCreated(patientInfo.Id, $"{patientInfo.Lastname} {patientInfo.Firstname}", patientInfo.BirthDate), cancellationToken)
                 .ConfigureAwait(false);
 
             return patientInfo;

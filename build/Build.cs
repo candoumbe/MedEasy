@@ -1,6 +1,9 @@
 
 namespace MedEasy.ContinuousIntegration
 {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+
     using Nuke.Common;
     using Nuke.Common.CI;
     using Nuke.Common.CI.AzurePipelines;
@@ -12,6 +15,7 @@ namespace MedEasy.ContinuousIntegration
     using Nuke.Common.Tooling;
     using Nuke.Common.Tools.Coverlet;
     using Nuke.Common.Tools.DotNet;
+    using Nuke.Common.Tools.EntityFramework;
     using Nuke.Common.Tools.GitVersion;
     using Nuke.Common.Tools.ReportGenerator;
     using Nuke.Common.Utilities;
@@ -27,14 +31,10 @@ namespace MedEasy.ContinuousIntegration
     using static Nuke.Common.IO.PathConstruction;
     using static Nuke.Common.Logger;
     using static Nuke.Common.Tools.DotNet.DotNetTasks;
+    using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.Git.GitTasks;
     using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
-    using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-    using Nuke.Common.Tools.EntityFramework;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using System.Text;
 
     [GitHubActions(
         "continuous",
@@ -200,6 +200,9 @@ namespace MedEasy.ContinuousIntegration
             +"You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
         )]
         public readonly MedEasyService[] Services = { MedEasyService.Backends };
+
+        [Parameter("Indicates to watch code source changes. Used when calling 'run' target")]
+        public readonly bool Watch = false;
 
         public Target Clean => _ => _
             .Executes(() =>
@@ -705,16 +708,19 @@ namespace MedEasy.ContinuousIntegration
             .DependsOn(Compile, TyeInstall)
             .Executes(() =>
             {
+                string command;
                 if (Services.Any())
                 {
                     string services = string.Join(' ', Services.Select(s => $"{s}"));
-                    Tye($"run --tags {services} --dashboard --logs seq=http://localhost:55340");
+                    command = $"--tags {services.ToLowerInvariant()} --dashboard --logs seq=http://localhost:55340";
 
                 }
                 else
                 {
-                    Tye($"run --dashboard --logs seq=http://localhost:55340");
+                    command = $"--dashboard --logs seq=http://localhost:55340";
                 }
+
+                Tye($"run {command} {(Watch ? "--watch" : string.Empty)}");
             });
 
         [PathExecutable]

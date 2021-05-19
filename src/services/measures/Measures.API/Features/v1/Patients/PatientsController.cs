@@ -77,7 +77,10 @@ namespace Measures.API.Features.v1.Patients
         /// <param name="mediator"></param>
         /// <param name="apiVersion"></param>
         /// <param name="urlHelper">Helper class to build URL strings.</param>
-        public PatientsController(LinkGenerator urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
+        public PatientsController(LinkGenerator urlHelper,
+                                  IOptionsSnapshot<MeasuresApiOptions> apiOptions,
+                                  IMediator mediator,
+                                  ApiVersion apiVersion)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;

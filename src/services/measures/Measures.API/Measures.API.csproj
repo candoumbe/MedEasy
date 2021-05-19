@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
     <ProjectReference Include="..\..\identity\Identity.DTO\Identity.DTO.csproj" />
     <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
+    <ProjectReference Include="..\..\patients\Patients.Events\Patients.Events.csproj" />
     <ProjectReference Include="..\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\Measures.DataStores\Measures.DataStores.csproj" />
     <ProjectReference Include="..\Measures.DataStores.Sqlite\Measures.DataStores.Sqlite.csproj" />

@@ -32,7 +32,7 @@ services:
   tags:
   - backends
   - documents
-- name: identity-db
+- name: identity
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -45,7 +45,7 @@ services:
   - backends
   - identity
   - databases
-- name: measures-db
+- name: measures
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -58,7 +58,7 @@ services:
   - backends
   - measures
   - databases
-- name: documents-db
+- name: documents
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -71,7 +71,7 @@ services:
   - backends
   - documents
   - databases
-- name: patients-db
+- name: patients
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -84,7 +84,7 @@ services:
   - backends
   - patients
   - databases
-- name: agenda-db
+- name: agenda
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -117,3 +117,20 @@ services:
   - identity
   - patients
   - measures
+- name: message-bus
+  image: masstransit/rabbitmq:3.8
+  bindings:
+    - name: internal
+      containerPort : 5672
+      protocol: rabbitmq
+    - name: ui
+      containerPort: 15672
+      protocol: http
+  tags:
+    - backends
+    - agenda
+    - documents
+    - identity
+    - measures
+    - patients
+
