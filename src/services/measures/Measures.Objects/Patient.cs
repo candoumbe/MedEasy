@@ -138,7 +138,7 @@
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
 
-        public Patient WasBornIn(LocalDate? birthDate)
+        public Patient WasBornOn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
 

@@ -6,7 +6,6 @@ namespace Agenda.API.IntegrationTests.v1
     using Agenda.Models.v1.Attendees;
 
     using FluentAssertions;
-    using FluentAssertions.Extensions;
 
     using MedEasy.Core.Filters;
     using MedEasy.IntegrationTests.Core;
@@ -29,7 +28,6 @@ namespace Agenda.API.IntegrationTests.v1
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static Newtonsoft.Json.JsonConvert;
     using System.Security.Claims;
-    using NodaTime.Extensions;
     using System.Net.Http.Json;
     using System.Text.Json;
     using NodaTime.Serialization.SystemTextJson;

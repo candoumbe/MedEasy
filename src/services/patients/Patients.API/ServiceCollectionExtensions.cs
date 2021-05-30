@@ -42,6 +42,7 @@
     using NodaTime.Serialization.SystemTextJson;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MedEasy.Abstractions.ValueConverters;
+    using MassTransit;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -219,25 +220,28 @@
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration) =>
-            services
-                    .AddAuthorization()
-                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            RequireExpirationTime = true,
-                            ValidateIssuerSigningKey = true,
-                            ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
-                            ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
-                        };
-                        options.Validate();
-                    });
+        public static IServiceCollection AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAuthorization()
+                           .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                           .AddJwtBearer(options =>
+                           {
+                               options.TokenValidationParameters = new TokenValidationParameters
+                               {
+                                   ValidateIssuer = true,
+                                   ValidateAudience = true,
+                                   ValidateLifetime = true,
+                                   RequireExpirationTime = true,
+                                   ValidateIssuerSigningKey = true,
+                                   ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                                   ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
+                                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
+                               };
+                               options.Validate();
+                           });
+
+            return services;
+        }
 
         /// <summary>
         /// Adds Swagger middlewares
@@ -280,13 +284,41 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.Http
+                    Type = SecuritySchemeType.ApiKey
                 };
-                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     [bearerSecurityScheme] = new List<string>()
                 });
+            });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds a customized MassTransit to the dependency injection container
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
+        {
+            services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+                if (environment.IsEnvironment("IntegrationTest"))
+                {
+                    x.UsingInMemory();
+                }
+                else
+                {
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(configuration.GetServiceUri(name: "message-bus", binding: "internal"));
+                        cfg.ConfigureEndpoints(context);
+                    });
+                }
             });
 
             return services;

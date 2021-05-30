@@ -1,6 +1,9 @@
 
 namespace MedEasy.ContinuousIntegration
 {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+
     using Nuke.Common;
     using Nuke.Common.CI;
     using Nuke.Common.CI.AzurePipelines;
@@ -12,6 +15,7 @@ namespace MedEasy.ContinuousIntegration
     using Nuke.Common.Tooling;
     using Nuke.Common.Tools.Coverlet;
     using Nuke.Common.Tools.DotNet;
+    using Nuke.Common.Tools.EntityFramework;
     using Nuke.Common.Tools.GitVersion;
     using Nuke.Common.Tools.ReportGenerator;
     using Nuke.Common.Utilities;
@@ -22,19 +26,20 @@ namespace MedEasy.ContinuousIntegration
     using System.Linq;
     using System.Net.NetworkInformation;
 
+    using YamlDotNet.Serialization;
+    using YamlDotNet.Serialization.NamingConventions;
+    using YamlDotNet.Serialization.ValueDeserializers;
+
     using static Nuke.Common.ChangeLog.ChangelogTasks;
     using static Nuke.Common.IO.FileSystemTasks;
     using static Nuke.Common.IO.PathConstruction;
+    using static Nuke.Common.IO.TextTasks;
     using static Nuke.Common.Logger;
     using static Nuke.Common.Tools.DotNet.DotNetTasks;
+    using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.Git.GitTasks;
     using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
-    using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-    using Nuke.Common.Tools.EntityFramework;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using System.Text;
 
     [GitHubActions(
         "continuous",
@@ -177,6 +182,11 @@ namespace MedEasy.ContinuousIntegration
         /// </summary>
         public AbsolutePath DatabaseFolder => OutputDirectory / "databases";
 
+        /// <summary>
+        /// Path to the tye configuration file.
+        /// </summary>
+        public AbsolutePath TyeConfigurationFile => RootDirectory / "tye.yaml";
+
         public const string MainBranchName = "main";
 
         public const string DevelopBranch = "develop";
@@ -199,7 +209,13 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures)."
             +"You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
         )]
-        public readonly MedEasyService[] Services = { MedEasyService.Backends };
+        public readonly MedEasyServices[] Services = { MedEasyServices.Backends };
+
+        [Parameter("Indicates to watch code source changes. Used when calling 'run' target")]
+        public readonly bool Watch = false;
+
+        [Parameter("Services to debug")]
+        public readonly MedEasyServices[] DebugServices = { };
 
         public Target Clean => _ => _
             .Executes(() =>
@@ -633,7 +649,7 @@ namespace MedEasy.ContinuousIntegration
 
         public Target Publish => _ => _
             .Description($"Published packages (*.nupkg and *.snupkg) to the destination server set with {nameof(NugetPackageSource)} settings ")
-            .DependsOn(Clean, UnitTests, Pack)
+            .DependsOn(UnitTests, Pack)
             .Consumes(Pack, ArtifactsDirectory / "*.nupkg", ArtifactsDirectory / "*.snupkg")
             .Requires(() => !NugetApiKey.IsNullOrEmpty())
             .Requires(() => GitHasCleanWorkingCopy())
@@ -686,8 +702,8 @@ namespace MedEasy.ContinuousIntegration
                         {
                             Info($"Updating {tyePackageId}");
                             DotNetToolUpdate(s => s.SetPackageName(tyePackageId)
-                                                    .SetGlobal(true)
-                                                    .SetVersion("0.6.0-alpha.21070.5")
+                                                   .SetGlobal(true)
+                                                   .SetVersion("0.6.0-alpha.21070.5")
                             );
                         }
                     }
@@ -705,16 +721,36 @@ namespace MedEasy.ContinuousIntegration
             .DependsOn(Compile, TyeInstall)
             .Executes(() =>
             {
+                string command = string.Empty;
                 if (Services.Any())
                 {
                     string services = string.Join(' ', Services.Select(s => $"{s}"));
-                    Tye($"run --tags {services} --dashboard --logs seq=http://localhost:55340");
+                    command = $"--tags {services.ToLowerInvariant()}";
 
                 }
-                else
+
+                string debug = null;
+                if (DebugServices.AtLeastOnce())
                 {
-                    Tye($"run --dashboard --logs seq=http://localhost:55340");
+                    debug = $" --debug {string.Join(' ', DebugServices.Select(s => $"{s}")).ToLowerInvariant()}";
                 }
+
+
+                Tye($"run {command} {debug} --dashboard --dtrace zipkin=http://localhost:59411 --logs seq=http://localhost:55341 { (Watch ? "--watch" : string.Empty)}");
+            });
+
+        public Target StartMessageBus => _ => _
+            .Executes(() =>
+            {
+                string yaml = ReadAllText(TyeConfigurationFile);
+                
+                IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
+                                                                      .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                                                                      .Build();
+
+                TyeConfiguration tyeConfiguration = deserializer.Deserialize<TyeConfiguration>(yaml);
+
+                Info($"Tye content : {tyeConfiguration.Jsonify()}");
             });
 
         [PathExecutable]
@@ -726,4 +762,35 @@ namespace MedEasy.ContinuousIntegration
                 Npx("swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
             });
     }
+
+
+    public class TyeConfiguration
+    {
+        public string Name { get; set; }
+
+        public List<TyeServiceConfiguration> Services { get; set; }
+    }
+
+    public class TyeServiceConfiguration
+    {
+        public string Name { get; set; }
+
+        public string Image { get; set; }
+
+        public string Project { get; set; }
+
+        public List<TyeServiceBindingConfiguration> Bindings { get; set; }
+    }
+
+    public class TyeServiceBindingConfiguration
+    {
+        public string ConnectionString { get; set; }
+
+        public int? Port { get; set; }
+
+        public int? ContainerPort { get; set; }
+
+        public string Protocol { get; set; }
+    }
+
 }

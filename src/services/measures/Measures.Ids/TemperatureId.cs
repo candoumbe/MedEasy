@@ -1,11 +1,14 @@
 ﻿namespace Measures.Ids
 {
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+    using System.Text.Json.Serialization;
 
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<TemperatureId, Guid>))]
     public record TemperatureId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static TemperatureId New() => new(Guid.NewGuid());

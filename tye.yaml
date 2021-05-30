@@ -5,8 +5,35 @@
 #    https://aka.ms/AA7q20u
 #
 name: medeasy
+extensions:
+- name: zipkin
 
+ingress:
+  - name: ingress
+    tags:
+      - proxies
+    bindings:
+      - port: 8080
+        protocol: https
+    rules:
+      - path: /api/identity
+        service: identity
+      - path: /api/measures
+        service: measures
+      - path: /api/documents
+        service: documents
+      - path: /api/agenda
+        service: agenda
+      - path: /api/patients
+        service: patients
+      - service: web
+  
 services:
+- name: web
+  project: src/clients/web/MedEasy/Medeasy.csproj
+  tags:
+  - frontends
+  - web
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
   tags:
@@ -32,7 +59,7 @@ services:
   tags:
   - backends
   - documents
-- name: identity-db
+- name: identity
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -45,7 +72,7 @@ services:
   - backends
   - identity
   - databases
-- name: measures-db
+- name: measures
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -58,7 +85,7 @@ services:
   - backends
   - measures
   - databases
-- name: documents-db
+- name: documents
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -71,7 +98,7 @@ services:
   - backends
   - documents
   - databases
-- name: patients-db
+- name: patients
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -84,7 +111,7 @@ services:
   - backends
   - patients
   - databases
-- name: agenda-db
+- name: agenda
   image: postgres:12-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
@@ -117,3 +144,26 @@ services:
   - identity
   - patients
   - measures
+- name: message-bus
+  image: masstransit/rabbitmq:3.8
+  bindings:
+    - name: internal
+      containerPort : 5672
+      protocol: rabbitmq
+    - name: ui
+      containerPort: 15672
+      protocol: http
+  tags:
+    - backends
+    - agenda
+    - documents
+    - identity
+    - measures
+    - patients
+    - esb
+- name: zipkin
+  image: openzipkin/zipkin
+  bindings:
+    - port: 59411
+      containerPort: 9411
+      protocol: http

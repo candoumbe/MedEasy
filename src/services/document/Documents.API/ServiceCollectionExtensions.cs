@@ -44,7 +44,6 @@
     using NodaTime.Serialization.SystemTextJson;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MedEasy.Abstractions.ValueConverters;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Provide extension method used to configure services collection

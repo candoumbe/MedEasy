@@ -42,13 +42,15 @@
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-
+        ///<inheritdoc/>
         public async Task<PatientInfo> Handle(CreatePatientInfoCommand cmd, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            NewPatientInfo newResourceInfo = cmd.Data;
             NewPatientInfo data = cmd.Data;
-            Patient entity = new Patient(data.Id ?? PatientId.New(), data.Name).WasBornIn(data.BirthDate);
+            data.Id = data.Id is null || data.Id == PatientId.Empty
+                ? PatientId.New()
+                : data.Id;
+            Patient entity = new Patient(data.Id , data.Name).WasBornOn(data.BirthDate);
 
             uow.Repository<Patient>().Create(entity);
             await uow.SaveChangesAsync(ct).ConfigureAwait(false);

@@ -65,6 +65,7 @@ namespace MedEasy.IntegrationTests.Core
                             })
                             .AddAuthentication(Scheme)
                             .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
+
                 });
             })
                             .CreateClient();

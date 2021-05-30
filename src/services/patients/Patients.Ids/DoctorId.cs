@@ -1,11 +1,14 @@
 ﻿namespace Patients.Ids
 {
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+    using System.Text.Json.Serialization;
 
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<DoctorId, Guid>))]
     public record DoctorId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static DoctorId Empty => new(Guid.Empty);

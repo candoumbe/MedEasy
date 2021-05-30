@@ -1,5 +1,7 @@
 ﻿namespace Measures.API
 {
+    using MassTransit;
+
     using Measures.API.Routing;
 
     using Microsoft.AspNetCore.Builder;
@@ -50,7 +52,7 @@
                     .AddCustomApiVersioning()
                     .AddCustomOptions(Configuration)
                     .AddSwagger(HostingEnvironment, Configuration)
-                    ;
+                    .AddCustomMassTransit(HostingEnvironment, Configuration);
         }
 
         /// <summary>
@@ -73,12 +75,11 @@
             }
             app.UseHttpsRedirection();
 
-            applicationLifetime.ApplicationStopping.Register(() =>
-            {
-                if (env.IsEnvironment("IntegrationTest"))
-                {
-                }
-            });
+            using IServiceScope scope = app.ApplicationServices.CreateScope();
+            IBusControl busControl = scope.ServiceProvider.GetRequiredService<IBusControl>();
+
+            applicationLifetime.ApplicationStarted.Register(async () => await busControl.StartAsync().ConfigureAwait(false));
+            applicationLifetime.ApplicationStopping.Register(async () => await busControl.StopAsync().ConfigureAwait(false));
 
             if (env.IsProduction() || env.IsStaging())
             {
@@ -89,6 +90,7 @@
             app.UseSwagger();
             app.UseSwaggerUI(opt =>
             {
+                opt.RoutePrefix = string.Empty;
                 provider.ApiVersionDescriptions
                         .ForEach(description => opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Measures REST API {description.GroupName}"));
             });

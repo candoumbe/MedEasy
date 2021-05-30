@@ -5,9 +5,6 @@ namespace Measures.API.IntegrationTests.v1
     using FluentAssertions;
 
     using Identity.API.Fixtures.v2;
-    using Identity.DTO;
-    using Identity.DTO.v2;
-    using Identity.Ids;
 
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
@@ -18,12 +15,10 @@ namespace Measures.API.IntegrationTests.v1
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
 
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Threading;
     using System.Threading.Tasks;
 
     using Xunit;
@@ -157,7 +152,6 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Paging configuration : {SerializeObject(new { page, pageSize })}");
 
             // Arrange
-            
             HttpRequestMessage getAllRequest = new(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
             getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
@@ -186,8 +180,6 @@ namespace Measures.API.IntegrationTests.v1
             ValidationProblemDetails errorObject = validationProblemDetailsToken.ToObject<ValidationProblemDetails>();
             errorObject.Status.Should()
                 .Be(Status400BadRequest);
-            errorObject.Title.Should()
-                .Be("Validation failed");
             errorObject.Errors.Should()
                 .NotBeEmpty().And
                 .ContainKeys("page", "pageSize");

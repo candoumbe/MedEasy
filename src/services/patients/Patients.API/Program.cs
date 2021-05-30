@@ -16,8 +16,8 @@
 
     using System;
     using System.Threading.Tasks;
-    using Npgsql;
     using System.Diagnostics;
+    using System.Data.Common;
 
 #pragma warning disable CS1591 // Commentaire XML manquant pour le type ou le membre visible publiquement
     public class Program
@@ -43,11 +43,9 @@
 
             try
             {
-
                 logger?.LogInformation("Upgrading {ApplicationContext} store", environment.ApplicationName);
                 // Forces database migrations on startup
-                RetryPolicy policy = Policy
-                    .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                RetryPolicy policy = Policy.Handle<DbException>()
                     .WaitAndRetryAsync(
                         retryCount: 5,
                         sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
@@ -73,11 +71,6 @@
             }
         }
 
-        /// <summary>
-        /// Configures the host
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
         /// <summary>
         /// Builds the host
         /// </summary>

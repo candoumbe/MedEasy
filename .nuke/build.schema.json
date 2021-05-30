@@ -22,6 +22,25 @@
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
         },
+        "DebugServices": {
+          "type": "array",
+          "description": "Services to debug",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Agenda",
+              "Backends",
+              "Datastores",
+              "Documents",
+              "Esb",
+              "Identity",
+              "Measures",
+              "Patients",
+              "Proxies",
+              "Web"
+            ]
+          }
+        },
         "GitHubToken": {
           "type": "string",
           "description": "Token required when publishing artifacts to GitHub"
@@ -83,7 +102,18 @@
           "description": "Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures).You can also use 'backends' to start all apis or 'datastores' to start all databases at once)",
           "items": {
             "type": "string",
-            "enum": []
+            "enum": [
+              "Agenda",
+              "Backends",
+              "Datastores",
+              "Documents",
+              "Esb",
+              "Identity",
+              "Measures",
+              "Patients",
+              "Proxies",
+              "Web"
+            ]
           }
         },
         "Skip": {
@@ -104,6 +134,7 @@
               "Release",
               "Restore",
               "Run",
+              "StartMessageBus",
               "Tests",
               "TyeInstall",
               "TypeScriptModels",
@@ -134,6 +165,7 @@
               "Release",
               "Restore",
               "Run",
+              "StartMessageBus",
               "Tests",
               "TyeInstall",
               "TypeScriptModels",
@@ -158,6 +190,10 @@
             "Quiet",
             "Verbose"
           ]
+        },
+        "Watch": {
+          "type": "boolean",
+          "description": "Indicates to watch code source changes. Used when calling 'run' target"
         }
       }
     }

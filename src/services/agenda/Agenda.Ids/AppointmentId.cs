@@ -2,11 +2,14 @@
 {
 
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+using System.Text.Json.Serialization;
 
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<AppointmentId, Guid>))]
     public record AppointmentId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static AppointmentId New() => new(Guid.NewGuid());

@@ -69,7 +69,9 @@
 
                 BadRequestObjectResult result = new(validationProblemDetails);
 
-                if (IsPost(context.HttpContext.Request.Method))
+                if (IsPost(context.HttpContext.Request.Method)
+                    || IsPut(context.HttpContext.Request.Method)
+                    || IsPatch(context.HttpContext.Request.Method))
                 {
                     result.StatusCode = Status422UnprocessableEntity;
                 }

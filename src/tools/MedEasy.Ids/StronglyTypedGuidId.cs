@@ -2,7 +2,5 @@
 {
     using System;
 
-    public record StronglyTypedGuidId(Guid Value) : StronglyTypedId<Guid>(Value)
-    {
-    }
+    public record StronglyTypedGuidId(Guid Value) : StronglyTypedId<Guid>(Value);
 }

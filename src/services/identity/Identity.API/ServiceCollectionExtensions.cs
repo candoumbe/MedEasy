@@ -10,16 +10,22 @@
     using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
     using Identity.CQRS.Queries.Accounts;
     using Identity.DataStores;
+    using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
     using Identity.Validators;
 
+    using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+    using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using MediatR;
+
+    using MicroElements.Swashbuckle.NodaTime;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
@@ -31,6 +37,7 @@
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.AspNetCore.Mvc.Versioning;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -41,19 +48,17 @@
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
-    using Swashbuckle.NodaTime.AspNetCore;
+    using Swashbuckle.AspNetCore.SwaggerGen;
 
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-    using MedEasy.Abstractions.ValueConverters;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -88,6 +93,7 @@
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                jsonSerializerOptions.Converters.Add(new StronglyTypedIdJsonConverterFactory());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
                 jsonSerializerOptions.PropertyNameCaseInsensitive = true;
@@ -335,6 +341,8 @@
         /// <param name="configuration"></param>
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
+
+
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
@@ -380,7 +388,7 @@
                     Description = "Token to access the API",
                     Type = SecuritySchemeType.ApiKey
                 };
-                config.AddSecurityDefinition("Bearer", securityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -388,10 +396,32 @@
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
-                config.ConfigureForNodaTime();
+
+                config.ConfigureForNodaTimeWithSystemTextJson();
+
+                RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(config, typeof(AccountId));
             });
 
             return services;
+
+            static void RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(SwaggerGenOptions options, Type stronglyTypeId)
+            {
+                Type[] types = stronglyTypeId.Assembly.GetTypes()
+                                                      .Where(t => t.IsAssignableToGenericType(typeof(StronglyTypedId<>)))
+                                                      .ToArray();
+
+                foreach (var stronglyTypeIdFound in types)
+                {
+                    Type idType = stronglyTypeIdFound.GetGenericArguments()[0];
+
+                    if (idType == typeof(Guid))
+                    {
+                        options.MapType(stronglyTypeIdFound, () => new() { Format = "uuid", Type = "string" } );
+                    }
+                }
+            }
         }
+
+
     }
 }

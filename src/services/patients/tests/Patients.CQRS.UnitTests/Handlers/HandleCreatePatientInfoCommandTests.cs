@@ -4,6 +4,8 @@
 
     using FluentAssertions;
 
+    using MassTransit;
+
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
@@ -17,9 +19,9 @@
 
     using Patients.Context;
     using Patients.CQRS.Commands;
-    using Patients.CQRS.Events;
     using Patients.CQRS.Handlers.Patients;
     using Patients.DTO;
+    using Patients.Events;
     using Patients.Ids;
     using Patients.Mapping;
     using Patients.Objects;
@@ -46,6 +48,7 @@
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly Mock<IMediator> _mediatorMock;
         private readonly HandleCreatePatientInfoCommand _sut;
+        private readonly Mock<IPublishEndpoint> _publishEndpointMock;
 
         public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<PatientsContext> database)
         {
@@ -59,8 +62,9 @@
             });
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
             _mediatorMock = new Mock<IMediator>(Strict);
+            _publishEndpointMock = new(Strict);
 
-            _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
+            _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object, _publishEndpointMock.Object);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -70,27 +74,31 @@
                 IUnitOfWorkFactory[] uowFactorieCases = { null, Mock.Of<IUnitOfWorkFactory>() };
                 IExpressionBuilder[] expressionBuilderCases = { null, Mock.Of<IExpressionBuilder>() };
                 IMediator[] mediatorCases = { null, Mock.Of<IMediator>() };
+                IPublishEndpoint[] publishEndpointsCases = { null, Mock.Of<IPublishEndpoint>() };
 
                 return uowFactorieCases
                     .CrossJoin(expressionBuilderCases, (uowFactory, expressionBuilder) => (uowFactory, expressionBuilder))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder })
                     .CrossJoin(mediatorCases, (a, mediator) => (a.uowFactory, a.expressionBuilder, mediator))
                     .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator })
-                    .Where(tuple => tuple.uowFactory == null || tuple.expressionBuilder == null || tuple.mediator == null)
-                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator });
+                    .CrossJoin(publishEndpointsCases, (a, publishEndpoint) => (a.uowFactory, a.expressionBuilder, a.mediator, publishEndpoint))
+                    .Select(tuple => new { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator, tuple.publishEndpoint })
+                    .Where(tuple => tuple.uowFactory is null || tuple.expressionBuilder is null || tuple.mediator is null || tuple.publishEndpoint is null)
+                    .Select(tuple => new object[] { tuple.uowFactory, tuple.expressionBuilder, tuple.mediator, tuple.publishEndpoint });
             }
         }
 
         [Theory]
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
-        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator)
+        public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null(IUnitOfWorkFactory unitOfWorkFactory, IExpressionBuilder expressionBuilder, IMediator mediator, IPublishEndpoint publishEndpoint)
         {
-            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory == null}");
-            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
-            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
+            _outputHelper.WriteLine($"{nameof(unitOfWorkFactory)} is null : {unitOfWorkFactory is null}");
+            _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder is null}");
+            _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator is null}");
+            _outputHelper.WriteLine($"{nameof(publishEndpoint)} is null : {publishEndpoint is null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
+            Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator, publishEndpoint);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -101,7 +109,7 @@
         }
 
         [Fact]
-        public async Task CreatePatientWithNoIdProvided()
+        public async Task Given_id_was_not_provided_Handle_should_generate_one()
         {
             // Arrange
             CreatePatientInfo resourceInfo = new()
@@ -112,18 +120,21 @@
 
             CreatePatientInfoCommand cmd = new(resourceInfo);
 
-            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            _publishEndpointMock.Setup(mock => mock.Publish(It.IsNotNull<PatientCaseCreated>(), It.IsAny<CancellationToken>()))
+                                .Returns(Task.CompletedTask);
 
             // Act
             PatientInfo createdResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert            
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.VerifyNoOtherCalls();
+            _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default),
+                                        Times.Once,
+                                        $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default),
+                                        Times.Once,
+                                        $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _publishEndpointMock.VerifyNoOtherCalls();
 
             createdResource.Should()
                 .NotBeNull();
@@ -150,7 +161,7 @@
         }
 
         [Fact]
-        public async Task CreatePatientWithIdProvided()
+        public async Task Given_id_was_provided_Handle_should_use_the_id_provided()
         {
             // Arrange
             PatientId desiredId = PatientId.New();
@@ -161,14 +172,9 @@
                 Id = desiredId
             };
 
-            //DateTimeOffset now = 28.February(2015);
-            //_dateTimeServiceMock.Setup(mock => mock.UtcNowOffset())
-            //    .Returns(now);
-
-
             CreatePatientInfoCommand cmd = new(resourceInfo);
 
-            _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+            _publishEndpointMock.Setup(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -176,13 +182,10 @@
                 .ConfigureAwait(false);
 
             // Assert
-            //_dateTimeServiceMock.Verify(mock => mock.UtcNowOffset(), Times.Once);
-            //_dateTimeServiceMock.VerifyNoOtherCalls();
-
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.VerifyNoOtherCalls();
+            
+            _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _publishEndpointMock.VerifyNoOtherCalls();
 
             createdResource.Should()
                 .NotBeNull();

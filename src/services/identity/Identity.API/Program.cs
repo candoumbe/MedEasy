@@ -9,8 +9,6 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
-    using Npgsql;
-
     using Optional;
 
     using Polly;
@@ -19,6 +17,7 @@
     using Serilog;
 
     using System;
+    using System.Data.Common;
     using System.Diagnostics;
     using System.Threading.Tasks;
 
@@ -49,9 +48,10 @@
                 if (!context.Database.IsInMemory())
                 {
                     logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
+                    logger?.LogInformation("Connection string : {ConnectionString}", context.Database.GetConnectionString());
                     // Forces database migrations on startup
                     RetryPolicy policy = Policy
-                        .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                        .Handle<DbException>(ex => ex.IsTransient)
                         .WaitAndRetryAsync(
                             retryCount: 5,
                             sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
@@ -65,12 +65,12 @@
                     await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
                                 .ConfigureAwait(false);
 
-                    logger?.LogInformation($"Identity database updated");
+                    logger?.LogInformation("Identity database updated");
                 }
                 await host.RunAsync()
                     .ConfigureAwait(false);
 
-                logger?.LogInformation($"Identity.API started");
+                logger?.LogInformation("Identity.API started");
             }
             catch (Exception ex)
             {

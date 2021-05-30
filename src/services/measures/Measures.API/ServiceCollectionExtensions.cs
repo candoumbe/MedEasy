@@ -4,10 +4,14 @@
 
     using FluentValidation.AspNetCore;
 
+    using MassTransit;
+
     using Measures.API.Features.Auth;
-    using Measures.DataStores;
+    using Measures.CQRS.Commands.Patients;
     using Measures.CQRS.Handlers.BloodPressures;
     using Measures.CQRS.Queries.Patients;
+    using Measures.DataStores;
+    using Measures.Ids;
     using Measures.Mapping;
     using Measures.Validators.Commands.BloodPressures;
 
@@ -28,7 +32,6 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Versioning;
-    using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using Microsoft.Extensions.Configuration;
@@ -41,12 +44,15 @@
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
+    using Patients.Events;
+
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading.Tasks;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -68,7 +74,6 @@
                 config.Filters.Add<FormatFilterAttribute>();
                 config.Filters.Add<ValidateModelActionFilterAttribute>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
-                ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -86,7 +91,6 @@
                     .RegisterValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
                     .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
                     ;
-                options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
             })
             .AddJsonOptions(options =>
             {
@@ -335,10 +339,10 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.Http
+                    Type = SecuritySchemeType.ApiKey
                 };
 
-                config.AddSecurityDefinition("bearerAuth", bearerSecurityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     [bearerSecurityScheme] = new List<string>()
@@ -348,6 +352,59 @@
             });
 
             return services;
+        }
+
+
+        /// <summary>
+        /// Adds a customized MassTransit to the dependency injection container
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
+        {
+            services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<PatientCaseCreatedConsumer>();
+                if (environment.IsEnvironment("IntegrationTest"))
+                {
+                    x.UsingInMemory();
+                }
+                else
+                {
+                    x.UsingRabbitMq((context, cfg) =>
+                            {
+                                cfg.Host(configuration.GetServiceUri(name: "message-bus", binding: "internal"));
+                                cfg.ConfigureEndpoints(context);
+                            }); 
+                }
+            });
+
+            return services;
+        }
+
+
+    }
+    class PatientCaseCreatedConsumer : IConsumer<PatientCaseCreated>
+    {
+        private readonly ILogger<PatientCaseCreated> _logger;
+        private readonly IMediator _mediator;
+
+        public PatientCaseCreatedConsumer(ILogger<PatientCaseCreated> logger, IMediator mediator)
+        {
+            _logger = logger;
+            _mediator = mediator;
+        }
+
+        ///<inheritdoc/>
+        public async Task Consume(ConsumeContext<PatientCaseCreated> context)
+        {
+            _logger.LogInformation("Received {EventName} : {@Event}", nameof(PatientCaseCreated), context.Message);
+
+            CreatePatientInfoCommand cmd = new(new DTO.NewPatientInfo { Id = new PatientId(context.Message.Id.Value), Name = context.Message.Name, BirthDate = context.Message.BirthDate });
+            await _mediator.Send(cmd, context.CancellationToken)
+                            .ConfigureAwait(false);
         }
     }
 }
