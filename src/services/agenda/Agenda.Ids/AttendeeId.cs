@@ -1,11 +1,14 @@
 ﻿namespace Agenda.Ids
 {
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+using System.Text.Json.Serialization;
 
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<AttendeeId, Guid>))]
     public record AttendeeId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static AttendeeId New() => new(Guid.NewGuid());

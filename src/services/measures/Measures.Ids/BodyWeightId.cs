@@ -1,11 +1,14 @@
 ﻿namespace Measures.Ids
 {
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+    using System.Text.Json.Serialization;
 
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<BodyWeightId, Guid>))]
     public record BodyWeightId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static BodyWeightId New() => new(Guid.NewGuid());

@@ -10,11 +10,10 @@
     using Polly;
     using Serilog;
     using System;
-    using Npgsql;
     using System.Threading.Tasks;
     using System.Diagnostics;
-    using Microsoft.Data.Sqlite;
     using System.Linq;
+    using System.Data.Common;
 
     /// <summary>
     /// Entry class
@@ -41,9 +40,7 @@
             {
                 logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
                 // Forces database migrations on startup
-                PolicyBuilder policy = env.IsEnvironment("IntegrationTest")
-                    ? Policy.Handle<SqliteException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
-                    : Policy.Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true));
+                PolicyBuilder policy = Policy.Handle<DbException>();
 
                 logger?.LogInformation("Starting {ApplictationContext} database migration", env.ApplicationName);
                 string[] migrations = (await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false))

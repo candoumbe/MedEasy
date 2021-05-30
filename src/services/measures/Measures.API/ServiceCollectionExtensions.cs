@@ -74,7 +74,6 @@
                 config.Filters.Add<FormatFilterAttribute>();
                 config.Filters.Add<ValidateModelActionFilterAttribute>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
-                ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -92,7 +91,6 @@
                     .RegisterValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
                     .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
                     ;
-                options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
             })
             .AddJsonOptions(options =>
             {
@@ -341,10 +339,10 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.Http
+                    Type = SecuritySchemeType.ApiKey
                 };
 
-                config.AddSecurityDefinition("bearerAuth", bearerSecurityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     [bearerSecurityScheme] = new List<string>()
@@ -363,17 +361,24 @@
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
         {
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<PatientCaseCreatedConsumer>();
-                x.UsingRabbitMq((context, cfg) =>
+                if (environment.IsEnvironment("IntegrationTest"))
                 {
-                    cfg.Host(configuration.GetServiceUri(name : "message-bus", binding: "internal"));
-                    cfg.ConfigureEndpoints(context);
-                });
+                    x.UsingInMemory();
+                }
+                else
+                {
+                    x.UsingRabbitMq((context, cfg) =>
+                            {
+                                cfg.Host(configuration.GetServiceUri(name: "message-bus", binding: "internal"));
+                                cfg.ConfigureEndpoints(context);
+                            }); 
+                }
             });
 
             return services;

@@ -2,8 +2,6 @@ namespace Patients.API.IntegrationTests
 {
     using FluentAssertions;
     using Identity.API.Fixtures.v2;
-    using Identity.DTO;
-    using Identity.DTO.v2;
     using Patients.DTO;
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
@@ -24,7 +22,6 @@ namespace Patients.API.IntegrationTests
     using static System.Net.Http.HttpMethod;
     using System.Text;
     using System.Net.Mime;
-    using Identity.Ids;
     using Bogus;
 
     [IntegrationTest]

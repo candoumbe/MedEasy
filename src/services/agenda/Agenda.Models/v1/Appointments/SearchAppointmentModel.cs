@@ -5,8 +5,6 @@
 
     using NodaTime;
 
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Data to search <see cref="AppointmentModel"/>s
     /// </summary>

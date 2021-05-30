@@ -501,7 +501,7 @@
                         BirthDate = 31.July(2010).ToLocalDateTime().Date
                     };
                     Patient patient = new Patient(PatientId.New(), "Bruce wayne")
-                        .WasBornIn(31.July(2010).ToLocalDateTime().Date);
+                        .WasBornOn(31.July(2010).ToLocalDateTime().Date);
 
                     yield return new object[]
                     {

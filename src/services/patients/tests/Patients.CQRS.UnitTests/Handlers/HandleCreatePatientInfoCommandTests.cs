@@ -172,14 +172,9 @@
                 Id = desiredId
             };
 
-            //DateTimeOffset now = 28.February(2015);
-            //_dateTimeServiceMock.Setup(mock => mock.UtcNowOffset())
-            //    .Returns(now);
-
-
             CreatePatientInfoCommand cmd = new(resourceInfo);
 
-            _publishEndpointMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+            _publishEndpointMock.Setup(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -187,12 +182,9 @@
                 .ConfigureAwait(false);
 
             // Assert
-            //_dateTimeServiceMock.Verify(mock => mock.UtcNowOffset(), Times.Once);
-            //_dateTimeServiceMock.VerifyNoOtherCalls();
-
+            
             _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
             _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
             _publishEndpointMock.VerifyNoOtherCalls();
 
             createdResource.Should()

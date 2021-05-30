@@ -1,14 +1,17 @@
 ﻿namespace Identity.Ids
 {
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+using System.Text.Json.Serialization;
 
-    /// <summary>
-    /// <see cref="Role"/>'s identifier
-    /// </summary>
+/// <summary>
+/// <see cref="Role"/>'s identifier
+/// </summary>
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<RoleId, Guid>))]
     public record RoleId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         /// <summary>

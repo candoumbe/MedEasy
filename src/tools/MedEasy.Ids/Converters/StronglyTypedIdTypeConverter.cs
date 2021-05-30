@@ -5,7 +5,7 @@
     using System.ComponentModel;
     using System.Globalization;
 
-    public class StronglyTypedIdConverter<TValue> : TypeConverter where TValue : notnull
+    public class StronglyTypedIdTypeConverter<TValue> : TypeConverter where TValue : notnull
     {
         private static readonly TypeConverter IdValueConverter = GetIdValueConverter();
 
@@ -22,7 +22,7 @@
         }
 
         private readonly Type _type;
-        public StronglyTypedIdConverter(Type type)
+        public StronglyTypedIdTypeConverter(Type type)
         {
             _type = type;
         }
@@ -92,13 +92,13 @@
         }
     }
 
-    public class StronglyTypedIdConverter : TypeConverter
+    public class StronglyTypedIdTypeConverter : TypeConverter
     {
         private static readonly ConcurrentDictionary<Type, TypeConverter> ActualConverters = new();
 
         private readonly TypeConverter _innerConverter;
 
-        public StronglyTypedIdConverter(Type stronglyTypedIdType)
+        public StronglyTypedIdTypeConverter(Type stronglyTypedIdType)
         {
             _innerConverter = ActualConverters.GetOrAdd(stronglyTypedIdType, CreateActualConverter);
         }
@@ -119,7 +119,7 @@
                 throw new InvalidOperationException($"The type '{stronglyTypedIdType}' is not a strongly typed id");
             }
 
-            Type actualConverterType = typeof(StronglyTypedIdConverter<>).MakeGenericType(idType);
+            Type actualConverterType = typeof(StronglyTypedIdTypeConverter<>).MakeGenericType(idType);
             return (TypeConverter)Activator.CreateInstance(actualConverterType, stronglyTypedIdType)!;
         }
     }

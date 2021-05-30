@@ -3,12 +3,13 @@
     using MedEasy.Ids.Converters;
 
     using System.ComponentModel;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Base class for storngly typed ids.
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
-    [TypeConverter(typeof(StronglyTypedIdConverter))]
+    [TypeConverter(typeof(StronglyTypedIdTypeConverter))]
 #if NET5_0
     public abstract record StronglyTypedId<TValue>(TValue Value)
         where TValue : notnull

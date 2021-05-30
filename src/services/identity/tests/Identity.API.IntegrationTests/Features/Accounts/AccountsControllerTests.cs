@@ -15,7 +15,6 @@
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using System.Net.Http.Headers;
     using Bogus;
-    using Identity.DTO.v1;
     using Identity.API.Features.v1.Accounts;
     using Identity.API.Fixtures.v1;
     using System.Text.Json;

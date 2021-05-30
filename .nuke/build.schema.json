@@ -22,6 +22,25 @@
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
         },
+        "DebugServices": {
+          "type": "array",
+          "description": "Services to debug",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Agenda",
+              "Backends",
+              "Datastores",
+              "Documents",
+              "Esb",
+              "Identity",
+              "Measures",
+              "Patients",
+              "Proxies",
+              "Web"
+            ]
+          }
+        },
         "GitHubToken": {
           "type": "string",
           "description": "Token required when publishing artifacts to GitHub"
@@ -88,9 +107,12 @@
               "Backends",
               "Datastores",
               "Documents",
+              "Esb",
               "Identity",
               "Measures",
-              "Patients"
+              "Patients",
+              "Proxies",
+              "Web"
             ]
           }
         },
@@ -112,6 +134,7 @@
               "Release",
               "Restore",
               "Run",
+              "StartMessageBus",
               "Tests",
               "TyeInstall",
               "TypeScriptModels",
@@ -142,6 +165,7 @@
               "Release",
               "Restore",
               "Run",
+              "StartMessageBus",
               "Tests",
               "TyeInstall",
               "TypeScriptModels",

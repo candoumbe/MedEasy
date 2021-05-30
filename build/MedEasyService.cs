@@ -7,43 +7,57 @@
     /// <summary>
     /// List of services that can be served by MedEasy
     /// </summary>
-    [TypeConverter(typeof(TypeConverter<MedEasyService>))]
-    public class MedEasyService : Enumeration
+    [TypeConverter(typeof(TypeConverter<MedEasyServices>))]
+    public class MedEasyServices : Enumeration
     {
         /// <summary>
         /// Identity service
         /// </summary>
-        public static readonly MedEasyService Identity = new() { Value = nameof(Identity) };
+        public static readonly MedEasyServices Identity = new() { Value = nameof(Identity) };
         /// <summary>
         /// Measures service
         /// </summary>
-        public static readonly MedEasyService Measures = new() { Value = nameof(Measures) };
+        public static readonly MedEasyServices Measures = new() { Value = nameof(Measures) };
         /// <summary>
         /// Documents service
         /// </summary>
-        public static readonly MedEasyService Documents = new() { Value = nameof(Documents) };
+        public static readonly MedEasyServices Documents = new() { Value = nameof(Documents) };
 
         /// <summary>
         /// Agenda service
         /// </summary>
-        public static readonly MedEasyService Agenda = new() { Value = nameof(Agenda) };
+        public static readonly MedEasyServices Agenda = new() { Value = nameof(Agenda) };
 
         /// <summary>
         /// Patients service
         /// </summary>
-        public static readonly MedEasyService Patients = new() { Value = nameof(Patients) };
+        public static readonly MedEasyServices Patients = new() { Value = nameof(Patients) };
 
         /// <summary>
         /// All backend services
         /// </summary>
-        public static readonly MedEasyService Backends = new() { Value = nameof(Backends) };
+        public static readonly MedEasyServices Backends = new() { Value = nameof(Backends) };
 
         /// <summary>
         /// All database services
         /// </summary>
-        public static readonly MedEasyService Datastores = new() { Value = nameof(Datastores) };
+        public static readonly MedEasyServices Datastores = new() { Value = nameof(Datastores) };
+
+        /// <summary>
+        /// Entreprise Service Bus
+        /// </summary>
+        public static readonly MedEasyServices Esb = new() { Value = nameof(Esb) };
+        public static readonly MedEasyServices Proxies = new() { Value = nameof(Proxies) };
+
+
+
+        /// <summary>
+        /// Frontend
+        /// </summary>
+        public static readonly MedEasyServices Web = new() { Value = nameof(Web) };
+
 
         ///<inheritdoc/>
-        public static implicit operator string(MedEasyService service) => service.Value;
+        public static implicit operator string(MedEasyServices service) => service.Value;
     }
 }

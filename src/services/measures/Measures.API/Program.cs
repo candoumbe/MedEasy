@@ -8,14 +8,13 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
-    using Npgsql;
-
     using Polly;
     using Polly.Retry;
 
     using Serilog;
 
     using System;
+    using System.Data.Common;
     using System.Threading.Tasks;
 
 #pragma warning disable RCS1102 // Make class static.
@@ -50,7 +49,7 @@
                 logger?.LogInformation("Upgrading {ApplicationContext}' store", environment.ApplicationName);
                 // Forces database migrations on startup
                 RetryPolicy policy = Policy
-                    .Handle<NpgsqlException>(sql => sql.Message.Like("*failed*", ignoreCase: true))
+                    .Handle<DbException>()
                     .WaitAndRetryAsync(
                         retryCount: 5,
                         sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),

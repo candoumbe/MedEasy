@@ -52,7 +52,7 @@
                     .AddCustomApiVersioning()
                     .AddCustomOptions(Configuration)
                     .AddSwagger(HostingEnvironment, Configuration)
-                    .AddCustomMassTransit(Configuration);
+                    .AddCustomMassTransit(HostingEnvironment, Configuration);
         }
 
         /// <summary>

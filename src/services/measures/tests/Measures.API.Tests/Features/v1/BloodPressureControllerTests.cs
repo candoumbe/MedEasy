@@ -317,10 +317,10 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                             (
                                 firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00Z&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00Z".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00Z&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00Z".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2001-01-01T00:00:00Z&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&to=2001-01-31T00:00:00Z".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         )
                     };
@@ -345,12 +345,12 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                             links: (
                                 firstPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null
                                                                                              && x.Relation.Contains(First)
-                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00Z&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to previous page
                                 nextPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x == null), // expected link to next page
                                 lastPageUrlExpectation: (Expression<Func<Link, bool>>)(x => x != null
                                                                                             && x.Relation.Contains(Last)
-                                                                                            && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                                                                            && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&from=2012-06-23T00:00:00Z&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                             )
                         )
                     };

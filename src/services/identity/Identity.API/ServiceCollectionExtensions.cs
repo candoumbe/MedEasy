@@ -10,6 +10,7 @@
     using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
     using Identity.CQRS.Queries.Accounts;
     using Identity.DataStores;
+    using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
     using Identity.Validators;
@@ -20,6 +21,7 @@
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Ids;
+    using MedEasy.Ids.Converters;
 
     using MediatR;
 
@@ -46,7 +48,7 @@
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
-   
+    using Swashbuckle.AspNetCore.SwaggerGen;
 
     using System;
     using System.Collections.Generic;
@@ -91,6 +93,7 @@
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                jsonSerializerOptions.Converters.Add(new StronglyTypedIdJsonConverterFactory());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
                 jsonSerializerOptions.PropertyNameCaseInsensitive = true;
@@ -338,6 +341,8 @@
         /// <param name="configuration"></param>
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
+
+
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
             services.AddSwaggerGen(config =>
@@ -393,9 +398,30 @@
                 config.CustomSchemaIds(type => type.FullName);
 
                 config.ConfigureForNodaTimeWithSystemTextJson();
+
+                RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(config, typeof(AccountId));
             });
 
             return services;
+
+            static void RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(SwaggerGenOptions options, Type stronglyTypeId)
+            {
+                Type[] types = stronglyTypeId.Assembly.GetTypes()
+                                                      .Where(t => t.IsAssignableToGenericType(typeof(StronglyTypedId<>)))
+                                                      .ToArray();
+
+                foreach (var stronglyTypeIdFound in types)
+                {
+                    Type idType = stronglyTypeIdFound.GetGenericArguments()[0];
+
+                    if (idType == typeof(Guid))
+                    {
+                        options.MapType(stronglyTypeIdFound, () => new() { Format = "uuid", Type = "string" } );
+                    }
+                }
+            }
         }
+
+
     }
 }

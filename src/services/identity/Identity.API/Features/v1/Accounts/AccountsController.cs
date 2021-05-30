@@ -215,8 +215,7 @@
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
-        /// <param name="ct"></param>
-        /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
@@ -262,7 +261,10 @@
         [ProducesResponseType(typeof(Browsable<AccountInfo>), Status201Created)]
         public async Task<ActionResult> Post([FromBody] NewAccountInfo newAccount, CancellationToken ct = default)
         {
-
+            if (newAccount.Id is null || newAccount.Id == AccountId.Empty)
+            {
+                newAccount.Id = AccountId.New();
+            }
             CreateAccountInfoCommand cmd = new(newAccount);
 
             Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)

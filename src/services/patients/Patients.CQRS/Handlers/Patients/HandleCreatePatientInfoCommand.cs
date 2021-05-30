@@ -17,11 +17,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using MassTransit;
-using MassTransit.Transports;
 
-/// <summary>
-/// Handles <see cref="CreatePatientInfoCommand"/>s
-/// </summary>
+    /// <summary>
+    /// Handles <see cref="CreatePatientInfoCommand"/>s
+    /// </summary>
     public class HandleCreatePatientInfoCommand : IRequestHandler<CreatePatientInfoCommand, PatientInfo>
     {
         private readonly IUnitOfWorkFactory _uowFactory;

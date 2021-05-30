@@ -5,8 +5,35 @@
 #    https://aka.ms/AA7q20u
 #
 name: medeasy
+extensions:
+- name: zipkin
 
+ingress:
+  - name: ingress
+    tags:
+      - proxies
+    bindings:
+      - port: 8080
+        protocol: https
+    rules:
+      - path: /api/identity
+        service: identity
+      - path: /api/measures
+        service: measures
+      - path: /api/documents
+        service: documents
+      - path: /api/agenda
+        service: agenda
+      - path: /api/patients
+        service: patients
+      - service: web
+  
 services:
+- name: web
+  project: src/clients/web/MedEasy/Medeasy.csproj
+  tags:
+  - frontends
+  - web
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
   tags:
@@ -133,4 +160,10 @@ services:
     - identity
     - measures
     - patients
-
+    - esb
+- name: zipkin
+  image: openzipkin/zipkin
+  bindings:
+    - port: 59411
+      containerPort: 9411
+      protocol: http

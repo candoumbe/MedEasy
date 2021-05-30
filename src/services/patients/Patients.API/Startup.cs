@@ -29,7 +29,7 @@ using MassTransit;
                     .AddDependencyInjection()
                     .AddCustomizedSwagger(_hostingEnvironment, _configuration)
                     .AddCustomAuthenticationAndAuthorization(_configuration)
-                    .AddCustomMassTransit(_configuration);
+                    .AddCustomMassTransit(_hostingEnvironment,_configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
