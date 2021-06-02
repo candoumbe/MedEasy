@@ -44,6 +44,8 @@
     using NodaTime.Serialization.SystemTextJson;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MedEasy.Abstractions.ValueConverters;
+    using Documents.Ids;
+    using MedEasy.Core.Infrastructure;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -338,6 +340,8 @@
                 {
                     [bearerSecurityScheme] = new List<string>()
                 });
+
+                config.ConfigureForStronglyTypedIdsInAssembly<DocumentId>();
             });
 
             return services;

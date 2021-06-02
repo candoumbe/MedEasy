@@ -1,12 +1,16 @@
 ﻿namespace MedEasy.Ids
 {
+    using MedEasy.Ids.Converters;
+
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Identifier for thent
     /// </summary>
+    [JsonConverter(typeof(StronglyTypedIdJsonConverter<TenantId, Guid>))]
     public record TenantId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
         public static TenantId New() => new(Guid.NewGuid());

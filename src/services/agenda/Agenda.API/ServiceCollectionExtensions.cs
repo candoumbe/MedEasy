@@ -2,6 +2,7 @@
 {
     using Agenda.CQRS.Features.Appointments.Commands;
     using Agenda.DataStores;
+    using Agenda.Ids;
     using Agenda.Mapping;
     using Agenda.Validators;
 
@@ -11,6 +12,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
+using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -165,7 +167,7 @@
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("agenda");
-                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
+                if (!(hostingEnvironment.IsProduction() || hostingEnvironment.IsStaging()))
                 {
                     builder.UseSqlite(connectionString, options =>
                     {
@@ -186,8 +188,7 @@
             }
 
             using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-            IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-
+            
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -295,6 +296,8 @@
                 {
                     config.IncludeXmlComments(documentationPath);
                 }
+
+                config.ConfigureForStronglyTypedIdsInAssembly<AppointmentId>();
             });
 
             return services;
