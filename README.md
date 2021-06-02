@@ -4,10 +4,11 @@ An open source healthcare management system.
 
 
 <ul type="number">
-    <li><a href='#lnk-why'>Why</a></li>
+    <li><a href='#lnk-why'>Why ?</a></li>
     <li><a href='#lnk-how'>How it works</a></li>
     <li><a href='#lnk-services'>Available services</a></li>
     <ul>
+        <li><a href='#lnk-services-proxy'>Reverse proxy</a></li>
         <li><a href='#lnk-services-agenda'>Agenda API</a></li>
         <li><a href='#lnk-services-documents'>Documents API</a></li>
         <li><a href='#lnk-services-identity'>Identity API</a></li>
@@ -29,16 +30,20 @@ Why not ?
 MedEasy works as a set of [independant services](#lnk-services) that operates together.
 
 **Design principles**
-- each service should work independantly from others
-- each service owns its data : data are never shared by two services.
-- services can be updated independantly from one an other.
-- [HATEAOS](https://en.wikipedia.org/wiki/HATEOAS) all the way !
-- services must be storage agnostic meaning they should never rely on storage specific features.
+1. each service should work independantly from others
+2. each service owns its data : data are never shared by two services.
+3. services can be updated independantly from one an other.
+4. [HATEAOS](https://en.wikipedia.org/wiki/HATEOAS) all the way !
+5. services must be storage agnostic meaning they should never rely on storage specific features.
 
 ### <a id="lnk-services">Available services</a>
 
 #### <a id="lnk-services-agenda">Agenda API</a>
-`Agenda API` handles [appointments] and attendees.
+`ReverseProxy` handles all incoming requests and hides the remaining services from the public network.
+It handles compression, caching, authentication, authorization on the behalf of all other services.
+
+#### <a id="lnk-services-agenda">Agenda API</a>
+`Agenda API` handles appointments and attendees.
 
 #### <a id="lnk-services-documents">Documents API</a>
 `Documents API` handles file storage/retrieval.
