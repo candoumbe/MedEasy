@@ -38,7 +38,7 @@ MedEasy works as a set of [independant services](#lnk-services) that operates to
 
 ### <a id="lnk-services">Available services</a>
 
-#### <a id="lnk-services-agenda">Agenda API</a>
+#### <a id="lnk-services-proxy">Proxy</a>
 `ReverseProxy` handles all incoming requests and hides the remaining services from the public network.
 It handles compression, caching, authentication, authorization on the behalf of all other services.
 
