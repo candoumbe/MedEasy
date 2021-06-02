@@ -7,28 +7,24 @@
 name: medeasy
 extensions:
 - name: zipkin
+- name: seq
+  logPath: ./.logs
 
-ingress:
-  - name: ingress
-    tags:
-      - proxies
-    bindings:
-      - port: 8080
-        protocol: https
-    rules:
-      - path: /api/identity
-        service: identity
-      - path: /api/measures
-        service: measures
-      - path: /api/documents
-        service: documents
-      - path: /api/agenda
-        service: agenda
-      - path: /api/patients
-        service: patients
-      - service: web
+  
   
 services:
+- name: proxy
+  project: src/services/proxy/MedEasy.ReverseProxy/MedEasy.ReverseProxy.csproj
+  tags:
+  - proxies
+  - frontends
+  - backends
+  - agenda
+  - identity
+  - documents
+  - measures
+  bindings:
+  - protocol: https
 - name: web
   project: src/clients/web/MedEasy/Medeasy.csproj
   tags:
@@ -124,26 +120,6 @@ services:
   - backends
   - agenda
   - databases
-- name: seq
-  image: datalust/seq
-  env:
-    - name: "ACCEPT_EULA"
-      value: "Y"
-  bindings:
-    - name: ui
-      port: 55340
-      protocol: http
-      containerPort: 80
-    - name: internal
-      containerPort: 5341
-      port : 55341
-  tags:
-  - backends
-  - agenda
-  - documents
-  - identity
-  - patients
-  - measures
 - name: message-bus
   image: masstransit/rabbitmq:3.8
   bindings:
@@ -161,9 +137,3 @@ services:
     - measures
     - patients
     - esb
-- name: zipkin
-  image: openzipkin/zipkin
-  bindings:
-    - port: 59411
-      containerPort: 9411
-      protocol: http

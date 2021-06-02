@@ -29,16 +29,16 @@ Why not ?
 MedEasy works as a set of [independant services](#lnk-services) that operates together.
 
 **Design principles**
-- each service can work independantly from others
+- each service should work independantly from others
 - each service owns its data : data are never shared by two services.
-- services can be updated independantly from one an other
+- services can be updated independantly from one an other.
 - [HATEAOS](https://en.wikipedia.org/wiki/HATEOAS) all the way !
+- services must be storage agnostic meaning they should never rely on storage specific features.
 
 ### <a id="lnk-services">Available services</a>
 
 #### <a id="lnk-services-agenda">Agenda API</a>
 `Agenda API` handles [appointments] and attendees.
-
 
 #### <a id="lnk-services-documents">Documents API</a>
 `Documents API` handles file storage/retrieval.
@@ -61,7 +61,7 @@ application. Relies heavily on JWT
 1. Clone this repo
 2. Install [Nuke tool](https://www.nuget.org/packages/Nuke.GlobalTool/) globally.
 this tool is used to perform various tasks (migrations, running tests, etc.). 
-3. Install [Tye tool](https://www.nuget.org/packages/Microsoft.Tye) locally
+3. Install [Tye tool](https://www.nuget.org/packages/Microsoft.Tye) locally.
 
 You should be good to go !
 
@@ -75,4 +75,4 @@ on the issue tracker.
 Make sure you've read the [contribution guidelines](CONTRIBUTING.md)
 
 ## <a id="lnk-contribute">Troubleshooting</a>
-If you find an issue you can submit a pull request (PRs are welcome 😀 !!) or open an issue. 
+If you find an issue you can submit a pull request (PRs are welcome 😀 !!) or [open an issue](https://github.com/candoumbe/MedEasy/issues/new). 

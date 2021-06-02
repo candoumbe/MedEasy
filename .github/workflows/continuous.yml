@@ -21,6 +21,7 @@ on:
     branches-ignore:
       - main
       - 'release/*'
+      - develop
     paths:
       - '!**/*.md'
       - '!LICENCE'

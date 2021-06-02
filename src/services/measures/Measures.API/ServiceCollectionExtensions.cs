@@ -17,6 +17,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
+using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -349,6 +350,7 @@
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
+                config.ConfigureForStronglyTypedIdsInAssembly<PatientId>();
             });
 
             return services;

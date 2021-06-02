@@ -36,6 +36,9 @@
         /// </summary>
         public string Email { get; }
 
+        /// <summary>
+        /// Name of the account
+        /// </summary>
         public string Name { get; set; }
 
         public bool EmailConfirmed { get; }
@@ -82,7 +85,7 @@
         /// <param name="name">Name of the account</param>
         /// <param name="locked">Indicates if the account is locked or not.</param>
         /// <param name="isActive">Indicates if the account is active.</param>
-        /// <param name="tenantid">Tenant's identifier.</param>
+        /// <param name="tenantId">Identifier of the owner of the account.</param>
         /// <param name="refreshToken">Token that can be used to give the account a new access token.</param>
         public Account(AccountId id,
                        string username,
@@ -92,7 +95,7 @@
                        string name = "",
                        bool locked = false,
                        bool isActive = false,
-                       TenantId? tenantId = null,
+                       TenantId tenantId = null,
                        string refreshToken = null) : base(id)
         {
             Username = username;
@@ -182,10 +185,10 @@
         /// Defines the owner of the current element
         /// </summary>
         /// <param name="tenantId"></param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="Guid.Empty"/></exception>
-        public void OwnsBy(TenantId? tenantId)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="tenantId"/> is <see cref="TenantId.Empty"/></exception>
+        public void OwnsBy(TenantId tenantId)
         {
-            if (tenantId == MedEasy.Ids.TenantId.Empty)
+            if (tenantId == TenantId.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(tenantId), tenantId, "Tenant ID cannot be empty");
             }

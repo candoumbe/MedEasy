@@ -44,7 +44,7 @@ namespace MedEasy.ContinuousIntegration
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
-        OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
+        OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*", DevelopBranch },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },
@@ -751,6 +751,10 @@ namespace MedEasy.ContinuousIntegration
                 TyeConfiguration tyeConfiguration = deserializer.Deserialize<TyeConfiguration>(yaml);
 
                 Info($"Tye content : {tyeConfiguration.Jsonify()}");
+
+                IEnumerable<TyeServiceConfiguration> services = tyeConfiguration.Services;
+
+                
             });
 
         [PathExecutable]

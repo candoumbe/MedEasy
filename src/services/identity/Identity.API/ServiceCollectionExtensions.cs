@@ -17,6 +17,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
+using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -161,9 +162,9 @@
                 options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
                 options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
                 options.Audiences = configuration.GetSection($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audiences)}")
-                                                .GetChildren()
-                                                .Select(x => x.Value)
-                                                .Distinct();
+                                                 .GetChildren()
+                                                 .Select(x => x.Value)
+                                                 .Distinct();
                 options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
                 options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
@@ -399,29 +400,10 @@
 
                 config.ConfigureForNodaTimeWithSystemTextJson();
 
-                RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(config, typeof(AccountId));
+                config.ConfigureForStronglyTypedIdsInAssembly<AccountId>();
             });
 
             return services;
-
-            static void RegisterMapTypesForAllStronglyTypedIdsInSameAssemblyAs(SwaggerGenOptions options, Type stronglyTypeId)
-            {
-                Type[] types = stronglyTypeId.Assembly.GetTypes()
-                                                      .Where(t => t.IsAssignableToGenericType(typeof(StronglyTypedId<>)))
-                                                      .ToArray();
-
-                foreach (var stronglyTypeIdFound in types)
-                {
-                    Type idType = stronglyTypeIdFound.GetGenericArguments()[0];
-
-                    if (idType == typeof(Guid))
-                    {
-                        options.MapType(stronglyTypeIdFound, () => new() { Format = "uuid", Type = "string" } );
-                    }
-                }
-            }
         }
-
-
     }
 }
