@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\..\tests.props"/>
+  <Import Project="..\..\..\tests.props" />
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
@@ -10,10 +10,6 @@
     <ProjectReference Include="..\..\..\src\services\Measures\Measures.CQRS\Measures.CQRS.csproj" />
     <ProjectReference Include="..\..\..\src\services\Measures\Measures.Mapping\Measures.Mapping.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Handlers\" />
   </ItemGroup>
 
 </Project>

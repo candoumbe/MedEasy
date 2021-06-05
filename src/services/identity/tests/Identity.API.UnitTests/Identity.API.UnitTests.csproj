@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="5.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*" />
   </ItemGroup>
