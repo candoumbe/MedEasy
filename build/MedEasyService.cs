@@ -47,7 +47,7 @@
         /// Entreprise Service Bus
         /// </summary>
         public static readonly MedEasyServices Esb = new() { Value = nameof(Esb) };
-        public static readonly MedEasyServices Proxies = new() { Value = nameof(Proxies) };
+        public static readonly MedEasyServices Proxy = new() { Value = nameof(Proxy) };
 
 
 

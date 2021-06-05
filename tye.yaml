@@ -10,8 +10,6 @@ extensions:
 - name: seq
   logPath: ./.logs
 
-  
-  
 services:
 - name: proxy
   project: src/services/proxy/MedEasy.ReverseProxy/MedEasy.ReverseProxy.csproj

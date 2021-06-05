@@ -732,11 +732,11 @@ namespace MedEasy.ContinuousIntegration
                 string debug = null;
                 if (DebugServices.AtLeastOnce())
                 {
-                    debug = $" --debug {string.Join(' ', DebugServices.Select(s => $"{s}")).ToLowerInvariant()}";
+                    debug = $"--debug {string.Join(' ', DebugServices.Select(s => $"{s}")).ToLowerInvariant()}";
                 }
 
 
-                Tye($"run {command} {debug} --dashboard --dtrace zipkin=http://localhost:59411 --logs seq=http://localhost:55341 { (Watch ? "--watch" : string.Empty)}");
+                Tye($"run {debug} {command} --dashboard --dtrace zipkin=http://localhost:59411 --logs seq=http://localhost:55341 { (Watch ? "--watch" : string.Empty)}");
             });
 
         public Target StartMessageBus => _ => _

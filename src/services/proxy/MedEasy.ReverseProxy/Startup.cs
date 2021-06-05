@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 using System.Collections.Generic;
 using System.Linq;
 
 using Yarp.ReverseProxy.Abstractions;
+using Optional.Linq;
+using Optional;
 
 namespace MedEasy.ReverseProxy
 {
@@ -27,40 +28,65 @@ namespace MedEasy.ReverseProxy
         {
             // Add the reverse proxy to capability to the server
             IReverseProxyBuilder proxyBuilder = services.AddReverseProxy();
+            const string allowAnyOriginCorsPolicyName = "AllowAnyOrigin";
+            IEnumerable<MedEasyApi> apis = _configuration.GetSection("Services").Get<List<MedEasyApi>>();
 
-            string[] apis = _configuration.GetSection("services")
-                                                     .GetChildren()
-                                                     .Select(x => x.Value)
-                                                     .ToArray();
+            IList<ProxyRoute> routes = new List<ProxyRoute>(apis.Count());
+            IList<Cluster> clusters = new List<Cluster>(apis.Count());
 
-
-            IEnumerable<Cluster> clusters = apis
-                .Select(api => (name: api, address: _configuration.GetServiceUri(api)))
-                .Where(api => api.address is not null)
-                .Select(service => new Cluster
-                {
-                    Destinations = new Dictionary<string, Destination>
-                    {
-                        [service.name] = new Destination
-                        {
-                            Address = service.address.AbsoluteUri,
-                        }
-                    }
-                });
-
-            IEnumerable<ProxyRoute> routes = apis
-                .Select(api => (name: api, address: _configuration.GetServiceUri(api)))
-                .Where(api => api.address is not null)
-                .Select(service => new ProxyRoute
+            for (int i = 0; i < apis.Count(); i++)
             {
-                ClusterId = service.name,
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { $"{service.name}.medeasy.com" }
-                }
-            });
+                MedEasyApi api = apis.ElementAt(i);
+                _configuration.GetServiceUri(api.Name, api.Binding)
+                              .SomeNotNull()
+                              .MatchSome(address =>
+                              {
+                                  string clusterName = $"cluster{i+1}";
+
+                                  Cluster cluster = new()
+                                  {
+                                      Id = clusterName,
+                                      Destinations = new Dictionary<string, Destination>
+                                      {
+                                          [$"{clusterName}/{api.Id}"] = new Destination()
+                                          {
+                                              Address = address.AbsoluteUri
+                                          }
+                                      }
+                                  };
+
+                                  ProxyRoute route = new()
+                                  {
+                                      RouteId = $"route-{api.Id}",
+                                      ClusterId = clusterName,
+                                      CorsPolicy = allowAnyOriginCorsPolicyName,
+                                      Match = new RouteMatch
+                                      {
+                                          Path = $"/api/{api.Id}/{{**catch-all}}"
+                                      },
+                                      Transforms = new List<IReadOnlyDictionary<string, string>>
+                                          {
+                                              new Dictionary<string, string>
+                                              {
+                                                  ["PathRemovePrefix"] = $"/api/{api.Id}"
+                                              }
+                                          }
+                                  };
+
+                                  routes.Add(route);
+                                  clusters.Add(cluster);
+                              });
+            }
 
             proxyBuilder.LoadFromMemory(routes, clusters);
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(allowAnyOriginCorsPolicyName, builder =>
+                {
+                    builder.AllowAnyOrigin();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,6 +98,8 @@ namespace MedEasy.ReverseProxy
             }
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseEndpoints(endpoints =>
             {
