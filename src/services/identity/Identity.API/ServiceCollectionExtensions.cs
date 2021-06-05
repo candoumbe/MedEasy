@@ -19,6 +19,7 @@
     using MedEasy.Core.Filters;
 using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Ids;
@@ -273,6 +274,9 @@ using MedEasy.Core.Infrastructure;
                 typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly,
                 typeof(HandleCreateAccountInfoCommand).Assembly
             );
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
@@ -285,6 +289,7 @@ using MedEasy.Core.Infrastructure;
 
             return services;
         }
+
 
 
         /// <summary>
