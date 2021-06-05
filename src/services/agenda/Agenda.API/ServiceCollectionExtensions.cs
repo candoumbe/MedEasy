@@ -14,6 +14,7 @@
     using MedEasy.Core.Filters;
 using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Validators;
@@ -233,12 +234,19 @@ using MedEasy.Core.Infrastructure;
         }
 
         /// <summary>
-        /// Configure dependency injections
+        /// Configure dependency injection container
         /// </summary>
         /// <param name="services"></param>
+        /// <remarks>
+        /// Adds the 
+        /// </remarks>
         public static IServiceCollection AddCustomizedDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(typeof(CreateAppointmentInfoCommand).Assembly);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
+
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(_ => AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);

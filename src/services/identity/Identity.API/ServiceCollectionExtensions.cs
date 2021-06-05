@@ -276,6 +276,7 @@ using MedEasy.Core.Infrastructure;
             );
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
 
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton<IHandleCreateSecurityTokenCommand, HandleCreateJwtSecurityTokenCommand>();

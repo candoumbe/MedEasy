@@ -46,6 +46,7 @@
     using MedEasy.Abstractions.ValueConverters;
     using Documents.Ids;
     using MedEasy.Core.Infrastructure;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -252,6 +253,10 @@
             services.AddMediatR(
                 typeof(GetOneDocumentInfoByIdQuery).Assembly
             );
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
+
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);

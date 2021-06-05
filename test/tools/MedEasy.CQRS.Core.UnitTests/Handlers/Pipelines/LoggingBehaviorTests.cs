@@ -18,14 +18,11 @@
 
     using static Moq.MockBehavior;
     using static Moq.It;
-    using FsCheck.Xunit;
-    using FsCheck;
 
     [UnitTest]
-    [Feature(20)]
+    [Feature("Logging behavior")]
     public class LoggingBehaviorTests
     {
-
         [Fact]
         public void Should_be_a_PipelineBehavior()
         {
