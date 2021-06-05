@@ -19,6 +19,7 @@
     using MedEasy.Core.Filters;
 using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Validators;
@@ -251,6 +252,10 @@ using MedEasy.Core.Infrastructure;
                 typeof(GetPatientInfoByIdQuery).Assembly,
                 typeof(HandleGetPageOfBloodPressureInfoQuery).Assembly
             );
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
+
             services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);

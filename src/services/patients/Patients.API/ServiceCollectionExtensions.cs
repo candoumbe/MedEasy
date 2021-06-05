@@ -223,22 +223,22 @@
         public static IServiceCollection AddCustomAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthorization()
-                           .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                           .AddJwtBearer(options =>
-                           {
-                               options.TokenValidationParameters = new TokenValidationParameters
-                               {
-                                   ValidateIssuer = true,
-                                   ValidateAudience = true,
-                                   ValidateLifetime = true,
-                                   RequireExpirationTime = true,
-                                   ValidateIssuerSigningKey = true,
-                                   ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
-                                   ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
-                                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
-                               };
-                               options.Validate();
-                           });
+                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            RequireExpirationTime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}"],
+                            ValidAudience = configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[$"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}"]))
+                        };
+                        options.Validate();
+                    });
 
             return services;
         }
@@ -300,6 +300,7 @@
         /// Adds a customized MassTransit to the dependency injection container
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="environment"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
         public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
