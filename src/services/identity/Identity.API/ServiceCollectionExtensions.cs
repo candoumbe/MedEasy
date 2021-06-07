@@ -189,15 +189,14 @@ using MedEasy.Core.Infrastructure;
                 {
                     builder.UseSqlite(connectionString,
                                       options => options.UseNodaTime()
-                                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName));
+                                                        .MigrationsAssembly("Identity.DataStores.Sqlite"));
                 }
                 else
                 {
                     builder.UseNpgsql(connectionString,
                                       options => options.EnableRetryOnFailure(5)
                                                         .UseNodaTime()
-                                                        .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)
-                    );
+                                                        .MigrationsAssembly("Identity.DataStores.Postgres"));
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
                        .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()

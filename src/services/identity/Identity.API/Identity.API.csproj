@@ -29,6 +29,8 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj" />
     <ProjectReference Include="..\Identity.CQRS.Handlers.EFCore\Identity.CQRS.Handlers.EFCore.csproj" />
+    <ProjectReference Include="..\Identity.DataStores.Postgres\Identity.DataStores.Postgres.csproj" />
+    <ProjectReference Include="..\Identity.DataStores.Sqlite\Identity.DataStores.Sqlite.csproj" />
     <ProjectReference Include="..\Identity.DataStores\Identity.DataStores.csproj" />
     <ProjectReference Include="..\Identity.Mapping\Identity.Mapping.csproj" />
     <ProjectReference Include="..\Identity.Objects\Identity.Objects.csproj" />

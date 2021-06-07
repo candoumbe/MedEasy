@@ -28,7 +28,6 @@ namespace MedEasy.ContinuousIntegration
 
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
-    using YamlDotNet.Serialization.ValueDeserializers;
 
     using static Nuke.Common.ChangeLog.ChangelogTasks;
     using static Nuke.Common.IO.FileSystemTasks;
@@ -40,7 +39,6 @@ namespace MedEasy.ContinuousIntegration
     using static Nuke.Common.Tools.Git.GitTasks;
     using static Nuke.Common.Tools.GitVersion.GitVersionTasks;
     using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
@@ -134,7 +132,7 @@ namespace MedEasy.ContinuousIntegration
     )]
     [CheckBuildProjectConfigurations]
     [UnsetVisualStudioEnvironmentVariables]
-    public class Build : NukeBuild
+    public partial class Build : NukeBuild
     {
         public static int Main() => Execute<Build>(x => x.Compile);
 
@@ -170,6 +168,10 @@ namespace MedEasy.ContinuousIntegration
         public AbsolutePath UnitTestsResultDirectory => TestResultDirectory / "unit-tests";
 
         public AbsolutePath ArtifactsDirectory => OutputDirectory / "artifacts";
+
+        public AbsolutePath ScriptsDirectory => OutputDirectory / "scripts";
+
+        public AbsolutePath SqlScriptsDirectory => ScriptsDirectory / "sql";
 
         public AbsolutePath CoverageReportHistoryDirectory => OutputDirectory / "coverage-history";
 
@@ -217,6 +219,9 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Services to debug")]
         public readonly MedEasyServices[] DebugServices = { };
 
+        [Parameter]
+        public readonly string Name = null;
+
         public Target Clean => _ => _
             .Executes(() =>
             {
@@ -229,7 +234,6 @@ namespace MedEasy.ContinuousIntegration
                 EnsureExistingDirectory(CoverageReportintegrationTestsHistoryDirectory);
                 EnsureExistingDirectory(CoverageReportUnitTestsHistoryDirectory);
             });
-
 
         public Target Restore => _ => _
             .Executes(() =>

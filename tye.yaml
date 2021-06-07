@@ -30,6 +30,7 @@ services:
   - web
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
+  args: "-- --provider postgres"
   tags:
   - backends
   - identity

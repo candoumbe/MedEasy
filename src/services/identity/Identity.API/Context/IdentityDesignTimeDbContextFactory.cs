@@ -29,29 +29,31 @@
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.Development.json")
+                .AddJsonFile("appsettings.IntegrationTest.json")
                 .AddCommandLine(args)
                 .Build();
+
+            string provider = configuration.GetValue("provider", "sqlite").ToLowerInvariant();
             DbContextOptionsBuilder<IdentityContext> builder = new();
             string connectionString = configuration.GetConnectionString("Identity");
 
-            string provider = configuration.GetValue("provider", "sqlite")
-                                           ?.ToLowerInvariant();
-            IdentityContext context;
             switch (provider)
             {
                 case "sqlite":
-                    builder.UseSqlite(connectionString,
-                                      b => b.UseNodaTime()
-                                            .MigrationsAssembly(typeof(IdentityContext).Assembly.FullName))
+                    builder.UseSqlite(connectionString, b => b.MigrationsAssembly("Identity.DataStores.Sqlite")
+                                                              .UseNodaTime())
                            .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                    context = new IdentityContext(builder.Options, SystemClock.Instance);
                     break;
-
+                case "postgres":
+                    builder.UseNpgsql(connectionString, b => b.MigrationsAssembly("Identity.DataStores.Postgres")
+                                                              .UseNodaTime())
+                           .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                    break;
                 default:
-                    throw new InvalidOperationException($"Unsupported provider '{provider}'");
+                    throw new NotSupportedException($"'{provider}' database engine is not currently supported");
             }
 
-            return context;
+            return new (builder.Options, SystemClock.Instance);
         }
     }
 }
