@@ -5,67 +5,71 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Identity.DataStores.Sqlite
+namespace Identity.DataStores.Postgres.Migrations
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20210420220820_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20210607194937_InitialCommit")]
+    partial class InitialCommit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.5");
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.6")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("Identity.Objects.Account", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<string>("CreatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("CreatedDate")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("Email")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("Locked")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Salt")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("TenantId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<string>("UpdatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("UpdatedDate")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("Id");
 
@@ -78,17 +82,16 @@ namespace Identity.DataStores.Sqlite
             modelBuilder.Entity("Identity.Objects.AccountClaim", b =>
                 {
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("End")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("End")
+                        .HasColumnType("timestamp");
 
-                    b.Property<string>("Start")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Instant>("Start")
+                        .HasColumnType("timestamp");
 
                     b.HasKey("AccountId", "Id");
 
@@ -98,10 +101,10 @@ namespace Identity.DataStores.Sqlite
             modelBuilder.Entity("Identity.Objects.AccountRole", b =>
                 {
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("AccountId", "RoleId");
 
@@ -113,24 +116,24 @@ namespace Identity.DataStores.Sqlite
             modelBuilder.Entity("Identity.Objects.Role", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<string>("CreatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("CreatedDate")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<string>("UpdatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("UpdatedDate")
+                        .HasColumnType("timestamp");
 
                     b.HasKey("Id");
 
@@ -143,10 +146,10 @@ namespace Identity.DataStores.Sqlite
             modelBuilder.Entity("Identity.Objects.RoleClaim", b =>
                 {
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("RoleId", "Id");
 
@@ -164,20 +167,20 @@ namespace Identity.DataStores.Sqlite
                     b.OwnsOne("Identity.Objects.Claim", "Claim", b1 =>
                         {
                             b1.Property<Guid>("AccountClaimAccountId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uuid");
 
                             b1.Property<Guid>("AccountClaimId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("character varying(255)");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("character varying(255)");
 
                             b1.HasKey("AccountClaimAccountId", "AccountClaimId");
 
@@ -220,20 +223,20 @@ namespace Identity.DataStores.Sqlite
                     b.OwnsOne("Identity.Objects.Claim", "Claim", b1 =>
                         {
                             b1.Property<Guid>("RoleClaimRoleId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uuid");
 
                             b1.Property<Guid>("RoleClaimId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("character varying(255)");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("character varying(255)");
 
                             b1.HasKey("RoleClaimRoleId", "RoleClaimId");
 

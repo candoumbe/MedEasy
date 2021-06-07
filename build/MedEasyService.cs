@@ -47,6 +47,10 @@
         /// Entreprise Service Bus
         /// </summary>
         public static readonly MedEasyServices Esb = new() { Value = nameof(Esb) };
+
+        /// <summary>
+        /// Reverse proxy used to expose all other services
+        /// </summary>
         public static readonly MedEasyServices Proxy = new() { Value = nameof(Proxy) };
 
 

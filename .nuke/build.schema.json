@@ -70,6 +70,9 @@
           "type": "boolean",
           "description": "Indicates wheter to restore nuget in interactive mode - Default is false"
         },
+        "Name": {
+          "type": "string"
+        },
         "NoLogo": {
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
@@ -93,9 +96,33 @@
             "type": "string"
           }
         },
+        "Provider": {
+          "type": "string",
+          "description": "Database engine to build an operationwill be build for (default : )",
+          "enum": [
+            "Postgres",
+            "Sqlite"
+          ]
+        },
         "Root": {
           "type": "string",
           "description": "Root directory during build execution"
+        },
+        "Service": {
+          "type": "string",
+          "description": "Defines the service which an operation will be run for",
+          "enum": [
+            "Agenda",
+            "Backends",
+            "Datastores",
+            "Documents",
+            "Esb",
+            "Identity",
+            "Measures",
+            "Patients",
+            "Proxy",
+            "Web"
+          ]
         },
         "Services": {
           "type": "array",
@@ -129,6 +156,8 @@
               "Feature",
               "Hotfix",
               "IntegrationTests",
+              "MigrationAdd",
+              "MigrationScript",
               "Pack",
               "Publish",
               "Release",
@@ -160,6 +189,8 @@
               "Feature",
               "Hotfix",
               "IntegrationTests",
+              "MigrationAdd",
+              "MigrationScript",
               "Pack",
               "Publish",
               "Release",
