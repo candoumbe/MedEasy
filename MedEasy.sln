@@ -272,7 +272,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores.Postgre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores.Sqlite", "src\services\identity\Identity.DataStores.Sqlite\Identity.DataStores.Sqlite.csproj", "{09CA3FB8-2393-44E7-9643-02D529BFEB18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Measures.DataStores.Postgres", "src\services\measures\Measures.DataStores.Postgres\Measures.DataStores.Postgres.csproj", "{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DataStores.Postgres", "src\services\measures\Measures.DataStores.Postgres\Measures.DataStores.Postgres.csproj", "{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MedEasy.Web", "src\clients\web\MedEasy.Web\MedEasy.Web.csproj", "{80A128B6-A890-40A3-BA2F-CA07B20C432B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1966,6 +1968,22 @@ Global
 		{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}.Release|x64.Build.0 = Release|Any CPU
 		{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}.Release|x86.ActiveCfg = Release|Any CPU
 		{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}.Release|x86.Build.0 = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|ARM.Build.0 = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|x64.Build.0 = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Debug|x86.Build.0 = Debug|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|ARM.ActiveCfg = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|ARM.Build.0 = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|x64.ActiveCfg = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|x64.Build.0 = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|x86.ActiveCfg = Release|Any CPU
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2095,6 +2113,7 @@ Global
 		{EFA6FC4A-83CC-4581-BE52-D9D6A08EDF41} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
 		{09CA3FB8-2393-44E7-9643-02D529BFEB18} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
 		{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
+		{80A128B6-A890-40A3-BA2F-CA07B20C432B} = {1F7CABDA-FD26-4F49-A9B6-E89FBCFD14C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

@@ -10,6 +10,7 @@ using System.Linq;
 using Yarp.ReverseProxy.Abstractions;
 using Optional.Linq;
 using Optional;
+using System.Collections.ObjectModel;
 
 namespace MedEasy.ReverseProxy
 {
@@ -54,7 +55,11 @@ namespace MedEasy.ReverseProxy
                                           }
                                       }
                                   };
-
+                                  List<IReadOnlyDictionary<string, string>> transforms = new List<IReadOnlyDictionary<string, string>>();
+                                  api.Proxy.Transforms.ForEach(transform => transforms.Add(new Dictionary<string, string>
+                                  {
+                                      [transform.Name] = transform.Value
+                                  }));
                                   ProxyRoute route = new()
                                   {
                                       RouteId = $"route-{api.Id}",
@@ -62,15 +67,9 @@ namespace MedEasy.ReverseProxy
                                       CorsPolicy = allowAnyOriginCorsPolicyName,
                                       Match = new RouteMatch
                                       {
-                                          Path = $"/api/{api.Id}/{{**catch-all}}"
+                                          Path = api.Proxy.Match.Path
                                       },
-                                      Transforms = new List<IReadOnlyDictionary<string, string>>
-                                          {
-                                              new Dictionary<string, string>
-                                              {
-                                                  ["PathRemovePrefix"] = $"/api/{api.Id}"
-                                              }
-                                          }
+                                      Transforms = transforms
                                   };
 
                                   routes.Add(route);

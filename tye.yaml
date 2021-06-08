@@ -23,11 +23,6 @@ services:
   - measures
   bindings:
   - protocol: https
-- name: web
-  project: src/clients/web/MedEasy/Medeasy.csproj
-  tags:
-  - frontends
-  - web
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
   args: "-- --provider postgres"
@@ -136,3 +131,10 @@ services:
     - measures
     - patients
     - esb
+- name: web
+  project: src/clients/web/MedEasy.Web/MedEasy.Web.csproj
+  tags:
+  - frontends
+  - web
+  bindings:
+  - protocol: https
