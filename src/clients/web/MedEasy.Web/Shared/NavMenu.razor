@@ -1,29 +1,51 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">MedEasy.Web</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
+﻿@using Blazorise.Icons.FontAwesome
+<Bar Breakpoint="Breakpoint.Desktop"
+     Background="Background.Light"
+     ThemeContrast="ThemeContrast.Dark">
+    <BarBrand>
+        <BarLink To="/">MedEasy</BarLink>
+    </BarBrand>
+    <BarToggler />
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="#home">Home</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="#docs">Documentation</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>Dropdown</BarDropdownToggle>
+                    <BarDropdownMenu>
+                        <BarDropdownItem>Action</BarDropdownItem>
+                        <BarDropdownItem>Another action</BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+        </BarStart>
+        <BarItem>
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit Placeholder="Search a name of a document, patient" />
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <Button Color="Color.Secondary"><Blazorise.Icon Name="FontAwesomeIcons.Search"/></Button>
+                </Addon>
+            </Addons>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
-    </ul>
-</div>
+        </BarItem>
+        <BarEnd>
+            <BarItem>
+                <BarLink To="/accounts/new">Sign up</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="/login">Log in</BarLink>
+            </BarItem>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+
 
 @code {
     private bool collapseNavMenu = true;

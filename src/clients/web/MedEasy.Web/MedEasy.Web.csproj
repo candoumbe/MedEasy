@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -9,10 +9,21 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.6" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="0.9.3.7" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="0.9.3.7" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="6.0.38" />
+    <PackageReference Include="BlazorStorage" Version="1.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pages\Agenda\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\services\identity\Identity.Ids\Identity.Ids.csproj" />
+    <ProjectReference Include="..\..\..\services\identity\Identity.Models\Identity.Models.csproj" />
+    <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
   </ItemGroup>
 
 </Project>

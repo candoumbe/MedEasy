@@ -1,0 +1,43 @@
+﻿@page "/login"
+
+@inject NavigationManager NavigationManager
+
+
+<DisplayHeading Size="DisplayHeadingSize.Is4" Alignment="TextAlignment.Center">Welcome to MedEasy</DisplayHeading>
+
+<EditForm Model="@LoginInfo">
+    <Validations Mode="ValidationMode.Auto" Model="@LoginInfo">
+        <Fields>
+            <Field Horizontal="true">
+                <FieldLabel ColumnSize="ColumnSize.Is2" For="@(LoginInfo.Username)">Name / Email</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is10">
+
+                    <TextEdit Placeholder="Username" @bind-Text="@LoginInfo.Username" Role="TextRole.Email">
+                        <Feedback>
+                            <ValidationSuccess>Email is good.</ValidationSuccess>
+                            <ValidationError>Enter valid email!</ValidationError>
+                        </Feedback>
+                    </TextEdit>
+                </FieldBody>
+            </Field>
+        </Fields>
+        <Field Horizontal="true">
+            <FieldLabel ColumnSize="ColumnSize.Is2" For="@(LoginInfo.Password)">Name / Email</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is10">
+                <TextEdit Placeholder="Type your password" @bind-Text="@LoginInfo.Password" Role="TextRole.Password">
+                    <Feedback>
+                        <ValidationError />
+                    </Feedback>
+                </TextEdit>
+            </FieldBody>
+        </Field>
+    </Validations>
+    <Blazorise.Bootstrap.Button Type="ButtonType.Submit"
+                                Color="Color.Primary"
+                                Disabled="@(!CanSubmit())"
+                                PreventDefaultOnSubmit="true"
+                                ElementId="btn-connect"
+                                Loading="IsLoading">
+        Let me in
+    </Blazorise.Bootstrap.Button> or <Blazorise.Link To="/accounts/new">I need an account</Blazorise.Link>
+</EditForm>

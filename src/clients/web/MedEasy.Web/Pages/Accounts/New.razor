@@ -1,0 +1,41 @@
+﻿@page "/accounts/new"
+
+<DisplayHeading Size="DisplayHeadingSize.Is4">Complete your profile</DisplayHeading>
+
+<EditForm Model="@NewAccount">
+    <Validations Mode="ValidationMode.Auto" Model="@NewAccount">
+        <Field Horizontal="true">
+            <FieldLabel ColumnSize="ColumnSize.Is2" For="@NewAccount.Email">Name / Email</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is10">
+                <TextEdit Placeholder="Username" @bind-Text="@NewAccount.Email" Role="TextRole.Email">
+                    <Feedback>
+                        <ValidationSuccess>Email is good.</ValidationSuccess>
+                        <ValidationError>Enter valid email!</ValidationError>
+                    </Feedback>
+                </TextEdit>
+            </FieldBody>
+        </Field>
+
+        <Field Horizontal="true">
+            <FieldLabel ColumnSize="ColumnSize.Is2" For="@NewAccount.Password">Password</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is10">
+                <TextEdit Placeholder="Type your password" @bind-Text="@NewAccount.Password" Role="TextRole.Password">
+                    <Feedback>
+                        <ValidationError />
+                    </Feedback>
+                </TextEdit>
+            </FieldBody>
+        </Field>
+        <Field Horizontal="true">
+            <FieldLabel ColumnSize="ColumnSize.Is2" For="@NewAccount.ConfirmPassword">Confirm Password</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is10">
+                <TextEdit Placeholder="Type your password" @bind-Text="@NewAccount.ConfirmPassword" Role="TextRole.Password">
+                    <Feedback>
+                        <ValidationError />
+                    </Feedback>
+                </TextEdit>
+            </FieldBody>
+        </Field>
+    </Validations>
+    <Button Type="ButtonType.Submit" PreventDefaultOnSubmit="true" Loading="IsLoading">Register my account</Button>
+</EditForm>
