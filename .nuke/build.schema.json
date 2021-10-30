@@ -60,10 +60,13 @@
             "GitHubActions",
             "GitLab",
             "Jenkins",
+            "Rider",
             "SpaceAutomation",
             "TeamCity",
             "Terminal",
-            "TravisCI"
+            "TravisCI",
+            "VisualStudio",
+            "VSCode"
           ]
         },
         "Interactive": {
@@ -71,7 +74,8 @@
           "description": "Indicates wheter to restore nuget in interactive mode - Default is false"
         },
         "Name": {
-          "type": "string"
+          "type": "string",
+          "description": "Generic name placeholder. Can be used wherever a name is required"
         },
         "NoLogo": {
           "type": "boolean",
@@ -84,6 +88,10 @@
         "NugetPackageSource": {
           "type": "string",
           "description": "URI where packages should be published (default : \"https://api.nuget.org/v3/index.json\""
+        },
+        "Partition": {
+          "type": "string",
+          "description": "Partition to use on CI"
         },
         "Plan": {
           "type": "boolean",
@@ -152,6 +160,7 @@
               "Changelog",
               "Clean",
               "CleanDatabaseFolder",
+              "Coldfix",
               "Compile",
               "Feature",
               "Hotfix",
@@ -185,6 +194,7 @@
               "Changelog",
               "Clean",
               "CleanDatabaseFolder",
+              "Coldfix",
               "Compile",
               "Feature",
               "Hotfix",
