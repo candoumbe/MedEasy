@@ -240,7 +240,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.CQRS.UnitTests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores", "src\services\identity\Identity.DataStores\Identity.DataStores.csproj", "{BA47BF78-7A60-4E4F-AE63-AC3DEF7A9F76}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{F3C80446-5044-4984-927B-AE03105CA054}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.ContinuousIntegration", "build\MedEasy.ContinuousIntegration.csproj", "{F3C80446-5044-4984-927B-AE03105CA054}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Ids", "src\services\identity\Identity.Ids\Identity.Ids.csproj", "{9FF60BAC-A473-4A12-9014-3A529058FEC0}"
 EndProject
@@ -272,7 +272,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores.Postgre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.DataStores.Sqlite", "src\services\identity\Identity.DataStores.Sqlite\Identity.DataStores.Sqlite.csproj", "{09CA3FB8-2393-44E7-9643-02D529BFEB18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Measures.DataStores.Postgres", "src\services\measures\Measures.DataStores.Postgres\Measures.DataStores.Postgres.csproj", "{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DataStores.Postgres", "src\services\measures\Measures.DataStores.Postgres\Measures.DataStores.Postgres.csproj", "{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
