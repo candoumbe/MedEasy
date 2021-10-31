@@ -41,7 +41,7 @@ namespace MedEasy.ContinuousIntegration
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
-        OnPushBranchesIgnore = new[] { MainBranchName, ReleaseBranchPrefix + "/*", DevelopBranch },
+        OnPushBranchesIgnore = new[] { MainBranchName },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },
@@ -49,7 +49,7 @@ namespace MedEasy.ContinuousIntegration
         {
             "**/*.md",
             "LICENCE",
-            "docs"
+            "docs/*"
         },
         OnPushExcludePaths = new[]
         {
@@ -62,7 +62,7 @@ namespace MedEasy.ContinuousIntegration
         "deployment",
         GitHubActionsImage.WindowsLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
-        InvokedTargets = new[] { nameof(Publish) },
+        InvokedTargets = new[] { nameof(Tests), nameof(Publish) },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
                         {
@@ -545,6 +545,7 @@ namespace MedEasy.ContinuousIntegration
             });
 
         public Target StartMessageBus => _ => _
+            .Description($"Starts message bus service by reading required configuration from '{TyeConfigurationFile}'")
             .Executes(() =>
             {
                 string yaml = ReadAllText(TyeConfigurationFile);
@@ -558,7 +559,7 @@ namespace MedEasy.ContinuousIntegration
                 Info($"Tye content : {tyeConfiguration.Jsonify()}");
 
                 IEnumerable<TyeServiceConfiguration> services = tyeConfiguration.Services;
-
+                var maybeMessageBus = services.SingleOrDefault(service => service.Name == "message-bus");
                 
             });
 
