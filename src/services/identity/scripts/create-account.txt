@@ -1,0 +1,4 @@
+cd v1/accounts
+post -c "{"name": "cyrille ndoumbè", "username": "candoumbe", "password":"medeasy", "confirmPassword":"medeasy", "email":"candoumbe@medeasy.fr"}"
+cd ../auth/token
+post -c "{"username": "candoumbe", "password":"medeasy"}"
