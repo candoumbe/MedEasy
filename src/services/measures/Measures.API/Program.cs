@@ -14,7 +14,9 @@
     using Serilog;
 
     using System;
+    using System.Collections.Generic;
     using System.Data.Common;
+    using System.Threading;
     using System.Threading.Tasks;
 
 #pragma warning disable RCS1102 // Make class static.
@@ -59,7 +61,21 @@
                 logger?.LogInformation("Starting {ApplicationContext}' store migration", environment.ApplicationName);
 
                 // Forces datastore migration on startup
-                await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
+
+                await policy.ExecuteAsync(async () =>
+                {
+                    logger.LogInformation("Listing pending migrations");
+                    IEnumerable<string> pendingMigrations = await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false);
+                    int count = 0;
+                    pendingMigrations.ForEach((migration) =>
+                    {
+                        logger.LogInformation("{PendingMigration}", migration);
+                        count++;
+                    });
+
+                    await context.Database.MigrateAsync().ConfigureAwait(false);
+                    logger.LogInformation("Applied {PendingMigrationCount} migration(s)", count);
+                })
                     .ConfigureAwait(false);
 
                 logger?.LogInformation("{ApplicationContext} store upgraded", environment.ApplicationName);

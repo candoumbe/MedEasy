@@ -101,6 +101,11 @@ namespace MedEasy.ContinuousIntegration
 
         [Partition(3)] public readonly Partition TestPartition;
 
+
+        private AbsolutePath DotnetToolsConfigDirectory => RootDirectory / ".config";
+
+        private AbsolutePath DotnetToolsLocalConfigFile => DotnetToolsConfigDirectory / "dotnet-tools.json";
+
         public AbsolutePath SourceDirectory => RootDirectory / "src";
 
         public AbsolutePath TestDirectory => RootDirectory / "test";
@@ -162,14 +167,14 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Indicates if any changes should be stashed automatically prior to switching branch (Default : true)")]
         public readonly bool AutoStash = true;
 
-        [PathExecutable]
+        [PackageExecutable("microsoft.tye", "tye.dll")]
         public readonly Tool Tye;
 
         [Parameter("Token required when publishing artifacts to GitHub")]
         public readonly string GitHubToken;
 
         [Parameter("Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures)."
-            +"You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
+            + "You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
         )]
         public readonly MedEasyServices[] Services = { MedEasyServices.Backends };
 
@@ -484,50 +489,14 @@ namespace MedEasy.ContinuousIntegration
                 PushPackages(ArtifactsDirectory.GlobFiles("*.snupkg"));
             });
 
-        public Target TyeInstall => _ => _
-            .Requires(() => IsLocalBuild)
-            .Description("Install/Updates Tye tool globally")
-            .Executes(() =>
-            {
-                try
-                {
-                    if (new Ping().Send("https://www.google.fr").Status == IPStatus.Success)
-                    {
-                        IReadOnlyCollection<Output> outputs = DotNet(arguments: "tool list -g");
-                        const string tyePackageId = "microsoft.tye";
-                        if (!outputs.AtLeastOnce(output => output.Type == OutputType.Std && output.Text.Like($"*{tyePackageId}*", true)))
-                        {
-                            Info($"Installing {tyePackageId}");
-                            DotNetToolInstall(s => s.SetPackageName(tyePackageId)
-                                                    .SetGlobal(true)
-                                                    .SetVersion("0.6.0-alpha.21070.5")
-                            );
-                        }
-                        else
-                        {
-                            Info($"Updating {tyePackageId}");
-                            DotNetToolUpdate(s => s.SetPackageName(tyePackageId)
-                                                   .SetGlobal(true)
-                                                   .SetVersion("0.6.0-alpha.21070.5")
-                            );
-                        }
-                    }
-                }
-                catch (PingException)
-                {
-                    Info("No internet connexion available ...");
-                    Info("Skipping installing/updating");
-                }
-            });
-
         public Target Run => _ => _
             .Requires(() => IsLocalBuild)
             .Description("Run services using Tye.")
-            .DependsOn(Compile, TyeInstall)
+            .DependsOn(Compile, Restore)
             .Executes(() =>
             {
                 string command = string.Empty;
-                if (Services.Any())
+                if (Services.AtLeastOnce())
                 {
                     string services = string.Join(' ', Services.Select(s => $"{s}"));
                     command = $"--tags {services.ToLowerInvariant()}";
@@ -549,7 +518,7 @@ namespace MedEasy.ContinuousIntegration
             .Executes(() =>
             {
                 string yaml = ReadAllText(TyeConfigurationFile);
-                
+
                 IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
                                                                       .WithNamingConvention(CamelCaseNamingConvention.Instance)
                                                                       .Build();
@@ -560,7 +529,7 @@ namespace MedEasy.ContinuousIntegration
 
                 IEnumerable<TyeServiceConfiguration> services = tyeConfiguration.Services;
                 var maybeMessageBus = services.SingleOrDefault(service => service.Name == "message-bus");
-                
+
             });
 
         [PathExecutable]

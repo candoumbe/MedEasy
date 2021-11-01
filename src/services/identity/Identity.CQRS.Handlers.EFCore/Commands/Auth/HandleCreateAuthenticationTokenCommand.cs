@@ -54,6 +54,7 @@
             IEnumerable<ClaimInfo> refreshTokenClaims = new[]
             {
                     new ClaimInfo{ Type = JwtRegisteredClaimNames.Jti, Value =  Guid.NewGuid().ToString() },
+                    new ClaimInfo{ Type = JwtRegisteredClaimNames.Iss, Value =  jwtInfos.Issuer },
                     new ClaimInfo{ Type = CustomClaimTypes.AccountId, Value= accountInfo.Id.ToString() },
                     new ClaimInfo{ Type = ClaimTypes.Name, Value = accountInfo.Name ?? accountInfo.Username },
                     new ClaimInfo{ Type = ClaimTypes.NameIdentifier, Value = accountInfo.Username },

@@ -47,10 +47,11 @@
     using Documents.Ids;
     using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
+    using Optional;
 
-    /// <summary>
-    /// Provide extension method used to configure services collection
-    /// </summary>
+/// <summary>
+/// Provide extension method used to configure services collection
+/// </summary>
     public static partial class ServiceCollectionExtensions
     {
         /// <summary>
@@ -115,10 +116,15 @@
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
+            Option<Uri> optionalHttps = configuration.GetServiceUri("documents-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
             {
-                options.HttpsPort = configuration.GetValue("HttpsPort", 52800);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
             });
 
             //services.AddSt
@@ -338,12 +344,24 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.Http
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
-                config.AddSecurityDefinition("Bearer", bearerSecurityScheme);
+                config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
+
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [bearerSecurityScheme] = new List<string>()
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new()
+                            {
+                                Id = JwtBearerDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            },
+                        },
+                        new List<string>()
+                    }
                 });
 
                 config.ConfigureForStronglyTypedIdsInAssembly<DocumentId>();

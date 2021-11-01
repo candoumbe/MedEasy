@@ -7,7 +7,6 @@
     using MassTransit;
 
     using Measures.API.Features.Auth;
-    using Measures.CQRS.Commands.Patients;
     using Measures.CQRS.Handlers.BloodPressures;
     using Measures.CQRS.Queries.Patients;
     using Measures.DataStores;
@@ -17,7 +16,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
-using MedEasy.Core.Infrastructure;
+    using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
@@ -46,7 +45,7 @@ using MedEasy.Core.Infrastructure;
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
-    using Patients.Events;
+    using Optional;
 
     using System;
     using System.Collections.Generic;
@@ -54,7 +53,6 @@ using MedEasy.Core.Infrastructure;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
-    using System.Threading.Tasks;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -100,6 +98,7 @@ using MedEasy.Core.Infrastructure;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.AllowTrailingCommas = true;
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
@@ -119,10 +118,15 @@ using MedEasy.Core.Infrastructure;
                 options.LowercaseUrls = true;
             });
 
-            services.AddHttpsRedirection(options =>
+            Option<Uri> optionalHttps = configuration.GetServiceUri("measures-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
             {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 63796);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
             });
 
             return services;
@@ -167,29 +171,25 @@ using MedEasy.Core.Infrastructure;
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("measures");
 
-
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
-                    builder.UseSqlite(connectionString, options =>
-                    {
-                        options.UseNodaTime()
-                               .MigrationsAssembly(typeof(MeasuresStore).Assembly.FullName);
-                    });
+                    builder.UseSqlite(connectionString,
+                                      options => options.UseNodaTime()
+                                                        .MigrationsAssembly("Measures.DataStores.Sqlite"));
                 }
                 else
                 {
-                    builder.UseNpgsql(
-                        connectionString,
-                        options => options.EnableRetryOnFailure(5)
-                                          .UseNodaTime()
-                                          .MigrationsAssembly(typeof(MeasuresStore).Assembly.FullName)
-                    );
+                    builder.UseNpgsql(connectionString,
+                                      options => options.EnableRetryOnFailure(5)
+                                                        .UseNodaTime()
+                                                        .MigrationsAssembly("Measures.DataStores.Postgres"));
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
                 builder.ConfigureWarnings(options =>
                 {
                     options.Default(WarningBehavior.Log);
                 });
+
                 return builder;
             }
 
@@ -310,7 +310,7 @@ using MedEasy.Core.Infrastructure;
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
+        public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 
@@ -345,13 +345,24 @@ using MedEasy.Core.Infrastructure;
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
-
                 config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
+
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [bearerSecurityScheme] = new List<string>()
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new()
+                            {
+                                Id = JwtBearerDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            },
+                        },
+                        new List<string>()
+                    }
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
@@ -384,34 +395,11 @@ using MedEasy.Core.Infrastructure;
                             {
                                 cfg.Host(configuration.GetServiceUri(name: "message-bus", binding: "internal"));
                                 cfg.ConfigureEndpoints(context);
-                            }); 
+                            });
                 }
             });
 
             return services;
-        }
-
-
-    }
-    class PatientCaseCreatedConsumer : IConsumer<PatientCaseCreated>
-    {
-        private readonly ILogger<PatientCaseCreated> _logger;
-        private readonly IMediator _mediator;
-
-        public PatientCaseCreatedConsumer(ILogger<PatientCaseCreated> logger, IMediator mediator)
-        {
-            _logger = logger;
-            _mediator = mediator;
-        }
-
-        ///<inheritdoc/>
-        public async Task Consume(ConsumeContext<PatientCaseCreated> context)
-        {
-            _logger.LogInformation("Received {EventName} : {@Event}", nameof(PatientCaseCreated), context.Message);
-
-            CreatePatientInfoCommand cmd = new(new DTO.NewPatientInfo { Id = new PatientId(context.Message.Id.Value), Name = context.Message.Name, BirthDate = context.Message.BirthDate });
-            await _mediator.Send(cmd, context.CancellationToken)
-                            .ConfigureAwait(false);
         }
     }
 }

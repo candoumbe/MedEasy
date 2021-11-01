@@ -43,6 +43,8 @@
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MedEasy.Abstractions.ValueConverters;
     using MassTransit;
+using Optional;
+    using Microsoft.AspNetCore.Builder;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -85,8 +87,7 @@
                     jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     jsonSerializerOptions.WriteIndented = true;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-                })
-                .AddXmlSerializerFormatters();
+                });
 
             services.AddCors(options =>
             {
@@ -130,6 +131,17 @@
             {
                 options.AppendTrailingSlash = false;
                 options.LowercaseUrls = true;
+            });
+
+            Option<Uri> optionalHttps = configuration.GetServiceUri("patients-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
+            {
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
             });
 
             return services;
@@ -284,12 +296,24 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
                 config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
+
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [bearerSecurityScheme] = new List<string>()
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new()
+                            {
+                                Id = JwtBearerDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            },
+                        },
+                        new List<string>()
+                    }
                 });
             });
 
