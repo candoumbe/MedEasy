@@ -41,8 +41,7 @@ namespace MedEasy.ContinuousIntegration
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
-        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*"},
-        OnPushBranchesIgnore = new[] { MainBranchName },
+        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*", ColdfixBranchPrefix + "/*"},
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },

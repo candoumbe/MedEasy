@@ -18,9 +18,10 @@ name: continuous
 
 on:
   push:
-    branches-ignore:
-      - main
+    branches:
       - develop
+      - 'feature/*'
+      - 'coldfix/*'
   pull_request:
     branches:
       - develop
