@@ -12,6 +12,8 @@
     using MedEasy.DTO.Search;
     using MedEasy.RestObjects;
 
+    using MediatR;
+
     using Microsoft.AspNetCore.JsonPatch;
     using Microsoft.AspNetCore.JsonPatch.Operations;
     using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,7 @@
     using Optional;
 
     using Patients.API.Routing;
+    using Patients.CQRS.Commands;
     using Patients.DTO;
     using Patients.Ids;
     using Patients.Objects;
@@ -45,6 +48,8 @@
     {
         private IOptionsSnapshot<PatientsApiOptions> ApiOptions { get; }
 
+        private IMediator _mediator;
+
         protected override string ControllerName => EndpointName;
 
         public static string EndpointName => nameof(PatientsController).Replace("Controller", string.Empty);
@@ -57,8 +62,17 @@
         /// <param name="apiOptions"></param>
         /// <param name="expressionBuilder"></param>
         /// <param name="uowFactory"></param>
-        public PatientsController(ILogger<PatientsController> logger, LinkGenerator urlHelper, IOptionsSnapshot<PatientsApiOptions> apiOptions, IExpressionBuilder expressionBuilder, IUnitOfWorkFactory uowFactory)
-            : base(logger, uowFactory, expressionBuilder, urlHelper) => ApiOptions = apiOptions;
+        public PatientsController(ILogger<PatientsController> logger,
+                                  LinkGenerator urlHelper,
+                                  IOptionsSnapshot<PatientsApiOptions> apiOptions,
+                                  IExpressionBuilder expressionBuilder,
+                                  IUnitOfWorkFactory uowFactory,
+                                  IMediator mediator)
+            : base(logger, uowFactory, expressionBuilder, urlHelper)
+        {
+            ApiOptions = apiOptions;
+            _mediator = mediator;
+        }
 
         /// <summary>
         /// Gets all the resources of the endpoint
@@ -196,26 +210,14 @@
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
         {
-            if (newPatient.Id == default)
-            {
-                newPatient.Id = PatientId.New();
-            }
-            using IUnitOfWork uow = UowFactory.NewUnitOfWork();
+            CreatePatientInfoCommand cmd = new(newPatient);
 
-            Patient patient = new Patient(newPatient.Id, newPatient.Firstname, newPatient.Lastname)
-                .WasBornIn(newPatient.BirthPlace)
-                .WasBornOn(newPatient.BirthDate);
+            PatientInfo resource = await _mediator.Send(cmd, ct).ConfigureAwait(false);
 
-            patient = uow.Repository<Patient>().Create(patient);
-
-            await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-            Expression<Func<Patient, PatientInfo>> mapEntityToResource = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-            PatientInfo resource = mapEntityToResource.Compile()(patient);
-
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }, new Browsable<PatientInfo>
+            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id }, new Browsable<PatientInfo>
             {
                 Resource = resource,
                 Links = new[]

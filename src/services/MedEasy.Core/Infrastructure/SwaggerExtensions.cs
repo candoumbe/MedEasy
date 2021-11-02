@@ -17,7 +17,7 @@
     public static class SwaggerExtensions
     {
         /// <summary>
-        /// Configures Swagger map types to handle
+        /// Configures Swagger map types to handle strongly type ids
         /// </summary>
         /// <param name="options"></param>
         /// <typeparam name="TStronglyTypedId">Strongly typed id</typeparam>

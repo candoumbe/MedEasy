@@ -20,8 +20,6 @@ on:
   push:
     branches-ignore:
       - main
-      - 'release/*'
-      - develop
     paths:
       - '!**/*.md'
       - '!LICENCE'
@@ -32,7 +30,7 @@ on:
     paths:
       - '!**/*.md'
       - '!LICENCE'
-      - '!docs'
+      - '!docs/*'
 
 jobs:
   windows-latest:

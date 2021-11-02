@@ -3,15 +3,30 @@ namespace MedEasy.ContinuousIntegration
 {
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Object representation of a service configured in a tye config file.
+    /// </summary>
     public class TyeServiceConfiguration
     {
-        public string Name { get; set; }
+        /// <summary>
+        /// Name of the service
+        /// </summary>
+        public string Name { get; init; }
 
-        public string Image { get; set; }
+        /// <summary>
+        /// Docker image associated with the service
+        /// </summary>
+        public string Image { get; init; }
 
-        public string Project { get; set; }
+        /// <summary>
+        /// Path to csproj file associated with the service (if any)
+        /// </summary>
+        public string Project { get; init; }
 
-        public List<TyeServiceBindingConfiguration> Bindings { get; set; }
+        /// <summary>
+        /// Bindings associated with the service
+        /// </summary>
+        public List<TyeServiceBindingConfiguration> Bindings { get; init; }
     }
 
 }

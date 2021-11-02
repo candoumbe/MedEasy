@@ -3,9 +3,11 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Patients.Context;
 
-namespace Patients.DataStores.Sqlite.Migrations
+namespace Patients.DataStores.Postgres.Migrations
 {
     [DbContext(typeof(PatientsContext))]
     partial class PatientsContextModelSnapshot : ModelSnapshot
@@ -14,35 +16,37 @@ namespace Patients.DataStores.Sqlite.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.11");
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.11")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("Patients.Objects.Doctor", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<string>("CreatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("CreatedDate")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("Firstname")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Lastname")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<string>("UpdatedDate")
+                    b.Property<Instant?>("UpdatedDate")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp");
 
                     b.HasKey("Id");
 
@@ -52,36 +56,36 @@ namespace Patients.DataStores.Sqlite.Migrations
             modelBuilder.Entity("Patients.Objects.Patient", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("BirthDate")
-                        .HasColumnType("TEXT");
+                    b.Property<LocalDate?>("BirthDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("BirthPlace")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<string>("CreatedDate")
-                        .HasColumnType("TEXT");
+                    b.Property<Instant?>("CreatedDate")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("Firstname")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Lastname")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<string>("UpdatedDate")
+                    b.Property<Instant?>("UpdatedDate")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp");
 
                     b.HasKey("Id");
 

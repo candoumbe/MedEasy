@@ -12,6 +12,8 @@ namespace Patients.API.UnitTests.Controllers
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
 
+    using MediatR;
+
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.JsonPatch;
     using Microsoft.AspNetCore.Mvc;
@@ -29,6 +31,7 @@ namespace Patients.API.UnitTests.Controllers
     using Patients.API.Controllers;
     using Patients.API.Routing;
     using Patients.Context;
+    using Patients.CQRS.Commands;
     using Patients.DTO;
     using Patients.Ids;
     using Patients.Mapping;
@@ -38,6 +41,7 @@ namespace Patients.API.UnitTests.Controllers
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Xunit;
@@ -60,6 +64,8 @@ namespace Patients.API.UnitTests.Controllers
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
         private const string _baseUrl = "http://host/api";
+        private readonly Mock<IMediator> _mediatorMock;
+
 
         public PatientsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<PatientsContext> database)
         {
@@ -86,7 +92,8 @@ namespace Patients.API.UnitTests.Controllers
                 _urlHelperMock.Object,
                 _apiOptionsMock.Object,
                 _expressionBuilder,
-                _factory);
+                _factory,
+                _mediatorMock.Object);
         }
 
         ///<inheritdoc/>
@@ -586,6 +593,12 @@ namespace Patients.API.UnitTests.Controllers
         public async Task Post()
         {
             //Arrange
+            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CreatePatientInfoCommand command, CancellationToken ct) => new PatientInfo {
+                    Id = command.Data.Id ?? PatientId.New(),
+                    Firstname = command.Data.Firstname,
+                    Lastname = command.Data.Lastname
+                });
 
             //Act
             CreatePatientInfo info = new()
@@ -598,14 +611,7 @@ namespace Patients.API.UnitTests.Controllers
                 .ConfigureAwait(false);
 
             //Assert
-
-            using (IUnitOfWork uow = _factory.NewUnitOfWork())
-            {
-                (await uow.Repository<Patient>().AnyAsync(x => x.Firstname == "Bruce" && x.Lastname == "Wayne")
-                    .ConfigureAwait(false)
-                    ).Should()
-                    .BeTrue();
-            }
+            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreatePatientInfoCommand>(), It.IsAny<CancellationToken>()));
 
             CreatedAtRouteResult createdActionResult = actionResult.Should()
                 .NotBeNull().And

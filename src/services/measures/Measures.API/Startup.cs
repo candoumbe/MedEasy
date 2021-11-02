@@ -51,7 +51,7 @@
                     .AddCustomAuthentication(Configuration)
                     .AddCustomApiVersioning()
                     .AddCustomOptions(Configuration)
-                    .AddSwagger(HostingEnvironment, Configuration)
+                    .AddCustomizedSwagger(HostingEnvironment, Configuration)
                     .AddCustomMassTransit(HostingEnvironment, Configuration);
         }
 

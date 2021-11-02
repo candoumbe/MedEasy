@@ -5,18 +5,30 @@
     using FluentValidation;
     using FluentValidation.AspNetCore;
 
+    using MassTransit;
+
+    using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
+    using MedEasy.Core.Infrastructure;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
 
+    using MediatR;
+
+    using MicroElements.Swashbuckle.NodaTime;
+
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.AspNetCore.Mvc.Versioning;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -25,8 +37,14 @@
     using Microsoft.OpenApi.Models;
 
     using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using Optional;
 
     using Patients.Context;
+    using Patients.CQRS.Commands;
+    using Patients.CQRS.Handlers.Patients;
+    using Patients.Ids;
     using Patients.Mapping;
     using Patients.Validators.Features.Patients.DTO;
 
@@ -35,14 +53,10 @@
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
-    using NodaTime.Serialization.SystemTextJson;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-    using MedEasy.Abstractions.ValueConverters;
-    using MassTransit;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -85,8 +99,7 @@
                     jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     jsonSerializerOptions.WriteIndented = true;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-                })
-                .AddXmlSerializerFormatters();
+                });
 
             services.AddCors(options =>
             {
@@ -132,6 +145,17 @@
                 options.LowercaseUrls = true;
             });
 
+            Option<Uri> optionalHttps = configuration.GetServiceUri("patients-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
+            {
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
+            });
+
             return services;
         }
 
@@ -163,7 +187,7 @@
                         connectionString,
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
-                                          .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
+                                          .MigrationsAssembly("Patients.DataStores.Postgres")
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -200,6 +224,8 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
+            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly);
+
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
@@ -211,6 +237,13 @@
             });
 
             services.AddSingleton<IClock>(SystemClock.Instance);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
+
+            services.AddScoped<IHandleCreatePatientInfoCommand, HandleCreatePatientInfoCommand>();
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             return services;
         }
@@ -284,13 +317,28 @@
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
                 config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
+
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [bearerSecurityScheme] = new List<string>()
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new()
+                            {
+                                Id = JwtBearerDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            },
+                        },
+                        new List<string>()
+                    }
                 });
+                config.ConfigureForNodaTimeWithSystemTextJson();
+                config.ConfigureForStronglyTypedIdsInAssembly<DoctorId>();
+
             });
 
             return services;
@@ -321,6 +369,8 @@
                     });
                 }
             });
+
+            services.AddMassTransitHostedService();
 
             return services;
         }

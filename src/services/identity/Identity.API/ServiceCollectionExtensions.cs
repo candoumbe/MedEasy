@@ -49,6 +49,7 @@ using MedEasy.Core.Infrastructure;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
+using Optional;
 
     using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -135,12 +136,16 @@ using MedEasy.Core.Infrastructure;
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
+            Option<Uri> optionalHttps = configuration.GetServiceUri("identity-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
             {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 51800);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
             });
-
             return services;
         }
 
@@ -362,7 +367,7 @@ using MedEasy.Core.Infrastructure;
                     {
                         Email = configuration.GetValue("Swagger:Contact:Email", string.Empty),
                         Name = configuration.GetValue("Swagger:Contact:Name", string.Empty),
-                        //Url = configuration.GetValue<Uri>("Swagger:Contact:Url", string.Empty)
+                        //Url = configuration.GetValue<Uri>("Swagger:Contact:Url", Uri.Empty)
                     }
                 });
 
@@ -392,13 +397,24 @@ using MedEasy.Core.Infrastructure;
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Description = "Token to access the API",
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
                 config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    [securityScheme] = new List<string>()
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new()
+                            {
+                                Id = JwtBearerDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            },
+                        },
+                        new List<string>()
+                    }
                 });
 
                 config.CustomSchemaIds(type => type.FullName);

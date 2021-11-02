@@ -2,12 +2,14 @@
 {
     using MedEasy.Objects;
 
+    using Patients.Ids;
+
     using System;
 
     /// <summary>
     /// Contains informations about <see cref="Doctor"/>
     /// </summary>
-    public class Doctor : AuditableEntity<Guid, Doctor>
+    public class Doctor : AuditableEntity<DoctorId, Doctor>
     {
         /// <summary>
         /// Firstname
@@ -25,7 +27,7 @@
         /// <param name="id"></param>
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
-        public Doctor(Guid id, string firstname, string lastname)
+        public Doctor(DoctorId id, string firstname, string lastname)
             : base(id)
         {
             Firstname = firstname;

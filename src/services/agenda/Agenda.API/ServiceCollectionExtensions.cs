@@ -12,7 +12,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
-using MedEasy.Core.Infrastructure;
+    using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
@@ -20,6 +20,7 @@ using MedEasy.Core.Infrastructure;
     using MedEasy.Validators;
 
     using MediatR;
+using MicroElements.Swashbuckle.NodaTime;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
@@ -40,6 +41,8 @@ using MedEasy.Core.Infrastructure;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
+
+    using Optional;
 
     using System;
     using System.IO;
@@ -105,29 +108,6 @@ using MedEasy.Core.Infrastructure;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 });
 
-            //services.Configure<ApiBehaviorOptions>(options =>
-            //{
-            //    options.InvalidModelStateResponseFactory = (context) =>
-            //    {
-            //        IDictionary<string, IEnumerable<string>> errors = context.ModelState
-            //            .Where(element => !string.IsNullOrWhiteSpace(element.Key))
-            //            .ToDictionary(item => item.Key, item => item.Value.Errors.Select(x => x.ErrorMessage).Distinct());
-            //        ValidationProblemDetails validationProblem = new ValidationProblemDetails
-            //        {
-            //            Title = "Validation failed",
-            //            Detail = $"{errors.Count} validation error{(errors.Count > 1 ? "s" : string.Empty)}",
-            //            Status = context.HttpContext.Request.Method == HttpMethods.Get || context.HttpContext.Request.Method == HttpMethods.Head
-            //                ? Status400BadRequest
-            //                : Status422UnprocessableEntity
-            //        };
-            //        foreach ((string key, IEnumerable<string> details) in errors)
-            //        {
-            //            validationProblem.Errors.Add(key, details.ToArray());
-            //        }
-
-            //        return new BadRequestObjectResult(validationProblem);
-            //    };
-            //});
 
             services.AddRouting(opts =>
             {
@@ -145,10 +125,16 @@ using MedEasy.Core.Infrastructure;
                     options.ExcludedHosts.Remove("[::1]");
                 }
             });
-            services.AddHttpsRedirection(options =>
+
+            Option<Uri> optionalHttps = configuration.GetServiceUri("agenda-api", "https")
+                                                     .SomeNotNull();
+            optionalHttps.MatchSome(https =>
             {
-                options.HttpsPort = configuration.GetValue<int>("HttpsPort", 53172);
-                options.RedirectStatusCode = Status307TemporaryRedirect;
+                services.AddHttpsRedirection(options =>
+                {
+                    options.HttpsPort = https.Port;
+                    options.RedirectStatusCode = Status307TemporaryRedirect;
+                });
             });
 
             return services;
@@ -189,7 +175,7 @@ using MedEasy.Core.Infrastructure;
             }
 
             using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-            
+
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -297,6 +283,8 @@ using MedEasy.Core.Infrastructure;
                     Contact = contact
                 });
 
+                config.ConfigureForNodaTime();
+                
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
                 string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");

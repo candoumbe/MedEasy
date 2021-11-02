@@ -35,12 +35,12 @@
         /// <summary>
         /// <see cref="DbContext.OnModelCreating(ModelBuilder)"/>
         /// </summary>
-        /// <param name="modelBuilder"></param>
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        /// <param name="builder"></param>
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            modelBuilder.Entity<Patient>(entity =>
+            builder.Entity<Patient>(entity =>
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Name)
@@ -59,13 +59,13 @@
                       .HasPrincipalKey(patient => patient.Id);
             });
 
-            modelBuilder.Entity<BloodPressure>(entity =>
+            builder.Entity<BloodPressure>(entity =>
             {
                 entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
                 entity.HasIndex(x => x.Id);
             });
 
-            modelBuilder.Entity<Temperature>(entity =>
+            builder.Entity<Temperature>(entity =>
             {
                 entity.HasKey(x => new { x.PatientId, x.DateOfMeasure });
                 entity.HasIndex(x => x.Id);

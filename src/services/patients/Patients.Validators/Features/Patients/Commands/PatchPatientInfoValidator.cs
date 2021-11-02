@@ -72,7 +72,7 @@
 
                             switch (replaceMainDoctorIdOperation?.value)
                             {
-                                case Guid mainDoctorId:
+                                case DoctorId mainDoctorId:
                                     using (IUnitOfWork uow = unitOfWorkFactory.NewUnitOfWork())
                                     {
                                         valid = await uow.Repository<Doctor>()
