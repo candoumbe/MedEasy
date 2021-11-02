@@ -24,7 +24,6 @@ namespace MedEasy.ContinuousIntegration
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net.NetworkInformation;
 
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
@@ -38,24 +37,25 @@ namespace MedEasy.ContinuousIntegration
     using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.Git.GitTasks;
     using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
-        OnPushBranchesIgnore = new[] { MainBranchName },
+        OnPushBranchesIgnore = new[] { MainBranchName, DevelopBranch },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },
+        CacheKeyFiles = new[] { "global.json", "Nuget.config" },
+        ImportGitHubTokenAs = nameof(GitHubToken),
+        ImportSecrets = new[]
+        {
+            nameof(NugetApiKey)
+        },
         OnPullRequestExcludePaths = new[]
         {
             "**/*.md",
             "LICENCE",
             "docs/*"
-        },
-        OnPushExcludePaths = new[]
-        {
-            "**/*.md",
-            "LICENCE",
-            "docs"
         }
     )]
     [GitHubActions(
@@ -63,22 +63,17 @@ namespace MedEasy.ContinuousIntegration
         GitHubActionsImage.WindowsLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         InvokedTargets = new[] { nameof(Tests), nameof(Publish) },
+        CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
                         {
-                            nameof(NugetApiKey),
+                            nameof(NugetApiKey)
                         },
         OnPullRequestExcludePaths = new[]
         {
             "**/*.md",
             "LICENCE",
-            "docs"
-        },
-        OnPushExcludePaths = new[]
-        {
-            "**/*.md",
-            "LICENCE",
-            "docs"
+            "docs/*"
         }
     )]
     [CheckBuildProjectConfigurations]
@@ -96,7 +91,6 @@ namespace MedEasy.ContinuousIntegration
         [Required] [Solution] public readonly Solution Solution;
         [Required] [GitRepository] public readonly GitRepository GitRepository;
         [Required] [GitVersion(Framework = "net5.0")] public readonly GitVersion GitVersion;
-        [CI] public readonly AzurePipelines AzurePipelines;
 
 
         [Partition(3)] public readonly Partition TestPartition;
@@ -104,7 +98,7 @@ namespace MedEasy.ContinuousIntegration
 
         private AbsolutePath DotnetToolsConfigDirectory => RootDirectory / ".config";
 
-        private AbsolutePath DotnetToolsLocalConfigFile => DotnetToolsConfigDirectory / "dotnet-tools.json";
+        public AbsolutePath DotnetToolsLocalConfigFile => DotnetToolsConfigDirectory / "dotnet-tools.json";
 
         public AbsolutePath SourceDirectory => RootDirectory / "src";
 
@@ -254,11 +248,6 @@ namespace MedEasy.ContinuousIntegration
                         )
                 );
 
-                UnitTestsResultDirectory.GlobFiles("*.trx")
-                                   .ForEach(testFileResult => AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
-                                                                                                 title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
-                                                                                                 files: new string[] { testFileResult })
-                );
 
                 // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
                 ReportGenerator(_ => _
@@ -268,11 +257,6 @@ namespace MedEasy.ContinuousIntegration
                         .SetTargetDirectory(CoverageReportUnitTestsDirectory)
                         .SetHistoryDirectory(CoverageReportUnitTestsHistoryDirectory)
                     );
-
-                UnitTestsResultDirectory.GlobFiles("*.xml")
-                                               .ForEach(file => AzurePipelines?.PublishCodeCoverage(coverageTool: AzurePipelinesCodeCoverageToolType.Cobertura,
-                                                                                        summaryFile: file,
-                                                                                        reportDirectory: CoverageReportUnitTestsDirectory));
             });
 
         public Target CleanDatabaseFolder => _ => _
@@ -400,12 +384,6 @@ namespace MedEasy.ContinuousIntegration
                         )
                 );
 
-                IntegrationTestsResultDirectory.GlobFiles("*.trx")
-                                   .ForEach(testFileResult => AzurePipelines?.PublishTestResults(type: AzurePipelinesTestResultsType.VSTest,
-                                                                                                 title: $"{Path.GetFileNameWithoutExtension(testFileResult)} ({AzurePipelines.StageDisplayName})",
-                                                                                                 files: new string[] { testFileResult })
-                );
-
                 // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
                 ReportGenerator(_ => _
                         .SetFramework("net5.0")
@@ -414,11 +392,6 @@ namespace MedEasy.ContinuousIntegration
                         .SetTargetDirectory(CoverageReportIntegrationTestsDirectory)
                         .SetHistoryDirectory(CoverageReportintegrationTestsHistoryDirectory)
                     );
-
-                IntegrationTestsResultDirectory.GlobFiles("*.xml")
-                                   .ForEach(file => AzurePipelines?.PublishCodeCoverage(coverageTool: AzurePipelinesCodeCoverageToolType.Cobertura,
-                                                                                        summaryFile: file,
-                                                                                        reportDirectory: CoverageReportIntegrationTestsDirectory));
             });
 
         public Target Tests => _ => _
