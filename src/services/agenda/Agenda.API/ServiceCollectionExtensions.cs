@@ -12,7 +12,7 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
-using MedEasy.Core.Infrastructure;
+    using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
@@ -20,6 +20,7 @@ using MedEasy.Core.Infrastructure;
     using MedEasy.Validators;
 
     using MediatR;
+using MicroElements.Swashbuckle.NodaTime;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
@@ -40,6 +41,7 @@ using MedEasy.Core.Infrastructure;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
+
     using Optional;
 
     using System;
@@ -173,7 +175,7 @@ using MedEasy.Core.Infrastructure;
             }
 
             using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-            
+
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -281,6 +283,8 @@ using MedEasy.Core.Infrastructure;
                     Contact = contact
                 });
 
+                config.ConfigureForNodaTime();
+                
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
                 string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");

@@ -43,6 +43,6 @@
         /// <summary>
         /// Id of the <see cref="Doctor"/> the patient consults.
         /// </summary>
-        public Guid? MainDoctorId { get; set; }
+        public DoctorId MainDoctorId { get; set; }
     }
 }

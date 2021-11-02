@@ -25,6 +25,8 @@
 
     using MediatR;
 
+    using MicroElements.Swashbuckle.NodaTime;
+
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
@@ -366,6 +368,7 @@
                 });
 
                 config.CustomSchemaIds(type => type.FullName);
+                config.ConfigureForNodaTimeWithSystemTextJson();
                 config.ConfigureForStronglyTypedIdsInAssembly<PatientId>();
             });
 
@@ -398,6 +401,8 @@
                             });
                 }
             });
+
+            services.AddMassTransitHostedService();
 
             return services;
         }

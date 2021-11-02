@@ -5,18 +5,26 @@
     using FluentValidation;
     using FluentValidation.AspNetCore;
 
+    using MassTransit;
+
+    using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
+    using MedEasy.Core.Infrastructure;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
 
+    using MicroElements.Swashbuckle.NodaTime;
+
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Versioning;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -25,8 +33,12 @@
     using Microsoft.OpenApi.Models;
 
     using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using Optional;
 
     using Patients.Context;
+    using Patients.Ids;
     using Patients.Mapping;
     using Patients.Validators.Features.Patients.DTO;
 
@@ -35,16 +47,10 @@
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
-    using NodaTime.Serialization.SystemTextJson;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-    using MedEasy.Abstractions.ValueConverters;
-    using MassTransit;
-using Optional;
-    using Microsoft.AspNetCore.Builder;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -175,7 +181,7 @@ using Optional;
                         connectionString,
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
-                                          .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName)
+                                          .MigrationsAssembly("Patients.DataStores.Postgres")
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -315,6 +321,9 @@ using Optional;
                         new List<string>()
                     }
                 });
+                config.ConfigureForNodaTimeWithSystemTextJson();
+                config.ConfigureForStronglyTypedIdsInAssembly<DoctorId>();
+
             });
 
             return services;

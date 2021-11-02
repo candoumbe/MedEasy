@@ -196,7 +196,7 @@
         /// <response code="400"><paramref name="newPatient"/> is not valid</response>
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
-        [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
         {
             if (newPatient.Id == default)

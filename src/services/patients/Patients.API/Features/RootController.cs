@@ -107,7 +107,7 @@ namespace Patients.API.Controllers
                             })
                             .AddField(form => form.Firstname)
                             .AddField(form => form.Lastname)
-                            .AddField(form => form.MainDoctorId)
+                            .AddField(form => form.MainDoctorId, new (){ Label = nameof(CreatePatientInfo.MainDoctorId), Type = FormFieldType.String })
                             .AddField(form => form.BirthDate)
                             .AddField(form => form.BirthPlace)
                             .Build()

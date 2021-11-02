@@ -19,6 +19,7 @@
         /// Collection of <see cref="Patient"/>s
         /// </summary>
         public DbSet<Patient> Patients { get; set; }
+        public DbSet<Doctor> Doctors { get; set; }
 
         /// <summary>
         /// Builds a new <see cref="PatientsContext"/> instance.
@@ -29,17 +30,27 @@
         {
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        ///<inheritdoc/>
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            modelBuilder.Entity<Patient>(entity =>
+            builder.Entity<Patient>(entity =>
             {
                 entity.Property(x => x.Firstname)
                     .HasMaxLength(_normalTextLength);
 
                 entity.Property(x => x.Lastname)
                     .HasMaxLength(_normalTextLength);
+            });
+
+            builder.Entity<Doctor>(entity =>
+            {
+                entity.Property(x => x.Firstname)
+                      .HasMaxLength(_normalTextLength);
+
+                entity.Property(x => x.Lastname)
+                      .HasMaxLength(_normalTextLength);
             });
         }
     }

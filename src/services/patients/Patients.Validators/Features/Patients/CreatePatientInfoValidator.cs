@@ -10,6 +10,7 @@ namespace Patients.Validators.Features.Patients.DTO
 
     using static FluentValidation.CascadeMode;
     using static FluentValidation.Severity;
+    using global::Patients.Ids;
 
     /// <summary>
     /// Validates <see cref="CreatePatientInfo"/> instances.
@@ -54,7 +55,6 @@ namespace Patients.Validators.Features.Patients.DTO
                 .MaximumLength(100);
 
             RuleFor(x => x.MainDoctorId)
-                .NotEqual(Guid.Empty)
                 .MustAsync(async (mainDoctorId, cancellationToken) =>
                 {
                     using IUnitOfWork uow = uowFactory.NewUnitOfWork();
@@ -62,7 +62,7 @@ namespace Patients.Validators.Features.Patients.DTO
                             .AnyAsync(doc => doc.Id == mainDoctorId, cancellationToken)
                             .ConfigureAwait(false);
                 })
-                .When(x => x.MainDoctorId.HasValue);
+                .When(x => x.MainDoctorId != default);
         }
     }
 }
