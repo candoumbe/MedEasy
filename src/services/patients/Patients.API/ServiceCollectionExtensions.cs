@@ -10,8 +10,11 @@
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
     using MedEasy.Core.Infrastructure;
+    using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+
+    using MediatR;
 
     using MicroElements.Swashbuckle.NodaTime;
 
@@ -22,6 +25,7 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.AspNetCore.Mvc.Versioning;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -38,6 +42,8 @@
     using Optional;
 
     using Patients.Context;
+    using Patients.CQRS.Commands;
+    using Patients.CQRS.Handlers.Patients;
     using Patients.Ids;
     using Patients.Mapping;
     using Patients.Validators.Features.Patients.DTO;
@@ -218,6 +224,8 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
+            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly);
+
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
@@ -229,6 +237,13 @@
             });
 
             services.AddSingleton<IClock>(SystemClock.Instance);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TimingBehavior<,>));
+
+            services.AddScoped<IHandleCreatePatientInfoCommand, HandleCreatePatientInfoCommand>();
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             return services;
         }
@@ -354,6 +369,8 @@
                     });
                 }
             });
+
+            services.AddMassTransitHostedService();
 
             return services;
         }

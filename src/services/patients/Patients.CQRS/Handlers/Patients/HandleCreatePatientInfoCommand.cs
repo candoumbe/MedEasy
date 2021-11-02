@@ -21,7 +21,7 @@
     /// <summary>
     /// Handles <see cref="CreatePatientInfoCommand"/>s
     /// </summary>
-    public class HandleCreatePatientInfoCommand : IRequestHandler<CreatePatientInfoCommand, PatientInfo>
+    public class HandleCreatePatientInfoCommand : IHandleCreatePatientInfoCommand
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
@@ -55,6 +55,9 @@
                                  firstname: newResourceInfo.Firstname?.ToTitleCase(),
                                  lastname: newResourceInfo.Lastname?.ToUpperInvariant()
             );
+
+            entity = entity.WasBornOn(newResourceInfo.BirthDate)
+                           .WasBornIn(newResourceInfo.BirthPlace);
 
             uow.Repository<Patient>().Create(entity);
             await uow.SaveChangesAsync(cancellationToken)
