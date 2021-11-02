@@ -20,10 +20,7 @@ on:
   push:
     branches-ignore:
       - main
-    paths:
-      - '!**/*.md'
-      - '!LICENCE'
-      - '!docs'
+      - develop
   pull_request:
     branches:
       - develop
@@ -44,9 +41,12 @@ jobs:
           path: |
             .nuke/temp
             ~/.nuget/packages
-          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
+          key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config') }}
       - name: Run './build.cmd UnitTests'
         run: ./build.cmd UnitTests
+        env:
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          NugetApiKey: ${{ secrets.NUGET_API_KEY }}
       - uses: actions/upload-artifact@v1
         with:
           name: unit-tests

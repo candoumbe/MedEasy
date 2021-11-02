@@ -21,15 +21,11 @@ on:
     branches:
       - main
       - 'release/*'
-    paths:
-      - '!**/*.md'
-      - '!LICENCE'
-      - '!docs'
   pull_request:
     paths:
       - '!**/*.md'
       - '!LICENCE'
-      - '!docs'
+      - '!docs/*'
 
 jobs:
   windows-latest:
@@ -43,7 +39,7 @@ jobs:
           path: |
             .nuke/temp
             ~/.nuget/packages
-          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
+          key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config', '.config/dotnet-tools.json') }}
       - name: Run './build.cmd Tests Publish'
         run: ./build.cmd Tests Publish
         env:
