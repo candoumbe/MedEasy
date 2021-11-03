@@ -213,9 +213,6 @@
             ]
           }
         },
-        "TestPartition": {
-          "type": "string"
-        },
         "UpdateConnectionString": {
           "type": "boolean",
           "description": "Indicates if the connection strings should be updated in appsettings.integrationtest.json file (Default = true)"

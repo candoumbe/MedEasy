@@ -93,9 +93,6 @@ namespace MedEasy.ContinuousIntegration
         [Required] [GitVersion(Framework = "net5.0")] public readonly GitVersion GitVersion;
 
 
-        [Partition(3)] public readonly Partition TestPartition;
-
-
         private AbsolutePath DotnetToolsConfigDirectory => RootDirectory / ".config";
 
         public AbsolutePath DotnetToolsLocalConfigFile => DotnetToolsConfigDirectory / "dotnet-tools.json";
@@ -221,6 +218,7 @@ namespace MedEasy.ContinuousIntegration
 
         public Target UnitTests => _ => _
             .DependsOn(Compile)
+            .Partition(5)
             .Description("Run unit tests and collect code coverage")
             .Produces(UnitTestsResultDirectory / "*.trx")
             .Produces(UnitTestsResultDirectory / "*.xml")
@@ -228,7 +226,7 @@ namespace MedEasy.ContinuousIntegration
             .Executes(() =>
             {
                 IEnumerable<Project> projects = Solution.GetProjects("*.UnitTests");
-                IEnumerable<Project> testsProjects = TestPartition.GetCurrent(projects);
+                IEnumerable<Project> testsProjects = Partition.GetCurrent(projects);
 
                 testsProjects.ForEach(project => Info(project));
 
@@ -236,6 +234,7 @@ namespace MedEasy.ContinuousIntegration
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
                     .SetNoBuild(InvokedTargets.Contains(Compile))
+                    .SetNoRestore(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(Restore))
                     .SetResultsDirectory(UnitTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .AddProperty("ExcludeByAttribute", "Obsolete")
@@ -364,7 +363,7 @@ namespace MedEasy.ContinuousIntegration
 
 
                 IEnumerable<Project> projects = Solution.GetProjects("*.IntegrationTests");
-                IEnumerable<Project> testsProjects = TestPartition.GetCurrent(projects);
+                IEnumerable<Project> testsProjects = Partition.GetCurrent(projects);
 
                 testsProjects.ForEach(project => Info(project));
 
@@ -403,7 +402,7 @@ namespace MedEasy.ContinuousIntegration
             });
 
         public Target Pack => _ => _
-            .DependsOn(Tests, Compile)
+            .DependsOn(Tests)
             .Consumes(Compile)
             .Produces(ArtifactsDirectory / "*.nupkg")
             .Produces(ArtifactsDirectory / "*.snupkg")
@@ -412,6 +411,9 @@ namespace MedEasy.ContinuousIntegration
                 DotNetPack(s => s
                     .EnableIncludeSource()
                     .EnableIncludeSymbols()
+                    .SetNoRestore(InvokedTargets.Contains(Compile)
+                                  || InvokedTargets.Contains(Restore)
+                                  || InvokedTargets.Contains(Tests))
                     .SetOutputDirectory(ArtifactsDirectory)
                     .SetProject(Solution)
                     .SetConfiguration(Configuration)
