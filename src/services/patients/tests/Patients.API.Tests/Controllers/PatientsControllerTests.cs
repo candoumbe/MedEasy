@@ -86,6 +86,7 @@ namespace Patients.API.UnitTests.Controllers
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _expressionBuilder = AutoMapperConfig.Build().CreateMapper().ConfigurationProvider.ExpressionBuilder;
+            _mediatorMock = new(Strict);
 
             _sut = new PatientsController(
                 _loggerMock.Object,
@@ -406,8 +407,8 @@ namespace Patients.API.UnitTests.Controllers
                                  SearchPatientInfo searchRequest,
                                  (Expression<Func<Link, bool>> firstPageLink, Expression<Func<Link, bool>> previousPageLink, Expression<Func<Link, bool>> nextPageLink, Expression<Func<Link, bool>> lastPageLink) linksExpectation)
         {
-            _outputHelper.WriteLine($"Entries : {SerializeObject(entries)}");
-            _outputHelper.WriteLine($"Request : {SerializeObject(searchRequest)}");
+            _outputHelper.WriteLine($"Entries : {entries.Jsonify()}");
+            _outputHelper.WriteLine($"Request : {searchRequest.Jsonify()}");
 
             // Arrange
             PatientsApiOptions apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 50 };
@@ -624,8 +625,7 @@ namespace Patients.API.UnitTests.Controllers
                 .ContainKey("controller");
 
             createdActionResult.RouteValues["id"].Should()
-                .BeOfType<Guid>().Which.Should()
-                .NotBeEmpty();
+                .BeOfType<PatientId>();
             createdActionResult.RouteValues["controller"].Should()
                 .BeOfType<string>().Which.Should()
                 .Be(PatientsController.EndpointName);
