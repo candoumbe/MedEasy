@@ -15,12 +15,12 @@
     using System.IO;
 
     /// <summary>
-    /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="PatientsContext"/>.
+    /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="PatientsDataStore"/>.
     /// </summary>
-    public class PatientsDesignTimeDbContextFactory : IDesignTimeDbContextFactory<PatientsContext>
+    public class PatientsDesignTimeDbContextFactory : IDesignTimeDbContextFactory<PatientsDataStore>
     {
         /// <inheritdoc/>
-        public PatientsContext CreateDbContext(string[] args)
+        public PatientsDataStore CreateDbContext(string[] args)
         {
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -30,7 +30,7 @@
                 .Build();
 
             string provider = configuration.GetValue("provider", "sqlite").ToLowerInvariant();
-            DbContextOptionsBuilder<PatientsContext> builder = new();
+            DbContextOptionsBuilder<PatientsDataStore> builder = new();
             string connectionString = configuration.GetConnectionString("Patients");
 
             switch (provider)
@@ -49,7 +49,7 @@
                     throw new NotSupportedException($"'{provider}' database engine is not currently supported");
             }
 
-            return new PatientsContext(builder.Options, SystemClock.Instance);
+            return new PatientsDataStore(builder.Options, SystemClock.Instance);
         }
     }
 }

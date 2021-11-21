@@ -8,7 +8,10 @@
 
     using Patients.Objects;
 
-    public class PatientsContext : DataStore<PatientsContext>
+    /// <summary>
+    /// <see cref="DataStore"/> implementation
+    /// </summary>
+    public class PatientsDataStore : DataStore<PatientsDataStore>
     {
         /// <summary>
         /// Usual size for the "normal" text
@@ -16,17 +19,21 @@
         private const int _normalTextLength = 255;
 
         /// <summary>
-        /// Collection of <see cref="Patient"/>s
+        /// Collection of <see cref="Patient"/> entities
         /// </summary>
         public DbSet<Patient> Patients { get; set; }
+
+        /// <summary>
+        /// Collection of <see cref="Doctor"/> entities
+        /// </summary>
         public DbSet<Doctor> Doctors { get; set; }
 
         /// <summary>
-        /// Builds a new <see cref="PatientsContext"/> instance.
+        /// Builds a new <see cref="PatientsDataStore"/> instance.
         /// </summary>
         /// <param name="options">options of the MeasuresContext</param>
-        /// <param name="clock"><see cref="IClock"/> instance used to access current date/time</param>
-        public PatientsContext(DbContextOptions<PatientsContext> options, IClock clock) : base(options, clock)
+        /// <param name="clock"><see cref="IClock"/>service used to access current date/time</param>
+        public PatientsDataStore(DbContextOptions<PatientsDataStore> options, IClock clock) : base(options, clock)
         {
         }
 

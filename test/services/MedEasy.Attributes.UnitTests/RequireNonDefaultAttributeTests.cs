@@ -26,13 +26,15 @@
 
         public class Person
         {
-            public string Name { get; set; }
+            public string Name { get; init; }
         }
 
         [RequireNonDefault]
         public class Minion : Person
         {
-            public int? EyesCount { get; set; }
+            public int? EyesCount { get; init; }
+
+            public string Color { get; init; }
         }
 
         public RequireNonDefaultAttributeTests(ITestOutputHelper outputHelper)

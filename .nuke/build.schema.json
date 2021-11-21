@@ -105,12 +105,15 @@
           }
         },
         "Provider": {
-          "type": "string",
-          "description": "Database engine to build an operationwill be build for (default : )",
-          "enum": [
-            "Postgres",
-            "Sqlite"
-          ]
+          "type": "array",
+          "description": "Store engine to target (default : sqlite, postgres)",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Postgres",
+              "Sqlite"
+            ]
+          }
         },
         "Root": {
           "type": "string",

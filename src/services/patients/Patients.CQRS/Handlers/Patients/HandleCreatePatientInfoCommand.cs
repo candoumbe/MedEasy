@@ -17,6 +17,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using MassTransit;
+    using Optional;
+    using MedEasy.CQRS.Core.Commands.Results;
 
     /// <summary>
     /// Handles <see cref="CreatePatientInfoCommand"/>s
@@ -46,7 +48,7 @@
         }
 
 
-        public async Task<PatientInfo> Handle(CreatePatientInfoCommand cmd, CancellationToken cancellationToken)
+        public async Task<Option<PatientInfo, CreateCommandFailure>> Handle(CreatePatientInfoCommand cmd, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             CreatePatientInfo newResourceInfo = cmd.Data;
@@ -71,7 +73,7 @@
             await _publishEndpoint.Publish(new PatientCaseCreated(patientInfo.Id, $"{patientInfo.Lastname} {patientInfo.Firstname}", patientInfo.BirthDate), cancellationToken)
                 .ConfigureAwait(false);
 
-            return patientInfo;
+            return patientInfo.Some<PatientInfo, CreateCommandFailure>();
         }
     }
 }

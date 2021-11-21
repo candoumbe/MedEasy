@@ -57,7 +57,7 @@ namespace MedEasy.IntegrationTests.Core
                         }
                     });
 
-                    services.AddTransient<DummyClaimsProvider>((_) => new DummyClaimsProvider(Scheme, claims))
+                    services.AddTransient((_) => new DummyClaimsProvider(Scheme, claims))
                             .AddAuthorization(opts =>
                             {
                                 opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()

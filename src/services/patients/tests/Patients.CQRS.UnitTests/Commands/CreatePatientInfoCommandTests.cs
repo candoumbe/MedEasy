@@ -3,6 +3,9 @@
     using FluentAssertions;
 
     using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using Optional;
 
     using Patients.CQRS.Commands;
     using Patients.DTO;
@@ -27,7 +30,7 @@
 
         [Fact]
         public void IsCommand() => typeof(CreatePatientInfoCommand).Should()
-            .Implement<ICommand<Guid, CreatePatientInfo, PatientInfo>>($"Commands must implement {nameof(ICommand<Guid, CreatePatientInfo, PatientInfo>)}").And
+            .Implement<ICommand<Guid, CreatePatientInfo, Option<PatientInfo, CreateCommandFailure>>>($"Commands must implement {nameof(ICommand<Guid, CreatePatientInfo, PatientInfo>)}").And
             .NotBeAbstract().And
             .NotHaveDefaultConstructor();
 

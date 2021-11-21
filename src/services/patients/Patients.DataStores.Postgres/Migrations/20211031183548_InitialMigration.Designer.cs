@@ -10,7 +10,7 @@ using Patients.Context;
 
 namespace Patients.DataStores.Postgres.Migrations
 {
-    [DbContext(typeof(PatientsContext))]
+    [DbContext(typeof(PatientsDataStore))]
     [Migration("20211031183548_InitialMigration")]
     partial class InitialMigration
     {

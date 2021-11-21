@@ -10,6 +10,7 @@
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
     using MedEasy.Core.Infrastructure;
+    using MedEasy.CQRS.Core.Handlers;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -165,10 +166,10 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
-            static DbContextOptionsBuilder<PatientsContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<PatientsDataStore> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<PatientsContext> builder = new();
+                DbContextOptionsBuilder<PatientsDataStore> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("patients");
@@ -178,7 +179,7 @@
                     builder.UseSqlite(connectionString, options =>
                     {
                         options.UseNodaTime()
-                               .MigrationsAssembly(typeof(PatientsContext).Assembly.FullName);
+                               .MigrationsAssembly("Patients.DataStores.Sqlite");
                     });
                 }
                 else
@@ -200,19 +201,19 @@
 
             services.AddTransient(serviceProvider =>
             {
-                DbContextOptionsBuilder<PatientsContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<PatientsDataStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new PatientsContext(optionsBuilder.Options, clock);
+                return new PatientsDataStore(optionsBuilder.Options, clock);
             });
 
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsContext>>(serviceProvider =>
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsDataStore>>(serviceProvider =>
             {
-                DbContextOptionsBuilder<PatientsContext> builder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<PatientsDataStore> builder = BuildDbContextOptions(serviceProvider);
 
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new EFUnitOfWorkFactory<PatientsContext>(builder.Options, options => new PatientsContext(options, clock));
+                return new EFUnitOfWorkFactory<PatientsDataStore>(builder.Options, options => new PatientsDataStore(options, clock));
             });
 
             return services;
@@ -224,7 +225,8 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly);
+            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly, 
+                                typeof(HandleCreatePatientInfoCommand).Assembly);
 
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
@@ -244,6 +246,7 @@
             services.AddScoped<IHandleCreatePatientInfoCommand, HandleCreatePatientInfoCommand>();
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddSingleton<IHandleSearchQuery, HandleSearchQuery>();
 
             return services;
         }

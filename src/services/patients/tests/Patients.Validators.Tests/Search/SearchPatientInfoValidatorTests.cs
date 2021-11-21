@@ -87,7 +87,7 @@
 
                 yield return new object[]
                 {
-                    new SearchPatientInfo { Firstname = "Hugo", Sort=$"{nameof(SearchPatientInfo.Firstname)}", Page = -1},
+                    new SearchPatientInfo { Firstname = "Hugo", Sort = nameof(SearchPatientInfo.Firstname), Page = -1},
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
@@ -100,7 +100,7 @@
 
                 yield return new object[]
                 {
-                    new SearchPatientInfo { Firstname = "Hugo", Sort=$"{nameof(SearchPatientInfo.Firstname)}", Page = 1, PageSize = -1},
+                    new SearchPatientInfo { Firstname = "Hugo", Sort = nameof(SearchPatientInfo.Firstname), Page = 1, PageSize = -1},
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1

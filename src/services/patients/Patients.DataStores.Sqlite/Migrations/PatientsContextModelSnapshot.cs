@@ -7,7 +7,7 @@ using Patients.Context;
 
 namespace Patients.DataStores.Sqlite.Migrations
 {
-    [DbContext(typeof(PatientsContext))]
+    [DbContext(typeof(PatientsDataStore))]
     partial class PatientsContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -73,6 +73,9 @@ namespace Patients.DataStores.Sqlite.Migrations
 
                     b.Property<string>("Lastname")
                         .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("TenantId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UpdatedBy")

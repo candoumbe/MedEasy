@@ -1,5 +1,6 @@
 ﻿namespace Patients.Objects
 {
+    using MedEasy.Ids;
     using MedEasy.Objects;
 
     using NodaTime;
@@ -9,7 +10,7 @@
     /// <summary>
     /// Patient entity
     /// </summary>
-    public class Patient : AuditableEntity<PatientId, Patient>
+    public class Patient : AuditableEntity<PatientId, Patient>, IHaveTenant
     {
         /// <summary>
         /// Firstname
@@ -32,13 +33,16 @@
         public string BirthPlace { get; private set; }
 
         /// <summary>
+        /// Gets the id of the owner of the current resource
+        /// </summary>
+        public TenantId TenantId { get; private set; }
+
+        /// <summary>
         /// Builds a new <see cref="Patient"/> instance.
         /// </summary>
         /// <param name="id">Id of the instance. Should uniquely identity the instance</param>
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
-        /// <param name="birthplace"></param>
-        /// <param name="birthDate"></param>
         public Patient(PatientId id, string firstname, string lastname)
             : base(id)
         {
@@ -50,7 +54,7 @@
         /// Defines the birthdate
         /// </summary>
         /// <param name="birthDate"></param>
-        /// <returns></returns>
+        /// <returns>The current instance</returns>
         public Patient WasBornOn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
@@ -61,7 +65,7 @@
         /// Defines where the patient was born
         /// </summary>
         /// <param name="birthPlace"></param>
-        /// <returns></returns>
+        /// <returns>The current isntance</returns>
         public Patient WasBornIn(string birthPlace)
         {
             BirthPlace = birthPlace;
@@ -72,7 +76,7 @@
         /// Changes the <see cref="Patient"/>'s <see cref="Firstname"/>
         /// </summary>
         /// <param name="newFirstname"></param>
-        /// <returns></returns>
+        /// <returns>The current instance</returns>
         public Patient ChangeFirstnameTo(string newFirstname)
         {
             Firstname = newFirstname;
@@ -83,10 +87,21 @@
         /// Changes the <see cref="Patient"/>'s <see cref="Lastname"/>
         /// </summary>
         /// <param name="newLastname"></param>
-        /// <returns></returns>
+        /// <returns>The current instance</returns>
         public Patient ChangeLastnameTo(string newLastname)
         {
             Lastname = newLastname;
+            return this;
+        }
+
+        /// <summary>
+        /// Defines the owner of the current resource
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <returns>The current instance</returns>
+        public Patient OwnedBy(TenantId tenantId)
+        {
+            TenantId = tenantId;
             return this;
         }
     }
