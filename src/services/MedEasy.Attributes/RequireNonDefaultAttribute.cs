@@ -40,16 +40,11 @@
                     IEnumerable<PropertyInfo> pis = type.GetRuntimeProperties()
                         .Where(pi => pi.CanRead);
 
-                    bool foundPropertyWithNonDefaultValue = false;
-                    IEnumerator<PropertyInfo> enumerator = pis.GetEnumerator();
-                    while (enumerator.MoveNext() && !foundPropertyWithNonDefaultValue)
-                    {
-                        PropertyInfo currentProp = enumerator.Current;
-                        object currentVal = currentProp.GetValue(value);
+                    IEnumerable<(string PropertyName, bool IsValid)> properties = pis.AsParallel()
+                                                                                             .Select(pi => (pi.Name, ValidationResult.Success == IsValid(pi.GetValue(value), validationContext)))
+                                                                                             .ToArray();
 
-                        foundPropertyWithNonDefaultValue = ValidationResult.Success == IsValid(currentVal, validationContext);
-                    }
-                    if (!foundPropertyWithNonDefaultValue)
+                    if (! properties.AtLeastOnce(pi => pi.IsValid))
                     {
                         validationResult = new ValidationResult(FormatErrorMessage(validationContext?.MemberName));
                     }

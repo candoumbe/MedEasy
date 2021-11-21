@@ -245,7 +245,6 @@
         ///     // GET api/appointments/search?location=!Gotham
         ///     will match all resources where "location" is not "Gotham"
         /// </para>
-        ///     
         /// </remarks>
         /// <response code="200">"page" of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one of the search criterion is not valid</response>

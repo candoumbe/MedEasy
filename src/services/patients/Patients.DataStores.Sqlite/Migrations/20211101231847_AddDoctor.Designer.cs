@@ -8,7 +8,7 @@ using Patients.Context;
 
 namespace Patients.DataStores.Sqlite.Migrations
 {
-    [DbContext(typeof(PatientsContext))]
+    [DbContext(typeof(PatientsDataStore))]
     [Migration("20211101231847_AddDoctor")]
     partial class AddDoctor
     {

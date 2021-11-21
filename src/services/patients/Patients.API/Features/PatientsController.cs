@@ -1,21 +1,23 @@
 ﻿namespace Patients.API.Controllers
 {
-    using AutoMapper.QueryableExtensions;
 
     using DataFilters;
 
     using FluentValidation.Results;
 
     using MedEasy.Attributes;
-    using MedEasy.DAL.Interfaces;
+    using MedEasy.Core;
+    using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+    using MedEasy.CQRS.Core.Queries;
     using MedEasy.DAL.Repositories;
+    using MedEasy.DTO;
     using MedEasy.DTO.Search;
     using MedEasy.RestObjects;
 
     using MediatR;
 
     using Microsoft.AspNetCore.JsonPatch;
-    using Microsoft.AspNetCore.JsonPatch.Operations;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.AspNetCore.Routing;
@@ -26,50 +28,53 @@
 
     using Patients.API.Routing;
     using Patients.CQRS.Commands;
+    using Patients.CQRS.Queries;
     using Patients.DTO;
     using Patients.Ids;
-    using Patients.Objects;
 
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static MedEasy.RestObjects.LinkRelation;
 
     /// <summary>
     /// Endpoint for <see cref="PatientInfo"/> resources.
     /// </summary>
     [Route("[controller]")]
     [ApiController]
-    public class PatientsController : AbstractBaseController<Patient, PatientInfo, PatientId>
+    public class PatientsController
     {
         private IOptionsSnapshot<PatientsApiOptions> ApiOptions { get; }
 
-        private IMediator _mediator;
+        private readonly ILogger<PatientsController> _logger;
+        private readonly LinkGenerator _urlHelper;
+        private readonly IMediator _mediator;
 
-        protected override string ControllerName => EndpointName;
+        private static string ControllerName => EndpointName;
 
+        /// <summary>
+        /// Name of the resources
+        /// </summary>
         public static string EndpointName => nameof(PatientsController).Replace("Controller", string.Empty);
 
         /// <summary>
         /// Builds a new <see cref="PatientsController"/> instance.
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="urlHelper"></param>
-        /// <param name="apiOptions"></param>
-        /// <param name="expressionBuilder"></param>
-        /// <param name="uowFactory"></param>
+        /// <param name="urlHelper">Helper to build resources links</param>
+        /// <param name="apiOptions">Snapshot of API Options</param>
+        /// <param name="mediator">Mediator service</param>
         public PatientsController(ILogger<PatientsController> logger,
                                   LinkGenerator urlHelper,
                                   IOptionsSnapshot<PatientsApiOptions> apiOptions,
-                                  IExpressionBuilder expressionBuilder,
-                                  IUnitOfWorkFactory uowFactory,
                                   IMediator mediator)
-            : base(logger, uowFactory, expressionBuilder, urlHelper)
         {
+            _logger = logger;
+            _urlHelper = urlHelper;
             ApiOptions = apiOptions;
             _mediator = mediator;
         }
@@ -91,56 +96,42 @@
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> Get([FromQuery] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Get([FromRoute, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            using IUnitOfWork uow = UowFactory.NewUnitOfWork();
-            pagination.PageSize = Math.Min(pagination.PageSize, ApiOptions.Value.MaxPageSize);
-            Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-            Page<PatientInfo> result = await uow.Repository<Patient>()
-                                                .ReadPageAsync(
-                                                    selector,
-                                                    pagination.PageSize,
-                                                    pagination.Page,
-                                                    new Sort<PatientInfo>(nameof(PatientInfo.Lastname), SortDirection.Descending),
-                                                    cancellationToken).ConfigureAwait(false);
+            pagination = new() { Page = pagination.Page, PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pagination.PageSize) };
 
-            int count = result.Entries.Count();
-            bool hasPreviousPage = count > 0 && pagination.Page > 1;
+            GetPageOfPatientsQuery query = new(pagination);
+            Page<PatientInfo> pageOfResult = await _mediator.Send(query, cancellationToken)
+                                                            .ConfigureAwait(false);
 
-            string firstPageUrl = UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
-            string previousPageUrl = hasPreviousPage
-                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
-                    : null;
+            GenericPagedGetResponse<Browsable<PatientInfo>> response = new(pageOfResult.Entries
+                                                                                       .Select(item => new Browsable<PatientInfo>
+                                                                                       {
+                                                                                           Resource = item,
+                                                                                           Links = new[]
+                                                                                           {
+                                                                                               new Link
+                                                                                               {
+                                                                                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, item.Id }),
+                                                                                                   Method = "GET",
+                                                                                                   Relation = Self
+                                                                                               }
+                                                                                           }
+                                                                                       }),
+                                                                           first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
+                                                                                                    new { page = 1, pagination.PageSize, controller = EndpointName }),
+                                                                           next: pageOfResult.Count > 1
+                                                                                ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
+                                                                                                           new { page = pagination.Page + 1, pagination.PageSize, controller = EndpointName })
+                                                                                : null,
+                                                                           last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
+                                                                                                          new { page = pageOfResult.Count, pagination.PageSize, controller = EndpointName }),
+                                                                           previous: pagination.Page > 1 && pageOfResult.Count > 1
+                                                                                ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
+                                                                                                           new { page = pagination.Page + 1, pagination.PageSize, controller = EndpointName })
+                                                                                : null,
 
-            string nextPageUrl = pagination.Page < result.Count
-                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
-                    : null;
-            string lastPageUrl = result.Count > 0
-                    ? UrlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
-                    : firstPageUrl;
-
-            IEnumerable<Browsable<PatientInfo>> resources = result.Entries
-                .Select(x => new Browsable<PatientInfo>
-                {
-                    Resource = x,
-                    Links = new[]
-                    {
-                            new Link
-                            {
-                                Relation = LinkRelation.Self,
-                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, x.Id})
-                            }
-                    }
-                });
-
-            GenericPagedGetResponse<Browsable<PatientInfo>> response = new(
-                    resources,
-                    firstPageUrl,
-                    previousPageUrl,
-                    nextPageUrl,
-                    lastPageUrl,
-                    result.Total);
-
+                                                                            total: pageOfResult.Total);
             return new OkObjectResult(response);
         }
 
@@ -165,11 +156,9 @@
             }
             else
             {
-                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
-                Expression<Func<Patient, PatientInfo>> selector = ExpressionBuilder.GetMapExpression<Patient, PatientInfo>();
-                Option<PatientInfo> result = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(selector, (Patient x) => x.Id == id, cancellationToken).ConfigureAwait(false);
-
+                GetOnePatientInfoByIdQuery query = new GetOnePatientInfoByIdQuery(id);
+                Option<PatientInfo> result = await _mediator.Send(query, cancellationToken)
+                                                            .ConfigureAwait(false);
                 actionResult = result.Match<IActionResult>(
                     some: resource =>
                     {
@@ -181,13 +170,13 @@
                                     new Link
                                     {
                                         Relation = LinkRelation.Self,
-                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
+                                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
                                         Method = "GET"
                                     },
                                     new Link
                                     {
                                         Relation = "delete",
-                                        Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
+                                        Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value }),
                                         Method = "DELETE"
                                     }
                             }
@@ -211,25 +200,38 @@
         [HttpPost]
         [ProducesResponseType(typeof(Browsable<PatientInfo>), Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), Status400BadRequest)]
-        public async Task<IActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
+        public async Task<ActionResult> Post([FromBody] CreatePatientInfo newPatient, CancellationToken ct = default)
         {
             CreatePatientInfoCommand cmd = new(newPatient);
 
-            PatientInfo resource = await _mediator.Send(cmd, ct).ConfigureAwait(false);
+            Option<PatientInfo, CreateCommandFailure> optionalResource = await _mediator.Send(cmd, ct).ConfigureAwait(false);
 
-            return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id }, new Browsable<PatientInfo>
-            {
-                Resource = resource,
-                Links = new[]
+            return optionalResource.Match<ActionResult>(
+                some: resource => new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, resource.Id }, new Browsable<PatientInfo>
                 {
+                    Resource = resource,
+                    Links = new[]
+                    {
+                        new Link
+                        {
+                            Relation = Self,
+                            Method = "GET",
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value })
+                        },
                         new Link
                         {
                             Relation = "delete",
                             Method = "DELETE",
-                            Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value })
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = resource.Id.Value })
                         }
                     }
-            });
+                }),
+                none: failure => failure switch
+                {
+                    CreateCommandFailure.Conflict => new ConflictResult(),
+                    CreateCommandFailure.NotFound => new NotFoundResult(),
+                    CreateCommandFailure.Unauthorized => new StatusCodeResult(Status401Unauthorized),
+                });
         }
 
         // DELETE measures/bloodpressures/5
@@ -245,20 +247,28 @@
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute, RequireNonDefault] PatientId id, CancellationToken cancellationToken = default)
         {
-            IActionResult actionResult;
-            if (PatientId.Empty == id)
+            ActionResult result;
+
+            if (id == PatientId.Empty)
             {
-                actionResult = new BadRequestResult();
+                result = new BadRequestResult();
             }
             else
             {
-                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
-                uow.Repository<Patient>().Delete(x => x.Id == id);
-                await uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                actionResult = new NoContentResult();
+                DeletePatientInfoByIdCommand cmd = new(id);
+                DeleteCommandResult cmdResult = await _mediator.Send(cmd, cancellationToken)
+                    .ConfigureAwait(false);
+
+                result = cmdResult switch
+                {
+                    DeleteCommandResult.Done => new NoContentResult(),
+                    DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                    DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
+                    DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
+                };
             }
 
-            return actionResult;
+            return result;
         }
 
         /// <summary>
@@ -296,75 +306,24 @@
         [ProducesResponseType(typeof(IEnumerable<ValidationFailure>), 400)]
         public async Task<IActionResult> Patch([FromRoute, RequireNonDefault] PatientId id, [FromBody] JsonPatchDocument<PatientInfo> changes, CancellationToken cancellationToken = default)
         {
-            IActionResult actionResult;
-
-            IDictionary<string, Action<Patient, object>> patchActions = new Dictionary<string, Action<Patient, object>>
+            PatchInfo<PatientId, PatientInfo> data = new()
             {
-                [$"/{nameof(Patient.Firstname)}"] = (patient, value) => patient.ChangeFirstnameTo(value?.ToString()),
-                [$"/{nameof(Patient.Lastname)}"] = (patient, value) => patient.ChangeLastnameTo(value?.ToString()),
-                [$"/{nameof(Patient.BirthPlace)}"] = (patient, value) => patient.WasBornIn(value?.ToString()),
+                Id = id,
+                PatchDocument = changes
             };
+            PatchCommand<PatientId, PatientInfo> cmd = new(data);
 
-
-            if (id == default)
-            {
-                actionResult = new BadRequestResult();
-            }
-            else
-            {
-                using IUnitOfWork uow = UowFactory.NewUnitOfWork();
-                Option<Patient> optionalPatient = await uow.Repository<Patient>()
-                    .SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
-                    .ConfigureAwait(false);
-
-                actionResult = await optionalPatient.Match(
-                    some: async (patient) =>
-                    {
-                        IActionResult patchActionResult = new NoContentResult();
-
-                        Func<Operation<PatientInfo>, Operation<Patient>> converter = ExpressionBuilder.GetMapExpression<Operation<PatientInfo>, Operation<Patient>>().Compile();
-                        Operation<Patient>[] operations =
-                             changes.Operations
-                             .AsParallel()
-                             .Select(converter)
-                             .ToArray();
-
-                        bool canKeepPatching = true;
-                        int currentOperationIndex = 0;
-
-                        while (canKeepPatching && currentOperationIndex < operations.Count())
-                        {
-                            Operation<Patient> currentOperation = operations[currentOperationIndex];
-
-                            switch (currentOperation.OperationType)
-                            {
-                                case OperationType.Add:
-                                case OperationType.Replace:
-                                    if (patchActions.TryGetValue(currentOperation.path, out Action<Patient, object> actionToTake))
-                                    {
-                                        actionToTake.Invoke(patient, currentOperation.value);
-                                    }
-                                    break;
-                                default:
-                                    canKeepPatching = false;
-                                    actionResult = new BadRequestObjectResult($"Unsupported {currentOperation.OperationType} on {currentOperation.path}");
-                                    break;
-                            }
-
-                            currentOperationIndex++;
-                        }
-
-                        await uow.SaveChangesAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
-                        return patchActionResult;
-                    },
-                    none: () => Task.FromResult((IActionResult)new NotFoundResult())
-                )
+            ModifyCommandResult cmdResult = await _mediator.Send(cmd, cancellationToken)
                 .ConfigureAwait(false);
-            }
 
-            return actionResult;
+            return cmdResult switch
+            {
+                ModifyCommandResult.Done => new NoContentResult(),
+                ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
+                ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => new StatusCodeObjectResult(Status500InternalServerError, $"Unexpected <{cmdResult}> patch result"),
+            };
         }
 
         /// <summary>
@@ -401,32 +360,22 @@
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), 200)]
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
-        public async Task<IActionResult> Search([FromQuery] SearchPatientInfo search, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-            IList<IFilter> filters = new List<IFilter>();
-            if (!string.IsNullOrEmpty(search.Firstname))
+            SearchPatientInfoQuery request = new (new SearchPatientInfo
             {
-                filters.Add($"{nameof(search.Firstname)}={search.Firstname}".ToFilter<PatientInfo>());
-            }
-
-            if (!string.IsNullOrEmpty(search.Lastname))
-            {
-                filters.Add($"{nameof(search.Lastname)}={search.Lastname}".ToFilter<PatientInfo>());
-            }
-
-            SearchQueryInfo<PatientInfo> searchQuery = new()
-            {
-                Filter = filters.Count == 1
-                    ? filters.Single()
-                    : new MultiFilter { Logic = FilterLogic.And, Filters = filters },
+                BirthDate = search.BirthDate,
+                Firstname = search.Firstname,
+                Lastname = search.Lastname,
+                Sort = search.Sort,
+                PageSize = Math.Min(ApiOptions.Value.MaxPageSize, search.PageSize),
                 Page = search.Page,
-                PageSize = search.PageSize,
-                Sort = search.Sort?.ToSort<PatientInfo>() ?? new Sort<PatientInfo>(nameof(PatientInfo.Lastname), SortDirection.Descending)
-            };
+            });
 
-            Page<PatientInfo> pageOfResources = await Search(searchQuery, cancellationToken).ConfigureAwait(false);
+            Page<PatientInfo> pageOfResources = await _mediator.Send(request, cancellationToken)
+                                                               .ConfigureAwait(false);
             IActionResult actionResult;
-            if (pageOfResources.Count < searchQuery.Page)
+            if (pageOfResources.Count < request.Data.Page)
             {
                 actionResult = new NotFoundResult();
             }
@@ -436,16 +385,23 @@
                         items: pageOfResources.Entries.Select(x => new Browsable<PatientInfo>
                         {
                             Resource = x,
-                            Links = new[] {
-                            new Link
+                            Links = new[]
                             {
-                                Method = "GET",
-                                Relation = LinkRelation.Self,
-                                Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, Id = x.Id.Value })
-                            }
+                                new Link
+                                {
+                                    Method = "GET",
+                                    Relation = Self,
+                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName, id = x.Id.Value })
+                                },
+                                new Link()
+                                {
+                                    Method = "DELETE",
+                                    Relation = "delete",
+                                    Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = ControllerName,id = x.Id.Value })
+                                }
                             }
                         }),
-                        first: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                        first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
                             search.Firstname,
@@ -456,7 +412,7 @@
                             search.PageSize
                         }),
                         previous: search.Page > 1
-                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
@@ -468,7 +424,7 @@
                             })
                             : null,
                         next: pageOfResources.Count > search.Page
-                            ? UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                            ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                             {
                                 controller = ControllerName,
                                 search.Firstname,
@@ -479,7 +435,7 @@
                                 search.PageSize
                             })
                             : null,
-                        last: UrlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
+                        last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new
                         {
                             controller = ControllerName,
                             search.Firstname,
@@ -488,8 +444,7 @@
                             search.Sort,
                             page = Math.Max(pageOfResources.Count, 1),
                             search.PageSize
-                        })
-,
+                        }),
                         total: pageOfResources.Total);
 
                 actionResult = new OkObjectResult(page);

@@ -1,0 +1,9 @@
+<Project>
+
+  <ItemGroup>
+    <AdditionalFiles Condition="Exists('..\..\..\..\docs\architecture\ArchitecturalValidation\patients-api.layerdiagram')" Include="..\..\..\..\docs\architecture\ArchitecturalValidation\patients-api.layerdiagram">
+      <Link>patients-api.layerdiagram</Link>
+      <Visible>True</Visible>
+    </AdditionalFiles>
+  </ItemGroup>
+</Project>

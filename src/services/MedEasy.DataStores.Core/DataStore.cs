@@ -18,18 +18,18 @@
     /// <summary>
     /// Base class for creating a datastore specialized class.
     /// </summary>
-    /// <typeparam name="TContext"></typeparam>
+    /// <typeparam name="TContext">Type of the datastore that will be created.</typeparam>
     public abstract class DataStore<TContext> : DbContext, IDbContext where TContext : DbContext
     {
         /// <summary>
         /// Usual size for the "normal" text
         /// </summary>
-        public static readonly int NormalTextLength = 255;
+        public const int NormalTextLength = 255;
 
         /// <summary>
         /// Usual size for "short" text
         /// </summary>
-        public static readonly int ShortTextLength = 50;
+        public const int ShortTextLength = 50;
         private readonly IClock _clock;
 
         /// <summary>

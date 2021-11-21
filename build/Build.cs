@@ -45,7 +45,7 @@ namespace MedEasy.ContinuousIntegration
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },
-        CacheKeyFiles = new[] { "global.json", "Nuget.config" },
+        CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
         {
@@ -178,6 +178,8 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Generic name placeholder. Can be used wherever a name is required")]
         public readonly string Name;
 
+        private IEnumerable<Project> Projects => Partition.GetCurrent(Solution.GetProjects("*.csproj").ToArray());
+
         public Target Clean => _ => _
             .Executes(() =>
             {
@@ -195,10 +197,10 @@ namespace MedEasy.ContinuousIntegration
             .Executes(() =>
             {
                 DotNetRestore(s => s
-                    .SetProjectFile(Solution)
                     .SetIgnoreFailedSources(true)
                     .SetDisableParallel(false)
                     .When(IsLocalBuild && Interactive, _ => _.SetProperty("NugetInteractive", IsLocalBuild && Interactive))
+                    .CombineWith(Projects, (settings, csproj) => settings.SetProjectFile(csproj))
                 );
 
                 DotNetToolRestore(s => s
@@ -212,8 +214,7 @@ namespace MedEasy.ContinuousIntegration
                 DotNetBuild(s => s
                     .SetNoRestore(InvokedTargets.Contains(Restore))
                     .SetConfiguration(Configuration)
-                    .SetProjectFile(Solution)
-                    );
+                    .CombineWith(Projects, (settings, csproj) => settings.SetProjectFile(csproj)));
             });
 
         public Target UnitTests => _ => _

@@ -1,12 +1,15 @@
-﻿using MedEasy.Ids;
-
-/// <summary>
-/// Add multenancy support for an entity.
-/// </summary>
-public interface IHaveTenant
+﻿namespace MedEasy.Objects
 {
+    using MedEasy.Ids;
+
     /// <summary>
-    /// Id of the owner of the resource
+    /// Add multenancy support for an entity.
     /// </summary>
-    TenantId TenantId { get; set; }
+    public interface IHaveTenant
+    {
+        /// <summary>
+        /// Id of the owner of the resource
+        /// </summary>
+        TenantId TenantId { get; }
+    }
 }

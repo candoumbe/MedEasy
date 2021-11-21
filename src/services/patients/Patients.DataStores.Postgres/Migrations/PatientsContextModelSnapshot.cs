@@ -9,7 +9,7 @@ using Patients.Context;
 
 namespace Patients.DataStores.Postgres.Migrations
 {
-    [DbContext(typeof(PatientsContext))]
+    [DbContext(typeof(PatientsDataStore))]
     partial class PatientsContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -78,6 +78,9 @@ namespace Patients.DataStores.Postgres.Migrations
                     b.Property<string>("Lastname")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255)

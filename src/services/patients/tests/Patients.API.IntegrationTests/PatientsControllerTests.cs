@@ -1,28 +1,35 @@
 namespace Patients.API.IntegrationTests
 {
+    using Bogus;
+
     using FluentAssertions;
+
     using Identity.API.Fixtures.v2;
-    using Patients.DTO;
+
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
+
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Microsoft.AspNetCore.Mvc;
+
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
+
+    using Patients.DTO;
+
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Net.Http.Json;
     using System.Threading.Tasks;
+
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static System.Net.Http.HttpMethod;
-    using System.Text;
-    using System.Net.Mime;
-    using Bogus;
 
     [IntegrationTest]
     [Feature("Patients")]
@@ -33,25 +40,7 @@ namespace Patients.API.IntegrationTests
         private IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/patients";
         private readonly Faker _faker;
-
-        private static readonly JSchema _errorObjectSchema = new()
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(ValidationProblemDetails.Title).ToLower()] = new JSchema { Type = JSchemaType.String},
-                [nameof(ValidationProblemDetails.Status).ToLower()] = new JSchema { Type = JSchemaType.Number},
-                [nameof(ValidationProblemDetails.Detail).ToLower()] = new JSchema { Type = JSchemaType.String },
-                [nameof(ValidationProblemDetails.Errors).ToLower()] = new JSchema { Type = JSchemaType.Object },
-            },
-            Required =
-            {
-                nameof(ValidationProblemDetails.Title).ToLower(),
-                nameof(ValidationProblemDetails.Status).ToLower(),
-
-            }
-        };
-
+ 
         private static readonly JSchema _pageLink = new()
         {
             Type = JSchemaType.Object | JSchemaType.Null,
@@ -97,7 +86,6 @@ namespace Patients.API.IntegrationTests
                     nameof(GenericPagedGetResponse<object>.Links).ToLower(),
                     nameof(GenericPagedGetResponse<object>.Total).ToLower()
                 }
-
         };
 
         public PatientsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture, IdentityApiFixture identityFixture)
@@ -125,8 +113,8 @@ namespace Patients.API.IntegrationTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             // Act
-            HttpResponseMessage response = await client.GetAsync("/patients")
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.GetAsync("/patients")
+                                                       .ConfigureAwait(false);
 
             // Assert
             string json = await response.Content.ReadAsStringAsync()
@@ -162,12 +150,11 @@ namespace Patients.API.IntegrationTests
             HttpRequestMessage message = new(method, url);
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(message)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.SendAsync(message, default).ConfigureAwait(false);
 
             // Assert
             response.IsSuccessStatusCode.Should()
-                .BeTrue($"'{method}' HTTP method must be supported");
+                                        .BeTrue($"'{method}' HTTP method must be supported");
             ((int)response.StatusCode).Should().Be(Status200OK);
         }
 
@@ -184,7 +171,7 @@ namespace Patients.API.IntegrationTests
 
         [Theory]
         [MemberData(nameof(RequestWithEmptyIdReturnsBadRequestCases))]
-        public async Task Get_With_Empty_Id_Returns_Bad_Request(HttpMethod method)
+        public async Task Given_method_is_supported_when_id_is_empty_response_should_be_BadRequest(HttpMethod method)
         {
             _outputHelper.WriteLine($"method : <{method}>");
 
@@ -194,18 +181,15 @@ namespace Patients.API.IntegrationTests
 
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
-            HttpRequestMessage message = new(method, url);
+            using HttpRequestMessage message = new(method, url);
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(message)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.SendAsync(message)
+                                                             .ConfigureAwait(false);
 
             // Assert
             response.IsSuccessStatusCode.Should()
                 .BeFalse("the requested patient id is empty");
-            ((int)response.StatusCode).Should()
-                .Be(Status400BadRequest, "the requested patient id is empty");
-
             ((int)response.StatusCode).Should().Be(Status400BadRequest, "the requested patient id must not be empty and it's part of the url");
         }
 
@@ -213,19 +197,22 @@ namespace Patients.API.IntegrationTests
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
             // Arrange
-            string url = $"{_endpointUrl}/search?page=2&page10&firstname=Bruce";
+            const string url = $"{_endpointUrl}/search?page=2&pageSize=10&firstname=Bruce";
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             // Act
-            HttpResponseMessage response = await client.GetAsync(url)
-                .ConfigureAwait(false);
+            using HttpResponseMessage response = await client.GetAsync(url)
+                                                             .ConfigureAwait(false);
 
             // Assert
             response.IsSuccessStatusCode.Should()
-                .BeFalse("The page of results doesn't exist");
+                                        .BeFalse("The page of results doesn't exist");
+
+            _outputHelper.WriteLine($"response : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+
             ((int)response.StatusCode).Should()
-                .Be(Status404NotFound);
+                                      .Be(Status404NotFound);
         }
 
         [Fact]
@@ -244,7 +231,7 @@ namespace Patients.API.IntegrationTests
             };
 
             // Act
-            HttpResponseMessage response = await client.PostAsync("/patients", new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient, default)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
@@ -255,10 +242,11 @@ namespace Patients.API.IntegrationTests
             location.Should().NotBeNull();
             location.IsAbsoluteUri.Should().BeTrue("location of the resource must be an absolute URI");
             HttpRequestMessage headMessage = new(Head, location);
-            HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
-                .ConfigureAwait(false);
+            using HttpResponseMessage checkResponse = await client.SendAsync(headMessage)
+                                                                  .ConfigureAwait(false);
 
-            checkResponse.IsSuccessStatusCode.Should().BeTrue($"The content location must point to the created resource");
+            checkResponse.IsSuccessStatusCode.Should()
+                                             .BeTrue($"The content location must point to the created resource");
         }
 
         [Fact]
@@ -274,7 +262,7 @@ namespace Patients.API.IntegrationTests
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
-            HttpResponseMessage response = await client.PostAsync("/patients", new StringContent(newPatient.Jsonify(), Encoding.UTF8, MediaTypeNames.Application.Json))
+            HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient, default)
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create patient status code : {response.StatusCode}");
@@ -285,13 +273,16 @@ namespace Patients.API.IntegrationTests
             IEnumerable<Link> patientLinks = JToken.Parse(json)[nameof(Browsable<PatientInfo>.Links).ToLower()].ToObject<IEnumerable<Link>>();
             IEnumerable<Link> linksToGetData = patientLinks.Where(x => x.Method == "GET");
 
-            using HttpClient client2 = _server.CreateClient();
+            using HttpClient client2 = _server.CreateClient(new()
+            {
+                BaseAddress = client.BaseAddress
+            });
             foreach (Link link in linksToGetData)
             {
                 HttpRequestMessage headRequestMessage = new()
                 {
                     Method = Head,
-                    RequestUri = new Uri(link.Href)
+                    RequestUri = new Uri(link.Href, UriKind.Relative)
                 };
                 headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 

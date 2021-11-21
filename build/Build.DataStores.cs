@@ -12,50 +12,66 @@
 
     using static Nuke.Common.Logger;
     using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
+    using System.Collections.Generic;
+    using System;
 
     public partial class Build : NukeBuild
     {
-        [Parameter("Database engine to build an operationwill be build for (default : )")]
-        public readonly DataStoreProvider Provider = DataStoreProvider.Sqlite;
+        [Parameter("Store engine to target (default : sqlite, postgres)")]
+        public readonly DataStoreProvider[] Provider = { DataStoreProvider.Sqlite, DataStoreProvider.Postgres };
 
         [Parameter("Defines the service which an operation will be run for")]
         public readonly MedEasyServices Service;
 
         public Target MigrationAdd => _ => _
             .Description("Adds a EF Core migration for the specified service")
-            .OnlyWhenStatic(() => Provider != null && Service != null)
-            .Requires(() => ! string.IsNullOrWhiteSpace(Name))
+            .After(Compile)
+            .OnlyWhenStatic(() => Provider.Length > 0 && Service != null)
+            .Requires(() => !string.IsNullOrWhiteSpace(Name))
             .Executes(() =>
             {
-                string migrationProject = Solution.GetProject($"{Service}.DataStores.{Provider}");
                 string startupProject = Solution.GetProject($"{Service}.API");
 
-                Info($"Generating idempotent script for {startupProject} using {migrationProject}");
+                Provider.ForEach((provider, index) =>
+                {
+                    string migrationProject = Solution.GetProject($"{Service}.DataStores.{provider}");
 
-                EntityFrameworkMigrationsAdd(s => s
-                    .SetStartupProject(startupProject)
-                    .SetProject(migrationProject)
-                    .SetName(Name)
-                    .SetProcessArgumentConfigurator(args => args.Add("-- --provider {0}", Provider.ToString(), customValue: true)));
+                    Info($"Adding migration for {startupProject} using {migrationProject}");
+
+                    EntityFrameworkMigrationsAdd(s => s
+                        .SetStartupProject(startupProject)
+                        .SetProject(migrationProject)
+                        .SetName(Name)
+                        .SetNoBuild(index > 1 || InvokedTargets.Contains(Compile))
+                        .SetProcessArgumentConfigurator(args => args.Add("-- --provider {0}", provider.ToString(), customValue: true)));
+                });
             });
 
         public Target MigrationScript => _ => _
-            .Description("Generates idempotent script for the specified service's datastore and provider and output the ")
-            .OnlyWhenStatic(() => Provider != null && Service != null)
+            .Description("Generates idempotent scripts for the specified service's datastore")
+            .After(Compile)
+            .OnlyWhenStatic(() => Provider.Length > 0 && Service != null)
+            .Requires(() => !string.IsNullOrWhiteSpace(Name))
             .Produces(SqlScriptsDirectory / "*.sql")
             .Executes(() =>
             {
-                string migrationProject = Solution.GetProject($"{Service}.DataStores.{Provider}");
+                string currentDateTime = $"{DateTime.Now:yyyyMMddhhmmss}";
                 string startupProject = Solution.GetProject($"{Service}.API");
 
-                Info($"Generating idempotent script for {startupProject} using {migrationProject}");
+                Provider.ForEach((provider, index) =>
+                {
+                    string migrationProject = Solution.GetProject($"{Service}.DataStores.{provider}");
 
-                EntityFrameworkDbContextScript(s => s
-                    .SetStartupProject(startupProject)
-                    .SetProject(migrationProject)
-                    .SetOutput($"{SqlScriptsDirectory / Service / Provider}/idempotent_script.sql")
-                    .SetProcessArgumentConfigurator(args => args.Add("-- --provider {0}", Provider.ToString(), customValue: true)));
+                    Info($"Generating idempotent script for {startupProject} using {migrationProject}");
+
+                    EntityFrameworkDbContextScript(s => s
+                        .SetStartupProject(startupProject)
+                        .SetProject(migrationProject)
+                        .SetNoBuild(index > 1 || InvokedTargets.Contains(Compile))
+                        .SetOutput($"{SqlScriptsDirectory / Service / provider}/{currentDateTime}_{Name.ToSnakeCase()}.sql")
+                        .SetProcessArgumentConfigurator(args => args.Add("-- --provider {0}", provider.ToString(), customValue: true)));
+
+                });
             });
-
     }
 }

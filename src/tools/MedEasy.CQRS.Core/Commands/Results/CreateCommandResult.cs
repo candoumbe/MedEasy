@@ -1,5 +1,8 @@
 ﻿namespace MedEasy.CQRS.Core.Commands.Results
 {
+    /// <summary>
+    /// Possible outcomes when trying to create a new resource
+    /// </summary>
     public enum CreateCommandResult
     {
         /// <summary>

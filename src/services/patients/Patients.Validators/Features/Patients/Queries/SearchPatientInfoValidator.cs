@@ -26,7 +26,7 @@
             Include(new AbstractSearchInfoValidator<PatientInfo>());
             When(x => string.IsNullOrWhiteSpace(x.Firstname)
                     && string.IsNullOrWhiteSpace(x.Lastname)
-                    && x.BirthDate == null
+                    && x.BirthDate is null
                     && string.IsNullOrWhiteSpace(x.Sort),
                 () =>
                 {

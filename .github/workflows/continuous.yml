@@ -42,7 +42,7 @@ jobs:
           path: |
             .nuke/temp
             ~/.nuget/packages
-          key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config') }}
+          key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config', '.config/dotnet-tools.json') }}
       - name: Run './build.cmd UnitTests'
         run: ./build.cmd UnitTests
         env:

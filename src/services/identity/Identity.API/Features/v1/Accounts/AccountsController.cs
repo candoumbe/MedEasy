@@ -47,6 +47,9 @@
     [Authorize]
     public class AccountsController
     {
+        /// <summary>
+        /// Name of the resources
+        /// </summary>
         public static string EndpointName => nameof(AccountsController).Replace(nameof(Controller), string.Empty);
 
         private readonly LinkGenerator _urlHelper;
@@ -145,8 +148,7 @@
                 DeleteCommandResult.Done => new NoContentResult(),
                 DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
                 DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
-                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
-                _ => throw new ArgumentOutOfRangeException(nameof(cmdResult), cmdResult, $"Unexpected <{cmdResult}> result"),
+                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
             };
         }
 
@@ -242,8 +244,7 @@
                 ModifyCommandResult.Done => new NoContentResult(),
                 ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
                 ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
-                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
-                _ => throw new ArgumentOutOfRangeException(nameof(cmdResult), cmdResult, $"Unexpected <{cmdResult}> patch result"),
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
             };
         }
 

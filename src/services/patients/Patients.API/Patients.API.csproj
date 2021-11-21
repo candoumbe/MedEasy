@@ -22,7 +22,7 @@
     <ProjectReference Include="..\..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
     <ProjectReference Include="..\..\MedEasy.Attributes\MedEasy.Attributes.csproj" />
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
-    <ProjectReference Include="..\Patients.Context\Patients.Context.csproj" />
+    <ProjectReference Include="..\Patients.Context\Patients.DataStores.csproj" />
     <ProjectReference Include="..\Patients.CQRS\Patients.CQRS.csproj" />
     <ProjectReference Include="..\Patients.DataStores.Postgres\Patients.DataStores.Postgres.csproj" />
     <ProjectReference Include="..\Patients.DataStores.Sqlite\Patients.DataStores.Sqlite.csproj" />
@@ -30,6 +30,12 @@
     <ProjectReference Include="..\Patients.Mapping\Patients.Mapping.csproj" />
     <ProjectReference Include="..\Patients.Objects\Patients.Objects.csproj" />
     <ProjectReference Include="..\Patients.Validators\Patients.Validators.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="measures-api.layerdiagram.layout">
+      <DependentUpon>measures-api.layerdiagram</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

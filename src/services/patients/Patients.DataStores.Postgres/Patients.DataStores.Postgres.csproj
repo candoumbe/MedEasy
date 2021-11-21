@@ -5,6 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Patients.Context\Patients.Context.csproj" />
+    <ProjectReference Include="..\Patients.Context\Patients.DataStores.csproj" />
   </ItemGroup>
 </Project>

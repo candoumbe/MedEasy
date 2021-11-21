@@ -105,10 +105,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.DataStores.Core", "src\services\MedEasy.DataStores.Core\MedEasy.DataStores.Core.csproj", "{D1F65120-1066-4608-A7CA-AFF6254E7297}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patients", "patients", "{FE9172AB-55D7-43C8-8D7E-022EB1781051}"
+	ProjectSection(SolutionItems) = preProject
+		src\services\patients\Directory.Build.targets = src\services\patients\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.API", "src\services\Patients\Patients.API\Patients.API.csproj", "{4DC902A8-6E5D-46AC-8226-329D30CC4210}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Context", "src\services\Patients\Patients.Context\Patients.Context.csproj", "{C6D88258-551F-4FA1-A264-8A97E9F83CDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DataStores", "src\services\Patients\Patients.Context\Patients.DataStores.csproj", "{C6D88258-551F-4FA1-A264-8A97E9F83CDB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.CQRS", "src\services\Patients\Patients.CQRS\Patients.CQRS.csproj", "{6886B478-D3E8-479C-B12B-131B09EF68A4}"
 EndProject
@@ -279,12 +282,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{281A
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patients.DataStores.Postgres", "src\services\patients\Patients.DataStores.Postgres\Patients.DataStores.Postgres.csproj", "{5A95F839-DE34-4784-8E03-C2AD68B24772}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DataStores.Postgres", "src\services\patients\Patients.DataStores.Postgres\Patients.DataStores.Postgres.csproj", "{5A95F839-DE34-4784-8E03-C2AD68B24772}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{38887BF1-8E27-4609-A40B-2A2D4BDACC68}"
 	ProjectSection(SolutionItems) = preProject
 		src\services\identity\scripts\create-account.txt = src\services\identity\scripts\create-account.txt
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{279EF761-E843-4220-B328-83F21BB09500}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{F06203ED-5CF4-451B-A016-550F00E9AB1E}"
+EndProject
+Project("{F088123C-0E9E-452A-89E6-6BA2F21D5CAC}") = "ArchitecturalValidation", "docs\architecture\ArchitecturalValidation\ArchitecturalValidation.modelproj", "{E6850113-E526-4884-BD63-3EAB75CD8C0D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1994,6 +2003,22 @@ Global
 		{5A95F839-DE34-4784-8E03-C2AD68B24772}.Release|x64.Build.0 = Release|Any CPU
 		{5A95F839-DE34-4784-8E03-C2AD68B24772}.Release|x86.ActiveCfg = Release|Any CPU
 		{5A95F839-DE34-4784-8E03-C2AD68B24772}.Release|x86.Build.0 = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|ARM.Build.0 = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|x64.Build.0 = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Debug|x86.Build.0 = Debug|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|ARM.Build.0 = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|x64.ActiveCfg = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|x64.Build.0 = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|x86.ActiveCfg = Release|Any CPU
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2125,6 +2150,8 @@ Global
 		{B0C3A442-B355-4AF3-8ECF-968C7DEFEB7A} = {40981BE2-68C4-499D-8DC3-F819594F9F04}
 		{5A95F839-DE34-4784-8E03-C2AD68B24772} = {FE9172AB-55D7-43C8-8D7E-022EB1781051}
 		{38887BF1-8E27-4609-A40B-2A2D4BDACC68} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
+		{F06203ED-5CF4-451B-A016-550F00E9AB1E} = {279EF761-E843-4220-B328-83F21BB09500}
+		{E6850113-E526-4884-BD63-3EAB75CD8C0D} = {F06203ED-5CF4-451B-A016-550F00E9AB1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

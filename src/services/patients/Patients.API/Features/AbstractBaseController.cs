@@ -66,11 +66,11 @@
         }
 
         /// <summary>
-        /// Performs the specified search 
+        /// Performs the specified <paramref name="search"/>
         /// </summary>
         /// <param name="search"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns><see cref="Page{T}"/></returns>
         protected async Task<Page<TResource>> Search(SearchQueryInfo<TResource> search, CancellationToken cancellationToken = default)
         {
             using IUnitOfWork uow = UowFactory.NewUnitOfWork();
@@ -78,14 +78,13 @@
             Expression<Func<TEntity, TResource>> selector = ExpressionBuilder.GetMapExpression<TEntity, TResource>();
 
             return await uow.Repository<TEntity>()
-                .WhereAsync(
-                    selector,
-                    filter,
-                    search.Sort,
-                    search.Page,
-                    search.PageSize,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                            .WhereAsync(selector,
+                                        filter,
+                                        search.Sort,
+                                        search.Page,
+                                        search.PageSize,
+                                        cancellationToken)
+                            .ConfigureAwait(false);
         }
     }
 }

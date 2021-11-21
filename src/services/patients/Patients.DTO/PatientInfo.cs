@@ -1,5 +1,6 @@
 ﻿namespace Patients.DTO
 {
+    using MedEasy.Ids;
     using MedEasy.RestObjects;
 
     using NodaTime;
@@ -27,8 +28,6 @@
         [StringLength(255)]
         public string Lastname { get; set; }
 
-        //public string Fullname => $"{Firstname?.Trim()}{(string.IsNullOrWhiteSpace(Firstname?.Trim()) ? string.Empty : " ")}{Lastname}";
-
         /// <summary>
         /// Patient's birth date
         /// </summary>
@@ -38,5 +37,10 @@
         /// Id of the main doctor
         /// </summary>
         public DoctorId MainDoctorId { get; set; }
+
+        /// <summary>
+        /// Owner of the current resource
+        /// </summary>
+        public TenantId TenantId { get; set; }
     }
 }

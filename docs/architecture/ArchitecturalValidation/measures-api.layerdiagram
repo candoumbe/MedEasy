@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/SimpleShapesModel" dslVersion="1.0.0.0" Id="b9bfba2a-a8d8-44ba-a20e-cc5c2a5826c9" xmlns="http://schemas.microsoft.com/VisualStudio/TeamArchitect/LayerDesigner">
+  <layers>
+    <layer Id="71bd8844-a0ba-4012-a5b5-a0bced85c1ce" name="Measures.API">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="f4540116-8cc7-40d5-bcef-6c2b1d976c38" direction="Forward">
+          <layerMoniker Id="4216044e-5837-41c0-a51f-f947cb92f196" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="79a19c06-8a82-4c13-a8cf-8c9364527af2" direction="Forward">
+          <layerMoniker Id="75a97709-fb38-4d7b-81cc-eb208ab59396" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="8e14f0a4-ac1c-4cb8-9b79-7237fa23053d" direction="Forward">
+          <layerMoniker Id="b90819fe-ce58-4526-a4f8-3f47e8455305" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="a78d5696-1626-47e1-9600-265421dae6f5" direction="Forward">
+          <layerMoniker Id="5bf81c66-cbe8-44d4-8a30-342d43ac3430" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="a214e9b9-d1b7-43db-bea7-38e860e331b1" name="Measures.API">
+          <ArtifactNode Label="Measures.API" Category="CodeSchema_Project" Id="(Assembly=../../../src/services/Measures/Measures.API/Measures.API.csproj)">
+            <Category Ref="File" />
+          </ArtifactNode>
+          <ExpandedNode Id="(Assembly=Measures.API)" Label="Measures.API.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Produces" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="4216044e-5837-41c0-a51f-f947cb92f196" name="Measures.CQRS">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="54b12f81-87a1-4729-81eb-0e77516e6288" direction="Forward">
+          <layerMoniker Id="75a97709-fb38-4d7b-81cc-eb208ab59396" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="6a378a5b-ee02-4bfa-8a39-e380362d9ff1" name="Measures.CQRS">
+          <ArtifactNode Label="Measures.CQRS" Category="CodeSchema_Project" Id="(Assembly=../../../src/services/Measures/Measures.CQRS/Measures.CQRS.csproj)">
+            <Category Ref="File" />
+          </ArtifactNode>
+          <ExpandedNode Id="(Assembly=Measures.CQRS)" Label="Measures.CQRS.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Produces" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="75a97709-fb38-4d7b-81cc-eb208ab59396" name="Measures.DataStores">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="340a2ca9-0f06-4d03-8e97-5e47d4967fbf" direction="Forward">
+          <layerMoniker Id="5da2a2ee-e505-4396-a031-0fda767da904" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="512566fd-e943-4d14-adc2-4cb8dd17acaa" direction="Forward">
+          <layerMoniker Id="5bf81c66-cbe8-44d4-8a30-342d43ac3430" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="94c84239-c412-4056-91bd-0d54a14d0922" name="Measures.DataStores">
+          <ArtifactNode Label="Measures.DataStores" Category="CodeSchema_Namespace" Id="(Namespace=Measures.DataStores)" />
+          <ExpandedNode Id="(Namespace=Measures.DataStores)" Label="Measures.DataStores" Category="CodeSchema_Namespace">
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="5da2a2ee-e505-4396-a031-0fda767da904" name="Measures.Objects">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="b6a37858-2950-48cf-acfc-5708b531e97e" direction="Forward">
+          <layerMoniker Id="5bf81c66-cbe8-44d4-8a30-342d43ac3430" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="16a5ab87-7fd5-486c-9459-0f3e900bf6de" name="Measures.Objects">
+          <ArtifactNode Label="Measures.Objects" Category="CodeSchema_Project" Id="(Assembly=../../../src/services/Measures/Measures.Objects/Measures.Objects.csproj)">
+            <Category Ref="File" />
+          </ArtifactNode>
+          <ExpandedNode Id="(Assembly=Measures.Objects)" Label="Measures.Objects.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Produces" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="b90819fe-ce58-4526-a4f8-3f47e8455305" name="Measures.Validators">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="f7c2cf4f-9779-4422-839d-9d243aaa7473" direction="Forward">
+          <layerMoniker Id="5bf81c66-cbe8-44d4-8a30-342d43ac3430" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="0c32d4cb-3c91-467c-bfb0-6f487ebb6a06" name="Measures.Validators">
+          <ArtifactNode Label="Measures.Validators" Category="CodeSchema_Project" Id="(Assembly=../../../src/services/Measures/Measures.Validators/Measures.Validators.csproj)">
+            <Category Ref="File" />
+          </ArtifactNode>
+          <ExpandedNode Id="(Assembly=Measures.Validators)" Label="Measures.Validators.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Produces" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="5bf81c66-cbe8-44d4-8a30-342d43ac3430" name="Measures.Ids">
+      <references>
+        <reference Id="58bd66ad-c01b-4f82-98d7-38c3c30bae8e" name="Measures.Ids">
+          <ArtifactNode Label="Measures.Ids" Category="CodeSchema_Project" Id="(Assembly=../../../src/services/measures/Measures.Ids/Measures.Ids.csproj)">
+            <Category Ref="File" />
+          </ArtifactNode>
+          <ExpandedNode Id="(Assembly=Measures.Ids)" Label="Measures.Ids.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Produces" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+  </layers>
+</layerModel>

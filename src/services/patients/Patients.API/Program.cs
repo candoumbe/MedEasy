@@ -37,7 +37,7 @@
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
-            PatientsContext context = services.GetRequiredService<PatientsContext>();
+            PatientsDataStore context = services.GetRequiredService<PatientsDataStore>();
 
             logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
 

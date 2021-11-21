@@ -6,6 +6,7 @@
 
     using MassTransit;
 
+    using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
@@ -16,6 +17,8 @@
 
     using NodaTime;
     using NodaTime.Testing;
+
+    using Optional;
 
     using Patients.Context;
     using Patients.CQRS.Commands;
@@ -41,7 +44,7 @@
     [UnitTest]
     [Feature("Patients")]
     [Feature("Handlers")]
-    public class HandleCreatePatientInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<PatientsContext>>
+    public class HandleCreatePatientInfoCommandTests : IClassFixture<SqliteEfCoreDatabaseFixture<PatientsDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -50,13 +53,13 @@
         private readonly HandleCreatePatientInfoCommand _sut;
         private readonly Mock<IPublishEndpoint> _publishEndpointMock;
 
-        public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<PatientsContext> database)
+        public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<PatientsDataStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<PatientsContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<PatientsDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                PatientsContext context = new(options, new FakeClock(new Instant()));
+                PatientsDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -123,41 +126,45 @@
             _publishEndpointMock.Setup(mock => mock.Publish(It.IsNotNull<PatientCaseCreated>(), It.IsAny<CancellationToken>()))
                                 .Returns(Task.CompletedTask);
 
-            // Act
-            PatientInfo createdResource = await _sut.Handle(cmd, default)
-                .ConfigureAwait(false);
+            Option<PatientInfo, CreateCommandFailure> optionalCreatedResource = await _sut.Handle(cmd, default)
+                                                                                          .ConfigureAwait(false);
 
-            // Assert            
-            _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default),
+            // Assert
+            optionalCreatedResource.HasValue.Should().BeTrue();
+            optionalCreatedResource.MatchSome(
+                async createdResource =>
+                {
+                    _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default),
                                         Times.Once,
                                         $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default),
-                                        Times.Once,
-                                        $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _publishEndpointMock.VerifyNoOtherCalls();
+                    _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default),
+                                                Times.Once,
+                                                $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+                    _publishEndpointMock.VerifyNoOtherCalls();
 
-            createdResource.Should()
-                .NotBeNull();
-            createdResource.Id.Should()
-                .NotBe(PatientId.Empty).And
-                .NotBeNull();
-            createdResource.Firstname.Should()
-                .Be(resourceInfo.Firstname?.ToTitleCase());
-            createdResource.Lastname.Should()
-                .Be(resourceInfo.Lastname?.ToUpperInvariant());
-            createdResource.BirthDate.Should()
-                .Be(resourceInfo.BirthDate);
-            //createdResource.CreatedDate.Should()
-            //    .Be(now);
-            //createdResource.UpdatedDate.Should()
-            //    .Be(createdResource.CreatedDate);
+                    createdResource.Should()
+                        .NotBeNull();
+                    createdResource.Id.Should()
+                        .NotBe(PatientId.Empty).And
+                        .NotBeNull();
+                    createdResource.Firstname.Should()
+                        .Be(resourceInfo.Firstname?.ToTitleCase());
+                    createdResource.Lastname.Should()
+                        .Be(resourceInfo.Lastname?.ToUpperInvariant());
+                    createdResource.BirthDate.Should()
+                        .Be(resourceInfo.BirthDate);
+                    //createdResource.CreatedDate.Should()
+                    //    .Be(now);
+                    //createdResource.UpdatedDate.Should()
+                    //    .Be(createdResource.CreatedDate);
 
-            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            bool createSuccessful = await uow.Repository<Patient>()
-                .AnyAsync(x => x.Id == createdResource.Id)
-                .ConfigureAwait(false);
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    bool createSuccessful = await uow.Repository<Patient>()
+                        .AnyAsync(x => x.Id == createdResource.Id)
+                        .ConfigureAwait(false);
 
-            createSuccessful.Should().BeTrue("element should be present after handling the create command");
+                    createSuccessful.Should().BeTrue("element should be present after handling the create command");
+                });
         }
 
         [Fact]
@@ -178,36 +185,40 @@
                 .Returns(Task.CompletedTask);
 
             // Act
-            PatientInfo createdResource = await _sut.Handle(cmd, default)
-                .ConfigureAwait(false);
+            Option<PatientInfo, CreateCommandFailure> optionalCreatedResource = await _sut.Handle(cmd, default)
+                                                                                          .ConfigureAwait(false);
 
             // Assert
-            
-            _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _publishEndpointMock.VerifyNoOtherCalls();
+            optionalCreatedResource.HasValue.Should().BeTrue();
+            optionalCreatedResource.MatchSome(
+                async createdResource =>
+                {
+                    _publishEndpointMock.Verify(mock => mock.Publish(It.IsAny<PatientCaseCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+                    _publishEndpointMock.Verify(mock => mock.Publish(It.Is<PatientCaseCreated>(evt => evt.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+                    _publishEndpointMock.VerifyNoOtherCalls();
 
-            createdResource.Should()
-                .NotBeNull();
-            createdResource.Id.Should()
-                .Be(desiredId, $"handler must use value of {nameof(CreatePatientInfo)}.{nameof(CreatePatientInfo.Id)} when that value is not null");
-            createdResource.Firstname.Should()
-                .Be(resourceInfo.Firstname?.ToTitleCase());
-            createdResource.Lastname.Should()
-                .Be(resourceInfo.Lastname?.ToUpperInvariant());
-            createdResource.BirthDate.Should()
-                .Be(resourceInfo.BirthDate);
-            //createdResource.CreatedDate.Should()
-            //    .Be(now);
-            //createdResource.UpdatedDate.Should()
-            //    .Be(createdResource.CreatedDate);
+                    createdResource.Should()
+                        .NotBeNull();
+                    createdResource.Id.Should()
+                        .Be(desiredId, $"handler must use value of {nameof(CreatePatientInfo)}.{nameof(CreatePatientInfo.Id)} when that value is not null");
+                    createdResource.Firstname.Should()
+                        .Be(resourceInfo.Firstname?.ToTitleCase());
+                    createdResource.Lastname.Should()
+                        .Be(resourceInfo.Lastname?.ToUpperInvariant());
+                    createdResource.BirthDate.Should()
+                        .Be(resourceInfo.BirthDate);
+                    //createdResource.CreatedDate.Should()
+                    //    .Be(now);
+                    //createdResource.UpdatedDate.Should()
+                    //    .Be(createdResource.CreatedDate);
 
-            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            bool createSuccessful = await uow.Repository<Patient>()
-                .AnyAsync(x => x.Id == createdResource.Id)
-                .ConfigureAwait(false);
+                    using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+                    bool createSuccessful = await uow.Repository<Patient>()
+                        .AnyAsync(x => x.Id == createdResource.Id)
+                        .ConfigureAwait(false);
 
-            createSuccessful.Should().BeTrue("element should be present after handling the create command");
+                    createSuccessful.Should().BeTrue("element should be present after handling the create command");
+                });
         }
     }
 }

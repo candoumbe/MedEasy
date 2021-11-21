@@ -47,12 +47,16 @@
         /// </remarks>
         public int Page { get; set; }
 
+        ///<inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as PaginationConfiguration);
 
+        ///<inheritdoc/>
         public override int GetHashCode() => (Page, PageSize).GetHashCode();
 
+        ///<inheritdoc/>
         public bool Equals(PaginationConfiguration other) => (Page, PageSize) == (other?.Page, other?.PageSize);
 
+        ///<inheritdoc/>
         public override string ToString() => this.Jsonify();
     }
 }

@@ -8,7 +8,6 @@
     /// Query to filter resources
     /// </summary>
     /// <typeparam name="T">Type of the resources to perform search onto</typeparam>
-    //[JsonObject]
     public class SearchQuery<T> : IQuery<Guid, SearchQueryInfo<T>, Page<T>>
     {
         public Guid Id { get; }
@@ -30,6 +29,7 @@
             Data = search;
         }
 
+        ///<inheritdoc/>
         public override string ToString() => this.Jsonify();
 
     }

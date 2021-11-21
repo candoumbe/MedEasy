@@ -1,6 +1,9 @@
 ﻿namespace Patients.CQRS.Commands
 {
     using MedEasy.CQRS.Core.Commands;
+    using MedEasy.CQRS.Core.Commands.Results;
+
+    using Optional;
 
     using Patients.DTO;
 
@@ -9,7 +12,7 @@
     /// <summary>
     /// Command to create a new <see cref="PatientInfo"/>
     /// </summary>
-    public class CreatePatientInfoCommand : CommandBase<Guid, CreatePatientInfo, PatientInfo>
+    public class CreatePatientInfoCommand : CommandBase<Guid, CreatePatientInfo, Option<PatientInfo, CreateCommandFailure>>
     {
         /// <summary>
         /// Creates a new <see cref="CreatePatientInfoCommand"/> instance
