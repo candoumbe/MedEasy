@@ -282,6 +282,7 @@ namespace MedEasy.ContinuousIntegration
                                                                          || project.Name.Like("*.context", true))
                                                        .OrderBy(project => project.Name)
                                                        .ToArray();
+
                 foreach (Project datastoreProject in datastoresProjects)
                 {
                     Info($"Updating database associated with '{datastoreProject.Name}'");
@@ -331,7 +332,6 @@ namespace MedEasy.ContinuousIntegration
                         EntityFrameworkMigrationsList(_ => _
                             .SetProject(datastoreProject)
                             .SetStartupProject(apiProject)
-                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
                         );
@@ -343,7 +343,6 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
                             .ToggleJson()
-                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
                         );
