@@ -312,8 +312,8 @@ namespace MedEasy.ContinuousIntegration
                             appSettings.Remove(connectionStringsPropertyName);
                             appSettings.Add(connectionStringsPropertyName, connectionStrings);
 
-                            string tempFileName = Path.GetRandomFileName();
-                            Log(LogLevel.Trace, $"Generating temporary file '{tempFileName}'");
+                            string tempFileName = Path.GetTempFileName();
+                            Trace($"Generating temporary file '{tempFileName}'");
 
                             await File.WriteAllLinesAsync(tempFileName, new[] { JsonConvert.SerializeObject(appSettings, Formatting.Indented) })
                                       .ConfigureAwait(false);
