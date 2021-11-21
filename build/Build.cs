@@ -318,7 +318,7 @@ namespace MedEasy.ContinuousIntegration
                             await File.WriteAllLinesAsync(tempFileName, new[] { JsonConvert.SerializeObject(appSettings, Formatting.Indented) })
                                       .ConfigureAwait(false);
 
-                            File.Replace(tempFileName, appSettingsFilePath, null);
+                            File.Move(tempFileName, appSettingsFilePath, overwrite: true);
                             string appSettingsContent = await File.ReadAllTextAsync(tempFileName).ConfigureAwait(false);
                             Trace("{Filename} content : {FileContent}", appSettingsFilePath, appSettingsContent);
                         }
