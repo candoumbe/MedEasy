@@ -6,7 +6,6 @@ namespace MedEasy.ContinuousIntegration
 
     using Nuke.Common;
     using Nuke.Common.CI;
-    using Nuke.Common.CI.AzurePipelines;
     using Nuke.Common.CI.GitHubActions;
     using Nuke.Common.Execution;
     using Nuke.Common.Git;
@@ -18,6 +17,7 @@ namespace MedEasy.ContinuousIntegration
     using Nuke.Common.Tools.EntityFramework;
     using Nuke.Common.Tools.GitVersion;
     using Nuke.Common.Tools.ReportGenerator;
+    using Nuke.Common.Tools.Codecov;
     using Nuke.Common.Utilities;
 
     using System;
@@ -33,6 +33,7 @@ namespace MedEasy.ContinuousIntegration
     using static Nuke.Common.IO.PathConstruction;
     using static Nuke.Common.IO.TextTasks;
     using static Nuke.Common.Logger;
+    using static Nuke.Common.Tools.Codecov.CodecovTasks;
     using static Nuke.Common.Tools.DotNet.DotNetTasks;
     using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.Git.GitTasks;
@@ -41,15 +42,15 @@ namespace MedEasy.ContinuousIntegration
     [GitHubActions(
         "continuous",
         GitHubActionsImage.WindowsLatest,
-        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*", ColdfixBranchPrefix + "/*"},
-        OnPullRequestBranches = new[] { DevelopBranch },
+        OnPushBranchesIgnore = new[] { MainBranchName },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(UnitTests) },
+        InvokedTargets = new[] { nameof(Tests) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
         {
-            nameof(NugetApiKey)
+            nameof(NugetApiKey),
+            nameof(CodecovToken)
         },
         OnPullRequestExcludePaths = new[]
         {
@@ -66,9 +67,10 @@ namespace MedEasy.ContinuousIntegration
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
-                        {
-                            nameof(NugetApiKey)
-                        },
+        {
+            nameof(NugetApiKey),
+            nameof(CodecovToken)
+        },
         OnPullRequestExcludePaths = new[]
         {
             "**/*.md",
@@ -91,11 +93,6 @@ namespace MedEasy.ContinuousIntegration
         [Required] [Solution] public readonly Solution Solution;
         [Required] [GitRepository] public readonly GitRepository GitRepository;
         [Required] [GitVersion(Framework = "net5.0")] public readonly GitVersion GitVersion;
-
-
-        private AbsolutePath DotnetToolsConfigDirectory => RootDirectory / ".config";
-
-        public AbsolutePath DotnetToolsLocalConfigFile => DotnetToolsConfigDirectory / "dotnet-tools.json";
 
         public AbsolutePath SourceDirectory => RootDirectory / "src";
 
@@ -131,7 +128,7 @@ namespace MedEasy.ContinuousIntegration
         /// <summary>
         /// Path to code coverage report history for integration tests
         /// </summary>
-        public AbsolutePath CoverageReportintegrationTestsHistoryDirectory => CoverageReportHistoryDirectory / "integration-tests";
+        public AbsolutePath CoverageReportIntegrationTestsHistoryDirectory => CoverageReportHistoryDirectory / "integration-tests";
 
         /// <summary>
         /// Path to the folder that contains databases used by integration tests.
@@ -164,6 +161,9 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Token required when publishing artifacts to GitHub")]
         public readonly string GitHubToken;
 
+        [Parameter("Token required when publishing code coverage to CodeCov")]
+        public readonly string CodecovToken;
+
         [Parameter("Defines which services should start when calling 'run' command (agenda, identity, documents, patients, measures)."
             + "You can also use 'backends' to start all apis or 'datastores' to start all databases at once)"
         )]
@@ -189,7 +189,7 @@ namespace MedEasy.ContinuousIntegration
                 EnsureCleanDirectory(CoverageReportUnitTestsDirectory);
                 EnsureCleanDirectory(CoverageReportIntegrationTestsDirectory);
 
-                EnsureExistingDirectory(CoverageReportintegrationTestsHistoryDirectory);
+                EnsureExistingDirectory(CoverageReportIntegrationTestsHistoryDirectory);
                 EnsureExistingDirectory(CoverageReportUnitTestsHistoryDirectory);
             });
 
@@ -390,17 +390,78 @@ namespace MedEasy.ContinuousIntegration
                         .SetReports(IntegrationTestsResultDirectory / "*.xml")
                         .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
                         .SetTargetDirectory(CoverageReportIntegrationTestsDirectory)
-                        .SetHistoryDirectory(CoverageReportintegrationTestsHistoryDirectory)
+                        .SetHistoryDirectory(CoverageReportIntegrationTestsHistoryDirectory)
                     );
             });
 
         public Target Tests => _ => _
             .DependsOn(UnitTests, IntegrationTests)
-            .Description("Run all configured tests")
+            .Description("Run all configured tests");
+
+
+        public Target ReportCoverage => _ => _
+            .DependsOn(ReportUnitTestsCoverage, ReportIntegrationTestsCoverage)
+            .OnlyWhenDynamic(() => IsServerBuild || CodecovToken != null);
+
+        public Target ReportUnitTestsCoverage => _ => _
+            .DependsOn(UnitTests)
+            .OnlyWhenDynamic(() => IsServerBuild || CodecovToken != null)
+            .Consumes(UnitTests, UnitTestsResultDirectory / "*.xml")
+            .Produces(CoverageReportUnitTestsDirectory / "*.xml")
+            .Produces(CoverageReportUnitTestsHistoryDirectory / "*.xml")
             .Executes(() =>
             {
 
+                ReportGenerator(_ => _
+                            .SetFramework("net5.0")
+                            .SetReports(UnitTestsResultDirectory / "*.xml")
+                            .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
+                            .SetTargetDirectory(CoverageReportUnitTestsDirectory)
+                            .SetHistoryDirectory(CoverageReportUnitTestsHistoryDirectory)
+                            .SetTag(GitRepository.Commit)
+                        );
+
+                    Codecov(s => s
+                        .SetFiles(UnitTestsResultDirectory.GlobFiles("*.xml").Select(x => x.ToString()))
+                        .SetToken(CodecovToken)
+                        .SetBranch(GitRepository.Branch)
+                        .SetSha(GitRepository.Commit)
+                        .SetBuild(GitVersion.FullSemVer)
+                        .SetFramework("netcoreapp3.0")
+                        .SetName("Unit tests code coverage")
+                    );
             });
+
+        public Target ReportIntegrationTestsCoverage => _ => _
+            .DependsOn(UnitTests)
+            .OnlyWhenDynamic(() => IsServerBuild || CodecovToken != null)
+            .Consumes(UnitTests, IntegrationTestsResultDirectory / "*.xml")
+            .Produces(CoverageReportIntegrationTestsDirectory / "*.xml")
+            .Produces(CoverageReportIntegrationTestsHistoryDirectory / "*.xml")
+            .Executes(() =>
+            {
+
+                ReportGenerator(_ => _
+                            .SetFramework("net5.0")
+                            .SetReports(IntegrationTestsResultDirectory / "*.xml")
+                            .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
+                            .SetTargetDirectory(CoverageReportIntegrationTestsDirectory)
+                            .SetHistoryDirectory(CoverageReportIntegrationTestsHistoryDirectory)
+                            .SetTag(GitRepository.Commit)
+                        );
+
+                Codecov(s => s
+                    .SetFiles(IntegrationTestsResultDirectory.GlobFiles("*.xml").Select(x => x.ToString()))
+                    .SetToken(CodecovToken)
+                    .SetBranch(GitRepository.Branch)
+                    .SetSha(GitRepository.Commit)
+                    .SetBuild(GitVersion.FullSemVer)
+                    .SetFramework("netcoreapp3.0")
+                    .SetName("Integration tests code coverage")
+                );
+            });
+
+
 
         public Target Pack => _ => _
             .DependsOn(Tests)
@@ -434,12 +495,12 @@ namespace MedEasy.ContinuousIntegration
         public string NugetPackageSource => "https://api.nuget.org/v3/index.json";
 
         public Target Publish => _ => _
-            .Description($"Published packages (*.nupkg and *.snupkg) to the destination server set with {nameof(NugetPackageSource)} settings ")
+            .Description($"Publish packages (*.nupkg and *.snupkg) to the destination server set with {nameof(NugetPackageSource)} settings ")
             .DependsOn(UnitTests, Pack)
             .Consumes(Pack, ArtifactsDirectory / "*.nupkg", ArtifactsDirectory / "*.snupkg")
-            .Requires(() => !NugetApiKey.IsNullOrEmpty())
+            .OnlyWhenDynamic(() => !(NugetApiKey.IsNullOrEmpty() || GitHubToken.IsNullOrEmpty()))
             .Requires(() => GitHasCleanWorkingCopy())
-            .Requires(() => GitRepository.Branch == MainBranchName
+            .Requires(() => GitRepository.IsOnMainBranch()
                             || GitRepository.IsOnReleaseBranch()
                             || GitRepository.IsOnDevelopBranch())
             .Requires(() => Configuration.Equals(Configuration.Release))
@@ -516,5 +577,7 @@ namespace MedEasy.ContinuousIntegration
             {
                 Npx("swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
             });
+
+
     }
 }

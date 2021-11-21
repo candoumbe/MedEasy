@@ -10,6 +10,10 @@
           "type": "boolean",
           "description": "Indicates if any changes should be stashed automatically prior to switching branch (Default : true)"
         },
+        "CodecovToken": {
+          "type": "string",
+          "description": "Token required when publishing code coverage to CodeCov"
+        },
         "Configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)",
@@ -173,6 +177,9 @@
               "Pack",
               "Publish",
               "Release",
+              "ReportCoverage",
+              "ReportIntegrationTestsCoverage",
+              "ReportUnitTestsCoverage",
               "Restore",
               "Run",
               "StartMessageBus",
@@ -206,6 +213,9 @@
               "Pack",
               "Publish",
               "Release",
+              "ReportCoverage",
+              "ReportIntegrationTestsCoverage",
+              "ReportUnitTestsCoverage",
               "Restore",
               "Run",
               "StartMessageBus",
