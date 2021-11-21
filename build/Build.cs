@@ -277,6 +277,8 @@ namespace MedEasy.ContinuousIntegration
             .Executes(async () =>
             {
                 const string connectionStringsPropertyName = "ConnectionStrings";
+                const string appSettingsFileName = "appSettings.IntegrationTest.json";
+
                 Project[] datastoresProjects = Solution.AllProjects
                                                        .Where(project => project.Name.Like("*.datastores", true)
                                                                          || project.Name.Like("*.context", true))
@@ -300,7 +302,7 @@ namespace MedEasy.ContinuousIntegration
                     {
                         Info("Updating appsettings.IntegrationTest.json file");
                         AbsolutePath appSettingsFilePath = apiProject.Path.Parent.GlobFiles("appsettings.*.json")
-                                                                       .SingleOrDefault(file => new FileInfo(file).Name.Like("appsettings.IntegrationTest.json", true));
+                                                                       .SingleOrDefault(file => new FileInfo(file).Name.Like(appSettingsFileName, true));
                         if (appSettingsFilePath is not null)
                         {
                             string appSettingsJson = await File.ReadAllTextAsync(appSettingsFilePath)
@@ -313,7 +315,7 @@ namespace MedEasy.ContinuousIntegration
                             appSettings.Add(connectionStringsPropertyName, connectionStrings);
 
                             string tempFileName = Path.GetTempFileName();
-                            Trace($"Generating temporary file '{tempFileName}'");
+                            Info($"Generating temporary file '{tempFileName}'");
 
                             await File.WriteAllLinesAsync(tempFileName, new[] { JsonConvert.SerializeObject(appSettings, Formatting.Indented) })
                                       .ConfigureAwait(false);
@@ -324,7 +326,7 @@ namespace MedEasy.ContinuousIntegration
                         }
                         else
                         {
-                            Warn("'appsettings.IntegrationTest.json' file not found. ");
+                            Warn($"'{appSettingsFileName}' file not found. ");
                         }
                     }
 
