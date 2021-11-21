@@ -319,10 +319,12 @@ namespace MedEasy.ContinuousIntegration
                                       .ConfigureAwait(false);
 
                             File.Replace(tempFileName, appSettingsFilePath, null);
+                            string appSettingsContent = await File.ReadAllTextAsync(tempFileName).ConfigureAwait(false);
+                            Trace("{Filename} content : {FileContent}", appSettingsFilePath, appSettingsContent);
                         }
                         else
                         {
-                            Warn("'appsettings.integrationTest.json' file not found. ");
+                            Warn("'appsettings.IntegrationTest.json' file not found. ");
                         }
                     }
 
@@ -370,7 +372,7 @@ namespace MedEasy.ContinuousIntegration
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
-                    .SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(UnitTests))
+                    .SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(IntegrationTests))
                     .SetResultsDirectory(IntegrationTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .AddProperty("ExcludeByAttribute", "Obsolete")
@@ -378,19 +380,9 @@ namespace MedEasy.ContinuousIntegration
                         .CombineWith(project.GetTargetFrameworks(), (setting, framework) => setting
                             .SetFramework(framework)
                             .SetLoggers($"trx;LogFileName={project.Name}.{framework}.trx")
-                            .SetCollectCoverage(true)
                             .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml"))
                         )
                 );
-
-                // TODO Move this to a separate "coverage" target once https://github.com/nuke-build/nuke/issues/562 is solved !
-                ReportGenerator(_ => _
-                        .SetFramework("net5.0")
-                        .SetReports(IntegrationTestsResultDirectory / "*.xml")
-                        .SetReportTypes(ReportTypes.Badges, ReportTypes.HtmlChart, ReportTypes.HtmlInline_AzurePipelines_Dark)
-                        .SetTargetDirectory(CoverageReportIntegrationTestsDirectory)
-                        .SetHistoryDirectory(CoverageReportIntegrationTestsHistoryDirectory)
-                    );
             });
 
         public Target Tests => _ => _
