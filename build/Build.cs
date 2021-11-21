@@ -41,7 +41,7 @@ namespace MedEasy.ContinuousIntegration
 
     [GitHubActions(
         "continuous",
-        GitHubActionsImage.WindowsLatest,
+        GitHubActionsImage.UbuntuLatest,
         OnPushBranchesIgnore = new[] { MainBranchName },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(Tests) },
@@ -61,7 +61,7 @@ namespace MedEasy.ContinuousIntegration
     )]
     [GitHubActions(
         "deployment",
-        GitHubActionsImage.WindowsLatest,
+        GitHubActionsImage.UbuntuLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         InvokedTargets = new[] { nameof(Tests), nameof(Publish) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
@@ -310,6 +310,7 @@ namespace MedEasy.ContinuousIntegration
                             JObject appSettings = JObject.Parse(appSettingsJson);
                             JObject connectionStrings = appSettings[connectionStringsPropertyName].As<JObject>() ?? new JObject();
                             dataSource = @$"DataSource=""{connectionString}""";
+                            connectionStrings.Remove(databaseName);
                             connectionStrings.TryAdd($"{databaseName}", dataSource);
                             appSettings.Remove(connectionStringsPropertyName);
                             appSettings.Add(connectionStringsPropertyName, connectionStrings);
