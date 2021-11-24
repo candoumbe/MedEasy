@@ -1,6 +1,6 @@
 {
   "extends": [
-    "config.base"
+    "config:base"
   ],
   "automerge": true,
   "addLabels": [ "renovate-bot 🤖" ]
