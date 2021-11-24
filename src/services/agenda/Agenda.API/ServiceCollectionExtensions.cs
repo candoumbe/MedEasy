@@ -17,6 +17,7 @@
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+using MedEasy.DataStores.Core;
     using MedEasy.Validators;
 
     using MediatR;
@@ -190,6 +191,8 @@ using MicroElements.Swashbuckle.NodaTime;
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
                 return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options, clock));
             });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<AgendaContext>>();
 
             return services;
         }

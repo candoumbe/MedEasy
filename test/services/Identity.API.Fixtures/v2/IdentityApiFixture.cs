@@ -35,7 +35,6 @@ namespace Identity.API.Fixtures.v2
         public static JsonSerializerOptions SerializerOptions
         {
             get
-
             {
                 JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 options.PropertyNameCaseInsensitive = true;

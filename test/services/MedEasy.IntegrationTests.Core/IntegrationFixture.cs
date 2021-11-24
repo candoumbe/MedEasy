@@ -6,6 +6,7 @@ namespace MedEasy.IntegrationTests.Core
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.Mvc.Testing;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
@@ -13,6 +14,7 @@ namespace MedEasy.IntegrationTests.Core
     using System.Linq;
     using System.Net.Http;
     using System.Security.Claims;
+    using System.Threading.Tasks;
 
     public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>
         where TEntryPoint : class
@@ -24,8 +26,7 @@ namespace MedEasy.IntegrationTests.Core
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
             => builder.UseEnvironment("IntegrationTest")
-                      .CaptureStartupErrors(true)
-                ;
+                      .CaptureStartupErrors(true);
 
         /// <summary>
         /// Initializes a <see cref="HttpClient"/> instance that can be later used to call
@@ -67,10 +68,9 @@ namespace MedEasy.IntegrationTests.Core
                             .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
 
                 });
+
             })
                             .CreateClient();
-
-
         }
     }
 }

@@ -3,8 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using Yarp.ReverseProxy.Abstractions;
-using Yarp.ReverseProxy.Service;
+using Yarp.ReverseProxy.Configuration;
 
 namespace MedEasy.ReverseProxy
 {
@@ -12,7 +11,7 @@ namespace MedEasy.ReverseProxy
     {
         private readonly CancellationTokenSource _cts = new ();
 
-        public TyeConfig(IReadOnlyList<ProxyRoute> routes, IReadOnlyList<Cluster> clusters)
+        public TyeConfig(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
         {
             Routes = routes;
             Clusters = clusters;
@@ -20,10 +19,10 @@ namespace MedEasy.ReverseProxy
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<ProxyRoute> Routes { get; }
+        public IReadOnlyList<RouteConfig> Routes { get; }
 
         ///<inheritdoc/>
-        public IReadOnlyList<Cluster> Clusters { get; }
+        public IReadOnlyList<ClusterConfig> Clusters { get; }
 
         ///<inheritdoc/>
         public IChangeToken ChangeToken { get; }

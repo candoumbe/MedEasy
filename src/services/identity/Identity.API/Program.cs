@@ -39,34 +39,17 @@
             using IServiceScope scope = host.Services.CreateScope();
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-            IdentityContext context = services.GetRequiredService<IdentityContext>();
             IHostEnvironment hostingEnvironment = services.GetRequiredService<IHostEnvironment>();
             logger?.LogInformation("Starting {ApplicationContext}", hostingEnvironment.ApplicationName);
 
             try
             {
-                if (!context.Database.IsInMemory())
-                {
-                    logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
-                    logger?.LogInformation("Connection string : {ConnectionString}", context.Database.GetConnectionString());
-                    // Forces database migrations on startup
-                    RetryPolicy policy = Policy
-                        .Handle<DbException>(ex => ex.IsTransient)
-                        .WaitAndRetryAsync(
-                            retryCount: 5,
-                            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                            onRetry: (exception, timeSpan, attempt, pollyContext) =>
+                logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
 
-                                logger?.LogError(exception, "Error while upgrading database schema (Attempt {Attempt})", attempt)
-                            );
-                    logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
+                await host.InitAsync().ConfigureAwait(false);
 
-                    // Forces datastore migration on startup
-                    await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                                .ConfigureAwait(false);
+                logger?.LogInformation("Identity database updated");
 
-                    logger?.LogInformation("Identity database updated");
-                }
                 await host.RunAsync()
                     .ConfigureAwait(false);
 

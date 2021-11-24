@@ -1,8 +1,8 @@
 ﻿
 using System.Collections.Generic;
 
-using Yarp.ReverseProxy.Abstractions;
-using Yarp.ReverseProxy.Service;
+using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Model;
 
 namespace MedEasy.ReverseProxy
 {
@@ -13,7 +13,7 @@ namespace MedEasy.ReverseProxy
     {
         private volatile TyeConfig _config;
 
-        public TyeConfigurationProvider(IReadOnlyList<ProxyRoute> routes, IReadOnlyList<Cluster> clusters) => _config = new TyeConfig(routes, clusters);
+        public TyeConfigurationProvider(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters) => _config = new TyeConfig(routes, clusters);
 
         /// <summary>
         /// Implementation of the IProxyConfigProvider.GetConfig method to supply the current snapshot of configuration
@@ -24,7 +24,7 @@ namespace MedEasy.ReverseProxy
         /// <summary>
         /// Swaps the config state with a new snapshot of the configuration, then signals the change
         /// </summary>
-        public void Update(IReadOnlyList<ProxyRoute> routes, IReadOnlyList<Cluster> clusters)
+        public void Update(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
         {
             var oldConfig = _config;
             _config = new TyeConfig(routes, clusters);

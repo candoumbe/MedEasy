@@ -22,6 +22,7 @@ using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+    using MedEasy.DataStores.Core;
     using MedEasy.Ids;
     using MedEasy.Ids.Converters;
 
@@ -227,6 +228,8 @@ using Optional;
                 return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
                                                                 options => new IdentityContext(options, clock));
             });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityContext>>();
 
             return services;
         }
