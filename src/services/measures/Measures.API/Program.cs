@@ -39,44 +39,15 @@
 
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-            MeasuresStore context = services.GetRequiredService<MeasuresStore>();
             IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
 
             logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
-            logger?.LogInformation("Connection string : {ConnectionString}", context.Database.GetConnectionString());
 
             try
             {
-
                 logger?.LogInformation("Upgrading {ApplicationContext}' store", environment.ApplicationName);
-                // Forces database migrations on startup
-                RetryPolicy policy = Policy
-                    .Handle<DbException>()
-                    .WaitAndRetryAsync(
-                        retryCount: 5,
-                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                        onRetry: (exception, _, attempt, pollyContext) =>
-                            logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
-                        );
-                logger?.LogInformation("Starting {ApplicationContext}' store migration", environment.ApplicationName);
 
-                // Forces datastore migration on startup
-
-                await policy.ExecuteAsync(async () =>
-                {
-                    logger.LogInformation("Listing pending migrations");
-                    IEnumerable<string> pendingMigrations = await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false);
-                    int count = 0;
-                    pendingMigrations.ForEach((migration) =>
-                    {
-                        logger.LogInformation("{PendingMigration}", migration);
-                        count++;
-                    });
-
-                    await context.Database.MigrateAsync().ConfigureAwait(false);
-                    logger.LogInformation("Applied {PendingMigrationCount} migration(s)", count);
-                })
-                    .ConfigureAwait(false);
+                await host.InitAsync().ConfigureAwait(false);
 
                 logger?.LogInformation("{ApplicationContext} store upgraded", environment.ApplicationName);
 

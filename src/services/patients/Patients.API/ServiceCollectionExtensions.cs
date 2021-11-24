@@ -14,6 +14,7 @@
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
+    using MedEasy.DataStores.Core;
 
     using MediatR;
 
@@ -215,6 +216,8 @@
 
                 return new EFUnitOfWorkFactory<PatientsDataStore>(builder.Options, options => new PatientsDataStore(options, clock));
             });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<PatientsDataStore>>();
 
             return services;
         }

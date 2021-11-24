@@ -48,10 +48,11 @@
     using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using Optional;
+    using MedEasy.DataStores.Core;
 
-/// <summary>
-/// Provide extension method used to configure services collection
-/// </summary>
+    /// <summary>
+    /// Provide extension method used to configure services collection
+    /// </summary>
     public static partial class ServiceCollectionExtensions
     {
         /// <summary>
@@ -211,6 +212,8 @@
 
                return new EFUnitOfWorkFactory<DocumentsStore>(builder.Options, options => new DocumentsStore(options, clock));
            });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<DocumentsStore>>();
 
             return services;
         }

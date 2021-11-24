@@ -122,7 +122,6 @@ namespace Agenda.API.IntegrationTests.v1
             _server = fixture;
         }
 
-
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
         {
             get

@@ -4,12 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using Optional;
+
 using System.Collections.Generic;
 using System.Linq;
 
-using Yarp.ReverseProxy.Abstractions;
-using Optional.Linq;
-using Optional;
+using Yarp.ReverseProxy.Configuration;
 
 namespace MedEasy.ReverseProxy
 {
@@ -31,8 +31,8 @@ namespace MedEasy.ReverseProxy
             const string allowAnyOriginCorsPolicyName = "AllowAnyOrigin";
             IEnumerable<MedEasyApi> apis = _configuration.GetSection("Services").Get<List<MedEasyApi>>();
 
-            IList<ProxyRoute> routes = new List<ProxyRoute>(apis.Count());
-            IList<Cluster> clusters = new List<Cluster>(apis.Count());
+            IList<RouteConfig> routes = new List<RouteConfig>(apis.Count());
+            IList<ClusterConfig> clusters = new List<ClusterConfig>(apis.Count());
 
             for (int i = 0; i < apis.Count(); i++)
             {
@@ -43,19 +43,19 @@ namespace MedEasy.ReverseProxy
                               {
                                   string clusterName = $"cluster{i+1}";
 
-                                  Cluster cluster = new()
+                                  ClusterConfig cluster = new()
                                   {
-                                      Id = clusterName,
-                                      Destinations = new Dictionary<string, Destination>
+                                      ClusterId = clusterName,
+                                      Destinations = new Dictionary<string, DestinationConfig>
                                       {
-                                          [$"{clusterName}/{api.Id}"] = new Destination()
+                                          [$"{clusterName}/{api.Id}"] = new ()
                                           {
                                               Address = address.AbsoluteUri
                                           }
                                       }
                                   };
 
-                                  ProxyRoute route = new()
+                                  RouteConfig route = new()
                                   {
                                       RouteId = $"route-{api.Id}",
                                       ClusterId = clusterName,

@@ -29,27 +29,14 @@ namespace Documents.API
             using IServiceScope scope = host.Services.CreateScope();
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-            DocumentsStore context = services.GetRequiredService<DocumentsStore>();
             IHostEnvironment hostingEnvironment = services.GetRequiredService<IHostEnvironment>();
             logger?.LogInformation("Starting {ApplicationContext}", hostingEnvironment.ApplicationName);
 
             try
             {
                 logger?.LogInformation("Upgrading {ApplicationContext}'s store", hostingEnvironment.ApplicationName);
-                // Forces database migrations on startup
-                RetryPolicy policy = Policy
-                    .Handle<DbException>()
-                    .WaitAndRetryAsync(
-                        retryCount: 5,
-                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                        onRetry: (exception, _, attempt, __) =>
-                            logger?.LogError(exception, "Error while upgrading database (Attempt {Attempt})", attempt)
-                        );
-                logger?.LogInformation("Starting {ApplicationContext} database migration", hostingEnvironment.ApplicationName);
 
-                // Forces datastore migration on startup
-                await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                    .ConfigureAwait(false);
+                await host.InitAsync().ConfigureAwait(false);
 
                 logger?.LogInformation("{ApplicationContext} store updated", hostingEnvironment.ApplicationName);
 

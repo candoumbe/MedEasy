@@ -37,28 +37,14 @@
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             IHostEnvironment environment = services.GetRequiredService<IHostEnvironment>();
-            PatientsDataStore context = services.GetRequiredService<PatientsDataStore>();
 
             logger?.LogInformation("Starting {ApplicationContext}", environment.ApplicationName);
 
             try
             {
                 logger?.LogInformation("Upgrading {ApplicationContext} store", environment.ApplicationName);
-                // Forces database migrations on startup
-                RetryPolicy policy = Policy.Handle<DbException>()
-                    .WaitAndRetryAsync(
-                        retryCount: 5,
-                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                        onRetry: (exception, timeSpan, attempt, pollyContext) =>
-                            logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt}/{pollyContext.Count})")
-                        );
-                logger?.LogInformation("Starting {ApplicationContext} migration", environment.ApplicationName);
 
-                // Forces datastore migration on startup
-                await policy.ExecuteAsync(async () => await context.Database.MigrateAsync().ConfigureAwait(false))
-                    .ConfigureAwait(false);
-
-                logger?.LogInformation("{ApplicationContext} store updated", environment.ApplicationName);
+                await host.InitAsync().ConfigureAwait(false);
 
                 await host.RunAsync()
                     .ConfigureAwait(false);

@@ -32,36 +32,13 @@
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             IHostEnvironment env = services.GetRequiredService<IHostEnvironment>();
-            AgendaContext context = services.GetRequiredService<AgendaContext>();
 
             logger?.LogInformation("Starting {ApplicationContext}", env.ApplicationName);
 
             try
             {
                 logger?.LogInformation("Upgrading {ApplicationContext}'s store", env.ApplicationName);
-                // Forces database migrations on startup
-                PolicyBuilder policy = Policy.Handle<DbException>();
-
-                logger?.LogInformation("Starting {ApplictationContext} database migration", env.ApplicationName);
-                string[] migrations = (await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false))
-                                                                     .ToArray();
-                logger?.LogDebug("{MigrationCount} of pending migrations for {ApplicationContext}", migrations.Length, env.ApplicationName);
-                foreach (string migrationName in migrations)
-                {
-                    logger?.LogInformation("Migration : {MigrationName}", migrationName);
-                }
-
-                await policy.WaitAndRetryAsync(retryCount: 5,
-                                               sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                                               onRetry: (exception, _, attempt, __) => logger?.LogError(exception, $"Error while upgrading database (Attempt {attempt})"))
-                            .ExecuteAsync(async () =>
-                            {
-                                await context.Database.MigrateAsync().ConfigureAwait(false);
-                            })
-                            .ConfigureAwait(false);
-
-                logger?.LogInformation("{ApplicationContext} updated", env.ApplicationName);
-
+                await host.InitAsync().ConfigureAwait(false);
                 await host.RunAsync()
                     .ConfigureAwait(false);
 
@@ -78,7 +55,6 @@
         /// </summary>
         /// <param name="args">command line arguments</param>
         /// <returns></returns>
-
         public static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()

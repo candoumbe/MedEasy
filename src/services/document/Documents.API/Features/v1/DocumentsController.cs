@@ -30,6 +30,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -202,7 +203,7 @@
         [HttpGet("{id}/[action]")]
         [ProducesResponseType(Status200OK)]
         [ProducesResponseType(Status404NotFound)]
-        public async IAsyncEnumerable<DocumentPartInfo> File(DocumentId id, CancellationToken ct = default)
+        public async IAsyncEnumerable<DocumentPartInfo> File(DocumentId id, [EnumeratorCancellation] CancellationToken ct = default)
         {
             IAsyncEnumerable<DocumentPartInfo> parts = await _mediator.Send(new GetOneDocumentFileInfoByIdQuery(id), ct)
                                                                       .ConfigureAwait(false);
