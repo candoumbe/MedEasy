@@ -65,7 +65,7 @@
         private void AskBranchNameAndSwitchToIt(string branchNamePrefix, string sourceBranch)
         {
             string featureName;
-            bool exitCreatingFeature = false;
+            bool exitCreatingFeature;
             do
             {
                 featureName = (Name ?? Console.ReadLine() ?? string.Empty).Trim()
@@ -101,8 +101,6 @@
                         exitCreatingFeature = true;
                         break;
                 }
-
-#pragma warning disable S2583 // Conditionally executed code should be reachable
             } while (string.IsNullOrWhiteSpace(featureName) && !exitCreatingFeature);
         }
 
@@ -155,7 +153,6 @@
                 {
                     Info("Enter the name of the coldfix. It will be used as the name of the coldfix/branch (leave empty to exit) :");
                     AskBranchNameAndSwitchToIt(ColdfixBranchPrefix, DevelopBranch);
-#pragma warning restore S2583 // Conditionally executed code should be reachable
                     Info($"{EnvironmentInfo.NewLine}Good bye !");
                 }
                 else

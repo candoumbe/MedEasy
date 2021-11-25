@@ -4,7 +4,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+
   <!-- Exclude tests from code coverage analysis-->
   <ItemGroup>
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
@@ -22,8 +22,8 @@
     <PackageReference Include="NodaTime.Bogus" Version="3.0.1" />
     <PackageReference Include="NodaTime.Testing" Version="3.0.5" />
     <PackageReference Include="FsCheck.Xunit" Version="2.15.1" />
-    
-    
+
+
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="AutoFixture.AutoFakeItEasy" Version="4.17.0"/>
     <PackageReference Include="coverlet.msbuild" Version="3.0.3">
@@ -34,26 +34,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" Condition="'$(IsIntegrationTestProject)' == 'true'" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.5" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
   </ItemGroup>
-    
-<Choose>
-  <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.*"/>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.*" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
-    </ItemGroup>
-  </When>
-  <Otherwise>
-    <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*"/>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
-      <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" Condition="'$(IsIntegrationTestProject)' == 'true'" />
-      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.5" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
-    </ItemGroup>
-  </Otherwise>
-</Choose>
 
   <PropertyGroup>
     <IsIntegrationTestProject>false</IsIntegrationTestProject>
