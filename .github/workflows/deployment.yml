@@ -40,8 +40,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config', '.config/dotnet-tools.json') }}
-      - name: Run './build.cmd Tests Publish'
-        run: ./build.cmd Tests Publish
+      - name: Run './build.cmd Compile Tests Publish'
+        run: ./build.cmd Compile Tests Publish
         env:
           GitHubToken: ${{ secrets.GITHUB_TOKEN }}
           NugetApiKey: ${{ secrets.NUGET_API_KEY }}

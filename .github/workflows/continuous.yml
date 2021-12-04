@@ -41,8 +41,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config', '.config/dotnet-tools.json') }}
-      - name: Run './build.cmd IntegrationTests'
-        run: ./build.cmd IntegrationTests
+      - name: Run './build.cmd Compile IntegrationTests'
+        run: ./build.cmd Compile IntegrationTests
         env:
           GitHubToken: ${{ secrets.GITHUB_TOKEN }}
           NugetApiKey: ${{ secrets.NUGET_API_KEY }}
