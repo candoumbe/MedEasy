@@ -215,7 +215,7 @@ namespace MedEasy.ContinuousIntegration
             .Executes(() =>
             {
                 DotNetBuild(s => s
-                    .SetNoRestore(InvokedTargets.Contains(Restore))
+                    .SetNoRestore(SucceededTargets.Contains(Restore))
                     .SetConfiguration(Configuration)
                     .CombineWith(Projects, (settings, csproj) => settings.SetProjectFile(csproj)));
             });
@@ -237,8 +237,8 @@ namespace MedEasy.ContinuousIntegration
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
-                    .SetNoBuild(InvokedTargets.Contains(Compile))
-                    .SetNoRestore(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(Restore))
+                    .SetNoBuild(SucceededTargets.Contains(Compile))
+                    .SetNoRestore(SucceededTargets.Contains(Compile) || SucceededTargets.Contains(Restore))
                     .SetResultsDirectory(UnitTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .AddProperty("ExcludeByAttribute", "Obsolete")
@@ -312,10 +312,8 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetStartupProject(apiProject)
                             .SetProcessToolPath(DotNetPath)
-                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
-                            .When(IsServerBuild, _ => _.SetProcessEnvironmentVariable($"CONNECTION_STRINGS__{databaseName}", dataSource))
                         );
 
                         Info($"Updating '{databaseName}' database");
@@ -326,10 +324,8 @@ namespace MedEasy.ContinuousIntegration
                             .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
                             .ToggleJson()
                             .SetProcessToolPath(DotNetPath)
-                            .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
-                            .When(IsServerBuild, _ => _.SetProcessEnvironmentVariable($"CONNECTION_STRINGS__{databaseName}", dataSource))
                         );
 
                         Info($"'{databaseName}' database updated");
@@ -364,7 +360,7 @@ namespace MedEasy.ContinuousIntegration
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
-                    .SetNoBuild(InvokedTargets.Contains(Compile) || InvokedTargets.Contains(UnitTests))
+                    .SetNoBuild(SucceededTargets.Contains(Compile) || SucceededTargets.Contains(UnitTests))
                     .SetResultsDirectory(IntegrationTestsResultDirectory)
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .AddProperty("ExcludeByAttribute", "Obsolete")
@@ -406,9 +402,9 @@ namespace MedEasy.ContinuousIntegration
                 DotNetPack(s => s
                     .EnableIncludeSource()
                     .EnableIncludeSymbols()
-                    .SetNoRestore(InvokedTargets.Contains(Compile)
-                                  || InvokedTargets.Contains(Restore)
-                                  || InvokedTargets.Contains(Tests))
+                    .SetNoRestore(SucceededTargets.Contains(Compile)
+                                  || SucceededTargets.Contains(Restore)
+                                  || SucceededTargets.Contains(Tests))
                     .SetOutputDirectory(ArtifactsDirectory)
                     .SetProject(Solution)
                     .SetConfiguration(Configuration)
