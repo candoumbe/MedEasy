@@ -32,6 +32,7 @@
     using NodaTime.Testing;
     using NodaTime;
     using Measures.Ids;
+    using NodaTime.Testing.Extensions;
 
     [UnitTest]
     public class HandleSearchPatientInfoQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<MeasuresStore>>
@@ -89,15 +90,16 @@
                     {
                         new []
                         {
-                            new Patient(PatientId.New(), "bruce wayne"),
-                            new Patient(PatientId.New(), "dick grayson"),
-                            new Patient(patientId, "damian wayne"),
+                            new Patient(PatientId.New(), "bruce wayne", 13.July(1940)),
+                            new Patient(PatientId.New(), "dick grayson", 10.October(1960)),
+                            new Patient(patientId, "damian wayne", 11.December(2000)),
                         },
                         new SearchQueryInfo<PatientInfo>
                         {
                             Filter = new Filter(field : nameof(PatientInfo.Name), @operator : Contains, value : "y"),
                             Page = 3,
-                            PageSize = 1
+                            PageSize = 1,
+                            Sort = new Sort<PatientInfo>(nameof(PatientInfo.BirthDate))
                         },
                         (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
                                                                         && x.Entries.Count() == 1

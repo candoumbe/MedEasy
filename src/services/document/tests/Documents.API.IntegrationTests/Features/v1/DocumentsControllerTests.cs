@@ -57,11 +57,8 @@
                 JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 options.PropertyNameCaseInsensitive = true;
                 return options;
-
             }
         }
-
-
 
         public DocumentsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture, IntegrationFixture<Startup> sut)
         {

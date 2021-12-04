@@ -37,9 +37,9 @@ namespace Measures.API.IntegrationTests.v1
     [Feature("Measures")]
     public class BloodPressuresControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
     {
-        private IntegrationFixture<Startup> _sut;
-        private IdentityApiFixture _identityServer;
-        private ITestOutputHelper _outputHelper;
+        private readonly IntegrationFixture<Startup> _sut;
+        private readonly IdentityApiFixture _identityServer;
+        private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/bloodpressures";
         private readonly Faker _faker;
 

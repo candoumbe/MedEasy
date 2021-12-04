@@ -6,11 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\Identity.API\Identity.API.csproj" />
   </ItemGroup>
