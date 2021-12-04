@@ -177,7 +177,6 @@
               "Run",
               "StartMessageBus",
               "Tests",
-              "TypeScriptModels",
               "UnitTests",
               "UpdateDatabases"
             ]
@@ -210,7 +209,6 @@
               "Run",
               "StartMessageBus",
               "Tests",
-              "TypeScriptModels",
               "UnitTests",
               "UpdateDatabases"
             ]

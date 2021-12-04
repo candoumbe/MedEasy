@@ -17,6 +17,7 @@ namespace MedEasy.ContinuousIntegration
     using Nuke.Common.Tools.GitVersion;
     using Nuke.Common.Tools.ReportGenerator;
     using Nuke.Common.Utilities;
+    using Nuke.Common.Tools.Npm;
 
     using System;
     using System.Collections.Generic;
@@ -31,6 +32,7 @@ namespace MedEasy.ContinuousIntegration
     using static Nuke.Common.IO.TextTasks;
     using static Nuke.Common.Logger;
     using static Nuke.Common.Tools.DotNet.DotNetTasks;
+    using static Nuke.Common.Tools.Npm.NpmTasks;
     using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
     using static Nuke.Common.Tools.Git.GitTasks;
     using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
@@ -498,13 +500,16 @@ namespace MedEasy.ContinuousIntegration
 
             });
 
-        [PathExecutable]
-        public readonly Tool Npx;
-        public Target TypeScriptModels => _ => _
-            .Description("Generates Typescript definition files")
-            .Executes(() =>
-            {
-                Npx("swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
-            });
+        //[LocalExecutable]
+        //public readonly Tool Npx;
+        //public Target TypeScriptModels => _ => _
+        //    .Description("Generates Typescript definition files")
+        //    .Executes(() =>
+        //    {
+        //        NpmInstall(s => s.AddPackages("npx")
+        //                         .EnableGlobal());
+                
+        //        Npm("npx swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
+        //    });
     }
 }
