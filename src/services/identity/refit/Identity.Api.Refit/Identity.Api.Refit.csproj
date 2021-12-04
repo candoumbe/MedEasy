@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MedEasy.Core\MedEasy.Core.csproj" />
+    <ProjectReference Include="..\..\Identity.DTO\Identity.DTO.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -10,12 +10,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.*" />
+    <PackageReference Include="Refit" Version="6.1.15" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
     <ProjectReference Include="..\..\tools\MedEasy.RestObjects\MedEasy.RestObjects.csproj" />
+    <ProjectReference Include="..\MedEasy.Models\MedEasy.Models.csproj" />
   </ItemGroup>
 
 </Project>

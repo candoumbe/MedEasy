@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -12,11 +12,22 @@
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" />
-  </ItemGroup>
 
- <ItemGroup>
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'net5.0'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.*" />
+      </ItemGroup>
+
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\identity\Identity.API\Identity.API.csproj" />
     <ProjectReference Include="..\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
   </ItemGroup>

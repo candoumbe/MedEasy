@@ -3,11 +3,14 @@
   <Import Project="..\..\..\..\core-api.props" />
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>957f2029-f865-48ab-96ae-3455ab09a98b</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="1.0.0" />
-    <PackageReference Include="Optional" Version="4.0.0"/>
+    <PackageReference Include="Optional" Version="4.0.0" />
   </ItemGroup>
 </Project>

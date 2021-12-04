@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "proxy",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "agenda.api": "StartDebugging",
+        "agenda.db": "StartWithoutDebugging",
+        "documents.api": "StartDebugging",
+        "documents.db": "StartWithoutDebugging",
+        "identity.api": "StartWithoutDebugging",
+        "identity.db": "StartWithoutDebugging",
+        "measures.api": "StartDebugging",
+        "measures.db": "StartWithoutDebugging",
+        "patients.api": "StartDebugging",
+        "patients.db": "StartWithoutDebugging",
+        "proxy": "StartDebugging"
+      }
+    }
+  }
+}

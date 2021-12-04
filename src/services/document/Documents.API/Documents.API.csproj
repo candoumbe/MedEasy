@@ -3,7 +3,7 @@
   <Import Project="..\..\..\..\core-api.props" />
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>e3d08f9a-1972-44cc-8157-898f488547da</UserSecretsId>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Documents.API.xml</DocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>

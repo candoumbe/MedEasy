@@ -3,7 +3,7 @@
   <Import Project="..\..\..\..\core.props" />
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net5.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
