@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\src\services\Agenda\Agenda.Objects\Agenda.Objects.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\services\agenda\Agenda.Objects\Agenda.Objects.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\src\services\Agenda\Agenda.Mapping\Agenda.Mapping.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\services\agenda\Agenda.Mapping\Agenda.Mapping.csproj" />
   </ItemGroup>
 
 </Project>
