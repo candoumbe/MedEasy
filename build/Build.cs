@@ -2,11 +2,9 @@
 namespace MedEasy.ContinuousIntegration
 {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     using Nuke.Common;
     using Nuke.Common.CI;
-    using Nuke.Common.CI.AzurePipelines;
     using Nuke.Common.CI.GitHubActions;
     using Nuke.Common.Execution;
     using Nuke.Common.Git;
@@ -22,7 +20,6 @@ namespace MedEasy.ContinuousIntegration
 
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
 
     using YamlDotNet.Serialization;
@@ -40,8 +37,8 @@ namespace MedEasy.ContinuousIntegration
 
     [GitHubActions(
         "continuous",
-        GitHubActionsImage.WindowsLatest,
-        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*", ColdfixBranchPrefix + "/*"},
+        GitHubActionsImage.UbuntuLatest,
+        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*", ColdfixBranchPrefix + "/*" },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(UnitTests) },
@@ -60,7 +57,7 @@ namespace MedEasy.ContinuousIntegration
     )]
     [GitHubActions(
         "deployment",
-        GitHubActionsImage.WindowsLatest,
+        GitHubActionsImage.UbuntuLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         InvokedTargets = new[] { nameof(Tests), nameof(Publish) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
@@ -123,6 +120,8 @@ namespace MedEasy.ContinuousIntegration
 
         public AbsolutePath CoverageReportHistoryDirectory => OutputDirectory / "coverage-history";
 
+        public AbsolutePath ServicesDirectory => SourceDirectory / "services";
+
         /// <summary>
         /// Path to code coverage report history for unit tests
         /// </summary>
@@ -179,6 +178,8 @@ namespace MedEasy.ContinuousIntegration
         public readonly string Name;
 
         private IEnumerable<Project> Projects => Partition.GetCurrent(Solution.GetProjects("*.csproj").ToArray());
+
+        private AbsolutePath DatasourcesConnectionStrings => TemporaryDirectory / "connections-strings.dat";
 
         public Target Clean => _ => _
             .Executes(() =>
@@ -267,13 +268,14 @@ namespace MedEasy.ContinuousIntegration
                 EnsureCleanDirectory(DatabaseFolder);
             });
 
-        [Parameter("Indicates if the connection strings should be updated in appsettings.integrationtest.json file (Default = true)")]
-        public readonly bool UpdateConnectionString = true;
+        [Parameter("Indicates if the connection strings should be updated in appsettings.Integrationtest.json file (Default = true)")]
+        public readonly bool UpdateConnectionString = IsServerBuild;
 
         public Target UpdateDatabases => _ => _
             .Description("Applies any pending migrations on databases")
             .DependsOn(Compile, CleanDatabaseFolder)
-            .Produces(DatabaseFolder / "*.db")
+            .Produces(DatabaseFolder / "*.db",
+                      OutputDirectory / "connections.dat")
             .Executes(async () =>
             {
                 const string connectionStringsPropertyName = "ConnectionStrings";
@@ -282,6 +284,9 @@ namespace MedEasy.ContinuousIntegration
                                                                          || project.Name.Like("*.context", true))
                                                        .OrderBy(project => project.Name)
                                                        .ToArray();
+
+                IList<(string service, string connectionString)> connections = new List<(string, string)>(datastoresProjects.Length);
+
                 foreach (Project datastoreProject in datastoresProjects)
                 {
                     Info($"Updating database associated with '{datastoreProject.Name}'");
@@ -291,42 +296,16 @@ namespace MedEasy.ContinuousIntegration
                     string apiProjectName = datastoreProject.Name.Replace(".Context", ".API")
                                                                  .Replace(".DataStores", ".API");
 
-                    string connectionString = DatabaseFolder / $"{databaseName}.db".ToLowerInvariant();
+                    string sqliteConnectionString = DatabaseFolder / $"{databaseName}.db".ToLowerInvariant();
                     Project apiProject = Solution.GetProject(apiProjectName);
                     Info($"API project is '{apiProjectName}' ({apiProject.Path})");
                     string dataSource = string.Empty;
-                    if (UpdateConnectionString)
+                    if (IsServerBuild)
                     {
-                        Info("Updating appsettings.IntegrationTest.json file");
-                        AbsolutePath appSettingsFilePath = apiProject.Path.Parent.GlobFiles("appsettings.*.json")
-                                                                       .SingleOrDefault(file => new FileInfo(file).Name.Like("appsettings.IntegrationTest.json", true));
-                        if (appSettingsFilePath is not null)
-                        {
-                            string appSettingsJson = await File.ReadAllTextAsync(appSettingsFilePath)
-                                                               .ConfigureAwait(false);
-                            JObject appSettings = JObject.Parse(appSettingsJson);
-                            JObject connectionStrings = appSettings[connectionStringsPropertyName].As<JObject>() ?? new JObject();
-                            dataSource = @$"DataSource=""{connectionString}""";
-                            connectionStrings.TryAdd($"{databaseName}", dataSource);
-                            appSettings.Remove(connectionStringsPropertyName);
-                            appSettings.Add(connectionStringsPropertyName, connectionStrings);
+                        dataSource = @$"DataSource=""{sqliteConnectionString}""";
 
-                            string tempFileName = Path.GetRandomFileName();
-                            Log(LogLevel.Trace, $"Generating temporary file '{tempFileName}'");
+                        connections.Add((apiProjectName.Replace("API", string.Empty), connectionString: dataSource));
 
-                            await File.WriteAllLinesAsync(tempFileName, new[] { JsonConvert.SerializeObject(appSettings, Formatting.Indented) })
-                                      .ConfigureAwait(false);
-
-                            File.Replace(tempFileName, appSettingsFilePath, null);
-                        }
-                        else
-                        {
-                            Warn("'appsettings.integrationTest.json' file not found. ");
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(dataSource))
-                    {
                         Info("Pending migrations : ");
                         EntityFrameworkMigrationsList(_ => _
                             .SetProject(datastoreProject)
@@ -334,6 +313,7 @@ namespace MedEasy.ContinuousIntegration
                             .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
+                            .When(IsServerBuild, _ => _.SetProcessEnvironmentVariable($"CONNECTION_STRINGS__{databaseName}", dataSource))
                         );
 
                         Info($"Updating '{databaseName}' database");
@@ -346,9 +326,12 @@ namespace MedEasy.ContinuousIntegration
                             .When(!SkippedTargets.Contains(Compile), _ => _.EnableNoBuild())
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
+                            .When(IsServerBuild, _ => _.SetProcessEnvironmentVariable($"CONNECTION_STRINGS__{databaseName}", dataSource))
                         );
 
                         Info($"'{databaseName}' database updated");
+
+                        WriteAllLines(OutputDirectory / "connections.dat", connections.Select(item => $"{item.service}|{item.connectionString}"));
                     }
                 }
             });
@@ -361,12 +344,19 @@ namespace MedEasy.ContinuousIntegration
             .Produces(CoverageReportIntegrationTestsDirectory / "*.xml")
             .Executes(() =>
             {
-
-
                 IEnumerable<Project> projects = Solution.GetProjects("*.IntegrationTests");
                 IEnumerable<Project> testsProjects = Partition.GetCurrent(projects);
 
                 testsProjects.ForEach(project => Info(project));
+                IEnumerable<(string service, string connectionString)> connections = Enumerable.Empty<(string, string)>();
+
+                if (FileExists(OutputDirectory / "connections.dat"))
+                {
+                    connections = ReadAllLines(OutputDirectory / "connections.dat")
+                        .Select(line => line.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                        .Where(line => line.Exactly(2))
+                        .Select(line => (service: line[0], connectionString: line[1]));
+                }
 
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
@@ -381,6 +371,7 @@ namespace MedEasy.ContinuousIntegration
                             .SetLoggers($"trx;LogFileName={project.Name}.{framework}.trx")
                             .SetCollectCoverage(true)
                             .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml"))
+                            .CombineWith(connections, (setting, connection) => setting.AddProcessEnvironmentVariable($"CONNECTION_STRINGS_{connection.service}", connection.connectionString))
                         )
                 );
 
