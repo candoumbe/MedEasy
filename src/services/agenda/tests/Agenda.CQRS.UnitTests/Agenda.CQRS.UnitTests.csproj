@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\src\services\Agenda\Agenda.CQRS\Agenda.CQRS.csproj" />
-    <ProjectReference Include="..\..\..\..\..\src\services\Agenda\Agenda.DataStores\Agenda.DataStores.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\services\agenda\Agenda.CQRS\Agenda.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\services\agenda\Agenda.DataStores\Agenda.DataStores.csproj" />
     <ProjectReference Include="..\..\..\..\..\src\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
     <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     
