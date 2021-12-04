@@ -20,5 +20,6 @@
     <PackageDownload Include="CSharpToTypeScript.CLITool" Version="[2.5.1]" />
     <PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
     <PackageDownload Include="microsoft.tye" Version="[0.10.0-alpha.21420.1]" />
+    <PackageDownload Include="dotnet-ef" Version="[6.0.0]"/>
   </ItemGroup>
 </Project>
