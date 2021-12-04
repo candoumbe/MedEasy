@@ -18,10 +18,8 @@ name: continuous
 
 on:
   push:
-    branches:
-      - develop
-      - 'feature/*'
-      - 'coldfix/*'
+    branches-ignore:
+      - main
   pull_request:
     branches:
       - develop
@@ -43,16 +41,24 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'Nuget.config', '.config/dotnet-tools.json') }}
-      - name: Run './build.cmd UnitTests'
-        run: ./build.cmd UnitTests
+      - name: Run './build.cmd IntegrationTests'
+        run: ./build.cmd IntegrationTests
         env:
           GitHubToken: ${{ secrets.GITHUB_TOKEN }}
           NugetApiKey: ${{ secrets.NUGET_API_KEY }}
       - uses: actions/upload-artifact@v1
         with:
-          name: unit-tests
-          path: output/tests-results/unit-tests
+          name: databases
+          path: output/databases
       - uses: actions/upload-artifact@v1
         with:
-          name: unit-tests
-          path: output/coverage-report/unit-tests
+          name: connections.dat
+          path: output/connections.dat
+      - uses: actions/upload-artifact@v1
+        with:
+          name: integration-tests
+          path: output/tests-results/integration-tests
+      - uses: actions/upload-artifact@v1
+        with:
+          name: integration-tests
+          path: output/coverage-report/integration-tests
