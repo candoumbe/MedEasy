@@ -38,10 +38,10 @@ namespace MedEasy.ContinuousIntegration
     [GitHubActions(
         "continuous",
         GitHubActionsImage.UbuntuLatest,
-        OnPushBranches = new[] { DevelopBranch, FeatureBranchPrefix + "/*", ColdfixBranchPrefix + "/*" },
+        OnPushBranchesIgnore = new[] { MainBranchName },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(UnitTests) },
+        InvokedTargets = new[] { nameof(IntegrationTests) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
