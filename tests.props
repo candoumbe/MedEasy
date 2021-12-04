@@ -35,10 +35,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*"/>
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.*" Condition="'$(IsIntegrationTestProject)' == 'true'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.*"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.*"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" Condition="'$(IsIntegrationTestProject)' == 'true'" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.5" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
   </ItemGroup>
 

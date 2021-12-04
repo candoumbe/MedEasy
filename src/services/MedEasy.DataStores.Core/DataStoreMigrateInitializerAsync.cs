@@ -46,7 +46,7 @@ public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
             _logger?.LogInformation("Connection string : {ConnectionString}", _store.Database.GetConnectionString());
             // Forces database migrations on startup
             RetryPolicy policy = Policy
-                .Handle<DbException>(ex => ex.IsTransient)
+                .Handle<DbException>()
                 .WaitAndRetryAsync(
                     retryCount: 5,
                     sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),

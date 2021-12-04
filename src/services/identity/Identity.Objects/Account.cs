@@ -12,6 +12,7 @@
 
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
 
     public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
 
@@ -70,9 +71,9 @@
 
         private readonly IList<AccountClaim> _claims;
 
-        public IEnumerable<AccountRole> Roles => _roles;
+        public IEnumerable<AccountRole> Roles => _roles.ToImmutableArray();
 
-        public IEnumerable<AccountClaim> Claims => _claims;
+        public IEnumerable<AccountClaim> Claims => _claims.ToImmutableArray();
 
         /// <summary>
         /// Builds a new <see cref="Account"/> instance

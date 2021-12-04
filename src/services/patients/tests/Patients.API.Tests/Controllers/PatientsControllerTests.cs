@@ -101,16 +101,16 @@ namespace Patients.API.UnitTests.Controllers
                                           _mediatorMock.Object);
         }
 
+        ///<inheritdoc/>
         public Task InitializeAsync() => Task.CompletedTask;
 
+        ///<inheritdoc/>
         public async Task DisposeAsync()
         {
-            using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
-            {
-                uow.Repository<Patient>().Clear();
-                await uow.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
+            uow.Repository<Patient>().Clear();
+            await uow.SaveChangesAsync()
+                .ConfigureAwait(false);
         }
 
         public static IEnumerable<object[]> GetAllTestCases

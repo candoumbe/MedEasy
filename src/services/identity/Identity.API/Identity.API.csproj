@@ -18,9 +18,9 @@
   
  
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.*" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

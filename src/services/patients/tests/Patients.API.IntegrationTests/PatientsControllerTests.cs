@@ -35,12 +35,12 @@ namespace Patients.API.IntegrationTests
     [Feature("Patients")]
     public class PatientsControllerTests : IAsyncLifetime, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>
     {
-        private IntegrationFixture<Startup> _server;
-        private ITestOutputHelper _outputHelper;
-        private IdentityApiFixture _identityServer;
+        private readonly IntegrationFixture<Startup> _server;
+        private readonly ITestOutputHelper _outputHelper;
+        private readonly IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/patients";
         private readonly Faker _faker;
- 
+
         private static readonly JSchema _pageLink = new()
         {
             Type = JSchemaType.Object | JSchemaType.Null,
