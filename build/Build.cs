@@ -43,7 +43,7 @@ namespace MedEasy.ContinuousIntegration
         OnPushBranchesIgnore = new[] { MainBranchName },
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
-        InvokedTargets = new[] { nameof(IntegrationTests) },
+        InvokedTargets = new[] { nameof(Compile), nameof(IntegrationTests) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
@@ -61,7 +61,7 @@ namespace MedEasy.ContinuousIntegration
         "deployment",
         GitHubActionsImage.UbuntuLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
-        InvokedTargets = new[] { nameof(Tests), nameof(Publish) },
+        InvokedTargets = new[] { nameof(Compile), nameof(Tests), nameof(Publish) },
         CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
@@ -275,6 +275,7 @@ namespace MedEasy.ContinuousIntegration
 
         public Target UpdateDatabases => _ => _
             .Description("Applies any pending migrations on databases")
+            .Consumes(Compile)
             .DependsOn(Compile, CleanDatabaseFolder)
             .Produces(DatabaseFolder / "*.db",
                       OutputDirectory / "connections.dat")
@@ -312,6 +313,7 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetStartupProject(apiProject)
                             .SetProcessToolPath(DotNetPath)
+                            .SetNoBuild(SucceededTargets.Contains(Compile))
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
                         );
@@ -323,6 +325,7 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
                             .ToggleJson()
+                            .SetNoBuild(SucceededTargets.Contains(Compile))
                             .SetProcessToolPath(DotNetPath)
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
@@ -337,6 +340,7 @@ namespace MedEasy.ContinuousIntegration
 
         public Target IntegrationTests => _ => _
             .DependsOn(Compile, UpdateDatabases)
+            .Consumes(UpdateDatabases)
             .Description("Run integration tests and collect code coverage")
             .Produces(IntegrationTestsResultDirectory / "*.trx")
             .Produces(IntegrationTestsResultDirectory / "*.xml")

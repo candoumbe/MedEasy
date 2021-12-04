@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\services\Measures\Measures.DataStores\Measures.DataStores.csproj" />
-    <ProjectReference Include="..\..\..\src\services\Measures\Measures.CQRS\Measures.CQRS.csproj" />
-    <ProjectReference Include="..\..\..\src\services\Measures\Measures.Mapping\Measures.Mapping.csproj" />
+    <ProjectReference Include="..\..\..\src\services\measures\Measures.DataStores\Measures.DataStores.csproj" />
+    <ProjectReference Include="..\..\..\src\services\measures\Measures.CQRS\Measures.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\src\services\measures\Measures.Mapping\Measures.Mapping.csproj" />
     <ProjectReference Include="..\..\..\src\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
   </ItemGroup>
 
