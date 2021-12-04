@@ -276,9 +276,8 @@ namespace MedEasy.ContinuousIntegration
             .DependsOn(Compile, CleanDatabaseFolder)
             .Produces(DatabaseFolder / "*.db",
                       OutputDirectory / "connections.dat")
-            .Executes(async () =>
+            .Executes(() =>
             {
-                const string connectionStringsPropertyName = "ConnectionStrings";
                 Project[] datastoresProjects = Solution.AllProjects
                                                        .Where(project => project.Name.Like("*.datastores", true)
                                                                          || project.Name.Like("*.context", true))
