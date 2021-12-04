@@ -197,7 +197,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
                 yield return new object[]
                 {
                     InvalidateAccessCommandResult.Done,
-                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is OkResult),
+                    (Expression<Func<IActionResult, bool>>)(actionResult => actionResult is NoContentResult),
                     "The command completed successfully"
                 };
 

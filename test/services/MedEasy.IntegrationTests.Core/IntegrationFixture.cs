@@ -10,10 +10,14 @@ namespace MedEasy.IntegrationTests.Core
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
+    using Refit;
+
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Security.Claims;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 
     public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>
@@ -46,7 +50,7 @@ namespace MedEasy.IntegrationTests.Core
             {
                 builder.UseEnvironment("IntegrationTest");
                 builder.ConfigureServices(services =>
-                {   
+                {
                     services.AddControllers(opts =>
                     {
                         AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
@@ -71,6 +75,21 @@ namespace MedEasy.IntegrationTests.Core
 
             })
                             .CreateClient();
+        }
+
+        public TRefitClient CreateRefitClient<TRefitClient>(HttpClient http, JsonSerializerOptions serializerOptions = null)
+        {
+            return RestService.For<TRefitClient>(http,
+                                                new RefitSettings
+                                                {
+                                                    CollectionFormat = CollectionFormat.Multi,
+                                                    ContentSerializer = new SystemTextJsonContentSerializer(serializerOptions ?? new JsonSerializerOptions
+                                                    {
+                                                        AllowTrailingCommas = true,
+                                                        PropertyNameCaseInsensitive = true,
+                                                        Converters = { new JsonStringEnumConverter() }
+                                                    })
+                                                });
         }
     }
 }

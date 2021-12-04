@@ -2,15 +2,15 @@ version: '3.7'
 
 services: 
   identity.db:
-    image: postgres:12-alpine  
+    image: postgres:14-alpine  
   patients.db:
-    image: postgres:12-alpine
+    image: postgres:14-alpine
   measures.db:
-    image: postgres:12-alpine
+    image: postgres:14-alpine
   documents.db:
-    image: postgres:12-alpine
+    image: postgres:14-alpine
   agenda.db:
-    image: postgres:12-alpine
+    image: postgres:14-alpine
 
   identity.api:
     image: ${DOCKER_REGISTRY-}identityapi
@@ -55,3 +55,15 @@ services:
     depends_on:
       - identity.api
       - agenda.db
+
+  proxy:
+    image: ${DOCKER_REGISTRY-}proxy
+    build:
+      context: .
+      dockerfile: src/services/proxy/MedEasy.ReverseProxy/DockerFile
+    depends_on:
+      - agenda.api
+      - identity.api
+      - documents.api
+      - patients.api
+      - measures.api

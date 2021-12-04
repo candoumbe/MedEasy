@@ -144,7 +144,7 @@
             switch (cmdResult)
             {
                 case InvalidateAccessCommandResult.Done:
-                    actionResult = new OkResult();
+                    actionResult = new NoContentResult();
                     break;
                 case InvalidateAccessCommandResult.Failed_Unauthorized:
                     actionResult = new UnauthorizedResult();

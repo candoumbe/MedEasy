@@ -7,6 +7,7 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Patients.API.xml</DocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <UserSecretsId>a57ca875-5ea1-4a1e-8667-bbf9e454e85f</UserSecretsId>
+    <DockerfileContext>..\..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>

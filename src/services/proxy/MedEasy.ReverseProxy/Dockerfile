@@ -10,14 +10,14 @@ WORKDIR /src
 COPY ["nuget.config", "."]
 COPY . .
 
-WORKDIR "/src/src/services/measures/Measures.API"
-RUN dotnet restore "Measures.API.csproj"
-RUN dotnet build "Measures.API.csproj" -c Release -o /app/build --no-restore
+WORKDIR "/src/src/services/proxy/MedEasy.ReverseProxy"
+RUN dotnet restore "MedEasy.ReverseProxy.csproj"
+RUN dotnet build "MedEasy.ReverseProxy.csproj" -c Release -o /app/build --no-restore
 
 FROM build AS publish
-RUN dotnet publish "Measures.API.csproj" -c Release -o /app/publish
+RUN dotnet publish "MedEasy.ReverseProxy.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Measures.API.dll"]
+ENTRYPOINT ["dotnet", "MedEasy.ReverseProxy.dll"]

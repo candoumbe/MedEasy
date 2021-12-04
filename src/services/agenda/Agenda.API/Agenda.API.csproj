@@ -3,7 +3,7 @@
   <Import Project="..\..\..\..\core-api.props" />
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Agenda.API.xml</DocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..\..</DockerfileContext>
