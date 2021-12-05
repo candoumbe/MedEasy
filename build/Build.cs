@@ -376,10 +376,14 @@ namespace MedEasy.ContinuousIntegration
 
                 if (FileExists(ConnectionsFile))
                 {
+                    Info("Retrieving connection strings");
                     connections = ReadAllLines(ConnectionsFile)
                         .Select(line => line.Split('|', StringSplitOptions.RemoveEmptyEntries))
                         .Where(line => line.Exactly(2))
                         .Select(line => (service: line[0], connectionString: line[1]));
+
+                    Info($"Retrieved {connections.Count()} connection string(s)");
+                    connections.ForEach(connection => Info($"'{connection.service}' -> {connection.connectionString}"));
                 }
 
                 DotNetTest(s => s
@@ -395,7 +399,7 @@ namespace MedEasy.ContinuousIntegration
                             .SetLoggers($"trx;LogFileName={project.Name}.{framework}.trx")
                             .SetCollectCoverage(true)
                             .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml"))
-                            .CombineWith(connections, (setting, connection) => setting.AddProcessEnvironmentVariable($"CONNECTION_STRINGS_{connection.service}", connection.connectionString))
+                            .CombineWith(connections, (setting, connection) => setting.AddProcessEnvironmentVariable($"CONNECTION_STRINGS__{connection.service}", connection.connectionString))
                         )
                 );
 
