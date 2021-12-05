@@ -8,10 +8,9 @@
 
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0"/>
     <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.0.0" />
-  
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
     <ProjectReference Include="..\..\Documents.API\Documents.API.csproj" />

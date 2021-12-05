@@ -180,12 +180,6 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Generic name placeholder. Can be used wherever a name is required")]
         public readonly string Name;
 
-        private IEnumerable<Project> Projects => Solution.AllProjects
-                                                         .Where(csproj => csproj.Is(ProjectType.CSharpProject))
-                                                         .ToArray();
-
-        private AbsolutePath DatasourcesConnectionStrings => TemporaryDirectory / "connections-strings.dat";
-
         public Target Clean => _ => _
             .Executes(() =>
             {
@@ -212,7 +206,10 @@ namespace MedEasy.ContinuousIntegration
                     .SetIgnoreFailedSources(true));
             });
 
-
+        /// <summary>
+        /// This target will generates a sln file that only contains "buildable"
+        /// csproj files
+        /// </summary>
         public Target GenerateGlobalSolution => _ => _
               .Before(Compile)
               .Unlisted()
@@ -331,7 +328,6 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetStartupProject(apiProject)
                             .SetProcessToolPath(DotNetPath)
-                            .SetNoBuild(SucceededTargets.Contains(Compile))
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
                         );
@@ -343,7 +339,6 @@ namespace MedEasy.ContinuousIntegration
                             .SetProject(datastoreProject)
                             .SetProcessWorkingDirectory(datastoreProject.Path.Parent)
                             .ToggleJson()
-                            .SetNoBuild(SucceededTargets.Contains(Compile))
                             .SetProcessToolPath(DotNetPath)
                             .SetProcessArgumentConfigurator(args => args.Add($@"-- --connectionstrings:{databaseName}=""{dataSource}"""))
                             .SetProcessEnvironmentVariable("DOTNET_ENVIRONMENT", "IntegrationTest")
