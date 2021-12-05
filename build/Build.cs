@@ -361,7 +361,7 @@ namespace MedEasy.ContinuousIntegration
 
         public Target IntegrationTests => _ => _
             .DependsOn(Compile, UpdateDatabases)
-            .Consumes(UpdateDatabases)
+            .Consumes(UpdateDatabases, ConnectionsFile)
             .Description("Run integration tests and collect code coverage")
             .Produces(IntegrationTestsResultDirectory / "*.trx")
             .Produces(IntegrationTestsResultDirectory / "*.xml")
