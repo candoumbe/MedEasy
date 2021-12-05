@@ -323,7 +323,7 @@ namespace MedEasy.ContinuousIntegration
                     {
                         dataSource = @$"DataSource=""{sqliteConnectionString}""";
 
-                        connections.Add((apiProjectName.Replace("API", string.Empty), connectionString: dataSource));
+                        connections.Add((apiProjectName.Replace(".API", string.Empty, StringComparison.OrdinalIgnoreCase), connectionString: dataSource));
 
                         Info("Pending migrations : ");
                         EntityFrameworkMigrationsList(_ => _
