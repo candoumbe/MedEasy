@@ -88,7 +88,7 @@ namespace MedEasy.ContinuousIntegration
         public readonly bool Interactive = false;
 
         [Required] [Solution] public readonly Solution Solution;
-        private Solution CiSolution;
+        private Solution _ciSolution;
         [Required] [GitRepository] public readonly GitRepository GitRepository;
         [Required] [GitVersion(Framework = "net5.0")] public readonly GitVersion GitVersion;
 
@@ -218,14 +218,13 @@ namespace MedEasy.ContinuousIntegration
               .Unlisted()
               .Executes(() =>
               {
-                  CiSolution = ProjectModelTasks.CreateSolution($"{ Solution.Directory / Solution.Name}.CI.sln", Solution);
-                  IEnumerable<Project> projectsToRemove = CiSolution.AllProjects
-                                                                    .Where(proj => proj.Is(ProjectType.DockerComposeProject)
-                                                                                   || proj.Name == "ArchitecturalValidation" );
+                  _ciSolution = ProjectModelTasks.CreateSolution($"{ Solution.Directory / Solution.Name}.CI.sln", Solution);
+                  IEnumerable<Project> projectsToRemove = _ciSolution.AllProjects
+                                                                    .Where(proj => !proj.Is(ProjectType.CSharpProject));
 
-                  projectsToRemove.ForEach(proj => CiSolution.RemoveProject(proj));
+                  projectsToRemove.ForEach(proj => _ciSolution.RemoveProject(proj));
 
-                  CiSolution.Save();
+                  _ciSolution.Save();
               });
 
 
@@ -236,7 +235,7 @@ namespace MedEasy.ContinuousIntegration
                 DotNetBuild(s => s
                     .SetNoRestore(SucceededTargets.Contains(Restore))
                     .SetConfiguration(Configuration)
-                    .SetProjectFile(CiSolution));
+                    .SetProjectFile(_ciSolution));
             });
 
         public Target UnitTests => _ => _
@@ -524,7 +523,7 @@ namespace MedEasy.ContinuousIntegration
 
         protected override void OnBuildFinished()
         {
-            DeleteFile(CiSolution);
+            DeleteFile(_ciSolution);
         }
 
         //[LocalExecutable]

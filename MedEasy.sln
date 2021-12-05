@@ -52,19 +52,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Validators", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "measures", "measures", "{40981BE2-68C4-499D-8DC3-F819594F9F04}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.API", "src\services\Measures\Measures.API\Measures.API.csproj", "{73C38CD7-4FC0-4439-9A0A-B6061DB0C858}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.API", "src\services\measures\Measures.API\Measures.API.csproj", "{73C38CD7-4FC0-4439-9A0A-B6061DB0C858}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DataStores", "src\services\Measures\Measures.DataStores\Measures.DataStores.csproj", "{558071AA-6A59-4D5C-9998-3D021CC5CE3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DataStores", "src\services\measures\Measures.DataStores\Measures.DataStores.csproj", "{558071AA-6A59-4D5C-9998-3D021CC5CE3D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.CQRS", "src\services\Measures\Measures.CQRS\Measures.CQRS.csproj", "{CC2396CF-2660-4A41-98D4-10AAE4CBBD47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.CQRS", "src\services\measures\Measures.CQRS\Measures.CQRS.csproj", "{CC2396CF-2660-4A41-98D4-10AAE4CBBD47}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DTO", "src\services\Measures\Measures.DTO\Measures.DTO.csproj", "{1DC32E83-1853-4185-AA99-D06772EEFE3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.DTO", "src\services\measures\Measures.DTO\Measures.DTO.csproj", "{1DC32E83-1853-4185-AA99-D06772EEFE3B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Mapping", "src\services\Measures\Measures.Mapping\Measures.Mapping.csproj", "{B29279A7-5B17-4380-8572-CAA3F1ECA967}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Mapping", "src\services\measures\Measures.Mapping\Measures.Mapping.csproj", "{B29279A7-5B17-4380-8572-CAA3F1ECA967}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Objects", "src\services\Measures\Measures.Objects\Measures.Objects.csproj", "{58D62810-6969-4090-8E34-6677045D82C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Objects", "src\services\measures\Measures.Objects\Measures.Objects.csproj", "{58D62810-6969-4090-8E34-6677045D82C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Validators", "src\services\Measures\Measures.Validators\Measures.Validators.csproj", "{27DC9703-0EAC-4FBD-B3FC-6E0E9713E5C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Measures.Validators", "src\services\measures\Measures.Validators\Measures.Validators.csproj", "{27DC9703-0EAC-4FBD-B3FC-6E0E9713E5C3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Abstractions", "src\tools\MedEasy.Abstractions\MedEasy.Abstractions.csproj", "{BC5FA9FA-9DE9-4409-949E-753D69C24CCE}"
 EndProject
@@ -111,19 +111,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patients", "patients", "{FE
 		src\services\patients\Directory.Build.targets = src\services\patients\Directory.Build.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.API", "src\services\Patients\Patients.API\Patients.API.csproj", "{4DC902A8-6E5D-46AC-8226-329D30CC4210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.API", "src\services\patients\Patients.API\Patients.API.csproj", "{4DC902A8-6E5D-46AC-8226-329D30CC4210}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DataStores", "src\services\Patients\Patients.Context\Patients.DataStores.csproj", "{C6D88258-551F-4FA1-A264-8A97E9F83CDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DataStores", "src\services\patients\Patients.Context\Patients.DataStores.csproj", "{C6D88258-551F-4FA1-A264-8A97E9F83CDB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.CQRS", "src\services\Patients\Patients.CQRS\Patients.CQRS.csproj", "{6886B478-D3E8-479C-B12B-131B09EF68A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.CQRS", "src\services\patients\Patients.CQRS\Patients.CQRS.csproj", "{6886B478-D3E8-479C-B12B-131B09EF68A4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DTO", "src\services\Patients\Patients.DTO\Patients.DTO.csproj", "{E4C306B1-0687-486D-B2A8-7D851426D5CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.DTO", "src\services\patients\Patients.DTO\Patients.DTO.csproj", "{E4C306B1-0687-486D-B2A8-7D851426D5CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Mapping", "src\services\Patients\Patients.Mapping\Patients.Mapping.csproj", "{E2873671-68CD-4F63-A776-E268DB8F8AA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Mapping", "src\services\patients\Patients.Mapping\Patients.Mapping.csproj", "{E2873671-68CD-4F63-A776-E268DB8F8AA1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Objects", "src\services\Patients\Patients.Objects\Patients.Objects.csproj", "{4AB9311C-0040-4F3A-88D8-85612279A46F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Objects", "src\services\patients\Patients.Objects\Patients.Objects.csproj", "{4AB9311C-0040-4F3A-88D8-85612279A46F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Validators", "src\services\Patients\Patients.Validators\Patients.Validators.csproj", "{6E3C678E-0B78-42B0-B48C-6C835D5B18ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Validators", "src\services\patients\Patients.Validators\Patients.Validators.csproj", "{6E3C678E-0B78-42B0-B48C-6C835D5B18ED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agenda", "agenda", "{9FF4CD92-DD62-4089-8DAF-782EB1DB129F}"
 EndProject
