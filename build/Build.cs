@@ -350,12 +350,13 @@ namespace MedEasy.ContinuousIntegration
 
                     }
 
-                    string[] lines = connections.Select(item => $"{item.service}|{item.connectionString}")
-                                                           .ToArray();
-                    WriteAllLines(ConnectionsFile, lines);
-
-                    connections.ForEach(line => Info("Connection string -> '{line}'"));
                 }
+
+                string[] lines = connections.Select(item => $"{item.service}|{item.connectionString}")
+                                                       .ToArray();
+                WriteAllLines(ConnectionsFile, lines);
+
+                connections.ForEach(line => Info($"Connection string -> '{line}'"));
             });
 
         public Target IntegrationTests => _ => _
