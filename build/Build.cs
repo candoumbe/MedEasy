@@ -44,7 +44,7 @@ namespace MedEasy.ContinuousIntegration
         OnPullRequestBranches = new[] { DevelopBranch },
         PublishArtifacts = true,
         InvokedTargets = new[] { nameof(Compile), nameof(IntegrationTests) },
-        CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
+        CacheKeyFiles = new[] { "global.json", "nuget.config", ".config/dotnet-tools.json" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
         {
@@ -62,7 +62,7 @@ namespace MedEasy.ContinuousIntegration
         GitHubActionsImage.UbuntuLatest,
         OnPushBranches = new[] { MainBranchName, ReleaseBranchPrefix + "/*" },
         InvokedTargets = new[] { nameof(Compile), nameof(Tests), nameof(Publish) },
-        CacheKeyFiles = new[] { "global.json", "Nuget.config", ".config/dotnet-tools.json" },
+        CacheKeyFiles = new[] { "global.json", "nuget.config", ".config/dotnet-tools.json", "**/*.csproj" },
         ImportGitHubTokenAs = nameof(GitHubToken),
         ImportSecrets = new[]
                         {
@@ -139,6 +139,8 @@ namespace MedEasy.ContinuousIntegration
         /// Path to the folder that contains databases used by integration tests.
         /// </summary>
         public AbsolutePath DatabaseFolder => OutputDirectory / "databases";
+
+        public AbsolutePath ConnectionsFile => OutputDirectory / "connections.dat";
 
         /// <summary>
         /// Path to the tye configuration file.
@@ -293,7 +295,7 @@ namespace MedEasy.ContinuousIntegration
             .Consumes(Compile)
             .DependsOn(Compile, CleanDatabaseFolder)
             .Produces(DatabaseFolder / "*.db",
-                      OutputDirectory / "connections.dat")
+                      ConnectionsFile)
             .Executes(() =>
             {
                 Project[] datastoresProjects = Solution.AllProjects
@@ -346,8 +348,13 @@ namespace MedEasy.ContinuousIntegration
 
                         Info($"'{databaseName}' database updated");
 
-                        WriteAllLines(OutputDirectory / "connections.dat", connections.Select(item => $"{item.service}|{item.connectionString}"));
                     }
+
+                    string[] lines = connections.Select(item => $"{item.service}|{item.connectionString}")
+                                                           .ToArray();
+                    WriteAllLines(ConnectionsFile, lines);
+
+                    connections.ForEach(line => Info("Connection string -> '{line}'"));
                 }
             });
 
@@ -366,9 +373,9 @@ namespace MedEasy.ContinuousIntegration
                 testsProjects.ForEach(project => Info(project));
                 IEnumerable<(string service, string connectionString)> connections = Enumerable.Empty<(string, string)>();
 
-                if (FileExists(OutputDirectory / "connections.dat"))
+                if (FileExists(ConnectionsFile))
                 {
-                    connections = ReadAllLines(OutputDirectory / "connections.dat")
+                    connections = ReadAllLines(ConnectionsFile)
                         .Select(line => line.Split('|', StringSplitOptions.RemoveEmptyEntries))
                         .Where(line => line.Exactly(2))
                         .Select(line => (service: line[0], connectionString: line[1]));
