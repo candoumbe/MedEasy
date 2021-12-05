@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0"/>
-  </ItemGroup>
-
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Measures.API\Measures.API.csproj" />
     <ProjectReference Include="..\..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
   </ItemGroup>
