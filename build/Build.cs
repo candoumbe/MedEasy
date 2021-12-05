@@ -88,6 +88,7 @@ namespace MedEasy.ContinuousIntegration
         public readonly bool Interactive = false;
 
         [Required] [Solution] public readonly Solution Solution;
+        private Solution CiSolution;
         [Required] [GitRepository] public readonly GitRepository GitRepository;
         [Required] [GitVersion(Framework = "net5.0")] public readonly GitVersion GitVersion;
 
@@ -179,7 +180,9 @@ namespace MedEasy.ContinuousIntegration
         [Parameter("Generic name placeholder. Can be used wherever a name is required")]
         public readonly string Name;
 
-        private IEnumerable<Project> Projects => Partition.GetCurrent(Solution.GetProjects("*.csproj").ToArray());
+        private IEnumerable<Project> Projects => Solution.AllProjects
+                                                         .Where(csproj => csproj.Is(ProjectType.CSharpProject))
+                                                         .ToArray();
 
         private AbsolutePath DatasourcesConnectionStrings => TemporaryDirectory / "connections-strings.dat";
 
@@ -200,24 +203,40 @@ namespace MedEasy.ContinuousIntegration
             .Executes(() =>
             {
                 DotNetRestore(s => s
-                    .SetIgnoreFailedSources(true)
+                    .EnableIgnoreFailedSources()
                     .SetDisableParallel(false)
-                    .When(IsLocalBuild && Interactive, _ => _.SetProperty("NugetInteractive", IsLocalBuild && Interactive))
-                    .CombineWith(Projects, (settings, csproj) => settings.SetProjectFile(csproj))
+                    .SetProjectFile(Solution)
                 );
 
                 DotNetToolRestore(s => s
                     .SetIgnoreFailedSources(true));
             });
 
+
+        public Target GenerateGlobalSolution => _ => _
+              .Before(Compile)
+              .Unlisted()
+              .Executes(() =>
+              {
+                  CiSolution = ProjectModelTasks.CreateSolution($"{ Solution.Directory / Solution.Name}.CI.sln", Solution);
+                  IEnumerable<Project> projectsToRemove = CiSolution.AllProjects
+                                                                    .Where(proj => proj.Is(ProjectType.DockerComposeProject)
+                                                                                   || proj.Name == "ArchitecturalValidation" );
+
+                  projectsToRemove.ForEach(proj => CiSolution.RemoveProject(proj));
+
+                  CiSolution.Save();
+              });
+
+
         public Target Compile => _ => _
-            .DependsOn(Restore)
+            .DependsOn(Restore, GenerateGlobalSolution)
             .Executes(() =>
             {
                 DotNetBuild(s => s
                     .SetNoRestore(SucceededTargets.Contains(Restore))
                     .SetConfiguration(Configuration)
-                    .CombineWith(Projects, (settings, csproj) => settings.SetProjectFile(csproj)));
+                    .SetProjectFile(CiSolution));
             });
 
         public Target UnitTests => _ => _
@@ -502,6 +521,12 @@ namespace MedEasy.ContinuousIntegration
 
             });
 
+
+        protected override void OnBuildFinished()
+        {
+            DeleteFile(CiSolution);
+        }
+
         //[LocalExecutable]
         //public readonly Tool Npx;
         //public Target TypeScriptModels => _ => _
@@ -510,7 +535,7 @@ namespace MedEasy.ContinuousIntegration
         //    {
         //        NpmInstall(s => s.AddPackages("npx")
         //                         .EnableGlobal());
-                
+
         //        Npm("npx swagger-typescript-api -p https://api-dev.devaktome.fr/swagger/v1/swagger.json --axios");
         //    });
     }
