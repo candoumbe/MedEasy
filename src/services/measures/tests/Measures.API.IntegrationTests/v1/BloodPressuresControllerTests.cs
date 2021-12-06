@@ -24,6 +24,7 @@ namespace Measures.API.IntegrationTests.v1
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using Xunit.Extensions.AssemblyFixture;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static Newtonsoft.Json.JsonConvert;
@@ -35,7 +36,7 @@ namespace Measures.API.IntegrationTests.v1
     [IntegrationTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
+    public class BloodPressuresControllerTests : IAsyncLifetime, IAssemblyFixture<IdentityApiFixture>, IAssemblyFixture<IntegrationFixture<Startup>>
     {
         private readonly IntegrationFixture<Startup> _sut;
         private readonly IdentityApiFixture _identityServer;

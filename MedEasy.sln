@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		core.props = core.props
 		GitVersion.yml = GitVersion.yml
 		global.json = global.json
+		integration-tests.props = integration-tests.props
 		LICENCE = LICENCE
 		Nuget.config = Nuget.config
 		README.md = README.md
@@ -303,7 +304,7 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "refit", "refit", "{6B3F5579-B2C7-4527-9B94-218F54ED085C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Api.Refit", "src\services\identity\refit\Identity.Api.Refit\Identity.Api.Refit.csproj", "{0729A2DC-1EB6-4E94-A4C0-E117B7A3397C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Api.Refit", "src\services\identity\refit\Identity.Api.Refit\Identity.Api.Refit.csproj", "{0729A2DC-1EB6-4E94-A4C0-E117B7A3397C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

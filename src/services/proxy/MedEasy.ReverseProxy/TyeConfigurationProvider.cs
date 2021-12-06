@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using Yarp.ReverseProxy.Configuration;
-using Yarp.ReverseProxy.Model;
 
 namespace MedEasy.ReverseProxy
 {

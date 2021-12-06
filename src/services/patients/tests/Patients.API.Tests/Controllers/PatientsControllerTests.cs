@@ -60,7 +60,6 @@ namespace Patients.API.UnitTests.Controllers
     using MedEasy.CQRS.Core.Commands;
     using Microsoft.AspNetCore.JsonPatch;
     using DataFilters;
-    using static Humanizer.On;
     using MedEasy.DTO.Search;
 
     [UnitTest]

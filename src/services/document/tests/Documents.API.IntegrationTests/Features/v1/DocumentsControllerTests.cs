@@ -36,13 +36,14 @@
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using Xunit.Extensions.AssemblyFixture;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static System.Net.Http.HttpMethod;
 
     [IntegrationTest]
     [Feature(nameof(Documents))]
-    public class DocumentsControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>, IClassFixture<IntegrationFixture<Startup>>
+    public class DocumentsControllerTests : IAsyncLifetime, IAssemblyFixture<IdentityApiFixture>, IAssemblyFixture<IntegrationFixture<Startup>>
     {
         private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;

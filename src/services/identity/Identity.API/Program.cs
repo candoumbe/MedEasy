@@ -1,9 +1,7 @@
 ﻿namespace Identity.API
 {
-    using Identity.DataStores;
 
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -11,13 +9,9 @@
 
     using Optional;
 
-    using Polly;
-    using Polly.Retry;
-
     using Serilog;
 
     using System;
-    using System.Data.Common;
     using System.Diagnostics;
     using System.Threading.Tasks;
 

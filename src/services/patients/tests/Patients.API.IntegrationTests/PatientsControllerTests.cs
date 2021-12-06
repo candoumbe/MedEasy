@@ -27,13 +27,14 @@ namespace Patients.API.IntegrationTests
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using Xunit.Extensions.AssemblyFixture;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static System.Net.Http.HttpMethod;
 
     [IntegrationTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IAsyncLifetime, IClassFixture<IntegrationFixture<Startup>>, IClassFixture<IdentityApiFixture>
+    public class PatientsControllerTests : IAsyncLifetime, IAssemblyFixture<IntegrationFixture<Startup>>, IAssemblyFixture<IdentityApiFixture>
     {
         private readonly IntegrationFixture<Startup> _server;
         private readonly ITestOutputHelper _outputHelper;

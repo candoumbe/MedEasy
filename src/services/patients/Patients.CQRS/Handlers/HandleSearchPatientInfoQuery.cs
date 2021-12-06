@@ -1,15 +1,13 @@
 ﻿namespace Patients.CQRS.Handlers
 {
-    using AutoMapper.QueryableExtensions;
-using DataFilters;
+    using DataFilters;
 
     using global::Patients.CQRS.Queries;
     using global::Patients.DTO;
 
     using MedEasy.CQRS.Core.Handlers;
-    using MedEasy.DAL.Interfaces;
     using MedEasy.DAL.Repositories;
-using MediatR;
+    using MediatR;
 
     using System.Collections.Generic;
     using System;

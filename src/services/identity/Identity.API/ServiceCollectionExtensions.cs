@@ -17,13 +17,12 @@
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
-using MedEasy.Core.Infrastructure;
+    using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.DataStores.Core;
-    using MedEasy.Ids;
     using MedEasy.Ids.Converters;
 
     using MediatR;
@@ -50,9 +49,8 @@ using MedEasy.Core.Infrastructure;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
-using Optional;
 
-    using Swashbuckle.AspNetCore.SwaggerGen;
+    using Optional;
 
     using System;
     using System.Collections.Generic;

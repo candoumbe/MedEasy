@@ -1,7 +1,6 @@
 namespace Identity.API.Fixtures.v2
 {
     using Identity.API.Features.v1.Accounts;
-    using Identity.DataStores;
     using Identity.DTO;
     using Identity.DTO.Auth;
     using Identity.DTO.v2;
@@ -15,7 +14,6 @@ namespace Identity.API.Fixtures.v2
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.TestHost;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
 
     using NodaTime;
@@ -70,6 +68,7 @@ namespace Identity.API.Fixtures.v2
             client.Timeout = TimeSpan.FromMinutes(2);
         }
 
+        ///<inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             base.ConfigureWebHost(builder);
@@ -96,13 +95,13 @@ namespace Identity.API.Fixtures.v2
                         .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
 
                 
-                ServiceProvider sp = services.BuildServiceProvider();
+                //ServiceProvider sp = services.BuildServiceProvider();
 
-                using IServiceScope scope = sp.CreateScope();
-                IServiceProvider scopedServices = scope.ServiceProvider;
-                IdentityContext db = scopedServices.GetRequiredService<IdentityContext>();
+                //using IServiceScope scope = sp.CreateScope();
+                //IServiceProvider scopedServices = scope.ServiceProvider;
+                //IdentityContext db = scopedServices.GetRequiredService<IdentityContext>();
                 
-                db.Database.Migrate();
+                //db.Database.Migrate();
             });
         }
 

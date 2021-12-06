@@ -2,7 +2,6 @@
 {
 
     using Nuke.Common;
-    using Nuke.Common.CI;
     using Nuke.Common.ProjectModel;
     using Nuke.Common.Tools.Coverlet;
     using Nuke.Common.Tools.DotNet;

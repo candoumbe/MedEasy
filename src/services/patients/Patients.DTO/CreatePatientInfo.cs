@@ -5,7 +5,6 @@
 
     using Patients.Ids;
 
-    using System;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>

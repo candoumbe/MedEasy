@@ -1,13 +1,11 @@
 ﻿namespace MedEasy.IntegrationTests.Core
 {
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Claims;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
@@ -22,12 +20,16 @@
     {
         private readonly DummyClaimsProvider _claimsProvider;
 
-        public DummyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-            DummyClaimsProvider claimsProvider) : base(options, logger, encoder, clock)
+        public DummyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+                                          ILoggerFactory logger,
+                                          UrlEncoder encoder,
+                                          ISystemClock clock,
+                                          DummyClaimsProvider claimsProvider) : base(options, logger, encoder, clock)
         {
             _claimsProvider = claimsProvider;
         }
 
+        ///<inheritdoc/>
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             ClaimsIdentity identity = new(_claimsProvider.Claims);
@@ -41,6 +43,9 @@
     }
 
 
+    /// <summary>
+    /// Provides claims
+    /// </summary>
     public class DummyClaimsProvider
     {
         public string Scheme { get; }
@@ -52,17 +57,6 @@
         {
             Scheme = scheme ?? throw new ArgumentNullException(nameof(scheme));
             Claims = claims ?? throw new ArgumentNullException(nameof(claims));
-        }
-    }
-
-
-    public class DummyAuthorizationHandler : IAuthorizationHandler
-    {
-        public Task HandleAsync(AuthorizationHandlerContext context)
-        {
-            context.Succeed(context.PendingRequirements.FirstOrDefault());
-
-            return Task.CompletedTask;
         }
     }
 }
