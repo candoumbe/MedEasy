@@ -4,8 +4,6 @@
 
     using Patients.Ids;
 
-    using System;
-
     /// <summary>
     /// Contains informations about <see cref="Doctor"/>
     /// </summary>

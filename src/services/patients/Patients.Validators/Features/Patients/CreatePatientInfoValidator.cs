@@ -10,7 +10,6 @@ namespace Patients.Validators.Features.Patients.DTO
 
     using static FluentValidation.CascadeMode;
     using static FluentValidation.Severity;
-    using global::Patients.Ids;
 
     /// <summary>
     /// Validates <see cref="CreatePatientInfo"/> instances.

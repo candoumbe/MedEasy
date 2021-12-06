@@ -1,22 +1,14 @@
 ﻿namespace Measures.API
 {
-    using Measures.DataStores;
 
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
-    using Polly;
-    using Polly.Retry;
-
     using Serilog;
 
     using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Threading;
     using System.Threading.Tasks;
 
 #pragma warning disable RCS1102 // Make class static.

@@ -3,7 +3,6 @@
     using MedEasy.Ids.Converters;
 
     using System.ComponentModel;
-    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Base class for storngly typed ids.

@@ -7,11 +7,13 @@ namespace MedEasy.IntegrationTests.Core
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.TestHost;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
     using Refit;
 
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -20,7 +22,7 @@ namespace MedEasy.IntegrationTests.Core
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 
-    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>
+    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>, IAsyncDisposable
         where TEntryPoint : class
     {
         /// <summary>
@@ -28,9 +30,43 @@ namespace MedEasy.IntegrationTests.Core
         /// </summary>
         public const string Scheme = "FakeAuthentication";
 
+        private IHost _host;
+
+        ///<inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder)
             => builder.UseEnvironment("IntegrationTest")
-                      .CaptureStartupErrors(true);
+                      .UseTestServer()
+                      .UseStartup<TEntryPoint>()
+                      .ConfigureAppConfiguration((hostingBuilder, configBuilder) =>
+                      {
+                          configBuilder
+                              .AddJsonFile("appsettings.json", optional: true)
+                              .AddJsonFile($"appsettings.{hostingBuilder.HostingEnvironment.EnvironmentName}.json", true, true)
+                              .AddEnvironmentVariables();
+
+                      })
+                      .ConfigureServices(services =>
+                      {
+                          services.AddControllers(opts =>
+                          {
+                              AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
+                                                                               .ToArray();
+
+                              foreach (IFilterMetadata item in authorizeFilters)
+                              {
+                                  opts.Filters.Remove(item);
+                              }
+                          });
+
+                          services.AddTransient((_) => new DummyClaimsProvider(Scheme, Enumerable.Empty<Claim>()))
+                            .AddAuthorization(opts =>
+                            {
+                                opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
+                                                                                             .Build());
+                            })
+                            .AddAuthentication(Scheme)
+                            .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
+                      });
 
         /// <summary>
         /// Initializes a <see cref="HttpClient"/> instance that can be later used to call
@@ -49,7 +85,7 @@ namespace MedEasy.IntegrationTests.Core
             return WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("IntegrationTest");
-                builder.ConfigureServices(services =>
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddControllers(opts =>
                     {
@@ -77,6 +113,7 @@ namespace MedEasy.IntegrationTests.Core
                             .CreateClient();
         }
 
+
         public TRefitClient CreateRefitClient<TRefitClient>(HttpClient http, JsonSerializerOptions serializerOptions = null)
         {
             return RestService.For<TRefitClient>(http,
@@ -91,5 +128,28 @@ namespace MedEasy.IntegrationTests.Core
                                                     })
                                                 });
         }
+
+        ///<inheritdoc/>
+        public async Task InitializeAsync()
+        {
+            _host = CreateHostBuilder().Build();
+
+            await _host.InitAsync().ConfigureAwait(false);
+
+            await _host.StartAsync().ConfigureAwait(false);
+        }
+
+        ///<inheritdoc/>
+        public async override ValueTask DisposeAsync()
+        {
+            if (_host is not null)
+            {
+                await _host.StopAsync().ConfigureAwait(false);
+            }
+            _host = null;
+            GC.SuppressFinalize(this);
+        }
+
+
     }
 }

@@ -1,18 +1,14 @@
 ﻿namespace Patients.API.Controllers
 {
 
-    using DataFilters;
-
     using FluentValidation.Results;
 
     using MedEasy.Attributes;
     using MedEasy.Core;
     using MedEasy.CQRS.Core.Commands;
     using MedEasy.CQRS.Core.Commands.Results;
-    using MedEasy.CQRS.Core.Queries;
     using MedEasy.DAL.Repositories;
     using MedEasy.DTO;
-    using MedEasy.DTO.Search;
     using MedEasy.RestObjects;
 
     using MediatR;

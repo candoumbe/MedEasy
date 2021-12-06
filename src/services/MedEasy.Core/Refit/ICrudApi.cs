@@ -4,8 +4,6 @@ using global::Refit;
 
 using MedEasy.Models;
 
-using Refit;
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;

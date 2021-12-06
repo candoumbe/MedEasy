@@ -2,23 +2,18 @@
 {
     using AutoMapper.QueryableExtensions;
 
-    using DataFilters;
-
     using global::Patients.CQRS.Commands;
     using global::Patients.CQRS.Queries;
-    using global::Patients.DTO;
     using global::Patients.Objects;
 
     using MassTransit;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.Interfaces;
-    using MedEasy.DAL.Repositories;
 
     using MediatR;
 
     using System;
-    using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
 

@@ -1,9 +1,6 @@
 ﻿using Identity.DTO;
 using Identity.DTO.Auth;
 using Identity.DTO.v1;
-using Identity.Ids;
-
-using MedEasy.RestObjects;
 
 using Refit;
 

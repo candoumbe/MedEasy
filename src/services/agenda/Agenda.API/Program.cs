@@ -1,19 +1,14 @@
 ﻿namespace Agenda.API
 {
-    using Agenda.DataStores;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Polly;
     using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
-    using System.Linq;
-    using System.Data.Common;
 
     /// <summary>
     /// Entry class

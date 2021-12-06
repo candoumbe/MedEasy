@@ -40,11 +40,12 @@ namespace Agenda.API.IntegrationTests.v1
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static MedEasy.RestObjects.LinkRelation;
+    using Xunit.Extensions.AssemblyFixture;
 
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IClassFixture<IntegrationFixture<Program>>
+    public class AppointmentsControllerTests : IAssemblyFixture<IntegrationFixture<Program>>
     {
         private readonly IntegrationFixture<Program> _server;
         private readonly ITestOutputHelper _outputHelper;
