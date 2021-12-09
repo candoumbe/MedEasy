@@ -78,28 +78,6 @@
 
         public Task DisposeAsync() => Task.CompletedTask;
 
-
-        [Fact]
-        public async Task GivenNoToken_HeadAll_Returns_Unauthorized()
-        {
-            // Arrange
-            string requestUri = $"{_endpointUrl}?page=1&pageSize=5";
-            _outputHelper.WriteLine($"Requested URI : {requestUri}");
-            HttpRequestMessage headRequest = new(Head, requestUri);
-            using HttpClient client = _sut.CreateClient();
-
-            // Act
-            using HttpResponseMessage response = await client.SendAsync(headRequest)
-                .ConfigureAwait(false);
-
-            // Assert
-            response.IsSuccessStatusCode.Should()
-                .BeFalse("no bearer token was provided");
-
-            response.StatusCode.Should()
-                .Be(Status401Unauthorized);
-        }
-
         [Fact]
         public async Task GivenDocument_Post_Creates_Record()
         {

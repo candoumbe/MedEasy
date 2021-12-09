@@ -61,50 +61,6 @@ namespace Identity.API.Fixtures.v2
         public BearerTokenInfo Tokens { get; private set; }
 
 
-
-        protected override void ConfigureClient(HttpClient client)
-        {
-            client.BaseAddress = new Uri("http://local");
-            client.Timeout = TimeSpan.FromMinutes(2);
-        }
-
-        ///<inheritdoc/>
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            base.ConfigureWebHost(builder);
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddControllers(opts =>
-                {
-                    AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
-                                                                     .ToArray();
-
-                    foreach (IFilterMetadata item in authorizeFilters)
-                    {
-                        opts.Filters.Remove(item);
-                    }
-                });
-
-                services.AddTransient<DummyClaimsProvider>((_) => new DummyClaimsProvider(Scheme, Enumerable.Empty<Claim>()))
-                        .AddAuthorization(opts =>
-                        {
-                            opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
-                                                                                         .Build());
-                        })
-                        .AddAuthentication(Scheme)
-                        .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
-
-                
-                //ServiceProvider sp = services.BuildServiceProvider();
-
-                //using IServiceScope scope = sp.CreateScope();
-                //IServiceProvider scopedServices = scope.ServiceProvider;
-                //IdentityContext db = scopedServices.GetRequiredService<IdentityContext>();
-                
-                //db.Database.Migrate();
-            });
-        }
-
         /// <summary>
         /// Register a new account
         /// </summary>

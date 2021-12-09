@@ -25,11 +25,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System;
+    using Xunit.Extensions.AssemblyFixture;
 
     [IntegrationTest]
     [Feature("Accounts")]
     [Feature("Identity")]
-    public class AccountsControllerTests : IAsyncLifetime, IClassFixture<IdentityApiFixture>
+    public class AccountsControllerTests : IAsyncLifetime, IAssemblyFixture<IdentityApiFixture>
     {
         private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;

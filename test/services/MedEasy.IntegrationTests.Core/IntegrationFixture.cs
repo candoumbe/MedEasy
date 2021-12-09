@@ -7,6 +7,7 @@ namespace MedEasy.IntegrationTests.Core
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.TestHost;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -35,8 +36,6 @@ namespace MedEasy.IntegrationTests.Core
         ///<inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder)
             => builder.UseEnvironment("IntegrationTest")
-                      .UseTestServer()
-                      .UseStartup<TEntryPoint>()
                       .ConfigureAppConfiguration((hostingBuilder, configBuilder) =>
                       {
                           configBuilder
@@ -45,8 +44,9 @@ namespace MedEasy.IntegrationTests.Core
                               .AddEnvironmentVariables();
 
                       })
-                      .ConfigureServices(services =>
+                      .ConfigureTestServices(services =>
                       {
+                          
                           services.AddControllers(opts =>
                           {
                               AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
@@ -58,14 +58,20 @@ namespace MedEasy.IntegrationTests.Core
                               }
                           });
 
-                          services.AddTransient((_) => new DummyClaimsProvider(Scheme, Enumerable.Empty<Claim>()))
-                            .AddAuthorization(opts =>
-                            {
-                                opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
-                                                                                             .Build());
-                            })
-                            .AddAuthentication(Scheme)
-                            .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
+                          //services.Remove<IAuthenticationService>();
+                          //services.Remove<IAuthenticationHandlerProvider>();
+
+                          //services.AddTransient((_) => new DummyClaimsProvider(Scheme, Enumerable.Empty<Claim>()))
+                          //        .AddAuthorization(opts =>
+                          //        {
+                          //            if (opts.GetPolicy("Test") is null)
+                          //            {
+                          //                opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
+                          //                                                                             .Build());
+                          //            }
+                          //        })
+                          //        .AddAuthentication(Scheme)
+                          //        .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
                       });
 
         /// <summary>
@@ -144,7 +150,10 @@ namespace MedEasy.IntegrationTests.Core
         {
             if (_host is not null)
             {
+                DbContext dbContext = _host.Services.GetService<DbContext>();
+                dbContext?.Database?.EnsureDeleted();
                 await _host.StopAsync().ConfigureAwait(false);
+                _host.Dispose();
             }
             _host = null;
             GC.SuppressFinalize(this);
