@@ -126,16 +126,13 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper = outputHelper;
             _server = fixture;
             _identityServer = identityFixture;
-            _identityServer.Email = _faker.Person.Email;
-            _identityServer.Password = _faker.Internet.Password();
             _serializerOptions = new (JsonSerializerDefaults.Web);
         }
 
-        public async Task InitializeAsync()
-        {
-            await _identityServer.LogIn().ConfigureAwait(false);
-        }
+        ///<inheritdoc/>
+        public async Task InitializeAsync() => await _identityServer.LogIn().ConfigureAwait(false);
 
+        ///<inheritdoc/>
         public Task DisposeAsync() => Task.CompletedTask;
 
 

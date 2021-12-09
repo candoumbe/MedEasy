@@ -66,16 +66,13 @@
             _faker = new();
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
-            _identityApiFixture.Email = _faker.Person.Email;
-            _identityApiFixture.Password = _faker.Internet.Password();
             _sut = sut;
         }
 
-        public async Task InitializeAsync()
-        {
-            await _identityApiFixture.LogIn().ConfigureAwait(false);
-        }
+        ///<inheritdoc/>
+        public async Task InitializeAsync() => await _identityApiFixture.LogIn().ConfigureAwait(false);
 
+        ///<inheritdoc/>
         public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
@@ -91,18 +88,6 @@
                 MimeType = faker.System.CommonFileType(),
                 Content = faker.Hacker.Random.Bytes(20),
             };
-
-            NewAccountInfo newAccountInfo = new()
-            {
-                Id = AccountId.New(),
-                Name = faker.Person.FullName,
-                Email = faker.Person.Email,
-                Password = password,
-                ConfirmPassword = password,
-                Username = faker.Person.UserName
-            };
-
-
 
             using HttpClient client = _sut.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityApiFixture.Tokens.AccessToken.Token);

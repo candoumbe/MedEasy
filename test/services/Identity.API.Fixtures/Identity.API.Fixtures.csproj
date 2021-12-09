@@ -9,7 +9,7 @@
 
   <!-- Exclude tests from code coverage analysis-->
   <ItemGroup>
-    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
   </ItemGroup>
 
   <Choose>
@@ -25,7 +25,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <PackageReference Include="Xunit.Extensions.AssemblyFixture" Version="2.1.0"/>
+    <PackageReference Include="Bogus" Version="33.0.2" />
+    <PackageReference Include="Xunit.Extensions.AssemblyFixture" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>

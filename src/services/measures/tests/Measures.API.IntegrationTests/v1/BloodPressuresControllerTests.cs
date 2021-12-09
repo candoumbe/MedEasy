@@ -15,6 +15,7 @@ namespace Measures.API.IntegrationTests.v1
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
 
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -42,7 +43,6 @@ namespace Measures.API.IntegrationTests.v1
         private readonly IdentityApiFixture _identityServer;
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/v1/bloodpressures";
-        private readonly Faker _faker;
 
         private static readonly JSchema _pageLink = new()
         {
@@ -93,16 +93,20 @@ namespace Measures.API.IntegrationTests.v1
 
         public BloodPressuresControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> sut, IdentityApiFixture identityFixture)
         {
-            _faker = new();
             _outputHelper = outputHelper;
             _sut = sut;
             _identityServer = identityFixture;
-            _identityServer.Email = _faker.Person.Email;
-            _identityServer.Password = _faker.Person.Email;
         }
 
-        public async Task InitializeAsync() => await _identityServer.LogIn().ConfigureAwait(false);
+        ///<inheritdoc/>
+        public async Task InitializeAsync()
+        {
+            _outputHelper.WriteLine($"Initializing {nameof(BloodPressuresControllerTests)}");
+            _outputHelper.WriteLine($"Username : {_identityServer.Email}");
+            await _identityServer.LogIn().ConfigureAwait(false);
+        }
 
+        ///<inheritdoc/>
         public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
@@ -124,7 +128,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"json : {json}");
 
             ((int)response.StatusCode).Should().Be(Status200OK);
-            
+
             JToken pageResponseToken = JToken.Parse(json);
             pageResponseToken.IsValid(_pageResponseSchema).Should()
                              .BeTrue();

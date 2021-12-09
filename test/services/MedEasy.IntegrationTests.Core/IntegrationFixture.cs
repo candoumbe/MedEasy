@@ -11,10 +11,12 @@ namespace MedEasy.IntegrationTests.Core
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
 
     using Refit;
 
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -23,7 +25,9 @@ namespace MedEasy.IntegrationTests.Core
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
 
-    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>, IAsyncDisposable
+    using Xunit;
+
+    public class IntegrationFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>, IAsyncLifetime
         where TEntryPoint : class
     {
         /// <summary>
@@ -36,6 +40,7 @@ namespace MedEasy.IntegrationTests.Core
         ///<inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder)
             => builder.UseEnvironment("IntegrationTest")
+                      .UseTestServer()
                       .ConfigureAppConfiguration((hostingBuilder, configBuilder) =>
                       {
                           configBuilder
@@ -119,38 +124,27 @@ namespace MedEasy.IntegrationTests.Core
                             .CreateClient();
         }
 
-
-        public TRefitClient CreateRefitClient<TRefitClient>(HttpClient http, JsonSerializerOptions serializerOptions = null)
-        {
-            return RestService.For<TRefitClient>(http,
-                                                new RefitSettings
-                                                {
-                                                    CollectionFormat = CollectionFormat.Multi,
-                                                    ContentSerializer = new SystemTextJsonContentSerializer(serializerOptions ?? new JsonSerializerOptions
-                                                    {
-                                                        AllowTrailingCommas = true,
-                                                        PropertyNameCaseInsensitive = true,
-                                                        Converters = { new JsonStringEnumConverter() }
-                                                    })
-                                                });
-        }
-
         ///<inheritdoc/>
-        public async Task InitializeAsync()
+        public async virtual Task InitializeAsync()
         {
-            _host = CreateHostBuilder().Build();
+            IHostBuilder builder = CreateHostBuilder();
+            builder.UseEnvironment("IntegrationTest");
+
+            _host = builder.Build();
 
             await _host.InitAsync().ConfigureAwait(false);
-
             await _host.StartAsync().ConfigureAwait(false);
         }
 
         ///<inheritdoc/>
-        public async override ValueTask DisposeAsync()
+        public async override ValueTask DisposeAsync() => await DisposeAndStopAsync().ConfigureAwait(false);
+
+        private async Task DisposeAndStopAsync()
         {
             if (_host is not null)
             {
-                DbContext dbContext = _host.Services.GetService<DbContext>();
+                IServiceScope scope = _host.Services.CreateScope();
+                DbContext dbContext = scope.ServiceProvider.GetService<DbContext>();
                 dbContext?.Database?.EnsureDeleted();
                 await _host.StopAsync().ConfigureAwait(false);
                 _host.Dispose();
@@ -159,6 +153,6 @@ namespace MedEasy.IntegrationTests.Core
             GC.SuppressFinalize(this);
         }
 
-
+        async Task IAsyncLifetime.DisposeAsync() => await DisposeAndStopAsync().ConfigureAwait(false);
     }
 }

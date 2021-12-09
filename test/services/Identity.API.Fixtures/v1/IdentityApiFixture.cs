@@ -1,5 +1,7 @@
 namespace Identity.API.Fixtures.v1
 {
+    using Bogus;
+
     using Identity.API.Features.v1.Accounts;
     using Identity.DTO;
     using Identity.DTO.Auth;
@@ -34,7 +36,6 @@ namespace Identity.API.Fixtures.v1
         public static JsonSerializerOptions SerializerOptions
         {
             get
-
             {
                 JsonSerializerOptions options = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 options.PropertyNameCaseInsensitive = true;
@@ -45,12 +46,12 @@ namespace Identity.API.Fixtures.v1
         /// <summary>
         /// Gets/sets the email to use to create an account or to log in
         /// </summary>
-        public string Email { get; set; }
+        public string Email { get; private set; }
 
         /// <summary>
         /// Password to use to create an account or to login
         /// </summary>
-        public string Password { get; set; }
+        public string Password { get; private set; }
 
         /// <summary>
         ///  Name of the account
@@ -62,77 +63,42 @@ namespace Identity.API.Fixtures.v1
         /// </summary>
         public BearerTokenInfo Tokens { get; private set; }
 
+        private static readonly Faker _faker = new();
 
-
-        protected override void ConfigureClient(HttpClient client)
+        public IdentityApiFixture()
         {
-            client.BaseAddress = new Uri("http://local");
-            client.Timeout = TimeSpan.FromMinutes(2);
+            Email = _faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
+            Password = _faker.Internet.Password();
         }
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        ///<inheritdoc/>
+        public override async Task InitializeAsync()
         {
-            base.ConfigureWebHost(builder);
-            builder.ConfigureTestServices(services =>
+            await base.InitializeAsync().ConfigureAwait(false);
+            await Register().ConfigureAwait(false);
+
+            async Task Register(CancellationToken ct = default)
             {
-                services.AddControllers(opts =>
+                // Create account
+                using HttpClient client = CreateClient();
+                string uri = $"/v1/{AccountsController.EndpointName}";
+
+                NewAccountInfo newAccount = new()
                 {
-                    AuthorizeFilter[] authorizeFilters = opts.Filters.OfType<AuthorizeFilter>()
-                                                                     .ToArray();
+                    Email = Email,
+                    Password = Password,
+                    ConfirmPassword = Password,
+                    Name = Email,
+                    Username = Email,
+                    Id = AccountId.New()
+                };
 
-                    foreach (IFilterMetadata item in authorizeFilters)
-                    {
-                        opts.Filters.Remove(item);
-                    }
-                });
+                using HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount, SerializerOptions, ct)
+                                                                 .ConfigureAwait(false);
 
-                services.AddTransient<DummyClaimsProvider>((_) => new DummyClaimsProvider(Scheme, Enumerable.Empty<Claim>()))
-                        .AddAuthorization(opts =>
-                        {
-                            opts.AddPolicy("Test", new AuthorizationPolicyBuilder(Scheme).RequireAuthenticatedUser()
-                                                                                         .Build());
-                        })
-                        .AddAuthentication("Bearer")
-                        .AddScheme<AuthenticationSchemeOptions, DummyAuthenticationHandler>(Scheme, opts => { });
+                response.EnsureSuccessStatusCode();
 
-
-                //ServiceProvider sp = services.BuildServiceProvider();
-
-                //using IServiceScope scope = sp.CreateScope();
-                //IServiceProvider scopedServices = scope.ServiceProvider;
-                //IdentityContext db = scopedServices.GetRequiredService<IdentityContext>();
-
-                //db.Database.Migrate();
-            });
-        }
-
-        /// <summary>
-        /// Register a new account and 
-        /// </summary>
-        /// <param name="newAccount">Account to register</param>
-        private async Task Register(CancellationToken ct = default)
-        {
-            // Create account
-            using HttpClient client = CreateClient();
-            string uri = $"/v1/{AccountsController.EndpointName}";
-
-            NewAccountInfo newAccount = new()
-            {
-                Email = Email,
-                Password = Password,
-                ConfirmPassword = Password,
-                Name = Email,
-                Username = Email,
-                Id = AccountId.New()
-            };
-
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, newAccount, SerializerOptions, ct)
-                                                             .ConfigureAwait(false);
-
-            response.EnsureSuccessStatusCode();
-
-            // Get Token
-            await LogIn(ct).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -148,52 +114,39 @@ namespace Identity.API.Fixtures.v1
                 using HttpResponseMessage response = await client.PostAsJsonAsync(uri, new { Username = Email, Password }, SerializerOptions, ct)
                     .ConfigureAwait(false);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
+                response.EnsureSuccessStatusCode();
+
+                Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
                                                   .ConfigureAwait(false);
 
-                }
-                else
-                {
-                    await Register(ct).ConfigureAwait(false);
-                }
             }
             else
             {
                 JwtSecurityToken jwt = new(Tokens.AccessToken);
 
-                if (jwt.ValidTo < DateTime.UtcNow)
+                if (jwt.ValidTo <= DateTime.UtcNow)
                 {
                     await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
                         .ConfigureAwait(false);
 
                 }
-
             }
-        }
 
-
-        /// <summary>
-        /// Refreshes access token for the specified <paramref name="username"/>.
-        /// </summary>
-        /// <param name="username"></param>
-        /// <param name="refreshTokenInfo"></param>
-        /// <returns></returns>
-        public async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
-        {
-            using HttpClient client = CreateClient();
-            string uri = $"/v2/auth/token/{username}/refresh";
-
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, refreshTokenInfo, SerializerOptions, ct)
-                .ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
+            async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
             {
-                Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
-                                         .ConfigureAwait(false);
-            }
+                using HttpClient client = CreateClient();
+                string uri = $"/v2/auth/token/{username}/refresh";
 
+                using HttpResponseMessage response = await client.PostAsJsonAsync(uri, refreshTokenInfo, SerializerOptions, ct)
+                    .ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
+                                             .ConfigureAwait(false);
+                }
+
+            }
         }
     }
 }

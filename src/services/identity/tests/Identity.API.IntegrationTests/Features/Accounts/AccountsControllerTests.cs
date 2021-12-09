@@ -52,8 +52,6 @@
             _faker = new();
             _outputHelper = outputHelper;
             _identityApiFixture = identityFixture;
-            _identityApiFixture.Email = _faker.Person.Email;
-            _identityApiFixture.Password = _faker.Internet.Password();
         }
 
 

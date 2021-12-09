@@ -17,11 +17,12 @@
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
-using MedEasy.DataStores.Core;
+    using MedEasy.DataStores.Core;
     using MedEasy.Validators;
 
     using MediatR;
-using MicroElements.Swashbuckle.NodaTime;
+
+    using MicroElements.Swashbuckle.NodaTime;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authorization;
@@ -155,6 +156,7 @@ using MicroElements.Swashbuckle.NodaTime;
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("agenda");
+                
                 if (!(hostingEnvironment.IsProduction() || hostingEnvironment.IsStaging()))
                 {
                     builder.UseSqlite(connectionString, options =>
@@ -287,7 +289,7 @@ using MicroElements.Swashbuckle.NodaTime;
                 });
 
                 config.ConfigureForNodaTime();
-                
+
                 config.IgnoreObsoleteActions();
                 config.IgnoreObsoleteProperties();
                 string documentationPath = Path.Combine(applicationBasePath, $"{applicationName}.xml");
