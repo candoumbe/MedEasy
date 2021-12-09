@@ -36,13 +36,14 @@
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using Xunit.Extensions.AssemblyFixture;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
     using static System.Net.Http.HttpMethod;
 
     [IntegrationTest]
     [Feature("Authentication")]
-    public class TokenControllerTests : IClassFixture<IdentityApiFixture>
+    public class TokenControllerTests : IAssemblyFixture<IdentityApiFixture>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IdentityApiFixture _identityApiFixture;

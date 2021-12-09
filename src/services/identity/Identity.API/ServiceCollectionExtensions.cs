@@ -343,7 +343,11 @@
         /// <param name="services"></param>
         /// <returns></returns>
         public static IHealthChecksBuilder AddCustomHealthChecks(this IServiceCollection services)
-            => services.AddHealthChecks().AddDbContextCheck<IdentityContext>(customTestQuery: async (context, ct) => await context.Set<Account>().AnyAsync(ct));
+        {
+            IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
+            return healthChecksBuilder
+                                  .AddDbContextCheck(customTestQuery: (Func<IdentityContext, System.Threading.CancellationToken, System.Threading.Tasks.Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
+        }
 
         /// <summary>
         /// Adds Swagger middlewares
