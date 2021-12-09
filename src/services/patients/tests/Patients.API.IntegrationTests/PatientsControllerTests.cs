@@ -95,8 +95,6 @@ namespace Patients.API.IntegrationTests
             _outputHelper = outputHelper;
             _server = fixture;
             _identityServer = identityFixture;
-            _identityServer.Email = _faker.Person.Email;
-            _identityServer.Password = _faker.Internet.Password();
         }
 
         public async Task InitializeAsync()

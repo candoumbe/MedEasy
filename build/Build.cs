@@ -307,16 +307,17 @@ namespace MedEasy.ContinuousIntegration
                 foreach (Project datastoreProject in datastoresProjects)
                 {
                     Info($"Updating database associated with '{datastoreProject.Name}'");
-                    string databaseName = datastoreProject.Name.Replace(".Context", string.Empty)
-                                                               .Replace(".DataStores", string.Empty);
+                    string databaseName = datastoreProject.Name.Replace(".Context", string.Empty, StringComparison.OrdinalIgnoreCase)
+                                                               .Replace(".DataStores", string.Empty, StringComparison.OrdinalIgnoreCase);
 
-                    string apiProjectName = datastoreProject.Name.Replace(".Context", ".API")
-                                                                 .Replace(".DataStores", ".API");
+                    string apiProjectName = datastoreProject.Name.Replace(".Context", ".API", StringComparison.OrdinalIgnoreCase)
+                                                                 .Replace(".DataStores", ".API", StringComparison.OrdinalIgnoreCase);
 
                     string sqliteConnectionString = DatabaseFolder / $"{databaseName}.db".ToLowerInvariant();
                     Project apiProject = Solution.GetProject(apiProjectName);
                     Info($"API project is '{apiProjectName}' ({apiProject.Path})");
                     string dataSource = string.Empty;
+                    
                     if (IsServerBuild)
                     {
                         dataSource = @$"DataSource=""{sqliteConnectionString}""";
@@ -354,6 +355,7 @@ namespace MedEasy.ContinuousIntegration
                                                        .ToArray();
                 WriteAllLines(ConnectionsFile, lines);
 
+                Info($"Created connection file at '{ConnectionsFile}'");
                 connections.ForEach(line => Info($"Connection string -> '{line}'"));
             });
 
@@ -383,7 +385,13 @@ namespace MedEasy.ContinuousIntegration
                     Info($"Retrieved {connections.Count()} connection string(s)");
                     connections.ForEach(connection => Info($"'{connection.service}' -> {connection.connectionString}"));
                 }
+                else
+                {
+                    Info($"File '{ConnectionsFile}' not found");
+                }
 
+                connections.ForEach((connection) => EnvironmentInfo.SetVariable($"CONNECTIONSTRINGS__{connection.service}", connection.connectionString));
+                
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
@@ -396,8 +404,8 @@ namespace MedEasy.ContinuousIntegration
                             .SetFramework(framework)
                             .SetLoggers($"trx;LogFileName={project.Name}.{framework}.trx")
                             .SetCollectCoverage(true)
-                            .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml"))
-                            .CombineWith(connections, (setting, connection) => setting.AddProcessEnvironmentVariable($"CONNECTION_STRINGS__{connection.service}", connection.connectionString))
+                            .SetCoverletOutput(IntegrationTestsResultDirectory / $"{project.Name}.xml")
+                            .SetProcessEnvironmentVariable("DOTNET_URLS", "http://*:0;https://*:0"))
                         )
                 );
 

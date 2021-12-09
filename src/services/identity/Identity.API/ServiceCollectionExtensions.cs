@@ -183,6 +183,26 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new IdentityContext(optionsBuilder.Options, clock);
+            });
+
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
+            {
+                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+
+                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
+                                                                options => new IdentityContext(options, clock));
+            });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityContext>>();
+
+            return services;
+
             static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
@@ -205,31 +225,11 @@
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
                        .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
                        .ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
-                });
+                       {
+                           options.Default(WarningBehavior.Log);
+                       });
                 return builder;
             }
-
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
-                IClock clock = serviceProvider.GetRequiredService<IClock>();
-                return new IdentityContext(optionsBuilder.Options, clock);
-            });
-
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
-            {
-                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
-                IClock clock = serviceProvider.GetRequiredService<IClock>();
-
-                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
-                                                                options => new IdentityContext(options, clock));
-            });
-
-            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityContext>>();
-
-            return services;
         }
 
         /// <summary>

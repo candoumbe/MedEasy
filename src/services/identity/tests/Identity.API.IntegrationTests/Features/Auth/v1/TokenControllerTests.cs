@@ -76,7 +76,7 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = "thebatman",
+                Username = $"thebatman_{Guid.NewGuid():n}",
                 Password = password,
                 ConfirmPassword = password,
                 Email = "bruce.wayne@gotham.com"
@@ -147,7 +147,7 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = $"thebatman_{Guid.NewGuid()}",
+                Username = $"thebatman_{Guid.NewGuid():n}",
                 Password = password,
                 ConfirmPassword = password,
                 Email = $"bruce.wayne_{Guid.NewGuid()}@gotham.com"
@@ -203,7 +203,7 @@
             {
                 Id = AccountId.New(),
                 Name = faker.Person.FullName,
-                Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
+                Username = $"{faker.Person.UserName}_{Guid.NewGuid():n}",
                 Password = password,
                 ConfirmPassword = password,
                 Email = faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString())
