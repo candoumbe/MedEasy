@@ -31,8 +31,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="6.0.0" />
     <!--Mass Transit-->
-    <PackageReference Include="MassTransit.AspNetCore" Version="7.1.8" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="7.1.8" />
+    <PackageReference Include="MassTransit.AspNetCore" Version="7.3.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="7.3.0" />
   </ItemGroup>
 
 </Project>
