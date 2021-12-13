@@ -21,7 +21,7 @@
     <PackageReference Include="Bogus" Version="33.1.1" />
     <PackageReference Include="NodaTime.Bogus" Version="3.0.1" />
     <PackageReference Include="NodaTime.Testing" Version="3.0.9" />
-    <PackageReference Include="FsCheck.Xunit" Version="2.15.1" />
+    <PackageReference Include="FsCheck.Xunit" Version="2.16.3" />
 
 
     <PackageReference Include="Moq" Version="4.16.1" />
