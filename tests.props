@@ -33,9 +33,9 @@
 
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.*"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.*"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" Condition="'$(IsIntegrationTestProject)' == 'true'" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.0" Condition="'$(IsIntegrationTestProject)' == 'true'" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.0" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.1" Condition="'$(IsIntegrationTestProject)' == 'true'" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.1" Condition="'$(IsIntegrationTestProject)' == 'true'" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.1" Condition="'$(IsIntegrationTestProject)' == 'true'"/>
   </ItemGroup>
 
   <PropertyGroup>
