@@ -31,6 +31,9 @@
     using static MedEasy.RestObjects.LinkRelation;
     using static Microsoft.AspNetCore.Http.StatusCodes;
 
+    /// <summary>
+    /// Handles attendees
+    /// </summary>
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]

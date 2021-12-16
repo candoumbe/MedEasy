@@ -45,8 +45,7 @@ namespace Agenda.API.IntegrationTests.v1
     {
         private readonly IntegrationFixture<Startup> _server;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _version = "/v1";
-        private const string _endpointUrl = _version + "/attendees";
+        private readonly string _endpointUrl = AttendeesController.EndpointName;
 
         private static readonly JSchema _errorObjectSchema = new()
         {
@@ -204,6 +203,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             // Act
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            client.DefaultRequestHeaders.Add("version", "1");
             HttpResponseMessage response = await client.GetAsync(url)
                                                        .ConfigureAwait(false);
 
@@ -237,13 +237,12 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
 
-
             // Arrange
             string url = $"{_endpointUrl}/search?sort=+name&page=1";
 
             HttpRequestMessage request = new(new HttpMethod(verb), url);
+            request.Headers.Add("version", "1");
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-
 
             // Act
             HttpResponseMessage response = await client.SendAsync(request)
@@ -293,7 +292,9 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            string requestUri = $"{_version}/{AppointmentsController.EndpointName}";
+            client.DefaultRequestHeaders.Add("version", "1.0");
+
+            string requestUri = AppointmentsController.EndpointName;
             await newAppointments.ForEachAsync(async (newParticipant) =>
                                                {
                                                    JsonSerializerOptions jsonSerializerOptions = new();
