@@ -1,4 +1,6 @@
-﻿namespace Agenda.API.Resources.v1
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Agenda.API.Resources.v1
 {
     using Agenda.API.Resources.v1.Appointments;
     using Agenda.API.Routing;
@@ -31,7 +33,7 @@
     /// </summary>
     [ApiVersion("1.0")]
     [ApiController]
-    [Route("v{version:apiVersion}/[controller]")]
+    [Route("[controller]")]
     public class AppointmentsController
     {
         private readonly LinkGenerator _urlHelper;
@@ -124,6 +126,8 @@
         [HttpGet]
         [HttpHead]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentModel>>), Status200OK)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Get([Minimum(1)] int page, [Minimum(1)] int pageSize, CancellationToken ct = default)
         {
             PaginationConfiguration pagination = new()
@@ -180,6 +184,7 @@
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(typeof(Browsable<AppointmentModel>), Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
         public async Task<ActionResult<Browsable<AppointmentModel>>> Get([RequireNonDefault] AppointmentId id, CancellationToken ct = default)
         {
@@ -251,6 +256,7 @@
         [HttpGet("[action]")]
         [HttpHead("[action]")]
         [ProducesResponseType(typeof(ValidationProblemDetails), Status400BadRequest)]
+        [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<AppointmentModel>>), Status200OK)]
         public async Task<ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>>> Search([FromQuery] SearchAppointmentModel search, CancellationToken ct = default)
         {
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);

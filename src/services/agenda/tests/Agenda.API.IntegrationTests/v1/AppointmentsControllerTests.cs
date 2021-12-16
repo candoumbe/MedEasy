@@ -49,7 +49,7 @@ namespace Agenda.API.IntegrationTests.v1
     {
         private readonly IntegrationFixture<Program> _server;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/v1/appointments";
+        private const string _endpointUrl = "/appointments";
 
         private static readonly JSchema _errorObjectSchema = new()
         {
@@ -153,7 +153,7 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-
+            client.DefaultRequestHeaders.Add("version", "1.0");
             // Act
 
             using HttpResponseMessage response = await client.GetAsync(url)
@@ -316,9 +316,9 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            client.DefaultRequestHeaders.Add("version", "1.0");
 
             // Act
-
             using HttpResponseMessage response = await client.SendAsync(request)
                                                        .ConfigureAwait(false);
 
@@ -365,6 +365,7 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            client.DefaultRequestHeaders.Add("version", "1.0");
 
             // Act
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, SerializerOptions)
@@ -416,6 +417,7 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            client.DefaultRequestHeaders.Add("version", "1.0");
 
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel, SerializerOptions)
                                                        .ConfigureAwait(false);
