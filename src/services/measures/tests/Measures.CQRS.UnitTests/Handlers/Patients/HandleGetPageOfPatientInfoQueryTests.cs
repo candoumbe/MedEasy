@@ -5,7 +5,7 @@
     using FluentAssertions;
 
     using Measures.DataStores;
-    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Handlers.Subjects;
     using Measures.Mapping;
 
     using MedEasy.DAL.EFStore;
@@ -30,7 +30,7 @@
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
-        private readonly HandleGetPageOfPatientInfoQuery _sut;
+        private readonly HandleGetPageOfSubjectInfoQuery _sut;
 
         public HandleGetPageOfPatientInfoQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
@@ -43,7 +43,7 @@
                 return context;
             });
 
-            _sut = new HandleGetPageOfPatientInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetPageOfSubjectInfoQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -72,7 +72,7 @@
 
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleGetOnePatientInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
+            Action action = () => new HandleGetOneSubjectInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert

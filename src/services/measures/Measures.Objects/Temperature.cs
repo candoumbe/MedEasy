@@ -19,12 +19,12 @@
         /// <summary>
         /// Builds a new <see cref="Temperature"/> instance
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="patientId"></param>
-        /// <param name="dateOfMeasure"></param>
-        /// <param name="value"></param>
-        public Temperature(TemperatureId id, PatientId patientId, Instant dateOfMeasure, float value)
-            : base(patientId, id, dateOfMeasure)
+        /// <param name="id">Id of the record</param>
+        /// <param name="subjectId">Id of the subject which the current measure belongs to</param>
+        /// <param name="dateOfMeasure">Defines when the measure was made</param>
+        /// <param name="value">Value of the measure</param>
+        public Temperature(TemperatureId id, SubjectId subjectId, Instant dateOfMeasure, float value)
+            : base(subjectId, id, dateOfMeasure)
         {
             Value = value;
         }

@@ -11,7 +11,7 @@
 
     /// <summary>
     /// Command to create a new <see cref="BloodPressureInfo"/> and attach it to 
-    /// its <see cref="PatientInfo"/> resource.
+    /// its <see cref="SubjectInfo"/> resource.
     /// </summary>
     /// <see cref="CommandBase{TKey, TData, TResult}"/>
     public class CreateBloodPressureInfoForPatientIdCommand : CommandBase<Guid, CreateBloodPressureInfo, Option<BloodPressureInfo, CreateCommandResult>>

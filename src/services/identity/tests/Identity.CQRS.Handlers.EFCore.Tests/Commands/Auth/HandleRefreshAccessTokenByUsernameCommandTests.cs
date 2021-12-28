@@ -76,7 +76,7 @@
             _handleCreateSecurityTokenMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns((CreateSecurityTokenCommand cmd, CancellationToken ct) =>
                 {
-                    (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) = cmd.Data;
+                    (JwtSecurityTokenOptions tokenOptions, _, IEnumerable<ClaimInfo> claims) = cmd.Data;
                     SecurityToken st = new JwtSecurityToken(
                         signingCredentials: _signingCredentials,
                         issuer: tokenOptions.Issuer,

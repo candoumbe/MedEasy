@@ -39,19 +39,19 @@
                 {
                     null,
                     new PaginationConfiguration { Page = faker.Random.Int(min:1), PageSize = faker.Random.Int(min:1) },
-                    $"null is not a valid value for {nameof(PatientId)}"
+                    $"null is not a valid value for {nameof(SubjectId)}"
                 };
 
                 yield return new object[]
                 {
-                    PatientId.Empty,
+                    SubjectId.Empty,
                     new PaginationConfiguration { Page = faker.Random.Int(min:1), PageSize = faker.Random.Int(min:1) },
-                    $"{nameof(PatientId)}.{nameof(PatientId.Empty)} is not a valid value for {nameof(PatientId)}"
+                    $"{nameof(SubjectId)}.{nameof(SubjectId.Empty)} is not a valid value for {nameof(SubjectId)}"
                 };
 
                 yield return new object[]
                 {
-                    PatientId.New(),
+                    SubjectId.New(),
                     null,
                     $"null is not a valid value for {nameof(PaginationConfiguration)}"
                 };
@@ -65,7 +65,7 @@
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
 
             // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(null, pagination);
+            Action action = () => new GetPageOfBloodPressureInfoBySubjectIdQuery(null, pagination);
 
             // Assert
             action.Should()
@@ -81,7 +81,7 @@
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
 
             // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(PatientId.Empty, pagination);
+            Action action = () => new GetPageOfBloodPressureInfoBySubjectIdQuery(SubjectId.Empty, pagination);
 
             // Assert
             action.Should()
@@ -94,7 +94,7 @@
         public void Given_pagination_is_null_constructor_should_throw_ArgumentNullException()
         {
             // Act
-            Action action = () => new GetPageOfBloodPressureInfoByPatientIdQuery(PatientId.New(), null);
+            Action action = () => new GetPageOfBloodPressureInfoBySubjectIdQuery(SubjectId.New(), null);
 
             // Assert
             action.Should()
@@ -107,12 +107,12 @@
         public Property Given_samedata_two_instances_have_different_Id(Guid patientGuidId, PositiveInt page, PositiveInt pageSize)
         {
             // Arrange
-            PatientId id = new (patientGuidId);
+            SubjectId id = new (patientGuidId);
             PaginationConfiguration pagination = new PaginationConfiguration { Page = page.Item, PageSize = pageSize.Item };
 
             // Act
-            GetPageOfBloodPressureInfoByPatientIdQuery first = new(id, pagination);
-            GetPageOfBloodPressureInfoByPatientIdQuery second = new(id, pagination);
+            GetPageOfBloodPressureInfoBySubjectIdQuery first = new(id, pagination);
+            GetPageOfBloodPressureInfoBySubjectIdQuery second = new(id, pagination);
 
             return (first.Id != Guid.Empty
                     && second.Id != Guid.Empty

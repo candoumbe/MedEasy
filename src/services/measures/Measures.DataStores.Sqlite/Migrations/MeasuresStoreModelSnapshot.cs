@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Measures.DataStores.Sqlite.Migrations
 {
     [DbContext(typeof(MeasuresStore))]
@@ -13,12 +15,11 @@ namespace Measures.DataStores.Sqlite.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.6");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.1");
 
             modelBuilder.Entity("Measures.Objects.BloodPressure", b =>
                 {
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DateOfMeasure")
@@ -45,14 +46,14 @@ namespace Measures.DataStores.Sqlite.Migrations
                     b.Property<string>("UpdatedDate")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("PatientId", "DateOfMeasure");
+                    b.HasKey("SubjectId", "DateOfMeasure");
 
                     b.HasIndex("Id");
 
                     b.ToTable("BloodPressure");
                 });
 
-            modelBuilder.Entity("Measures.Objects.Patient", b =>
+            modelBuilder.Entity("Measures.Objects.Subject", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -78,12 +79,12 @@ namespace Measures.DataStores.Sqlite.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Patient");
+                    b.ToTable("Subject");
                 });
 
             modelBuilder.Entity("Measures.Objects.Temperature", b =>
                 {
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DateOfMeasure")
@@ -107,7 +108,7 @@ namespace Measures.DataStores.Sqlite.Migrations
                     b.Property<float>("Value")
                         .HasColumnType("REAL");
 
-                    b.HasKey("PatientId", "DateOfMeasure");
+                    b.HasKey("SubjectId", "DateOfMeasure");
 
                     b.HasIndex("Id");
 
@@ -116,27 +117,27 @@ namespace Measures.DataStores.Sqlite.Migrations
 
             modelBuilder.Entity("Measures.Objects.BloodPressure", b =>
                 {
-                    b.HasOne("Measures.Objects.Patient", "Patient")
+                    b.HasOne("Measures.Objects.Subject", "Subject")
                         .WithMany("BloodPressures")
-                        .HasForeignKey("PatientId")
+                        .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Patient");
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("Measures.Objects.Temperature", b =>
                 {
-                    b.HasOne("Measures.Objects.Patient", "Patient")
+                    b.HasOne("Measures.Objects.Subject", "Subject")
                         .WithMany("Temperatures")
-                        .HasForeignKey("PatientId")
+                        .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Patient");
+                    b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("Measures.Objects.Patient", b =>
+            modelBuilder.Entity("Measures.Objects.Subject", b =>
                 {
                     b.Navigation("BloodPressures");
 

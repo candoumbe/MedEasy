@@ -19,7 +19,6 @@
     {
         public static async Task Main(string[] args)
         {
-
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             IHost host = CreateHostBuilder(args).Build();
 
@@ -68,11 +67,9 @@
                         .AddSerilog()
                         .AddConsole();
                 })
-                .ConfigureAppConfiguration((context, builder) =>
+                .ConfigureAppConfiguration((_, builder) =>
 
                     builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                         .AddEnvironmentVariables()
                         .AddCommandLine(args)
                 );

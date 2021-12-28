@@ -28,9 +28,9 @@
     using static Microsoft.AspNetCore.Http.StatusCodes;
 
     /// <summary>
-    /// Handles <see cref="Account"/>s resources
+    /// Handles <see cref="Tenant"/>s resources
     /// </summary>
-    [Route("v{version:apiVersion}/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [ApiVersion("1.0")]
     [Authorize]

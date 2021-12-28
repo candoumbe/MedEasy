@@ -176,7 +176,7 @@
                     builder.UseSqlite(connectionString, options =>
                     {
                         options.UseNodaTime()
-                               .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName);
+                               .MigrationsAssembly("Documents.DataStores.Sqlite");
                     });
                 }
                 else
@@ -185,7 +185,7 @@
                         connectionString,
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
-                                          .MigrationsAssembly(typeof(DocumentsStore).Assembly.FullName)
+                                          .MigrationsAssembly("Documents.DataStores.Postgres")
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -231,6 +231,10 @@
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new HeaderApiVersionReader("api-version", "version"),
+                    new QueryStringApiVersionReader("version", "v", "api-version")
+                );
             });
             services.AddVersionedApiExplorer(
                 options =>

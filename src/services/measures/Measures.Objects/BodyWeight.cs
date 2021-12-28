@@ -16,8 +16,8 @@
         /// </summary>
         public decimal Value { get; set; }
 
-        public BodyWeight(BodyWeightId id, PatientId patientId, Instant dateOfMeasure, decimal value)
-           : base(patientId, id, dateOfMeasure)
+        public BodyWeight(BodyWeightId id, SubjectId subjectId, Instant dateOfMeasure, decimal value)
+           : base(subjectId, id, dateOfMeasure)
         {
             Value = value;
         }

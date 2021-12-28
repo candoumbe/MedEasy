@@ -23,9 +23,9 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Handles <see cref="GetPageOfBloodPressureInfoByPatientIdQuery"/>s
+    /// Handles <see cref="GetPageOfBloodPressureInfoBySubjectIdQuery"/>s
     /// </summary>
-    public class HandleGetPageOfBloodPressureInfoByPatientIdQuery : IRequestHandler<GetPageOfBloodPressureInfoByPatientIdQuery, Option<Page<BloodPressureInfo>>>
+    public class HandleGetPageOfBloodPressureInfoByPatientIdQuery : IRequestHandler<GetPageOfBloodPressureInfoBySubjectIdQuery, Option<Page<BloodPressureInfo>>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
@@ -42,18 +42,18 @@
         }
 
 
-        public async Task<Option<Page<BloodPressureInfo>>> Handle(GetPageOfBloodPressureInfoByPatientIdQuery query, CancellationToken cancellationToken)
+        public async Task<Option<Page<BloodPressureInfo>>> Handle(GetPageOfBloodPressureInfoBySubjectIdQuery query, CancellationToken cancellationToken)
         {
-            (PatientId patientId, PaginationConfiguration pagination) = query.Data;
+            (SubjectId patientId, PaginationConfiguration pagination) = query.Data;
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             Option<Page<BloodPressureInfo>> optionalResult = Option.None<Page<BloodPressureInfo>>();
 
-            if (await uow.Repository<Patient>().AnyAsync(patient => patient.Id == patientId, cancellationToken).ConfigureAwait(false))
+            if (await uow.Repository<Subject>().AnyAsync(patient => patient.Id == patientId, cancellationToken).ConfigureAwait(false))
             {
                 Expression<Func<BloodPressure, BloodPressureInfo>> selector = _expressionBuilder.GetMapExpression<BloodPressure, BloodPressureInfo>();
                 optionalResult = Option.Some(await uow.Repository<BloodPressure>()
                                         .WhereAsync(selector: selector,
-                                                    predicate: (BloodPressureInfo p) => p.PatientId == patientId,
+                                                    predicate: (BloodPressureInfo p) => p.SubjectId == patientId,
                                                     orderBy: new Sort<BloodPressureInfo>(nameof(BloodPressureInfo.DateOfMeasure), SortDirection.Descending),
                                                     pageSize: pagination.PageSize,
                                                     page: pagination.Page,

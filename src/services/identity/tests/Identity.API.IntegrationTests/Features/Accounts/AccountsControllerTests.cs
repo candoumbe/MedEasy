@@ -34,7 +34,6 @@
     {
         private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/v1";
         private readonly Faker _faker;
 
         private static JsonSerializerOptions JsonSerializerOptions
@@ -65,8 +64,10 @@
         public async Task GivenNoToken_GetAll_Returns_Unauthorized()
         {
             // Arrange
-            HttpRequestMessage headRequest = new(Head, $"{_endpointUrl}/accounts?page=1&pageSize=5");
+            HttpRequestMessage headRequest = new(Head, "/accounts?page=1&pageSize=5");
             using HttpClient client = _identityApiFixture.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1");
+
             // Act
             HttpResponseMessage response = await client.SendAsync(headRequest)
                 .ConfigureAwait(false);
@@ -96,10 +97,12 @@
             };
 
             using HttpClient httpClient = _identityApiFixture.CreateClient();
+            httpClient.DefaultRequestHeaders.Add("api-version", "1.0");
+
             _outputHelper.WriteLine($"Address : {httpClient.BaseAddress}");
 
             // Act
-            using HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccount, JsonSerializerOptions)
+            using HttpResponseMessage response = await httpClient.PostAsJsonAsync(AccountsController.EndpointName, newAccount, JsonSerializerOptions)
                                                                  .ConfigureAwait(false);
 
             // Assert
@@ -150,9 +153,11 @@
             // Arrange
             using HttpClient client = _identityApiFixture.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _identityApiFixture.Tokens.AccessToken);
+            client.DefaultRequestHeaders.Add("api-version", "1.0");
+            
             _outputHelper.WriteLine($"bearer : {_identityApiFixture.Tokens.Jsonify()}");
             // Act
-            using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}/accounts?page=1")
+            using HttpResponseMessage response = await client.GetAsync("/accounts?page=1")
                                                              .ConfigureAwait(false);
 
             // Assert

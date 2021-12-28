@@ -24,7 +24,7 @@
         [FormField(Description = "Maximum date of measure")]
         public ZonedDateTime? To { get; set; }
 
-        [FormField(Description = "Id of the patient")]
-        public PatientId PatientId { get; set; }
+        [FormField(Description = "Id of the subjet")]
+        public SubjectId SubjectId { get; set; }
     }
 }

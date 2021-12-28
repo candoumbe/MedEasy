@@ -31,8 +31,7 @@
 
         public Task<SecurityToken> Handle(CreateSecurityTokenCommand cmd, CancellationToken ct)
         {
-            Instant now = _dateTimeService.GetCurrentInstant();
-            (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) data = cmd.Data;
+            (JwtSecurityTokenOptions tokenOptions, Instant now, IEnumerable<ClaimInfo> claims) data = cmd.Data;
 
             IEnumerable<string> audiences = data.tokenOptions.Audiences?.Distinct() ?? Enumerable.Empty<string>();
 
@@ -50,8 +49,8 @@
                     : data.tokenOptions.Issuer,
                 claims: claims.Select(claim => new Claim(claim.Type, claim.Value))
                     .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
-                notBefore: now.ToDateTimeUtc(),
-                expires: now.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes))
+                notBefore: data.now.ToDateTimeUtc(),
+                expires: data.now.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes))
                             .ToDateTimeUtc(),
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );

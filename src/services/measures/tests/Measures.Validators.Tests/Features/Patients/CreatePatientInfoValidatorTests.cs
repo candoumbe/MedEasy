@@ -65,7 +65,7 @@ namespace Measures.Validators.Tests.Features.Patients
 
         [Fact]
         public void Should_Implements_AbstractValidator() => _validator.Should()
-                .BeAssignableTo<AbstractValidator<NewPatientInfo>>();
+                .BeAssignableTo<AbstractValidator<NewSubjectInfo>>();
 
         [Fact]
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
@@ -84,38 +84,38 @@ namespace Measures.Validators.Tests.Features.Patients
             {
                 yield return new object[]
                 {
-                    new NewPatientInfo(),
+                    new NewSubjectInfo(),
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Name).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewSubjectInfo.Name).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     ),
-                    $"because no {nameof(NewPatientInfo)}'s data set."
+                    $"because no {nameof(NewSubjectInfo)}'s data set."
                 };
 
                 yield return new object[]
                 {
-                    new NewPatientInfo() { Name = "Wayne" },
+                    new NewSubjectInfo() { Name = "Wayne" },
                     (Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid),
-                    $"because {nameof(NewPatientInfo.Name)} is set"
+                    $"because {nameof(NewSubjectInfo.Name)} is set"
                 };
 
                 yield return new object[]
                 {
-                    new NewPatientInfo() { Name = "Bruce Wayne", Id = PatientId.Empty },
+                    new NewSubjectInfo() { Name = "Bruce Wayne", Id = SubjectId.Empty },
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => nameof(NewPatientInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(NewSubjectInfo.Id).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     ),
-                    $"because {nameof(NewPatientInfo.Id)} is set to {PatientId.Empty}"
+                    $"because {nameof(NewSubjectInfo.Id)} is set to {SubjectId.Empty}"
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValidateTestCases))]
-        public async Task ValidateTest(NewPatientInfo info,
+        public async Task ValidateTest(NewSubjectInfo info,
             Expression<Func<ValidationResult, bool>> errorMatcher,
             string because = "")
         {
@@ -134,15 +134,15 @@ namespace Measures.Validators.Tests.Features.Patients
         public async Task Should_Fails_When_Id_AlreadyExists()
         {
             // Arrange
-            PatientId patientId = PatientId.New();
+            SubjectId patientId = SubjectId.New();
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(new Patient(patientId, "Grundy"));
+                uow.Repository<Subject>().Create(new Subject(patientId, "Grundy"));
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
-            NewPatientInfo info = new()
+            NewSubjectInfo info = new()
             {
                 Name = "Bruce Wayne",
                 Id = patientId
@@ -152,10 +152,10 @@ namespace Measures.Validators.Tests.Features.Patients
             ValidationResult vr = await _validator.ValidateAsync(info);
 
             // Assert
-            vr.IsValid.Should().BeFalse($"{nameof(Patient)} <{info.Id}> already exists");
+            vr.IsValid.Should().BeFalse($"{nameof(Subject)} <{info.Id}> already exists");
             vr.Errors.Should()
                 .HaveCount(1).And
-                .Contain(x => x.PropertyName == nameof(NewPatientInfo.Id));
+                .Contain(x => x.PropertyName == nameof(NewSubjectInfo.Id));
         }
 
     }

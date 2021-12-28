@@ -7,11 +7,11 @@
     using System;
 
     /// <summary>
-    /// Event that notifies the creation of a new <see cref="PatientInfo"/> resource alongside with a new measure.
+    /// Event that notifies the creation of a new <see cref="SubjectInfo"/> resource alongside with a new measure.
     /// </summary>
-    public class PatientCreated : NotificationBase<Guid, PatientInfo>
+    public class PatientCreated : NotificationBase<Guid, SubjectInfo>
     {
-        public PatientCreated(PatientInfo patient) : base(Guid.NewGuid(), patient)
+        public PatientCreated(SubjectInfo patient) : base(Guid.NewGuid(), patient)
         {
         }
     }

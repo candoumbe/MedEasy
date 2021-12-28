@@ -138,14 +138,14 @@
 
                 yield return new object[]
                 {
-                    new SearchBloodPressureInfo { PatientId = PatientId.New() },
+                    new SearchBloodPressureInfo { SubjectId = SubjectId.New() },
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid ),
-                    $"{nameof(SearchBloodPressureInfo.PatientId)} is set."
+                    $"{nameof(SearchBloodPressureInfo.SubjectId)} is set."
                 };
 
                 yield return new object[]
                 {
-                    new SearchBloodPressureInfo { Page = -1, PatientId = PatientId.New() },
+                    new SearchBloodPressureInfo { Page = -1, SubjectId = SubjectId.New() },
                     (Expression<Func<ValidationResult, bool>>)(vr => !vr.IsValid && vr.Errors.Count() == 1
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Page)
                             && err.Severity == Error )

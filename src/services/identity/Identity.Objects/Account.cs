@@ -71,8 +71,14 @@
 
         private readonly IList<AccountClaim> _claims;
 
+        /// <summary>
+        /// <see cref="AccountRole"/>s associated to the current <see cref="Account"/>.
+        /// </summary>
         public IEnumerable<AccountRole> Roles => _roles.ToImmutableArray();
 
+        /// <summary>
+        /// <see cref="Claim"/>s associated with the current <see cref="Account"/>
+        /// </summary>
         public IEnumerable<AccountClaim> Claims => _claims.ToImmutableArray();
 
         /// <summary>

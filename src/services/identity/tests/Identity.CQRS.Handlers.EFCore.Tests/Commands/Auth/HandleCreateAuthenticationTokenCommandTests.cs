@@ -137,7 +137,7 @@
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns(async (CreateSecurityTokenCommand cmd, CancellationToken _) =>
                 {
-                    (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) = cmd.Data;
+                    (JwtSecurityTokenOptions tokenOptions, Instant utcNow, IEnumerable<ClaimInfo> claims) = cmd.Data;
                     SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
                     SecurityToken token = new JwtSecurityToken(
                         issuer: tokenOptions.Issuer,
@@ -332,7 +332,7 @@
             _handleCreateSecurityTokenCommandMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))
                 .Returns(async (CreateSecurityTokenCommand request, CancellationToken _) =>
                 {
-                    (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) = request.Data;
+                    (JwtSecurityTokenOptions tokenOptions, Instant utcNow, IEnumerable<ClaimInfo> claims) = request.Data;
                     SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfos.Key));
                     SecurityToken token = new JwtSecurityToken(
                         issuer: tokenOptions.Issuer,

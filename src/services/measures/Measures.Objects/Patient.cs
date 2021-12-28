@@ -14,7 +14,7 @@
     /// <summary>
     /// Patient that owns measures data
     /// </summary>
-    public class Patient : AuditableEntity<PatientId, Patient>
+    public class Subject : AuditableEntity<SubjectId, Subject>
     {
         /// <summary>
         /// Name of the patient
@@ -37,13 +37,13 @@
 
 
         /// <summary>
-        /// Builds a new <see cref="Patient"/> instance.
+        /// Builds a new <see cref="Subject"/> instance.
         /// </summary>
         /// <param name="id">instance unique identitifer</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="PatientId.Empty"/></exception>
-        public Patient(PatientId id, string name, LocalDate? birthDate = null) : base(id)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="SubjectId.Empty"/></exception>
+        public Subject(SubjectId id, string name, LocalDate? birthDate = null) : base(id)
         {
-            if (id == PatientId.Empty)
+            if (id == SubjectId.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(id));
             }
@@ -58,7 +58,7 @@
         /// Change the name of the patient.
         /// </summary>
         /// <param name="newName">new name to set.</param>
-        public Patient ChangeNameTo(string newName)
+        public Subject ChangeNameTo(string newName)
         {
             if (newName is null)
             {
@@ -82,6 +82,7 @@
         /// <paramref name="diastolic"/> is less than <c>0</c>.
         /// </exception>
         /// <exception cref="ArgumentNullException"><paramref name="measureId"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="measureId"/> is <see cref="BloodPressureId.Empty"/>.</exception>
         public void AddBloodPressure(BloodPressureId measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
             if (measureId is null)
@@ -138,7 +139,7 @@
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
 
-        public Patient WasBornOn(LocalDate? birthDate)
+        public Subject WasBornOn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
 

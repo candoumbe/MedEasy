@@ -41,7 +41,7 @@
     /// Controller that handles <see cref="DocumentInfo"/>s
     /// </summary>
     [ApiController]
-    [Route("v{v:apiVersion}/[controller]")]
+    [Route("[controller]")]
     [ApiVersion("1.0")]
     [ProducesResponseType(Status401Unauthorized)]
     public class DocumentsController

@@ -8,7 +8,7 @@
 
     using Measures.API.Features.Auth;
     using Measures.CQRS.Handlers.BloodPressures;
-    using Measures.CQRS.Queries.Patients;
+    using Measures.CQRS.Queries.Subjects;
     using Measures.DataStores;
     using Measures.Ids;
     using Measures.Mapping;
@@ -231,6 +231,10 @@
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
                 options.DefaultApiVersion = new ApiVersion(2, 0);
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new HeaderApiVersionReader("api-version", "version"),
+                    new QueryStringApiVersionReader("version", "v", "api-version")
+                );
             });
             services.AddVersionedApiExplorer(
                 options =>
@@ -254,7 +258,7 @@
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(
-                typeof(GetPatientInfoByIdQuery).Assembly,
+                typeof(GetSubjectInfoByIdQuery).Assembly,
                 typeof(HandleGetPageOfBloodPressureInfoQuery).Assembly
             );
 
@@ -372,7 +376,7 @@
 
                 config.CustomSchemaIds(type => type.FullName);
                 config.ConfigureForNodaTimeWithSystemTextJson();
-                config.ConfigureForStronglyTypedIdsInAssembly<PatientId>();
+                config.ConfigureForStronglyTypedIdsInAssembly<SubjectId>();
             });
 
             return services;

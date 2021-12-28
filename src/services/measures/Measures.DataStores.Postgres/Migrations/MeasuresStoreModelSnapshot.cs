@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#nullable disable
+
 namespace Measures.DataStores.Postgres.Migrations
 {
     [DbContext(typeof(MeasuresStore))]
@@ -16,23 +18,24 @@ namespace Measures.DataStores.Postgres.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.6")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Measures.Objects.BloodPressure", b =>
                 {
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
 
                     b.Property<Instant>("DateOfMeasure")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<float>("DiastolicPressure")
                         .HasColumnType("real");
@@ -47,16 +50,16 @@ namespace Measures.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("PatientId", "DateOfMeasure");
+                    b.HasKey("SubjectId", "DateOfMeasure");
 
                     b.HasIndex("Id");
 
                     b.ToTable("BloodPressure");
                 });
 
-            modelBuilder.Entity("Measures.Objects.Patient", b =>
+            modelBuilder.Entity("Measures.Objects.Subject", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -68,7 +71,7 @@ namespace Measures.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .HasMaxLength(255)
@@ -78,26 +81,26 @@ namespace Measures.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Patient");
+                    b.ToTable("Subject");
                 });
 
             modelBuilder.Entity("Measures.Objects.Temperature", b =>
                 {
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
 
                     b.Property<Instant>("DateOfMeasure")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("Id")
                         .HasColumnType("uuid");
@@ -106,12 +109,12 @@ namespace Measures.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<float>("Value")
                         .HasColumnType("real");
 
-                    b.HasKey("PatientId", "DateOfMeasure");
+                    b.HasKey("SubjectId", "DateOfMeasure");
 
                     b.HasIndex("Id");
 
@@ -120,27 +123,27 @@ namespace Measures.DataStores.Postgres.Migrations
 
             modelBuilder.Entity("Measures.Objects.BloodPressure", b =>
                 {
-                    b.HasOne("Measures.Objects.Patient", "Patient")
+                    b.HasOne("Measures.Objects.Subject", "Subject")
                         .WithMany("BloodPressures")
-                        .HasForeignKey("PatientId")
+                        .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Patient");
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("Measures.Objects.Temperature", b =>
                 {
-                    b.HasOne("Measures.Objects.Patient", "Patient")
+                    b.HasOne("Measures.Objects.Subject", "Subject")
                         .WithMany("Temperatures")
-                        .HasForeignKey("PatientId")
+                        .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Patient");
+                    b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("Measures.Objects.Patient", b =>
+            modelBuilder.Entity("Measures.Objects.Subject", b =>
                 {
                     b.Navigation("BloodPressures");
 

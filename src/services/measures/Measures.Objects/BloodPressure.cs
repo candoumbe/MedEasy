@@ -27,12 +27,12 @@
         /// <summary>
         /// Builds a new <see cref="BloodPressure"/> instance.
         /// </summary>
-        /// <param name="patientId">id of the <see cref="Patient"/> who the current measure will be attached to.</param>
+        /// <param name="subjectId">id of the <see cref="Subject"/> who the current measure will be attached to.</param>
         /// <param name="dateOfMeasure">dDate of the measure</param>
         /// <param name="diastolicPressure">The diastolic measure</param>
         /// <param name="systolicPressure">The systolic measure</param>
-        public BloodPressure(PatientId patientId, BloodPressureId id, Instant dateOfMeasure, float diastolicPressure, float systolicPressure)
-            : base(patientId, id, dateOfMeasure)
+        public BloodPressure(SubjectId subjectId, BloodPressureId id, Instant dateOfMeasure, float diastolicPressure, float systolicPressure)
+            : base(subjectId, id, dateOfMeasure)
         {
             DiastolicPressure = diastolicPressure;
             SystolicPressure = systolicPressure;

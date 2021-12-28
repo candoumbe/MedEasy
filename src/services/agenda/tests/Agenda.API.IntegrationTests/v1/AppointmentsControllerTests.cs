@@ -37,17 +37,17 @@ namespace Agenda.API.IntegrationTests.v1
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-
-    using static Microsoft.AspNetCore.Http.StatusCodes;
-    using static MedEasy.RestObjects.LinkRelation;
     using Xunit.Extensions.AssemblyFixture;
+
+    using static MedEasy.RestObjects.LinkRelation;
+    using static Microsoft.AspNetCore.Http.StatusCodes;
 
     [IntegrationTest]
     [Feature("Agenda")]
     [Feature("Appointments")]
-    public class AppointmentsControllerTests : IAssemblyFixture<IntegrationFixture<Program>>
+    public class AppointmentsControllerTests : IAssemblyFixture<IntegrationFixture<Startup>>
     {
-        private readonly IntegrationFixture<Program> _server;
+        private readonly IntegrationFixture<Startup> _sut;
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/appointments";
 
@@ -68,32 +68,6 @@ namespace Agenda.API.IntegrationTests.v1
             }
         };
 
-        /// <summary>
-        /// Schema of an <see cref="AppointmentModel"/> resource once translated to json
-        /// </summary>
-        private static readonly JSchema _appointmentResourceSchema = new()
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(AppointmentModel.Id).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AppointmentModel.Subject).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AppointmentModel.Location).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AppointmentModel.StartDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
-                [nameof(AppointmentModel.EndDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String,  },
-                [nameof(AppointmentModel.UpdatedDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String, },
-                [nameof(AppointmentModel.Attendees).ToCamelCase()] = new JSchema { Type = JSchemaType.Array,  MinimumItems = 1}
-            },
-            Required =
-            {
-                nameof(AppointmentModel.Id).ToCamelCase(),
-                nameof(AppointmentModel.Subject).ToCamelCase(),
-                nameof(AppointmentModel.Location).ToCamelCase(),
-                nameof(AppointmentModel.StartDate).ToCamelCase(),
-                nameof(AppointmentModel.EndDate).ToCamelCase(),
-                nameof(AppointmentModel.Attendees).ToCamelCase(),
-            }
-        };
         private static JsonSerializerOptions SerializerOptions
         {
             get
@@ -104,23 +78,11 @@ namespace Agenda.API.IntegrationTests.v1
                 return options;
             }
         }
-        private static readonly JSchema _browsableResourceSchema = new()
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(Browsable<AppointmentModel>.Resource).ToLower()] = _appointmentResourceSchema,
-                [nameof(Browsable<AppointmentModel>.Links).ToLower()] = new JSchema
-                {
-                    Type = JSchemaType.Array,
-                }
-            }
-        };
 
-        public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Program> fixture)
+        public AppointmentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
         {
             _outputHelper = outputHelper;
-            _server = fixture;
+            _sut = fixture;
         }
 
         public static IEnumerable<object[]> GetAll_With_Invalid_Pagination_Returns_BadRequestCases
@@ -152,8 +114,9 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1.0");
+            using HttpClient client = _sut.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1.0");
+
             // Act
 
             using HttpResponseMessage response = await client.GetAsync(url)
@@ -232,8 +195,8 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-
+            using HttpClient client = _sut.CreateClient();
+            
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)
                                                              .ConfigureAwait(false);
@@ -272,7 +235,7 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            using HttpClient client = _sut.CreateClient();
 
             // Act
             using HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
@@ -315,9 +278,9 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1.0");
-
+            using HttpClient client = _sut.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1.0");
+            
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)
                                                        .ConfigureAwait(false);
@@ -364,9 +327,9 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1.0");
-
+            using HttpClient client = _sut.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1.0");
+            
             // Act
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, SerializerOptions)
                                                        .ConfigureAwait(false);
@@ -416,8 +379,8 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1.0");
+            using HttpClient client = _sut.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1");
 
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointmentModel, SerializerOptions)
                                                        .ConfigureAwait(false);

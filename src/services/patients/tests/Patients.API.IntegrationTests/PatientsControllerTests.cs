@@ -1,15 +1,11 @@
-namespace Patients.API.IntegrationTests
+namespace Patients.API.IntegrationTests.v1
 {
     using Bogus;
 
     using FluentAssertions;
 
-    using Identity.API.Fixtures.v2;
-
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
-
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
 
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
@@ -20,7 +16,6 @@ namespace Patients.API.IntegrationTests
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Net.Http.Json;
     using System.Threading.Tasks;
 
@@ -34,11 +29,10 @@ namespace Patients.API.IntegrationTests
 
     [IntegrationTest]
     [Feature("Patients")]
-    public class PatientsControllerTests : IAsyncLifetime, IAssemblyFixture<IntegrationFixture<Startup>>, IAssemblyFixture<IdentityApiFixture>
+    public class PatientsControllerTests : IAssemblyFixture<IntegrationFixture<Startup>>
     {
         private readonly IntegrationFixture<Startup> _server;
         private readonly ITestOutputHelper _outputHelper;
-        private readonly IdentityApiFixture _identityServer;
         private const string _endpointUrl = "/patients";
         private readonly Faker _faker;
 
@@ -89,28 +83,19 @@ namespace Patients.API.IntegrationTests
                 }
         };
 
-        public PatientsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture, IdentityApiFixture identityFixture)
+        public PatientsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
         {
             _faker = new();
             _outputHelper = outputHelper;
             _server = fixture;
-            _identityServer = identityFixture;
         }
-
-        public async Task InitializeAsync()
-        {
-            await _identityServer.LogIn().ConfigureAwait(false);
-        }
-
-        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GetAll_With_No_Data()
         {
             // Arrange
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
-
+            
             // Act
             using HttpResponseMessage response = await client.GetAsync("/patients")
                                                        .ConfigureAwait(false);
@@ -145,7 +130,6 @@ namespace Patients.API.IntegrationTests
 
             // Arrange
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
             HttpRequestMessage message = new(method, url);
 
             // Act
@@ -179,7 +163,6 @@ namespace Patients.API.IntegrationTests
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
             using HttpRequestMessage message = new(method, url);
 
             // Act
@@ -198,8 +181,7 @@ namespace Patients.API.IntegrationTests
             // Arrange
             const string url = $"{_endpointUrl}/search?page=2&pageSize=10&firstname=Bruce";
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
-
+            
             // Act
             using HttpResponseMessage response = await client.GetAsync(url)
                                                              .ConfigureAwait(false);
@@ -218,10 +200,7 @@ namespace Patients.API.IntegrationTests
         public async Task Create_Resource()
         {
             // Arrange
-            _outputHelper.WriteLine($"Token : {_identityServer.Tokens.AccessToken}");
-
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
             CreatePatientInfo newPatient = new()
             {
@@ -249,7 +228,7 @@ namespace Patients.API.IntegrationTests
         }
 
         [Fact]
-        public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
+         public async Task GivenPatientExists_AllLinksWithGetMethod_ShouldBe_Valid()
         {
             // Arrange
             CreatePatientInfo newPatient = new()
@@ -259,8 +238,7 @@ namespace Patients.API.IntegrationTests
             };
 
             using HttpClient client = _server.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
-
+            
             HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient, default)
                                                        .ConfigureAwait(false);
 
@@ -283,7 +261,6 @@ namespace Patients.API.IntegrationTests
                     Method = Head,
                     RequestUri = new Uri(link.Href, UriKind.Relative)
                 };
-                headRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
 
                 // Act
                 response = await client2.SendAsync(headRequestMessage)

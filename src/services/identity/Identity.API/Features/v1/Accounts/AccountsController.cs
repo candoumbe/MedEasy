@@ -40,7 +40,7 @@
     /// <summary>
     /// Handles <see cref="AccountInfo"/>s resources
     /// </summary>
-    [Route("v{version:apiVersion}/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]

@@ -65,7 +65,6 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         private readonly IUnitOfWorkFactory _uowFactory;
         private static readonly MeasuresApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
         private readonly Mock<IMediator> _mediatorMock;
-        private readonly static ApiVersion apiVersion = new(1, 0);
         private readonly Mock<LinkGenerator> _urlHelperMock;
         private readonly Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private readonly BloodPressuresController _controller;
@@ -91,7 +90,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _controller = new BloodPressuresController(_urlHelperMock.Object, _apiOptionsMock.Object, _mediatorMock.Object, apiVersion);
+            _controller = new BloodPressuresController(_urlHelperMock.Object, _apiOptionsMock.Object, _mediatorMock.Object);
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -107,16 +106,16 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                     {
                         yield return new object[]
                         {
-                            Enumerable.Empty<Patient>(), // Current store state
+                            Enumerable.Empty<Subject>(), // Current store state
                             pageSize, page, // request
                             0,    //expected total
                             (
                                 firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         };
                     }
@@ -125,74 +124,74 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(_ => new BloodPressure(
                             id: BloodPressureId.New(),
-                            patientId: PatientId.New(),
+                            subjectId: SubjectId.New(),
                             dateOfMeasure: 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
                             systolicPressure: 120, diastolicPressure: 80
                         ));
 
                 {
-                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    Subject subject = new(SubjectId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
                     foreach (BloodPressure measure in bloodPressureFaker.Generate(400))
                     {
-                        patient.AddBloodPressure(BloodPressureId.New(), 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
+                        subject.AddBloodPressure(BloodPressureId.New(), 10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
                     }
                     yield return new object[]
                     {
-                        new [] { patient },
+                        new [] { subject },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         400,    //expected total
                         (
                             firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
                 {
-                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    Subject subject = new(SubjectId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
                     items.ForEach((measure) =>
                     {
-                        patient.AddBloodPressure(measure.Id, measure.DateOfMeasure, systolic: measure.SystolicPressure, measure.DiastolicPressure);
+                        subject.AddBloodPressure(measure.Id, measure.DateOfMeasure, systolic: measure.SystolicPressure, measure.DiastolicPressure);
                     });
 
                     yield return new object[]
                     {
-                        new []{ patient },
+                        new []{ subject },
                         10, 1, // request
                         400,    //expected total
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=10&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=2&pageSize=10&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=40&pageSize=10&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
                 {
-                    Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
-                    patient.AddBloodPressure(BloodPressureId.New(),
+                    Subject subject = new(SubjectId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                    subject.AddBloodPressure(BloodPressureId.New(),
                                              10.April(2016).Add(13.Hours().And(48.Minutes())).AsUtc().ToInstant(),
                                              systolic: 120,
                                              diastolic: 80);
                     yield return new object[]
                     {
-                        new [] { patient },
+                        new [] { subject },
                         PaginationConfiguration.DefaultPageSize, 1, // request
                         1,    //expected total
                         (
                             firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                             nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                             lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == Last
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={apiVersion}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                         )
                     };
                 }
@@ -201,7 +200,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
         [Theory]
         [MemberData(nameof(GetAllTestCases))]
-        public async Task GetAll(IEnumerable<Patient> items, int pageSize, int page,
+        public async Task GetAll(IEnumerable<Subject> items, int pageSize, int page,
             int expectedCount,
             (Expression<Func<Link, bool>> firstPageUrlExpectation, Expression<Func<Link, bool>> previousPageUrlExpectation, Expression<Func<Link, bool>> nextPageUrlExpectation, Expression<Func<Link, bool>> lastPageUrlExpectation) pageLinksExpectation)
         {
@@ -268,21 +267,21 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         {
             get
             {
-                Faker<Patient> patientFaker = new Faker<Patient>()
+                Faker<Subject> patientFaker = new Faker<Subject>()
                     .CustomInstantiator(faker =>
                     {
-                        Patient patient = new(PatientId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
+                        Subject subject = new(SubjectId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
 
-                        patient.ChangeNameTo(faker.Person.FullName);
+                        subject.ChangeNameTo(faker.Person.FullName);
 
-                        return patient;
+                        return subject;
                     });
                 Faker<BloodPressure> bloodPressureFaker = new Faker<BloodPressure>()
                     .CustomInstantiator(faker =>
                     {
                         return new BloodPressure(
                             id: BloodPressureId.New(),
-                            patientId: PatientId.New(),
+                            subjectId: SubjectId.New(),
                             dateOfMeasure: faker.Noda().Instant.Between(start: 1.January(2001).AsUtc().ToInstant(), end: 31.January(2001).AsUtc().ToInstant()),
                             diastolicPressure: 80,
                             systolicPressure: 120
@@ -291,15 +290,15 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
                 {
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
-                    Patient patient = patientFaker.Generate();
+                    Subject subject = patientFaker.Generate();
                     foreach (BloodPressure measure in items)
                     {
-                        patient.AddBloodPressure(measure.Id, measure.DateOfMeasure, measure.SystolicPressure, measure.DiastolicPressure);
+                        subject.AddBloodPressure(measure.Id, measure.DateOfMeasure, measure.SystolicPressure, measure.DiastolicPressure);
                     }
 
                     yield return new object[]
                     {
-                        new [] { patient },
+                        new [] { subject },
                         new SearchBloodPressureInfo
                         {
                             From = 1.January(2001).AsUtc().ToInstant().InUtc(),
@@ -327,14 +326,14 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 }
 
                 {
-                    Patient patient = patientFaker.Generate();
-                    patient.AddBloodPressure(BloodPressureId.New(),
+                    Subject subject = patientFaker.Generate();
+                    subject.AddBloodPressure(BloodPressureId.New(),
                                              dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                              diastolic: 80,
                                              systolic: 120);
                     yield return new object[]
                     {
-                        new [] { patient },
+                        new [] { subject },
                         new SearchBloodPressureInfo { From = 23.June(2012).AsUtc().ToInstant().InUtc(), Page = 1, PageSize = 30 }, // request
                         (maxPageSize: 200, pageSize: 30),
                         (
@@ -358,27 +357,27 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
                 {
 
-                    Patient patient = patientFaker.Generate();
-                    patient.AddBloodPressure(BloodPressureId.New(),
+                    Subject subject = patientFaker.Generate();
+                    subject.AddBloodPressure(BloodPressureId.New(),
                                              dateOfMeasure: 23.June(2012).Add(10.Hours().And(30.Minutes())).AsUtc().ToInstant(),
                                              systolic: 120,
                                              diastolic: 80);
 
                     yield return new object[]
                     {
-                        new [] { patient },
-                        new SearchBloodPressureInfo { PatientId = patient.Id }, // request
+                        new [] { subject },
+                        new SearchBloodPressureInfo { SubjectId = subject.Id }, // request
                         (maxPageSize : 200, pageSize : 30),
                         (
                             count : 1,
                             items :
                               (Expression<Func<IEnumerable<Browsable<BloodPressureInfo>>, bool>>)(resources =>
-                                resources.Count() == 1 && resources.All(x => x.Resource.PatientId == patient.Id)),
+                                resources.Exactly(1) && resources.All(x => x.Resource.SubjectId == subject.Id)),
                             links : (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(First) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&subjectId={subject.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&patientId={patient.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation.Contains(Last) && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize=30&subjectId={subject.Id.Value}".Equals(x.Href, OrdinalIgnoreCase)) // expected link to last page
                             )
                         )
                     };
@@ -389,7 +388,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         [Theory]
         [MemberData(nameof(SearchTestCases))]
         [Feature("Search")]
-        public async Task Search(IEnumerable<Patient> patients, SearchBloodPressureInfo searchQuery,
+        public async Task Search(IEnumerable<Subject> patients, SearchBloodPressureInfo searchQuery,
             (int maxPageSize, int defaultPageSize) apiOptions,
             (
                 int count,
@@ -409,10 +408,10 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Clear();
+                uow.Repository<Subject>().Clear();
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
-                uow.Repository<Patient>().Create(patients);
+                uow.Repository<Subject>().Create(patients);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -470,21 +469,21 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
                     new SearchBloodPressureInfo { Page = 2, PageSize = 30, From = 31.July(2013).AsUtc().ToInstant().InUtc() },
                     (maxPageSize : 30, defaultPageSize : 30),
-                    new [] { new Patient( PatientId.New(), "Starr", 18.August(1983).AsLocal().ToLocalDateTime().Date) },
+                    new [] { new Subject( SubjectId.New(), "Starr", 18.August(1983).AsLocal().ToLocalDateTime().Date) },
                     "page index is not 1 and there's no result for the search query"
                 };
 
                 {
 
-                    Patient patient = new(PatientId.New(), "Homelander", 18.August(1983).AsUtc().ToLocalDateTime().Date);
-                    patient.AddBloodPressure(BloodPressureId.New(), 22.January(1987).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
+                    Subject subject = new(SubjectId.New(), "Homelander", 18.August(1983).AsUtc().ToLocalDateTime().Date);
+                    subject.AddBloodPressure(BloodPressureId.New(), 22.January(1987).AsUtc().ToInstant(), systolic: 120, diastolic: 80);
 
                     yield return new object[]
                     {
                         new SearchBloodPressureInfo { Page = 2, PageSize = 30 },
                         (maxPageSize : 30, defaultPageSize : 30),
                         new [] {
-                            patient
+                            subject
                         },
                         "page index is not 1 and there's no result for the search query"
                     };
@@ -498,12 +497,12 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
         public async Task Search_With_OutOfBound_PagingConfiguration_Returns_NotFound(
             SearchBloodPressureInfo query,
             (int maxPageSize, int defaultPageSize) apiOptions,
-            IEnumerable<Patient> patients, string reason)
+            IEnumerable<Subject> patients, string reason)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patients);
+                uow.Repository<Subject>().Create(patients);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -564,15 +563,15 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient patient = new(PatientId.New(), "Bruce Wayne", 12.December(1953).ToLocalDateTime().Date);
+                Subject subject = new(SubjectId.New(), "Bruce Wayne", 12.December(1953).ToLocalDateTime().Date);
 
-                patient.AddBloodPressure(
+                subject.AddBloodPressure(
                         measureId,
                         dateOfMeasure: 24.April(1997).AsUtc().ToInstant(),
                         systolic: 150,
                         diastolic: 90
                 );
-                uow.Repository<Patient>().Create(patient);
+                uow.Repository<Subject>().Create(subject);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -612,7 +611,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 .NotContain(x => string.IsNullOrWhiteSpace(x.Href)).And
                 .ContainSingle(x => x.Relation == Self).And
                 .ContainSingle(x => x.Relation == "delete").And
-                .ContainSingle(x => x.Relation == "patient");
+                .ContainSingle(x => x.Relation == "subject");
 
             Link self = browsableResource.Links.Single(x => x.Relation == Self);
             self.Method.Should()
@@ -620,25 +619,25 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
 
             BloodPressureInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&{nameof(resource.Id)}={resource.Id.Value}");
 
-            Link linkToPatient = browsableResource.Links.Single(x => x.Relation == "patient");
+            Link linkToPatient = browsableResource.Links.Single(x => x.Relation == "subject");
             linkToPatient.Method.Should()
                 .Be("GET");
             linkToPatient.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.PatientId.Value}&version={apiVersion}");
+                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={SubjectsController.EndpointName}&{nameof(SubjectInfo.Id)}={resource.SubjectId.Value}");
 
             resource.Id.Should().Be(measureId);
             resource.SystolicPressure.Should().Be(150);
             resource.DiastolicPressure.Should().Be(90);
-            resource.PatientId.Should()
-                .NotBe(PatientId.Empty);
+            resource.SubjectId.Should()
+                .NotBe(SubjectId.Empty);
         }
 
         [Fact]

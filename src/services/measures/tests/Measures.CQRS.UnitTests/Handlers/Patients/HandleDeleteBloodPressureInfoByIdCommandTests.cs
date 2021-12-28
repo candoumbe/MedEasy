@@ -8,7 +8,7 @@
     using Measures.DataStores;
     using Measures.CQRS.Commands.Patients;
     using Measures.CQRS.Events;
-    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Handlers.Subjects;
     using Measures.Ids;
     using Measures.Mapping;
     using Measures.Objects;
@@ -47,7 +47,7 @@
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly Mock<IMediator> _mediatorMock;
-        private readonly HandleDeletePatientInfoByIdCommand _sut;
+        private readonly HandleDeleteSubjectInfoByIdCommand _sut;
 
         public HandleDeletePatientInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
@@ -62,7 +62,7 @@
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _sut = new HandleDeletePatientInfoByIdCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
+            _sut = new HandleDeleteSubjectInfoByIdCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -92,7 +92,7 @@
             _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleDeletePatientInfoByIdCommand(unitOfWorkFactory, expressionBuilder, mediator);
+            Action action = () => new HandleDeleteSubjectInfoByIdCommand(unitOfWorkFactory, expressionBuilder, mediator);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -106,11 +106,11 @@
         public async Task DeletePatient()
         {
             // Arrange
-            PatientId idToDelete = PatientId.New();
-            Patient patient = new(idToDelete, "victor zsasz");
+            SubjectId idToDelete = SubjectId.New();
+            Subject subject = new(idToDelete, "victor zsasz");
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patient);
+                uow.Repository<Subject>().Create(subject);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -127,12 +127,12 @@
             // Assert
             result.Should()
                 .Be(DeleteCommandResult.Done);
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientDeleted>(), default), Times.Once, $"{nameof(HandleDeletePatientInfoByIdCommand)} must notify suscribers that a resource was deleted");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientDeleted>(), default), Times.Once, $"{nameof(HandleDeleteSubjectInfoByIdCommand)} must notify suscribers that a resource was deleted");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                bool deleteSuccessfull = !await uow.Repository<Patient>()
+                bool deleteSuccessfull = !await uow.Repository<Subject>()
                      .AnyAsync(x => x.Id == idToDelete)
                      .ConfigureAwait(false);
 
@@ -145,10 +145,10 @@
             get
             {
                 {
-                    PatientId idPatient = PatientId.New();
+                    SubjectId idPatient = SubjectId.New();
                     yield return new object[]
                     {
-                        new Patient(idPatient, "Solomon"),
+                        new Subject(idPatient, "Solomon"),
 
                         new []
                         {
@@ -166,27 +166,21 @@
 
         [Theory]
         [MemberData(nameof(PatientWithMeasuresCases))]
-        public async Task DeletePatient_When_AnyMeasure_Exists_ShouldReturns_Conflict(Patient patient, IEnumerable<BloodPressure> measures)
+        public async Task DeletePatient_When_AnyMeasure_Exists_ShouldReturns_Conflict(Subject subject, IEnumerable<BloodPressure> measures)
         {
             // Arrange
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patient);
-                await uow.SaveChangesAsync().ConfigureAwait(false);
-
-                await measures.ForEachAsync(measure =>
+                foreach (BloodPressure measure in measures)
                 {
-                    measure.PatientId = patient.Id;
-                    return Task.CompletedTask;
-                })
-                .ConfigureAwait(false);
-
-                uow.Repository<BloodPressure>().Create(measures);
+                    subject.AddBloodPressure(measure.Id, measure.DateOfMeasure, measure.SystolicPressure, measure.DiastolicPressure);
+                }
+                uow.Repository<Subject>().Create(subject);
                 await uow.SaveChangesAsync().ConfigureAwait(false);
             }
 
             // Act
-            DeleteCommandResult commandResult = await _sut.Handle(new DeletePatientInfoByIdCommand(patient.Id), default)
+            DeleteCommandResult commandResult = await _sut.Handle(new DeletePatientInfoByIdCommand(subject.Id), default)
                 .ConfigureAwait(false);
 
             // Assert

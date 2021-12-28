@@ -42,6 +42,7 @@
     /// </summary>
     [Route("[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class PatientsController
     {
         private IOptionsSnapshot<PatientsApiOptions> ApiOptions { get; }
@@ -87,14 +88,18 @@
         /// </remarks>
         /// <response code="200">items of the page</response>
         /// <response code="400"><paramref name="pagination"/> is not valid</response>
-        /// <response code="404"><paramref name="pagination"/> is outside range of available page</response>
+        /// <response code="404"><paramref name="pagination"/> is outside range of available pages</response>
         [HttpGet, HttpHead, HttpOptions]
         [ProducesResponseType(typeof(GenericPagedGetResponse<Browsable<PatientInfo>>), Status200OK)]
         [ProducesResponseType(Status400BadRequest)]
         [ProducesResponseType(Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute, RequireNonDefault] PaginationConfiguration pagination, CancellationToken cancellationToken = default)
         {
-            pagination = new() { Page = pagination.Page, PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pagination.PageSize) };
+            pagination = new()
+            {
+                Page = pagination.Page,
+                PageSize = Math.Min(ApiOptions.Value.MaxPageSize, pagination.PageSize)
+            };
 
             GetPageOfPatientsQuery query = new(pagination);
             Page<PatientInfo> pageOfResult = await _mediator.Send(query, cancellationToken)
@@ -116,16 +121,16 @@
                                                                                        }),
                                                                            first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
                                                                                                     new { page = 1, pagination.PageSize, controller = EndpointName }),
+                                                                           previous: pagination.Page > 1 && pageOfResult.Count > 1
+                                                                                ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
+                                                                                                           new { page = pagination.Page + 1, pagination.PageSize, controller = EndpointName })
+                                                                                : null,
                                                                            next: pageOfResult.Count > 1
                                                                                 ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
                                                                                                            new { page = pagination.Page + 1, pagination.PageSize, controller = EndpointName })
                                                                                 : null,
                                                                            last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
                                                                                                           new { page = pageOfResult.Count, pagination.PageSize, controller = EndpointName }),
-                                                                           previous: pagination.Page > 1 && pageOfResult.Count > 1
-                                                                                ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi,
-                                                                                                           new { page = pagination.Page + 1, pagination.PageSize, controller = EndpointName })
-                                                                                : null,
 
                                                                             total: pageOfResult.Total);
             return new OkObjectResult(response);
@@ -358,7 +363,7 @@
         [ProducesResponseType(typeof(IEnumerable<ModelStateEntry>), 400)]
         public async Task<IActionResult> Search([FromQuery, RequireNonDefault] SearchPatientInfo search, CancellationToken cancellationToken = default)
         {
-            SearchPatientInfoQuery request = new (new SearchPatientInfo
+            SearchPatientInfoQuery request = new(new SearchPatientInfo
             {
                 BirthDate = search.BirthDate,
                 Firstname = search.Firstname,

@@ -48,11 +48,12 @@
             return stronglyTypedId;
         }
 
+        ///<inheritdoc/>
         public override void Write(Utf8JsonWriter writer, TStronglyTypedId value, JsonSerializerOptions options)
         {
             if (value is null)
             {
-                if (!options.IgnoreNullValues)
+                if (options.DefaultIgnoreCondition == JsonIgnoreCondition.WhenWritingNull)
                 {
                     writer.WriteNullValue();
                 }

@@ -29,16 +29,30 @@
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.Development.json")
                 .AddJsonFile("appsettings.IntegrationTest.json")
-                .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
+
+            string provider = configuration.GetValue("provider", "sqlite").ToLowerInvariant();
             DbContextOptionsBuilder<AgendaContext> builder = new();
             string connectionString = configuration.GetConnectionString("agenda");
-            builder.UseSqlite(connectionString, b => b.MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
-                                                      .UseNodaTime())
-                   .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
 
-            return new AgendaContext(builder.Options, SystemClock.Instance);
+            switch (provider)
+            {
+                case "sqlite":
+                    builder.UseSqlite(connectionString, b => b.MigrationsAssembly("Agenda.DataStores.Sqlite")
+                                                              .UseNodaTime())
+                           .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                    break;
+                case "postgres":
+                    builder.UseNpgsql(connectionString, b => b.MigrationsAssembly("Agenda.DataStores.Postgres")
+                                                              .UseNodaTime())
+                           .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
+                    break;
+                default:
+                    throw new NotSupportedException($"'{provider}' database engine is not currently supported");
+            }
+
+            return new(builder.Options, SystemClock.Instance);
         }
     }
 }

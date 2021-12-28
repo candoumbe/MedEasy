@@ -113,7 +113,7 @@
             // Arrange
             BloodPressureId idToPatch = BloodPressureId.New();
 
-            Patient patient = new(PatientId.New(), "victor zsasz");
+            Subject patient = new(SubjectId.New(), "victor zsasz");
             const float systolic = 120;
             const float diastolic = 80;
 
@@ -125,7 +125,7 @@
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patient);
+                uow.Repository<Subject>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

@@ -45,8 +45,7 @@
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IdentityApiFixture _identityApiFixture;
-        private const string _version = "v2";
-        private readonly string _accountsEndpointBaseUrl = "/v1/accounts";
+        private readonly string _accountsEndpointBaseUrl = "/accounts";
         private static JsonSerializerOptions JsonSerializerOptions
         {
             get
@@ -79,6 +78,7 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "2");
             await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
                     .ConfigureAwait(false);
 
@@ -88,7 +88,7 @@
                 Password = newAccountInfo.Password
             };
 
-            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+            HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token", loginInfo)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -151,6 +151,7 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "2");
             await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
                         .ConfigureAwait(false);
 
@@ -161,7 +162,7 @@
             };
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+            HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token", loginInfo)
                 .ConfigureAwait(false);
 
             // Assert
@@ -207,6 +208,7 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "2");
             HttpResponseMessage response = await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo, JsonSerializerOptions)
                                                        .ConfigureAwait(false);
 
@@ -219,7 +221,7 @@
                 Password = newAccountInfo.Password
             };
 
-            response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo)
+            response = await client.PostAsJsonAsync("/auth/token", loginInfo)
                                    .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -235,7 +237,7 @@
             BearerTokenInfo tokenInfo = JToken.Parse(json)
                 .ToObject<BearerTokenInfo>();
 
-            HttpRequestMessage requestInvalidateToken = new(Delete, $"/{_version}/auth/token/{newAccountInfo.Username}");
+            HttpRequestMessage requestInvalidateToken = new(Delete, $"/auth/token/{newAccountInfo.Username}");
             AuthenticationHeaderValue bearerTokenHeader = new("Bearer", tokenInfo.AccessToken.Token);
             requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
             response = await client.SendAsync(requestInvalidateToken)
@@ -244,7 +246,7 @@
             response.EnsureSuccessStatusCode();
             _outputHelper.WriteLine("Refresh token was successfully revoked");
 
-            HttpRequestMessage refreshTokenRequest = new(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
+            HttpRequestMessage refreshTokenRequest = new(Put, $"/auth/token/{newAccountInfo.Username}");
             refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
             RefreshAccessTokenInfo refreshAccessTokenInfo = new() { AccessToken = tokenInfo.AccessToken.Token, RefreshToken = tokenInfo.RefreshToken.Token };

@@ -68,7 +68,9 @@ namespace Identity.API.Fixtures.v2
         {
             // Create account
             using HttpClient client = CreateClient();
-            string uri = $"/v2/{AccountsController.EndpointName}";
+            client.DefaultRequestHeaders.Add("api-version", "2");
+            
+            string uri = $"/{AccountsController.EndpointName}";
 
             NewAccountInfo newAccount = new ()
             {
@@ -99,16 +101,19 @@ namespace Identity.API.Fixtures.v2
         /// <summary>
         /// Connects a previously registered accouunt
         /// </summary>
+        /// <remarks>
+        /// You can get the account's <see cref="Email"/> and <see cref="Password"/>.
+        /// </remarks>
         public async Task LogIn(CancellationToken ct = default)
         {
             using HttpClient client = CreateClient();
-            const string uri = "/v2/auth/token";
+            client.DefaultRequestHeaders.Add("api-version", "2");
+            const string uri = "/auth/token";
 
             if (Tokens is null)
             {
                 using HttpResponseMessage response = await client.PostAsJsonAsync(uri, new { Username = Email, Password }, SerializerOptions, ct)
                                                                  .ConfigureAwait(false);
-
 
                 response.EnsureSuccessStatusCode();
 
@@ -134,7 +139,10 @@ namespace Identity.API.Fixtures.v2
         public async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
         {
             using HttpClient client = CreateClient();
-            string uri = $"/v2/auth/token/{username}/refresh";
+            client.DefaultRequestHeaders.Add("api-version", "2");
+            string uri = $"/auth/token/{username}/refresh";
+
+
 
             using HttpResponseMessage response = await client.PostAsJsonAsync(uri, refreshTokenInfo, SerializerOptions, ct)
                 .ConfigureAwait(false);
@@ -144,7 +152,6 @@ namespace Identity.API.Fixtures.v2
                 Tokens = await response.Content.ReadFromJsonAsync<BearerTokenInfo>(SerializerOptions, ct)
                                          .ConfigureAwait(false);
             }
-
         }
     }
 }

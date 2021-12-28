@@ -47,8 +47,7 @@
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IdentityApiFixture _identityApiFixture;
-        private const string _version = "v1";
-        private readonly string _endpointUrl = $"/{_version}";
+
         private static JsonSerializerOptions JsonSerializerOptions
         {
             get
@@ -83,7 +82,9 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            await client.PostAsJsonAsync($"{_endpointUrl}/accounts", newAccountInfo, JsonSerializerOptions)
+            client.DefaultRequestHeaders.Add("api-version", "1");
+
+            await client.PostAsJsonAsync($"/accounts", newAccountInfo, JsonSerializerOptions)
                         .ConfigureAwait(false);
 
             LoginInfo loginInfo = new()
@@ -92,7 +93,9 @@
                 Password = newAccountInfo.Password
             };
 
-            HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo, JsonSerializerOptions)
+            HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token",
+                                                                        loginInfo,
+                                                                        JsonSerializerOptions)
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -121,7 +124,7 @@
 
             _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
 
-            string path = $"/{_version}/{AccountsController.EndpointName}?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
+            string path = $"{AccountsController.EndpointName}?{new PaginationConfiguration { Page = 1, PageSize = 10 }.ToQueryString()}";
             _outputHelper.WriteLine($"Test URL : <{path}>");
 
             HttpRequestMessage request = new(Head, path);
@@ -154,7 +157,9 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            await client.PostAsJsonAsync($"{_endpointUrl}/{AccountsController.EndpointName}", newAccountInfo, JsonSerializerOptions)
+            client.DefaultRequestHeaders.Add("api-version", "1");
+            
+            await client.PostAsJsonAsync($"/{AccountsController.EndpointName}", newAccountInfo, JsonSerializerOptions)
                         .ConfigureAwait(false);
 
             LoginInfo loginInfo = new()
@@ -164,7 +169,7 @@
             };
 
             // Act
-            using HttpResponseMessage response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo, JsonSerializerOptions)
+            using HttpResponseMessage response = await client.PostAsJsonAsync("/auth/token", loginInfo, JsonSerializerOptions)
                 .ConfigureAwait(false);
 
             // Assert
@@ -191,6 +196,8 @@
                 .Be(accessToken.ValidFrom, "access and refresh tokens be valid since the same point in time");
             refreshToken.ValidTo.Should()
                 .BeAfter(accessToken.ValidTo, "refresh token should expire AFTER access token");
+
+            response.Dispose();
         }
 
         [Fact]
@@ -210,7 +217,8 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            HttpResponseMessage response = await client.PostAsJsonAsync($"{_endpointUrl}/accounts", newAccountInfo, JsonSerializerOptions)
+            client.DefaultRequestHeaders.Add("api-version", "1");
+            HttpResponseMessage response = await client.PostAsJsonAsync("/accounts", newAccountInfo, JsonSerializerOptions)
                 .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Response content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
@@ -222,7 +230,7 @@
                 Password = newAccountInfo.Password
             };
 
-            response = await client.PostAsJsonAsync($"/{_version}/auth/token", loginInfo, JsonSerializerOptions)
+            response = await client.PostAsJsonAsync("/auth/token", loginInfo, JsonSerializerOptions)
                                    .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"Status code : {response.StatusCode}");
@@ -240,7 +248,7 @@
             BearerTokenInfo tokenInfo = JToken.Parse(json)
                 .ToObject<BearerTokenInfo>();
 
-            HttpRequestMessage requestInvalidateToken = new(Delete, $"{_version}/auth/token/{newAccountInfo.Username}");
+            HttpRequestMessage requestInvalidateToken = new(Delete, $"/auth/token/{newAccountInfo.Username}");
             AuthenticationHeaderValue bearerTokenHeader = new(JwtBearerDefaults.AuthenticationScheme, tokenInfo.AccessToken);
             requestInvalidateToken.Headers.Authorization = bearerTokenHeader;
             response = await client.SendAsync(requestInvalidateToken)
@@ -249,7 +257,7 @@
             response.EnsureSuccessStatusCode();
             _outputHelper.WriteLine("Refresh token was successfully revoked");
 
-            HttpRequestMessage refreshTokenRequest = new(Put, $"{_version}/auth/token/{newAccountInfo.Username}");
+            HttpRequestMessage refreshTokenRequest = new(Put, "/auth/token/{newAccountInfo.Username}");
             refreshTokenRequest.Headers.Authorization = bearerTokenHeader;
 
             RefreshAccessTokenInfo refreshAccessTokenInfo = new() { AccessToken = tokenInfo.AccessToken, RefreshToken = tokenInfo.RefreshToken };
@@ -267,6 +275,8 @@
                 .BeFalse("The refresh token was revoked and can no longer be used to refresh an access token");
             response.StatusCode.Should()
                 .Be(Status401Unauthorized, "The token has expired");
+
+            response.Dispose();
         }
     }
 }

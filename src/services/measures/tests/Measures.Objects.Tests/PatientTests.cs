@@ -18,22 +18,22 @@ namespace Measures.Objects.Tests
         public void Ctor_Should_Throws_ArgumentOutRangeException_When_UUID_IsEmpty()
         {
             // Act
-            Action ctor = () => new Patient(PatientId.Empty, "John Doe");
+            Action ctor = () => new Subject(SubjectId.Empty, "John Doe");
 
             // Assert
             ctor.Should()
-                .ThrowExactly<ArgumentOutOfRangeException>($"{nameof(Patient)}.{nameof(Patient.Id)} must not be empty");
+                .ThrowExactly<ArgumentOutOfRangeException>($"{nameof(Subject)}.{nameof(Subject.Id)} must not be empty");
         }
 
         [Fact]
         public void Ctor_Should_Create_Valid_Instance()
         {
             // Arrange
-            PatientId id = PatientId.New();
+            SubjectId id = SubjectId.New();
             const string initialName = "John Doe";
 
             // Act
-            Patient expected = new(id, initialName);
+            Subject expected = new(id, initialName);
 
             // Assert
             expected.Id.Should()
@@ -54,7 +54,7 @@ namespace Measures.Objects.Tests
         public void ChangeName_Set_Name_Property(string newName, string expected, string reason)
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "John Doe");
+            Subject patient = new(SubjectId.New(), "John Doe");
 
             // Act
             patient.ChangeNameTo(newName);
@@ -68,7 +68,7 @@ namespace Measures.Objects.Tests
         public void ChangingName_To_Null_Throws_ArgumentNullException()
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "clark kent");
+            Subject patient = new(SubjectId.New(), "clark kent");
 
             // Act
             Action changingName = () => patient.ChangeNameTo(null);
@@ -77,7 +77,7 @@ namespace Measures.Objects.Tests
             patient.Name.Should()
                 .Be("Clark Kent");
             changingName.Should()
-                .ThrowExactly<ArgumentNullException>($"{nameof(Patient)}.{nameof(Patient.Name)} cannot be set to null.");
+                .ThrowExactly<ArgumentNullException>($"{nameof(Subject)}.{nameof(Subject.Name)} cannot be set to null.");
         }
 
         public static IEnumerable<object[]> AddBloodPressureCases
@@ -93,7 +93,7 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressure_Should_AddMeasure(BloodPressureId measureId, Instant dateOfMeasure, float systolic, float diastolic)
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "John Doe");
+            Subject patient = new(SubjectId.New(), "John Doe");
 
             // Act
             patient.AddBloodPressure(measureId, dateOfMeasure, systolic, diastolic);
@@ -116,7 +116,7 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithNoId_Throws_ArgumentOutOfRangeException()
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "John Doe");
+            Subject patient = new(SubjectId.New(), "John Doe");
 
             // Act
             Action addWithNoId = () => patient.AddBloodPressure(BloodPressureId.Empty, 22.April(2014).AsUtc().ToInstant(), systolic: 150, diastolic: 80);
@@ -130,7 +130,7 @@ namespace Measures.Objects.Tests
         public void AddingBloodPressureWithExistingId_Throws_DuplicateIdException()
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "John Doe");
+            Subject patient = new(SubjectId.New(), "John Doe");
 
             BloodPressureId measureId = BloodPressureId.New();
             patient.AddBloodPressure(measureId, 18.April(2012).AsUtc().ToInstant(), systolic: 120, diastolic: 50);
@@ -147,7 +147,7 @@ namespace Measures.Objects.Tests
         public void RemoveExistingBloodPressure_Should_Remove_TheMeasure()
         {
             // Arrange
-            Patient patient = new(PatientId.New(), "John Doe");
+            Subject patient = new(SubjectId.New(), "John Doe");
             BloodPressureId measureId = BloodPressureId.New();
 
             patient.AddBloodPressure(measureId, 10.April(2014).AsUtc().ToInstant(), systolic: 120, diastolic: 80);

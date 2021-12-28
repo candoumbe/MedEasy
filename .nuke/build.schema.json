@@ -104,7 +104,7 @@
             "type": "string"
           }
         },
-        "Provider": {
+        "Providers": {
           "type": "array",
           "description": "Store engine to target (default : sqlite, postgres)",
           "items": {

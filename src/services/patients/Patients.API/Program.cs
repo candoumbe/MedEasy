@@ -55,9 +55,9 @@
         /// </summary>
         /// <param name="args">command line arguments</param>
         /// <returns></returns>
-
         public static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args)
+                .ConfigureDefaults(args)
                 .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
                                                             .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
                                                             .UseSerilog((hosting, loggerConfig) => loggerConfig
@@ -73,14 +73,6 @@
                     options.ClearProviders() // removes all default providers
                         .AddSerilog()
                         .AddConsole();
-                })
-                .ConfigureAppConfiguration((context, builder) =>
-
-                    builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                );
+                });
     }
 }

@@ -10,7 +10,6 @@ namespace Documents.API
     using Serilog;
 
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading.Tasks;
 
@@ -25,6 +24,7 @@ namespace Documents.API
             IServiceProvider services = scope.ServiceProvider;
             ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
             IHostEnvironment hostingEnvironment = services.GetRequiredService<IHostEnvironment>();
+
             logger?.LogInformation("Starting {ApplicationContext}", hostingEnvironment.ApplicationName);
 
             try
@@ -38,7 +38,7 @@ namespace Documents.API
                 await host.RunAsync()
                     .ConfigureAwait(false);
 
-                logger?.LogInformation($"Identity.API started");
+                logger?.LogInformation("{AppllicationContext} started", hostingEnvironment.ApplicationName);
             }
             catch (Exception ex)
             {
@@ -69,14 +69,6 @@ namespace Documents.API
                     options.ClearProviders() // removes all default providers
                         .AddSerilog()
                         .AddConsole();
-                })
-                .ConfigureAppConfiguration((context, builder) =>
-
-                    builder
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                );
+                });
     }
 }

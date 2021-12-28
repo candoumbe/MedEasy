@@ -10,13 +10,13 @@
     /// <summary>
     /// Command to delete a new <see cref="PatientInfo"/>.
     /// </summary>
-    public class DeletePatientInfoByIdCommand : CommandBase<Guid, PatientId, DeleteCommandResult>
+    public class DeletePatientInfoByIdCommand : CommandBase<Guid, SubjectId, DeleteCommandResult>
     {
         /// <summary>
         /// Builds a new <see cref="DeletePatientInfoByIdCommand"/> instance
         /// </summary>
         /// <param name="data">id of the <see cref="PatientInfo"/> resource to delete</param>
-        public DeletePatientInfoByIdCommand(PatientId data) : base(Guid.NewGuid(), data)
+        public DeletePatientInfoByIdCommand(SubjectId data) : base(Guid.NewGuid(), data)
         {
         }
     }
