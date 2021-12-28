@@ -317,7 +317,7 @@ namespace MedEasy.ContinuousIntegration
                     Project apiProject = Solution.GetProject(apiProjectName);
                     Info($"API project is '{apiProjectName}' ({apiProject.Path})");
                     string dataSource = string.Empty;
-                    
+
                     if (IsServerBuild)
                     {
                         dataSource = @$"DataSource=""{sqliteConnectionString}""";
@@ -391,7 +391,7 @@ namespace MedEasy.ContinuousIntegration
                 }
 
                 connections.ForEach((connection) => EnvironmentInfo.SetVariable($"CONNECTIONSTRINGS__{connection.service}", connection.connectionString));
-                
+
                 DotNetTest(s => s
                     .SetConfiguration(Configuration)
                     .EnableCollectCoverage()
@@ -536,7 +536,17 @@ namespace MedEasy.ContinuousIntegration
 
         protected override void OnBuildFinished()
         {
-            DeleteFile(_ciSolution);
+            if (_ciSolution is not null)
+            {
+                try
+                {
+                    DeleteFile(_ciSolution);
+                }
+                catch (Exception)
+                {
+                }
+
+            }
         }
 
         //[LocalExecutable]

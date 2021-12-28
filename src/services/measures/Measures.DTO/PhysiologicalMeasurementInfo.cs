@@ -18,9 +18,9 @@
         where TId : StronglyTypedId<Guid>, IEquatable<TId>
     {
         /// <summary>
-        /// Id of the <see cref="PatientInfo"/> resource the measure was taken on
+        /// Id of the <see cref="SubjectInfo"/> resource the measure was taken on
         /// </summary>
-        public PatientId PatientId { get; set; }
+        public SubjectId SubjectId { get; set; }
 
         /// <summary>
         /// When the measure was made

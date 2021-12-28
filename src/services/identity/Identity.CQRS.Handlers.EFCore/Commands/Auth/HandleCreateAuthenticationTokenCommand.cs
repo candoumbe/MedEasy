@@ -76,7 +76,7 @@
                 LifetimeInMinutes = jwtInfos.AccessTokenLifetime
             };
 
-            CreateSecurityTokenCommand createAccessTokenCommand = new((jwtAccessTokenOptions, accessTokenClaims));
+            CreateSecurityTokenCommand createAccessTokenCommand = new((jwtAccessTokenOptions, now,  accessTokenClaims));
             Task<SecurityToken> accessTokenTask = _handleCreateSecurityTokenCommand.Handle(createAccessTokenCommand, ct);
 
             JwtSecurityTokenOptions jwtRefreshTokenOptions = new()
@@ -86,7 +86,7 @@
                 Key = jwtInfos.Key,
                 LifetimeInMinutes = jwtInfos.RefreshTokenLifetime
             };
-            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtRefreshTokenOptions, refreshTokenClaims));
+            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtRefreshTokenOptions, now, refreshTokenClaims));
             Task<SecurityToken> refreshTokenTask = _handleCreateSecurityTokenCommand.Handle(createRefreshTokenCommand, ct);
 
             await Task.WhenAll(accessTokenTask, refreshTokenTask)

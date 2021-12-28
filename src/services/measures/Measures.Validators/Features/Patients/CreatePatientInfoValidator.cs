@@ -7,9 +7,9 @@ namespace Measures.Validators.Features.Patients.DTO
     using Measures.Ids;
 
     /// <summary>
-    /// Validates <see cref="NewPatientInfo"/> instances.
+    /// Validates <see cref="NewSubjectInfo"/> instances.
     /// </summary>
-    public class CreatePatientInfoValidator : AbstractValidator<NewPatientInfo>
+    public class CreatePatientInfoValidator : AbstractValidator<NewSubjectInfo>
     {
         /// <summary>
         /// Builds a new <see cref="CreatePatientInfoValidator"/> instance.
@@ -25,14 +25,14 @@ namespace Measures.Validators.Features.Patients.DTO
             When(x => x.Id is not null, () =>
             {
                 RuleFor(x => x.Id)
-                    .NotEqual(PatientId.Empty);
+                    .NotEqual(SubjectId.Empty);
 
                 RuleFor(x => x.Id)
                     .MustAsync(async (id, ct) =>
                     {
                         using IUnitOfWork uow = uowFactory.NewUnitOfWork();
 
-                        return !await uow.Repository<Objects.Patient>()
+                        return !await uow.Repository<Objects.Subject>()
                             .AnyAsync(p => p.Id == id, ct)
                             .ConfigureAwait(false);
                     })

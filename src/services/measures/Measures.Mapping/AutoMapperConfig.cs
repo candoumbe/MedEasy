@@ -26,13 +26,13 @@
         {
             cfg.CreateCoreMapping();
 
-            cfg.CreateMap<Patient, PatientInfo>()
+            cfg.CreateMap<Subject, SubjectInfo>()
                 .ForMember(dto => dto.Name, opt => opt.MapFrom(entity => entity.Name))
-                .IncludeBase<IEntity<PatientId>, Resource<PatientId>>();
+                .IncludeBase<IEntity<SubjectId>, Resource<SubjectId>>();
 
             cfg.CreateMap(typeof(PhysiologicalMeasurement<>), typeof(PhysiologicalMeasurementInfo<>))
-                .ForMember(nameof(PhysiologicalMeasurementInfo<BloodPressureId>.PatientId),
-                           opt => opt.MapFrom(nameof(PhysiologicalMeasurement<BloodPressureId>.PatientId)))
+                .ForMember(nameof(PhysiologicalMeasurementInfo<BloodPressureId>.SubjectId),
+                           opt => opt.MapFrom(nameof(PhysiologicalMeasurement<BloodPressureId>.SubjectId)))
                 .ReverseMap();
 
             cfg.CreateMap<BloodPressure, BloodPressureInfo>()

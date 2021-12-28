@@ -6,7 +6,7 @@
     public class AgendaApiOptions
     {
         /// <summary>
-        /// Number of items to return when requiring a page of result
+        /// Number of items to return when requiring a page of result no hint was provided by the client.
         /// </summary>
         public int DefaultPageSize { get; set; }
 

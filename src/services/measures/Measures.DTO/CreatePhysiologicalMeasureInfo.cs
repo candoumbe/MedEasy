@@ -10,6 +10,6 @@
         /// <summary>
         /// Patient which the measure is created for
         /// </summary
-        public PatientId PatientId { get; set; }
+        public SubjectId SubjectId { get; set; }
     }
 }

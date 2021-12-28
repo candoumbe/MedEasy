@@ -28,7 +28,6 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Versioning;
@@ -82,7 +81,6 @@
                 .AddControllers(options =>
                 {
                     options.Filters.Add<FormatFilterAttribute>();
-                    //options.Filters.Add<ValidateModelActionFilter>();
                     options.Filters.Add<HandleErrorAttribute>();
                     options.Filters.Add<AddCountHeadersFilterAttribute>();
 
@@ -146,30 +144,30 @@
         /// Adds required dependencies to access API datastores
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
-            static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider, IConfiguration configuration)
             {
                 using IServiceScope scope = serviceProvider.CreateScope();
                 IHostEnvironment hostingEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<AgendaContext> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                string connectionString = configuration.GetConnectionString("agenda");
                 
-                if (!(hostingEnvironment.IsProduction() || hostingEnvironment.IsStaging()))
+                string connectionString = configuration.GetConnectionString("Agenda");
+
+                if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
                     builder.UseSqlite(connectionString, options =>
                     {
                         options.UseNodaTime()
-                               .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName);
+                               .MigrationsAssembly("Agenda.DataStores.Sqlite");
                     });
                 }
                 else
                 {
                     builder.UseNpgsql(connectionString,
                                     options => options.EnableRetryOnFailure(5).UseNodaTime()
-                                                        .MigrationsAssembly(typeof(AgendaContext).Assembly.FullName)
+                                                      .MigrationsAssembly("Agenda.DataStores.Postgres")
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
@@ -181,14 +179,14 @@
 
             services.AddTransient(serviceProvider =>
             {
-                DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider, configuration);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
                 return new AgendaContext(optionsBuilder.Options, clock);
             });
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
             {
-                DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider, configuration);
 
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
                 return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options, clock));
@@ -243,13 +241,6 @@
             services.AddSingleton(provider => provider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
 
             services.AddSingleton<IClock>(SystemClock.Instance);
-
-            services.AddHttpContextAccessor();
-            services.AddScoped(builder =>
-            {
-                HttpContext http = builder.GetRequiredService<IHttpContextAccessor>().HttpContext;
-                return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
-            });
 
             return services;
         }
@@ -344,6 +335,10 @@
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new HeaderApiVersionReader("api-version", "version"),
+                    new QueryStringApiVersionReader("version", "v", "api-version")
+                );
             });
             services.AddVersionedApiExplorer(
                 options =>

@@ -208,7 +208,8 @@
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<IdentityContext> builder = new();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                string connectionString = configuration.GetConnectionString("identity");
+                string connectionString = configuration.GetConnectionString("Identity");
+                
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
                     builder.UseSqlite(connectionString,
@@ -246,6 +247,10 @@
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
                 options.DefaultApiVersion = new ApiVersion(2, 0);
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new HeaderApiVersionReader("api-version", "version"),
+                    new QueryStringApiVersionReader("version", "v", "api-version")
+                );
             });
             services.AddVersionedApiExplorer(
                 options =>

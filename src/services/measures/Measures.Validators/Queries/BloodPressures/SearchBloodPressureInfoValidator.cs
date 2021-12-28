@@ -21,15 +21,15 @@
 
             RuleFor(x => x.From)
                 .NotNull()
-                .Unless(x => x.To != default || x.Sort != default || x.PatientId != default);
+                .Unless(x => x.To != default || x.Sort != default || x.SubjectId != default);
 
             RuleFor(x => x.To)
                 .NotNull()
-                .Unless(x => x.From != default || x.Sort != default || x.PatientId != default);
+                .Unless(x => x.From != default || x.Sort != default || x.SubjectId != default);
 
             RuleFor(x => x.Sort)
                 .NotEmpty()
-                .Unless(x => x.From.HasValue || x.To.HasValue || x.PatientId != default);
+                .Unless(x => x.From.HasValue || x.To.HasValue || x.SubjectId != default);
 
             When(
                 (x) => x.From.HasValue && x.To.HasValue,

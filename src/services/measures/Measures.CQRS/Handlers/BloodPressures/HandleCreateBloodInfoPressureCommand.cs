@@ -49,14 +49,14 @@
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             CreateBloodPressureInfo data = cmd.Data;
-            Option<Patient> optionalPatient = await uow.Repository<Patient>()
-                .SingleOrDefaultAsync(x => x.Id == data.PatientId)
+            Option<Subject> optionalPatient = await uow.Repository<Subject>()
+                .SingleOrDefaultAsync(x => x.Id == data.SubjectId)
                 .ConfigureAwait(false);
 
             return await optionalPatient.Match(
                 some: async _ =>
                 {
-                    BloodPressure newEntity = new(patientId: data.PatientId,
+                    BloodPressure newEntity = new(subjectId: data.SubjectId,
                                                   id: BloodPressureId.New(),
                                                   data.DateOfMeasure,
                                                   data.DiastolicPressure,
@@ -67,7 +67,7 @@
                         .ConfigureAwait(false);
 
                     BloodPressureInfo createdResource = _mapper.Map<BloodPressure, BloodPressureInfo>(newEntity);
-                    createdResource.PatientId = data.PatientId;
+                    createdResource.SubjectId = data.SubjectId;
 
                     await _mediator.Publish(new BloodPressureCreated(createdResource), cancellationToken)
                         .ConfigureAwait(false);

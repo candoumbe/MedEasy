@@ -31,7 +31,7 @@
     /// </summary>
     [ApiController]
     [ApiVersion("2.0")]
-    [Route("v{version:apiVersion}/auth/[controller]")]
+    [Route("/auth/[controller]")]
     [Authorize]
     public class TokenController
     {
@@ -87,28 +87,17 @@
                     };
                     AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
                         .ConfigureAwait(false);
-
-                    (string Token, DateTime Expires) accessToken;
-                    (string Token, DateTime Expires) refreshToken;
                     JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
-                    switch (token.AccessToken)
+                    (string Token, DateTime Expires) accessToken = token.AccessToken switch
                     {
-                        case JwtSecurityToken jwtToken:
-                            accessToken = (jwtSecurityTokenHandler.WriteToken(jwtToken), jwtToken.ValidTo);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException("Unhandled access token type");
-                    }
-
-                    switch (token.RefreshToken)
+                        JwtSecurityToken jwtToken => (jwtSecurityTokenHandler.WriteToken(jwtToken), jwtToken.ValidTo),
+                        _ => throw new NotSupportedException("Unhandled access token type"),
+                    };
+                    (string Token, DateTime Expires) refreshToken = token.RefreshToken switch
                     {
-                        case JwtSecurityToken jwtToken:
-                            refreshToken = (jwtSecurityTokenHandler.WriteToken(jwtToken), jwtToken.ValidTo);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException("Unhandled refresh token type");
-                    }
-
+                        JwtSecurityToken jwtToken => (jwtSecurityTokenHandler.WriteToken(jwtToken), jwtToken.ValidTo),
+                        _ => throw new NotSupportedException("Unhandled refresh token type"),
+                    };
                     return new BearerTokenInfo
                     {
                         AccessToken = new TokenInfo

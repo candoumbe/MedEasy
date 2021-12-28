@@ -26,7 +26,7 @@
         [Fact]
         public void Ctor_Is_Valid()
         {
-            DeletePatientInfoByIdCommand instance = new(PatientId.New());
+            DeletePatientInfoByIdCommand instance = new(SubjectId.New());
 
             // Assert
             instance.Id.Should()

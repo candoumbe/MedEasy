@@ -40,7 +40,6 @@ namespace Agenda.API.Resources.v1
         private readonly IMediator _mediator;
         private readonly IOptionsSnapshot<AgendaApiOptions> _apiOptions;
         private readonly IMapper _mapper;
-        private readonly ApiVersion _apiVersion;
 
         /// <summary>
         /// Name of the endpoint
@@ -54,14 +53,12 @@ namespace Agenda.API.Resources.v1
         /// <param name="mediator"></param>
         /// <param name="apiOptions"></param>
         /// <param name="mapper"></param>
-        /// <param name="apiVersion"></param>
-        public AppointmentsController(LinkGenerator urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper, ApiVersion apiVersion)
+        public AppointmentsController(LinkGenerator urlHelper, IMediator mediator, IOptionsSnapshot<AgendaApiOptions> apiOptions, IMapper mapper)
         {
             _urlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _apiVersion = apiVersion;
         }
 
         /// <summary>
@@ -80,7 +77,7 @@ namespace Agenda.API.Resources.v1
             NewAppointmentInfo info = _mapper.Map<NewAppointmentInfo>(newAppointment);
             AppointmentInfo newResource = await _mediator.Send(new CreateAppointmentInfoCommand(info), ct)
                                                          .ConfigureAwait(false);
-            string version = _apiVersion.ToString();
+
             IEnumerable<AttendeeInfo> participants = newResource.Attendees;
             IEnumerable<Link> links = new List<Link>(1 + participants.Count())
             {
@@ -89,14 +86,14 @@ namespace Agenda.API.Resources.v1
                     Relation = Self,
                     Method = "GET",
                     Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                    new { controller = EndpointName, newResource.Id, version })
+                                                    new { controller = EndpointName, newResource.Id })
                 }
             }
             .Concat(participants.Select(p => new Link
             {
                 Relation = $"get-participant-{p.Id.Value}",
                 Method = "GET",
-                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id, version })
+                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = AttendeesController.EndpointName, p.Id })
             }))
 #if DEBUG
             .ToArray()
@@ -110,7 +107,7 @@ namespace Agenda.API.Resources.v1
             };
 
             return new CreatedAtRouteResult(RouteNames.DefaultGetOneByIdApi,
-                                            new { controller = EndpointName, newResource.Id, version },
+                                            new { controller = EndpointName, newResource.Id },
                                             browsableResource);
         }
 
@@ -139,7 +136,6 @@ namespace Agenda.API.Resources.v1
             Page<AppointmentInfo> result = await _mediator.Send(new GetPageOfAppointmentInfoQuery(pagination), ct)
                                                           .ConfigureAwait(false);
 
-            string version = _apiVersion.ToString();
             IEnumerable<Browsable<AppointmentModel>> entries = _mapper.Map<IEnumerable<AppointmentModel>>(result.Entries)
                                                                       .Select(x => new Browsable<AppointmentModel>
                                                                       {
@@ -151,22 +147,22 @@ namespace Agenda.API.Resources.v1
                                                                                   Relation = Self,
                                                                                   Method = "GET",
                                                                                   Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi,
-                                                                                                                  new {controller = EndpointName, x.Id, version})
+                                                                                                                  new {controller = EndpointName, x.Id})
                                                                               }
                                                                           }
                                                                       });
 
             return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 entries,
-                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize, version }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = 1, pagination.PageSize }),
                 previous: pagination.Page > 1 && result.Count > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page - 1, pagination.PageSize })
                     : null,
 
                 next: result.Count > pagination.Page
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = pagination.Page + 1, pagination.PageSize })
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize, version }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, Page = Math.Max(1, result.Count), pagination.PageSize }),
                 total: result.Total
             );
         }
@@ -194,20 +190,19 @@ namespace Agenda.API.Resources.v1
             return optionalAppointment.Match<ActionResult<Browsable<AppointmentModel>>>(
                 some: appointment =>
                 {
-                    string version = _apiVersion.ToString();
                     IList<Link> links = new List<Link>
                     {
                         new Link
                         {
                             Relation = Self,
                             Method = "GET",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id, version})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})
                         },
                         new Link
                         {
                             Relation = "delete",
                             Method = "DELETE",
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id, version})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, appointment.Id})
                         }
                     };
 
@@ -266,25 +261,23 @@ namespace Agenda.API.Resources.v1
             Page<AppointmentInfo> page = await _mediator.Send(new SearchAppointmentInfoQuery(data), ct)
                 .ConfigureAwait(false);
 
-            string version = _apiVersion.ToString();
-
             return new GenericPagedGetResponse<Browsable<AppointmentModel>>(
                 _mapper.Map<IEnumerable<AppointmentModel>>(page.Entries).Select(x => new Browsable<AppointmentModel>
                 {
                     Resource = x,
                     Links = new[]
                     {
-                        new Link { Relation = Self, Method = "GET", Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id, version })}
+                        new Link { Relation = Self, Method = "GET", Href =_urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, x.Id })}
                     }
                 }),
-                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize, version }),
+                first: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = 1, search.PageSize }),
                 previous: page.Count > 1 && search.Page > 1
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page - 1, search.PageSize })
                     : null,
                 next: search.Page < page.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = search.Page + 1, search.PageSize })
                     : null,
-                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize, version }),
+                last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { controller = EndpointName, search.From, search.To, search.Sort, page = page.Count, search.PageSize }),
                 total: page.Total
             );
         }

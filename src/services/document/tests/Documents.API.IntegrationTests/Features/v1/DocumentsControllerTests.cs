@@ -8,14 +8,8 @@
 
     using FluentAssertions;
 
-    using Identity.API.Fixtures.v2;
-    using Identity.DTO;
-    using Identity.Ids;
-
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
-
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
 
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
@@ -39,15 +33,13 @@
     using Xunit.Extensions.AssemblyFixture;
 
     using static Microsoft.AspNetCore.Http.StatusCodes;
-    using static System.Net.Http.HttpMethod;
 
     [IntegrationTest]
     [Feature(nameof(Documents))]
-    public class DocumentsControllerTests : IAsyncLifetime, IAssemblyFixture<IdentityApiFixture>, IAssemblyFixture<IntegrationFixture<Startup>>
+    public class DocumentsControllerTests : IAssemblyFixture<IntegrationFixture<Startup>>
     {
-        private readonly IdentityApiFixture _identityApiFixture;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/v1/documents/";
+        private const string _endpointUrl = "/documents/";
         private readonly IntegrationFixture<Startup> _sut;
         private readonly Faker _faker;
 
@@ -61,19 +53,12 @@
             }
         }
 
-        public DocumentsControllerTests(ITestOutputHelper outputHelper, IdentityApiFixture identityFixture, IntegrationFixture<Startup> sut)
+        public DocumentsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> sut)
         {
             _faker = new();
             _outputHelper = outputHelper;
-            _identityApiFixture = identityFixture;
             _sut = sut;
         }
-
-        ///<inheritdoc/>
-        public async Task InitializeAsync() => await _identityApiFixture.LogIn().ConfigureAwait(false);
-
-        ///<inheritdoc/>
-        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GivenDocument_Post_Creates_Record()
@@ -90,8 +75,7 @@
             };
 
             using HttpClient client = _sut.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityApiFixture.Tokens.AccessToken.Token);
-
+            
             // Act
             using HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newResourceInfo, SerializerOptions)
                                                             .ConfigureAwait(false);
@@ -135,36 +119,6 @@
             document.Id.Should()
                        .NotBeNull().And
                        .NotBe(DocumentId.Empty);
-        }
-
-        [Fact]
-        public async Task GivenValidToken_Get_Returns_ListOfDocuments()
-        {
-            // Arrange
-
-            _outputHelper.WriteLine($"Bearer : {_identityApiFixture.Tokens.AccessToken.Jsonify()}");
-
-            using HttpClient client = _sut.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _identityApiFixture.Tokens.AccessToken.Token);
-
-            // Act
-            using HttpResponseMessage response = await client.GetAsync($"{_endpointUrl}?page=1")
-                                                             .ConfigureAwait(false);
-
-            // Assert
-            _outputHelper.WriteLine($"Response : {response}");
-            _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
-
-            response.IsSuccessStatusCode.Should()
-                                        .BeTrue();
-            response.StatusCode.Should().Be(Status200OK);
-
-            string jsonResponse = await response.Content.ReadAsStringAsync()
-                                                        .ConfigureAwait(false);
-
-            JToken jsonToken = JToken.Parse(jsonResponse);
-            JSchema responseSchema = new JSchemaGenerator().Generate(typeof(GenericPagedGetResponse<Browsable<AccountInfo>>));
-            jsonToken.IsValid(responseSchema);
         }
 
         //[Fact]

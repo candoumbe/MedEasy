@@ -7,7 +7,7 @@
 
     using Measures.DataStores;
     using Measures.CQRS.Events;
-    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Handlers.Subjects;
     using Measures.DTO;
     using Measures.Ids;
     using Measures.Mapping;
@@ -110,25 +110,25 @@
         public async Task PatchPatient()
         {
             // Arrange
-            PatientId idToPatch = PatientId.New();
-            Patient entity = new(idToPatch, "victor zsasz");
+            SubjectId idToPatch = SubjectId.New();
+            Subject entity = new(idToPatch, "victor zsasz");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(entity);
+                uow.Repository<Subject>().Create(entity);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
 
-            JsonPatchDocument<PatientInfo> patchDocument = new();
+            JsonPatchDocument<SubjectInfo> patchDocument = new();
             patchDocument.Replace(x => x.Name, "Darkseid");
 
-            PatchInfo<PatientId, PatientInfo> patchInfo = new()
+            PatchInfo<SubjectId, SubjectInfo> patchInfo = new()
             {
                 Id = idToPatch,
                 PatchDocument = patchDocument
             };
-            PatchCommand<PatientId, PatientInfo> cmd = new(patchInfo);
+            PatchCommand<SubjectId, SubjectInfo> cmd = new(patchInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -146,7 +146,7 @@
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                Patient actualMeasure = await uow.Repository<Patient>()
+                Subject actualMeasure = await uow.Repository<Subject>()
                      .SingleAsync(x => x.Id == idToPatch)
                      .ConfigureAwait(false);
 

@@ -118,7 +118,7 @@
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
-                PatientId = PatientId.New()
+                SubjectId = SubjectId.New()
             };
 
             CreateBloodPressureInfoForPatientIdCommand cmd = new(newResourceInfo);
@@ -144,12 +144,12 @@
         public async Task CreateBloodPressure_When_PatientInfo_Already_Exists()
         {
             // Arrange
-            PatientId patientId = PatientId.New();
-            Patient patientBeforeCreate = new(patientId, "Solomon Grundy");
+            SubjectId patientId = SubjectId.New();
+            Subject patientBeforeCreate = new(patientId, "Solomon Grundy");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patientBeforeCreate);
+                uow.Repository<Subject>().Create(patientBeforeCreate);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -159,7 +159,7 @@
                 SystolicPressure = 120,
                 DiastolicPressure = 80,
                 DateOfMeasure = 23.August(2003).Add(15.Hours().Add(30.Minutes())).AsUtc().ToInstant(),
-                PatientId = patientId
+                SubjectId = patientId
             };
 
             _mapperMock.Setup(mock => mock.Map<CreateBloodPressureInfo, BloodPressure>(It.IsAny<CreateBloodPressureInfo>()))
@@ -184,8 +184,8 @@
             {
                 measureInfo.Id.Should()
                     .NotBe(BloodPressureId.Empty, $"{nameof(BloodPressureInfo.Id)} must be provided by the handler");
-                measureInfo.PatientId.Should()
-                    .Be(newResourceInfo.PatientId, $"resource's property '{nameof(BloodPressureInfo.PatientId)}' mus be the one carried by the command's {nameof(CreateBloodPressureInfoForPatientIdCommand.Data)}");
+                measureInfo.SubjectId.Should()
+                    .Be(newResourceInfo.SubjectId, $"resource's property '{nameof(BloodPressureInfo.SubjectId)}' mus be the one carried by the command's {nameof(CreateBloodPressureInfoForPatientIdCommand.Data)}");
                 measureInfo.DiastolicPressure.Should()
                     .Be(newResourceInfo.DiastolicPressure);
                 measureInfo.SystolicPressure.Should()

@@ -36,20 +36,20 @@
                 .GreaterThan(0)
                 .WithSeverity(Warning);
 
-            RuleFor(x => x.PatientId)
+            RuleFor(x => x.SubjectId)
                 .NotNull()
-                .NotEqual(PatientId.Empty)
+                .NotEqual(SubjectId.Empty)
                 .WithSeverity(Error);
 
             When(
-                x => x.PatientId is not null && x.PatientId != PatientId.Empty,
+                x => x.SubjectId is not null && x.SubjectId != SubjectId.Empty,
                 () =>
                 {
-                    RuleFor(x => x.PatientId)
-                        .MustAsync(async (PatientId patientId, CancellationToken ct) =>
+                    RuleFor(x => x.SubjectId)
+                        .MustAsync(async (SubjectId patientId, CancellationToken ct) =>
                         {
                             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
-                            return await uow.Repository<Patient>()
+                            return await uow.Repository<Subject>()
                                             .AnyAsync(x => x.Id == patientId, ct)
                                             .ConfigureAwait(false);
                         });

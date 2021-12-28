@@ -27,7 +27,8 @@
     <ProjectReference Include="..\..\MedEasy.Attributes\MedEasy.Attributes.csproj" />
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\Agenda.CQRS\Agenda.CQRS.csproj" />
-    <ProjectReference Include="..\Agenda.DataStores\Agenda.DataStores.csproj" />
+    <ProjectReference Include="..\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj" />
+    <ProjectReference Include="..\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj" />
     <ProjectReference Include="..\Agenda.Mapping\Agenda.Mapping.csproj" />
     <ProjectReference Include="..\Agenda.Models\Agenda.Models.csproj" />
     <ProjectReference Include="..\Agenda.Validators\Agenda.Validators.csproj" />

@@ -6,9 +6,9 @@
     using NodaTime;
 
     /// <summary>
-    /// Wraps seearch criteria for <see cref="PatientInfo"/> resources.
+    /// Wraps seearch criteria for <see cref="SubjectInfo"/> resources.
     /// </summary>
-    public class SearchPatientInfo : AbstractSearchInfo<PatientInfo>
+    public class SearchPatientInfo : AbstractSearchInfo<SubjectInfo>
     {
         /// <summary>
         /// Searched <see cref="Name"/>

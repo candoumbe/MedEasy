@@ -64,29 +64,6 @@ namespace Agenda.API.IntegrationTests.v1
             }
         };
 
-        /// <summary>
-        /// Schema of an <see cref="AttendeeModel"/> resource once translated to json
-        /// </summary>
-        private static readonly JSchema _participantInfoResourceSchema = new()
-        {
-            Type = JSchemaType.Object,
-            Properties =
-            {
-                [nameof(AttendeeModel.Id).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AttendeeModel.Name).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AttendeeModel.Email).ToCamelCase()] = new JSchema { Type = JSchemaType.String },
-                [nameof(AttendeeModel.PhoneNumber).ToCamelCase()] = new JSchema { Type = JSchemaType.String  },
-                [nameof(AttendeeModel.UpdatedDate).ToCamelCase()] = new JSchema { Type = JSchemaType.String  },
-            },
-            Required =
-            {
-                nameof(AttendeeModel.Id).ToCamelCase(),
-                nameof(AttendeeModel.Name).ToCamelCase(),
-                nameof(AttendeeModel.Email).ToCamelCase(),
-                nameof(AttendeeModel.PhoneNumber).ToCamelCase()
-            }
-        };
-
         public AttendeesControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
         {
             _outputHelper = outputHelper;
@@ -117,13 +94,11 @@ namespace Agenda.API.IntegrationTests.v1
 
             // Arrange
             string url = $"{_endpointUrl}?page={page}&pageSize={pageSize}";
+            
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
-            IEnumerable<Claim> claims = new[]
-            {
-                new Claim(ClaimTypes.Name, "Bruce Wayne")
-            };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1");
 
             // Act
             using HttpResponseMessage response = await client.GetAsync(url)
@@ -202,8 +177,8 @@ namespace Agenda.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
             // Act
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1");
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1");
             HttpResponseMessage response = await client.GetAsync(url)
                                                        .ConfigureAwait(false);
 
@@ -242,7 +217,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             HttpRequestMessage request = new(new HttpMethod(verb), url);
             request.Headers.Add("version", "1");
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
+            using HttpClient client = _server.CreateClient();
 
             // Act
             HttpResponseMessage response = await client.SendAsync(request)
@@ -291,8 +266,8 @@ namespace Agenda.API.IntegrationTests.v1
             {
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
-            using HttpClient client = _server.CreateAuthenticatedHttpClientWithClaims(claims);
-            client.DefaultRequestHeaders.Add("version", "1.0");
+            using HttpClient client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("api-version", "1.0");
 
             string requestUri = AppointmentsController.EndpointName;
             await newAppointments.ForEachAsync(async (newParticipant) =>

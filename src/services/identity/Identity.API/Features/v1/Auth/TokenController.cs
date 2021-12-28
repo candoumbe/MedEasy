@@ -32,7 +32,7 @@
     /// Endpoint to handle authentication, token.
     /// </summary>
     [ApiController]
-    [Route("v{version:apiVersion}/auth/[controller]")]
+    [Route("/auth/[controller]")]
     [Authorize]
     public class TokenController
     {

@@ -44,7 +44,7 @@
             // Add framework services.
             services
                 .AddCustomizedMvc(Configuration, HostingEnvironment)
-                .AddDataStores()
+                .AddDataStores(Configuration)
                 .AddCustomOptions(Configuration)
                 .AddCustomizedDependencyInjection()
                 .AddCustomApiVersioning()
@@ -100,12 +100,12 @@
 
             app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute(RouteNames.Default, "v{version:apiVersion}/{controller=health}/{action=status}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "v{version:apiVersion}/{controller}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "v{version:apiVersion}/{controller}/search");
+                routeBuilder.MapControllerRoute(RouteNames.Default, "{controller=health}/{action=status}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "{controller}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search");
             });
         }
     }

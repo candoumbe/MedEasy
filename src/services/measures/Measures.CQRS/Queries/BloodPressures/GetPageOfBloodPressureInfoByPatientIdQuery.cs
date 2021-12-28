@@ -12,32 +12,32 @@
     using System;
 
     /// <summary>
-    /// Query to get a <see cref="MedEasy.DAL.Repositories.Page{T}"/> of <see cref="BloodPressureInfo"/>s given a patient id.
+    /// Query to get a <see cref="Page{T}"/> of <see cref="BloodPressureInfo"/>s given a subject id.
     /// </summary>
-    public class GetPageOfBloodPressureInfoByPatientIdQuery : IQuery<Guid, (PatientId patientId, PaginationConfiguration pagination), Option<Page<BloodPressureInfo>>>
+    public class GetPageOfBloodPressureInfoBySubjectIdQuery : IQuery<Guid, (SubjectId subjectId, PaginationConfiguration pagination), Option<Page<BloodPressureInfo>>>
     {
-        public (PatientId patientId, PaginationConfiguration pagination) Data { get; }
+        public (SubjectId subjectId, PaginationConfiguration pagination) Data { get; }
 
         public Guid Id { get; }
 
         /// <summary>
-        /// Builds a new <see cref="GetPageOfBloodPressureInfoByPatientIdQuery"/> instance.
+        /// Builds a new <see cref="GetPageOfBloodPressureInfoBySubjectIdQuery"/> instance.
         /// </summary>
         /// <param name="data">Data needed to get the result</param>
-        private GetPageOfBloodPressureInfoByPatientIdQuery((PatientId patientId, PaginationConfiguration pagination) data)
+        private GetPageOfBloodPressureInfoBySubjectIdQuery((SubjectId subjectId, PaginationConfiguration pagination) data)
         {
             Id = Guid.NewGuid();
             Data = data;
         }
 
         /// <summary>
-        /// Builds a new <see cref="GetPageOfBloodPressureInfoByPatientIdQuery"/> instance.
+        /// Builds a new <see cref="GetPageOfBloodPressureInfoBySubjectIdQuery"/> instance.
         /// </summary>
         /// <param name="id">id of the patient</param>
         /// <param name="pagination">paging configuration</param>
         /// <exception cref="ArgumentNullException">either <paramref name="id"/> or <paramref name="pagination"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="PatientId.Empty"/>.</exception>
-        public GetPageOfBloodPressureInfoByPatientIdQuery(PatientId id, PaginationConfiguration pagination) : this((id, pagination))
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="id"/> is <see cref="SubjectId.Empty"/>.</exception>
+        public GetPageOfBloodPressureInfoBySubjectIdQuery(SubjectId id, PaginationConfiguration pagination) : this((id, pagination))
         {
             if (id is null)
             {
@@ -49,7 +49,7 @@
                 throw new ArgumentNullException(nameof(pagination));
             }
 
-            if (id == PatientId.Empty)
+            if (id == SubjectId.Empty)
             {
                 throw new ArgumentOutOfRangeException(nameof(id));
             }

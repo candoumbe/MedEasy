@@ -5,7 +5,7 @@
     using FluentAssertions;
 
     using Measures.DataStores;
-    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Handlers.Subjects;
     using Measures.CQRS.Queries.BloodPressures;
     using Measures.DTO;
     using Measures.Ids;
@@ -38,7 +38,7 @@
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
-        private readonly HandleGetPageOfBloodPressureInfoByPatientIdQuery _sut;
+        private readonly HandleGetPageOfBloodPressureInfoBySubjectIdQuery _sut;
 
         public HandleGetPageOfBloodPressureInfoByPatientIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
@@ -51,7 +51,7 @@
                 return context;
             });
 
-            _sut = new HandleGetPageOfBloodPressureInfoByPatientIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetPageOfBloodPressureInfoBySubjectIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -78,7 +78,7 @@
 
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleGetPageOfBloodPressureInfoByPatientIdQuery(unitOfWorkFactory, expressionBuilder);
+            Action action = () => new HandleGetPageOfBloodPressureInfoBySubjectIdQuery(unitOfWorkFactory, expressionBuilder);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -92,7 +92,7 @@
         public async Task GivenNoData_Handle_Returns_None()
         {
             // Arrange
-            GetPageOfBloodPressureInfoByPatientIdQuery query = new(PatientId.New(), new PaginationConfiguration());
+            GetPageOfBloodPressureInfoBySubjectIdQuery query = new(SubjectId.New(), new PaginationConfiguration());
 
             // Act
             Option<Page<BloodPressureInfo>> result = await _sut.Handle(query, default)

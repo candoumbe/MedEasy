@@ -16,7 +16,7 @@
     /// <summary>
     /// Validator for <see cref="JsonPatchDocument{PatientInfo}"/>
     /// </summary>
-    public class PatchPatientInfoValidator : AbstractValidator<JsonPatchDocument<PatientInfo>>
+    public class PatchPatientInfoValidator : AbstractValidator<JsonPatchDocument<SubjectInfo>>
     {
         /// <summary>
         /// Builds a new <see cref="PatchPatientInfoValidator"/> instance.
@@ -38,16 +38,16 @@
                 {
                     RuleFor(x => x.Operations)
                         .Must(ops =>
-                            !ops.Any(op => $"/{nameof(PatientInfo.Id)}".Equals(op.path, OrdinalIgnoreCase))
+                            !ops.Any(op => $"/{nameof(SubjectInfo.Id)}".Equals(op.path, OrdinalIgnoreCase))
                         );
 
-                    When(x => x.Operations.Any(op => $"/{nameof(PatientInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)),
+                    When(x => x.Operations.Any(op => $"/{nameof(SubjectInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)),
                         () =>
                         {
                             RuleFor(x => x.Operations)
-                                .Must(ops => !ops.Any(op => $"/{nameof(PatientInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)
+                                .Must(ops => !ops.Any(op => $"/{nameof(SubjectInfo.Name)}".Equals(op.path, OrdinalIgnoreCase)
                                     && op.value != null && op.value.ToString().Length > 100))
-                                    .WithMessage($"{nameof(PatientInfo.Name)} must have a length of 100 characters at most.");
+                                    .WithMessage($"{nameof(SubjectInfo.Name)} must have a length of 100 characters at most.");
                         });
                 }
             );

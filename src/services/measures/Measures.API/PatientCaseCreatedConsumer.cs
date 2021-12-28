@@ -30,7 +30,7 @@
         {
             _logger.LogInformation("Received {EventName} : {@Event}", nameof(PatientCaseCreated), context.Message);
 
-            CreatePatientInfoCommand cmd = new(new DTO.NewPatientInfo { Id = new PatientId(context.Message.Id.Value), Name = context.Message.Name, BirthDate = context.Message.BirthDate });
+            CreateSubjectInfoCommand cmd = new(new DTO.NewSubjectInfo { Id = new SubjectId(context.Message.Id.Value), Name = context.Message.Name, BirthDate = context.Message.BirthDate });
             await _mediator.Send(cmd, context.CancellationToken)
                             .ConfigureAwait(false);
         }

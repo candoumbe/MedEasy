@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\Measures.API\Measures.API.csproj" />
-    <ProjectReference Include="..\..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
   </ItemGroup>
 
 </Project>

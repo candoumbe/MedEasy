@@ -73,7 +73,6 @@
         private Mock<IMediator> _mediatorMock;
         private AttendeesController _sut;
         private const string _baseUrl = "agenda";
-        private static readonly ApiVersion ApiVersion = new(1, 0);
 
         public AttendeesControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
@@ -108,8 +107,7 @@
 
 
             _sut = new AttendeesController(urlHelper: _urlHelperMock.Object, mediator: _mediatorMock.Object, apiOptions: _apiOptionsMock.Object,
-                    _mapperMock.Object, ApiVersion
-                );
+                    mapper: _mapperMock.Object);
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
@@ -154,14 +152,14 @@
                                     && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     "&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 next :(Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                                 last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last
                                     && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     "&page=1" +
-                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase))
                             )  // expected link to last page
                         };
                     }
@@ -179,10 +177,10 @@
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=2&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                 };
 
@@ -193,10 +191,10 @@
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         next : (Expression<Func<Link, bool>>) (x => x == null ), // expected link to next page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                 };
 
@@ -207,10 +205,10 @@
                     (defaultPageSize : 30, maxPageSize : 200),
                     20,    //expected total
                     (
-                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
-                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5&version={ApiVersion}".Equals(x.Href, OrdinalIgnoreCase))
+                        first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        previous : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Previous && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=3&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                        last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AttendeesController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                     )  // expected link to last page
                };
             }
@@ -405,7 +403,7 @@
                                 $"Controller={AttendeesController.EndpointName}" +
                                 $"&name={searchInfo.Name}"+
                                 "&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                         (Expression<Func<Link, bool>>)(previous => previous == null),
                         (Expression<Func<Link, bool>>)(next => next == null),
                         (Expression<Func<Link, bool>>) (x => x != null
@@ -415,7 +413,7 @@
                                 $"&name={searchInfo.Name}"+
                                 "&page=1" +
                                 "&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)))
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)))
                     };
                 }
                 {
@@ -445,7 +443,7 @@
                                 $"Controller={AttendeesController.EndpointName}" +
                                 $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 "&page=1&pageSize=30" +
-                                $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)),
+                                $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase)),
                             (Expression<Func<Link, bool>>)(previous => previous == null),
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
@@ -454,7 +452,7 @@
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     "&page=1&pageSize=30" +
-                                    $"&sort={searchInfo.Sort}&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&sort={searchInfo.Sort}").Equals(x.Href, OrdinalIgnoreCase))
                         )
                     };
                 }
@@ -483,7 +481,7 @@
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
-                                    $"&page=1&pageSize=30&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             (Expression<Func<Link, bool>>)(previous => previous == null),
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
@@ -491,7 +489,7 @@
                                 && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={AttendeesController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
-                                    $"&page=1&pageSize=30&version={ApiVersion}").Equals(x.Href, OrdinalIgnoreCase))
+                                    $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))
                         )
                     };
                 }
@@ -569,7 +567,7 @@
                         && ($"agenda/{RouteNames.DefaultSearchResourcesApi}/?" +
                         $"controller={AttendeesController.EndpointName}" +
                         $"&name={Uri.EscapeDataString("Bruce*")}" +
-                        $"&page=1&pageSize=30&version={ApiVersion}").Equals(pageLinks.First.Href, OrdinalIgnoreCase)
+                        $"&page=1&pageSize=30").Equals(pageLinks.First.Href, OrdinalIgnoreCase)
                     ),
                     "The result is empty so there's no page with index 2"
                 };

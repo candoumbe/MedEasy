@@ -20,13 +20,13 @@ using MassTransit;
             _hostingEnvironment = hostingEnvironment;
         }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        ///<inheritdoc/>
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddCustomMvc(_configuration, _hostingEnvironment)
-                    .AddDataStores()
+                    .AddDataStores(_configuration)
                     .AddDependencyInjection()
+                    .AddCustomApiVersioning()
                     .AddCustomizedSwagger(_hostingEnvironment, _configuration)
                     .AddCustomAuthenticationAndAuthorization(_configuration)
                     .AddCustomMassTransit(_hostingEnvironment,_configuration);
@@ -77,12 +77,12 @@ using MassTransit;
 
             app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute(RouteNames.Default, "{controller=root}/{action=index}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "{controller}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search/");
+                routeBuilder.MapControllerRoute(RouteNames.Default, "/{controller=root}/{action=index}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "/{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "/{controller}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "/{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "/{controller}/{id}/{action}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "/{controller}/search/");
             });
         }
     }

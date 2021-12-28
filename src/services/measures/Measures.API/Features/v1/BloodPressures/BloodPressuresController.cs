@@ -41,13 +41,12 @@
     /// <summary>
     /// Endpoint to handle CRUD operations on <see cref="BloodPressureInfo"/> resources
     /// </summary>
-    [Route("/v{version:apiVersion}/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [ApiVersion("1.0")]
     public class BloodPressuresController
     {
         private readonly IMediator _mediator;
-        private readonly string version;
 
         /// <summary>
         /// Name of the endpoint
@@ -70,13 +69,14 @@
         /// <param name="urlHelper">Helper class to build URL strings.</param>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
-        /// <param name="apiVersion"></param>
-        public BloodPressuresController(LinkGenerator urlHelper, IOptionsSnapshot<MeasuresApiOptions> apiOptions, IMediator mediator, ApiVersion apiVersion)
+        /// 
+        public BloodPressuresController(LinkGenerator urlHelper,
+                                        IOptionsSnapshot<MeasuresApiOptions> apiOptions,
+                                        IMediator mediator)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
             _mediator = mediator;
-            version = apiVersion?.ToString();
         }
 
         /// <summary>
@@ -109,16 +109,16 @@
             int count = result.Entries.Count();
             bool hasPreviousPage = count > 0 && pagination.Page > 1;
 
-            string firstPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1, version });
+            string firstPageUrl = _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = 1 });
             string previousPageUrl = hasPreviousPage
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page - 1 })
                     : null;
 
             string nextPageUrl = pagination.Page < result.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = pagination.Page + 1 })
                     : null;
             string lastPageUrl = result.Count > 0
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count, version })
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, pagination.PageSize, Page = result.Count })
                     : firstPageUrl;
 
             IEnumerable<Browsable<BloodPressureInfo>> resources = result.Entries
@@ -130,7 +130,7 @@
                         new Link
                         {
                             Relation = LinkRelation.Self,
-                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, id = x.Id.Value, version})
+                            Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = EndpointName, id = x.Id.Value})
                         }
                     }
                 });
@@ -175,19 +175,19 @@
                             {
                                 Relation = LinkRelation.Self,
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value })
                             },
                             new Link
                             {
                                 Relation = "delete",
                                 Method = "DELETE",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, id = bloodPressure.Id.Value })
                             },
                             new Link
                             {
-                                Relation = "patient",
+                                Relation = "subject",
                                 Method = "GET",
-                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = PatientsController.EndpointName, id = bloodPressure.PatientId.Value, version })
+                                Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new {controller = SubjectsController.EndpointName, id = bloodPressure.SubjectId.Value })
                             }
                         }
                     };
@@ -220,7 +220,7 @@
         //               Resource = resource,
         //               Links = new[]
         //               {
-        //                    new Link { Relation = "patient", Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = resource.PatientId }) },
+        //                    new Link { Relation = "subject", Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { id = resource.PatientId }) },
         //                    new Link { Relation = "delete", Href = UrlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { resource.Id }), Method = "DELETE"}
         //               }
 
@@ -276,7 +276,7 @@
         }
 
         /// <summary>
-        /// Search patients resource based on some criteria.
+        /// Search subjects resource based on some criteria.
         /// </summary>
         /// <param name="search">Search criteria</param>
         /// <param name="cancellationToken">Notfies to cancel the search operation</param>
@@ -347,11 +347,11 @@
                 });
             }
 
-            if (search.PatientId is not null)
+            if (search.SubjectId is not null)
             {
-                filters.Add(new Filter(field: nameof(BloodPressureInfo.PatientId),
+                filters.Add(new Filter(field: nameof(BloodPressureInfo.SubjectId),
                                        @operator: EqualTo,
-                                       value: search.PatientId));
+                                       value: search.SubjectId));
             }
 
             SearchQueryInfo<BloodPressureInfo> searchQueryInfo = new()
@@ -382,7 +382,7 @@
                                                                    Page = 1,
                                                                    search.PageSize,
                                                                    search.Sort,
-                                                                   patientId = search.PatientId?.Value
+                                                                   subjectId = search.SubjectId?.Value
                                                                });
                 string previousPageUrl = hasPreviousPage
                         ? _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi,
@@ -394,7 +394,7 @@
                                                        Page = search.Page - 1,
                                                        search.PageSize,
                                                        search.Sort,
-                                                       patientId = search.PatientId?.Value
+                                                       subjectId = search.SubjectId?.Value
                                                    })
                         : null;
                 string nextPageUrl = search.Page < pageOfResult.Count
@@ -407,7 +407,7 @@
                                                        Page = search.Page + 1,
                                                        search.PageSize,
                                                        search.Sort,
-                                                       patientId = search.PatientId?.Value
+                                                       subjectId = search.SubjectId?.Value
                                                    })
                         : null;
 
@@ -420,7 +420,7 @@
                                                                   Page = pageOfResult.Count,
                                                                   search.PageSize,
                                                                   search.Sort,
-                                                                  patientId = search.PatientId?.Value
+                                                                  subjectId = search.SubjectId?.Value
                                                               });
 
                 IEnumerable<Browsable<BloodPressureInfo>> resources = pageOfResult.Entries
@@ -484,7 +484,7 @@
         /// <param name="cancellationToken">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
-        /// <response code="404">Resource to "PATCH" not found, the patient resource was not found</response>
+        /// <response code="404">Resource to "PATCH" not found, the subject resource was not found</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(typeof(ErrorObject), 400)]
         public async Task<IActionResult> Patch([RequireNonDefault] BloodPressureId id, [FromBody] JsonPatchDocument<BloodPressureInfo> changes, CancellationToken cancellationToken = default)

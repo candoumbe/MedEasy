@@ -109,11 +109,11 @@
         {
             // Arrange
             BloodPressureId idToDelete = BloodPressureId.New();
-            Patient patient = new(PatientId.New(), "Bruce Wayne");
+            Subject patient = new(SubjectId.New(), "Bruce Wayne");
 
             BloodPressure measure = new(
                 id: idToDelete,
-                patientId: patient.Id,
+                subjectId: patient.Id,
                 systolicPressure: 120,
                 diastolicPressure: 80,
                 dateOfMeasure: 23.August(2003).Add(15.Hours().Add(30.Minutes())).AsUtc().ToInstant()
@@ -123,7 +123,7 @@
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Patient>().Create(patient);
+                uow.Repository<Subject>().Create(patient);
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

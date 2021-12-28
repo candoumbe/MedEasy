@@ -34,8 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="measures-api.layerdiagram.layout">
-      <DependentUpon>measures-api.layerdiagram</DependentUpon>
+    <None Update="patients-api.layerdiagram.layout">
+      <DependentUpon>patients-api.layerdiagram</DependentUpon>
     </None>
   </ItemGroup>
 

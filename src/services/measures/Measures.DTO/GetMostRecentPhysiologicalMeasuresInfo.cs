@@ -13,12 +13,12 @@
         /// <summary>
         /// Id of the patient to get one measure from
         /// </summary>
-        public PatientId PatientId { get; set; }
+        public SubjectId PatientId { get; set; }
 
         /// <summary>
         /// Number of measures to return
         /// </summary>
-        [Range(0, int.MaxValue)]
+        [Range(1, int.MaxValue)]
         public int? Count { get; set; }
     }
 }

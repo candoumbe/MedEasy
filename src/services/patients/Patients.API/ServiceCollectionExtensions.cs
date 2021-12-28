@@ -165,15 +165,16 @@
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddDataStores(this IServiceCollection services)
+        /// <param name="configuration"></param>
+        public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
-            static DbContextOptionsBuilder<PatientsDataStore> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<PatientsDataStore> BuildDbContextOptions(IServiceProvider serviceProvider, IConfiguration configuration)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<PatientsDataStore> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                string connectionString = configuration.GetConnectionString("patients");
+                
+                string connectionString = configuration.GetConnectionString("Patients");
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
@@ -202,7 +203,7 @@
 
             services.AddTransient(serviceProvider =>
             {
-                DbContextOptionsBuilder<PatientsDataStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<PatientsDataStore> optionsBuilder = BuildDbContextOptions(serviceProvider, configuration);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
                 return new PatientsDataStore(optionsBuilder.Options, clock);
@@ -210,7 +211,7 @@
 
             services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<PatientsDataStore>>(serviceProvider =>
             {
-                DbContextOptionsBuilder<PatientsDataStore> builder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<PatientsDataStore> builder = BuildDbContextOptions(serviceProvider, configuration);
 
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
@@ -377,6 +378,40 @@
             });
 
             services.AddMassTransitHostedService();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds version
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.UseApiBehavior = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new HeaderApiVersionReader("api-version", "version"),
+                    new QueryStringApiVersionReader("version", "v", "api-version")
+                );
+            });
+            services.AddVersionedApiExplorer(
+                options =>
+                {
+                    // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                    // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                    options.GroupNameFormat = "'v'VVV";
+
+                    // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                    // can also be used to control the format of the API version in route templates
+                    options.SubstituteApiVersionInUrl = true;
+                });
 
             return services;
         }

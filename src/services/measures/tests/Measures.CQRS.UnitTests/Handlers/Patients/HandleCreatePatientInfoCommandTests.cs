@@ -7,7 +7,7 @@
     using Measures.DataStores;
     using Measures.CQRS.Commands.Patients;
     using Measures.CQRS.Events;
-    using Measures.CQRS.Handlers.Patients;
+    using Measures.CQRS.Handlers.Subjects;
     using Measures.DTO;
     using Measures.Ids;
     using Measures.Mapping;
@@ -43,7 +43,7 @@
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
         private readonly Mock<IMediator> _mediatorMock;
-        private readonly HandleCreatePatientInfoCommand _sut;
+        private readonly HandleCreateSubjectInfoCommand _sut;
 
         public HandleCreatePatientInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
@@ -58,7 +58,7 @@
             _expressionBuilder = AutoMapperConfig.Build().ExpressionBuilder;
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _sut = new HandleCreatePatientInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
+            _sut = new HandleCreateSubjectInfoCommand(_uowFactory, _expressionBuilder, _mediatorMock.Object);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -90,7 +90,7 @@
             _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleCreatePatientInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
+            Action action = () => new HandleCreateSubjectInfoCommand(unitOfWorkFactory, expressionBuilder, mediator);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -104,29 +104,29 @@
         public async Task CreatePatientWithNoIdProvided()
         {
             // Arrange
-            NewPatientInfo resourceInfo = new()
+            NewSubjectInfo resourceInfo = new()
             {
                 Name = "victor zsasz",
             };
 
-            CreatePatientInfoCommand cmd = new(resourceInfo);
+            CreateSubjectInfoCommand cmd = new(resourceInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            PatientInfo createdResource = await _sut.Handle(cmd, default)
+            SubjectInfo createdResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreateSubjectInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreateSubjectInfoCommand)} must notify suscribers that a resource was created");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             createdResource.Should()
                 .NotBeNull();
             createdResource.Id.Should()
-                .NotBe(PatientId.Empty).And
+                .NotBe(SubjectId.Empty).And
                 .NotBeNull();
             createdResource.Name.Should()
                 .Be(resourceInfo.Name?.ToTitleCase());
@@ -134,7 +134,7 @@
                 .Be(resourceInfo.BirthDate);
 
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            bool createSuccessful = await uow.Repository<Patient>()
+            bool createSuccessful = await uow.Repository<Subject>()
                 .AnyAsync(x => x.Id == createdResource.Id)
                 .ConfigureAwait(false);
 
@@ -145,38 +145,38 @@
         public async Task CreatePatientWithIdProvided()
         {
             // Arrange
-            PatientId desiredId = PatientId.New();
-            NewPatientInfo resourceInfo = new()
+            SubjectId desiredId = SubjectId.New();
+            NewSubjectInfo resourceInfo = new()
             {
                 Name = "victor zsasz",
                 Id = desiredId
             };
 
-            CreatePatientInfoCommand cmd = new(resourceInfo);
+            CreateSubjectInfoCommand cmd = new(resourceInfo);
 
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            PatientInfo createdResource = await _sut.Handle(cmd, default)
+            SubjectInfo createdResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
-            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreatePatientInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.IsAny<PatientCreated>(), default), Times.Once, $"{nameof(HandleCreateSubjectInfoCommand)} must notify suscribers that a resource was created");
+            _mediatorMock.Verify(mock => mock.Publish(It.Is<PatientCreated>(evt => evt.Data.Id == createdResource.Id), default), Times.Once, $"{nameof(HandleCreateSubjectInfoCommand)} must notify suscribers that a resource was created");
             _mediatorMock.Verify(mock => mock.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
 
             createdResource.Should()
                 .NotBeNull();
             createdResource.Id.Should()
-                .Be(desiredId, $"handler must use value of {nameof(NewPatientInfo)}.{nameof(NewPatientInfo.Id)} when that value is not null");
+                .Be(desiredId, $"handler must use value of {nameof(NewSubjectInfo)}.{nameof(NewSubjectInfo.Id)} when that value is not null");
             createdResource.Name.Should()
                 .Be(resourceInfo.Name?.ToTitleCase());
             createdResource.BirthDate.Should()
                 .Be(resourceInfo.BirthDate);
 
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            bool createSuccessful = await uow.Repository<Patient>()
+            bool createSuccessful = await uow.Repository<Subject>()
                 .AnyAsync(x => x.Id == createdResource.Id)
                 .ConfigureAwait(false);
 
@@ -187,13 +187,13 @@
         public void Given_command_with_empty_id_Handles_throws_InvalidOperationException()
         {
             // Arrange
-            NewPatientInfo data = new()
+            NewSubjectInfo data = new()
             {
                 Name = "Grundy",
-                Id = PatientId.Empty
+                Id = SubjectId.Empty
             };
 
-            CreatePatientInfoCommand cmd = new(data);
+            CreateSubjectInfoCommand cmd = new(data);
 
             // Act
             Func<Task> action = async () => await _sut.Handle(cmd, default)
@@ -201,7 +201,7 @@
 
             // Assert
             action.Should()
-                .NotThrow<InvalidOperationException>($"{nameof(CreatePatientInfoCommand.Data)} will provide a new id");
+                .NotThrow<InvalidOperationException>($"{nameof(CreateSubjectInfoCommand.Data)} will provide a new id");
         }
     }
 }

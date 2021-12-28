@@ -74,7 +74,7 @@
             {
                 yield return new object[]
                 {
-                    new JsonPatchDocument<PatientInfo>(),
+                    new JsonPatchDocument<SubjectInfo>(),
                     (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                         && vr.Errors.Count == 1
                         && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
@@ -82,7 +82,7 @@
                 };
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new();
+                    JsonPatchDocument<SubjectInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Id, default);
 
                     yield return new object[]
@@ -91,12 +91,12 @@
                         (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
-                        $"patch docment cannot contains any 'replace' operation on '/{nameof(PatientInfo.Id)}'."
+                        $"patch docment cannot contains any 'replace' operation on '/{nameof(SubjectInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new();
+                    JsonPatchDocument<SubjectInfo> patchDocument = new();
                     patchDocument.Remove(x => x.Id);
 
                     yield return new object[]
@@ -105,13 +105,13 @@
                         (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
-                        $"patch docment cannot contains any 'remove' operation on '/{nameof(PatientInfo.Id)}'."
+                        $"patch docment cannot contains any 'remove' operation on '/{nameof(SubjectInfo.Id)}'."
                     };
                 }
 
                 {
-                    JsonPatchDocument<PatientInfo> patchDocument = new();
-                    patchDocument.Add(x => x.Id, PatientId.New());
+                    JsonPatchDocument<SubjectInfo> patchDocument = new();
+                    patchDocument.Add(x => x.Id, SubjectId.New());
 
                     yield return new object[]
                     {
@@ -119,7 +119,7 @@
                         (Expression<Func<ValidationResult, bool>>) (vr => !vr.IsValid
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase) && error.Severity == Error)),
-                        $"patch docment cannot contains any 'add' operation on '/{nameof(PatientInfo.Id)}'."
+                        $"patch docment cannot contains any 'add' operation on '/{nameof(SubjectInfo.Id)}'."
                     };
                 }
 
@@ -136,7 +136,7 @@
                 }
                 {
                     string nameIsTooLong = computeLongString(101);
-                    JsonPatchDocument<PatientInfo> patchDocument = new();
+                    JsonPatchDocument<SubjectInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
@@ -146,19 +146,19 @@
                             && vr.Errors.Count == 1
                             && vr.Errors.Once(error => "Operations".Equals(error.PropertyName, OrdinalIgnoreCase)
                                 && error.Severity == Error)),
-                        $"new {nameof(PatientInfo.Name)} cannot contain more than 100 characters."
+                        $"new {nameof(SubjectInfo.Name)} cannot contain more than 100 characters."
                     };
                 }
                 {
                     string nameIsTooLong = computeLongString(100);
-                    JsonPatchDocument<PatientInfo> patchDocument = new();
+                    JsonPatchDocument<SubjectInfo> patchDocument = new();
                     patchDocument.Replace(x => x.Name, nameIsTooLong);
 
                     yield return new object[]
                     {
                         patchDocument,
                         (Expression<Func<ValidationResult, bool>>) (vr => vr.IsValid),
-                        $"new {nameof(PatientInfo.Name)} is 100 characters long."
+                        $"new {nameof(SubjectInfo.Name)} is 100 characters long."
                     };
                 }
             }
@@ -166,7 +166,7 @@
 
         [Theory]
         [MemberData(nameof(InvalidPatchDocumentCases))]
-        public async Task Validate(JsonPatchDocument<PatientInfo> changes, Expression<Func<ValidationResult, bool>> expectation, string reason)
+        public async Task Validate(JsonPatchDocument<SubjectInfo> changes, Expression<Func<ValidationResult, bool>> expectation, string reason)
         {
             // Act
             _outputHelper.WriteLine($"Input : {SerializeObject(changes)}");

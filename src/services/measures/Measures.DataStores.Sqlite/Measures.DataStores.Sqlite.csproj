@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Queries.Renderers.Sqlite" Version="0.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Measures.DataStores\Measures.DataStores.csproj" />
   </ItemGroup>
 

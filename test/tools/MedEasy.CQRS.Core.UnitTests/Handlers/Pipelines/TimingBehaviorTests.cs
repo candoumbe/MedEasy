@@ -64,7 +64,7 @@
         }
 
         [Fact]
-        public async Task Given_a_handler_that_throw_an_exception_TimingBehavior_should__not()
+        public void Given_a_handler_that_throw_an_exception_TimingBehavior_should__not()
         {
             // Arrange
             IRequest request = Mock.Of<IRequest>();

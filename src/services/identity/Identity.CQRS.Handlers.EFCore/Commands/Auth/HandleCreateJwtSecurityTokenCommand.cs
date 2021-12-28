@@ -22,25 +22,22 @@
     /// </summary>
     public class HandleCreateJwtSecurityTokenCommand : IHandleCreateSecurityTokenCommand
     {
-        private readonly IClock _dateTimeService;
         private readonly ILogger<HandleCreateJwtSecurityTokenCommand> _logger;
 
         /// <summary>
         /// Builds a new <see cref="HandleCreateAuthenticationTokenCommand"/> instance.
         /// </summary>
-        /// <param name="dateTimeService">Service that provide methods to get current date.</param>
         /// <param name="logger">Logger</param>
-        public HandleCreateJwtSecurityTokenCommand(IClock dateTimeService, ILogger<HandleCreateJwtSecurityTokenCommand> logger)
+        public HandleCreateJwtSecurityTokenCommand(ILogger<HandleCreateJwtSecurityTokenCommand> logger)
         {
-            _dateTimeService = dateTimeService;
             _logger = logger;
         }
 
-        public Task<SecurityToken> Handle(CreateSecurityTokenCommand cmd, CancellationToken ct)
+        ///<inheritdoc/>
+        public Task<SecurityToken> Handle(CreateSecurityTokenCommand request, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Start handling command {CommandId}", cmd.Id);
-            Instant now = _dateTimeService.GetCurrentInstant();
-            (JwtSecurityTokenOptions tokenOptions, IEnumerable<ClaimInfo> claims) data = cmd.Data;
+            _logger.LogDebug("Start handling command {CommandId}", request.Id);
+            (JwtSecurityTokenOptions tokenOptions, Instant from, IEnumerable<ClaimInfo> claims) data = request.Data;
 
             IEnumerable<string> audiences = data.tokenOptions.Audiences?.Distinct() ?? Enumerable.Empty<string>();
 
@@ -51,21 +48,21 @@
             }
 
             SecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(data.tokenOptions.Key));
-            Instant expires = now.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes));
+            Instant expires = data.from.Plus(Duration.FromMinutes(data.tokenOptions.LifetimeInMinutes));
             SecurityToken token = new JwtSecurityToken(
                 issuer: data.tokenOptions.Issuer,
                 audience: audiences.Any()
                     ? data.tokenOptions.Audiences.First()
                     : data.tokenOptions.Issuer,
                 claims: claims.Select(claim => new Claim(claim.Type, claim.Value))
-                    .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
-                notBefore: now.ToDateTimeUtc(),
+                              .Concat(audiences.Skip(1).Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience))),
+                notBefore: data.from.ToDateTimeUtc(),
                 expires: expires.ToDateTimeUtc(),
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
-            _logger.LogDebug("Token will be valid from {Start} to {End}", now, expires);
+            _logger.LogDebug("Token will be valid from {Start} to {End}", data.from, expires);
 
-            _logger.LogDebug("Finished handling command {CommandId}", cmd.Id);
+            _logger.LogDebug("Finished handling command {CommandId}", request.Id);
             return new ValueTask<SecurityToken>(token).AsTask();
         }
     }

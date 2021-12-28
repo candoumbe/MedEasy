@@ -66,38 +66,38 @@
             {
                 yield return new object[]
                 {
-                    Enumerable.Empty<Objects.Patient>(),
-                    new SearchQueryInfo<PatientInfo>
+                    Enumerable.Empty<Objects.Subject>(),
+                    new SearchQueryInfo<SubjectInfo>
                     {
-                        Filter = new Filter(field : nameof(PatientInfo.Name), @operator : EqualTo, value : "Bruce"),
+                        Filter = new Filter(field : nameof(SubjectInfo.Name), @operator : EqualTo, value : "Bruce"),
                         Page = 1,
                         PageSize = 3,
-                        Sort = new Sort<PatientInfo>(nameof(PatientInfo.Name))
+                        Sort = new Sort<SubjectInfo>(nameof(SubjectInfo.Name))
                     },
-                    (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                    (Expression<Func<Page<SubjectInfo>, bool>>)(x => x != null
                         && !x.Entries.Any()
                         && x.Count == 1
                         && x.Size == 3)
                 };
 
                 {
-                    PatientId patientId = PatientId.New();
+                    SubjectId patientId = SubjectId.New();
                     yield return new object[]
                    {
                         new []
                         {
-                            new Objects.Patient(PatientId.New(), "bruce wayne"),
-                            new Objects.Patient(PatientId.New(), "dick grayson"),
-                            new Objects.Patient(patientId, "damian wayne")
+                            new Objects.Subject(SubjectId.New(), "bruce wayne"),
+                            new Objects.Subject(SubjectId.New(), "dick grayson"),
+                            new Objects.Subject(patientId, "damian wayne")
                         },
-                        new SearchQueryInfo<PatientInfo>
+                        new SearchQueryInfo<SubjectInfo>
                         {
-                            Filter = new Filter(field : nameof(PatientInfo.Name), @operator : Contains, value : "y"),
+                            Filter = new Filter(field : nameof(SubjectInfo.Name), @operator : Contains, value : "y"),
                             Page = 3,
                             PageSize = 1,
-                            Sort = new Sort<PatientInfo>(nameof(PatientInfo.Name))
+                            Sort = new Sort<SubjectInfo>(nameof(SubjectInfo.Name))
                         },
-                        (Expression<Func<Page<PatientInfo>, bool>>)(x => x != null
+                        (Expression<Func<Page<SubjectInfo>, bool>>)(x => x != null
                             && x.Entries.Count() == 1
                             && x.Entries.ElementAt(0).Id == patientId
                             && x.Count == 3
@@ -110,7 +110,7 @@
 
         [Theory]
         [MemberData(nameof(SearchPatientCases))]
-        public async Task SearchPatientInfos(IEnumerable<Objects.Patient> patients, SearchQueryInfo<PatientInfo> search, Expression<Func<Page<PatientInfo>, bool>> resultExpectation)
+        public async Task SearchPatientInfos(IEnumerable<Objects.Subject> patients, SearchQueryInfo<SubjectInfo> search, Expression<Func<Page<SubjectInfo>, bool>> resultExpectation)
         {
             _outputHelper.WriteLine($"search : {search}");
 
@@ -118,12 +118,12 @@
             _expressionBuilderMock.Setup(mock => mock.GetMapExpression(It.IsAny<Type>(), It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>(), It.IsAny<MemberInfo[]>()))
                .Returns((Type sourceType, Type destinationType, IDictionary<string, object> parameters, MemberInfo[] membersToExpand) => AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression(sourceType, destinationType, parameters, membersToExpand));
 
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Objects.Patient>().WhereAsync(It.IsAny<Expression<Func<Objects.Patient, PatientInfo>>>(),
-                It.IsAny<Expression<Func<PatientInfo, bool>>>(), It.IsAny<ISort<PatientInfo>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns((Expression<Func<Objects.Patient, PatientInfo>> selector, Expression<Func<PatientInfo, bool>> filter, ISort<PatientInfo> sorts, int pageSize, int page, CancellationToken cancellationToken)
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Objects.Subject>().WhereAsync(It.IsAny<Expression<Func<Objects.Subject, SubjectInfo>>>(),
+                It.IsAny<Expression<Func<SubjectInfo, bool>>>(), It.IsAny<ISort<SubjectInfo>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Returns((Expression<Func<Objects.Subject, SubjectInfo>> selector, Expression<Func<SubjectInfo, bool>> filter, ISort<SubjectInfo> sorts, int pageSize, int page, CancellationToken cancellationToken)
                     =>
                     {
-                        IEnumerable<PatientInfo> results = patients.Select(selector.Compile())
+                        IEnumerable<SubjectInfo> results = patients.Select(selector.Compile())
                             .Where(filter.Compile())
                             .Skip(pageSize * (page - 1))
                             .Take(pageSize);
@@ -131,12 +131,12 @@
                         int total = patients.Select(selector.Compile())
                             .Count(filter.Compile());
 
-                        return new ValueTask<Page<PatientInfo>>(new Page<PatientInfo>(results, total, pageSize));
+                        return new ValueTask<Page<SubjectInfo>>(new Page<SubjectInfo>(results, total, pageSize));
                     });
 
             // Act
-            SearchQuery<PatientInfo> searchQuery = new(search);
-            Page<PatientInfo> pageOfResult = await _iHandleSearchQuery.Search<Objects.Patient, PatientInfo>(searchQuery)
+            SearchQuery<SubjectInfo> searchQuery = new(search);
+            Page<SubjectInfo> pageOfResult = await _iHandleSearchQuery.Search<Objects.Subject, SubjectInfo>(searchQuery)
                 .ConfigureAwait(false);
 
             // Assert

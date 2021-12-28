@@ -5,13 +5,12 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
-  
   <ItemGroup>
     <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\test\services\Identity.API.Fixtures\Identity.API.Fixtures.csproj" />
+    <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
     <ProjectReference Include="..\..\Documents.API\Documents.API.csproj" />
   </ItemGroup>
 

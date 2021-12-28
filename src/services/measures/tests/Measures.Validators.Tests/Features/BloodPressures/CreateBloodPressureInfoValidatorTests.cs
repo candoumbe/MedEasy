@@ -72,11 +72,11 @@
                 yield return new object[]
                 {
                     new CreateBloodPressureInfo(),
-                    Enumerable.Empty<Patient>(),
+                    Enumerable.Empty<Subject>(),
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 3
-                            && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.PatientId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.SubjectId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.SystolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Warning)
                     ),
@@ -87,49 +87,49 @@
                 {
                     new CreateBloodPressureInfo {
                         SystolicPressure = 80, DiastolicPressure = 120,
-                        PatientId = PatientId.New()
+                        SubjectId = SubjectId.New()
                     } ,
-                    Enumerable.Empty<Patient>(),
+                    Enumerable.Empty<Subject>(),
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 2
                             && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.DiastolicPressure).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
-                            && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.PatientId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
+                            && vr.Errors.Once(errorItem => nameof(CreateBloodPressureInfo.SubjectId).Equals(errorItem.PropertyName) && errorItem.Severity == Error)
                     ),
                     $"because {nameof(CreateBloodPressureInfo.SystolicPressure)} < {nameof(CreateBloodPressureInfo.DiastolicPressure)} " +
-                    $"and {nameof(CreateBloodPressureInfo.PatientId)} does not exist."
+                    $"and {nameof(CreateBloodPressureInfo.SubjectId)} does not exist."
                 };
 
                 yield return new object[]
                 {
                     new CreateBloodPressureInfo {
                         SystolicPressure = 120, DiastolicPressure = 80,
-                        PatientId = PatientId.New()
+                        SubjectId = SubjectId.New()
                     },
-                    Enumerable.Empty<Patient>(),
+                    Enumerable.Empty<Subject>(),
                     (Expression<Func<ValidationResult, bool>>)
                         (vr => !vr.IsValid
                             && vr.Errors.Count == 1
-                            && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.PatientId)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
+                            && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.SubjectId)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
                     ),
-                    $"{nameof(CreateBloodPressureInfo.PatientId)} does not exist."
+                    $"{nameof(CreateBloodPressureInfo.SubjectId)} does not exist."
 
                 };
 
                 {
-                    PatientId patientId = PatientId.New();
+                    SubjectId patientId = SubjectId.New();
                     yield return new object[]
                     {
                         new CreateBloodPressureInfo {
                             SystolicPressure = 120, DiastolicPressure = 80,
-                            PatientId = patientId
+                            SubjectId = patientId
                         },
                         new []{
-                            new Patient(patientId, "Freeze")
+                            new Subject(patientId, "Freeze")
                         },
                         (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
-                        $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)} exists and " +
-                        $"other {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.PatientId)}'s properties " +
+                        $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.SubjectId)} exists and " +
+                        $"other {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.SubjectId)}'s properties " +
                         "cannot be set at the same time."
 
                     };
@@ -139,15 +139,15 @@
 
         [Theory]
         [MemberData(nameof(ValidateTestCases))]
-        public async Task ValidateTest(CreateBloodPressureInfo info, IEnumerable<Patient> patients,
+        public async Task ValidateTest(CreateBloodPressureInfo info, IEnumerable<Subject> patients,
             Expression<Func<ValidationResult, bool>> errorMatcher,
             string because = "")
         {
             _outputHelper.WriteLine($"{nameof(info)} : {SerializeObject(info)}");
 
             // Arrange
-            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()))
-                .Returns(new ValueTask<bool>(patients.Any(x => x.Id == info.PatientId)));
+            _uowFactoryMock.Setup(mock => mock.NewUnitOfWork().Repository<Subject>().AnyAsync(It.IsAny<Expression<Func<Subject, bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<bool>(patients.Any(x => x.Id == info.SubjectId)));
 
             // Act
             ValidationResult vr = await _validator.ValidateAsync(info);

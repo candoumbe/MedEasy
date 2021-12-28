@@ -75,7 +75,7 @@
 
             IEnumerable<ClaimInfo> claims = Enumerable.Empty<ClaimInfo>();
 
-            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtSecurityTokenOptions, claims));
+            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtSecurityTokenOptions, utcNow, claims));
             _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act
@@ -136,7 +136,7 @@
 
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
             AuthenticationInfo authInfo = new() { Location = "Paris" };
-            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtInfos, Enumerable.Empty<ClaimInfo>()));
+            CreateSecurityTokenCommand createRefreshTokenCommand = new((jwtInfos, utcNow, Enumerable.Empty<ClaimInfo>()));
             _dateTimeServiceMock.Setup(mock => mock.GetCurrentInstant()).Returns(utcNow);
 
             // Act

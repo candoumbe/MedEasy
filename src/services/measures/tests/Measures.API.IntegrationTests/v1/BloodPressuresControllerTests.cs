@@ -1,25 +1,19 @@
 namespace Measures.API.IntegrationTests.v1
 {
-    using Bogus;
 
     using FluentAssertions;
-
-    using Identity.API.Fixtures.v2;
 
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
 
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Mvc;
 
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
 
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
 
     using Xunit;
@@ -37,12 +31,11 @@ namespace Measures.API.IntegrationTests.v1
     [IntegrationTest]
     [Feature("Blood pressures")]
     [Feature("Measures")]
-    public class BloodPressuresControllerTests : IAsyncLifetime, IAssemblyFixture<IdentityApiFixture>, IAssemblyFixture<IntegrationFixture<Startup>>
+    public class BloodPressuresControllerTests : IAssemblyFixture<IntegrationFixture<Program>>
     {
-        private readonly IntegrationFixture<Startup> _sut;
-        private readonly IdentityApiFixture _identityServer;
+        private readonly IntegrationFixture<Program> _sut;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/v1/bloodpressures";
+        private const string _endpointUrl = "/bloodpressures";
 
         private static readonly JSchema _pageLink = new()
         {
@@ -91,23 +84,11 @@ namespace Measures.API.IntegrationTests.v1
                 }
         };
 
-        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> sut, IdentityApiFixture identityFixture)
+        public BloodPressuresControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Program> sut)
         {
             _outputHelper = outputHelper;
             _sut = sut;
-            _identityServer = identityFixture;
         }
-
-        ///<inheritdoc/>
-        public async Task InitializeAsync()
-        {
-            _outputHelper.WriteLine($"Initializing {nameof(BloodPressuresControllerTests)}");
-            _outputHelper.WriteLine($"Username : {_identityServer.Email}");
-            await _identityServer.LogIn().ConfigureAwait(false);
-        }
-
-        ///<inheritdoc/>
-        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GetAll_With_No_Data()
@@ -115,8 +96,7 @@ namespace Measures.API.IntegrationTests.v1
             // Arrange
             using HttpClient client = _sut.CreateClient();
             HttpRequestMessage getAllRequest = new(Get, _endpointUrl);
-            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
-
+            getAllRequest.Headers.Add("api-version", "1.0");
             // Act
             using HttpResponseMessage response = await client.SendAsync(getAllRequest)
                                                              .ConfigureAwait(false);
@@ -158,7 +138,7 @@ namespace Measures.API.IntegrationTests.v1
 
             // Arrange
             HttpRequestMessage getAllRequest = new(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
-            getAllRequest.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, _identityServer.Tokens.AccessToken.Token);
+            getAllRequest.Headers.Add("api-version", "1.0");
 
             using HttpClient client = _sut.CreateClient();
             // Act

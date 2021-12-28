@@ -5,8 +5,8 @@
     using FluentAssertions;
 
     using Measures.DataStores;
-    using Measures.CQRS.Handlers.Patients;
-    using Measures.CQRS.Queries.Patients;
+    using Measures.CQRS.Handlers.Subjects;
+    using Measures.CQRS.Queries.Subjects;
     using Measures.DTO;
     using Measures.Ids;
     using Measures.Mapping;
@@ -42,7 +42,7 @@
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
-        private readonly HandleGetOnePatientInfoByIdQuery _sut;
+        private readonly HandleGetOneSubjectInfoByIdQuery _sut;
 
         public HandleGetOnePatientInfoByIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<MeasuresStore> database)
         {
@@ -58,7 +58,7 @@
                 context.Database.EnsureCreated();
                 return context;
             });
-            _sut = new HandleGetOnePatientInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
+            _sut = new HandleGetOneSubjectInfoByIdQuery(_uowFactory, AutoMapperConfig.Build().ExpressionBuilder);
         }
 
         public static IEnumerable<object[]> CtorThrowsArgumentNullExceptionCases
@@ -84,7 +84,7 @@
 
             // Act
 #pragma warning disable IDE0039 // Utiliser une fonction locale
-            Action action = () => new HandleGetOnePatientInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
+            Action action = () => new HandleGetOneSubjectInfoByIdQuery(unitOfWorkFactory, expressionBuilder);
 #pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
@@ -98,7 +98,7 @@
         public async Task Get_Unknown_Id_Returns_None()
         {
             // Act
-            Option<PatientInfo> optionalResource = await _sut.Handle(new GetPatientInfoByIdQuery(PatientId.New()), default)
+            Option<SubjectInfo> optionalResource = await _sut.Handle(new GetSubjectInfoByIdQuery(SubjectId.New()), default)
                 .ConfigureAwait(false);
 
             // Assert

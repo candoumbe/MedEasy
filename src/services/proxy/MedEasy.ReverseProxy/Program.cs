@@ -19,7 +19,7 @@ namespace MedEasy.ReverseProxy
         {
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             IHost host = CreateHostBuilder(args).Build();
-            using IServiceScope scope = host.Services.CreateScope();
+
             await host.RunAsync();
         }
 
@@ -34,7 +34,10 @@ namespace MedEasy.ReverseProxy
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
-                              .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                              .UseKestrel((hosting, options) =>
+                              {
+                                  options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment();
+                              })
                               .UseSerilog((hosting, loggerConfig) =>
                               {
                                   loggerConfig = loggerConfig
