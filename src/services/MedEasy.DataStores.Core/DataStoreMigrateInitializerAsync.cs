@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using System;
 
 /// <summary>
-/// Helper class to perform <typeparamref name="TDataStore"/> asynchronously
+/// Helper class to perform <typeparamref name="TDataStore"/> migrations asynchronously
 /// </summary>
 /// <typeparam name="TDataStore">Type of the <see cref="DbContext"/>to migrate</typeparam>
 public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
@@ -53,7 +53,7 @@ public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
             _logger?.LogInformation("Upgrading {ApplicationContext}'s store", _hostingEnvironment.ApplicationName);
             _logger?.LogInformation("Connection string : {ConnectionString}", _store.Database.GetConnectionString());
             // Forces database migrations on startup
-            RetryPolicy policy = Policy
+            AsyncRetryPolicy policy = Policy
                 .Handle<DbException>()
                 .WaitAndRetryAsync(
                     retryCount: 5,
