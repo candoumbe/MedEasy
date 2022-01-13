@@ -17,6 +17,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles <see cref="CreateDocumentInfoCommand"/> commands.
+    /// </summary>
     public class HandleCreateDocumentInfoCommand : IRequestHandler<CreateDocumentInfoCommand, Option<DocumentInfo, CreateCommandResult>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -25,12 +28,13 @@
         /// Builds a <see cref="HandleCreateDocumentInfoCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
-        /// 
+        ///
         public HandleCreateDocumentInfoCommand(IUnitOfWorkFactory uowFactory)
         {
             _uowFactory = uowFactory;
         }
 
+        ///<inheritdoc/>
         public async Task<Option<DocumentInfo, CreateCommandResult>> Handle(CreateDocumentInfoCommand request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();

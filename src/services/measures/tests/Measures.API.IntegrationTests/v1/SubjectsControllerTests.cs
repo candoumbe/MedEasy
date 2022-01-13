@@ -47,10 +47,10 @@ namespace Measures.API.IntegrationTests.v1
         private readonly ITestOutputHelper _outputHelper;
 
         private readonly Faker _faker;
-        private const string _baseUrl = "/subjects";
+        private const string BaseUrl = "/subjects";
         private readonly JsonSerializerOptions _serializerOptions;
 
-        private static readonly JSchema _errorObjectSchema = new()
+        private static readonly JSchema ErrorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -67,7 +67,7 @@ namespace Measures.API.IntegrationTests.v1
             }
         };
 
-        private static readonly JSchema _pageLink = new()
+        private static readonly JSchema PageLink = new()
         {
             Type = JSchemaType.Object | JSchemaType.Null,
             Properties =
@@ -82,7 +82,7 @@ namespace Measures.API.IntegrationTests.v1
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new()
+        private static readonly JSchema PageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -94,10 +94,10 @@ namespace Measures.API.IntegrationTests.v1
                         Type = JSchemaType.Object,
                         Properties =
                         {
-                            [nameof(PageLinks.First).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Previous).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Next).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Last).ToLower()] = _pageLink
+                            [nameof(PageLinks.First).ToLower()] = PageLink,
+                            [nameof(PageLinks.Previous).ToLower()] = PageLink,
+                            [nameof(PageLinks.Next).ToLower()] = PageLink,
+                            [nameof(PageLinks.Last).ToLower()] = PageLink
                         },
                         Required =
                         {
@@ -112,7 +112,6 @@ namespace Measures.API.IntegrationTests.v1
                     nameof(GenericPagedGetResponse<object>.Links).ToLower(),
                     nameof(GenericPagedGetResponse<object>.Total).ToLower()
                 }
-
         };
 
         public SubjectsControllerTests(ITestOutputHelper outputHelper, IntegrationFixture<Startup> fixture)
@@ -131,7 +130,7 @@ namespace Measures.API.IntegrationTests.v1
             client.DefaultRequestHeaders.Add("api-version", "1.0");
 
             // Act
-            HttpResponseMessage response = await client.GetAsync(_baseUrl)
+            HttpResponseMessage response = await client.GetAsync(BaseUrl)
                 .ConfigureAwait(false);
 
             // Assert
@@ -143,7 +142,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"json : {json}");
 
             JToken jToken = JToken.Parse(json);
-            jToken.IsValid(_pageResponseSchema).Should().BeTrue();
+            jToken.IsValid(PageResponseSchema).Should().BeTrue();
         }
 
         public static IEnumerable<object[]> ShouldReturnsSucessCodeCases
@@ -197,7 +196,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
-            string url = $"{_baseUrl}/{Guid.Empty}";
+            string url = $"{BaseUrl}/{Guid.Empty}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             using HttpClient client = _server.CreateClient();
@@ -220,7 +219,7 @@ namespace Measures.API.IntegrationTests.v1
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
             // Arrange
-            string url = $"{_baseUrl}/search?page=2&page10&name=*Bruce*&sort=name";
+            string url = $"{BaseUrl}/search?page=2&page10&name=*Bruce*&sort=name";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             using HttpClient client = _server.CreateClient();
@@ -252,7 +251,7 @@ namespace Measures.API.IntegrationTests.v1
             client.DefaultRequestHeaders.Add("api-version", "1.0");
 
             // Act
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient, jsonSerializerOptions)
+            HttpResponseMessage response = await client.PostAsJsonAsync(BaseUrl, newPatient, jsonSerializerOptions)
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create subject status code : {response.StatusCode}");
@@ -271,7 +270,7 @@ namespace Measures.API.IntegrationTests.v1
             };
 
             // Act
-            string requestUri = $"{_baseUrl}/{subjectId}/bloodpressures";
+            string requestUri = $"{BaseUrl}/{subjectId}/bloodpressures";
             _outputHelper.WriteLine($"Endpoint : {requestUri}");
             response = await client.PostAsJsonAsync(requestUri, resourceToCreate, jsonSerializerOptions)
                                    .ConfigureAwait(false);
@@ -324,11 +323,11 @@ namespace Measures.API.IntegrationTests.v1
             {
                 Name = _faker.Person.FullName
             };
-            
+
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Add("api-version", "1");
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatientInfo, _serializerOptions)
+            HttpResponseMessage response = await client.PostAsJsonAsync(BaseUrl, newPatientInfo, _serializerOptions)
                                                        .ConfigureAwait(false);
             string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             _outputHelper.WriteLine($"Content : {content}");
@@ -337,7 +336,7 @@ namespace Measures.API.IntegrationTests.v1
 
             // Act
             _outputHelper.WriteLine($"Invalid resource : {invalidResource.Jsonify()}");
-            string requestUri = $"{_baseUrl}/{browsableSubjectInfo.Resource.Id}/bloodpressures";
+            string requestUri = $"{BaseUrl}/{browsableSubjectInfo.Resource.Id}/bloodpressures";
             _outputHelper.WriteLine($"URL : {requestUri}");
             response = await client.PostAsJsonAsync(requestUri, invalidResource, _serializerOptions)
                                    .ConfigureAwait(false);
@@ -357,7 +356,7 @@ namespace Measures.API.IntegrationTests.v1
                                                    .ConfigureAwait(false);
             _outputHelper.WriteLine($"Response content : {content}");
 
-            JToken.Parse(content).IsValid(_errorObjectSchema)
+            JToken.Parse(content).IsValid(ErrorObjectSchema)
                     .Should().BeTrue("Validation errors");
         }
 
@@ -373,7 +372,7 @@ namespace Measures.API.IntegrationTests.v1
             using HttpClient client = _server.CreateClient();
             client.DefaultRequestHeaders.Add("api-version", "1.0");
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(_baseUrl, newPatient)
+            HttpResponseMessage response = await client.PostAsJsonAsync(BaseUrl, newPatient)
                                                        .ConfigureAwait(false);
 
             _outputHelper.WriteLine($"HTTP create subject status code : {response.StatusCode}");

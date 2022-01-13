@@ -32,7 +32,7 @@ namespace Identity.API.Fixtures.v2
             }
         }
 
-        private static readonly Faker _faker = new();
+        private static readonly Faker Faker = new();
 
         /// <summary>
         /// Gets/sets the email to use to create an account or to log in
@@ -56,8 +56,8 @@ namespace Identity.API.Fixtures.v2
 
         public IdentityApiFixture()
         {
-            Email = _faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
-            Password = _faker.Internet.Password();
+            Email = Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
+            Password = Faker.Internet.Password();
         }
 
         /// <summary>

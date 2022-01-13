@@ -158,7 +158,7 @@
 
             using HttpClient client = _identityApiFixture.CreateClient();
             client.DefaultRequestHeaders.Add("api-version", "1");
-            
+
             await client.PostAsJsonAsync($"/{AccountsController.EndpointName}", newAccountInfo, JsonSerializerOptions)
                         .ConfigureAwait(false);
 

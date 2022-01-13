@@ -1,6 +1,5 @@
 ﻿namespace Agenda.CQRS.Features.Appointments.Handlers
 {
-
     using Agenda.CQRS.Features.Appointments.Queries;
     using Agenda.DTO;
     using Agenda.Objects;
@@ -21,6 +20,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles <see cref="GetPageOfAppointmentInfoQuery"/> queries.
+    /// </summary>
     public class HandleGetPageOfAppointmentInfoQuery : IRequestHandler<GetPageOfAppointmentInfoQuery, Page<AppointmentInfo>>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;

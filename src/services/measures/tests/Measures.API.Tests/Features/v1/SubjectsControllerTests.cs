@@ -74,7 +74,7 @@
         private ITestOutputHelper _outputHelper;
         private Mock<IOptionsSnapshot<MeasuresApiOptions>> _apiOptionsMock;
         private Mock<IMediator> _mediatorMock;
-        private const string _baseUrl = "http://host/api";
+        private const string BaseUrl = "http://host/api";
         private IUnitOfWorkFactory _uowFactory;
 
         public SubjectsControllerTests(ITestOutputHelper outputHelper)
@@ -83,8 +83,8 @@
 
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString _, LinkOptions _)
+                => $"{BaseUrl}/{routename}/?{routeValues?.ToQueryString((string _, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             DbContextOptionsBuilder<MeasuresStore> dbOptions = new();
             string dbName = $"InMemoryMedEasyDb_{Guid.NewGuid()}";
@@ -210,7 +210,7 @@
                             (
                                 first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First
                                     &&
-                                        ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                        ($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                         $"Controller={SubjectsController.EndpointName}" +
                                         $"&page=1" +
                                         $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
@@ -218,7 +218,7 @@
                                 next :(Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                                 last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last
                                     &&
-                                        ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                        ($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                         $"Controller={SubjectsController.EndpointName}" +
                                         $"&page=1" +
                                         $"&pageSize={(pageSize < 1 ? 1 : Math.Min(pageSize, 200))}").Equals(x.Href, OrdinalIgnoreCase))
@@ -246,14 +246,14 @@
                         (
                             first : (Expression<Func<Link, bool>>) (x => x != null
                                                                          && x.Relation == First
-                                                                         && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                                                         && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                             next : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Next
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
                             last : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Last
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
                 }
@@ -269,14 +269,14 @@
                         (
                             first : (Expression<Func<Link, bool>>) (x => x != null
                                                                          && x.Relation == First
-                                                                         && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                                                         && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                             next : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Next
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
                             last : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Last
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -292,7 +292,7 @@
                         (
                             first : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                && ($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={SubjectsController.EndpointName}" +
                                     "&page=1" +
                                     $"&pageSize={PaginationConfiguration.DefaultPageSize}").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
@@ -300,7 +300,7 @@
                             next : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                             last : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Last
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={SubjectsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))
                         ), // expected link to last page
                     };
                 }
@@ -406,7 +406,7 @@
                         (
                         (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == First
-                            && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                            && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={SubjectsController.EndpointName}" +
                                 $"&name={searchInfo.Name}"+
                                 $"&page=1&pageSize=30" +
@@ -415,7 +415,7 @@
                         (Expression<Func<Link, bool>>)(next => next == null),
                         (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == Last
-                            && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                            && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={SubjectsController.EndpointName}" +
                                 $"&name={searchInfo.Name}"+
                                 $"&page=1" +
@@ -440,7 +440,7 @@
                         (
                            (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == First
-                            && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                            && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"Controller={SubjectsController.EndpointName}" +
                                 $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 $"&page=1&pageSize=30" +
@@ -449,7 +449,7 @@
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                                && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={SubjectsController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30" +
@@ -473,7 +473,7 @@
                         (
                             (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                                && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={SubjectsController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
@@ -481,12 +481,11 @@
                             (Expression<Func<Link, bool>>)(next => next == null),
                             (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == Last
-                                && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                                && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                     $"Controller={SubjectsController.EndpointName}" +
                                     $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                     $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase))
                         )
-
                     };
                 }
 
@@ -507,7 +506,7 @@
                         searchInfo,
                         ( (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == First
-                            && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                            && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value:R}" +
                                 $"&Controller={SubjectsController.EndpointName}" +
                                 $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
@@ -516,12 +515,11 @@
                         (Expression<Func<Link, bool>>)(next => next == null),
                         (Expression<Func<Link, bool>>) (x => x != null
                             && x.Relation == Last
-                            && ($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
+                            && ($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?" +
                                 $"birthdate={searchInfo.BirthDate.Value:R}" +
                                 $"&Controller={SubjectsController.EndpointName}" +
                                 $"&name={Uri.EscapeDataString(searchInfo.Name)}"+
                                 $"&page=1&pageSize=30").Equals(x.Href, OrdinalIgnoreCase)))
-
                     };
                 }
             }
@@ -718,7 +716,7 @@
             Link self = links.Single(x => x.Relation == Self);
             self.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={SubjectsController.EndpointName}&{nameof(SubjectInfo.Id)}={expectedResource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={SubjectsController.EndpointName}&{nameof(SubjectInfo.Id)}={expectedResource.Id.Value}");
             self.Relation.Should()
                 .NotBeNullOrWhiteSpace()
                 .And.BeEquivalentTo(Self);
@@ -728,13 +726,13 @@
             Link linkDelete = links.Single(x => x.Relation == "delete");
             linkDelete.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={SubjectsController.EndpointName}&{nameof(SubjectInfo.Id)}={expectedResource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?Controller={SubjectsController.EndpointName}&{nameof(SubjectInfo.Id)}={expectedResource.Id.Value}");
             linkDelete.Method.Should().Be("DELETE");
 
             Link bloodPressuresLink = links.Single(x => x.Relation == BloodPressuresController.EndpointName.Slugify());
             bloodPressuresLink.Href.Should()
                 .NotBeNullOrWhiteSpace().And
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?Controller={BloodPressuresController.EndpointName}&{nameof(BloodPressureInfo.SubjectId)}={expectedResource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?Controller={BloodPressuresController.EndpointName}&{nameof(BloodPressureInfo.SubjectId)}={expectedResource.Id.Value}");
             bloodPressuresLink.Method.Should().Be("GET");
 
             SubjectInfo actualResource = result.Resource;
@@ -943,15 +941,15 @@
 
             Link linkToPatient = links.Single(x => x.Relation == "subject");
             linkToPatient.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={SubjectsController.EndpointName}&id={resource.SubjectId.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={SubjectsController.EndpointName}&id={resource.SubjectId.Value}");
 
             Link linkToSelf = links.Single(x => x.Relation == Self);
             linkToSelf.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id.Value}");
 
             Link linkToDelete = links.Single(x => x.Relation == "delete-bloodpressure");
             linkToSelf.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={BloodPressuresController.EndpointName}&id={resource.Id.Value}");
         }
 
         public static IEnumerable<object[]> MediatorReturnsErrorCases
@@ -1032,7 +1030,6 @@
             createdAtRouteResult.RouteValues.Should()
                                             .Contain("id", resource.Id, "resource id must be provided in routeValues");
 
-
             IEnumerable<Link> links = browsablePatientInfo.Links;
             links.Should().NotBeNullOrEmpty().And
                           .NotContainNulls().And
@@ -1044,13 +1041,13 @@
 
             Link linkToSelf = links.Single(link => link.Relation == Self);
             linkToSelf.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={SubjectsController.EndpointName}&id={resource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={SubjectsController.EndpointName}&id={resource.Id.Value}");
             linkToSelf.Method.Should()
                 .Be("GET");
 
             Link linkToBloodPressures = links.Single(link => link.Relation == "bloodpressures");
             linkToBloodPressures.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={apiOptions.DefaultPageSize}&subjectId={resource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={BloodPressuresController.EndpointName}&page=1&pageSize={apiOptions.DefaultPageSize}&subjectId={resource.Id.Value}");
             linkToSelf.Method.Should()
                 .Be("GET");
         }

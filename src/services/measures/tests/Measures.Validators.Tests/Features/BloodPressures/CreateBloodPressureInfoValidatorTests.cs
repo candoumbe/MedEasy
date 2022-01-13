@@ -56,10 +56,7 @@
         public void Ctor_Throws_ArgumentNullException_When_Arguments_Null()
         {
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new CreateBloodPressureInfoValidator(null);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
-
             action.Should().Throw<ArgumentNullException>().Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
@@ -113,7 +110,6 @@
                             && vr.Errors.Once(errorItem => $"{nameof(CreateBloodPressureInfo.SubjectId)}".Equals(errorItem.PropertyName) && errorItem.Severity == Error )
                     ),
                     $"{nameof(CreateBloodPressureInfo.SubjectId)} does not exist."
-
                 };
 
                 {
@@ -131,7 +127,6 @@
                         $"because both {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.SubjectId)} exists and " +
                         $"other {nameof(CreateBloodPressureInfo)}.{nameof(CreateBloodPressureInfo.SubjectId)}'s properties " +
                         "cannot be set at the same time."
-
                     };
                 }
             }

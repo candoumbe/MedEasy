@@ -72,7 +72,6 @@
                             opt.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"{env.ApplicationName} REST API {description.GroupName}");
                         }
                     });
-
                 }
             }
 

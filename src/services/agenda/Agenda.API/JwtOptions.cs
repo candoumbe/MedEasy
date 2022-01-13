@@ -12,7 +12,7 @@
         public string Key { get; set; }
 
         /// <summary>
-        /// Audience 
+        /// Audience
         /// </summary>
         /// <value></value>
         public string Audience { get; set; }

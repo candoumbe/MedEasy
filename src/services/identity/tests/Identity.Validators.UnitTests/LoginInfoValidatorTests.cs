@@ -17,5 +17,4 @@
         public void IsLoginValidator() => typeof(LoginInfoValidator).Should()
             .Implement<IValidator<LoginInfo>>();
     }
-
 }

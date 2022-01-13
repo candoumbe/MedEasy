@@ -13,6 +13,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles <see cref="CreateAppointmentInfoCommand"/> commands.
+    /// </summary>
     public class HandleCreateAppointmentInfoCommand : IRequestHandler<CreateAppointmentInfoCommand, AppointmentInfo>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -29,6 +32,7 @@
             _mapper = mapper;
         }
 
+        ///<inheritdoc/>
         public async Task<AppointmentInfo> Handle(CreateAppointmentInfoCommand request, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();

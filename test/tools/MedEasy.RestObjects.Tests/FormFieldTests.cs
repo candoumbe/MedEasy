@@ -18,7 +18,6 @@
 
         public void Dispose() => _outputHelper = null;
 
-
         [Fact]
         public void Ctor()
         {

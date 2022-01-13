@@ -1,6 +1,5 @@
 ﻿namespace Measures.API
 {
-
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -11,12 +10,10 @@
     using System;
     using System.Threading.Tasks;
 
-#pragma warning disable RCS1102 // Make class static.
     /// <summary>
     /// Host's entry point
     /// </summary>
     public class Program
-#pragma warning restore RCS1102 // Make class static.
     {
         /// <summary>
         /// Host's entry point

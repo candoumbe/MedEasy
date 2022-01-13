@@ -18,6 +18,9 @@
     using static DataFilters.FilterLogic;
     using System;
 
+    /// <summary>
+    /// Handles <see cref="SearchAppointmentInfoQuery"/> queries.
+    /// </summary>
     public class HandleSearchAppointmentInfoQuery : IRequestHandler<SearchAppointmentInfoQuery, Page<AppointmentInfo>>
     {
         private readonly IHandleSearchQuery _handleSearchQuery;
@@ -31,6 +34,7 @@
             _handleSearchQuery = handleSearchQuery;
         }
 
+        ///<inheritdoc/>
         public async Task<Page<AppointmentInfo>> Handle(SearchAppointmentInfoQuery request, CancellationToken ct)
         {
             IList<IFilter> filters = new List<IFilter>();

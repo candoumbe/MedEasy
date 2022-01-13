@@ -1,6 +1,5 @@
 namespace Patients.Validators.Tests.Features.Patients
 {
-
     using FluentAssertions;
     using FluentValidation;
     using FluentValidation.Results;
@@ -164,6 +163,5 @@ namespace Patients.Validators.Tests.Features.Patients
 
             _uowFactoryMock.Verify(mock => mock.NewUnitOfWork().Repository<Patient>().AnyAsync(It.IsAny<Expression<Func<Patient, bool>>>(), It.IsAny<CancellationToken>()), Once);
         }
-
     }
 }

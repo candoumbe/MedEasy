@@ -11,16 +11,14 @@
 
     [UnitTest]
     [Feature("REST")]
-    public class FormFieldAttributeTests : IDisposable
+    public class FormFieldAttributeTests
     {
-        private ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper;
 
         public FormFieldAttributeTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
         }
-
-        public void Dispose() => _outputHelper = null;
 
         [Fact]
         public void Ctor_Should_Build_Valid_Instance()

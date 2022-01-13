@@ -1,6 +1,5 @@
 namespace Patients.API.UnitTests.Controllers
 {
-
     using Bogus;
 
     using FluentAssertions;
@@ -67,12 +66,12 @@ namespace Patients.API.UnitTests.Controllers
     public class PatientsControllerTests : IClassFixture<SqliteEfCoreDatabaseFixture<PatientsDataStore>>
     {
         private readonly Mock<LinkGenerator> _urlHelperMock;
-        private static readonly PatientsApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
+        private static readonly PatientsApiOptions ApiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
         private readonly Mock<ILogger<PatientsController>> _loggerMock;
         private readonly PatientsController _sut;
         private readonly ITestOutputHelper _outputHelper;
         private readonly Mock<IOptionsSnapshot<PatientsApiOptions>> _apiOptionsMock;
-        private const string _baseUrl = "http://host/api";
+        private const string BaseUrl = "http://host/api";
         private readonly Mock<IMediator> _mediatorMock;
         private readonly IUnitOfWorkFactory _uowFactory;
 
@@ -82,8 +81,8 @@ namespace Patients.API.UnitTests.Controllers
             _loggerMock = new Mock<ILogger<PatientsController>>(Strict);
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString _, LinkOptions _)
+                => $"{BaseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<PatientsApiOptions>>(Strict);
             _mediatorMock = new(Strict);
@@ -129,10 +128,10 @@ namespace Patients.API.UnitTests.Controllers
                             pageSize, page, // request
                             0,    //expected total
                             (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, _apiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         };
                     }
@@ -151,10 +150,10 @@ namespace Patients.API.UnitTests.Controllers
                         (
                             firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -167,10 +166,10 @@ namespace Patients.API.UnitTests.Controllers
                         10, 1, // request
                         400,    //expected total
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={PatientsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -188,7 +187,7 @@ namespace Patients.API.UnitTests.Controllers
             _outputHelper.WriteLine($"Page : {page}");
             _outputHelper.WriteLine($"store items count: {items.Count()}");
 
-            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(_apiOptions);
+            _apiOptionsMock.SetupGet(mock => mock.Value).Returns(ApiOptions);
 
             // Arrange
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfPatientsQuery>(), It.IsAny<CancellationToken>()))
@@ -216,7 +215,7 @@ namespace Patients.API.UnitTests.Controllers
             // Assert
             _apiOptionsMock.Verify(mock => mock.Value, Times.Once);
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetPageOfPatientsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfPatientsQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, _apiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetPageOfPatientsQuery>(cmd => cmd.Data.Page == page && cmd.Data.PageSize == Math.Min(pageSize, ApiOptions.MaxPageSize)), It.IsAny<CancellationToken>()), Times.Once,
                 "Controller must cap pageSize of the query before sending it to the mediator");
 
             GenericPagedGetResponse<Browsable<PatientInfo>> response = actionResult.Should()
@@ -317,13 +316,13 @@ namespace Patients.API.UnitTests.Controllers
 
             PatientInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             resource.Id.Should().Be(patientId);
             resource.Firstname.Should().Be("bruce");
@@ -384,13 +383,13 @@ namespace Patients.API.UnitTests.Controllers
 
             PatientInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.Id}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={resource.Id}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             resource.Id.Should().Be(patientId);
             resource.Firstname.Should().Be(newPatient.Firstname);
@@ -562,7 +561,7 @@ namespace Patients.API.UnitTests.Controllers
             linkSelf.Method.Should()
                            .Be("GET");
             linkSelf.Href.Should()
-                         .Be($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={createdResource.Id.Value}");
+                         .Be($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={PatientsController.EndpointName}&{nameof(PatientInfo.Id)}={createdResource.Id.Value}");
 
             createdResource.Id.Should()
                               .NotBeNull().And
@@ -613,10 +612,10 @@ namespace Patients.API.UnitTests.Controllers
                             (
                                 firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=1&pageSize=10&sort=lastname".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
+                                    && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=1&pageSize=10&sort=lastname".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
                                 previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=2&pageSize=10&Sort=lastname".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=4&pageSize=10&Sort=lastname".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=2&pageSize=10&Sort=lastname".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={PatientsController.EndpointName}&lastname={EscapeDataString("*Wayne")}&page=4&pageSize=10&Sort=lastname".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         )
                     };

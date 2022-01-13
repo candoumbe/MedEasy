@@ -101,12 +101,7 @@ namespace MedEasy.ReverseProxy
 
             app.UseCors();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapReverseProxy();
-            });
+            app.UseEndpoints(endpoints => endpoints.MapReverseProxy());
         }
     }
-
-
 }

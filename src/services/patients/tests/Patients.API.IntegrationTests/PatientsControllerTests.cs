@@ -33,10 +33,10 @@ namespace Patients.API.IntegrationTests.v1
     {
         private readonly IntegrationFixture<Startup> _server;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/patients";
+        private const string EndpointUrl = "/patients";
         private readonly Faker _faker;
 
-        private static readonly JSchema _pageLink = new()
+        private static readonly JSchema PageLink = new()
         {
             Type = JSchemaType.Object | JSchemaType.Null,
             Properties =
@@ -51,7 +51,7 @@ namespace Patients.API.IntegrationTests.v1
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new()
+        private static readonly JSchema PageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -63,10 +63,10 @@ namespace Patients.API.IntegrationTests.v1
                         Type = JSchemaType.Object,
                         Properties =
                         {
-                            [nameof(PageLinks.First).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Previous).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Next).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Last).ToLower()] = _pageLink
+                            [nameof(PageLinks.First).ToLower()] = PageLink,
+                            [nameof(PageLinks.Previous).ToLower()] = PageLink,
+                            [nameof(PageLinks.Next).ToLower()] = PageLink,
+                            [nameof(PageLinks.Last).ToLower()] = PageLink
                         },
                         Required =
                         {
@@ -95,7 +95,7 @@ namespace Patients.API.IntegrationTests.v1
         {
             // Arrange
             using HttpClient client = _server.CreateClient();
-            
+
             // Act
             using HttpResponseMessage response = await client.GetAsync("/patients")
                                                        .ConfigureAwait(false);
@@ -108,7 +108,7 @@ namespace Patients.API.IntegrationTests.v1
 
             ((int)response.StatusCode).Should().Be(Status200OK);
             JToken jToken = JToken.Parse(json);
-            jToken.IsValid(_pageResponseSchema).Should().BeTrue();
+            jToken.IsValid(PageResponseSchema).Should().BeTrue();
         }
 
         public static IEnumerable<object[]> ShouldReturnsSucessCodeCases
@@ -159,7 +159,7 @@ namespace Patients.API.IntegrationTests.v1
             _outputHelper.WriteLine($"method : <{method}>");
 
             // Arrange
-            string url = $"{_endpointUrl}/{Guid.Empty}";
+            string url = $"{EndpointUrl}/{Guid.Empty}";
             _outputHelper.WriteLine($"Requested url : <{url}>");
 
             using HttpClient client = _server.CreateClient();
@@ -179,9 +179,9 @@ namespace Patients.API.IntegrationTests.v1
         public async Task GivenEmptyEndpoint_GetPageTwoOfEmptyResult_Returns_NotFound()
         {
             // Arrange
-            const string url = $"{_endpointUrl}/search?page=2&pageSize=10&firstname=Bruce";
+            const string url = $"{EndpointUrl}/search?page=2&pageSize=10&firstname=Bruce";
             using HttpClient client = _server.CreateClient();
-            
+
             // Act
             using HttpResponseMessage response = await client.GetAsync(url)
                                                              .ConfigureAwait(false);
@@ -238,7 +238,7 @@ namespace Patients.API.IntegrationTests.v1
             };
 
             using HttpClient client = _server.CreateClient();
-            
+
             HttpResponseMessage response = await client.PostAsJsonAsync("/patients", newPatient, default)
                                                        .ConfigureAwait(false);
 

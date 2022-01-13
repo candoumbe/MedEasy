@@ -5,8 +5,15 @@
     /// </summary>
     public class TokenModel
     {
+        /// <summary>
+        /// Token
+        /// </summary>
         public string Token { get; }
 
+        /// <summary>
+        /// Builds a new <see cref="TokenModel"/> instance.
+        /// </summary>
+        /// <param name="token"></param>
         public TokenModel(string token) => Token = token;
     }
 }

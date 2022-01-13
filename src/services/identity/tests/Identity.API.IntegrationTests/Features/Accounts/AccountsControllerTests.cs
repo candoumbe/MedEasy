@@ -154,7 +154,7 @@
             using HttpClient client = _identityApiFixture.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _identityApiFixture.Tokens.AccessToken);
             client.DefaultRequestHeaders.Add("api-version", "1.0");
-            
+
             _outputHelper.WriteLine($"bearer : {_identityApiFixture.Tokens.Jsonify()}");
             // Act
             using HttpResponseMessage response = await client.GetAsync("/accounts?page=1")

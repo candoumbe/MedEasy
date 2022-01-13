@@ -187,7 +187,6 @@ namespace Identity.API.UnitTests.Features.v1.Auth
                 .NotBe(bearerToken.AccessToken);
 
             SecurityToken accessToken = new JwtSecurityToken(bearerToken.AccessToken);
-
         }
 
         public static IEnumerable<object[]> InvalidateCases

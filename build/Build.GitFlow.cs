@@ -47,8 +47,6 @@
                 {
                     Info("Enter the name of the feature. It will be used as the name of the feature/branch (leave empty to exit) :");
                     AskBranchNameAndSwitchToIt(FeatureBranchPrefix, DevelopBranch);
-#pragma warning restore S2583 // Conditionally executed code should be reachable
-
                     Info($"{EnvironmentInfo.NewLine}Good bye !");
                 }
                 else
@@ -191,6 +189,7 @@
             Git($"tag {MajorMinorPatchVersion}");
 
             Git($"checkout {DevelopBranch}");
+            Git("pull");
             Git($"merge --no-ff --no-edit {GitRepository.Branch}");
 
             Git($"branch -D {GitRepository.Branch}");
@@ -202,6 +201,7 @@
         {
             Git($"rebase {DevelopBranch}");
             Git($"checkout {DevelopBranch}");
+            Git("pull");
             Git($"merge --no-ff --no-edit {GitRepository.Branch}");
 
             Git($"branch -D {GitRepository.Branch}");

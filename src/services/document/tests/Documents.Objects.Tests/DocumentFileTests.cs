@@ -10,7 +10,6 @@ namespace Documents.Objects.Tests
 
     public class DocumentFileTests
     {
-
         [Fact]
         public void Ctor_throws_ArgumentOutOfRangeException_when_DocumentId_is_empty()
         {

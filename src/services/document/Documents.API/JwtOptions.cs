@@ -19,6 +19,5 @@
         /// Gets/sets the issuer of the token
         /// </summary>
         public string Issuer { get; set; }
-
     }
 }

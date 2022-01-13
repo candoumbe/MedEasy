@@ -51,12 +51,12 @@
         private ITestOutputHelper _outputHelper;
 
         private IUnitOfWorkFactory _uowFactory;
-        private static readonly IdentityApiOptions _apiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
+        private static readonly IdentityApiOptions ApiOptions = new() { DefaultPageSize = 30, MaxPageSize = 200 };
         private Mock<IMediator> _mediatorMock;
         private Mock<LinkGenerator> _urlHelperMock;
         private Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
         private readonly TenantsController _sut;
-        private const string _baseUrl = "http://host/api";
+        private const string BaseUrl = "http://host/api";
 
         public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
         {
@@ -64,7 +64,7 @@
 
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___) => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString _, LinkOptions _) => $"{BaseUrl}/{routename}/?{routeValues?.ToQueryString()}");
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 

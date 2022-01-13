@@ -14,6 +14,9 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
 
+    /// <summary>
+    /// An <see cref="Account"/> can be used to authenticate and access the applicatoin.
+    /// </summary>
     public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
 
     {
@@ -42,6 +45,9 @@
         /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Indicates if the current instance <see cref="Email"/> was confirmed.
+        /// </summary>
         public bool EmailConfirmed { get; }
 
         /// <summary>
@@ -144,16 +150,19 @@
         public void DeleteRefreshToken() => RefreshToken = null;
 
         /// <summary>
-        /// Adds a claim to the current <see cref="Account"/> instance.
+        /// Adds or updates a claim in the current <see cref="Account"/> instance.
         /// </summary>
         /// <param name="type">Type of the claim.</param>
         /// <param name="value">Value of the claim</param>
         /// <param name="start">When the claim starts</param>
         /// <param name="end">When the claim ends</param>
         /// <exception cref="ArgumentNullException">if <paramref name="type"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="end"/> is not <c>null</c> 
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="end"/> is not <c>null</c>
         /// and <paramref name="start"/> &gt; <paramref name="end"/>
         /// </exception>
+        /// <remarks>
+        /// This methods will try preventing a claim to be added twice but should not be considered thread safe.
+        /// </remarks>
         public void AddOrUpdateClaim(string type, string value, Instant start, Instant? end = null)
         {
             if (type is null)
@@ -174,7 +183,7 @@
         }
 
         /// <summary>
-        /// Remove the <see cref="AccountClaim"/> with the specified <see cref="AccountClaim.Type"/>.
+        /// Remove the <see cref="AccountClaim"/> with the specified <paramref name="type"/>.
         /// </summary>
         /// <param name="type">Type of claim to remove</param>
         /// <exception cref="ArgumentNullException">if <paramref name="type"/> is <c>null</c>.</exception>

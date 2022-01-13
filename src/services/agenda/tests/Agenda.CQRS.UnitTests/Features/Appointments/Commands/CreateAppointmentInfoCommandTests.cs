@@ -14,7 +14,6 @@ namespace Agenda.CQRS.UnitTests.Features.Appointments.Commmands
     [UnitTest]
     public class CreateAppointmentInfoCommandTests : IDisposable
     {
-
         public void Dispose() { }
 
         [Fact]

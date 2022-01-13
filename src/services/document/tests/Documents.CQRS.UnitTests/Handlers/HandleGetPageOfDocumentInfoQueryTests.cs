@@ -31,7 +31,7 @@
         private IUnitOfWorkFactory _uowFactory;
         private HandleGetPageOfDocumentInfoQuery _sut;
         private readonly ITestOutputHelper _outputHelper;
-        private static readonly Faker<Document> documentFaker = new Faker<Document>()
+        private static readonly Faker<Document> DocumentFaker = new Faker<Document>()
                         .CustomInstantiator(faker => new Document(
                             id: DocumentId.New(),
                             name: faker.PickRandom("pdf", "txt", "odt"),
@@ -82,7 +82,7 @@
                 };
 
                 {
-                    IEnumerable<Document> items = documentFaker.Generate(50);
+                    IEnumerable<Document> items = DocumentFaker.Generate(50);
                     yield return new object[]
                     {
                         items,

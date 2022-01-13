@@ -1,6 +1,5 @@
 ﻿namespace Measures.API
 {
-
     using MassTransit;
 
     using Measures.CQRS.Commands.Patients;

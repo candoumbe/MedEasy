@@ -68,7 +68,7 @@ namespace Agenda.API.UnitTests.Features
         private readonly Mock<IMediator> _mediatorMock;
         private readonly AppointmentsController _sut;
         private readonly FakeClock _clock;
-        private const string _baseUrl = "agenda";
+        private const string BaseUrl = "agenda";
         private readonly Mock<IMapper> _mapperMock;
         private readonly SqliteEfCoreDatabaseFixture<AgendaContext> _sqliteEfCoreDatabaseFixture;
 
@@ -78,8 +78,8 @@ namespace Agenda.API.UnitTests.Features
             _database = database;
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(IsAny<string>(), IsAny<RouteValueDictionary>(), IsAny<PathString>(), IsAny<FragmentString>(), IsAny<LinkOptions>()))
-                          .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                          => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString()}");
+                          .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString _, LinkOptions _)
+                          => $"{BaseUrl}/{routename}/?{routeValues?.ToQueryString()}");
             _clock = new FakeClock(new Instant());
 
             _uowFactory = new EFUnitOfWorkFactory<AgendaContext>(database.OptionsBuilder.Options, (options) =>
@@ -175,7 +175,6 @@ namespace Agenda.API.UnitTests.Features
             _mediatorMock.Setup(mock => mock.Send(IsAny<GetPageOfAppointmentInfoQuery>(), IsAny<CancellationToken>()))
                 .Returns((GetPageOfAppointmentInfoQuery request, CancellationToken _) => Task.FromResult(Page<AppointmentInfo>.Empty(request.Data.PageSize)));
 
-
             // Act
             ActionResult<GenericPagedGetResponse<Browsable<AppointmentModel>>> actionResult = await _sut.Get(page: 1, pageSize: 10, ct: default)
                 .ConfigureAwait(false);
@@ -207,7 +206,7 @@ namespace Agenda.API.UnitTests.Features
                 .NotBeNull("Link to the first page of the query must be set");
             first.Method.Should().Be("GET");
             first.Relation.Should().Be(First);
-            first.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize={pageSize}");
+            first.Href.Should().BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize={pageSize}");
 
             links.Previous.Should()
                 .BeNull("there's no data");
@@ -223,7 +222,7 @@ namespace Agenda.API.UnitTests.Features
             last.Method.Should().Be("GET");
             last.Relation.Should().Be(Last);
             last.Href.Should()
-                     .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize={pageSize}");
+                     .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize={pageSize}");
         }
 
         [Fact]
@@ -323,11 +322,11 @@ namespace Agenda.API.UnitTests.Features
 
             Link selfLink = links.Single(link => link.Relation == Self);
             selfLink.Method.Should().Be("GET");
-            selfLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}");
+            selfLink.Href.Should().BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}");
 
             Link deleteLink = links.Single(link => link.Relation == "delete");
             deleteLink.Method.Should().Be("DELETE");
-            deleteLink.Href.Should().BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}");
+            deleteLink.Href.Should().BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={appointmentId}");
         }
 
         public static IEnumerable<object[]> GetAllTestCases
@@ -350,7 +349,7 @@ namespace Agenda.API.UnitTests.Features
                             0,    //expected total
                             (
                                 first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First &&
-                                    ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                    ($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AppointmentsController.EndpointName}" +
                                     $"&page=1" +
                                     $"&pageSize={pageSize}" +
@@ -358,7 +357,7 @@ namespace Agenda.API.UnitTests.Features
                                 previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 next :(Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
                                 last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last &&
-                                    ($"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?" +
+                                    ($"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?" +
                                     $"Controller={AppointmentsController.EndpointName}" +
                                     $"&page=1" +
                                     $"&pageSize={pageSize}" +
@@ -399,14 +398,14 @@ namespace Agenda.API.UnitTests.Features
                         (
                             first : (Expression<Func<Link, bool>>) (x => x != null
                                                                          && x.Relation == First
-                                                                         && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                                                         && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                             next : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Next
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
                             last : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Last
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
 
@@ -418,10 +417,10 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2016).AsUtc().ToInstant(),
                         20,    //expected total
                         (
-                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
+                            next : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=2&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            last : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=4&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
 
@@ -433,12 +432,12 @@ namespace Agenda.API.UnitTests.Features
                         1.January(2017).AsUtc().ToInstant(),
                         0,    //expected total
                         (
-                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            first : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previous : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                             next : (Expression<Func<Link, bool>>) (x => x == null ), // expected link to next page
                             last : (Expression<Func<Link, bool>>) (x => x != null
                                                                         && x.Relation == Last
-                                                                        && $"{_baseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
+                                                                        && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?Controller={AppointmentsController.EndpointName}&page=1&pageSize=5".Equals(x.Href, OrdinalIgnoreCase))
                         )  // expected link to last page
                     };
                 }
@@ -551,13 +550,13 @@ namespace Agenda.API.UnitTests.Features
                     (
                         firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                          && link.Relation == First
-                                                                                         && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                         && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                         ),
                         previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
                         nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
                         lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                        && link.Relation == Last
-                                                                                       && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                       && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                         )
                     )
                 };
@@ -579,16 +578,16 @@ namespace Agenda.API.UnitTests.Features
                         (
                             firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                              && link.Relation == First
-                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                             && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             ),
                             previousPageUrl : (Expression<Func<Link, bool>>)(link => link == null),
                             nextPageUrl : (Expression<Func<Link, bool>>)(link => link != null
                                                                                  && link.Method == "GET"
                                                                                  && link.Relation == Next
-                                                                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=2&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                                                                                 && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=2&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
                             lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                            && link.Relation == Last
-                                                                                           && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                           && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             )
                         )
                     };
@@ -601,19 +600,19 @@ namespace Agenda.API.UnitTests.Features
                         (
                             firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                              && link.Relation == First
-                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                             && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             ),
                             previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null
                                                                                      && link.Method == "GET"
                                                                                      && link.Relation == Previous
-                                                                                     && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                                                                                     && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
                             nextPageUrl : (Expression<Func<Link, bool>>)(link => link != null
                                                                                  && link.Method == "GET"
                                                                                  && link.Relation == Next
-                                                                                 && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=3&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                                                                                 && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=3&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
                             lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                            && link.Relation == Last
-                                                                                           && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                           && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             )
                         )
                     };
@@ -626,16 +625,16 @@ namespace Agenda.API.UnitTests.Features
                         (
                             firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                              && link.Relation == First
-                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                             && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             ),
                             previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null
                                                                                      && link.Method == "GET"
                                                                                      && link.Relation == Previous
-                                                                                     && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                                                                                     && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
                             nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null ),
                             lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                            && link.Relation == Last
-                                                                                           && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                           && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             )
                         )
                     };
@@ -648,16 +647,16 @@ namespace Agenda.API.UnitTests.Features
                         (
                             firstPageUrlExpectation : (Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                              && link.Relation == First
-                                                                                             && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                             && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=1&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             ),
                             previousPageUrl : (Expression<Func<Link, bool>>)(link => link != null
                                                                                      && link.Method == "GET"
                                                                                      && link.Relation == Previous
-                                                                                     && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
+                                                                                     && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=4&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)),
                             nextPageUrl : (Expression<Func<Link, bool>>)(link => link == null ),
                             lastPageUrlExpectation :(Expression<Func<Link, bool>>)(link => link.Method == "GET"
                                                                                            && link.Relation == Last
-                                                                                           && $"{_baseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
+                                                                                           && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AppointmentsController.EndpointName}&page=5&pageSize=10".Equals(link.Href, OrdinalIgnoreCase)
                             )
                         )
                     };
@@ -814,7 +813,7 @@ namespace Agenda.API.UnitTests.Features
             linkToSelf.Method.Should()
                 .Be("GET");
             linkToSelf.Href.Should()
-                .BeEquivalentTo($"{_baseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id.Value}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AppointmentsController.EndpointName}&id={resource.Id.Value}");
 
             IEnumerable<AttendeeId> participantsGuids = participants.Select(p => p.Id);
             IEnumerable<Link> linksToParticipants = links.Where(link => link.Relation.Like("get-participant-*"));

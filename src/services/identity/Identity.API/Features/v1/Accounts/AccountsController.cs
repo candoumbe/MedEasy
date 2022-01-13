@@ -148,7 +148,8 @@
                 DeleteCommandResult.Done => new NoContentResult(),
                 DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
                 DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
-                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
+                DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new NotSupportedException($"Unexpected {cmdResult} result when deleting an account")
             };
         }
 
@@ -213,7 +214,7 @@
         ///     ]
         /// </para>
         /// <para>The set of changes to apply will be applied atomically. </para>
-        /// 
+        ///
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>
@@ -244,7 +245,8 @@
                 ModifyCommandResult.Done => new NoContentResult(),
                 ModifyCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
                 ModifyCommandResult.Failed_NotFound => new NotFoundResult(),
-                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
+                ModifyCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                _ => throw new NotSupportedException($"Unexpected {cmdResult} when modifying an account")
             };
         }
 

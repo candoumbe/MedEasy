@@ -10,7 +10,6 @@ using Xunit;
 // Pour plus d'informations sur les attributs à inclure et sur la personnalisation
 // de ce processus, consultez : https://aka.ms/assembly-info-properties
 
-
 // La définition de ComVisible sur False rend les types dans cet assembly invisibles
 // aux composants COM. Si vous devez accéder à un type dans cet assembly à partir
 // de COM, définissez l'attribut ComVisible sur True pour ce type.

@@ -21,7 +21,11 @@ public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
     where TDataStore : DbContext
 {
     private readonly TDataStore _store;
-    private readonly IHostingEnvironment _hostingEnvironment;
+#if NET6_0_OR_GREATER
+    private readonly IHostEnvironment _hostingEnvironment; 
+#else
+    private readonly IHostingEnvironment _hostingEnvironment; 
+#endif
     private readonly ILogger<DataStoreMigrateInitializerAsync<TDataStore>> _logger;
 
     /// <summary>
@@ -30,7 +34,11 @@ public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
     /// <param name="hostingEnvironment"></param>
     /// <param name="logger"></param>
     /// <param name="dataStore"></param>
-    public DataStoreMigrateInitializerAsync(IHostingEnvironment hostingEnvironment, ILogger<DataStoreMigrateInitializerAsync<TDataStore>> logger, TDataStore dataStore)
+#if NET6_0_OR_GREATER
+    public DataStoreMigrateInitializerAsync(IHostEnvironment hostingEnvironment, ILogger<DataStoreMigrateInitializerAsync<TDataStore>> logger, TDataStore dataStore) 
+#else
+    public DataStoreMigrateInitializerAsync(IHostingEnvironment hostingEnvironment, ILogger<DataStoreMigrateInitializerAsync<TDataStore>> logger, TDataStore dataStore) 
+#endif
     {
         _hostingEnvironment = hostingEnvironment;
         _logger = logger;

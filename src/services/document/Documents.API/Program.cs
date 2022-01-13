@@ -1,6 +1,5 @@
 namespace Documents.API
 {
-
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +50,6 @@ namespace Documents.API
         /// </summary>
         /// <param name="args">command line arguments</param>
         /// <returns></returns>
-
         public static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()

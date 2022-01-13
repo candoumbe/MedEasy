@@ -122,7 +122,6 @@
                     new ClaimInfo { Type =  "batarangs", Value = "10"},
                     new ClaimInfo { Type =  "fight", Value = "100"},
                     new ClaimInfo { Type =  "money", Value = "1000K$"},
-
                 }
             };
 

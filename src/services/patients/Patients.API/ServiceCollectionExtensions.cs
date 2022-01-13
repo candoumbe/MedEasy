@@ -173,7 +173,7 @@
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<PatientsDataStore> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                
+
                 string connectionString = configuration.GetConnectionString("Patients");
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
@@ -229,7 +229,7 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly, 
+            services.AddMediatR(typeof(CreatePatientInfoCommand).Assembly,
                                 typeof(HandleCreatePatientInfoCommand).Assembly);
 
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
@@ -345,7 +345,6 @@
                 });
                 config.ConfigureForNodaTimeWithSystemTextJson();
                 config.ConfigureForStronglyTypedIdsInAssembly<DoctorId>();
-
             });
 
             return services;

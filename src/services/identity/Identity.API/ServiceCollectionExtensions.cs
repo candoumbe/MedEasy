@@ -75,7 +75,6 @@
         /// <param name="env"></param>
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
-
             services.AddControllers(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
@@ -209,7 +208,7 @@
                 DbContextOptionsBuilder<IdentityContext> builder = new();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("Identity");
-                
+
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
                 {
                     builder.UseSqlite(connectionString,
@@ -362,7 +361,6 @@
         /// <param name="configuration"></param>
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
-
 
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
 

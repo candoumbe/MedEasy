@@ -21,11 +21,10 @@
         /// <param name="start">Start of the interval</param>
         /// <param name="end">End of the interval (inclusive).</param>
         /// <param name="page">index of the page of result</param>
-        /// <param name="pageSize">number of items per page.</param
+        /// <param name="pageSize">number of items per page.</param>
         public GetAttendeesByAppointmentIdQuery(Guid participantId, DateTimeOffset start, DateTimeOffset end, int page, int pageSize)
             : base(Guid.NewGuid(), (participantId, start, end, page, pageSize))
         {
-
         }
     }
 }

@@ -5,13 +5,12 @@ namespace MedEasy.ReverseProxy
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
+    using Optional;
+
     using Serilog;
 
     using System.Diagnostics;
-
-    using Optional;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
 
     public class Program
     {
@@ -52,6 +51,5 @@ namespace MedEasy.ReverseProxy
                                                       .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
                               });
                 });
-
     }
 }

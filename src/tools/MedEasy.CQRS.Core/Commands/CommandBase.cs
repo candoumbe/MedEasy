@@ -44,7 +44,7 @@
         {
             if (Equals(id, default(TKey)))
             {
-                throw new ArgumentException(nameof(id), $"{nameof(id)} cannot be set to the default value of {typeof(TKey).FullName}");
+                throw new ArgumentException($"{nameof(id)} cannot be set to the default value of {typeof(TKey).FullName}", nameof(id));
             }
             if (Equals(data, default(TData)))
             {

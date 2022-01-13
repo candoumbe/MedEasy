@@ -161,7 +161,6 @@ namespace Agenda.Validators.UnitTests
                     ),
                     $@"Sort expression ""--{nameof(AppointmentInfo.EndDate)}"" contains two ""--"""
                 };
-
             }
         }
 

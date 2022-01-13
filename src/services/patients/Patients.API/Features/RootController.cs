@@ -17,7 +17,7 @@ namespace Patients.API.Controllers
     using Microsoft.AspNetCore.Routing;
 
     /// <summary>
-    /// Controller that describe 
+    /// Controller that describe
     /// </summary>
     [Controller]
     [Route("/")]
@@ -48,11 +48,11 @@ namespace Patients.API.Controllers
         /// Describes all endpoints
         /// </summary>
         /// <remarks>
-        /// 
+        ///
         ///     API clients should only relies on link's relation to navigate through all resources.
-        ///     
-        /// 
-        ///     
+        ///
+        ///
+        ///
         /// </remarks>
         /// <response code="200"></response>
         [HttpGet, HttpOptions]
@@ -86,7 +86,6 @@ namespace Patients.API.Controllers
                                 Method = "GET",
                                 Relation = LinkRelation.Search,
                                 Href = _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new {controller = PatientsController.EndpointName, page, pageSize, version})
-
                             },
                             Items = new[]
                             {
@@ -113,7 +112,6 @@ namespace Patients.API.Controllers
                             .Build()
                     }
                 },
-
             };
 
             if (!_hostingEnvironment.IsProduction())

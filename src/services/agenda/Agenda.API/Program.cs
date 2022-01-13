@@ -13,9 +13,7 @@
     /// <summary>
     /// Entry class
     /// </summary>
-#pragma warning disable RCS1102 // Make class static.
     public class Program
-#pragma warning restore RCS1102 // Make class static.
     {
         public static async Task Main(string[] args)
         {

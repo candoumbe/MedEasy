@@ -18,14 +18,16 @@
         /// <param name="data">holds the participant id and the appointment id</param>
         public AddAttendeeToAppointmentCommand((AppointmentId appointmentId, AttendeeId attendeeId) data) : base(Guid.NewGuid(), data)
         {
-
         }
 
+        ///<inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as AddAttendeeToAppointmentCommand);
 
+        ///<inheritdoc/>
         public bool Equals(AddAttendeeToAppointmentCommand other) => other != null
                 && Data.Equals(other.Data);
 
+        ///<inheritdoc/>
         public override int GetHashCode() => Data.GetHashCode();
     }
 }

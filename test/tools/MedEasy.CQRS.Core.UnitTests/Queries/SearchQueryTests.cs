@@ -32,7 +32,6 @@
 
         public void Dispose()
         {
-
         }
 
         [Fact]
@@ -55,9 +54,7 @@
         public void Ctor_Throws_ArgumentNullException_When_Parameter_Is_Null()
         {
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new SearchQuery<SuperHero>(null);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.Should()

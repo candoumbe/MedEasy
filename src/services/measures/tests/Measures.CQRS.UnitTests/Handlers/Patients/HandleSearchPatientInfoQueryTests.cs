@@ -1,6 +1,5 @@
 ﻿namespace Measures.CQRS.UnitTests.Handlers.Patients
 {
-
     using AutoMapper.QueryableExtensions;
     using FluentAssertions;
     using Measures.DataStores;
@@ -52,7 +51,6 @@
 
                 store.Database.EnsureCreated();
                 return store;
-
                 });
 
             _expressionBuilderMock = new Mock<IExpressionBuilder>(Strict);

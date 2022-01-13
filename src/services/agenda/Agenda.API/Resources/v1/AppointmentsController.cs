@@ -176,7 +176,6 @@ namespace Agenda.API.Resources.v1
         /// <response code="200">The appointment with the specified id</response>
         /// <response code="404">resource not found</response>
         /// <response code="400"><paramref name="id"/> was not sent or was empty</response>
-
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         [ProducesResponseType(Status404NotFound)]
@@ -283,7 +282,7 @@ namespace Agenda.API.Resources.v1
         }
 
         /// <summary>
-        /// Removes the attendee with the specified <paramref name="attendeeId"/> from the appointment with 
+        /// Removes the attendee with the specified <paramref name="attendeeId"/> from the appointment with
         /// the specified <paramref name="id"/>
         /// </summary>
         /// <param name="id">id of the appointment where to remove the participant from</param>

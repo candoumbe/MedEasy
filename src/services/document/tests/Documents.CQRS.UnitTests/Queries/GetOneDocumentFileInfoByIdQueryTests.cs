@@ -17,7 +17,6 @@
     [UnitTest]
     public class GetOneDocumentFileInfoByIdQueryTests
     {
-
         [Fact]
         public void IsQuery() => typeof(GetOneDocumentFileInfoByIdQuery).Should()
             .BeAssignableTo<IQuery<Guid, DocumentId, IAsyncEnumerable<DocumentPartInfo>>>();

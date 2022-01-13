@@ -8,15 +8,15 @@
     using System;
 
     /// <summary>
-    ///  A <see cref="CommandBase{Guid, NewDocumentInfo, Option}"/> implementation to delete a new document
+    ///  A command to delete a <see cref="Objects.Document"/>
     /// </summary>
     public class DeleteDocumentInfoByIdCommand : CommandBase<Guid, DocumentId, DeleteCommandResult>
     {
         /// <summary>
-        /// Builds a new <see cref="DeleteDocumentInfoByIdCommand"/> instance
+        /// Builds a new <see cref="DeleteDocumentInfoByIdCommand"/> instance.
         /// </summary>
-        /// <param name="id">data to create a new <see cref="DocumentInfo"/> resource</param>
-        /// <exception cref="ArgumentException">if <paramref name="data"/> is <see cref="Empty"/>.</exception>
+        /// <param name="id">Identities the document to delete</param>
+        /// <exception cref="ArgumentException">if <paramref name="id"/> is <see cref="Empty"/>.</exception>
         public DeleteDocumentInfoByIdCommand(DocumentId id) : base(Guid.NewGuid(), id)
         {
             if (id == DocumentId.Empty)

@@ -57,7 +57,7 @@
         private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenMock;
         private HandleRefreshAccessTokenByUsernameCommand _sut;
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
-        private const string _signatureKey = "a_very_long_key_to_encrypt_token";
+        private const string SignatureKey = "a_very_long_key_to_encrypt_token";
 
         public HandleRefreshAccessTokenByUsernameCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
         {
@@ -70,7 +70,7 @@
             });
 
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            _signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signatureKey)), SecurityAlgorithms.HmacSha256);
+            _signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SignatureKey)), SecurityAlgorithms.HmacSha256);
             _clockMock = new(Strict);
             _handleCreateSecurityTokenMock = new Mock<IHandleCreateSecurityTokenCommand>(Strict);
             _handleCreateSecurityTokenMock.Setup(mock => mock.Handle(It.IsAny<CreateSecurityTokenCommand>(), It.IsAny<CancellationToken>()))

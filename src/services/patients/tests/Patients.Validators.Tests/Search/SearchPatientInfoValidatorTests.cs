@@ -184,6 +184,5 @@
             result.Should()
                 .Match(expectation, reason);
         }
-
     }
 }

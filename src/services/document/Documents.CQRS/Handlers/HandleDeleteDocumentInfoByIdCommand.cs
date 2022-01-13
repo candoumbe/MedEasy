@@ -12,6 +12,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles <see cref="DeleteDocumentInfoByIdCommand"/> commands.
+    /// </summary>
     public class HandleDeleteDocumentInfoByIdCommand : IRequestHandler<DeleteDocumentInfoByIdCommand, DeleteCommandResult>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -20,12 +23,13 @@
         /// Builds a <see cref="HandleCreateDocumentInfoCommand"/> instance.
         /// </summary>
         /// <param name="uowFactory"></param>
-        /// 
+        ///
         public HandleDeleteDocumentInfoByIdCommand(IUnitOfWorkFactory uowFactory)
         {
             _uowFactory = uowFactory ?? throw new ArgumentNullException(nameof(uowFactory));
         }
 
+        ///<inheritdoc/>
         public async Task<DeleteCommandResult> Handle(DeleteDocumentInfoByIdCommand request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();

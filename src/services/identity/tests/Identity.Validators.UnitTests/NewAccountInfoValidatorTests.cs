@@ -87,7 +87,6 @@
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.Errors.Count == 0),
                     "Informations are ok"
                 };
-
             }
         }
 
@@ -106,7 +105,6 @@
             _outputHelper.WriteLine($"Validation results : {vr.Jsonify()}");
             vr.Should()
                 .Match(validationResultExpectation, reason);
-
         }
     }
 }

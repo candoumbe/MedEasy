@@ -14,6 +14,10 @@
     /// </summary>
     public class ChangeAppointmentDateCommand : CommandBase<Guid, (AppointmentId appointmentId, ZonedDateTime start, ZonedDateTime end), ModifyCommandResult>
     {
+        /// <summary>
+        /// Builds a new <see cref="ChangeAppointmentDateCommand"/> instance.
+        /// </summary>
+        /// <param name="data"></param>
         public ChangeAppointmentDateCommand((AppointmentId appointmentId, ZonedDateTime start, ZonedDateTime end) data) : base(Guid.NewGuid(), data)
         {
         }
