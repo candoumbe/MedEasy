@@ -199,7 +199,7 @@
 
             // Assert
             action.Should()
-                .NotThrow<InvalidOperationException>($"{nameof(CreateSubjectInfoCommand.Data)} will provide a new id");
+                .NotThrowAsync<InvalidOperationException>($"{nameof(CreateSubjectInfoCommand.Data)} will provide a new id");
         }
     }
 }

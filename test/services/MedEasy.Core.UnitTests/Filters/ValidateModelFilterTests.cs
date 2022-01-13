@@ -88,7 +88,7 @@
                 .Be("Validation failed");
             errorOBject.Errors.Should()
                 .NotBeNull().And
-                .ContainKey("name").WhichValue.Should()
+                .ContainKey("name").WhoseValue.Should()
                     .HaveCount(1).And
                     .HaveElementAt(0, "invalid");
         }

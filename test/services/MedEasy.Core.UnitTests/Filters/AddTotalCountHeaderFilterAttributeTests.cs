@@ -198,11 +198,11 @@
             _outputHelper.WriteLine($"Headers : {headers.Jsonify()}");
 
             headers.Should()
-                .ContainKey(AddCountHeadersFilterAttribute.TotalCountHeaderName).WhichValue.Should()
+                .ContainKey(AddCountHeadersFilterAttribute.TotalCountHeaderName).WhoseValue.Should()
                 .HaveCount(1).And
                 .ContainSingle(value => headersCountExpectation.expectedTotalCount.ToString().Equals(value));
             headers.Should()
-                .ContainKey(AddCountHeadersFilterAttribute.CountHeaderName).WhichValue.Should()
+                .ContainKey(AddCountHeadersFilterAttribute.CountHeaderName).WhoseValue.Should()
                 .HaveCount(1).And
                 .ContainSingle(value => headersCountExpectation.expectedCount.ToString().Equals(value));
         }

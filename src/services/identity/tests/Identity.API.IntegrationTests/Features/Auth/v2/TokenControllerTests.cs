@@ -96,7 +96,7 @@
             response.IsSuccessStatusCode.Should()
                 .BeTrue();
             response.StatusCode.Should()
-                .Be(Status200OK);
+                .HaveValue(Status200OK);
 
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
@@ -132,7 +132,7 @@
             response.IsSuccessStatusCode.Should()
                 .BeFalse("The access token has expired");
             response.StatusCode.Should()
-                .Be(Status401Unauthorized, "The token has expired");
+                .HaveValue(Status401Unauthorized, "The token has expired");
         }
 
         [Fact]
@@ -229,7 +229,7 @@
             response.IsSuccessStatusCode.Should()
                 .BeTrue();
             response.StatusCode.Should()
-                .Be(Status200OK);
+                .HaveValue(Status200OK);
 
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
@@ -263,7 +263,7 @@
             response.IsSuccessStatusCode.Should()
                 .BeFalse("The refresh token was revoked and can no longer be used to refresh an access token");
             response.StatusCode.Should()
-                .Be(Status401Unauthorized, "The token has expired");
+                .HaveValue(Status401Unauthorized, "The token has expired");
         }
     }
 }

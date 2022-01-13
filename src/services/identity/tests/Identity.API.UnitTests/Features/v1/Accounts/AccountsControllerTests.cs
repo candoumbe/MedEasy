@@ -586,9 +586,9 @@
                                           .Be(RouteNames.DefaultGetOneByIdApi);
             RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
             routeValues.Should()
-                .ContainKey("controller").WhichValue.Should().Be(AccountsController.EndpointName);
+                .ContainKey("controller").WhoseValue.Should().Be(AccountsController.EndpointName);
             routeValues.Should()
-                       .ContainKey("id").WhichValue.Should()
+                       .ContainKey("id").WhoseValue.Should()
                             .BeOfType<AccountId>().Which.Should()
                             .NotBe(AccountId.Empty);
         }

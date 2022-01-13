@@ -575,9 +575,9 @@ namespace Patients.API.UnitTests.Controllers
                                           .Be(RouteNames.DefaultGetOneByIdApi);
             RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
             routeValues.Should()
-                .ContainKey("controller").WhichValue.Should().Be(PatientsController.EndpointName);
+                .ContainKey("controller").WhoseValue.Should().Be(PatientsController.EndpointName);
             routeValues.Should()
-                       .ContainKey("id").WhichValue.Should()
+                       .ContainKey("id").WhoseValue.Should()
                             .BeOfType<PatientId>().Which.Should()
                             .NotBe(PatientId.Empty);
         }

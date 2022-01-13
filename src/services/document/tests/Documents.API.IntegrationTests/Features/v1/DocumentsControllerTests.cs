@@ -85,7 +85,7 @@
             response.IsSuccessStatusCode.Should()
                                         .BeTrue();
             response.StatusCode.Should()
-                               .Be(Status201Created);
+                               .HaveValue(Status201Created);
 
             string jsonResponse = await response.Content.ReadAsStringAsync()
                                                         .ConfigureAwait(false);
