@@ -10,7 +10,7 @@
     /// <summary>
     /// Unit tests for <see cref="GetOneAccountByIdQuery"/> class.
     /// </summary>
-    /// 
+    ///
     [UnitTest]
     [Feature("Accounts")]
     public class GetOneAccountByIdQueryTests : IDisposable

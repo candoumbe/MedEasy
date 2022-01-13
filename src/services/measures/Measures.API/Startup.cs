@@ -19,12 +19,12 @@
     public class Startup
     {
         /// <summary>
-        /// The root configuration 
+        /// The root configuration
         /// </summary>
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// Provides information about 
+        /// Provides information about
         /// </summary>
         public IHostEnvironment HostingEnvironment { get; }
 
@@ -57,7 +57,7 @@
 
         /// <summary>
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        /// 
+        ///
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
@@ -65,7 +65,6 @@
         /// <param name="provider"></param>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IHostApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
         {
-
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
 

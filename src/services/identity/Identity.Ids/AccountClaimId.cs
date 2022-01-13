@@ -6,8 +6,12 @@
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     using System;
-using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization;
 
+    /// <summary>
+    /// Wraps the identifier of an AccountClaim.
+    /// </summary>
+    /// <param name="Value"></param>
     [JsonConverter(typeof(StronglyTypedIdJsonConverter<AccountClaimId, Guid>))]
     public record AccountClaimId(Guid Value) : StronglyTypedId<Guid>(Value)
     {
@@ -17,14 +21,23 @@ using System.Text.Json.Serialization;
         /// <returns>The newly created <see cref="AccountClaimId"/></returns>
         public static AccountClaimId New() => new(Guid.NewGuid());
 
+        /// <summary>
+        /// Value to use for whenever a value for <see cref="AccountClaimId"/> is needed and none can be provided.
+        /// </summary>
         public static AccountClaimId Empty => new(Guid.Empty);
 
-#pragma warning disable S1185 // Overriding members should do more than simply call the same member in the base class
+        ///<inheritdoc/>
         public override string ToString() => base.ToString();
-#pragma warning restore S1185 // Overriding members should do more than simply call the same member in the base class
 
+        /// <summary>
+        ///Converter <see cref="Guid"/>  <see cref="AccountClaimId"/> value converter.
+        /// </summary>
         public class EfValueConverter : ValueConverter<AccountClaimId, Guid>
         {
+            /// <summary>
+            /// Builds a new <see cref="EfValueConverter"/>
+            /// </summary>
+            /// <param name="mappingHints"></param>
             public EfValueConverter(ConverterMappingHints mappingHints = null) : base(
                 id => id.Value,
                 value => new AccountClaimId(value),

@@ -69,7 +69,7 @@
         /// <param name="urlHelper">Helper class to build URL strings.</param>
         /// <param name="apiOptions">Options of the API</param>
         /// <param name="mediator"></param>
-        /// 
+        ///
         public BloodPressuresController(LinkGenerator urlHelper,
                                         IOptionsSnapshot<MeasuresApiOptions> apiOptions,
                                         IMediator mediator)
@@ -301,7 +301,7 @@
         ///     // GET api/BloodPressures/Search?Firstname=!Bruce
         ///     will match all resources where Firstname is not Bruce
         /// </example>
-        ///     
+        ///
         /// </remarks>
         /// <response code="200">Array of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="400">one the search criteria is not valid</response>
@@ -477,7 +477,7 @@
         ///     ]
         /// </para>
         /// <para>The set of changes to apply will be applied atomically. </para>
-        /// 
+        ///
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>

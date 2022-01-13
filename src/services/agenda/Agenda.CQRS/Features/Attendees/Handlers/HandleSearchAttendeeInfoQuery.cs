@@ -30,7 +30,7 @@
         private readonly IHandleSearchQuery _handleSearch;
 
         /// <summary>
-        /// Builds 
+        /// Builds
         /// </summary>
         /// <param name="handleSearch"></param>
         public HandleSearchAttendeeInfoQuery(IHandleSearchQuery handleSearch)
@@ -38,6 +38,7 @@
             _handleSearch = handleSearch;
         }
 
+        ///<inheritdoc/>
         public async Task<Page<AttendeeInfo>> Handle(SearchAttendeeInfoQuery request, CancellationToken cancellationToken)
         {
             SearchAttendeeInfo requestData = request.Data;

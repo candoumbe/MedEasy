@@ -51,7 +51,7 @@ namespace Agenda.API.IntegrationTests.v1
         private readonly ITestOutputHelper _outputHelper;
         private const string _endpointUrl = "/appointments";
 
-        private static readonly JSchema _errorObjectSchema = new()
+        private static readonly JSchema ErrorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -135,7 +135,7 @@ namespace Agenda.API.IntegrationTests.v1
                    .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
 
             JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema).Should()
+            token.IsValid(ErrorObjectSchema).Should()
                                              .BeTrue("Error object must be provided when API returns BAD REQUEST");
 
             ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
@@ -196,7 +196,7 @@ namespace Agenda.API.IntegrationTests.v1
                 new Claim(ClaimTypes.Name, "Bruce Wayne")
             };
             using HttpClient client = _sut.CreateClient();
-            
+
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)
                                                              .ConfigureAwait(false);
@@ -214,7 +214,7 @@ namespace Agenda.API.IntegrationTests.v1
                 .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
 
             JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
+            token.IsValid(ErrorObjectSchema)
                 .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
 
             ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
@@ -280,7 +280,7 @@ namespace Agenda.API.IntegrationTests.v1
             };
             using HttpClient client = _sut.CreateClient();
             client.DefaultRequestHeaders.Add("api-version", "1.0");
-            
+
             // Act
             using HttpResponseMessage response = await client.SendAsync(request)
                                                        .ConfigureAwait(false);
@@ -329,7 +329,7 @@ namespace Agenda.API.IntegrationTests.v1
             };
             using HttpClient client = _sut.CreateClient();
             client.DefaultRequestHeaders.Add("api-version", "1.0");
-            
+
             // Act
             HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newAppointment, SerializerOptions)
                                                        .ConfigureAwait(false);

@@ -47,7 +47,7 @@ namespace Agenda.API.IntegrationTests.v1
         private readonly ITestOutputHelper _outputHelper;
         private readonly string _endpointUrl = AttendeesController.EndpointName;
 
-        private static readonly JSchema _errorObjectSchema = new()
+        private static readonly JSchema ErrorObjectSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -94,7 +94,7 @@ namespace Agenda.API.IntegrationTests.v1
 
             // Arrange
             string url = $"{_endpointUrl}?page={page}&pageSize={pageSize}";
-            
+
             _outputHelper.WriteLine($"Url under test : <{url}>");
 
             using HttpClient client = _server.CreateClient();
@@ -117,7 +117,7 @@ namespace Agenda.API.IntegrationTests.v1
                    .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
 
             JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
+            token.IsValid(ErrorObjectSchema)
                 .Should().BeTrue("Error object must be provided when API returns BAD REQUEST");
 
             ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();
@@ -195,7 +195,7 @@ namespace Agenda.API.IntegrationTests.v1
                 .NotBeNullOrEmpty("BAD REQUEST content must provide additional information on errors");
 
             JToken token = JToken.Parse(content);
-            token.IsValid(_errorObjectSchema)
+            token.IsValid(ErrorObjectSchema)
                 .Should().BeTrue($"Error object must be provided when HTTP GET <{url}> returns BAD REQUEST");
 
             ValidationProblemDetails errorObject = token.ToObject<ValidationProblemDetails>();

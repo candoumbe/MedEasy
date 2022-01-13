@@ -19,7 +19,6 @@
         /// <param name="pagination"></param>
         public GetPageOfAppointmentInfoQuery(PaginationConfiguration pagination) : base(Guid.NewGuid(), pagination)
         {
-
         }
     }
 }

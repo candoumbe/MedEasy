@@ -63,12 +63,12 @@ namespace Identity.API.Fixtures.v1
         /// </summary>
         public BearerTokenInfo Tokens { get; private set; }
 
-        private static readonly Faker _faker = new();
+        private static readonly Faker Faker = new();
 
         public IdentityApiFixture()
         {
-            Email = _faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
-            Password = _faker.Internet.Password();
+            Email = Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
+            Password = Faker.Internet.Password();
         }
 
         ///<inheritdoc/>

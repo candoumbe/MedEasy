@@ -41,7 +41,7 @@
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// Builds a new <see cref="TokenController"/> instance. 
+        /// Builds a new <see cref="TokenController"/> instance.
         /// </summary>
         /// <param name="mediator"></param>
         /// <param name="jwtOptions"></param>

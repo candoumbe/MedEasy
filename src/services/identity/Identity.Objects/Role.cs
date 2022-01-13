@@ -11,8 +11,14 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Wraps a set of <see cref="Claim"/>s so that they can be grouped together and all added to an <see cref="Account"/> at once.
+    /// </summary>
     public class Role : AuditableEntity<RoleId, Role>
     {
+        /// <summary>
+        /// Identifier of the current <see cref="Role"/>. Should be unique accross an app.
+        /// </summary>
         public string Code { get; set; }
 
         /// <summary>
@@ -23,7 +29,7 @@
         private readonly IList<RoleClaim> _claims;
 
         /// <summary>
-        /// <see cref="Account"/>s associated with the current role
+        /// <see cref="Account"/>s associated with the current role.
         /// </summary>
         public IEnumerable<AccountRole> Accounts { get; }
 

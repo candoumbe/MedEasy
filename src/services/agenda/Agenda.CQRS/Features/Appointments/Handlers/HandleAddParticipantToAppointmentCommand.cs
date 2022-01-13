@@ -16,15 +16,24 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles <see cref="AddAttendeeToAppointmentCommand"/> commands.
+    /// </summary>
     public class HandleAddParticipantToAppointmentCommand : IRequestHandler<AddAttendeeToAppointmentCommand, ModifyCommandResult>
     {
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
+        /// <summary>
+        /// Builds a new <see cref="HandleAddParticipantToAppointmentCommand"/> instance.
+        /// </summary>
+        /// <param name="unitOfWorkFactory"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public HandleAddParticipantToAppointmentCommand(IUnitOfWorkFactory unitOfWorkFactory)
         {
             _unitOfWorkFactory = unitOfWorkFactory ?? throw new ArgumentNullException(nameof(unitOfWorkFactory));
         }
 
+        ///<inheritdoc/>
         public async Task<ModifyCommandResult> Handle(AddAttendeeToAppointmentCommand request, CancellationToken ct)
         {
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();

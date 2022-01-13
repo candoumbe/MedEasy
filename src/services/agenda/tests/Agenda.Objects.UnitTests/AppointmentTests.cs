@@ -78,7 +78,6 @@
             // Assert
             actual.Should()
                 .Be(expected);
-
         }
     }
 }

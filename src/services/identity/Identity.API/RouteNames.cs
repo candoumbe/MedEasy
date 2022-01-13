@@ -6,7 +6,7 @@
     public static class RouteNames
     {
         /// <summary>
-        /// Name of the route to the root 
+        /// Name of the route to the root
         /// </summary>
         public const string Default = nameof(Default);
 

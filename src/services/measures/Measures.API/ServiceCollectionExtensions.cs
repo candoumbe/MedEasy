@@ -276,7 +276,6 @@
                 return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
             });
 
-
             services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;
@@ -382,11 +381,11 @@
             return services;
         }
 
-
         /// <summary>
         /// Adds a customized MassTransit to the dependency injection container
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="environment"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
         public static IServiceCollection AddCustomMassTransit(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)

@@ -30,6 +30,7 @@
             _unitOfWorkFactory = unitOfWorkFactory ?? throw new ArgumentNullException(nameof(unitOfWorkFactory));
         }
 
+        ///<inheritdoc/>
         public async Task<DeleteCommandResult> Handle(RemoveAttendeeFromAppointmentByIdCommand request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();

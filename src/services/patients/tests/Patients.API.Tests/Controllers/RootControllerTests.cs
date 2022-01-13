@@ -43,8 +43,8 @@ namespace Patients.API.UnitTests.Controllers
             _hostingEnvironmentMock = new Mock<IHostEnvironment>(Strict);
             _urlHelperMock = new Mock<LinkGenerator>(Strict);
             _urlHelperMock.Setup(mock => mock.GetPathByAddress(It.IsAny<string>(), It.IsAny<RouteValueDictionary>(), It.IsAny<PathString>(), It.IsAny<FragmentString>(), It.IsAny<LinkOptions>()))
-                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString __, LinkOptions ___)
-                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string ____, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
+                .Returns((string routename, RouteValueDictionary routeValues, PathString _, FragmentString _, LinkOptions _)
+                => $"{_baseUrl}/{routename}/?{routeValues?.ToQueryString((string _, object value) => (value as StronglyTypedId<Guid>)?.Value ?? value)}");
 
             _optionsMock = new Mock<IOptions<PatientsApiOptions>>(Strict);
             _optionsMock.Setup(mock => mock.Value).Returns(new PatientsApiOptions { DefaultPageSize = PaginationConfiguration.DefaultPageSize, MaxPageSize = PaginationConfiguration.MaxPageSize });

@@ -28,7 +28,7 @@
     using static Microsoft.AspNetCore.Http.StatusCodes;
 
     /// <summary>
-    /// Handles <see cref="Tenant"/>s resources
+    /// Handles <see cref="TenantInfo"/>s resources
     /// </summary>
     [Route("[controller]")]
     [ApiController]
@@ -36,12 +36,17 @@
     [Authorize]
     public class TenantsController
     {
-        public static string EndpointName => nameof(TenantsController)
-            .Replace(nameof(Controller), string.Empty);
+        internal static string EndpointName => nameof(TenantsController).Replace(nameof(Controller), string.Empty);
         private readonly LinkGenerator _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
         private readonly IMediator _mediator;
 
+        /// <summary>
+        /// Builds a new <see cref="TenantsController"/> instance.
+        /// </summary>
+        /// <param name="urlHelper"></param>
+        /// <param name="apiOptions"></param>
+        /// <param name="mediator"></param>
         public TenantsController(LinkGenerator urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
         {
             _urlHelper = urlHelper;
@@ -131,7 +136,7 @@
         ///     ]
         /// </example>
         /// <para>The set of changes to apply will be applied atomically. </para>
-        /// 
+        ///
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>

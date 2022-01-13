@@ -14,8 +14,10 @@
     [AttributeUsage(Parameter | Property | Class, AllowMultiple = false, Inherited = false)]
     public class RequireNonDefaultAttribute : ValidationAttribute
     {
+        ///<inheritdoc/>
         public override string FormatErrorMessage(string name) => $"{(string.IsNullOrWhiteSpace(name) ? "the field" : $"'{name}'")} must not have a default value";
 
+        ///<inheritdoc/>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             ValidationResult validationResult = ValidationResult.Success;

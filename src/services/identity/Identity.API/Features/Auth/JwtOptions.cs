@@ -21,9 +21,14 @@
         /// </summary>
         public string Key { get; set; }
 
-
+        /// <summary>
+        /// Issuer of the token
+        /// </summary>
         public string Issuer { get; set; }
 
+        /// <summary>
+        /// Expected audiences that the token is build for.
+        /// </summary>
         public IEnumerable<string> Audiences { get; set; }
     }
 }

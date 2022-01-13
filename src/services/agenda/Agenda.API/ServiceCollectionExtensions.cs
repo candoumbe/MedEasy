@@ -108,7 +108,6 @@
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 });
 
-
             services.AddRouting(opts =>
             {
                 opts.AppendTrailingSlash = false;
@@ -144,6 +143,7 @@
         /// Adds required dependencies to access API datastores
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="configuration"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
             static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider, IConfiguration configuration)
@@ -152,7 +152,7 @@
                 IHostEnvironment hostingEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
                 DbContextOptionsBuilder<AgendaContext> builder = new();
                 builder.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
-                
+
                 string connectionString = configuration.GetConnectionString("Agenda");
 
                 if (hostingEnvironment.IsEnvironment("IntegrationTest"))
@@ -227,7 +227,7 @@
         /// </summary>
         /// <param name="services"></param>
         /// <remarks>
-        /// Adds the 
+        /// Adds the
         /// </remarks>
         public static IServiceCollection AddCustomizedDependencyInjection(this IServiceCollection services)
         {

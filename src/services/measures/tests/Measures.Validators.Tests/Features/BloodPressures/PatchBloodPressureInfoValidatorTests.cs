@@ -48,9 +48,7 @@
         public void ThrowsArgumentNullException()
         {
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new PatchBloodPressureInfoValidator(null);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.Should().Throw<ArgumentNullException>().Which

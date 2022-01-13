@@ -19,7 +19,6 @@
     {
         public BloodPressureCreatedTests()
         {
-
         }
 
         public static IEnumerable<object[]> EqualsCases

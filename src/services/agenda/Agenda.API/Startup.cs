@@ -15,7 +15,7 @@
     public class Startup
     {
         /// <summary>
-        /// The root configuration 
+        /// The root configuration
         /// </summary>
         public IConfiguration Configuration { get; }
 

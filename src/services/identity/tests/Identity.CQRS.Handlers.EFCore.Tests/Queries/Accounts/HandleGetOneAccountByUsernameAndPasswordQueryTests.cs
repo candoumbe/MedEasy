@@ -1,6 +1,5 @@
 ﻿namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
-
     using FluentAssertions;
     using FluentAssertions.Extensions;
 

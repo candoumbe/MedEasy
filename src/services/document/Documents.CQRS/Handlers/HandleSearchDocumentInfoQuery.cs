@@ -21,19 +21,29 @@
 
     using static DataFilters.FilterLogic;
 
+    /// <summary>
+    /// Handles <see cref="SearchDocumentInfoQuery"/> queries.
+    /// </summary>
     public class HandleSearchDocumentInfoQuery : IRequestHandler<SearchDocumentInfoQuery, Page<DocumentInfo>>
     {
         private readonly IHandleSearchQuery _handleSearchQuery;
 
+        /// <summary>
+        /// Builds a new <see cref="HandleSearchDocumentInfoQuery"/> instance.
+        /// </summary>
+        /// <param name="handleSearchQuery">Generic search service</param>
         public HandleSearchDocumentInfoQuery(IHandleSearchQuery handleSearchQuery)
         {
             _handleSearchQuery = handleSearchQuery;
         }
 
+        ///<inheritdoc/>
         public async Task<Page<DocumentInfo>> Handle(SearchDocumentInfoQuery request, CancellationToken cancellationToken)
         {
             IList<IFilter> filters = new List<IFilter>();
             SearchDocumentInfo searchCriteria = request.Data;
+
+            // TODO Replace with IFilterService
             if (!string.IsNullOrWhiteSpace(searchCriteria.Name))
             {
                 filters.Add($"{nameof(Document.Name)}={searchCriteria.Name}".ToFilter<DocumentInfo>());

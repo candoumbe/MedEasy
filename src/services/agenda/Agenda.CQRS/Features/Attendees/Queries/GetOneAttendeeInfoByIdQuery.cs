@@ -27,11 +27,14 @@
             }
         }
 
+        ///<inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as GetOneAttendeeInfoByIdQuery);
 
+        ///<inheritdoc/>
         public bool Equals(GetOneAttendeeInfoByIdQuery other) => other != null
                 && (ReferenceEquals(this, other) || Equals(Data, other.Data));
 
+        ///<inheritdoc/>
         public override int GetHashCode() => base.GetHashCode();
     }
 }

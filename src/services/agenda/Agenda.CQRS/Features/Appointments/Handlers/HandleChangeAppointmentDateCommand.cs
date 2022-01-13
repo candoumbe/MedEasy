@@ -30,12 +30,18 @@
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Builds a new <see cref="HandleChangeAppointmentDateCommand"/> instance.
+        /// </summary>
+        /// <param name="unitOfWorkFactory"></param>
+        /// <param name="mapper"></param>
         public HandleChangeAppointmentDateCommand(IUnitOfWorkFactory unitOfWorkFactory, IMapper mapper)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             _mapper = mapper;
         }
 
+        ///<inheritdoc/>
         public async Task<ModifyCommandResult> Handle(ChangeAppointmentDateCommand request, CancellationToken cancellationToken)
         {
             (AppointmentId appointmentId, Instant start, Instant end) = (request.Data.appointmentId, request.Data.start.ToInstant(), request.Data.end.ToInstant());

@@ -87,9 +87,7 @@
             _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
 
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleListRolesForAccountQuery(unitOfWorkFactory, expressionBuilder);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.Should()

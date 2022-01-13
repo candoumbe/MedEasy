@@ -30,7 +30,7 @@
             _loggerMock = new Mock<ILogger<HandleErrorAttribute>>(Strict);
             _loggerMock.Setup(mock => mock.Log(It.IsAny<LogLevel>(),
                                                It.IsAny<EventId>(),
-                                               It.Is<It.IsAnyType>((_, __) => true),
+                                               It.Is<It.IsAnyType>((_, _) => true),
                                                It.IsAny<Exception>(),
                                                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()));
 

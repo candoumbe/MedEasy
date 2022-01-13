@@ -40,9 +40,8 @@
         public RequireNonDefaultAttributeTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _sut = new RequireNonDefaultAttribute();
+            _sut = new ();
         }
-
 
         [Fact]
         public void IsProperlySet() =>

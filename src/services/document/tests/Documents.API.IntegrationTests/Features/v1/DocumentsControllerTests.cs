@@ -39,7 +39,7 @@
     public class DocumentsControllerTests : IAssemblyFixture<IntegrationFixture<Startup>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/documents/";
+        private const string EndpointUrl = "/documents/";
         private readonly IntegrationFixture<Startup> _sut;
         private readonly Faker _faker;
 
@@ -75,9 +75,9 @@
             };
 
             using HttpClient client = _sut.CreateClient();
-            
+
             // Act
-            using HttpResponseMessage response = await client.PostAsJsonAsync(_endpointUrl, newResourceInfo, SerializerOptions)
+            using HttpResponseMessage response = await client.PostAsJsonAsync(EndpointUrl, newResourceInfo, SerializerOptions)
                                                             .ConfigureAwait(false);
 
             // Assert

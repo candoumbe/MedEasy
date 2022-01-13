@@ -51,7 +51,6 @@
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort))
                     ),
                     "no property set"
-
                 };
 
                 yield return new object[]
@@ -59,7 +58,6 @@
                     new SearchBloodPressureInfo { From = 23.July(2010).AsUtc().ToInstant().InUtc() },
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.IsValid),
                     $"{nameof(SearchBloodPressureInfo.From)} is not null"
-
                 };
 
                 yield return new object[]
@@ -69,7 +67,6 @@
                         && vr.Errors.Once(err => err.PropertyName == nameof(SearchBloodPressureInfo.Sort) && err.Severity == Error)
                     ),
                     $"{nameof(SearchBloodPressureInfo.Sort)} is set to an empty string"
-
                 };
 
                 yield return new object[]
@@ -82,7 +79,6 @@
                         )
                     ),
                     $"{nameof(SearchBloodPressureInfo.Sort)} is set sort by a property that is not a {nameof(BloodPressureInfo)} property"
-
                 };
 
                 yield return new object[]

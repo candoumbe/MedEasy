@@ -5,6 +5,10 @@
     using System.ComponentModel;
     using System.Globalization;
 
+    /// <summary>
+    /// Provides an unified way to convert from/to <see cref="StronglyTypedId{TValue}"/>.
+    /// </summary>
+    /// <typeparam name="TValue"></typeparam>
     public class StronglyTypedIdTypeConverter<TValue> : TypeConverter where TValue : notnull
     {
         private static readonly TypeConverter IdValueConverter = GetIdValueConverter();
@@ -22,11 +26,17 @@
         }
 
         private readonly Type _type;
+
+        /// <summary>
+        /// Builds a new <see cref="StronglyTypedIdTypeConverter"/> instance with the specified <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type"></param>
         public StronglyTypedIdTypeConverter(Type type)
         {
             _type = type;
         }
 
+        ///<inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
             return sourceType == typeof(string)
@@ -34,6 +44,7 @@
                 || base.CanConvertFrom(context, sourceType);
         }
 
+        ///<inheritdoc/>
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
         {
             return destinationType == typeof(string)
@@ -41,6 +52,7 @@
                 || base.CanConvertTo(context, destinationType);
         }
 
+        ///<inheritdoc/>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             if (value is string s)
@@ -50,19 +62,24 @@
 
             object result;
 
-            if (value is TValue idValue)
+            switch (value)
             {
-                Func<TValue, object> factory = StronglyTypedIdHelper.GetFactory<TValue>(_type);
-                result = factory(idValue);
-            }
-            else
-            {
-                result = base.ConvertFrom(context, culture, value);
+                case TValue idValue:
+                    {
+                        Func<TValue, object> factory = StronglyTypedIdHelper.GetFactory<TValue>(_type);
+                        result = factory(idValue);
+                        break;
+                    }
+
+                default:
+                    result = base.ConvertFrom(context, culture, value);
+                    break;
             }
 
             return result;
         }
 
+        ///<inheritdoc/>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
             if (value is null)
@@ -92,29 +109,43 @@
         }
     }
 
+    /// <summary>
+    /// Provides a unified way to convert from and to a <see cref="StronglyTypedId{TValue}"/>
+    /// </summary>
     public class StronglyTypedIdTypeConverter : TypeConverter
     {
         private static readonly ConcurrentDictionary<Type, TypeConverter> ActualConverters = new();
 
         private readonly TypeConverter _innerConverter;
 
+        /// <summary>
+        /// Builds a new <see cref="StronglyTypedIdTypeConverter"/> instance that can handle the specified
+        /// <paramref name="stronglyTypedIdType"/>.
+        /// </summary>
+        /// <param name="stronglyTypedIdType"></param>
         public StronglyTypedIdTypeConverter(Type stronglyTypedIdType)
         {
             _innerConverter = ActualConverters.GetOrAdd(stronglyTypedIdType, CreateActualConverter);
         }
 
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =>
-            _innerConverter.CanConvertFrom(context, sourceType);
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
-            _innerConverter.CanConvertTo(context, destinationType);
+        ///<inheritdoc/>
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            => _innerConverter.CanConvertFrom(context, sourceType);
+
+        ///<inheritdoc/>
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+            => _innerConverter.CanConvertTo(context, destinationType);
+
+        ///<inheritdoc/>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) => _innerConverter.ConvertFrom(context, culture, value);
 
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) =>
-            _innerConverter.ConvertTo(context, culture, value, destinationType);
+        ///<inheritdoc/>
+        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+            => _innerConverter.ConvertTo(context, culture, value, destinationType);
 
         private static TypeConverter CreateActualConverter(Type stronglyTypedIdType)
         {
-            if (!StronglyTypedIdHelper.IsStronglyTypedId(stronglyTypedIdType, out Type idType))
+            if (!StronglyTypedIdHelper.TryIsStronglyTypedId(stronglyTypedIdType, out Type idType))
             {
                 throw new InvalidOperationException($"The type '{stronglyTypedIdType}' is not a strongly typed id");
             }

@@ -26,7 +26,6 @@
         /// <param name="pageSize">number of items the result should return at most</param>
         public GetPageOfAttendeeInfoQuery(int page, int pageSize) : this(new PaginationConfiguration { Page = page, PageSize = pageSize })
         {
-
         }
     }
 }

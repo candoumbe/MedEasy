@@ -5,36 +5,16 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
-    public class StronglyTypedIdJsonConverterFactory : JsonConverterFactory
-    {
-        private static readonly ConcurrentDictionary<Type, JsonConverter> Cache = new();
-
-        public override bool CanConvert(Type typeToConvert)
-        {
-            return StronglyTypedIdHelper.IsStronglyTypedId(typeToConvert);
-        }
-
-        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
-        {
-            return Cache.GetOrAdd(typeToConvert, CreateConverter);
-        }
-
-        private static JsonConverter CreateConverter(Type typeToConvert)
-        {
-            if (!StronglyTypedIdHelper.IsStronglyTypedId(typeToConvert, out var valueType))
-            {
-                throw new InvalidOperationException($"Cannot create converter for '{typeToConvert}'");
-            }
-
-            var type = typeof(StronglyTypedIdJsonConverter<,>).MakeGenericType(typeToConvert, valueType);
-            return (JsonConverter)Activator.CreateInstance(type);
-        }
-    }
-
+    /// <summary>
+    /// Converts a <typeparamref name="TStronglyTypedId"/> value from/to JSON
+    /// </summary>
+    /// <typeparam name="TStronglyTypedId">Type of value to convert from/to</typeparam>
+    /// <typeparam name="TValue">Type of the raw value wrapped inside <see cref="StronglyTypedId{TValue}"/></typeparam>
     public class StronglyTypedIdJsonConverter<TStronglyTypedId, TValue> : JsonConverter<TStronglyTypedId>
         where TStronglyTypedId : StronglyTypedId<TValue>
         where TValue : notnull
     {
+        ///<inheritdoc/>
         public override TStronglyTypedId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             TStronglyTypedId stronglyTypedId = null;

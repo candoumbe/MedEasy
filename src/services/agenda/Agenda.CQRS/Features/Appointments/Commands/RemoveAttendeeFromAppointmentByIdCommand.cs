@@ -31,6 +31,7 @@
             }
         }
 
+        ///<inheritdoc/>
         public bool Equals(RemoveAttendeeFromAppointmentByIdCommand other) => other != null
                 && (ReferenceEquals(this, other) || Equals(Data, other.Data));
     }

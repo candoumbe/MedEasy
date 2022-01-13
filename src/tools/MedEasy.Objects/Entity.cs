@@ -4,9 +4,7 @@ namespace MedEasy.Objects
 
     public abstract class Entity<TKey, TEntry> : BaseEntity<TKey> where TEntry : class
     {
-#pragma warning disable IDE0044 // Ajouter un modificateur readonly
         private readonly TKey _id;
-#pragma warning restore IDE0044 // Ajouter un modificateur readonly
 
         public override TKey Id => _id;
 

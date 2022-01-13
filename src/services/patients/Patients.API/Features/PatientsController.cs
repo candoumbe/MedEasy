@@ -1,6 +1,5 @@
 ﻿namespace Patients.API.Controllers
 {
-
     using FluentValidation.Results;
 
     using MedEasy.Attributes;
@@ -186,7 +185,6 @@
                     },
                     none: () => new NotFoundResult()
                 );
-
             }
             return actionResult;
         }
@@ -232,6 +230,7 @@
                     CreateCommandFailure.Conflict => new ConflictResult(),
                     CreateCommandFailure.NotFound => new NotFoundResult(),
                     CreateCommandFailure.Unauthorized => new StatusCodeResult(Status401Unauthorized),
+                    _ => throw new NotSupportedException($"Unexpected {failure} failure when creating a patient"),
                 });
         }
 
@@ -265,7 +264,8 @@
                     DeleteCommandResult.Done => new NoContentResult(),
                     DeleteCommandResult.Failed_Unauthorized => new UnauthorizedResult(),
                     DeleteCommandResult.Failed_NotFound => new NotFoundResult(),
-                    DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict)
+                    DeleteCommandResult.Failed_Conflict => new StatusCodeResult(Status409Conflict),
+                    _ => throw new NotSupportedException($"Unexpected {cmdResult} result when deleting a patient")
                 };
             }
 

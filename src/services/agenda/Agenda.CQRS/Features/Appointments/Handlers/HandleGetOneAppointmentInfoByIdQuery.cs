@@ -18,6 +18,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// HAndles <see cref="GetOneAppointmentInfoByIdQuery"/> queries.
+    /// </summary>
     public class HandleGetOneAppointmentInfoByIdQuery : IRequestHandler<GetOneAppointmentInfoByIdQuery, Option<AppointmentInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -34,14 +37,15 @@
             _mapper = mapper;
         }
 
+        ///<inheritdoc/>
         public async Task<Option<AppointmentInfo>> Handle(GetOneAppointmentInfoByIdQuery request, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
             Expression<Func<Appointment, AppointmentInfo>> selector = _mapper.ConfigurationProvider.ExpressionBuilder.GetMapExpression<Appointment, AppointmentInfo>();
 
             return await uow.Repository<Appointment>()
-                .SingleOrDefaultAsync(selector, (Appointment x) => x.Id == request.Data, ct)
-                .ConfigureAwait(false);
+                            .SingleOrDefaultAsync(selector, (Appointment x) => x.Id == request.Data, ct)
+                            .ConfigureAwait(false);
         }
     }
 }

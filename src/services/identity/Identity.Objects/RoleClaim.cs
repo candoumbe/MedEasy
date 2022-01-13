@@ -9,8 +9,14 @@
     /// </summary>
     public class RoleClaim : Entity<RoleClaimId, RoleClaim>
     {
-        public Claim Claim { get; private set; }
+        /// <summary>
+        /// <see cref="Objects.Claim"/> of the association
+        /// </summary>
+        public Claim Claim { get; }
 
+        /// <summary>
+        /// Identifies the <see cref="Role"/> referenced in the current association.
+        /// </summary>
         public RoleId RoleId { get; }
 
         private RoleClaim(RoleId roleId, RoleClaimId id) : base(id)

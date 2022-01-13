@@ -6,12 +6,17 @@ using Yarp.ReverseProxy.Configuration;
 namespace MedEasy.ReverseProxy
 {
     /// <summary>
-    /// <see cref="IPro"/>
+    /// <see cref="IProxyConfigProvider"/> implementation for tye
     /// </summary>
     public class TyeConfigurationProvider : IProxyConfigProvider
     {
         private volatile TyeConfig _config;
 
+        /// <summary>
+        /// Builds a new <see cref="TyeConfigurationProvider"/> for tye
+        /// </summary>
+        /// <param name="routes"></param>
+        /// <param name="clusters"></param>
         public TyeConfigurationProvider(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters) => _config = new TyeConfig(routes, clusters);
 
         /// <summary>
@@ -29,6 +34,5 @@ namespace MedEasy.ReverseProxy
             _config = new TyeConfig(routes, clusters);
             oldConfig.SignalChange();
         }
-
     }
 }

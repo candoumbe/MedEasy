@@ -125,7 +125,6 @@
                 }
 
                 {
-
                     IEnumerable<Document> documents = documentFaker.Generate(100);
                     yield return new object[]
                     {

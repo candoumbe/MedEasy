@@ -37,6 +37,7 @@
             _mapper = mapper;
         }
 
+        ///<inheritdoc/>
         public async Task<Option<AttendeeInfo>> Handle(GetOneAttendeeInfoByIdQuery request, CancellationToken cancellationToken)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();

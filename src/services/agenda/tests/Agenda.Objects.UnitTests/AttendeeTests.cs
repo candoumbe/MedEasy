@@ -50,7 +50,6 @@ namespace Agenda.Objects.UnitTests
             // Assert
             action.Should()
                 .Throw<ArgumentException>($"Cannot create an {nameof(Attendee)} instance with empty {nameof(Attendee.Id)}");
-
         }
 
         [Theory]

@@ -175,7 +175,7 @@ namespace MedEasy.ContinuousIntegration
         public readonly bool Watch = false;
 
         [Parameter("Services to debug")]
-        public readonly MedEasyServices[] DebugServices = { };
+        public readonly MedEasyServices[] DebugServices = Array.Empty<MedEasyServices>();
 
         [Parameter("Generic name placeholder. Can be used wherever a name is required")]
         public readonly string Name;

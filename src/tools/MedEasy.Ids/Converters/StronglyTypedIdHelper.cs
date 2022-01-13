@@ -5,7 +5,10 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Linq.Expressions;
 
-    public static class StronglyTypedIdHelper
+    /// <summary>
+    /// Helper class
+    /// </summary>
+    internal static class StronglyTypedIdHelper
     {
         private static readonly ConcurrentDictionary<Type, Delegate> StronglyTypedIdFactories = new();
 
@@ -38,12 +41,24 @@
             return lambda.Compile();
         }
 
-        public static bool IsStronglyTypedId(Type type) => IsStronglyTypedId(type, out _);
+        /// <summary>
+        /// Tests if <paramref name="type"/> stands for a Stronglu
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsStronglyTypedId(Type type) => TryIsStronglyTypedId(type, out _);
 
-#if NETSTANDARD2_0
-        public static bool IsStronglyTypedId(Type type, out Type idType)
+        /// <summary>
+        /// Checks if the specified <paramref name="type"/> is a <see cref="StronglyTypedId{TValue}"/>
+        /// </summary>
+        /// <param name="type">The type to test</param>
+        /// <param name="idType">The raw</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+#if NETSTANDARD2_0 
+        public static bool TryIsStronglyTypedId(Type type, out Type idType)
 #else
-        public static bool IsStronglyTypedId(Type type, [NotNullWhen(true)] out Type idType)
+        public static bool TryIsStronglyTypedId(Type type, [NotNullWhen(true)] out Type idType)
 #endif
         {
             if (type is null)

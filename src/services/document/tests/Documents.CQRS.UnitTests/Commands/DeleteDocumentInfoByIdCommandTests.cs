@@ -17,7 +17,6 @@
     [UnitTest]
     public class DeletedocumentByIdCommandTests
     {
-
         [Fact]
         public void IsCommand() => typeof(DeleteDocumentInfoByIdCommand).Should()
            .BeAssignableTo<ICommand<Guid, DocumentId, DeleteCommandResult>>();

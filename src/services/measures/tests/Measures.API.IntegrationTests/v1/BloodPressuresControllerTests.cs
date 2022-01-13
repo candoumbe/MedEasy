@@ -1,6 +1,5 @@
 namespace Measures.API.IntegrationTests.v1
 {
-
     using FluentAssertions;
 
     using MedEasy.IntegrationTests.Core;
@@ -35,9 +34,9 @@ namespace Measures.API.IntegrationTests.v1
     {
         private readonly IntegrationFixture<Program> _sut;
         private readonly ITestOutputHelper _outputHelper;
-        private const string _endpointUrl = "/bloodpressures";
+        private const string EndpointUrl = "/bloodpressures";
 
-        private static readonly JSchema _pageLink = new()
+        private static readonly JSchema PageLink = new()
         {
             Type = JSchemaType.Object | JSchemaType.Null,
             Properties =
@@ -52,7 +51,7 @@ namespace Measures.API.IntegrationTests.v1
             AllowAdditionalProperties = false
         };
 
-        private static readonly JSchema _pageResponseSchema = new()
+        private static readonly JSchema PageResponseSchema = new()
         {
             Type = JSchemaType.Object,
             Properties =
@@ -64,10 +63,10 @@ namespace Measures.API.IntegrationTests.v1
                         Type = JSchemaType.Object,
                         Properties =
                         {
-                            [nameof(PageLinks.First).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Previous).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Next).ToLower()] = _pageLink,
-                            [nameof(PageLinks.Last).ToLower()] = _pageLink
+                            [nameof(PageLinks.First).ToLower()] = PageLink,
+                            [nameof(PageLinks.Previous).ToLower()] = PageLink,
+                            [nameof(PageLinks.Next).ToLower()] = PageLink,
+                            [nameof(PageLinks.Last).ToLower()] = PageLink
                         },
                         Required =
                         {
@@ -95,7 +94,7 @@ namespace Measures.API.IntegrationTests.v1
         {
             // Arrange
             using HttpClient client = _sut.CreateClient();
-            HttpRequestMessage getAllRequest = new(Get, _endpointUrl);
+            HttpRequestMessage getAllRequest = new(Get, EndpointUrl);
             getAllRequest.Headers.Add("api-version", "1.0");
             // Act
             using HttpResponseMessage response = await client.SendAsync(getAllRequest)
@@ -110,7 +109,7 @@ namespace Measures.API.IntegrationTests.v1
             ((int)response.StatusCode).Should().Be(Status200OK);
 
             JToken pageResponseToken = JToken.Parse(json);
-            pageResponseToken.IsValid(_pageResponseSchema).Should()
+            pageResponseToken.IsValid(PageResponseSchema).Should()
                              .BeTrue();
         }
 
@@ -137,7 +136,7 @@ namespace Measures.API.IntegrationTests.v1
             _outputHelper.WriteLine($"Paging configuration : {SerializeObject(new { page, pageSize })}");
 
             // Arrange
-            HttpRequestMessage getAllRequest = new(Head, $"{_endpointUrl}?page={page}&pageSize={pageSize}");
+            HttpRequestMessage getAllRequest = new(Head, $"{EndpointUrl}?page={page}&pageSize={pageSize}");
             getAllRequest.Headers.Add("api-version", "1.0");
 
             using HttpClient client = _sut.CreateClient();

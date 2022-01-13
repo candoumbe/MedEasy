@@ -66,7 +66,7 @@
         }
 
         /// <summary>
-        /// Gets a page of participants resources. 
+        /// Gets a page of participants resources.
         /// The number of resources the page contains may be less than <paramref name="pageSize"/>.
         /// </summary>
         /// <param name="page">index of the page of results (1 for the first page, 2 for the next, ...)</param>
@@ -117,7 +117,6 @@
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <response code="404"></response>
-
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         public async Task<IActionResult> Get([RequireNonDefault] AttendeeId id, CancellationToken ct = default)
@@ -155,8 +154,8 @@
         /// <param name="from">start date interval</param>
         /// <param name="to">end date interval</param>
         /// <param name="ct"></param>
-        /// 
-        /// 
+        ///
+        ///
         /// <returns>Paginated list of appointments</returns>
         /// <reponse code="400">
         ///     either <paramref name="id"/> is not set,
@@ -224,7 +223,7 @@
         ///     // GET /participants/search?name=!Wayne
         ///     will match all resources where `name` is not "Wayne"
         /// </para>
-        ///     
+        ///
         /// </remarks>
         /// <response code="200">"page" of resources that matches <paramref name="search"/> criteria.</response>
         /// <response code="206">"page" of resources that matches <paramref name="search"/> criteria and there are more than one page of result.</response>

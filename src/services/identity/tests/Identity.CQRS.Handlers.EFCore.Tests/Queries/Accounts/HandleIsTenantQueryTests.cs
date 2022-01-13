@@ -93,9 +93,7 @@
         public void Ctor_Throws_ArgumentNullException_When_Parameters_Is_Null()
         {
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleIsTenantQuery(null);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.Should()

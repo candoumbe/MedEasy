@@ -93,9 +93,7 @@
             _outputHelper.WriteLine($"{nameof(expressionBuilder)} is null : {expressionBuilder == null}");
             _outputHelper.WriteLine($"{nameof(mediator)} is null : {mediator == null}");
             // Act
-#pragma warning disable IDE0039 // Utiliser une fonction locale
             Action action = () => new HandleDeleteBloodPressureInfoByIdCommand(unitOfWorkFactory, expressionBuilder, mediator);
-#pragma warning restore IDE0039 // Utiliser une fonction locale
 
             // Assert
             action.Should()

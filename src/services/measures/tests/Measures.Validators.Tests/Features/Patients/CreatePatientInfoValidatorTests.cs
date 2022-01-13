@@ -1,6 +1,5 @@
 namespace Measures.Validators.Tests.Features.Patients
 {
-
     using FluentAssertions;
 
     using FluentValidation;
@@ -157,7 +156,6 @@ namespace Measures.Validators.Tests.Features.Patients
                 .HaveCount(1).And
                 .Contain(x => x.PropertyName == nameof(NewSubjectInfo.Id));
         }
-
     }
 }
 

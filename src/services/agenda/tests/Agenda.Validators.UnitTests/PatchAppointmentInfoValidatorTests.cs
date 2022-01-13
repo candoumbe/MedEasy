@@ -68,7 +68,6 @@
         [MemberData(nameof(CtorThrowsArgumentNullExceptionCases))]
         public void Throws_ArgumentNullException_WhenParameterIsNull(IUnitOfWorkFactory uowFactory, IClock dateTimeService)
         {
-
             _outputHelper.WriteLine($"Datetime service is null : {dateTimeService == null}");
             _outputHelper.WriteLine($"uowFactory service is null : {uowFactory == null}");
 
