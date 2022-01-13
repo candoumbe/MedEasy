@@ -85,7 +85,7 @@
 
             // Assert
             execution.Should()
-                     .Throw<Exception>();
+                     .ThrowAsync<Exception>();
             loggerMock.Verify(mock => mock.Log(IsAny<LogLevel>(),
                                                IsAny<EventId>(),
                                                IsAny<IsAnyType>(),

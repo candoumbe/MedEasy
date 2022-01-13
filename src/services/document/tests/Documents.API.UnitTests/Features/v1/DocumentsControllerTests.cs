@@ -580,9 +580,9 @@ namespace Documents.API.UnitTests.Features.v1
                 .Be(RouteNames.DefaultGetOneByIdApi);
             RouteValueDictionary routeValues = createdAtRouteResult.RouteValues;
             routeValues.Should()
-                .ContainKey("controller").WhichValue.Should().Be(DocumentsController.EndpointName);
+                .ContainKey("controller").WhoseValue.Should().Be(DocumentsController.EndpointName);
             routeValues.Should()
-                .ContainKey("id").WhichValue.Should()
+                .ContainKey("id").WhoseValue.Should()
                     .BeOfType<DocumentId>().Which.Should()
                     .NotBe(DocumentId.Empty);
         }

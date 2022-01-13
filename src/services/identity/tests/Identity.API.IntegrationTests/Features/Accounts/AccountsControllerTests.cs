@@ -77,7 +77,7 @@
                 .BeFalse("no bearer token was provided");
 
             response.StatusCode.Should()
-                .Be(Status401Unauthorized);
+                .HaveValue(Status401Unauthorized);
         }
 
         [Fact]
@@ -110,7 +110,7 @@
             response.IsSuccessStatusCode.Should()
                 .BeTrue();
             response.StatusCode.Should()
-                .Be(Status201Created);
+                .HaveValue(Status201Created);
 
             string jsonResponse = await response.Content.ReadAsStringAsync()
                                                         .ConfigureAwait(false);
@@ -165,7 +165,7 @@
             _outputHelper.WriteLine($"Response's content : {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
 
             response.IsSuccessStatusCode.Should().BeTrue();
-            response.StatusCode.Should().Be(Status200OK);
+            response.StatusCode.Should().HaveValue(Status200OK);
 
             string jsonResponse = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
