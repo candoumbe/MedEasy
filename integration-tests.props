@@ -6,6 +6,6 @@
     <IsIntegrationTestProject>true</IsIntegrationTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Xunit.Extensions.Assemblyfixture" Version="2.4.0"/>
+    <PackageReference Include="Xunit.Extensions.Assemblyfixture" Version="2.4.1"/>
   </ItemGroup>
 </Project>
