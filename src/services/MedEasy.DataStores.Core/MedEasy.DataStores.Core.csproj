@@ -19,7 +19,7 @@
   </Choose>
 
   <ItemGroup>
-    <PackageReference Include="Polly" Version="7.2.2" />
+    <PackageReference Include="Polly" Version="7.2.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
