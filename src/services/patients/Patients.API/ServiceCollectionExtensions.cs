@@ -191,6 +191,7 @@
                         options => options.EnableRetryOnFailure(5)
                                           .UseNodaTime()
                                           .MigrationsAssembly("Patients.DataStores.Postgres")
+                                          .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());

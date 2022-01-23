@@ -270,7 +270,7 @@
             }
             CreateAccountInfoCommand cmd = new(newAccount);
 
-            Option<AccountInfo, CreateCommandResult> optionalAccount = await _mediator.Send(cmd, ct)
+            Option<AccountInfo, CreateCommandFailure> optionalAccount = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
             return optionalAccount.Match<ActionResult>(
@@ -295,8 +295,8 @@
                 },
                 none: cmdError => cmdError switch
                 {
-                    CreateCommandResult.Failed_Conflict => new ConflictResult(),
-                    _ => throw new ArgumentOutOfRangeException($"Unexpected <{cmdError}> result when creating an account")
+                    CreateCommandFailure.Conflict => new ConflictResult(),
+                    _ => throw new NotSupportedException($"Unexpected <{cmdError}> failure when creating an account")
                 });
         }
 

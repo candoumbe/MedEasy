@@ -507,32 +507,37 @@ namespace MedEasy.ContinuousIntegration
                 string debug = null;
                 if (DebugServices.AtLeastOnce())
                 {
-                    debug = $"--debug {string.Join(' ', DebugServices.Select(s => $"{s}")).ToLowerInvariant()}";
+                    debug = $"--debug {string.Join(' ', DebugServices.Select(s => $"{s}-api")).ToLowerInvariant()}";
                 }
 
-
-                Tye($"run {debug} {command} --dashboard --dtrace zipkin=http://localhost:59411 --logs seq=http://localhost:55341 { (Watch ? "--watch" : string.Empty)}");
+                Tye($"run {debug} {command} {(SucceededTargets.Contains(Compile) ? "--no-build" : string.Empty)} --dashboard --dtrace zipkin=http://localhost:59411 --logs seq=http://localhost:55341 { (Watch ? "--watch" : string.Empty)}");
             });
 
         public Target StartMessageBus => _ => _
             .Description($"Starts message bus service by reading required configuration from '{TyeConfigurationFile}'")
             .Executes(() =>
             {
-                string yaml = ReadAllText(TyeConfigurationFile);
-
-                IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
-                                                                      .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                                                                      .Build();
-
-                TyeConfiguration tyeConfiguration = deserializer.Deserialize<TyeConfiguration>(yaml);
+                TyeConfiguration tyeConfiguration = ReadTyeConfiguration();
 
                 Info($"Tye content : {tyeConfiguration.Jsonify()}");
 
                 IEnumerable<TyeServiceConfiguration> services = tyeConfiguration.Services;
-                var maybeMessageBus = services.SingleOrDefault(service => service.Name == "message-bus");
+                TyeServiceConfiguration maybeMessageBus = services.SingleOrDefault(service => service.Name == "message-bus");
+
 
             });
 
+        private TyeConfiguration ReadTyeConfiguration()
+        {
+            string yaml = ReadAllText(TyeConfigurationFile);
+
+            IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
+                                                                  .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                                                                  .Build();
+
+            return deserializer.Deserialize<TyeConfiguration>(yaml);
+            
+        }
 
         protected override void OnBuildFinished()
         {

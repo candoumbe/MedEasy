@@ -172,6 +172,8 @@
                 options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
                 options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
+            
+            services.Configure<AccountOptions>((options) => options.Accounts = configuration.GetSection("Accounts").Get<SystemAccount[]>());
 
             return services;
         }
@@ -180,7 +182,7 @@
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddDataStores(this IServiceCollection services)
+        public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddTransient(serviceProvider =>
             {
@@ -199,6 +201,7 @@
             });
 
             services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityContext>>();
+            services.AddAsyncInitializer<IdentityDataStoreSeedInitializer>();
 
             return services;
 
@@ -220,8 +223,11 @@
                     builder.UseNpgsql(connectionString,
                                       options => options.EnableRetryOnFailure(5)
                                                         .UseNodaTime()
-                                                        .MigrationsAssembly("Identity.DataStores.Postgres"));
+                                                        .MigrationsAssembly("Identity.DataStores.Postgres")
+                                                        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                                                        );
                 }
+
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
                        .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
                        .ConfigureWarnings(options =>
@@ -244,7 +250,7 @@
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
-                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+
                 options.DefaultApiVersion = new ApiVersion(2, 0);
                 options.ApiVersionReader = ApiVersionReader.Combine(
                     new HeaderApiVersionReader("api-version", "version"),
@@ -257,10 +263,6 @@
                     // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
                     // note: the specified format code will format the version as "'v'major[.minor][-status]"
                     options.GroupNameFormat = "'v'VVV";
-
-                    // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
-                    // can also be used to control the format of the API version in route templates
-                    options.SubstituteApiVersionInUrl = true;
                 });
 
             services.AddScoped(sp =>
@@ -350,7 +352,7 @@
         {
             IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
             return healthChecksBuilder
-                                  .AddDbContextCheck(customTestQuery: (Func<IdentityContext, System.Threading.CancellationToken, System.Threading.Tasks.Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
+                                  .AddDbContextCheck(customTestQuery: (Func<IdentityContext, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
         }
 
         /// <summary>

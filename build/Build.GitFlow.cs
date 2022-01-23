@@ -176,7 +176,7 @@
 
             if (!hasCleanWorkingCopy && AutoStash)
             {
-                Git("stash apply");
+                Git("stash pop");
             }
         }
 

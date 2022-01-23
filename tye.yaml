@@ -55,7 +55,7 @@ services:
   - backends
   - documents
 - name: identity
-  image: postgres:12-alpine
+  image: postgres:14-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
   - POSTGRES_USER="identity_api"
@@ -68,7 +68,7 @@ services:
   - identity
   - databases
 - name: measures
-  image: postgres:12-alpine
+  image: postgres:14-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
   - POSTGRES_USER="measures_api"
@@ -81,7 +81,7 @@ services:
   - measures
   - databases
 - name: documents
-  image: postgres:12-alpine
+  image: postgres:14-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
   - POSTGRES_USER="documents_api"
@@ -94,7 +94,7 @@ services:
   - documents
   - databases
 - name: patients
-  image: postgres:12-alpine
+  image: postgres:14-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
   - POSTGRES_USER="patients_api"
@@ -107,7 +107,7 @@ services:
   - patients
   - databases
 - name: agenda
-  image: postgres:12-alpine
+  image: postgres:14-alpine
   env:
   - POSTGRES_PASSWORD="pass@word1"
   - POSTGRES_USER="agenda_api"

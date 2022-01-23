@@ -17,9 +17,9 @@ namespace Patients.DataStores.Postgres.Migrations
                     Lastname = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     BirthDate = table.Column<LocalDate>(type: "date", nullable: true),
                     BirthPlace = table.Column<string>(type: "text", nullable: true),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>

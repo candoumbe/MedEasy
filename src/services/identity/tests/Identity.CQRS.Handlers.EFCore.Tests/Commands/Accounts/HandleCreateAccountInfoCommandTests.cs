@@ -162,7 +162,7 @@
             CreateAccountInfoCommand cmd = new(newResourceInfo);
 
             // Act
-            Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
+            Option<AccountInfo, CreateCommandFailure> optionalCreatedResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -172,7 +172,7 @@
             optionalCreatedResource.MatchNone(cmdError =>
             {
                 cmdError.Should()
-                    .Be(CreateCommandResult.Failed_Conflict);
+                    .Be(CreateCommandFailure.Conflict);
             });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
@@ -199,7 +199,7 @@
             CreateAccountInfoCommand cmd = new(newResourceInfo);
 
             // Act
-            Option<AccountInfo, CreateCommandResult> optionalCreatedResource = await _sut.Handle(cmd, default)
+            Option<AccountInfo, CreateCommandFailure> optionalCreatedResource = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -209,7 +209,7 @@
             optionalCreatedResource.MatchNone(cmdError =>
             {
                 cmdError.Should()
-                    .Be(CreateCommandResult.Failed_Conflict);
+                    .Be(CreateCommandFailure.Conflict);
             });
 
             _mapperMock.Verify(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()), Times.Never, "Duplicated Username");
@@ -289,7 +289,7 @@
             CreateAccountInfoCommand cmd = new(newAccount);
 
             // Act
-            Option<AccountInfo, CreateCommandResult> optionalResult = await _sut.Handle(cmd, default)
+            Option<AccountInfo, CreateCommandFailure> optionalResult = await _sut.Handle(cmd, default)
                 .ConfigureAwait(false);
 
             // Assert

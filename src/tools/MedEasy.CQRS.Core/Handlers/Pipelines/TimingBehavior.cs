@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// A pipeline behavior that logs command handlers inputs and outputs
+    /// A MediatR behavior that logs command's handlers execution time.
     /// </summary>
     public class TimingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : notnull
@@ -17,6 +17,10 @@
         private readonly ILogger<TimingBehavior<TRequest, TResponse>> _logger;
         private readonly Stopwatch _watch;
 
+        /// <summary>
+        /// Builds a new <see cref="TimingBehavior{TRequest, TResponse}"/> instance.
+        /// </summary>
+        /// <param name="logger"></param>
         public TimingBehavior(ILogger<TimingBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger;

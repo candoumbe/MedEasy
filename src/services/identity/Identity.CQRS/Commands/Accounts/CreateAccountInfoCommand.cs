@@ -12,7 +12,10 @@
     /// <summary>
     /// Command to create a new <see cref="AccountInfo"/>.
     /// </summary>
-    public class CreateAccountInfoCommand : CommandBase<Guid, NewAccountInfo, Option<AccountInfo, CreateCommandResult>>
+    /// <remarks>
+    /// The comamnd either succeeds and gives back a <see cref="AccountInfo"/> instance or fails with a <see cref="CreateCommandFailure"/> outcome
+    /// </remarks>
+    public class CreateAccountInfoCommand : CommandBase<Guid, NewAccountInfo, Option<AccountInfo, CreateCommandFailure>>
     {
         /// <summary>
         /// Builds a new <see cref="CreateAccountInfoCommand"/> instance.

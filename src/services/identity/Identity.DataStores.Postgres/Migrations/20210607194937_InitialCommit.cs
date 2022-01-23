@@ -22,9 +22,9 @@ namespace Identity.DataStores.Postgres.Migrations
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     Locked = table.Column<bool>(type: "boolean", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -38,9 +38,9 @@ namespace Identity.DataStores.Postgres.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -56,8 +56,8 @@ namespace Identity.DataStores.Postgres.Migrations
                     AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     Claim_Type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     Claim_Value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Start = table.Column<Instant>(type: "timestamp", nullable: false),
-                    End = table.Column<Instant>(type: "timestamp", nullable: true)
+                    Start = table.Column<Instant>(type: "timestamp with time zone", nullable: false),
+                    End = table.Column<Instant>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {

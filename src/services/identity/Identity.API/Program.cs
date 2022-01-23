@@ -54,7 +54,6 @@
             }
         }
 
-
         /// <summary>
         /// Builds the host
         /// </summary>
@@ -81,6 +80,11 @@
                                options.ClearProviders() // removes all default providers
                                    .AddSerilog()
                                    .AddConsole();
-                           });
+                           })
+                           .ConfigureAppConfiguration((_, config) =>
+                           {
+                               config.AddJsonFile("accounts.json", optional: false, reloadOnChange: true);
+                           })
+            ;
     }
 }

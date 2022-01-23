@@ -31,8 +31,8 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCustomMvc(_configuration, _hostingEnvironment)
-                .AddDataStores()
                 .AddCustomOptions(_configuration)
+                .AddDataStores(_configuration)
                 .AddCustomAuthentication(_configuration)
                 .AddCustomApiVersioning()
                 .AddDependencyInjection()
