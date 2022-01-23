@@ -22,8 +22,7 @@
     /// <summary>
     /// Handles <see cref="GetPageOfAccountQuery"/> queries
     /// </summary>
-    public class HandleGetPageOfAccountsQuery :
-        IRequestHandler<GetPageOfAccountsQuery, Page<AccountInfo>>
+    public class HandleGetPageOfAccountsQuery : IRequestHandler<GetPageOfAccountsQuery, Page<AccountInfo>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IExpressionBuilder _expressionBuilder;
@@ -39,21 +38,22 @@
             _expressionBuilder = expressionBuilder;
         }
 
-        public Task<Page<AccountInfo>> Handle(GetPageOfAccountsQuery request, CancellationToken ct)
+        ///<inheritdoc/>
+        public async Task<Page<AccountInfo>> Handle(GetPageOfAccountsQuery request, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
 
             PaginationConfiguration data = request.Data;
             Expression<Func<Account, AccountInfo>> selector = _expressionBuilder.GetMapExpression<Account, AccountInfo>();
 
-            return uow.Repository<Account>()
-                      .ReadPageAsync(
-                            selector: selector,
-                            pageSize: data.PageSize,
-                            page: data.Page,
-                            orderBy: new Sort<AccountInfo>(nameof(AccountInfo.UpdatedDate), SortDirection.Descending),
-                            ct: ct)
-                      .AsTask();
+            return await uow.Repository<Account>()
+                            .ReadPageAsync(
+                                    selector: selector,
+                                    pageSize: data.PageSize,
+                                    page: data.Page,
+                                    orderBy: new Sort<AccountInfo>(nameof(AccountInfo.UpdatedDate), SortDirection.Descending),
+                                    ct: ct)
+                      .ConfigureAwait(false);
         }
     }
 }

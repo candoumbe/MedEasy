@@ -63,6 +63,7 @@
             _logger.LogDebug("Token will be valid from {Start} to {End}", data.from, expires);
 
             _logger.LogDebug("Finished handling command {CommandId}", request.Id);
+
             return new ValueTask<SecurityToken>(token).AsTask();
         }
     }

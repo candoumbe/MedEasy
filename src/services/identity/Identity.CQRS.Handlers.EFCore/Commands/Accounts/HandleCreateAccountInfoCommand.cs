@@ -22,7 +22,7 @@
     /// <summary>
     /// Handles creation of <see cref="AccountInfo"/>s
     /// </summary>
-    public class HandleCreateAccountInfoCommand : IRequestHandler<CreateAccountInfoCommand, Option<AccountInfo, CreateCommandResult>>
+    public class HandleCreateAccountInfoCommand : IRequestHandler<CreateAccountInfoCommand, Option<AccountInfo, CreateCommandFailure>>
     {
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly IMapper _mapper;
@@ -41,10 +41,10 @@
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public async Task<Option<AccountInfo, CreateCommandResult>> Handle(CreateAccountInfoCommand request, CancellationToken ct)
+        public async Task<Option<AccountInfo, CreateCommandFailure>> Handle(CreateAccountInfoCommand request, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
-            Option<AccountInfo, CreateCommandResult> cmdResult = Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict);
+            Option<AccountInfo, CreateCommandFailure> cmdResult = Option.None<AccountInfo, CreateCommandFailure>(CreateCommandFailure.Conflict);
             NewAccountInfo data = request.Data;
             if (data.Password == data.ConfirmPassword && !await uow.Repository<Account>()
                                                                    .AnyAsync(x => x.Username == data.Username, ct)
@@ -64,7 +64,7 @@
                 Option<AccountInfo> optionalAccountInfo = await _mediator.Send(new GetOneAccountByIdQuery(newEntity.Id), ct)
                                                                          .ConfigureAwait(false);
 
-                optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandResult>(newAccountInfo));
+                optionalAccountInfo.MatchSome(newAccountInfo => cmdResult = Option.Some<AccountInfo, CreateCommandFailure>(newAccountInfo));
             }
 
             return cmdResult;

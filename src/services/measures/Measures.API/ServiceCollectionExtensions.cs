@@ -185,7 +185,8 @@
                     builder.UseNpgsql(connectionString,
                                       options => options.EnableRetryOnFailure(5)
                                                         .UseNodaTime()
-                                                        .MigrationsAssembly("Measures.DataStores.Postgres"));
+                                                        .MigrationsAssembly("Measures.DataStores.Postgres")
+                                                        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
                 builder.ConfigureWarnings(options =>
@@ -269,13 +270,6 @@
             services.AddSingleton(AutoMapperConfig.Build().CreateMapper());
             services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IMapper>().ConfigurationProvider.ExpressionBuilder);
             services.AddHttpContextAccessor();
-
-            services.AddScoped<ApiVersion>(sp =>
-            {
-                HttpContext http = sp.GetRequiredService<IHttpContextAccessor>().HttpContext;
-                return http.Features.Get<IApiVersioningFeature>()?.RequestedApiVersion;
-            });
-
             services.AddSingleton<IClock>(SystemClock.Instance);
 
             return services;

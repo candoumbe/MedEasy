@@ -29,7 +29,8 @@
             _handleSearchQuery = handleSearchQuery ?? throw new ArgumentNullException(nameof(handleSearchQuery));
         }
 
-        public Task<Page<SubjectInfo>> Handle(SearchQuery<SubjectInfo> request, CancellationToken cancellationToken) =>
-            _handleSearchQuery.Search<Subject, SubjectInfo>(request, cancellationToken);
+        ///<inheritdoc/>
+        public async Task<Page<SubjectInfo>> Handle(SearchQuery<SubjectInfo> request, CancellationToken cancellationToken)
+            => await _handleSearchQuery.Search<Subject, SubjectInfo>(request, cancellationToken).ConfigureAwait(false);
     }
 }

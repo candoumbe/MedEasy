@@ -519,7 +519,7 @@
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<AccountInfo, CreateCommandResult>(CreateCommandResult.Failed_Conflict));
+                         .ReturnsAsync(Option.None<AccountInfo, CreateCommandFailure>(CreateCommandFailure.Conflict));
 
             // Act
             IActionResult actionResult = await _sut.Post(newAccount, ct: default)
@@ -546,7 +546,7 @@
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken _) => Option.Some<AccountInfo, CreateCommandResult>(new AccountInfo { Username = cmd.Data.Username, Id = AccountId.New() }));
+                         .ReturnsAsync((CreateAccountInfoCommand cmd, CancellationToken _) => Option.Some<AccountInfo, CreateCommandFailure>(new AccountInfo { Username = cmd.Data.Username, Id = AccountId.New() }));
 
             // Act
             IActionResult actionResult = await _sut.Post(newAccount, ct: default)

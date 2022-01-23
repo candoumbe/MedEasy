@@ -26,7 +26,8 @@
         {
         }
 
-        public Task<Page<TMeasureInfo>> Search(SearchQuery<TMeasureInfo> request, CancellationToken cancellationToken) =>
-            Search<TMeasure, TMeasureInfo>(request, cancellationToken);
+        ///<inheritdoc/>
+        public async Task<Page<TMeasureInfo>> Search(SearchQuery<TMeasureInfo> request, CancellationToken cancellationToken)
+            => await Search<TMeasure, TMeasureInfo>(request, cancellationToken).ConfigureAwait(false);
     }
 }

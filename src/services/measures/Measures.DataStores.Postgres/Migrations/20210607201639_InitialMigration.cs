@@ -15,9 +15,9 @@ namespace Measures.DataStores.Postgres.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     BirthDate = table.Column<LocalDate>(type: "date", nullable: true),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -30,13 +30,13 @@ namespace Measures.DataStores.Postgres.Migrations
                 columns: table => new
                 {
                     PatientId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DateOfMeasure = table.Column<Instant>(type: "timestamp", nullable: false),
+                    DateOfMeasure = table.Column<Instant>(type: "timestamp with time zone", nullable: false),
                     DiastolicPressure = table.Column<float>(type: "real", nullable: false),
                     SystolicPressure = table.Column<float>(type: "real", nullable: false),
                     Id = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -55,12 +55,12 @@ namespace Measures.DataStores.Postgres.Migrations
                 columns: table => new
                 {
                     PatientId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DateOfMeasure = table.Column<Instant>(type: "timestamp", nullable: false),
+                    DateOfMeasure = table.Column<Instant>(type: "timestamp with time zone", nullable: false),
                     Value = table.Column<float>(type: "real", nullable: false),
                     Id = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedDate = table.Column<Instant>(type: "timestamp", nullable: true),
+                    UpdatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>

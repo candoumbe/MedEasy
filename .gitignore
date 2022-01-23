@@ -257,3 +257,4 @@ ModelManifest.xml
 
 # Nuke temp directory
 /.nuke/temp
+/src/services/measures/tests/Measures.API.Tests/Properties/launchSettings.json

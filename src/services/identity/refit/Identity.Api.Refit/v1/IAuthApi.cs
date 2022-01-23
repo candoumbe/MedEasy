@@ -12,6 +12,7 @@ namespace Identity.Api.Refit.v1;
 /// <summary>
 /// Authentication API v1
 /// </summary>
+[Headers("api-version:1.0")]
 public interface IAuthApi
 {
     /// <summary>
@@ -20,7 +21,7 @@ public interface IAuthApi
     /// <param name="login">Contains username and password of the user to authenticate</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [Post("/v1/auth/token")]
+    [Post("/auth/token")]
     Task<ApiResponse<BearerTokenInfo>> Login([Body]LoginInfo login, CancellationToken ct);
 
     /// <summary>
@@ -29,7 +30,7 @@ public interface IAuthApi
     /// <param name="login">Contains username and password of the user to authenticate</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [Delete("/v1/auth/token/{username}")]
+    [Delete("/auth/token/{username}")]
     Task Disconnect(string username, CancellationToken ct);
 
     /// <summary>
@@ -39,6 +40,6 @@ public interface IAuthApi
     /// <param name="refresh"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [Put("/v1/auth/token/{username}")]
+    [Put("/auth/token/{username}")]
     Task<ApiResponse<BearerTokenInfo>> Refresh(string username, [Body] RefreshAccessTokenInfo refresh, CancellationToken ct);
 }

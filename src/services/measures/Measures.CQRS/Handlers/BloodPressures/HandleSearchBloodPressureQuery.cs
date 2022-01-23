@@ -12,6 +12,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handler for <see cref="SearchQuery{BloodPressureInfo}"/> queries.
+    /// </summary>
     public class HandleSearchBloodPressureInfosQuery : IRequestHandler<SearchQuery<BloodPressureInfo>, Page<BloodPressureInfo>>
     {
         private readonly IHandleSearchQuery _handleSearchQuery;
@@ -21,7 +24,9 @@
             _handleSearchQuery = handleSearchQuery;
         }
 
-        public Task<Page<BloodPressureInfo>> Handle(SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken) =>
-            _handleSearchQuery.Search<BloodPressure, BloodPressureInfo>(request, cancellationToken);
+        ///<inheritdoc/>
+        public async Task<Page<BloodPressureInfo>> Handle(SearchQuery<BloodPressureInfo> request, CancellationToken cancellationToken)
+            => await _handleSearchQuery.Search<BloodPressure, BloodPressureInfo>(request, cancellationToken)
+                                       .ConfigureAwait(false);
     }
 }
