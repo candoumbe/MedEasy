@@ -24,13 +24,13 @@
     <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.6.0-alpha.21070.5" />
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.0.0" />
 
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.2" />
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="1.0.0" />
     <PackageReference Include="MicroElements.Swashbuckle.NodaTime" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.2" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="6.0.0" />
     <!--Mass Transit-->
     <PackageReference Include="MassTransit.AspNetCore" Version="7.3.0" />
