@@ -8,12 +8,12 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == 'netstandard2.1'">
       <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.13" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.14" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.2" />
       </ItemGroup>
     </Otherwise>
   </Choose>
