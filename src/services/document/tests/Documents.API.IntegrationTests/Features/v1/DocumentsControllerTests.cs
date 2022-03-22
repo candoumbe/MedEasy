@@ -78,7 +78,7 @@
 
             // Act
             using HttpResponseMessage response = await client.PostAsJsonAsync(EndpointUrl, newResourceInfo, SerializerOptions)
-                                                            .ConfigureAwait(false);
+                                                             .ConfigureAwait(false);
 
             // Assert
             _outputHelper.WriteLine($"Response : {response}");
