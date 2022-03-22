@@ -39,7 +39,7 @@
 
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
 
-            return await uow.Repository<Account>().SingleOrDefaultAsync(selector: (Account x) => x.Roles.Select(ar => new RoleInfo { Name = ar.Role.Code }),
+            return await uow.Repository<Account>().SingleOrDefaultAsync(selector: (Account x) => x.Roles.Select(ar => new RoleInfo { Name = ar.Role.Code }).AsEnumerable(),
                                                                         predicate: x => x.Id == accountId,
                                                                         cancellationToken)
                                                   .ConfigureAwait(false);

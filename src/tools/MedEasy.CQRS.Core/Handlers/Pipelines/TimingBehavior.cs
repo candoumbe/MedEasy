@@ -12,7 +12,7 @@
     /// A MediatR behavior that logs command's handlers execution time.
     /// </summary>
     public class TimingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : notnull
+        where TRequest : notnull, IRequest<TResponse>
     {
         private readonly ILogger<TimingBehavior<TRequest, TResponse>> _logger;
         private readonly Stopwatch _watch;

@@ -182,13 +182,13 @@
             _outputHelper.WriteLine($"HTTP content : '{json}'");
 
             BearerTokenInfo tokenInfo = JToken.Parse(json)
-                .ToObject<BearerTokenInfo>();
+                                              .ToObject<BearerTokenInfo>();
             SecurityToken accessToken = new JwtSecurityToken(tokenInfo.AccessToken.Token);
             SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken.Token);
             refreshToken.ValidFrom.Should()
-                .Be(accessToken.ValidFrom, "access and refresh tokens be valid since the same point in time");
+                                  .Be(accessToken.ValidFrom, "access and refresh tokens be valid since the same point in time");
             refreshToken.ValidTo.Should()
-                .BeAfter(accessToken.ValidTo, "refresh token should expire AFTER access token");
+                                .BeAfter(accessToken.ValidTo, "refresh token should expire AFTER access token");
         }
 
         [Fact]

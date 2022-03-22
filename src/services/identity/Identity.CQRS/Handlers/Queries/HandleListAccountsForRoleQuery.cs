@@ -33,13 +33,14 @@
             _expressionBuilder = expressionBuilder ?? throw new ArgumentNullException(nameof(expressionBuilder));
         }
 
+        ///<inheritdoc/>
         public async Task<Option<IEnumerable<AccountInfo>>> Handle(ListAccountsForRoleQuery request, CancellationToken cancellationToken)
         {
             RoleId roleId = request.Data;
 
             using IUnitOfWork uow = _unitOfWorkFactory.NewUnitOfWork();
 
-            return await uow.Repository<Role>().SingleOrDefaultAsync(selector: x => x.Accounts.Select(ar => new AccountInfo { Id = ar.AccountId, Name = ar.Account.Name }),
+            return await uow.Repository<Role>().SingleOrDefaultAsync(selector: x => x.Accounts.Select(ar => new AccountInfo { Id = ar.AccountId, Name = ar.Account.Name }).AsEnumerable(),
                                                                      predicate: (Role x) => x.Id == roleId,
                                                                      cancellationToken)
                                                .ConfigureAwait(false);
