@@ -14,7 +14,7 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="Optional" Version="4.*" />
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.0" />
-    <PackageReference Include="NodaTime" Version="3.0.9" />
+    <PackageReference Include="NodaTime" Version="3.0.10" />
   </ItemGroup>
 
 </Project>
