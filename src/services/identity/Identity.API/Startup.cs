@@ -41,6 +41,7 @@
                     .AddDependencyInjection()
                     .AddCustomSwagger(_hostingEnvironment, _configuration)
                     .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true)
+                    .AddDataFiltering()
                     .AddCustomHealthChecks();
         }
 

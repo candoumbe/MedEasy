@@ -79,7 +79,7 @@
         /// <param name="paginationConfiguration">paging configuration</param>
         /// <param name="ct">Notification to abort request execution</param>
         /// <returns></returns>
-        /// <response code="200">A collection of resource</response>
+        /// <response code="200">A page of account resource with all navigation links</response>
         /// <response code="400">page or pageSize is negative or zero</response>
         [HttpGet]
         [HttpHead]

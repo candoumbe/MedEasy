@@ -2,6 +2,9 @@
 {
     using AutoMapper;
 
+    using DataFilters.AspNetCore;
+    using DataFilters.AspNetCore.Filters;
+
     using FluentValidation;
     using FluentValidation.AspNetCore;
 
@@ -57,6 +60,8 @@
 
     using Optional;
 
+    using Swashbuckle.AspNetCore.Filters;
+
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -71,7 +76,7 @@
     /// <summary>
     /// Provide extension method used to configure services collection
     /// </summary>
-    public static class ServiceCollectionExtensions
+    internal static class ServiceCollectionExtensions
     {
         /// <summary>
         /// Configure service for MVC
@@ -79,13 +84,14 @@
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <param name="env"></param>
-        public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
+        internal static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
         {
             services.AddControllers(config =>
             {
                 config.Filters.Add<FormatFilterAttribute>();
                 config.Filters.Add<ValidateModelActionFilterAttribute>();
                 config.Filters.Add<AddCountHeadersFilterAttribute>();
+                config.Filters.Add<SelectPropertiesActionFilterAttribute>();
                 ////options.Filters.Add(typeof(EnvelopeFilterAttribute));
                 config.Filters.Add<HandleErrorAttribute>();
 
@@ -163,7 +169,7 @@
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
+        internal static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
             services.Configure<IdentityApiOptions>((options) =>
@@ -260,7 +266,7 @@
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+        internal static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
         {
             services.AddApiVersioning(options =>
             {
@@ -287,7 +293,7 @@
         /// Configure dependency injections
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
+        internal static IServiceCollection AddDependencyInjection(this IServiceCollection services)
         {
             services.AddMediatR(
                 typeof(GetOneAccountByUsernameAndPasswordQuery).Assembly,
@@ -335,15 +341,13 @@
             return services;
         }
 
-
-
         /// <summary>
         /// Adds Authorization and authentication
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
+        internal static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthorization()
                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -381,7 +385,7 @@
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IHealthChecksBuilder AddCustomHealthChecks(this IServiceCollection services)
+        internal static IHealthChecksBuilder AddCustomHealthChecks(this IServiceCollection services)
         {
             IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
             return healthChecksBuilder.AddDbContextCheck(customTestQuery: (Func<IdentityDataStore, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
@@ -393,7 +397,7 @@
         /// <param name="services"></param>
         /// <param name="hostingEnvironment"></param>
         /// <param name="configuration"></param>
-        public static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
+        internal static IServiceCollection AddCustomSwagger(this IServiceCollection services, IHostEnvironment hostingEnvironment, IConfiguration configuration)
         {
 
             (string applicationName, string applicationBasePath) = (System.Reflection.Assembly.GetEntryAssembly().GetName().Name, AppDomain.CurrentDomain.BaseDirectory);
@@ -442,6 +446,7 @@
                     Type = SecuritySchemeType.Http,
                     Scheme = JwtBearerDefaults.AuthenticationScheme
                 };
+
                 config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -472,5 +477,16 @@
 
             return services;
         }
+
+        internal static IServiceCollection AddDataFiltering(this IServiceCollection services)
+        {
+            services.AddDataFilters(opts =>
+            {
+                opts.MaxCacheSize = 50;
+            });
+
+            return services;
+        }
+        
     }
 }

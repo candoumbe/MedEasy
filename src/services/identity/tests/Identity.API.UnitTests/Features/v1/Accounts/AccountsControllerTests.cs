@@ -386,13 +386,13 @@
             Browsable<AccountInfo> browsableResource = actionResult.Value;
 
             browsableResource.Links.Should()
-                .NotBeNull().And
-                .NotContainNulls().And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
-                .NotContain(x => string.IsNullOrWhiteSpace(x.Href)).And
-                .ContainSingle(x => x.Relation == Self).And
-                .ContainSingle(x => x.Relation == "tenant").And
-                .ContainSingle(x => x.Relation == "delete");
+                                   .NotBeNull().And
+                                   .NotContainNulls().And
+                                   .NotContain(x => string.IsNullOrWhiteSpace(x.Relation)).And
+                                   .NotContain(x => string.IsNullOrWhiteSpace(x.Href)).And
+                                   .ContainSingle(x => x.Relation == Self).And
+                                   .ContainSingle(x => x.Relation == "tenant").And
+                                   .ContainSingle(x => x.Relation == "delete");
 
             Link self = browsableResource.Links.Single(x => x.Relation == Self);
             self.Method.Should()
@@ -707,7 +707,7 @@
             if (response.Items.Any())
             {
                 response.Items.Should()
-                    .OnlyContain(x => x.Links.Once(link => link.Relation == Self));
+                              .OnlyContain(x => x.Links.Once(link => link.Relation == Self));
             }
 
             response.Total.Should()
