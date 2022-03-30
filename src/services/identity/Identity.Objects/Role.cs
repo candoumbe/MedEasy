@@ -51,8 +51,8 @@
         /// <summary>
         /// Adds or update a claim associated to the current role
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
+        /// <param name="type">type of the claim</param>
+        /// <param name="value">value of the claim</param>
         public void AddOrUpdateClaim(string type, string value)
         {
             if (type == null)
@@ -82,10 +82,7 @@
             IEnumerable<RoleClaim> claimsToRemove = _claims.Where(rc => rc.Claim.Type == type)
                                                            .ToArray();
 
-            foreach (RoleClaim rc in claimsToRemove)
-            {
-                _claims.Remove(rc);
-            }
+            claimsToRemove.ForEach(rc => _claims.Remove(rc));
         }
 
         /// <summary>
@@ -98,10 +95,7 @@
             IEnumerable<RoleClaim> claimsToRemove = _claims.Where(rc => rc.Claim.Type == type && rc.Claim.Value == value)
                                                            .ToArray();
 
-            foreach (RoleClaim rc in claimsToRemove)
-            {
-                _claims.Remove(rc);
-            }
+            claimsToRemove.ForEach(rc => _claims.Remove(rc));
         }
     }
 }

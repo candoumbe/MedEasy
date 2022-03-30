@@ -172,7 +172,7 @@
                 options.AccessTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.AccessTokenLifetime)}", 10d);
                 options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
-            
+
             services.Configure<AccountOptions>((options) => options.Accounts = configuration.GetSection("Accounts").Get<SystemAccount[]>());
 
             return services;
