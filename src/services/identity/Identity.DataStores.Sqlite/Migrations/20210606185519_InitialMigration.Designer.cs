@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Identity.DataStores.Sqlite.Migrations
 {
-    [DbContext(typeof(IdentityContext))]
+    [DbContext(typeof(IdentityDataStore))]
     [Migration("20210606185519_InitialMigration")]
     partial class InitialMigration
     {

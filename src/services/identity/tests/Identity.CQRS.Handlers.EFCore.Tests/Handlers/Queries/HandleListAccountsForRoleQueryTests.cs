@@ -13,6 +13,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -35,7 +36,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class HandleListAccountsForRoleQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleListAccountsForRoleQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -44,13 +45,13 @@
 
         private readonly HandleListAccountsForRoleQuery _sut;
 
-        public HandleListAccountsForRoleQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public HandleListAccountsForRoleQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -146,7 +147,7 @@
 
             Faker faker = new();
 
-            Account account = new(AccountId.New(), faker.Internet.UserName(), faker.Internet.Email(), "a_random_password", "a_salt");
+            Account account = new(AccountId.New(), UserName.From(faker.Internet.UserName()), Email.From(faker.Internet.Email()), "a_random_password", "a_salt");
 
             account.AddRole(role);
 

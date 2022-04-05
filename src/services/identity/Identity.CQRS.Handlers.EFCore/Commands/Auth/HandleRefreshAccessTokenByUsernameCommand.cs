@@ -4,6 +4,7 @@
     using Identity.DTO;
     using Identity.DTO.v1;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.Interfaces;
@@ -48,7 +49,7 @@
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearer = default;
             Instant utcNow = _datetimeService.GetCurrentInstant();
 
-            (string username, string expiredAccessTokenString, string refreshTokenString, JwtInfos tokenOptions) = cmd.Data;
+            (UserName username, string expiredAccessTokenString, string refreshTokenString, JwtInfos tokenOptions) = cmd.Data;
             JwtSecurityToken refreshToken = new(refreshTokenString);
             JwtSecurityToken accessToken = new(expiredAccessTokenString);
 

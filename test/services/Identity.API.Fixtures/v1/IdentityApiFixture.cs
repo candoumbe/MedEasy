@@ -7,6 +7,7 @@ namespace Identity.API.Fixtures.v1
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.IntegrationTests.Core;
 
@@ -46,7 +47,7 @@ namespace Identity.API.Fixtures.v1
         /// <summary>
         /// Gets/sets the email to use to create an account or to log in
         /// </summary>
-        public string Email { get; private set; }
+        public Email Email { get; private set; }
 
         /// <summary>
         /// Password to use to create an account or to login
@@ -67,7 +68,7 @@ namespace Identity.API.Fixtures.v1
 
         public IdentityApiFixture()
         {
-            Email = Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
+            Email = Email.From(Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}"));
             Password = Faker.Internet.Password();
         }
 
@@ -90,8 +91,8 @@ namespace Identity.API.Fixtures.v1
                     Email = Email,
                     Password = Password,
                     ConfirmPassword = Password,
-                    Name = Email,
-                    Username = Email,
+                    Name = Email.Value,
+                    Username = UserName.From(Email.Value),
                     Id = AccountId.New()
                 };
 
@@ -129,13 +130,13 @@ namespace Identity.API.Fixtures.v1
 
                 if (jwt.ValidTo <= DateTime.UtcNow)
                 {
-                    await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
+                    await RenewToken(UserName.From(Email.Value), new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
                         .ConfigureAwait(false);
 
                 }
             }
 
-            async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
+            async Task RenewToken(UserName username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
             {
                 using HttpClient client = CreateClient();
                 client.DefaultRequestHeaders.Add("api-version", "1.0");

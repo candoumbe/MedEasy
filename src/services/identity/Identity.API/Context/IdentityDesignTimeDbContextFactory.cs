@@ -15,16 +15,16 @@
     using System.IO;
 
     /// <summary>
-    /// Factory class to create <see cref="IdentityContext"/> during design time.
+    /// Factory class to create <see cref="IdentityDataStore"/> during design time.
     /// </summary>
-    public class IdentityDesignTimeDbContextFactory : IDesignTimeDbContextFactory<IdentityContext>
+    public class IdentityDesignTimeDbContextFactory : IDesignTimeDbContextFactory<IdentityDataStore>
     {
         /// <summary>
-        /// Creates a new <see cref="IdentityContext"/> instance.
+        /// Creates a new <see cref="IdentityDataStore"/> instance.
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public IdentityContext CreateDbContext(string[] args)
+        public IdentityDataStore CreateDbContext(string[] args)
         {
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -34,7 +34,7 @@
                 .Build();
 
             string provider = configuration.GetValue("provider", "sqlite").ToLowerInvariant();
-            DbContextOptionsBuilder<IdentityContext> builder = new();
+            DbContextOptionsBuilder<IdentityDataStore> builder = new();
             string connectionString = configuration.GetConnectionString("Identity");
 
             switch (provider)

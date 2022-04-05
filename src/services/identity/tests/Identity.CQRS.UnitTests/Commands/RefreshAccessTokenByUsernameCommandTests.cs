@@ -5,6 +5,7 @@
     using Identity.CQRS.Commands;
     using Identity.DTO;
     using Identity.DTO.v1;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands;
     using MedEasy.CQRS.Core.Commands.Results;
@@ -33,7 +34,7 @@
 
         [Fact]
         public void IsCommand() => typeof(RefreshAccessTokenByUsernameCommand).Should()
-                                                                              .Implement<ICommand<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
+                                                                              .Implement<ICommand<Guid, (UserName username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>>();
 
         public static IEnumerable<object[]> InvalidCtorCases
         {
@@ -59,7 +60,7 @@
             _outputHelper.WriteLine($"Parameters : {new { username, expiredAccessToken, refreshToken, tokenOptions }.Jsonify()}");
 
             // Act
-            Action action = () => new RefreshAccessTokenByUsernameCommand((username, expiredAccessToken, refreshToken, tokenOptions));
+            Action action = () => new RefreshAccessTokenByUsernameCommand((UserName.From(username), expiredAccessToken, refreshToken, tokenOptions));
 
             // Assert
             action.Should()

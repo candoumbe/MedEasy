@@ -1,6 +1,7 @@
 ﻿namespace Identity.DTO
 {
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.Ids;
     using MedEasy.RestObjects;
@@ -9,9 +10,9 @@
 
     public class AccountInfo : Resource<AccountId>
     {
-        public string Username { get; set; }
+        public UserName Username { get; set; }
 
-        public string Email { get; set; }
+        public Email Email { get; set; }
 
         public bool Locked { get; set; }
 

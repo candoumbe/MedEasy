@@ -1,6 +1,7 @@
 ﻿namespace Identity.CQRS.Queries.Accounts;
 
 using Identity.DTO;
+using Identity.ValueObjects;
 
 using MedEasy.CQRS.Core.Queries;
 
@@ -11,13 +12,13 @@ using System;
 /// <summary>
 /// Issue this query to retrieve an <see cref="AccountInfo"/> by its username
 /// </summary>
-public class GetOneAccountInfoByUsernameQuery : QueryBase<Guid, string, Option<AccountInfo>>
+public class GetOneAccountInfoByUsernameQuery : QueryBase<Guid, UserName, Option<AccountInfo>>
 {
     /// <summary>
     /// Builds a new <see cref="GetOneAccountByIdQuery"/> instance.
     /// </summary>
     /// <param name="username">The username of the account to lookup for.</param>
-    public GetOneAccountInfoByUsernameQuery(string username) : base(Guid.NewGuid(), username)
+    public GetOneAccountInfoByUsernameQuery(UserName username) : base(Guid.NewGuid(), username)
     {
     }
 }

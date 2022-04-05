@@ -306,9 +306,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "refit", "refit", "{6B3F5579
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Api.Refit", "src\services\identity\refit\Identity.Api.Refit\Identity.Api.Refit.csproj", "{0729A2DC-1EB6-4E94-A4C0-E117B7A3397C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.DataStores.Sqlite", "src\services\agenda\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj", "{395962F6-74F2-4F41-A671-3EB32BFC3838}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.DataStores.Sqlite", "src\services\agenda\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj", "{395962F6-74F2-4F41-A671-3EB32BFC3838}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.DataStores.Postgres", "src\services\agenda\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj", "{162FF86E-AF33-4401-B28E-D5C0C9339693}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.DataStores.Postgres", "src\services\agenda\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj", "{162FF86E-AF33-4401-B28E-D5C0C9339693}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.ValueObjects", "src\services\identity\Identity.ValueObjects\Identity.ValueObjects.csproj", "{C485AF21-8698-4759-B5ED-134CFAB0A0D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2114,6 +2116,22 @@ Global
 		{162FF86E-AF33-4401-B28E-D5C0C9339693}.Release|x64.Build.0 = Release|Any CPU
 		{162FF86E-AF33-4401-B28E-D5C0C9339693}.Release|x86.ActiveCfg = Release|Any CPU
 		{162FF86E-AF33-4401-B28E-D5C0C9339693}.Release|x86.Build.0 = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|ARM.Build.0 = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|x64.Build.0 = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Debug|x86.Build.0 = Debug|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|ARM.ActiveCfg = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|ARM.Build.0 = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|x64.ActiveCfg = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|x64.Build.0 = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|x86.ActiveCfg = Release|Any CPU
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2253,6 +2271,7 @@ Global
 		{0729A2DC-1EB6-4E94-A4C0-E117B7A3397C} = {6B3F5579-B2C7-4527-9B94-218F54ED085C}
 		{395962F6-74F2-4F41-A671-3EB32BFC3838} = {9FF4CD92-DD62-4089-8DAF-782EB1DB129F}
 		{162FF86E-AF33-4401-B28E-D5C0C9339693} = {9FF4CD92-DD62-4089-8DAF-782EB1DB129F}
+		{C485AF21-8698-4759-B5ED-134CFAB0A0D9} = {A7A45B8F-B761-4DFF-8CC3-256613EA1089}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

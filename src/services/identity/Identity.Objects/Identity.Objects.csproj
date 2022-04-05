@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tools\MedEasy.Objects\MedEasy.Objects.csproj" />
     <ProjectReference Include="..\Identity.Ids\Identity.Ids.csproj" />
+    <ProjectReference Include="..\Identity.ValueObjects\Identity.ValueObjects.csproj" />
   </ItemGroup>
 
 </Project>

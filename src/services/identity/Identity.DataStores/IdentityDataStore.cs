@@ -1,9 +1,11 @@
 ﻿namespace Identity.DataStores
 {
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DataStores.Core.Relational;
 
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
 
     using NodaTime;
@@ -11,13 +13,13 @@
     /// <summary>
     /// Interacts with the underlying repostories.
     /// </summary>
-    public class IdentityContext : DataStore<IdentityContext>
+    public class IdentityDataStore : DataStore<IdentityDataStore>
     {
         /// <summary>
-        /// Builds a new <see cref="IdentityContext"/> instance.
+        /// Builds a new <see cref="IdentityDataStore"/> instance.
         /// </summary>
-        /// <param name="options">options of the <see cref="IdentityContext"/></param>
-        public IdentityContext(DbContextOptions<IdentityContext> options, IClock clock) : base(options, clock)
+        /// <param name="options">options of the <see cref="IdentityDataStore"/></param>
+        public IdentityDataStore(DbContextOptions<IdentityDataStore> options, IClock clock) : base(options, clock)
         {
         }
 
@@ -33,7 +35,10 @@
             {
                 entity.Property(x => x.Username)
                     .HasMaxLength(NormalTextLength)
-                    .IsRequired();
+                    .IsRequired()
+                    .HasConversion<string>(convertToProviderExpression: x => x.Value,
+                                             convertFromProviderExpression: x => UserName.From(x)
+                      ); ;
 
                 entity.Property(x => x.Name)
                     .HasMaxLength(NormalTextLength);
@@ -48,7 +53,10 @@
 
                 entity.Property(x => x.TenantId);
 
-                entity.Property(x => x.Email);
+                entity.Property(x => x.Email)
+                      .HasConversion<string>(convertToProviderExpression: x => x.Value,
+                                             convertFromProviderExpression: x => Email.From(x)
+                      );
 
                 entity.Property(x => x.IsActive);
 

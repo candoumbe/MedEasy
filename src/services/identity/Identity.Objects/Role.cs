@@ -24,7 +24,7 @@
         /// <summary>
         /// Claims associated with the current <see cref="Role"/>
         /// </summary>
-        public IEnumerable<RoleClaim> Claims => _claims;
+        public IEnumerable<RoleClaim> Claims => _claims.ToArray();
 
         private readonly IList<RoleClaim> _claims;
 
@@ -86,7 +86,7 @@
         }
 
         /// <summary>
-        /// Removes only the claim with the specified <paramref name="type"/> and <paramref name="value"/>.
+        /// Removes the claim with the specified <paramref name="type"/> and <paramref name="value"/>.
         /// </summary>
         /// <param name="type">type of claim to remove</param>
         /// <param name="value">value of claim to remove</param>

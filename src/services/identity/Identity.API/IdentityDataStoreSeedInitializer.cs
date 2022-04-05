@@ -6,6 +6,7 @@
     using Identity.DTO;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DataStores.Core;
@@ -21,7 +22,7 @@
     /// <summary>
     /// Seeds the datastore
     /// </summary>
-    public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<IdentityContext>
+    public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<IdentityDataStore>
     {
         /// <summary>
         /// Builds a new <see cref="IdentityDataStoreSeedInitializer"/> instance.
@@ -32,8 +33,8 @@
         /// <param name="options"></param>
         /// <param name="mediator"></param>
         public IdentityDataStoreSeedInitializer(IHostEnvironment hostingEnvironment,
-                                                ILogger<DataStoreSeedInitializerAsync<IdentityContext>> logger,
-                                                IdentityContext dataStore,
+                                                ILogger<DataStoreSeedInitializerAsync<IdentityDataStore>> logger,
+                                                IdentityDataStore dataStore,
                                                 IOptionsSnapshot<AccountOptions> options,
                                                 IMediator mediator)
             : base(hostingEnvironment,
@@ -55,7 +56,7 @@
                                Email = account.Email,
                                Password = account.Password,
                                ConfirmPassword = account.Password,
-                               Name = account.Email
+                               Name = account.Username.Value
                            };
                            CreateAccountInfoCommand command = new(accountInfo);
 
@@ -75,7 +76,7 @@
                                                         accountMayExist.MatchSome(async existingAccount =>
                                                         {
                                                             DeleteAccountInfoByIdCommand deleteAccountCmd = new(existingAccount.Id);
-                                                            await mediator.Send(request.Data).ConfigureAwait(false);
+                                                            await mediator.Send(deleteAccountCmd).ConfigureAwait(false);
                                                             await mediator.Send(command).ConfigureAwait(false);
                                                         });
                                                     }

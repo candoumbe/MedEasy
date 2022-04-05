@@ -8,6 +8,7 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -35,20 +36,20 @@
     using static Moq.MockBehavior;
 
     [UnitTest]
-    public class HandleDeleteAccountInfoByIdCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleDeleteAccountInfoByIdCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IMediator> _mediatorMock;
         private HandleDeleteAccountInfoByIdCommand _sut;
 
-        public HandleDeleteAccountInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public HandleDeleteAccountInfoByIdCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -115,8 +116,8 @@
             AccountId idToDelete = AccountId.New();
             Account entity = new(id: idToDelete,
                                   name: "victor zsasz",
-                                  username: "victorzsasz",
-                                  email: "victor_zsasz@gotham.fr",
+                                  username: UserName.From("victorzsasz"),
+                                  email: Email.From("victor_zsasz@gotham.fr"),
                                   salt: "knife",
                                   passwordHash: "cut_up"
                                 );
@@ -167,15 +168,15 @@
             AccountId idToDelete = AccountId.New();
             Account tenant = new(id: AccountId.New(),
                                   name: "victor zsasz",
-                                  username: "victorzsasz",
-                                  email: "victor_zsasz@gotham.fr",
+                                  username: UserName.From("victorzsasz"),
+                                  email: Email.From("victor_zsasz@gotham.fr"),
                                   salt: "knife",
                                   passwordHash: "cut_up");
 
             Account account = new(id: idToDelete,
                                    name: "victor zsasz",
-                                   username: "victorzsasz_minion",
-                                   email: "victor_zsasz_minion@gotham.fr",
+                                   username: UserName.From("victorzsasz_minion"),
+                                   email: Email.From("victor_zsasz_minion@gotham.fr"),
                                    salt: "knife",
                                    passwordHash: "cut_up",
                                    tenantId: new TenantId(tenant.Id.Value));

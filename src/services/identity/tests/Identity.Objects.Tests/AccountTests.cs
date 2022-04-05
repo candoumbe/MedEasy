@@ -8,6 +8,7 @@ namespace Identity.Objects.Tests
     using FluentAssertions.Extensions;
 
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.Ids;
 
@@ -34,8 +35,8 @@ namespace Identity.Objects.Tests
         {
             _accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
-                                                               username: faker.Internet.UserName(),
-                                                               email: faker.Internet.Email(),
+                                                               username: UserName.From(faker.Internet.UserName()),
+                                                               email: Email.From(faker.Internet.Email()),
                                                                passwordHash: faker.Internet.Password(),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
@@ -50,8 +51,8 @@ namespace Identity.Objects.Tests
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
-                                                               username: faker.Internet.UserName(),
-                                                               email: faker.Internet.Email(),
+                                                               username: UserName.From(faker.Internet.UserName()),
+                                                               email: Email.From(faker.Internet.Email()),
                                                                passwordHash: faker.Internet.Password(),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
@@ -114,8 +115,8 @@ namespace Identity.Objects.Tests
             {
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
-                                                               username: faker.Internet.UserName(),
-                                                               email: faker.Internet.Email(),
+                                                               username: UserName.From(faker.Internet.UserName()),
+                                                               email: Email.From(faker.Internet.Email()),
                                                                passwordHash: faker.Internet.Password(),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),

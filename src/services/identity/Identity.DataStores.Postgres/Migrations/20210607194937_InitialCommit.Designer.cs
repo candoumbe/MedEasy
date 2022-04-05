@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Identity.DataStores.Postgres.Migrations
 {
-    [DbContext(typeof(IdentityContext))]
+    [DbContext(typeof(IdentityDataStore))]
     [Migration("20210607194937_InitialCommit")]
     partial class InitialCommit
     {

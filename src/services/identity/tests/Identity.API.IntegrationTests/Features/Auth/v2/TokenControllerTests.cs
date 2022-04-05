@@ -10,6 +10,7 @@
     using Identity.DTO.Auth;
     using Identity.DTO.v2;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.RestObjects;
 
@@ -71,10 +72,10 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = "thebatman",
+                Username = UserName.From("thebatman"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = "bruce.wayne@gotham.com"
+                Email = Email.From("bruce.wayne@gotham.com")
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
@@ -144,10 +145,10 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = $"thebatman_{Guid.NewGuid()}",
+                Username = UserName.From($"thebatman_{Guid.NewGuid()}"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = $"bruce.wayne_{Guid.NewGuid()}@gotham.com"
+                Email = Email.From($"bruce.wayne_{Guid.NewGuid()}@gotham.com")
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
@@ -201,10 +202,10 @@
             {
                 Id = AccountId.New(),
                 Name = faker.Person.FullName,
-                Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
+                Username = UserName.From($"{faker.Person.UserName}_{Guid.NewGuid()}"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString())
+                Email = Email.From(faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString()))
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();

@@ -9,6 +9,7 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -34,18 +35,18 @@
 
     using Claim = System.Security.Claims.Claim;
 
-    public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleInvalidateAccessTokenByUsernameCommandTests : IAsyncDisposable, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private Mock<IClock> _datetimeServiceMock;
         private IUnitOfWorkFactory _uowFactory;
         private HandleInvalidateAccessTokenByUsernameCommand _sut;
 
-        public HandleInvalidateAccessTokenByUsernameCommandTests(SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleInvalidateAccessTokenByUsernameCommandTests(SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _datetimeServiceMock = new Mock<IClock>(Strict);
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -69,7 +70,7 @@
         public async Task InvalidateUnknownUsername_Returns_NotFound()
         {
             // Arrange
-            InvalidateAccessTokenByUsernameCommand cmd = new("thejoker");
+            InvalidateAccessTokenByUsernameCommand cmd = new(UserName.From("thejoker"));
 
             // Act
             InvalidateAccessCommandResult cmdResult = await _sut.Handle(cmd, default)
@@ -85,14 +86,14 @@
         {
             // Arrange
             Faker faker = new();
-            const string username = "administrator";
+            UserName username = UserName.From("administrator");
             SecurityToken securityToken = new JwtSecurityToken(
                 issuer: "server",
                 audience: "api",
                 claims: new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.UniqueName, username)
+                    new Claim(JwtRegisteredClaimNames.UniqueName, username.Value)
                 }
             );
             Account account = new(
@@ -101,7 +102,7 @@
                 salt: faker.Lorem.Word(),
                 name: "Victor Jones",
                 id: AccountId.New(),
-                email: "victor.jones@home.dc"
+                email: Email.From("victor.jones@home.dc")
             );
             account.ChangeRefreshToken(securityToken.ToString());
 

@@ -11,6 +11,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -53,7 +54,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
     [UnitTest]
     [Feature("Identity")]
     [Feature("Accounts")]
-    public class TokenControllerUnitTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class TokenControllerUnitTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly Mock<IMediator> _mediatorMock;
@@ -63,14 +64,14 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         private readonly TokenController _sut;
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -108,7 +109,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == model.Username && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username) && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
             _jwtOptionsMock.Verify(mock => mock.Value, Times.Never);
 
             actionResult.Should()
@@ -124,8 +125,8 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             AccountInfo accountInfo = new()
             {
                 Id = AccountId.New(),
-                Username = model.Username,
-                Email = "brucewayne@gotham.com",
+                Username = UserName.From(model.Username),
+                Email = Email.From("brucewayne@gotham.com"),
                 Name = "Bruce Wayne"
             };
             _httpContextMock.Setup(mock => mock.HttpContext.Request.Headers)
@@ -162,7 +163,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == model.Username && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username) && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
 
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()));
             _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAuthenticationTokenCommand>(cmd => cmd.Data.authInfo.Location == authenticationInfo.Location
@@ -228,12 +229,12 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task Invalidate(InvalidateAccessCommandResult cmdResult, Expression<Func<IActionResult, bool>> actionResultExpectation, string reason)
         {
             // Arrange
-            const string username = "thejoker";
+            UserName username = UserName.From("thejoker");
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<InvalidateAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cmdResult);
 
             // Act
-            IActionResult actionResult = await _sut.Invalidate(username, ct: default)
+            IActionResult actionResult = await _sut.Invalidate(username.Value, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -284,7 +285,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenMediator_Returns_NotFound_Refresh_Returns_NotFoundResult()
         {
             // Arrange
-            const string username = "thejoker";
+            UserName username = UserName.From("thejoker");
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.NotFound));
             RefreshAccessTokenInfo refreshAccessToken = new()
@@ -294,7 +295,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             };
 
             // Act
-            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+            IActionResult actionResult = await _sut.Refresh(username.Value, refreshAccessToken, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -309,7 +310,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenMediator_Returns_Conflict_Refresh_Returns_Conflict()
         {
             // Arrange
-            const string username = "thejoker";
+            UserName username = UserName.From("thejoker");
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Conflict));
             RefreshAccessTokenInfo refreshAccessToken = new()
@@ -319,7 +320,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             };
 
             // Act
-            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+            IActionResult actionResult = await _sut.Refresh(username.Value, refreshAccessToken, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -336,7 +337,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenMediator_Returns_Bearer_Refresh_Returns_NewTokens()
         {
             // Arrange
-            const string username = "thejoker";
+            UserName username = UserName.From("thejoker");
             BearerTokenInfo bearerToken = new()
             {
                 AccessToken = "<header-access>.<payload>.<signature>",
@@ -351,7 +352,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             };
 
             // Act
-            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+            IActionResult actionResult = await _sut.Refresh(username.Value, refreshAccessToken, ct: default)
                 .ConfigureAwait(false);
 
             // Assert
@@ -368,7 +369,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenMediator_Returns_Bearer_Unauthorized_Returns_Unauthorized()
         {
             // Arrange
-            const string username = "thejoker";
+            UserName username = UserName.From("thejoker");
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<BearerTokenInfo, RefreshAccessCommandResult>(RefreshAccessCommandResult.Unauthorized));
@@ -379,7 +380,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             };
 
             // Act
-            IActionResult actionResult = await _sut.Refresh(username, refreshAccessToken, ct: default)
+            IActionResult actionResult = await _sut.Refresh(username.Value, refreshAccessToken, ct: default)
                 .ConfigureAwait(false);
 
             // Assert

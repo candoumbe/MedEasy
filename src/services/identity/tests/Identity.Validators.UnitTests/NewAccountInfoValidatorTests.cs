@@ -7,6 +7,7 @@
     using FluentValidation;
 
     using Identity.DTO;
+    using Identity.ValueObjects;
 
     using System;
     using System.Collections.Generic;
@@ -60,10 +61,10 @@
                     new NewAccountInfo
                     {
                         Name = faker.Person.Company.Name,
-                        Email = "joker@card-city.com",
+                        Email = Email.From("joker@card-city.com"),
                         Password = "smile",
                         ConfirmPassword = "smiles",
-                        Username = faker.Person.UserName
+                        Username = UserName.From(faker.Person.UserName)
                     },
                     (Expression<Func<ValidationResult, bool>>)(vr =>
                         vr.Errors.Count == 1
@@ -79,10 +80,10 @@
                     new NewAccountInfo
                     {
                         Name = "The dark knight",
-                        Email = "batman@gotham.fr",
+                        Email = Email.From("batman@gotham.fr"),
                         Password = "smile",
                         ConfirmPassword = "smile",
-                        Username = "capedcrusader"
+                        Username = UserName.From("capedcrusader")
                     },
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.Errors.Count == 0),
                     "Informations are ok"

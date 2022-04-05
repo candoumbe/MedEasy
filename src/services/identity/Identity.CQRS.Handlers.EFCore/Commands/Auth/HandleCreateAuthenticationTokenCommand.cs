@@ -56,10 +56,10 @@
                     new ClaimInfo{ Type = JwtRegisteredClaimNames.Jti, Value =  Guid.NewGuid().ToString() },
                     new ClaimInfo{ Type = JwtRegisteredClaimNames.Iss, Value =  jwtInfos.Issuer },
                     new ClaimInfo{ Type = CustomClaimTypes.AccountId, Value= accountInfo.Id.ToString() },
-                    new ClaimInfo{ Type = ClaimTypes.Name, Value = accountInfo.Name ?? accountInfo.Username },
-                    new ClaimInfo{ Type = ClaimTypes.NameIdentifier, Value = accountInfo.Username },
-                    new ClaimInfo{ Type = ClaimTypes.Email, Value = accountInfo.Email},
-                    new ClaimInfo{ Type = ClaimTypes.GivenName, Value = accountInfo.Name ?? accountInfo.Username },
+                    new ClaimInfo{ Type = ClaimTypes.Name, Value = accountInfo.Name ?? accountInfo.Username.Value },
+                    new ClaimInfo{ Type = ClaimTypes.NameIdentifier, Value = accountInfo.Username.Value },
+                    new ClaimInfo{ Type = ClaimTypes.Email, Value = accountInfo.Email.Value },
+                    new ClaimInfo{ Type = ClaimTypes.GivenName, Value = accountInfo.Name ?? accountInfo.Username.Value },
                     new ClaimInfo{ Type = CustomClaimTypes.Location, Value = authInfo.Location},
                     new ClaimInfo{ Type = CustomClaimTypes.TimeZoneId, Value = DateTimeZone.Utc.Id }
             }.Union(audiences.Select(audience => new ClaimInfo { Type = JwtRegisteredClaimNames.Aud, Value = audience }));

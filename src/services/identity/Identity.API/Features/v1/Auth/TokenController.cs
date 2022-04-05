@@ -6,6 +6,7 @@
     using Identity.DTO;
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
 
@@ -69,7 +70,7 @@
         [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
         public async ValueTask<IActionResult> Post([FromBody, BindRequired] LoginModel model, CancellationToken ct = default)
         {
-            LoginInfo loginInfo = new() { Username = model.Username, Password = model.Password };
+            LoginInfo loginInfo = new() { Username = UserName.From(model.Username), Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
                 .ConfigureAwait(false);
 
@@ -136,7 +137,7 @@
         [ProducesResponseType(Status204NoContent)]
         public async Task<IActionResult> Invalidate(string username, CancellationToken ct = default)
         {
-            InvalidateAccessTokenByUsernameCommand cmd = new(username);
+            InvalidateAccessTokenByUsernameCommand cmd = new(UserName.From(username));
             InvalidateAccessCommandResult cmdResult = await _mediator.Send(cmd, ct)
                 .ConfigureAwait(false);
 
@@ -187,7 +188,7 @@
                 Key = jwtOptions.Key,
                 RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
             };
-            RefreshAccessTokenByUsernameCommand request = new((username, refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
+            RefreshAccessTokenByUsernameCommand request = new((UserName.From(username), refreshAccessToken.AccessToken, refreshAccessToken.RefreshToken, jwtInfos));
             Option<BearerTokenInfo, RefreshAccessCommandResult> optionalBearerToken = await _mediator.Send(request, ct)
                 .ConfigureAwait(false);
 

@@ -2,6 +2,7 @@
 {
     using Identity.DTO;
     using Identity.DTO.v1;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands;
     using MedEasy.CQRS.Core.Commands.Results;
@@ -13,15 +14,15 @@
     /// <summary>
     /// Command to invalidate an access token for an account.
     /// </summary>
-    public class RefreshAccessTokenByUsernameCommand : CommandBase<Guid, (string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>
+    public class RefreshAccessTokenByUsernameCommand : CommandBase<Guid, (UserName username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions), Option<BearerTokenInfo, RefreshAccessCommandResult>>
     {
         /// <summary>
         /// Builds a new <see cref="InvalidateAccessTokenByUsernameCommand"/> instance
         /// </summary>
         /// <param name="data"></param>
-        public RefreshAccessTokenByUsernameCommand((string username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions) data) : base(Guid.NewGuid(), data)
+        public RefreshAccessTokenByUsernameCommand((UserName username, string expiredAccessToken, string refreshToken, JwtInfos tokenOptions) data) : base(Guid.NewGuid(), data)
         {
-            if (string.IsNullOrWhiteSpace(data.username))
+            if (data.username == UserName.Empty)
             {
                 throw new ArgumentException(nameof(data.username), $"{nameof(data.username)} is null or whitespace");
             }

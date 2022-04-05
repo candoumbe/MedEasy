@@ -1,6 +1,7 @@
 ﻿namespace Identity.DTO
 {
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.Ids;
 
@@ -19,7 +20,7 @@
         /// <summary>
         /// Desired username
         /// </summary>
-        public string Username { get; set; }
+        public UserName Username { get; set; }
 
         /// <summary>
         /// Password
@@ -34,7 +35,7 @@
         /// <summary>
         /// Email associated with the <see cref="AccountInfo"/>
         /// </summary>
-        public string Email { get; set; }
+        public Email Email { get; set; }
 
         /// <summary>
         /// Owner of the account

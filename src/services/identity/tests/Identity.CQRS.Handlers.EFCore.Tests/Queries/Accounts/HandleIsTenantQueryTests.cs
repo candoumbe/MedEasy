@@ -11,6 +11,7 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -40,19 +41,19 @@
     [UnitTest]
     [Feature("Handlers")]
     [Feature("Accounts")]
-    public class HandleIsTenantQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleIsTenantQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
         private HandleIsTenantQuery _sut;
 
-        public HandleIsTenantQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public HandleIsTenantQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -134,8 +135,8 @@
                     Faker<Account> accountFaker = new Faker<Account>()
                         .CustomInstantiator(faker => new Account(id: AccountId.New(),
                             name: faker.Person.FullName,
-                            username: faker.Person.UserName,
-                            email: faker.Internet.Email(),
+                            username: UserName.From(faker.Person.UserName),
+                            email: Email.From(faker.Internet.Email()),
                             passwordHash: faker.Lorem.Word(),
                             salt: faker.Lorem.Word(),
                             tenantId: tenantId))
