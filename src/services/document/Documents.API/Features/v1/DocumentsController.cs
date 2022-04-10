@@ -234,7 +234,7 @@
         ///     ]
         /// </para>
         /// <para>The set of changes to apply will be applied atomically. </para>
-        /// 
+        ///
         /// </remarks>
         /// <param name="id">id of the resource to update.</param>
         /// <param name="changes">set of changes to apply to the resource.</param>

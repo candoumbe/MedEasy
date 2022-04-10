@@ -30,25 +30,25 @@ namespace MedEasy.ReverseProxy
                         .AddSerilog()
                         .AddConsole();
                 })
+                .UseSerilog((hosting, loggerConfig) =>
+                {
+                    loggerConfig = loggerConfig
+                        .MinimumLevel.Verbose()
+                        .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                        .Enrich.FromLogContext()
+                        .WriteTo.Console()
+                        .ReadFrom.Configuration(hosting.Configuration);
+
+                    hosting.Configuration.GetServiceUri("seq" )
+                                        .SomeNotNull()
+                                        .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
                               .UseKestrel((hosting, options) =>
                               {
                                   options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment();
-                              })
-                              .UseSerilog((hosting, loggerConfig) =>
-                              {
-                                  loggerConfig = loggerConfig
-                                      .MinimumLevel.Verbose()
-                                      .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                                      .Enrich.FromLogContext()
-                                      .WriteTo.Console()
-                                      .ReadFrom.Configuration(hosting.Configuration);
-
-                                  hosting.Configuration.GetServiceUri("seq" )
-                                                      .SomeNotNull()
-                                                      .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
                               });
                 });
     }

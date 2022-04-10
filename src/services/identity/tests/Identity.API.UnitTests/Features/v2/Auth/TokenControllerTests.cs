@@ -103,7 +103,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username)
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.UserName == UserName.From(model.Username)
                                                                                                        && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
             _jwtOptionsMock.Verify(mock => mock.CurrentValue, Times.Never);
 
@@ -162,7 +162,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username)
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.UserName == UserName.From(model.Username)
                                                                                                        && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
 
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()));

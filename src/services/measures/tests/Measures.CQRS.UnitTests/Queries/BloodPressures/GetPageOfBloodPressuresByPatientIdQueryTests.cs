@@ -5,6 +5,7 @@
     using FluentAssertions;
 
     using FsCheck;
+    using FsCheck.Fluent;
     using FsCheck.Xunit;
 
     using Measures.CQRS.Queries.BloodPressures;

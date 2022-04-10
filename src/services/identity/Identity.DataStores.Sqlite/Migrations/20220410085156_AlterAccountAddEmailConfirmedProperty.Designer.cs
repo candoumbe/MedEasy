@@ -3,77 +3,73 @@ using System;
 using Identity.DataStores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NodaTime;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Identity.DataStores.Postgres.Migrations
+namespace Identity.DataStores.Sqlite.Migrations
 {
     [DbContext(typeof(IdentityDataStore))]
-    partial class IdentityContextModelSnapshot : ModelSnapshot
+    [Migration("20220410085156_AlterAccountAddEmailConfirmedProperty")]
+    partial class AlterAccountAddEmailConfirmedProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.3");
 
             modelBuilder.Entity("Identity.Objects.Account", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("CreatedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Locked")
-                        .HasColumnType("boolean");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Salt")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid?>("TenantId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("UpdatedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -86,16 +82,17 @@ namespace Identity.DataStores.Postgres.Migrations
             modelBuilder.Entity("Identity.Objects.AccountClaim", b =>
                 {
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant?>("End")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("End")
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant>("Start")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Start")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("AccountId", "Id");
 
@@ -105,10 +102,10 @@ namespace Identity.DataStores.Postgres.Migrations
             modelBuilder.Entity("Identity.Objects.AccountRole", b =>
                 {
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("AccountId", "RoleId");
 
@@ -120,24 +117,24 @@ namespace Identity.DataStores.Postgres.Migrations
             modelBuilder.Entity("Identity.Objects.Role", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("CreatedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("UpdatedDate")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -150,10 +147,10 @@ namespace Identity.DataStores.Postgres.Migrations
             modelBuilder.Entity("Identity.Objects.RoleClaim", b =>
                 {
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("RoleId", "Id");
 
@@ -171,20 +168,20 @@ namespace Identity.DataStores.Postgres.Migrations
                     b.OwnsOne("Identity.Objects.Claim", "Claim", b1 =>
                         {
                             b1.Property<Guid>("AccountClaimAccountId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("TEXT");
 
                             b1.Property<Guid>("AccountClaimId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("TEXT");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("character varying(255)");
+                                .HasColumnType("TEXT");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("character varying(255)");
+                                .HasColumnType("TEXT");
 
                             b1.HasKey("AccountClaimAccountId", "AccountClaimId");
 
@@ -227,20 +224,20 @@ namespace Identity.DataStores.Postgres.Migrations
                     b.OwnsOne("Identity.Objects.Claim", "Claim", b1 =>
                         {
                             b1.Property<Guid>("RoleClaimRoleId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("TEXT");
 
                             b1.Property<Guid>("RoleClaimId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("TEXT");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("character varying(255)");
+                                .HasColumnType("TEXT");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasMaxLength(255)
-                                .HasColumnType("character varying(255)");
+                                .HasColumnType("TEXT");
 
                             b1.HasKey("RoleClaimRoleId", "RoleClaimId");
 

@@ -44,7 +44,7 @@
                    {
                        SystemAccount[] accounts = options.Value.Accounts;
                        logger.LogInformation("{AccountsCount} account(s) to create/update", accounts.Length);
-                       logger.LogInformation("Accounts : {@Accounts}", accounts.Select(account => new { account.Username, account.Email }).ToArray());
+                       logger.LogInformation("Accounts : {@Accounts}", accounts);
 
                        await accounts.ForEachAsync(async account =>
                        {
@@ -62,13 +62,14 @@
 
                            Option<AccountInfo, CreateCommandFailure> result = await mediator.Send(command);
 
-                           result.Match(accountCreated => logger.LogInformation("Created account <{AccountId}> for {Username} created successfully", accountCreated.Id.Value, accountCreated.Username),
+                           result.Match(accountCreated => logger.LogInformation("Account <{AccountId}> for {Username} created successfully", accountCreated.Id.Value, accountCreated.Username),
                                         async failure =>
                                         {
                                             switch (failure)
                                             {
                                                 case CreateCommandFailure.Conflict:
                                                     {
+                                                        logger.LogInformation("An account {Username} already exists. Performing update.", account.Username);
                                                         GetOneAccountInfoByUsernameQuery request = new(command.Data.Username);
                                                         Option<AccountInfo> accountMayExist = await mediator.Send(request)
                                                                                                             .ConfigureAwait(false);
@@ -78,6 +79,7 @@
                                                             DeleteAccountInfoByIdCommand deleteAccountCmd = new(existingAccount.Id);
                                                             await mediator.Send(deleteAccountCmd).ConfigureAwait(false);
                                                             await mediator.Send(command).ConfigureAwait(false);
+                                                            logger.LogInformation("Account {AccountId} for {Username} successfully updated", existingAccount.Id, accountInfo.Username);
                                                         });
                                                     }
                                                     break;
@@ -87,6 +89,8 @@
                                             }
                                         });
                        });
+
+                       logger.LogInformation("Accounts created/updated successfully");
                    })
         {
         }

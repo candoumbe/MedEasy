@@ -90,7 +90,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -165,7 +165,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -227,7 +227,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 

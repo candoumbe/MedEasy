@@ -18,6 +18,6 @@
         public BloodPressureCreated(BloodPressureInfo measureInfo) : base(Guid.NewGuid(), measureInfo)
         { }
 
-        public override string ToString() => SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+        public override string ToString() => this.Jsonify();
     }
 }

@@ -11,23 +11,13 @@ namespace Identity.API.Fixtures.v1
 
     using MedEasy.IntegrationTests.Core;
 
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc.Authorization;
-    using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
-
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
     using System;
     using System.IdentityModel.Tokens.Jwt;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Json;
-    using System.Security.Claims;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -75,6 +65,7 @@ namespace Identity.API.Fixtures.v1
         ///<inheritdoc/>
         public override async Task InitializeAsync()
         {
+            
             await base.InitializeAsync().ConfigureAwait(false);
             await Register().ConfigureAwait(false);
 

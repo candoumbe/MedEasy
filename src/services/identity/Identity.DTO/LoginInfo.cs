@@ -4,8 +4,9 @@
 
     public class LoginInfo
     {
-        public UserName Username { get; set; }
+        public UserName UserName { get; set; }
 
         public string Password { get; set; }
+
     }
 }

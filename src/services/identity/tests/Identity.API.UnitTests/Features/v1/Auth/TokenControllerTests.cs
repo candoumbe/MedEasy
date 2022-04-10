@@ -1,16 +1,19 @@
 namespace Identity.API.UnitTests.Features.v1.Auth
 {
+    using Bogus;
+
     using FluentAssertions;
+
+    using FsCheck;
+    using FsCheck.Xunit;
 
     using Identity.API.Features.Auth;
     using Identity.API.Features.v1.Auth;
     using Identity.CQRS.Commands;
-    using Identity.CQRS.Queries.Accounts;
+    using Identity.CQRS.Commands.v1;
     using Identity.DataStores;
-    using Identity.DTO;
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
-    using Identity.Ids;
     using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
@@ -22,10 +25,8 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
     using Microsoft.Extensions.Primitives;
-    using Microsoft.IdentityModel.Tokens;
 
     using Moq;
 
@@ -36,11 +37,9 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
     using System;
     using System.Collections.Generic;
-    using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using System.Security.Claims;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -63,6 +62,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         private readonly Mock<IHttpContextAccessor> _httpContextMock;
         private readonly TokenController _sut;
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
+        private static readonly Faker Faker = new ();
 
         public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
@@ -95,99 +95,106 @@ namespace Identity.API.UnitTests.Features.v1.Auth
             _sut = new TokenController(mediator: _mediatorMock.Object, jwtOptions: _jwtOptionsMock.Object, _httpContextMock.Object);
         }
 
+        /// <summary>
+        /// Given a valid request when the user is not found then a NotFoundResult is returned.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task GivenAccountDoesNotExist_Post_Returns_NotFound()
         {
             // Arrange
             LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
-            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.None<AccountInfo>());
+            string forwardedFor = Faker.Internet.IpAddress().ToString();
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<LoginCommand>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(Option.None<BearerTokenInfo>());
+            _jwtOptionsMock.SetupGet(mock => mock.Value).Returns(_jwtOptions);
+            _httpContextMock.SetupGet(mock => mock.HttpContext.Request.Headers).Returns(new HeaderDictionary()
+            {
+                ["X-FORWARDED-FOR"] = new StringValues(forwardedFor)
+            });
 
             // Act
-            IActionResult actionResult = await _sut.Post(model, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<BearerTokenInfo> actionResult = await _sut.Post(model, ct: default)
+                                                                   .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username) && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
-            _jwtOptionsMock.Verify(mock => mock.Value, Times.Never);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<LoginCommand>(q => q.Data.LoginInfos.UserName == UserName.From(model.Username)
+                                                                            && q.Data.LoginInfos.Password == model.Password
+                                                                            && q.Data.JwtInfos.Audiences == _jwtOptions.Audiences
+                                                                            && q.Data.JwtInfos.AccessTokenLifetime == _jwtOptions.AccessTokenLifetime
+                                                                            && q.Data.JwtInfos.Issuer == _jwtOptions.Issuer
+                                                                            && q.Data.JwtInfos.Key == _jwtOptions.Key
+                                                                            && q.Data.JwtInfos.RefreshTokenLifetime == _jwtOptions.RefreshTokenLifetime
+                                                                            && q.Data.Location == forwardedFor),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
 
-            actionResult.Should()
-                .BeAssignableTo<NotFoundResult>("The account with the specified credentials was not found");
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
+            _jwtOptionsMock.VerifyNoOtherCalls();
+
+            _httpContextMock.VerifyGet(mock => mock.HttpContext.Request.Headers, Times.Once);
+            _httpContextMock.VerifyNoOtherCalls();
+
+            actionResult.Result.Should()
+                        .BeAssignableTo<NotFoundResult>("The account with the specified credentials was not found");
         }
 
-        [Fact]
-        public async Task GivenAccountExists_Post_Returns_ValidToken()
+        /// <summary>
+        /// Given an account exists and the password is correct, the controller should return a valid token.
+        /// </summary>
+        /// <returns></returns>
+        [Property]
+        public async Task GivenAccountExists_Post_Returns_ValidToken(NonWhiteSpaceString accessToken, NonWhiteSpaceString refreshToken)
         {
             // Arrange
             LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
-            AuthenticationInfo authenticationInfo = new() { Location = "Paris" };
-            AccountInfo accountInfo = new()
+            string forwardedFor = Faker.Internet.IpAddress().ToString();
+            BearerTokenInfo bearerTokenInfo = new()
             {
-                Id = AccountId.New(),
-                Username = UserName.From(model.Username),
-                Email = Email.From("brucewayne@gotham.com"),
-                Name = "Bruce Wayne"
+                AccessToken = accessToken.Get,
+                RefreshToken = refreshToken.Get
             };
-            _httpContextMock.Setup(mock => mock.HttpContext.Request.Headers)
-                .Returns(new HeaderDictionary(new Dictionary<string, StringValues>
-                {
-                    ["X_FORWARDED_FOR"] = new StringValues(authenticationInfo.Location)
-                }));
-            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Option.Some(accountInfo));
-            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()))
-                .Returns((CreateAuthenticationTokenCommand cmd, CancellationToken ct) =>
-                    {
-                        (AuthenticationInfo authInfo, AccountInfo localAccountInfo, JwtInfos jwtInfos) = cmd.Data;
-
-                        return Task.FromResult(new AuthenticationTokenInfo
-                        {
-                            AccessToken = new JwtSecurityToken(
-                                issuer: _jwtOptions.Issuer,
-                                claims: jwtInfos.Audiences.Select(aud => new Claim(JwtRegisteredClaimNames.Aud, aud))
-                            ),
-                            RefreshToken = new JwtSecurityToken(
-                                issuer: _jwtOptions.Issuer,
-                                claims: jwtInfos.Audiences
-                                    .Select(aud => new Claim(JwtRegisteredClaimNames.Aud, aud))
-                                    .Concat(new[] { new Claim(CustomClaimTypes.Location, authInfo.Location) })
-                            ),
-                        });
-                    }
-                  );
+            _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<LoginCommand>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(bearerTokenInfo.Some());
+            
+            _jwtOptionsMock.SetupGet(mock => mock.Value).Returns(_jwtOptions);
+            _httpContextMock.SetupGet(mock => mock.HttpContext.Request.Headers).Returns(new HeaderDictionary()
+            {
+                ["X-FORWARDED-FOR"] = new StringValues(forwardedFor)
+            });
 
             // Act
-            IActionResult actionResult = await _sut.Post(model, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<BearerTokenInfo> actionResult = await _sut.Post(model, ct: default)
+                                                                   .ConfigureAwait(false);
 
             // Assert
-            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == UserName.From(model.Username) && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
-
-            _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()));
-            _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAuthenticationTokenCommand>(cmd => cmd.Data.authInfo.Location == authenticationInfo.Location
-                && cmd.Data.jwtInfos.Issuer == _jwtOptions.Issuer
-                && cmd.Data.jwtInfos.Key == _jwtOptions.Key
-                && cmd.Data.jwtInfos.Audiences.All(audience => _jwtOptions.Audiences.Contains(audience))
-                && cmd.Data.jwtInfos.AccessTokenLifetime == _jwtOptions.AccessTokenLifetime
-                && cmd.Data.jwtInfos.RefreshTokenLifetime == _jwtOptions.RefreshTokenLifetime), It.IsAny<CancellationToken>()));
-
-            _jwtOptionsMock.Verify(mock => mock.Value, Times.Once);
-
-            BearerTokenInfo bearerToken = actionResult.Should()
-                .BeOfType<OkObjectResult>().Which
-                .Value.Should()
-                .BeOfType<BearerTokenInfo>().Which;
+            BearerTokenInfo bearerToken = actionResult.Value.Should()
+                                                            .BeOfType<BearerTokenInfo>().Which;
 
             bearerToken.AccessToken.Should()
-                .NotBeNullOrWhiteSpace();
+                                   .Be(accessToken.Item);
 
             bearerToken.RefreshToken.Should()
-                .NotBeNullOrWhiteSpace().And
-                .NotBe(bearerToken.AccessToken);
+                                    .Be(refreshToken.Item);
 
-            SecurityToken accessToken = new JwtSecurityToken(bearerToken.AccessToken);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<LoginCommand>(q => q.Data.LoginInfos.UserName == UserName.From(model.Username)
+                                                                            && q.Data.LoginInfos.Password == model.Password
+                                                                            && q.Data.JwtInfos.Audiences == _jwtOptions.Audiences
+                                                                            && q.Data.JwtInfos.AccessTokenLifetime == _jwtOptions.AccessTokenLifetime
+                                                                            && q.Data.JwtInfos.Issuer == _jwtOptions.Issuer
+                                                                            && q.Data.JwtInfos.Key == _jwtOptions.Key
+                                                                            && q.Data.JwtInfos.RefreshTokenLifetime == _jwtOptions.RefreshTokenLifetime
+                                                                            && q.Data.Location == forwardedFor),
+                                                   It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
+
+            _jwtOptionsMock.Verify(mock => mock.Value);
+            _jwtOptionsMock.VerifyNoOtherCalls();
+
+            _httpContextMock.VerifyGet(mock => mock.HttpContext.Request.Headers);
+            _httpContextMock.VerifyNoOtherCalls();
         }
 
         public static IEnumerable<object[]> InvalidateCases
@@ -265,20 +272,20 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         {
             MethodInfo invalidateMethod = typeof(TokenController).GetMethod(nameof(TokenController.Refresh));
             invalidateMethod.Should()
-                .BeAsync().And
-                .BeDecoratedWith<HttpPutAttribute>().Which
-                .Template.Should()
-                .Be("{username}");
+                            .BeAsync().And
+                            .BeDecoratedWith<HttpPutAttribute>().Which
+                            .Template.Should()
+                            .Be("{username}");
 
             ParameterInfo[] parameters = invalidateMethod.GetParameters();
             parameters.Should()
-                .ContainSingle(pi => pi.ParameterType == typeof(CancellationToken) && pi.IsOptional).And
-                .ContainSingle(pi => pi.ParameterType == typeof(RefreshAccessTokenInfo));
+                      .ContainSingle(pi => pi.ParameterType == typeof(CancellationToken) && pi.IsOptional).And
+                      .ContainSingle(pi => pi.ParameterType == typeof(RefreshAccessTokenInfo));
 
             ParameterInfo refreshAccessTokenParameter = parameters.Single(pi => pi.ParameterType == typeof(RefreshAccessTokenInfo));
             IEnumerable<Attribute> attributes = refreshAccessTokenParameter.GetCustomAttributes();
             attributes.Should()
-                .ContainSingle(attr => attr is FromBodyAttribute);
+                      .ContainSingle(attr => attr is FromBodyAttribute);
         }
 
         [Fact]
@@ -300,7 +307,8 @@ namespace Identity.API.UnitTests.Features.v1.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsAny<RefreshAccessTokenByUsernameCommand>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<RefreshAccessTokenByUsernameCommand>(cmd => cmd.Data.username == username
+                                                                                                     && cmd.Data.refreshToken == refreshAccessToken.RefreshToken), It.IsAny<CancellationToken>()), Times.Once);
 
             actionResult.Should()
                 .BeAssignableTo<NotFoundResult>();

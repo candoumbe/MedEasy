@@ -86,7 +86,7 @@
         public async Task GivenNoUser_Handler_Returns_None()
         {
             // Arrange
-            LoginInfo info = new() { Username = UserName.From("Bruce"), Password = "CapedCrusader" };
+            LoginInfo info = new() { UserName = UserName.From("Bruce"), Password = "CapedCrusader" };
             GetOneAccountByUsernameAndPasswordQuery query = new(info);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
@@ -118,7 +118,7 @@
                     yield return new object[]
                     {
                         bruceWayne,
-                        new LoginInfo {Username = bruceWayne.Username, Password = bruceWayne.PasswordHash},
+                        new LoginInfo {UserName = bruceWayne.Username, Password = bruceWayne.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == bruceWayne.Username
                             && info.Name == bruceWayne.Name
                             && !info.Claims.Any()
@@ -140,7 +140,7 @@
                     yield return new object[]
                     {
                         clarkKent,
-                        new LoginInfo {Username = clarkKent.Username, Password = clarkKent.PasswordHash},
+                        new LoginInfo {UserName = clarkKent.Username, Password = clarkKent.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.Username
                             && info.Email == clarkKent.Email
                             && info.Claims.Once()

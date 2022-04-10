@@ -3,6 +3,7 @@ using System;
 using Identity.DataStores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Identity.DataStores.Postgres.Migrations
 {
     [DbContext(typeof(IdentityDataStore))]
-    partial class IdentityContextModelSnapshot : ModelSnapshot
+    [Migration("20220410085209_AlterAccountAddEmailConfirmedProperty")]
+    partial class AlterAccountAddEmailConfirmedProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -67,7 +67,7 @@
                             .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
                             .Enrich.FromLogContext()
                             .ReadFrom.Configuration(hosting.Configuration);
-                        
+
                         hosting.Configuration.GetServiceUri("seq")
                                             .SomeNotNull()
                                             .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));

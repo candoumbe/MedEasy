@@ -17,6 +17,7 @@
     using FluentAssertions.Extensions;
 
     using FsCheck;
+    using FsCheck.Fluent;
     using FsCheck.Xunit;
 
     using MedEasy.CQRS.Core.Commands.Results;
@@ -113,32 +114,6 @@
 
                 yield return new object[] { (appointmentId: AppointmentId.New(), start: 17.August(2007).AsUtc().ToInstant().InUtc(), end: 17.August(2007).Add(-1.Hours()).AsUtc().ToInstant().InUtc()), "Start property is after end" };
             }
-        }
-
-        [Property]
-        public Property Handle_Throws_CommandNotValidException()
-        {
-            // Assert
-            return Prop.ForAll((Guid id, DateTime start, DateTime end) =>
-            {
-                // Arrange
-                ZonedDateTime zonedDateTimeStart = start.AsUtc().ToInstant().InUtc();
-                ZonedDateTime zonedDateTimeEnd = end.AsUtc().ToInstant().InUtc();
-                ChangeAppointmentDateCommand cmd = new((new AppointmentId(id), zonedDateTimeStart, zonedDateTimeEnd));
-
-                // Act
-                Lazy<Task<ModifyCommandResult>> action = new(async () => await _sut.Handle(cmd, default)
-                                                                                   .ConfigureAwait(false));
-
-                // Assert
-                Prop.Throws<CommandNotValidException<AppointmentId>, Task<ModifyCommandResult>>(action)
-                    .And(() =>
-                    {
-                        A.CallTo(_unitOfWorkFactoryMock).MustNotHaveHappened();
-                        A.CallTo(_mapper).MustNotHaveHappened();
-                    })
-                    .When(id == Guid.Empty || start > end);
-            });
         }
 
         public static IEnumerable<object[]> HandleCases

@@ -95,7 +95,7 @@
                 Password = password,
                 ConfirmPassword = password,
                 Email = Email.From(faker.Person.Email)
-            }; 
+            };
 
             using HttpClient httpClient = _identityApiFixture.CreateClient();
             httpClient.DefaultRequestHeaders.Add("api-version", "1.0");

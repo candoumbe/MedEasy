@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Nuget.config = Nuget.config
 		README.md = README.md
 		renovate.json = renovate.json
+		testEnvironments.json = testEnvironments.json
 		tests.props = tests.props
 		tye.yaml = tye.yaml
 	EndProjectSection
@@ -310,7 +311,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.DataStores.Sqlite", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.DataStores.Postgres", "src\services\agenda\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj", "{162FF86E-AF33-4401-B28E-D5C0C9339693}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.ValueObjects", "src\services\identity\Identity.ValueObjects\Identity.ValueObjects.csproj", "{C485AF21-8698-4759-B5ED-134CFAB0A0D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.ValueObjects", "src\services\identity\Identity.ValueObjects\Identity.ValueObjects.csproj", "{C485AF21-8698-4759-B5ED-134CFAB0A0D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

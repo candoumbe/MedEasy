@@ -68,7 +68,7 @@
         [ApiVersion("2.0")]
         public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired] LoginModel model, [FromHeader(Name = "x-forwarder-for")] IEnumerable<string> ipValues = default, CancellationToken ct = default)
         {
-            LoginInfo loginInfo = new() { Username = UserName.From(model.Username), Password = model.Password };
+            LoginInfo loginInfo = new() { UserName = UserName.From(model.Username), Password = model.Password };
             Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
                 .ConfigureAwait(false);
 

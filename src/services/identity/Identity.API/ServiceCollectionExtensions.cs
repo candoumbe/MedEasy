@@ -49,6 +49,7 @@
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.OpenApi.Models;
 
+
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
@@ -189,7 +190,7 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
-            
+
             services.AddTransient(serviceProvider =>
             {
                 DbContextOptionsBuilder<IdentityDataStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
@@ -209,6 +210,11 @@
             services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityDataStore>>();
             services.AddAsyncInitializer<IdentityDataStoreSeedInitializer>();
             services.AddTransient<IUserStore<Account>, IdentityRepository>();
+
+            services.AddIdentityCore<Account>()
+                    .AddSignInManager<SignInManager<Account>>()
+                    .AddUserManager<UserManager<Account>>()
+                    .AddDefaultTokenProviders();
 
             return services;
 

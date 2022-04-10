@@ -85,7 +85,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -115,7 +115,7 @@
 
             SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken.Token);
 
-            // wait for the access token to expire
+            // Simulate a token expiration
             Thread.Sleep(accessDuration + 1.Seconds());
 
             _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
@@ -158,7 +158,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -218,7 +218,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 

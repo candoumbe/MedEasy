@@ -2,10 +2,12 @@
 {
     using Identity.API.Features.Auth;
     using Identity.CQRS.Commands;
+    using Identity.CQRS.Commands.v1;
     using Identity.CQRS.Queries.Accounts;
     using Identity.DTO;
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
+    using Identity.Objects;
     using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
@@ -14,6 +16,7 @@
 
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Extensions.Options;
@@ -68,58 +71,30 @@
         [AllowAnonymous]
         [ProducesResponseType(Status404NotFound)]
         [ProducesResponseType(Status200OK, Type = typeof(BearerTokenInfo))]
-        public async ValueTask<IActionResult> Post([FromBody, BindRequired] LoginModel model, CancellationToken ct = default)
+        public async ValueTask<ActionResult<BearerTokenInfo>> Post([FromBody, BindRequired] LoginModel model, CancellationToken ct = default)
         {
-            LoginInfo loginInfo = new() { Username = UserName.From(model.Username), Password = model.Password };
-            Option<AccountInfo> optionalUser = await _mediator.Send(new GetOneAccountByUsernameAndPasswordQuery(loginInfo), ct)
-                .ConfigureAwait(false);
+            LoginInfo loginInfo = new()
+            {
+                UserName = UserName.From(model.Username),
+                Password = model.Password
+            };
 
-            return await optionalUser.Match<ValueTask<IActionResult>>(
-                some: async accountInfo =>
-                {
-                    JwtOptions jwtOptions = _jwtOptions.Value;
-                    _httpContextAccessor.HttpContext.Request.Headers.TryGetValue("X_FORWARDED_FOR", out StringValues ipValues);
-                    AuthenticationInfo authenticationInfo = new() { Location = ipValues.ToArray().FirstOrDefault() ?? string.Empty };
-                    JwtInfos jwtInfos = new()
-                    {
-                        Key = jwtOptions.Key,
-                        Issuer = jwtOptions.Issuer,
-                        Audiences = jwtOptions.Audiences,
-                        AccessTokenLifetime = jwtOptions.AccessTokenLifetime,
-                        RefreshTokenLifetime = jwtOptions.RefreshTokenLifetime
-                    };
-                    AuthenticationTokenInfo token = await _mediator.Send(new CreateAuthenticationTokenCommand((authenticationInfo, accountInfo, jwtInfos)), ct)
-                        .ConfigureAwait(false);
+            JwtOptions jwtData = _jwtOptions.Value;
+            JwtInfos jwtInfos = new()
+            {
+                Issuer = jwtData.Issuer,
+                Audiences = jwtData.Audiences,
+                Key = jwtData.Key,
+                AccessTokenLifetime = jwtData.AccessTokenLifetime,
+                RefreshTokenLifetime = jwtData.RefreshTokenLifetime
+            };
 
-                    string accessTokenString;
-                    string refreshTokenString;
-                    JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
-                    switch (token.AccessToken)
-                    {
-                        case JwtSecurityToken jwtToken:
-                            accessTokenString = jwtSecurityTokenHandler.WriteToken(jwtToken);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException("Unhandled access token type");
-                    }
+            _httpContextAccessor.HttpContext.Request.Headers.TryGetValue("x-forwarded-for", out StringValues ips);
 
-                    switch (token.RefreshToken)
-                    {
-                        case JwtSecurityToken jwtToken:
-                            refreshTokenString = jwtSecurityTokenHandler.WriteToken(jwtToken);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException("Unhandled refresh token type");
-                    }
+            Option<BearerTokenInfo> tokenOption = await _mediator.Send(new LoginCommand((loginInfo, jwtInfos, ips.FirstOrDefault(string.Empty))), ct);
 
-                    return new OkObjectResult(new BearerTokenInfo
-                    {
-                        AccessToken = accessTokenString,
-                        RefreshToken = refreshTokenString
-                    });
-                },
-                none: () => new ValueTask<IActionResult>(new NotFoundResult())
-            ).ConfigureAwait(false);
+            return tokenOption.Match<ActionResult<BearerTokenInfo>>(some: token => token,
+                                                                    none: () => new NotFoundResult());
         }
 
         /// <summary>

@@ -39,7 +39,7 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     /// <summary>
     /// Email associated with the account
     /// </summary>
-    public Email Email { get; }
+    public Email Email { get; private set; }
 
     /// <summary>
     /// Name of the account
@@ -49,7 +49,7 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     /// <summary>
     /// Indicates if the current instance <see cref="Email"/> was confirmed.
     /// </summary>
-    public bool EmailConfirmed { get; }
+    public bool EmailConfirmed { get; private set; }
 
     /// <summary>
     /// Token that can be used to request new access tokens.
@@ -226,4 +226,20 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     /// </summary>
     /// <param name="newUsername"></param>
     public void ChangeUsernameTo(UserName newUsername) => Username = newUsername;
+
+    /// <summary>
+    /// Marks the current <see cref="Account"/>'s <see cref="Email"/> as confirmed.
+    /// </summary>
+    public void ConfirmEmail() => EmailConfirmed = true;
+
+    /// <summary>
+    /// Marks the current <see cref="Account"/>'s <see cref="Email"/> as unconfirmed.
+    /// </summary>
+    public void UnconfirmEmail() => EmailConfirmed = false;
+
+    /// <summary>
+    /// Changes the <see cref="Account"/>'s <see cref="Email"/>.
+    /// </summary>
+    /// <param name="newEmail"></param>
+    public void ChangeEmail(Email newEmail) => Email = newEmail;
 }

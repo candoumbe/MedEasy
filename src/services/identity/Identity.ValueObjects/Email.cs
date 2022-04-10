@@ -38,7 +38,7 @@ public record Email
     private Email(string value) => Value = value;
 
     /// <summary>
-    /// Wraps <paramref name="input"/> intot a 
+    /// Wraps <paramref name="input"/> intot a
     /// </summary>
     /// <param name="input"></param>
     /// <returns>a valid <see cref="Email"/></returns>
