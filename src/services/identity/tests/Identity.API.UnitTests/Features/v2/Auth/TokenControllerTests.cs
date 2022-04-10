@@ -11,6 +11,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
     using Identity.DTO;
     using Identity.DTO.v2;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -47,7 +48,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
     [UnitTest]
     [Feature("Identity")]
     [Feature("Accounts")]
-    public class TokenControllerUnitTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class TokenControllerUnitTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly Mock<IMediator> _mediatorMock;
@@ -57,14 +58,14 @@ namespace Identity.API.UnitTests.Features.v2.Auth
         private readonly API.Features.v2.Auth.TokenController _sut;
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public TokenControllerUnitTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _unitOfWorkFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
 
                 return context;
@@ -102,7 +103,8 @@ namespace Identity.API.UnitTests.Features.v2.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == model.Username && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.UserName == UserName.From(model.Username)
+                                                                                                       && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
             _jwtOptionsMock.Verify(mock => mock.CurrentValue, Times.Never);
 
             actionResult.Should()
@@ -124,8 +126,8 @@ namespace Identity.API.UnitTests.Features.v2.Auth
             AccountInfo accountInfo = new()
             {
                 Id = AccountId.New(),
-                Username = model.Username,
-                Email = "brucewayne@gotham.com",
+                Username = UserName.From(model.Username),
+                Email = Email.From("brucewayne@gotham.com"),
                 Name = "Bruce Wayne"
             };
 
@@ -160,7 +162,8 @@ namespace Identity.API.UnitTests.Features.v2.Auth
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.Username == model.Username && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByUsernameAndPasswordQuery>(q => q.Data.UserName == UserName.From(model.Username)
+                                                                                                       && q.Data.Password == model.Password), It.IsAny<CancellationToken>()), Times.Once);
 
             _mediatorMock.Verify(mock => mock.Send(It.IsNotNull<CreateAuthenticationTokenCommand>(), It.IsAny<CancellationToken>()));
             _mediatorMock.Verify(mock => mock.Send(It.Is<CreateAuthenticationTokenCommand>(cmd => cmd.Data.authInfo.Location == authenticationInfo.Location

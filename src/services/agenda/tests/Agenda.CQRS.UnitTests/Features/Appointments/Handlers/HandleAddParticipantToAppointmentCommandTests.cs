@@ -33,7 +33,7 @@
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
         private readonly HandleAddParticipantToAppointmentCommand _sut;
-        
+
         public HandleAddParticipantToAppointmentCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<AgendaContext> database)
         {
             _outputHelper = outputHelper;

@@ -14,6 +14,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -46,7 +47,7 @@
     [UnitTest]
     [Feature("Accounts")]
     [Feature("Handlers")]
-    public class HandleCreateAccountInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleCreateAccountInfoCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -54,13 +55,13 @@
         private Mock<IMediator> _mediatorMock;
         private HandleCreateAccountInfoCommand _sut;
 
-        public HandleCreateAccountInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleCreateAccountInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -131,8 +132,8 @@
             // Arrange
             Guid resourceId = Guid.NewGuid();
             Account existingAccount = new(id: AccountId.New(),
-                                           username: "thebatman",
-                                           email: "thecaped@crusader.com",
+                                           username: UserName.From("thebatman"),
+                                           email: Email.From ("thecaped@crusader.com"),
                                            passwordHash: "fjeiozfjzfdcvqcnjifozjffkjioj",
                                            salt: "some_salt_and_pepper");
 
@@ -148,7 +149,7 @@
                 Username = existingAccount.Username,
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader",
-                Email = "b.wayne@gotham.com"
+                Email = Email.From("b.wayne@gotham.com")
             };
 
             _mapperMock.Setup(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()))
@@ -190,10 +191,10 @@
 
             NewAccountInfo newResourceInfo = new()
             {
-                Username = "thebatman",
+                Username = UserName.From("thebatman"),
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecrusader",
-                Email = "b.wayne@gotham.com"
+                Email = Email.From("b.wayne@gotham.com")
             };
 
             CreateAccountInfoCommand cmd = new(newResourceInfo);
@@ -228,10 +229,10 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = "thebatman",
+                Username = UserName.From("thebatman"),
                 Password = "thecapedcrusader",
                 ConfirmPassword = "thecapedcrusader",
-                Email = "b.wayne@gotham.com"
+                Email = Email.From("b.wayne@gotham.com")
             };
 
             _mapperMock.Setup(mock => mock.Map<NewAccountInfo, Account>(It.IsAny<NewAccountInfo>()))
@@ -269,7 +270,7 @@
 
                             AccountInfo accountInfo = new()
                             {
-                                Username = account.Name,
+                                Username = UserName.From(account.Name),
                                 Email = account.Email,
                                 Claims = claimsOverride,
                                 Roles = account.Roles.Select(ar => new RoleInfo

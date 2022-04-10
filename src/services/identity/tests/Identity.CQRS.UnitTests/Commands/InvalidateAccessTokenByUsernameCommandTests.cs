@@ -3,6 +3,7 @@
     using FluentAssertions;
 
     using Identity.CQRS.Commands;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands;
     using MedEasy.CQRS.Core.Commands.Results;
@@ -29,29 +30,26 @@
 
         [Fact]
         public void IsCommand() => typeof(InvalidateAccessTokenByUsernameCommand).Should()
-            .Implement<ICommand<Guid, string, InvalidateAccessCommandResult>>();
+            .Implement<ICommand<Guid, UserName, InvalidateAccessCommandResult>>();
 
         [Fact]
         public void Ctor_Is_Valid()
         {
-            InvalidateAccessTokenByUsernameCommand instance = new("thejoker");
+            InvalidateAccessTokenByUsernameCommand instance = new(UserName.From("thejoker"));
             // Assert
             instance.Id.Should()
                 .NotBeEmpty();
         }
 
-        [Theory]
-        [InlineData(null, "username is null")]
-        [InlineData("", "username is empty")]
-        [InlineData("   ", "username is whitespace")]
-        public void Ctor_Throws_ArgumentException(string username, string reason)
+        [Fact]
+        public void Given_param_is_Empty_Constructor_should_throw_ArgumentException()
         {
             // Act
-            Action action = () => new InvalidateAccessTokenByUsernameCommand(username);
+            Action action = () => new InvalidateAccessTokenByUsernameCommand(UserName.Empty);
 
             // Assert
             action.Should()
-                .Throw<ArgumentException>(reason).Which
+                .Throw<ArgumentException>($"{nameof(UserName)} is empty.").Which
                 .ParamName.Should()
                 .NotBeNullOrWhiteSpace();
         }

@@ -46,6 +46,7 @@
     using NodaTime;
     using Identity.Ids;
     using MedEasy.Ids;
+    using Identity.ValueObjects;
 
     /// <summary>
     /// Unit tests for <see cref="AccountsController"/>
@@ -53,7 +54,7 @@
     [UnitTest]
     [Feature("Accounts")]
     [Feature("Identity")]
-    public class AccountsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class AccountsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
 
@@ -66,7 +67,7 @@
         private const string BaseUrl = "http://host/api";
         private static ApiVersion _apiVersion;
 
-        public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
@@ -77,9 +78,9 @@
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -130,8 +131,8 @@
 
                 Faker<Account> accountFaker = new Faker<Account>()
                     .CustomInstantiator(faker => new Account(id: AccountId.New(),
-                        username: faker.Internet.UserName(),
-                        email: faker.Internet.Email(),
+                        username: UserName.From(faker.Internet.UserName()),
+                        email: Email.From(faker.Internet.Email()),
                         passwordHash: string.Empty,
                         salt: string.Empty
                     ));
@@ -260,17 +261,18 @@
         {
             // Arrange
             AccountId accountId = AccountId.New();
+            Account account = new Account
+                            (
+                                id: accountId,
+                                username: UserName.From("thebatman"),
+                                passwordHash: "a_super_secret_password",
+                                email: Email.From("bruce@wayne-entreprise.com"),
+                                salt: "salt_and_pepper_for_password"
+
+                            );
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
-                uow.Repository<Account>().Create(new Account
-                (
-                    id: accountId,
-                    username: "thebatman",
-                    passwordHash: "a_super_secret_password",
-                    email: "bruce@wayne-entreprise.com",
-                    salt: "salt_and_pepper_for_password"
-
-                ));
+                uow.Repository<Account>().Create(account);
 
                 await uow.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -322,8 +324,8 @@
                 .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
 
             resource.Id.Should().Be(accountId);
-            resource.Username.Should().Be("thebatman");
-            resource.Email.Should().Be("bruce@wayne-entreprise.com");
+            resource.Username.Should().Be(account.Username);
+            resource.Email.Should().Be(account.Email);
         }
 
         [Fact]
@@ -333,17 +335,17 @@
             AccountId accountId = AccountId.New();
 
             Account tenant = new(id: AccountId.New(),
-                                  username: "thebatman",
+                                  username: UserName.From("thebatman"),
                                   passwordHash: "a_super_secret_password",
-                                  email: "bruce@wayne-entreprise.com",
+                                  email: Email.From("bruce@wayne-entreprise.com"),
                                   salt: "salt_and_pepper_for_password",
                                   tenantId: TenantId.New()
             );
             Account newAccount = new(
                 id: accountId,
-                username: "robin",
+                username: UserName.From("robin"),
                 passwordHash: "a_super_secret_password",
-                email: "dick.grayson@wayne-entreprise.com",
+                email: Email.From("dick.grayson@wayne-entreprise.com"),
                 salt: "salt_and_pepper_for_password",
                 tenantId: new(tenant.Id.Value)
             );
@@ -473,7 +475,7 @@
         public async Task Patch_UnknownEntity_Returns_NotFound()
         {
             JsonPatchDocument<AccountInfo> changes = new();
-            changes.Replace(x => x.Email, "bruce.wayne@gorham.com");
+            changes.Replace(x => x.Email, Email.From("bruce.wayne@gorham.com"));
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<AccountId, AccountInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Failed_NotFound);
@@ -492,7 +494,7 @@
         {
             // Arrange
             JsonPatchDocument<AccountInfo> changes = new();
-            changes.Replace(x => x.Email, "bruce.wayne@gorham.com");
+            changes.Replace(x => x.Email, Email.From("bruce.wayne@gorham.com"));
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<PatchCommand<AccountId, AccountInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ModifyCommandResult.Done);
@@ -514,8 +516,8 @@
             // Arrange
             NewAccountInfo newAccount = new()
             {
-                Username = "thebatman",
-                Email = "b.wayne@gotham.com"
+                Username = UserName.From("thebatman"),
+                Email = Email.From("b.wayne@gotham.com")
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
@@ -541,8 +543,8 @@
             // Arrange
             NewAccountInfo newAccount = new()
             {
-                Username = "thebatman",
-                Email = "b.wayne@gotham.com"
+                Username = UserName.From("thebatman"),
+                Email = Email.From("b.wayne@gotham.com")
             };
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<CreateAccountInfoCommand>(), It.IsAny<CancellationToken>()))
@@ -601,9 +603,9 @@
                     .CustomInstantiator(faker => new Account(
                         id: AccountId.New(),
                         name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
-                        email: faker.Internet.ExampleEmail(),
+                        email: Email.From(faker.Internet.ExampleEmail()),
                         passwordHash: faker.Lorem.Word(),
-                        username: faker.Internet.UserName(),
+                        username: UserName.From(faker.Internet.UserName()),
                         salt: faker.Lorem.Word()))
                     ;
                 {

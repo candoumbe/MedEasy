@@ -26,6 +26,7 @@
     using System.Linq;
     using System;
     using Xunit.Extensions.AssemblyFixture;
+    using Identity.ValueObjects;
 
     [IntegrationTest]
     [Feature("Accounts")]
@@ -90,10 +91,10 @@
             {
                 Id = AccountId.New(),
                 Name = faker.Person.FullName,
-                Username = faker.Person.UserName,
+                Username = UserName.From(faker.Person.UserName),
                 Password = password,
                 ConfirmPassword = password,
-                Email = faker.Person.Email
+                Email = Email.From(faker.Person.Email)
             };
 
             using HttpClient httpClient = _identityApiFixture.CreateClient();

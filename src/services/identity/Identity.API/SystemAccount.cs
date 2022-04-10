@@ -1,5 +1,7 @@
 ﻿namespace Identity.API
 {
+    using Identity.ValueObjects;
+
     /// <summary>
     /// An account that should be created on application' startup
     /// </summary>
@@ -8,12 +10,12 @@
         /// <summary>
         /// Username of the account
         /// </summary>
-        public string Username { get; init; }
+        public UserName Username { get; init; }
 
         /// <summary>
         /// Email of the account
         /// </summary>
-        public string Email { get; init; }
+        public Email Email { get; init; }
 
         /// <summary>
         /// Password that can be used to logged into the application with the current account

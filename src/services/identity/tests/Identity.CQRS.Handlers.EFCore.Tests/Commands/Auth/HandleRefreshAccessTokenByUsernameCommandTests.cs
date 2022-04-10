@@ -13,6 +13,7 @@
     using Identity.DTO.v1;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -48,7 +49,7 @@
 
     [UnitTest]
     [Feature("JWT")]
-    public class HandleRefreshAccessTokenByUsernameCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleRefreshAccessTokenByUsernameCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private ITestOutputHelper _outputHelper;
         private IUnitOfWorkFactory _uowFactory;
@@ -59,12 +60,12 @@
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private const string SignatureKey = "a_very_long_key_to_encrypt_token";
 
-        public HandleRefreshAccessTokenByUsernameCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleRefreshAccessTokenByUsernameCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _outputHelper = outputHelper;
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -151,7 +152,7 @@
 
             _outputHelper.WriteLine($"Refresh token : {refreshTokenString}");
 
-            RefreshAccessTokenByUsernameCommand cmd = new(("thejoker", expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenInfos));
+            RefreshAccessTokenByUsernameCommand cmd = new((UserName.From("thejoker"), expiredAccessToken: expiredAccessTokenString, refreshTokenString, tokenInfos));
 
             _clockMock.Setup(mock => mock.GetCurrentInstant())
                       .Returns(utcNow);
@@ -187,10 +188,10 @@
            );
             Account account = new(id: AccountId.New(),
                                    name: faker.Person.FullName,
-                                   email: faker.Person.Email,
+                                   email: Email.From(faker.Person.Email),
                                    passwordHash: faker.Lorem.Word(),
                                    salt: faker.Lorem.Word(),
-                                   username: faker.Person.UserName);
+                                   username: UserName.From(faker.Person.UserName));
 
             account.ChangeRefreshToken(new JwtSecurityTokenHandler().WriteToken(refreshToken));
 

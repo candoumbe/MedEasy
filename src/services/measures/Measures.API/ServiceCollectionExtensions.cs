@@ -387,7 +387,7 @@
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
-                x.AddConsumer<PatientCaseCreatedConsumer>();
+                x.AddConsumers(typeof(PatientCaseCreatedConsumer).Assembly);
                 if (environment.IsEnvironment("IntegrationTest"))
                 {
                     x.UsingInMemory();

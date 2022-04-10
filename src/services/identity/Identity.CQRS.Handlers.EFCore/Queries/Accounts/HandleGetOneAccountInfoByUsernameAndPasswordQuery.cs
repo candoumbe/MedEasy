@@ -51,7 +51,7 @@
                                                     x.PasswordHash,
                                                     x.Salt
                                                 },
-                                                                      (Account x) => x.Username == data.Username,
+                                                                      (Account x) => x.Username == data.UserName,
                                                                       ct
                                                 )
                                                 .ConfigureAwait(false);
@@ -86,7 +86,7 @@
                         accountInfo = Option.Some(new AccountInfo
                         {
                             Id = account.Id,
-                            Name = account.Name ?? account.Username,
+                            Name = account.Name ?? account.Username.Value,
                             Username = account.Username,
                             Email = account.Email,
                             Roles = account.Roles,

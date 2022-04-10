@@ -26,7 +26,11 @@
         /// <returns>a new a unique <see cref="AccountId"/>.</returns>
         public static AccountId Empty => new(Guid.Empty);
 
+        ///<inheritdoc/>
         public override string ToString() => base.ToString();
+
+        ///<inheritdoc/>
+        public static explicit operator AccountId(Guid value) => new(value);
 
         /// <summary>
         /// Handles EF conversion between <see cref="Guid"/> and <see cref="AccountId"/>

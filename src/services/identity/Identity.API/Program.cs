@@ -58,33 +58,33 @@
         /// Builds the host
         /// </summary>
         /// <param name="args">command line arguments</param>
-        public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
-                           .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
-                                                                       .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
-                                                                       .UseSerilog((hosting, loggerConfig) =>
-                                                                       {
-                                                                           loggerConfig = loggerConfig
-                                                                              .MinimumLevel.Verbose()
-                                                                              .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                                                                              .Enrich.FromLogContext()
-                                                                              .WriteTo.Console()
-                                                                              .ReadFrom.Configuration(hosting.Configuration);
+        public static IHostBuilder CreateHostBuilder(string[] args)
+            => Host.CreateDefaultBuilder(args)
+                    .UseSerilog((hosting, loggerConfig) =>
+                    {
+                        loggerConfig = loggerConfig
+                            .MinimumLevel.Verbose()
+                            .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                            .Enrich.FromLogContext()
+                            .ReadFrom.Configuration(hosting.Configuration);
 
-                                                                           hosting.Configuration.GetServiceUri("seq")
-                                                                                                .SomeNotNull()
-                                                                                                .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
-                                                                       })
-                           )
-                           .ConfigureLogging((options) =>
-                           {
-                               options.ClearProviders() // removes all default providers
-                                   .AddSerilog()
-                                   .AddConsole();
-                           })
-                           .ConfigureAppConfiguration((_, config) =>
-                           {
-                               config.AddJsonFile("accounts.json", optional: false, reloadOnChange: true);
-                           })
+                        hosting.Configuration.GetServiceUri("seq")
+                                            .SomeNotNull()
+                                            .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
+                    })
+                    .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
+                                                                .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
+                    )
+                    .ConfigureLogging((options) =>
+                    {
+                        options.ClearProviders() // removes all default providers
+                            .AddSerilog()
+                            .AddConsole();
+                    })
+                    .ConfigureAppConfiguration((_, config) =>
+                    {
+                        config.AddJsonFile("accounts.json", optional: false, reloadOnChange: true);
+                    })
             ;
     }
 }

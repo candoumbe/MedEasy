@@ -11,6 +11,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -43,21 +44,21 @@
 
     [UnitTest]
     [Feature("Identity")]
-    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleGetOneAccountByUsernameAndPasswordQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private ITestOutputHelper _outputHelper;
-        private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
+        private EFUnitOfWorkFactory<IdentityDataStore> _uowFactory;
         private readonly Mock<IMediator> _mediatorMock;
         private HandleGetOneAccountInfoByUsernameAndPasswordQuery _sut;
 
-        public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleGetOneAccountByUsernameAndPasswordQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options,
                                                                    (options) =>
                                                                    {
-                                                                       IdentityContext context = new IdentityContext(options, new FakeClock(new Instant()));
+                                                                       IdentityDataStore context = new IdentityDataStore(options, new FakeClock(new Instant()));
                                                                        context.Database.EnsureCreated();
 
                                                                        return context;
@@ -85,7 +86,7 @@
         public async Task GivenNoUser_Handler_Returns_None()
         {
             // Arrange
-            LoginInfo info = new() { Username = "Bruce", Password = "CapedCrusader" };
+            LoginInfo info = new() { UserName = UserName.From("Bruce"), Password = "CapedCrusader" };
             GetOneAccountByUsernameAndPasswordQuery query = new(info);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
@@ -108,8 +109,8 @@
                     Account bruceWayne = new(
                         name: "Bruce Wayne",
                         id: AccountId.New(),
-                        email: "Bruce@wayne-entreprise.com",
-                        username: "Batman",
+                        email: Email.From("Bruce@wayne-entreprise.com"),
+                        username: UserName.From("Batman"),
                         passwordHash: "CapedCrusader",
                         salt: "the_kryptonian"
                     );
@@ -117,7 +118,7 @@
                     yield return new object[]
                     {
                         bruceWayne,
-                        new LoginInfo {Username = bruceWayne.Username, Password = bruceWayne.PasswordHash},
+                        new LoginInfo {UserName = bruceWayne.Username, Password = bruceWayne.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == bruceWayne.Username
                             && info.Name == bruceWayne.Name
                             && !info.Claims.Any()
@@ -130,8 +131,8 @@
 
                     Account clarkKent = new(
                         id: AccountId.New(),
-                        email: "clark.kent@smallville.com",
-                        username: "Superman",
+                        email: Email.From("clark.kent@smallville.com"),
+                        username: UserName.From("Superman"),
                         passwordHash: "StrongestManAlive",
                         salt: "the_kryptonian"
                     );
@@ -139,7 +140,7 @@
                     yield return new object[]
                     {
                         clarkKent,
-                        new LoginInfo {Username = clarkKent.Username, Password = clarkKent.PasswordHash},
+                        new LoginInfo {UserName = clarkKent.Username, Password = clarkKent.PasswordHash},
                         (Expression<Func<AccountInfo, bool>>)(info => info.Username == clarkKent.Username
                             && info.Email == clarkKent.Email
                             && info.Claims.Once()

@@ -25,23 +25,24 @@
     using NodaTime;
     using MedEasy.Ids;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     [UnitTest]
     [Feature("Identity")]
-    public class HandleGetPageOfAccountsByTenantIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleGetPageOfAccountsByTenantIdQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
-        private readonly EFUnitOfWorkFactory<IdentityContext> _uowFactory;
+        private readonly EFUnitOfWorkFactory<IdentityDataStore> _uowFactory;
         private readonly HandleGetPageOfAccountByTenantIdQuery _sut;
         private readonly FakeClock _clock;
 
-        public HandleGetPageOfAccountsByTenantIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleGetPageOfAccountsByTenantIdQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _outputHelper = outputHelper;
             _clock = new FakeClock(new Instant());
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, _clock);
+                IdentityDataStore context = new(options, _clock);
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -84,8 +85,8 @@
             IEnumerable<Account> accounts = new Faker<Account>()
                 .CustomInstantiator(faker => new Account(id: AccountId.New(),
                                                          tenantId: tenantId,
-                                                         email: faker.Internet.Email(),
-                                                         username: faker.Person.UserName,
+                                                         email: Email.From(faker.Internet.Email()),
+                                                         username: UserName.From(faker.Person.UserName),
                                                          passwordHash: string.Empty,
                                                          salt: string.Empty)
                 {

@@ -15,6 +15,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -52,7 +53,7 @@
     [Feature("Identity")]
     [Feature("JWT")]
     [Feature("Authentication")]
-    public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private ITestOutputHelper _outputHelper;
         private Mock<IClock> _dateTimeServiceMock;
@@ -60,16 +61,16 @@
         private IUnitOfWorkFactory _uowFactory;
         private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenCommandMock;
 
-        public HandleCreateAuthenticationTokenCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+        public HandleCreateAuthenticationTokenCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
             _outputHelper = outputHelper;
 
             _dateTimeServiceMock = new Mock<IClock>(Strict);
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options,
                                                                    (options) =>
                                                                    {
-                                                                       IdentityContext context = new(options, new FakeClock(new Instant()));
+                                                                       IdentityDataStore context = new(options, new FakeClock(new Instant()));
                                                                        context.Database.EnsureCreated();
                                                                        return context;
                                                                    });
@@ -103,8 +104,8 @@
             // Arrange
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
             Account account = new(id: AccountId.New(),
-                                  username: "thebatman",
-                                  email: "bwayne@wayne-enterprise.com",
+                                  username: UserName.From("thebatman"),
+                                  email: Email.From("bwayne@wayne-enterprise.com"),
                                   name: "Bruce Wayne",
                                   passwordHash: new Faker().Lorem.Word(),
                                   salt: new Faker().Lorem.Word());
@@ -198,7 +199,7 @@
             {
                 Claim nameIdentifierClaim = jwtAccessToken.Claims.Single(claim => claim.Type == ClaimTypes.NameIdentifier);
                 nameIdentifierClaim.Value.Should()
-                    .Be(account.Username);
+                    .Be(account.Username.Value);
 
                 Claim nameClaim = jwtAccessToken.Claims.Single(claim => claim.Type == ClaimTypes.Name);
                 nameClaim.Value.Should()
@@ -210,7 +211,7 @@
 
                 Claim emailClaim = jwtAccessToken.Claims.Single(claim => claim.Type == ClaimTypes.Email);
                 emailClaim.Value.Should()
-                    .Be(account.Email);
+                    .Be(account.Email.Value);
 
                 Claim batarangsClaim = jwtAccessToken.Claims.Single(claim => claim.Type == "batarangs");
                 batarangsClaim.Value.Should()
@@ -259,7 +260,7 @@
             {
                 Claim nameIdentifierClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == ClaimTypes.NameIdentifier);
                 nameIdentifierClaim.Value.Should()
-                    .Be(account.Username);
+                    .Be(account.Username.Value);
 
                 Claim nameClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == ClaimTypes.Name);
                 nameClaim.Value.Should()
@@ -272,7 +273,7 @@
 
                 Claim emailClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == ClaimTypes.Email);
                 emailClaim.Value.Should()
-                    .Be(account.Email);
+                    .Be(account.Email.Value);
                 Claim locationClaim = jwtRefreshToken.Claims.Single(claim => claim.Type == CustomClaimTypes.Location);
                 locationClaim.Value.Should()
                     .Be(authenticationInfo.Location);
@@ -297,8 +298,8 @@
             Instant utcNow = 10.January(2014).AsUtc().ToInstant();
             Faker faker = new();
             Account account = new(id: AccountId.New(),
-                                   username: "thebatman",
-                                   email: "bwayne@wayne-enterprise.com",
+                                   username: UserName.From("thebatman"),
+                                   email: Email.From("bwayne@wayne-enterprise.com"),
                                    name: "Bruce Wayne",
                                    passwordHash: faker.Lorem.Word(),
                                    salt: faker.Lorem.Word());

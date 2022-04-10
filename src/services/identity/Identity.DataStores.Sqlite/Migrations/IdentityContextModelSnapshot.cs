@@ -5,16 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Identity.DataStores.Sqlite.Migrations
 {
-    [DbContext(typeof(IdentityContext))]
+    [DbContext(typeof(IdentityDataStore))]
     partial class IdentityContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.6");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.3");
 
             modelBuilder.Entity("Identity.Objects.Account", b =>
                 {
@@ -29,6 +30,9 @@ namespace Identity.DataStores.Sqlite.Migrations
 
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");

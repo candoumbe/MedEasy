@@ -10,6 +10,7 @@
     using Identity.DTO;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -46,7 +47,7 @@
     [UnitTest]
     [Feature("Tenants")]
     [Feature("Identity")]
-    public class TenantsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class TenantsControllerTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private ITestOutputHelper _outputHelper;
 
@@ -58,7 +59,7 @@
         private readonly TenantsController _sut;
         private const string BaseUrl = "http://host/api";
 
-        public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public TenantsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
@@ -68,9 +69,9 @@
 
             _apiOptionsMock = new Mock<IOptionsSnapshot<IdentityApiOptions>>(Strict);
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -103,16 +104,16 @@
             // Arrange
             TenantId tenantId = TenantId.New();
             Account tenant = new(id: new(tenantId.Value),
-                                  username: "thebatman",
+                                  username: UserName.From("thebatman"),
                                   passwordHash: "a_super_secret_password",
-                                  email: "bruce@wayne-entreprise.com",
+                                  email: Email.From("bruce@wayne-entreprise.com"),
                                   salt: "salt_and_pepper_for_password",
                                   tenantId: tenantId);
 
             Account newAccount = new(id: AccountId.New(),
-                                      username: "robin",
+                                      username: UserName.From("robin"),
                                       passwordHash: "a_super_secret_password",
-                                      email: "dick.grayson@wayne-entreprise.com",
+                                      email: Email.From("dick.grayson@wayne-entreprise.com"),
                                       salt: "salt_and_pepper_for_password",
                                       tenantId: tenantId
             );
@@ -168,9 +169,9 @@
             // Arrange
             TenantId tenantId = TenantId.New();
             Account newAccount = new(id: new AccountId(tenantId.Value),
-                                      username: "robin",
+                                      username: UserName.From("robin"),
                                       passwordHash: "a_super_secret_password",
-                                      email: "dick.grayson@wayne-entreprise.com",
+                                      email: Email.From("dick.grayson@wayne-entreprise.com"),
                                       salt: "salt_and_pepper_for_password"
             );
 

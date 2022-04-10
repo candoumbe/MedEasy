@@ -3,14 +3,15 @@
     using FluentValidation;
 
     using Identity.DTO;
+    using Identity.ValueObjects;
 
     public class NewAccountInfoValidator : AbstractValidator<NewAccountInfo>
     {
         public NewAccountInfoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty()
-                .EmailAddress();
+                .NotNull()
+                .NotEqual(Email.Empty);
 
             RuleFor(x => x.Password)
                 .NotNull();
@@ -20,7 +21,8 @@
                 .Equal(x => x.Password);
 
             RuleFor(x => x.Username)
-                .NotEmpty();
+                .NotNull()
+                .NotEqual(UserName.Empty);
         }
     }
 }

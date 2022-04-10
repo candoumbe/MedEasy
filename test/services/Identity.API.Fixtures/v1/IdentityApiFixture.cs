@@ -7,26 +7,17 @@ namespace Identity.API.Fixtures.v1
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.IntegrationTests.Core;
-
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc.Authorization;
-    using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
 
     using System;
     using System.IdentityModel.Tokens.Jwt;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Json;
-    using System.Security.Claims;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -46,7 +37,7 @@ namespace Identity.API.Fixtures.v1
         /// <summary>
         /// Gets/sets the email to use to create an account or to log in
         /// </summary>
-        public string Email { get; private set; }
+        public Email Email { get; private set; }
 
         /// <summary>
         /// Password to use to create an account or to login
@@ -67,13 +58,14 @@ namespace Identity.API.Fixtures.v1
 
         public IdentityApiFixture()
         {
-            Email = Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}");
+            Email = Email.From(Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}"));
             Password = Faker.Internet.Password();
         }
 
         ///<inheritdoc/>
         public override async Task InitializeAsync()
         {
+            
             await base.InitializeAsync().ConfigureAwait(false);
             await Register().ConfigureAwait(false);
 
@@ -90,8 +82,8 @@ namespace Identity.API.Fixtures.v1
                     Email = Email,
                     Password = Password,
                     ConfirmPassword = Password,
-                    Name = Email,
-                    Username = Email,
+                    Name = Email.Value,
+                    Username = UserName.From(Email.Value),
                     Id = AccountId.New()
                 };
 
@@ -129,13 +121,13 @@ namespace Identity.API.Fixtures.v1
 
                 if (jwt.ValidTo <= DateTime.UtcNow)
                 {
-                    await RenewToken(Email, new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
+                    await RenewToken(UserName.From(Email.Value), new RefreshAccessTokenInfo { AccessToken = Tokens.AccessToken, RefreshToken = Tokens.RefreshToken }, ct)
                         .ConfigureAwait(false);
 
                 }
             }
 
-            async Task RenewToken(string username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
+            async Task RenewToken(UserName username, RefreshAccessTokenInfo refreshTokenInfo, CancellationToken ct = default)
             {
                 using HttpClient client = CreateClient();
                 client.DefaultRequestHeaders.Add("api-version", "1.0");

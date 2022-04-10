@@ -14,6 +14,7 @@
     using Identity.Mapping;
     using Identity.Objects;
     using Identity.Validators;
+    using Identity.ValueObjects.Converters.SystemTextJson;
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
@@ -34,6 +35,7 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -46,6 +48,7 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.OpenApi.Models;
+
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
@@ -95,6 +98,8 @@
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 jsonSerializerOptions.Converters.Add(new StronglyTypedIdJsonConverterFactory());
+                jsonSerializerOptions.Converters.Add(new EmailJsonConverter());
+                jsonSerializerOptions.Converters.Add(new UserNameJsonConverter());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
                 jsonSerializerOptions.PropertyNameCaseInsensitive = true;
@@ -106,7 +111,7 @@
                 options.LocalizationEnabled = true;
 
                 options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
-                options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                options.DisableDataAnnotationsValidation = false;
             });
 
             services.AddCors(options =>
@@ -173,7 +178,8 @@
                 options.RefreshTokenLifetime = configuration.GetValue($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.RefreshTokenLifetime)}", 20d);
             });
 
-            services.Configure<AccountOptions>((options) => options.Accounts = configuration.GetSection("Accounts").Get<SystemAccount[]>());
+            services.Configure<AccountOptions>((options) => options.Accounts = configuration.GetSection("Accounts")
+                                                                                            .Get<SystemAccount[]>());
 
             return services;
         }
@@ -184,31 +190,38 @@
         /// <param name="services"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
+
             services.AddTransient(serviceProvider =>
             {
-                DbContextOptionsBuilder<IdentityContext> optionsBuilder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<IdentityDataStore> optionsBuilder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
-                return new IdentityContext(optionsBuilder.Options, clock);
+                return new IdentityDataStore(optionsBuilder.Options, clock);
             });
 
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityContext>>(serviceProvider =>
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<IdentityDataStore>>(serviceProvider =>
             {
-                DbContextOptionsBuilder<IdentityContext> builder = BuildDbContextOptions(serviceProvider);
+                DbContextOptionsBuilder<IdentityDataStore> builder = BuildDbContextOptions(serviceProvider);
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
 
-                return new EFUnitOfWorkFactory<IdentityContext>(builder.Options,
-                                                                options => new IdentityContext(options, clock));
+                return new EFUnitOfWorkFactory<IdentityDataStore>(builder.Options,
+                                                                options => new IdentityDataStore(options, clock));
             });
 
-            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityContext>>();
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityDataStore>>();
             services.AddAsyncInitializer<IdentityDataStoreSeedInitializer>();
+            services.AddTransient<IUserStore<Account>, IdentityRepository>();
+
+            services.AddIdentityCore<Account>()
+                    .AddSignInManager<SignInManager<Account>>()
+                    .AddUserManager<UserManager<Account>>()
+                    .AddDefaultTokenProviders();
 
             return services;
 
-            static DbContextOptionsBuilder<IdentityContext> BuildDbContextOptions(IServiceProvider serviceProvider)
+            static DbContextOptionsBuilder<IdentityDataStore> BuildDbContextOptions(IServiceProvider serviceProvider)
             {
                 IHostEnvironment hostingEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                DbContextOptionsBuilder<IdentityContext> builder = new();
+                DbContextOptionsBuilder<IdentityDataStore> builder = new();
                 IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 string connectionString = configuration.GetConnectionString("Identity");
 
@@ -352,7 +365,7 @@
         {
             IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
             return healthChecksBuilder
-                                  .AddDbContextCheck(customTestQuery: (Func<IdentityContext, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
+                                  .AddDbContextCheck(customTestQuery: (Func<IdentityDataStore, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
         }
 
         /// <summary>

@@ -13,6 +13,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -40,7 +41,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class HandleListRolesForAccountQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+    public class HandleListRolesForAccountQueryTests : IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private readonly ITestOutputHelper _outputHelper;
         private readonly IUnitOfWorkFactory _uowFactory;
@@ -60,13 +61,13 @@
             }
         }
 
-        public HandleListRolesForAccountQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> database)
+        public HandleListRolesForAccountQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
             _outputHelper = outputHelper;
 
-            _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(database.OptionsBuilder.Options, (options) =>
+            _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(database.OptionsBuilder.Options, (options) =>
             {
-                IdentityContext context = new(options, new FakeClock(new Instant()));
+                IdentityDataStore context = new(options, new FakeClock(new Instant()));
                 context.Database.EnsureCreated();
                 return context;
             });
@@ -74,8 +75,8 @@
             _accountFaker = new Faker<Account>()
                     .CustomInstantiator((faker) => new Account(
                         id: AccountId.New(),
-                        username: faker.Internet.UserName(),
-                        email: faker.Internet.Email(),
+                        username: UserName.From(faker.Internet.UserName()),
+                        email: Email.From(faker.Internet.Email()),
                         passwordHash: faker.Internet.Password(),
                         locked: faker.PickRandom(new[] { true, false }),
                         isActive: faker.PickRandom(new[] { true, false }),

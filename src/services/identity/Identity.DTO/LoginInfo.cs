@@ -1,9 +1,12 @@
 ﻿namespace Identity.DTO
 {
+    using Identity.ValueObjects;
+
     public class LoginInfo
     {
-        public string Username { get; set; }
+        public UserName UserName { get; set; }
 
         public string Password { get; set; }
+
     }
 }

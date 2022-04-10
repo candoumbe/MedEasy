@@ -10,6 +10,7 @@ using Identity.DTO;
 using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
+using Identity.ValueObjects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
@@ -35,20 +36,20 @@ using Xunit.Categories;
 
 [UnitTest]
 [Feature("Identity")]
-public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityContext>>
+public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
 {
     private ITestOutputHelper _outputHelper;
-    private EFUnitOfWorkFactory<IdentityContext> _uowFactory;
+    private EFUnitOfWorkFactory<IdentityDataStore> _uowFactory;
     private HandleGetOneAccountInfoByUsernameQuery _sut;
 
-    public HandleGetOneAccountByUsernameQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityContext> databaseFixture)
+    public HandleGetOneAccountByUsernameQueryTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
     {
         _outputHelper = outputHelper;
 
-        _uowFactory = new EFUnitOfWorkFactory<IdentityContext>(databaseFixture.OptionsBuilder.Options,
+        _uowFactory = new EFUnitOfWorkFactory<IdentityDataStore>(databaseFixture.OptionsBuilder.Options,
                                                                (options) =>
                                                                {
-                                                                   IdentityContext context = new (options, new FakeClock(new Instant()));
+                                                                   IdentityDataStore context = new (options, new FakeClock(new Instant()));
                                                                    context.Database.EnsureCreated();
 
                                                                    return context;
@@ -70,7 +71,7 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
     public async Task GivenNoUser_Handler_Returns_None()
     {
         // Arrange
-        string username = $"{Guid.NewGuid()}";
+        UserName username = UserName.From($"{Guid.NewGuid()}");
         GetOneAccountInfoByUsernameQuery query = new(username);
 
         // Act
@@ -90,8 +91,8 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
                 Account bruceWayne = new(
                     name: "Bruce Wayne",
                     id: AccountId.New(),
-                    email: "Bruce@wayne-entreprise.com",
-                    username: "Batman",
+                    email: Email.From("Bruce@wayne-entreprise.com"),
+                    username: UserName.From("Batman"),
                     passwordHash: "CapedCrusader",
                     salt: "the_kryptonian"
                 );
@@ -112,8 +113,8 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
 
                 Account clarkKent = new(
                     id: AccountId.New(),
-                    email: "clark.kent@smallville.com",
-                    username: "Superman",
+                    email: Email.From("clark.kent@smallville.com"),
+                    username: UserName.From("Superman"),
                     passwordHash: "StrongestManAlive",
                     salt: "the_kryptonian"
                 );
@@ -134,7 +135,7 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
 
     [Theory]
     [MemberData(nameof(GetOneUserByUsernameAndPasswordQueryCases))]
-    public async Task GivenUserExists_Handlers_Returns_Info(Account account, string username, Expression<Func<AccountInfo, bool>> resultExpectation)
+    public async Task GivenUserExists_Handlers_Returns_Info(Account account, UserName username, Expression<Func<AccountInfo, bool>> resultExpectation)
     {
         // Arrange
 

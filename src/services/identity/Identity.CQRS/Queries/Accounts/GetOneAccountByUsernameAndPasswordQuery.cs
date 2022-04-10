@@ -6,7 +6,7 @@
     using System;
 
     /// <summary>
-    /// Query to retrieve a user by its <see cref="LoginInfo.Username"/> and <see cref="LoginInfo.Password"/>.
+    /// Query to retrieve a user by its <see cref="LoginInfo.UserName"/> and <see cref="LoginInfo.Password"/>.
     /// </summary>
     public class GetOneAccountByUsernameAndPasswordQuery : GetOneResourceQuery<Guid, LoginInfo, Option<AccountInfo>>
     {

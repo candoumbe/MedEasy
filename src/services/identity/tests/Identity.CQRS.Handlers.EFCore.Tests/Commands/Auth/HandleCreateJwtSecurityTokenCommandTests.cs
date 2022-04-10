@@ -7,6 +7,7 @@
     using Identity.CQRS.Handlers;
     using Identity.DTO;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MediatR;
 
@@ -114,8 +115,8 @@
             AccountInfo accountInfo = new()
             {
                 Id = AccountId.New(),
-                Username = "thebatman",
-                Email = "bwayne@wayne-enterprise.com",
+                Username = UserName.From("thebatman"),
+                Email = Email.From("bwayne@wayne-enterprise.com"),
                 Name = "Bruce Wayne",
                 Claims = new[]
                 {

@@ -5,6 +5,7 @@
     using Identity.DTO;
     using Identity.Ids;
     using Identity.Objects;
+    using Identity.ValueObjects;
 
     using MedEasy.Mapping;
     using MedEasy.Objects;

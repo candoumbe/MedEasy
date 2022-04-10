@@ -92,7 +92,7 @@
                 })
                 .AddFluentValidation(options =>
                 {
-                    options.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                    options.DisableDataAnnotationsValidation = false;
                     options.LocalizationEnabled = true;
                     options
                         .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
@@ -146,6 +146,27 @@
         /// <param name="configuration"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
+            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
+
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider, configuration);
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new AgendaContext(optionsBuilder.Options, clock);
+            });
+
+            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
+            {
+                DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider, configuration);
+
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options, clock));
+            });
+
+            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<AgendaContext>>();
+
+            return services;
+
             static DbContextOptionsBuilder<AgendaContext> BuildDbContextOptions(IServiceProvider serviceProvider, IConfiguration configuration)
             {
                 using IServiceScope scope = serviceProvider.CreateScope();
@@ -174,27 +195,6 @@
                 builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
-
-            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-
-            services.AddTransient(serviceProvider =>
-            {
-                DbContextOptionsBuilder<AgendaContext> optionsBuilder = BuildDbContextOptions(serviceProvider, configuration);
-                IClock clock = serviceProvider.GetRequiredService<IClock>();
-                return new AgendaContext(optionsBuilder.Options, clock);
-            });
-
-            services.AddSingleton<IUnitOfWorkFactory, EFUnitOfWorkFactory<AgendaContext>>(serviceProvider =>
-            {
-                DbContextOptionsBuilder<AgendaContext> builder = BuildDbContextOptions(serviceProvider, configuration);
-
-                IClock clock = serviceProvider.GetRequiredService<IClock>();
-                return new EFUnitOfWorkFactory<AgendaContext>(builder.Options, options => new AgendaContext(options, clock));
-            });
-
-            services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<AgendaContext>>();
-
-            return services;
         }
 
         /// <summary>

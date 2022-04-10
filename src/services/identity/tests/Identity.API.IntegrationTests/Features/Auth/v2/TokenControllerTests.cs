@@ -10,6 +10,7 @@
     using Identity.DTO.Auth;
     using Identity.DTO.v2;
     using Identity.Ids;
+    using Identity.ValueObjects;
 
     using MedEasy.RestObjects;
 
@@ -71,10 +72,10 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = "thebatman",
+                Username = UserName.From("thebatman"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = "bruce.wayne@gotham.com"
+                Email = Email.From("bruce.wayne@gotham.com")
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
@@ -84,7 +85,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -114,7 +115,7 @@
 
             SecurityToken refreshToken = new JwtSecurityToken(tokenInfo.RefreshToken.Token);
 
-            // wait for the access token to expire
+            // Simulate a token expiration
             Thread.Sleep(accessDuration + 1.Seconds());
 
             _outputHelper.WriteLine($"[{DateTime.UtcNow}] access token has expired");
@@ -144,10 +145,10 @@
             {
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
-                Username = $"thebatman_{Guid.NewGuid()}",
+                Username = UserName.From($"thebatman_{Guid.NewGuid()}"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = $"bruce.wayne_{Guid.NewGuid()}@gotham.com"
+                Email = Email.From($"bruce.wayne_{Guid.NewGuid()}@gotham.com")
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
@@ -157,7 +158,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 
@@ -201,10 +202,10 @@
             {
                 Id = AccountId.New(),
                 Name = faker.Person.FullName,
-                Username = $"{faker.Person.UserName}_{Guid.NewGuid()}",
+                Username = UserName.From($"{faker.Person.UserName}_{Guid.NewGuid()}"),
                 Password = password,
                 ConfirmPassword = password,
-                Email = faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString())
+                Email = Email.From(faker.Internet.Email(uniqueSuffix: Guid.NewGuid().ToString()))
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
@@ -217,7 +218,7 @@
 
             LoginInfo loginInfo = new()
             {
-                Username = newAccountInfo.Username,
+                UserName = newAccountInfo.Username,
                 Password = newAccountInfo.Password
             };
 

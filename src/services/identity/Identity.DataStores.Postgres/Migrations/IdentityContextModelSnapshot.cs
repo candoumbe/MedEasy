@@ -7,18 +7,21 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#nullable disable
+
 namespace Identity.DataStores.Postgres.Migrations
 {
-    [DbContext(typeof(IdentityContext))]
+    [DbContext(typeof(IdentityDataStore))]
     partial class IdentityContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.6")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Identity.Objects.Account", b =>
                 {
@@ -29,10 +32,13 @@ namespace Identity.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -62,7 +68,7 @@ namespace Identity.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -86,10 +92,10 @@ namespace Identity.DataStores.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Instant?>("End")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Instant>("Start")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("AccountId", "Id");
 
@@ -125,13 +131,13 @@ namespace Identity.DataStores.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<Instant?>("CreatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
                     b.Property<Instant?>("UpdatedDate")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

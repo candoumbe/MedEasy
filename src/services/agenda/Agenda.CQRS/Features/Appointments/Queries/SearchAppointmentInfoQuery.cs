@@ -12,7 +12,7 @@
     /// Query to search <see cref="AppointmentInfo"/>s
     /// </summary>
     /// <remarks>
-    /// 
+    ///
     /// </remarks>
     public class SearchAppointmentInfoQuery : QueryBase<Guid, SearchAppointmentInfo, Page<AppointmentInfo>>
     {
