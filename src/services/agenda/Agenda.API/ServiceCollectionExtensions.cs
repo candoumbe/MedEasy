@@ -335,10 +335,7 @@
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
-                options.ApiVersionReader = ApiVersionReader.Combine(
-                    new HeaderApiVersionReader("api-version", "version"),
-                    new QueryStringApiVersionReader("version", "v", "api-version")
-                );
+                options.ApiVersionReader = new HeaderApiVersionReader("api-version");
             });
             services.AddVersionedApiExplorer(
                 options =>
@@ -350,6 +347,7 @@
                     // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
                     // can also be used to control the format of the API version in route templates
                     options.SubstituteApiVersionInUrl = true;
+                    options.AssumeDefaultVersionWhenUnspecified = true;
                 });
 
             return services;

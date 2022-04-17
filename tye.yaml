@@ -24,10 +24,12 @@ services:
   bindings:
   - protocol: https
 - name: web
-  project: src/clients/web/MedEasy/Medeasy.csproj
+  project: src/clients/web/MedEasy.Wasm/Medeasy.Wasm.csproj
   tags:
   - frontends
   - web
+  bindings:
+  - protocol: https
 - name: identity-api
   project: src/services/identity/Identity.API/Identity.API.csproj
   args: "-- --provider postgres"

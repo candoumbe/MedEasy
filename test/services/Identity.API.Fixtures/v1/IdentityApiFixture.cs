@@ -73,7 +73,7 @@ namespace Identity.API.Fixtures.v1
             {
                 // Create account
                 using HttpClient client = CreateClient();
-                client.DefaultRequestHeaders.Add("api-version", "v1");
+                client.DefaultRequestHeaders.Add("api-version", "1.0");
 
                 string uri = $"/{AccountsController.EndpointName}";
 

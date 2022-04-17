@@ -1,0 +1,120 @@
+﻿@namespace MedEasy.Wasm.Modules.Agenda
+@page "/agenda"
+@using MedEasy.Attributes
+@using MedEasy.RestObjects
+@using MedEasy.Wasm.Apis
+@using MedEasy.Wasm.Apis.Agenda.v1
+@using Microsoft.AspNetCore.Authorization
+@using Refit
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject NavigationManager NavigationManager
+@inject IAgendaApi AgendaApi
+
+<PageTitle>My agenda</PageTitle>
+
+<DisplayHeading>My agenda</DisplayHeading>
+<Alert Visible="!string.IsNullOrWhiteSpace(ErrorMessage)"></Alert>
+@if (Appointments is null)
+{
+    <p>Loading ...</p>
+}
+else if (Appointments.Items.AtLeastOnce())
+{
+    foreach (Browsable<AppointmentModel> item in Appointments.Items)
+    {
+        AppointmentModel appointment = item.Resource;
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                    <Heading Size="HeadingSize.Is3">@appointment.Subject</Heading>
+                </CardTitle>
+            </CardHeader>
+            <CardBody>
+                <Row>
+
+                    <Column ColumnSize="ColumnSize.Is2">
+                        @($"{appointment.StartDate} - {appointment.EndDate}")
+                    </Column>
+                    <Column>
+
+                        @foreach (AttendeeModel attendee in appointment.Attendees)
+                        {
+
+                            <p>
+                                @attendee.Name
+                            </p>
+                        }
+                    </Column>
+                </Row>
+                <Row>
+                    <Button Color="Color.Danger"><Icon Name="IconName.Delete" /> Cancel appointment</Button>
+                    <Button Color="Color.Secondary"><Icon Name="IconName.Phone" /> Call attendee</Button>
+                    <Button Color="Color.Link"><Icon Name="IconName.Sms" /> Call attendee</Button>
+                </Row>
+            </CardBody>
+        </Card>
+
+        <Pagination>
+            <PaginationItem Disabled="PageIndex == 1">
+                <PaginationLink>
+                    <Icon Name="IconName.ChevronLeft">
+                        <Span>First</Span>
+                    </Icon>
+                </PaginationLink>
+            </PaginationItem>
+
+            <PaginationItem>
+                <PaginationLink>
+                    <Icon Name="IconName.ChevronRight">
+                        <Span>Last</Span>
+                    </Icon>
+                </PaginationLink>
+            </PaginationItem>
+        </Pagination>
+    }
+}
+else
+{
+    <Div>
+        <Paragraph>It's lonely in here.</Paragraph>
+        <Paragraph>Want to <Anchor To="/agenda/new">create an appointment</Anchor> ?</Paragraph>
+    </Div>
+}
+
+@code {
+    [Parameter]
+    public Page<Browsable<AppointmentModel>> Appointments { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    [Minimum(1)]
+    public int PageSize { get; set; } = 10;
+
+    [Parameter]
+    [Minimum(1)]
+    public int PageIndex { get; set; } = 1;
+
+    private string ErrorMessage { get; set; }
+
+    ///<inheritdoc
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        IApiResponse<Page<Browsable<AppointmentModel>>> response = await AgendaApi.ReadPage(PageIndex, PageSize);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Appointments = response.Content;
+        }
+        else
+        {
+            Appointments = new();
+            ErrorMessage = response.ReasonPhrase;
+        }
+    }
+
+
+}

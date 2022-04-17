@@ -1,0 +1,21 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Home</PageTitle>
+
+<Container>
+
+    <AuthorizeView>
+        <Authorized>
+            <h1>Hello, world!</h1>
+
+            Welcome to MedEasy
+
+            <SurveyPrompt Title="How is Blazor working for you?" />
+
+        </Authorized>
+        <NotAuthorized>
+            <Heading Size="HeadingSize.Is3">You need to <Anchor To="/sign-in">sign in</Anchor> or <Anchor To="/register">register</Anchor> to access MedEasy</Heading>
+        </NotAuthorized>
+    </AuthorizeView>
+</Container>

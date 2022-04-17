@@ -1,0 +1,120 @@
+﻿@namespace MedEasy.Wasm.Modules.Agenda
+
+@using MedEasy.RestObjects
+@using NodaTime
+@using MedEasy.Wasm.Apis.Agenda.v1
+@using Refit;
+@inject IClock Clock;
+
+@page "/agenda/new"
+
+@inject IAgendaApi AgendaApi
+@inject NavigationManager NavigationManager
+
+<Alert Color="Color.Danger" Dismisable="true" Visible="!string.IsNullOrWhiteSpace(ErrorMessage)">
+    <AlertMessage>@ErrorMessage</AlertMessage>
+</Alert>
+<Heading>New appointment</Heading>
+
+<Validations @ref="validations">
+    <Blazorise.ValidationSummary />
+
+    <Fields>
+        <Validation>
+            <Field Horizontal>
+                <FieldLabel For="@nameof(NewAppointmentModel.StartDate)" ColumnSize="ColumnSize.Is2.OnDesktop.IsFull.OnTablet">From</FieldLabel>
+                <FieldBody ColumnSize="ColumnSize.Is10.OnDesktop.IsFull.OnTablet">
+                    <DateEdit TValue="DateTime" @ref="startDatePicker"
+                              @bindDate="From"
+                              Disabled="IsSubmitting" >
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </DateEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+
+        <Validation>
+            <Field Horizontal>
+                <FieldLabel For="To"
+                            ColumnSize="ColumnSize.Is2.OnDesktop.IsFull.OnTablet">To</FieldLabel>
+
+                <FieldBody ColumnSize="ColumnSize.Is10.OnDesktop.IsFull.OnTablet">
+                    <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime"
+                              @bind-Date="To"
+                              Min="From">
+                        <Feedback>
+                            <ValidationError />
+                        </Feedback>
+                    </DateEdit>
+                </FieldBody>
+            </Field>
+        </Validation>
+    </Fields>
+    <Field Horizontal>
+        <FieldLabel ColumnSize="ColumnSize.Is2.OnDesktop.IsFull.OnTablet"></FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is10.OnDesktop.IsFull.OnTablet">
+            <TextEdit />
+        </FieldBody>
+        <ValidationError />
+    </Field>
+    <Button PreventDefaultOnSubmit
+            Disabled="!IsValid || IsSubmitting"
+            Clicked="Create"
+            Loading="IsSubmitting">
+        Schedule new appointment
+    </Button>
+
+</Validations>
+
+@code {
+
+    private DateEdit<DateTime> startDatePicker;
+    private DateEdit<DateTime> endDatePicker;
+    private Validations validations;
+
+    [Parameter] public DateTime From { get; set; }
+    [Parameter] public DateTime To { get; set; }
+    [Parameter] public IEnumerable<AttendeeModel> Attendees { get; set; }
+
+    private string ErrorMessage { get; set; }
+
+
+    private bool IsValid => From < To;
+
+    ///<inheritdoc/>
+    protected override void OnInitialized()
+    {
+        DateTimeZone dateTimeZone = DateTimeZoneProviders.Tzdb["Europe/Paris"];
+        From = Clock.GetCurrentInstant().ToDateTimeUtc();
+        To = From.AddMinutes(30);
+
+        base.OnInitialized();
+    }
+
+    private bool IsSubmitting { get; set; }
+
+    private async Task Create()
+    {
+        ErrorMessage = null;
+        IsSubmitting = true;
+        NewAppointmentModel newAppointment = new()
+        {
+            StartDate = Instant.FromDateTimeUtc(From).InUtc(),
+            EndDate = Instant.FromDateTimeUtc(To).InUtc()
+        };
+        IApiResponse<Browsable<AppointmentModel>> result = await AgendaApi.Schedule(newAppointment).ConfigureAwait(false);
+
+        if (result.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/agenda");
+        }
+        else
+        {
+            ErrorMessage = result.ReasonPhrase;
+            IsSubmitting = false;
+        }
+    }
+
+}

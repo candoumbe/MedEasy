@@ -2,5 +2,6 @@
     "[csharp]": {
         "editor.codeLens": true
     },
-    "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj"
+    "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
+    "nuke.buildProjectPattern": "**/build/*.csproj"
 }

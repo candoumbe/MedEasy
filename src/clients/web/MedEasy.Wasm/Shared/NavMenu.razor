@@ -1,0 +1,113 @@
+﻿@namespace MedEasy.Wasm.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using MedEasy.Wasm.Services
+@inject MedEasyAuthenticationStateProvider AuthenticationService
+@inject NavigationManager NavigationManager
+@inject ILogger<NavMenu> Logger
+
+<Bar Breakpoint="Breakpoint.Desktop"
+     Background="Background.Light"
+     ThemeContrast="ThemeContrast.Light">
+    <BarBrand>
+        <BarLink To="/">
+            MedEasy
+        </BarLink>
+    </BarBrand>
+    <BarToggler />
+    <BarMenu>
+        <AuthorizeView>
+            <Authorized>
+                <BarItem>
+                    <BarDropdown>
+                        <BarDropdownToggle>Modules</BarDropdownToggle>
+                        <BarDropdownMenu>
+                            <BarDropdownItem>
+                                <BarLink To="/agenda">
+                                    <Icon Name="IconName.CalendarWeek" /> My agenda
+                                </BarLink>
+                            </BarDropdownItem>
+                        </BarDropdownMenu>
+                    </BarDropdown>
+                </BarItem>
+            </Authorized>
+        </AuthorizeView>
+        <BarEnd>
+            <BarMenu>
+                <AuthorizeView>
+                    <Authorized>
+                        <BarItem>
+                            <Tooltip ShowArrow Text="Quick search throught the whole application">
+                                <Addons Border="Border.Is1">
+                                    <Addon AddonType="AddonType.Body">
+                                        <AddonLabel>Quick search</AddonLabel>
+                                        <TextEdit Role="TextRole.Search"
+                                                  @bind-Text="QuickSearchText"
+                                                  InputMode="TextInputMode.Search" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Type="ButtonType.Button" Clicked="async() => QuickSearch(QuickSearchText)">
+                                            <Icon Name="IconName.Search" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+
+                            </Tooltip>
+                        </BarItem>
+                        <BarItem>
+                            <BarDropdown>
+                                <BarDropdownToggle><Icon Name="IconName.User" /> @CurrentUserName</BarDropdownToggle>
+                                <BarDropdownMenu>
+                                    <BarDropdownItem To="/settings/my-profile">My account</BarDropdownItem>
+                                    <BarDropdownDivider />
+                                    <BarDropdownItem Clicked="(async () => await LogOut(CurrentUserName))">
+                                        <Icon Name="IconName.Ban" /> Log out
+                                    </BarDropdownItem>
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
+                    </Authorized>
+                    <NotAuthorized>
+                        <BarItem>
+                            <BarLink To="/sign-in"> Sign in</BarLink>
+                        </BarItem>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </BarMenu>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; }
+    [Parameter] public string QuickSearchText { get; set; }
+    private string CurrentUserName
+    {
+        get
+        {
+            AuthenticationState authenticationState = AuthenticationState.Result;
+            return authenticationState?.User?.Identity?.Name;
+        }
+    }
+
+    
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task LogOut(string userName)
+    {
+        await AuthenticationService.LogOut(userName);
+        NavigationManager.NavigateTo("/");
+
+    }
+
+    private void QuickSearch(string searchText)
+    {
+        Logger.LogInformation("QuickSearch : {SearchText}", searchText);
+    }
+}

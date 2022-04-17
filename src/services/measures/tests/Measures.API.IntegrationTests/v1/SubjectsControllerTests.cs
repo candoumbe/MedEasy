@@ -279,7 +279,7 @@ namespace Measures.API.IntegrationTests.v1
 
             // Assert
             response.IsSuccessStatusCode.Should().BeTrue($"Creating a valid {nameof(BloodPressureInfo)} resource must succeed");
-            ((int)response.StatusCode).Should().Be(Status201Created, $"the resource was created");
+            ((int)response.StatusCode).Should().Be(Status201Created, "the resource was created");
 
             Uri location = response.Headers.Location;
             _outputHelper.WriteLine($"Location of the resource : <{location}>");

@@ -31,13 +31,13 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCustomMvc(_configuration, _hostingEnvironment)
-                .AddCustomOptions(_configuration)
-                .AddDataStores(_configuration)
-                .AddCustomAuthentication(_configuration)
-                .AddCustomApiVersioning()
-                .AddDependencyInjection()
-                .AddCustomSwagger(_hostingEnvironment, _configuration)
-                .AddCustomHealthChecks();
+                    .AddCustomOptions(_configuration)
+                    .AddDataStores(_configuration)
+                    .AddCustomAuthentication(_configuration)
+                    .AddCustomApiVersioning()
+                    .AddDependencyInjection()
+                    .AddCustomSwagger(_hostingEnvironment, _configuration)
+                    .AddCustomHealthChecks();
         }
 
         /// <summary>
@@ -83,12 +83,12 @@
 
             app.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute(RouteNames.Default, "v{version:apiVersion}/{controller=root}/{action=index}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "v{version:apiVersion}/{controller}/{id}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "v{version:apiVersion}/{controller}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/{subResourceId}");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "v{version:apiVersion}/{controller}/{id}/{action}/");
-                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "v{version:apiVersion}/{controller}/search/");
+                routeBuilder.MapControllerRoute(RouteNames.Default, "{controller=root}/{action=index}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneByIdApi, "{controller}/{id}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllApi, "{controller}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetOneSubResourcesByResourceIdAndSubresourceIdApi, "{controller}/{id}/{action}/{subResourceId}");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultGetAllSubResourcesByResourceIdApi, "{controller}/{id}/{action}/");
+                routeBuilder.MapControllerRoute(RouteNames.DefaultSearchResourcesApi, "{controller}/search/");
                 routeBuilder.MapHealthChecks("/health");
             });
         }

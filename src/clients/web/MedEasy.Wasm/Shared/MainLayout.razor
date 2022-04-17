@@ -1,0 +1,28 @@
+﻿@namespace MedEasy.Wasm.Shared
+@inherits LayoutComponentBase
+
+
+<Layout>
+    <LayoutHeader>
+        <NavMenu />
+    </LayoutHeader>
+    <LayoutContent>
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent>
+                Ooops ... That's unfortunate.
+            </ErrorContent>
+        </ErrorBoundary>
+    </LayoutContent>
+</Layout>
+
+@code{
+    private ErrorBoundary _errorBoundary;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+}
