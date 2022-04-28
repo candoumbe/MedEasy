@@ -19,7 +19,7 @@
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.0" />
     <PackageReference Include="Blazorise.DataGrid" Version="1.0.2" />
     <PackageReference Include="Blazored.TypeAhead" Version="4.0.3" />
-    <PackageReference Include="Blazorise.Components" Version="1.0.2" />
+    <PackageReference Include="Blazorise.Components" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
