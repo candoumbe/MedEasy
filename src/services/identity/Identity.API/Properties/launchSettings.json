@@ -3,8 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:56776/",
-      "sslPort": 44341
+      "applicationUrl": "http://localhost:56776/"
     }
   },
   "profiles": {
@@ -19,7 +18,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:51799/;https://localhost:51800/"
+      "applicationUrl": "http://localhost:51799/"
     },
     "Docker": {
       "commandName": "Docker",
@@ -28,9 +27,9 @@
     },
     "WSL 2": {
       "commandName": "WSL2",
-      "launchUrl": "https://localhost:51800/",
+      "launchUrl": "http://localhost:51799/",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "http://localhost:51799/;https://localhost:51800/",
+        "ASPNETCORE_URLS": "http://localhost:51799/",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "distributionName": ""

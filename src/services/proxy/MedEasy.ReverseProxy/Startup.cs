@@ -16,6 +16,7 @@ namespace MedEasy.ReverseProxy
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private const string AllowAnyOriginCorsPolicyName = "AllowAnyOriginCorsPolicyName";
 
         public Startup(IConfiguration configuration)
         {
@@ -28,7 +29,6 @@ namespace MedEasy.ReverseProxy
         {
             // Add the reverse proxy to capability to the server
             IReverseProxyBuilder proxyBuilder = services.AddReverseProxy();
-            const string allowAnyOriginCorsPolicyName = "AllowAnyOrigin";
             IEnumerable<MedEasyApi> apis = _configuration.GetSection("Services").Get<List<MedEasyApi>>();
 
             IList<RouteConfig> routes = new List<RouteConfig>(apis.Count());
@@ -41,17 +41,21 @@ namespace MedEasy.ReverseProxy
                               .SomeNotNull()
                               .MatchSome(address =>
                               {
-                                  string clusterName = $"cluster{i+1}";
+                                  string clusterName = $"cluster{i + 1}";
 
                                   ClusterConfig cluster = new()
                                   {
                                       ClusterId = clusterName,
                                       Destinations = new Dictionary<string, DestinationConfig>
                                       {
-                                          [$"{clusterName}/{api.Id}"] = new ()
+                                          [$"{clusterName}/{api.Id}"] = new()
                                           {
                                               Address = address.AbsoluteUri
                                           }
+                                      },
+                                      HttpClient = new HttpClientConfig()
+                                      {
+                                          DangerousAcceptAnyServerCertificate = api.HttpClient.ThrustSslCertificate
                                       }
                                   };
 
@@ -59,18 +63,18 @@ namespace MedEasy.ReverseProxy
                                   {
                                       RouteId = $"route-{api.Id}",
                                       ClusterId = clusterName,
-                                      CorsPolicy = allowAnyOriginCorsPolicyName,
+                                      CorsPolicy = AllowAnyOriginCorsPolicyName,
                                       Match = new RouteMatch
                                       {
                                           Path = $"/api/{api.Id}/{{**catch-all}}"
                                       },
                                       Transforms = new List<IReadOnlyDictionary<string, string>>
-                                          {
-                                              new Dictionary<string, string>
-                                              {
-                                                  ["PathRemovePrefix"] = $"/api/{api.Id}"
-                                              }
-                                          }
+                                      {
+                                            new Dictionary<string, string>
+                                            {
+                                                ["PathRemovePrefix"] = $"/api/{api.Id}"
+                                            }
+                                      }
                                   };
 
                                   routes.Add(route);
@@ -82,9 +86,11 @@ namespace MedEasy.ReverseProxy
 
             services.AddCors(options =>
             {
-                options.AddPolicy(allowAnyOriginCorsPolicyName, builder =>
+                options.AddPolicy(AllowAnyOriginCorsPolicyName, builder =>
                 {
-                    builder.AllowAnyOrigin();
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
                 });
             });
         }
@@ -92,14 +98,15 @@ namespace MedEasy.ReverseProxy
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseHttpLogging();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseForwardedHeaders();
             app.UseRouting();
 
-            app.UseCors();
+            app.UseCors(AllowAnyOriginCorsPolicyName);
 
             app.UseEndpoints(endpoints => endpoints.MapReverseProxy());
         }

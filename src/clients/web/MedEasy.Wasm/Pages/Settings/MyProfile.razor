@@ -1,0 +1,129 @@
+﻿@page "/settings/my-profile"
+@using MedEasy.Wasm.Apis
+@using MedEasy.Wasm.Apis.Identity
+@using MedEasy.Wasm.Apis.Identity.v2
+@using NodaTime
+@using System.Globalization
+@using Refit
+@inject ILogger<MyProfile> Logger
+@inject IIdentityApi Identity
+@inject INotificationService NotificationService
+@inject NavigationManager NavigationService
+
+<PageTitle>My Profile</PageTitle>
+
+<Form TextAlignment="TextAlignment.End">
+    <Heading TextAlignment="TextAlignment.Center">My profile</Heading>
+
+    <Divider />
+    <Form>
+        <Field Horizontal>
+            <FieldLabel For="@nameof(UpdateAccountModel.Name)" ColumnSize="ColumnSize.Is2.OnDesktop">Name</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
+                <TextEdit @bind-Value="profile.Name"
+                          ElementId="@nameof(UpdateAccountModel.Name)"
+                          Placeholder="@nameof(UpdateAccountModel.Name)"
+                          ReadOnly="IsReadonly">
+                </TextEdit>
+            </FieldBody>
+        </Field>
+        <Field Horizontal>
+            <FieldLabel For="@nameof(UpdateAccountModel.Email)" ColumnSize="ColumnSize.Is2.OnDesktop">Email</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
+                <TextEdit @bind-Value="profile.Email"
+                          ElementId="@nameof(UpdateAccountModel.Email)"
+                          Placeholder="@nameof(UpdateAccountModel.Email)"
+                          ReadOnly="IsReadonly">
+                </TextEdit>
+            </FieldBody>
+        </Field>
+        <Field Horizontal>
+            <FieldLabel For="@nameof(UpdateAccountModel.PreferredTimezone)" ColumnSize="ColumnSize.Is2.OnDesktop">Prefered timezone</FieldLabel>
+            <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
+                <SelectList TItem="SelectableTimeZoneModel"
+                            TValue="string"
+                            TextField="(item) => item.Name"
+                            ValueField="(item) => item.Id"
+                            @bind-SelectedValue="profile.PreferredTimezone"
+                            Data="@TimeZones"
+                            ElementId="@nameof(UpdateAccountModel.PreferredTimezone)"
+                            Disabled="IsReadonly">
+                </SelectList>
+            </FieldBody>
+        </Field>
+
+        <Div Display="CanEdit ? Display.Always: Display.None">
+            <Button PreventDefaultOnSubmit Color="Color.Secondary"
+                    Disabled="!IsValid || IsSubmitting">
+                <Icon Name="IconName.Save" /> Enregistrer
+            </Button>
+            <Button PreventDefaultOnSubmit Color="Color.Secondary"
+                    Clicked="() => Mode = FormMode.Read"
+                    Display="Mode == FormMode.Edit ? Display.Always: Display.None">
+                Annuler
+            </Button>
+        </Div>
+
+    </Form>
+</Form>
+
+@code {
+    private UpdateAccountModel profile = new();
+
+
+    private IEnumerable<SelectableTimeZoneModel> TimeZones { get; set; }
+
+    private bool IsValid => !string.IsNullOrWhiteSpace(profile.Name)
+                              && !string.IsNullOrWhiteSpace(profile.Email)
+                              && !string.IsNullOrWhiteSpace(profile.PreferredTimezone);
+
+
+    private bool IsSubmitting { get; set; }
+
+    public bool IsReadonly => Mode == FormMode.Read || IsSubmitting;
+
+    [Parameter]
+    public FormMode Mode { get; set; }
+
+    [Parameter]
+    public bool CanEdit { get; set; }
+
+    protected override void OnInitialized()
+    {
+        TimeZones = TimeZoneInfo.GetSystemTimeZones()
+                                .Select(tz => new SelectableTimeZoneModel(tz.Id, tz.DisplayName));
+
+        Logger?.LogInformation("Available timezones: {@TimeZones}", TimeZones);
+        base.OnInitialized();
+    }
+
+    private async Task OnSubmit()
+    {
+        IsSubmitting = true;
+        IEnumerable<PatchOperation> operations = new[]
+        {
+            new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.Name), profile.Name),
+            new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.Email), profile.Email),
+            new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.PreferredTimezone), profile.PreferredTimezone),
+            new PatchOperation(PatchOperationType.Test, nameof(UpdateAccountModel.Id), profile.Id)
+        };
+
+        IApiResponse response = await Identity.Patch(profile.Id, operations);
+        IsSubmitting = false;
+
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService?.Info("Profile updated successfully");
+            NavigationService?.NavigateTo("/settings");
+        }
+        else
+        {
+            NotificationService?.Error("Profile update failed");
+        }
+    }
+
+    private record SelectableTimeZoneModel(string Id, string Name);
+
+
+
+}

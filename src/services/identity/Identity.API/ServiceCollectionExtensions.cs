@@ -207,6 +207,7 @@
                                                                 options => new IdentityDataStore(options, clock));
             });
 
+            services.AddTransient<Func<IdentityDataStore>>(sp => () => new IdentityDataStore(BuildDbContextOptions(sp).Options, sp.GetRequiredService<IClock>()));
             services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<IdentityDataStore>>();
             services.AddAsyncInitializer<IdentityDataStoreSeedInitializer>();
             services.AddTransient<IUserStore<Account>, IdentityRepository>();
@@ -264,18 +265,16 @@
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
 
-                options.DefaultApiVersion = new ApiVersion(2, 0);
-                options.ApiVersionReader = ApiVersionReader.Combine(
-                    new HeaderApiVersionReader("api-version", "version"),
-                    new QueryStringApiVersionReader("version", "v", "api-version")
-                );
-            });
-            services.AddVersionedApiExplorer(
+                options.DefaultApiVersion = new (2, 0);
+                options.ApiVersionReader = new HeaderApiVersionReader("api-version");
+            })
+                .AddVersionedApiExplorer(
                 options =>
                 {
                     // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
                     // note: the specified format code will format the version as "'v'major[.minor][-status]"
                     options.GroupNameFormat = "'v'VVV";
+                    options.DefaultApiVersion = new(2, 0);
                 });
 
             services.AddScoped(sp =>
@@ -364,8 +363,7 @@
         public static IHealthChecksBuilder AddCustomHealthChecks(this IServiceCollection services)
         {
             IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
-            return healthChecksBuilder
-                                  .AddDbContextCheck(customTestQuery: (Func<IdentityDataStore, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
+            return healthChecksBuilder.AddDbContextCheck(customTestQuery: (Func<IdentityDataStore, CancellationToken, Task<bool>>)(async (context, ct) => await context.Set<Account>().AnyAsync(ct)));
         }
 
         /// <summary>

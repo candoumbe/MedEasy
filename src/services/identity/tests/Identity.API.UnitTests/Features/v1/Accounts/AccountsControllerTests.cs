@@ -65,7 +65,6 @@
         private readonly Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
         private readonly AccountsController _sut;
         private const string BaseUrl = "http://host/api";
-        private static ApiVersion _apiVersion;
 
         public AccountsControllerTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> database)
         {
@@ -86,9 +85,8 @@
             });
 
             _mediatorMock = new Mock<IMediator>(Strict);
-            _apiVersion = new ApiVersion(1, 0);
 
-            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object, _apiVersion);
+            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object);
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
@@ -120,10 +118,10 @@
                             pageSize, page, // request
                             0,    //expected total
                             (
-                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize) }&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize) }".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                                 previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
                                 nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to next page
-                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize)}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={Math.Min(pageSize, ApiOptions.MaxPageSize)}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         };
                     }
@@ -146,10 +144,10 @@
                         (
                             firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                 && x.Relation == First
-                                && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                                && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=14&pageSize={PaginationConfiguration.DefaultPageSize}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -162,10 +160,10 @@
                         10, 1, // request
                         400,    //expected total
                         (
-                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
+                            firstPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == First  && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=1&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to first page
                             previousPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=40&pageSize=10&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                            nextPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == "next" && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=2&pageSize=10".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                            lastPageUrlExpectation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultGetAllApi}/?controller={AccountsController.EndpointName}&page=40&pageSize=10".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                         )
                     };
                 }
@@ -315,13 +313,13 @@
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be(account.Username);
@@ -397,17 +395,17 @@
 
             AccountInfo resource = browsableResource.Resource;
             self.Href.Should()
-                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.Id}");
 
             Link tenantLink = browsableResource.Links.Single(x => x.Relation == "tenant");
             tenantLink.Href.Should()
-                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId}&version={_apiVersion}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={resource.TenantId}");
 
             Link delete = browsableResource.Links.Single(x => x.Relation == "delete");
             delete.Method.Should()
                 .Be("DELETE");
             delete.Href.Should()
-                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}&version={_apiVersion}");
+                .BeEquivalentTo($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(resource.Id)}={resource.Id}");
 
             resource.Id.Should().Be(accountId);
             resource.Username.Should().Be(newAccount.Username);
@@ -579,7 +577,7 @@
             linkSelf.Method.Should()
                            .Be("GET");
             linkSelf.Href.Should()
-                         .Be($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id.Value}&version={_apiVersion}");
+                         .Be($"{BaseUrl}/{RouteNames.DefaultGetOneByIdApi}/?controller={AccountsController.EndpointName}&{nameof(AccountInfo.Id)}={createdResource.Id.Value}");
 
             createdResource.Username.Should()
                                     .Be(newAccount.Username);
@@ -628,10 +626,10 @@
                             (
                                 firstPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null
                                     && x.Relation == First
-                                    && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10&sort=Name&version={_apiVersion}".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
+                                    && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=1&pageSize=10&sort=Name".Equals(x.Href, CurrentCultureIgnoreCase)), // expected link to first page
                                 previousPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x == null), // expected link to previous page
-                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10&Sort=Name&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
-                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10&Sort=Name&version={_apiVersion}".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
+                                nextPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Next && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=2&pageSize=10&Sort=Name".Equals(x.Href, OrdinalIgnoreCase)), // expected link to next page
+                                lastPageUrlExpecation : (Expression<Func<Link, bool>>) (x => x != null && x.Relation == Last && $"{BaseUrl}/{RouteNames.DefaultSearchResourcesApi}/?controller={AccountsController.EndpointName}&name={EscapeDataString("*Wayne")}&page=4&pageSize=10&Sort=Name".Equals(x.Href, OrdinalIgnoreCase))  // expected link to last page
                             )
                         )
                     };

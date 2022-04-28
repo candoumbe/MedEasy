@@ -79,7 +79,7 @@
             };
 
             using HttpClient client = _identityApiFixture.CreateClient();
-            client.DefaultRequestHeaders.Add("api-version", "2");
+            client.DefaultRequestHeaders.Add("api-version", "2.0");
             await client.PostAsJsonAsync(_accountsEndpointBaseUrl, newAccountInfo)
                     .ConfigureAwait(false);
 

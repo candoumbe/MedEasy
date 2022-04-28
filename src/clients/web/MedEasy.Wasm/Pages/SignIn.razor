@@ -1,0 +1,97 @@
+﻿@page "/sign-in"
+@using MedEasy.Wasm.Apis.Identity
+@using MedEasy.Wasm.Services
+
+@inject NavigationManager NavigationManager
+@inject MedEasyAuthenticationStateProvider AuthenticationService
+@inject INotificationService NotificationService
+
+<PageTitle>Sign in</PageTitle>
+
+
+<Div TextAlignment="TextAlignment.Center">
+    <Jumbotron >
+        <JumbotronTitle Size="JumbotronTitleSize.Is3">Sign in</JumbotronTitle>
+        <Divider />
+
+        <Validations Mode="ValidationMode.Manual" @ref="validations" Model="@login">
+            <Blazorise.ValidationSummary />
+            <Container>
+                <Row>
+                    <Field ColumnSize="ColumnSize.Is10.OnDesktop.IsFull.OnTablet">
+                        <Addons>
+                            <AddonLabel Display="Display.None.Block.OnMobile">Login</AddonLabel>
+                            <Addon AddonType="AddonType.Start">
+                                <AddonLabel><Icon Name="IconName.User" /></AddonLabel>
+                            </Addon>
+                            <Addon AddonType="AddonType.Body">
+                                <Validation Validator="ValidationRule.IsNotEmpty">
+                                    <TextEdit @bind-Text="login.UserName" ReadOnly="IsConnecting">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Validation>
+                            </Addon>
+                        </Addons>
+                    </Field>
+                </Row>
+                <Row>
+                    <Field ColumnSize="ColumnSize.Is10.OnDesktop.IsFull.OnTablet">
+                        <Addons>
+                            <Addon AddonType="AddonType.Start">
+                                <AddonLabel><Icon Name="IconName.Lock" /></AddonLabel>
+                            </Addon>
+                            <Addon AddonType="AddonType.Body">
+
+                                <TextEdit @bind-Text="login.Password" Role="TextRole.Password"
+                                          ReadOnly="IsConnecting">
+                                    <Feedback>
+                                        <ValidationError Tooltip="true" />
+                                    </Feedback>
+                                </TextEdit>
+                            </Addon>
+                        </Addons>
+                    </Field>
+
+                </Row>
+                <Row>
+                    <Button @onclick="LogIn" Loading="IsConnecting"
+                            Disabled="IsConnecting || !IsValid"
+                            Color="Color.Primary">
+                        Let me in
+                    </Button>
+                </Row>
+            </Container>
+        </Validations>
+    </Jumbotron>
+</Div>
+
+@code {
+    private LoginModel login = new();
+
+    private Validations validations;
+
+    private bool IsConnecting { get; set; }
+
+    private bool IsValid => !(string.IsNullOrEmpty(login.UserName) || string.IsNullOrWhiteSpace(login.Password));
+
+    private bool CanConnect { get; set; }
+
+    /// <summary>
+    /// Try to connect and log in
+    /// </summary>
+    /// <returns></returns>
+    public async Task LogIn()
+    {
+        IsConnecting = true;
+        if (await validations.ValidateAll())
+        {
+            await AuthenticationService.LogIn(login).ConfigureAwait(false);
+            await NotificationService.Info("You are now logged in");
+            NavigationManager.NavigateTo("/");
+        }
+
+        IsConnecting = false;
+    }
+}

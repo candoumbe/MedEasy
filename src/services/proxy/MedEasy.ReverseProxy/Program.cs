@@ -24,11 +24,15 @@ namespace MedEasy.ReverseProxy
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureLogging((options) =>
+                .ConfigureLogging((context, options) =>
                 {
                     options.ClearProviders() // removes all default providers
-                        .AddSerilog()
-                        .AddConsole();
+                           .AddSerilog();
+
+                    if (context.HostingEnvironment.IsDevelopment())
+                    {
+                           options.AddConsole();
+                    }
                 })
                 .UseSerilog((hosting, loggerConfig) =>
                 {
@@ -40,8 +44,8 @@ namespace MedEasy.ReverseProxy
                         .ReadFrom.Configuration(hosting.Configuration);
 
                     hosting.Configuration.GetServiceUri("seq" )
-                                        .SomeNotNull()
-                                        .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
+                                         .SomeNotNull()
+                                         .MatchSome(seqUri => loggerConfig.WriteTo.Seq(seqUri.AbsoluteUri));
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
