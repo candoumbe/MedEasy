@@ -8,6 +8,8 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
 using MassTransit;
+    using CorrelationId.DependencyInjection;
+    using CorrelationId;
 
     public class Startup
     {
@@ -29,12 +31,14 @@ using MassTransit;
                     .AddCustomApiVersioning()
                     .AddCustomizedSwagger(_hostingEnvironment, _configuration)
                     .AddCustomAuthenticationAndAuthorization(_configuration)
-                    .AddCustomMassTransit(_hostingEnvironment,_configuration);
+                    .AddCustomMassTransit(_hostingEnvironment,_configuration)
+                    .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env, ILoggerFactory loggerFactory, IHostApplicationLifetime applicationLifetime)
         {
+            app.UseCorrelationId();
             app.UseHttpMethodOverride();
 
             if (env.IsProduction())

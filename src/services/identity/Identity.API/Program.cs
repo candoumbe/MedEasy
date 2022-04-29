@@ -1,5 +1,7 @@
 ﻿namespace Identity.API;
 
+using Destructurama;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,11 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CQRS.Commands;
+using CQRS.Commands.v1;
+using CQRS.Commands.v2;
+using Identity.DTO;
+using Identity.ValueObjects;
 
 /// <summary>
 /// Entry point of the application
@@ -27,6 +34,8 @@ public class Program
     public static async Task Main(string[] args)
     {
         Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+        Activity.ForceDefaultIdFormat = true;
+
         IHost host = CreateHostBuilder(args).Build();
 
         using IServiceScope scope = host.Services.CreateScope();
@@ -62,11 +71,18 @@ public class Program
         => Host.CreateDefaultBuilder(args)
                 .UseSerilog((hosting, loggerConfig) =>
                 {
-                    loggerConfig = loggerConfig
-                        .MinimumLevel.Verbose()
-                        .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                        .Enrich.FromLogContext()
-                        .ReadFrom.Configuration(hosting.Configuration);
+                    loggerConfig = loggerConfig.MinimumLevel.Verbose()
+                                               //.Destructure.ByIgnoringProperties<CQRS.Commands.v1.LoginCommand>(c => c.Data.LoginInfos.Password)
+                                               //.Destructure.ByIgnoringProperties<CQRS.Commands.v2.LoginCommand>(c => c.Data.LoginInfos.Password)
+                                               //.Destructure.ByIgnoringProperties<RefreshAccessTokenByUsernameCommand>(c => c.Data.refreshToken)
+                                               .Destructure.ByIgnoringProperties<SystemAccount>(c => c.Password)
+                                               .Destructure.ByIgnoringProperties<Password>(c => c.Value)
+                                               .Destructure.ByIgnoringProperties<DTO.v1.BearerTokenInfo>(c => c.RefreshToken)
+                                               .Destructure.ByIgnoringProperties<DTO.v2.BearerTokenInfo>(c => c.RefreshToken)
+                                               .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                                               .Enrich.FromLogContext()
+                                               .Enrich.WithCorrelationIdHeader()
+                                               .ReadFrom.Configuration(hosting.Configuration);
 
                     hosting.Configuration.GetServiceUri("seq")
                                         .SomeNotNull()

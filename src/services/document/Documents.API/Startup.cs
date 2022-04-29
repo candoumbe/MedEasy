@@ -1,5 +1,8 @@
 namespace Documents.API
 {
+    using CorrelationId;
+    using CorrelationId.DependencyInjection;
+
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -31,6 +34,7 @@ namespace Documents.API
                 .AddCustomAuthentication(_configuration)
                 .AddCustomApiVersioning()
                 .AddDependencyInjection()
+                .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true)
                 .AddSwagger(_hostingEnvironment, _configuration);
         }
 
@@ -39,6 +43,7 @@ namespace Documents.API
         /// </summary>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseCorrelationId();
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
 

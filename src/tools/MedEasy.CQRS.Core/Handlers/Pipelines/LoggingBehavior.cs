@@ -15,6 +15,10 @@
     {
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
 
+        /// <summary>
+        /// Builds a new <see cref="LoggingBehavior{TRequest, TResponse}"/> instance.
+        /// </summary>
+        /// <param name="logger">The logger</param>
         public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger;
