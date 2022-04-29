@@ -2,6 +2,9 @@
 {
     using Agenda.API.Routing;
 
+    using CorrelationId;
+    using CorrelationId.DependencyInjection;
+
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -49,6 +52,7 @@
                 .AddCustomizedDependencyInjection()
                 .AddCustomApiVersioning()
                 .AddCustomAuthenticationAndAuthorization(Configuration)
+                .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true)
                 .AddCustomizedSwagger(HostingEnvironment, Configuration);
         }
 
@@ -60,6 +64,7 @@
         /// <param name="provider"></param>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseCorrelationId();
             app.UseApiVersioning();
 
             if (env.IsProduction())

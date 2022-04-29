@@ -1,5 +1,8 @@
 ﻿namespace Measures.API
 {
+    using CorrelationId;
+    using CorrelationId.DependencyInjection;
+
     using MassTransit;
 
     using Measures.API.Routing;
@@ -52,7 +55,8 @@
                     .AddCustomApiVersioning()
                     .AddCustomOptions(Configuration)
                     .AddCustomizedSwagger(HostingEnvironment, Configuration)
-                    .AddCustomMassTransit(HostingEnvironment, Configuration);
+                    .AddCustomMassTransit(HostingEnvironment, Configuration)
+                    .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true);
         }
 
         /// <summary>
@@ -65,6 +69,7 @@
         /// <param name="provider"></param>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IHostApplicationLifetime applicationLifetime, IApiVersionDescriptionProvider provider)
         {
+            app.UseCorrelationId();
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
 

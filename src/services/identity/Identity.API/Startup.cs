@@ -1,5 +1,8 @@
 ﻿namespace Identity.API
 {
+    using CorrelationId;
+    using CorrelationId.DependencyInjection;
+
     using Identity.API.Routing;
 
     using Microsoft.AspNetCore.Builder;
@@ -37,6 +40,7 @@
                     .AddCustomApiVersioning()
                     .AddDependencyInjection()
                     .AddCustomSwagger(_hostingEnvironment, _configuration)
+                    .AddDefaultCorrelationId(options => options.UpdateTraceIdentifier = true)
                     .AddCustomHealthChecks();
         }
 
@@ -45,6 +49,7 @@
         /// </summary>
         public void Configure(IApplicationBuilder app, IHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseCorrelationId();
             app.UseApiVersioning();
             app.UseHttpMethodOverride();
             if (env.IsProduction())

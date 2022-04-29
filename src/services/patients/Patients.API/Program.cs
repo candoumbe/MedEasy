@@ -57,16 +57,17 @@
         /// <returns></returns>
         public static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args)
+                .UseSerilog((hosting, loggerConfig) => loggerConfig
+                    .MinimumLevel.Verbose()
+                    .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
+                    .Enrich.FromLogContext()
+                    .Enrich.WithCorrelationIdHeader()
+                    .WriteTo.Console()
+                    .ReadFrom.Configuration(hosting.Configuration)
+                )
                 .ConfigureDefaults(args)
                 .ConfigureWebHostDefaults(webHost => webHost.UseStartup<Startup>()
                                                             .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment())
-                                                            .UseSerilog((hosting, loggerConfig) => loggerConfig
-                                                                .MinimumLevel.Verbose()
-                                                                .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-                                                                .Enrich.FromLogContext()
-                                                                .WriteTo.Console()
-                                                                .ReadFrom.Configuration(hosting.Configuration)
-                                                            )
                 )
                 .ConfigureLogging((options) =>
                 {

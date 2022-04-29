@@ -4,7 +4,10 @@
     using System.Collections.Generic;
     using System.Text;
 
-    internal class Password
+    /// <summary>
+    /// A value object that wraps a password
+    /// </summary>
+    public sealed class Password
     {
         /// <summary>
         /// Value of the password
@@ -32,7 +35,7 @@
             return new (input);
         }
 
+        ///<inheritdoc/>
         public override string ToString() => "******";
-
     }
 }
