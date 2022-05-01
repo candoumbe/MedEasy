@@ -15,7 +15,7 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -56,10 +56,11 @@
     public class HandleCreateAuthenticationTokenCommandTests : IAsyncLifetime, IClassFixture<SqliteEfCoreDatabaseFixture<IdentityDataStore>>
     {
         private ITestOutputHelper _outputHelper;
-        private Mock<IClock> _dateTimeServiceMock;
+        private readonly Mock<IClock> _dateTimeServiceMock;
         private HandleCreateAuthenticationTokenCommand _sut;
-        private IUnitOfWorkFactory _uowFactory;
-        private Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenCommandMock;
+        private readonly IUnitOfWorkFactory _uowFactory;
+        private readonly Mock<IHandleCreateSecurityTokenCommand> _handleCreateSecurityTokenCommandMock;
+        private readonly static Faker Faker = new();
 
         public HandleCreateAuthenticationTokenCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
@@ -107,8 +108,8 @@
                                   username: UserName.From("thebatman"),
                                   email: Email.From("bwayne@wayne-enterprise.com"),
                                   name: "Bruce Wayne",
-                                  passwordHash: new Faker().Lorem.Word(),
-                                  salt: new Faker().Lorem.Word());
+                                  passwordHash: Password.From(Faker.Internet.Password()),
+                                  salt: Faker.Lorem.Word());
 
             account.AddOrUpdateClaim(type: "batarangs", value: "10", utcNow);
             account.AddOrUpdateClaim(type: "fight", value: "100", utcNow);
@@ -301,7 +302,7 @@
                                    username: UserName.From("thebatman"),
                                    email: Email.From("bwayne@wayne-enterprise.com"),
                                    name: "Bruce Wayne",
-                                   passwordHash: faker.Lorem.Word(),
+                                   passwordHash: Password.From(faker.Internet.Password()),
                                    salt: faker.Lorem.Word());
 
             account.AddOrUpdateClaim("batarangs", "10", utcNow);

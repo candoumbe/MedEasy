@@ -3,7 +3,7 @@
     using FluentAssertions;
 
     using Identity.CQRS.Commands;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands;
     using MedEasy.CQRS.Core.Commands.Results;

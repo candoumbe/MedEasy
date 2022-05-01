@@ -14,6 +14,7 @@
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.Interfaces;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -50,7 +51,7 @@
                                                                    .AnyAsync(x => x.Username == data.Username, ct)
                                                                    .ConfigureAwait(false))
             {
-                (string salt, string passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
+                (string salt, Password passwordHash) = await _mediator.Send(new HashPasswordQuery(data.Password), ct)
                                                                     .ConfigureAwait(false);
 
                 Account newEntity = _mapper.Map<NewAccountInfo, Account>(data);

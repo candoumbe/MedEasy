@@ -2,7 +2,7 @@
 {
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.DAL.Interfaces;
 
@@ -90,9 +90,9 @@
         ///<inheritdoc/>
         public Task<string> GetNormalizedUserNameAsync(Account user, CancellationToken cancellationToken)
             => Task.FromResult(user.Username.Value);
-
+        
         public Task<string> GetPasswordHashAsync(Account user, CancellationToken cancellationToken)
-            => Task.FromResult(user.PasswordHash);
+            => Task.FromResult(user.PasswordHash.Value);
 
         ///<inheritdoc/>
         public Task<string> GetUserIdAsync(Account user, CancellationToken cancellationToken)

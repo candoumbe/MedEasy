@@ -1,5 +1,7 @@
 ﻿namespace Identity.API.Features.v1.Auth
 {
+    using MedEasy.ValueObjects;
+
     /// <summary>
     /// Model used to get a new token
     /// </summary>
@@ -13,6 +15,6 @@
         /// <summary>
         /// Password associated with the account
         /// </summary>
-        public string Password { get; set; }
+        public Password Password { get; set; }
     }
 }

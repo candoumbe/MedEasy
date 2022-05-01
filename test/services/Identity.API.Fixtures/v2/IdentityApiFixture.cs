@@ -7,9 +7,9 @@ namespace Identity.API.Fixtures.v2
     using Identity.DTO.Auth;
     using Identity.DTO.v2;
     using Identity.Ids;
-    using Identity.ValueObjects;
 
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
@@ -43,7 +43,7 @@ namespace Identity.API.Fixtures.v2
         /// <summary>
         /// Password to use to create an account or to login
         /// </summary>
-        public string Password { get; private set; }
+        public Password Password { get; private set; }
 
         /// <summary>
         ///  Name of the account
@@ -58,7 +58,7 @@ namespace Identity.API.Fixtures.v2
         public IdentityApiFixture()
         {
             Email = Email.From(Faker.Internet.Email(lastName: $"{Guid.NewGuid():n}"));
-            Password = Faker.Internet.Password();
+            Password = Password.From(Faker.Internet.Password());
         }
 
         /// <summary>

@@ -46,7 +46,7 @@
     using NodaTime;
     using Identity.Ids;
     using MedEasy.Ids;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     /// <summary>
     /// Unit tests for <see cref="AccountsController"/>
@@ -131,7 +131,7 @@
                     .CustomInstantiator(faker => new Account(id: AccountId.New(),
                         username: UserName.From(faker.Internet.UserName()),
                         email: Email.From(faker.Internet.Email()),
-                        passwordHash: string.Empty,
+                        passwordHash: Password.From(faker.Internet.Password()),
                         salt: string.Empty
                     ));
                 {
@@ -263,7 +263,7 @@
                             (
                                 id: accountId,
                                 username: UserName.From("thebatman"),
-                                passwordHash: "a_super_secret_password",
+                                passwordHash: Password.From("a_super_secret_password"),
                                 email: Email.From("bruce@wayne-entreprise.com"),
                                 salt: "salt_and_pepper_for_password"
 
@@ -288,16 +288,16 @@
                          });
 
             // Act
-            IActionResult actionResult = await _sut.Get(accountId, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<Browsable<AccountInfo>> actionResult = await _sut.Get(accountId, ct: default)
+                                                                          .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByIdQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
 
-            Browsable<AccountInfo> browsableResource = actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                .BeAssignableTo<Browsable<AccountInfo>>().Which;
+            actionResult.Value.Should()
+                              .NotBeNull();
+
+            Browsable<AccountInfo> browsableResource = actionResult.Value;
 
             browsableResource.Links.Should()
                 .NotBeNull().And
@@ -334,7 +334,7 @@
 
             Account tenant = new(id: AccountId.New(),
                                   username: UserName.From("thebatman"),
-                                  passwordHash: "a_super_secret_password",
+                                  passwordHash: Password.From("a_super_secret_password"),
                                   email: Email.From("bruce@wayne-entreprise.com"),
                                   salt: "salt_and_pepper_for_password",
                                   tenantId: TenantId.New()
@@ -342,7 +342,7 @@
             Account newAccount = new(
                 id: accountId,
                 username: UserName.From("robin"),
-                passwordHash: "a_super_secret_password",
+                passwordHash: Password.From("a_super_secret_password"),
                 email: Email.From("dick.grayson@wayne-entreprise.com"),
                 salt: "salt_and_pepper_for_password",
                 tenantId: new(tenant.Id.Value)
@@ -369,16 +369,16 @@
                 });
 
             // Act
-            IActionResult actionResult = await _sut.Get(accountId, ct: default)
-                .ConfigureAwait(false);
+            ActionResult<Browsable<AccountInfo>> actionResult = await _sut.Get(accountId, ct: default)
+                                                                          .ConfigureAwait(false);
 
             // Assert
             _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountByIdQuery>(q => q.Data == accountId), It.IsAny<CancellationToken>()), Times.Once);
 
-            Browsable<AccountInfo> browsableResource = actionResult.Should()
-                .BeAssignableTo<OkObjectResult>().Which
-                .Value.Should()
-                .BeAssignableTo<Browsable<AccountInfo>>().Which;
+            actionResult.Value.Should()
+                              .NotBeNull();
+
+            Browsable<AccountInfo> browsableResource = actionResult.Value;
 
             browsableResource.Links.Should()
                 .NotBeNull().And
@@ -421,8 +421,8 @@
                 .ReturnsAsync(Option.None<AccountInfo>());
 
             // Act
-            IActionResult actionResult = await _sut.Get(id: AccountId.New(), ct: default)
-                                                   .ConfigureAwait(false);
+            ActionResult<Browsable<AccountInfo>> actionResult = await _sut.Get(id: AccountId.New(), ct: default)
+                                                                          .ConfigureAwait(false);
 
             // Assert
             actionResult.Should()
@@ -598,13 +598,12 @@
             get
             {
                 Faker<Account> accountFaker = new Faker<Account>()
-                    .CustomInstantiator(faker => new Account(
-                        id: AccountId.New(),
-                        name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
-                        email: Email.From(faker.Internet.ExampleEmail()),
-                        passwordHash: faker.Lorem.Word(),
-                        username: UserName.From(faker.Internet.UserName()),
-                        salt: faker.Lorem.Word()))
+                    .CustomInstantiator(faker => new Account(id: AccountId.New(),
+                                                             name: $"{faker.PickRandom("Bruce", "Clark", "Oliver", "Martha")} Wayne",
+                                                             email: Email.From(faker.Internet.ExampleEmail()),
+                                                             passwordHash: Password.From(faker.Internet.Password()),
+                                                             username: UserName.From(faker.Internet.UserName()),
+                                                             salt: faker.Lorem.Word()))
                     ;
                 {
                     IEnumerable<Account> items = accountFaker.Generate(40);

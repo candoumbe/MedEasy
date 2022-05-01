@@ -11,11 +11,11 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -86,7 +86,7 @@
         public async Task GivenNoUser_Handler_Returns_None()
         {
             // Arrange
-            LoginInfo info = new() { UserName = UserName.From("Bruce"), Password = "CapedCrusader" };
+            LoginInfo info = new() { UserName = UserName.From("Bruce"), Password = Password.From("CapedCrusader") };
             GetOneAccountByUsernameAndPasswordQuery query = new(info);
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<HashPasswordWithPredefinedSaltAndIterationQuery>(), It.IsAny<CancellationToken>()))
@@ -111,7 +111,7 @@
                         id: AccountId.New(),
                         email: Email.From("Bruce@wayne-entreprise.com"),
                         username: UserName.From("Batman"),
-                        passwordHash: "CapedCrusader",
+                        passwordHash: Password.From("CapedCrusader"),
                         salt: "the_kryptonian"
                     );
 
@@ -129,13 +129,11 @@
                 {
                     Instant utcNow = 1.October(2011).Add(12.Hours().And(30.Minutes())).AsUtc().ToInstant();
 
-                    Account clarkKent = new(
-                        id: AccountId.New(),
-                        email: Email.From("clark.kent@smallville.com"),
-                        username: UserName.From("Superman"),
-                        passwordHash: "StrongestManAlive",
-                        salt: "the_kryptonian"
-                    );
+                    Account clarkKent = new(id: AccountId.New(),
+                                            email: Email.From("clark.kent@smallville.com"),
+                                            username: UserName.From("Superman"),
+                                            passwordHash: Password.From("StrongestManAlive"),
+                                            salt: "the_kryptonian");
                     clarkKent.AddOrUpdateClaim(type: "superstrength", value: "150", utcNow);
                     yield return new object[]
                     {

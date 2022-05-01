@@ -15,7 +15,7 @@
     /// <typeparam name="T">Type to build a <see cref="Form"/> for.</typeparam>
     public class FormBuilder<T>
     {
-        private static readonly HashSet<Type> _dateTypes = new()
+        private static readonly HashSet<Type> DateTypes = new()
         {
             typeof(DateTime),
             typeof(DateTime?),
@@ -23,7 +23,7 @@
             typeof(DateTimeOffset?),
         };
 
-        private static readonly HashSet<Type> _numericTypes = new()
+        private static readonly HashSet<Type> NumericTypes = new()
         {
             typeof(int),
             typeof(int?),
@@ -72,11 +72,11 @@
                 Option<FormFieldAttribute> optionalFormFieldAttribute = me.Member.GetCustomAttribute<FormFieldAttribute>()
                     .SomeNotNull();
 
-                if (_dateTypes.Contains(property.ReturnType))
+                if (DateTypes.Contains(property.ReturnType))
                 {
                     field.Type = FormFieldType.DateTime;
                 }
-                else if (_numericTypes.Contains(property.ReturnType))
+                else if (NumericTypes.Contains(property.ReturnType))
                 {
                     field.Type = Integer;
                 }

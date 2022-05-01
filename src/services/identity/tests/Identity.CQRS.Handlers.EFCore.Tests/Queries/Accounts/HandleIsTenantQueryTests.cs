@@ -11,12 +11,12 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Ids;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -134,12 +134,12 @@
                     TenantId tenantId = TenantId.New();
                     Faker<Account> accountFaker = new Faker<Account>()
                         .CustomInstantiator(faker => new Account(id: AccountId.New(),
-                            name: faker.Person.FullName,
-                            username: UserName.From(faker.Person.UserName),
-                            email: Email.From(faker.Internet.Email()),
-                            passwordHash: faker.Lorem.Word(),
-                            salt: faker.Lorem.Word(),
-                            tenantId: tenantId))
+                                                                 name: faker.Person.FullName,
+                                                                 username: UserName.From(faker.Person.UserName),
+                                                                 email: Email.From(faker.Internet.Email()),
+                                                                 passwordHash: Password.From(faker.Internet.Password()),
+                                                                 salt: faker.Lorem.Word(),
+                                                                 tenantId: tenantId))
                         ;
 
                     IEnumerable<Account> accounts = accountFaker.GenerateLazy(10);

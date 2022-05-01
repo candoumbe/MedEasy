@@ -1,7 +1,7 @@
 ﻿namespace Identity.DTO
 {
     using Identity.Ids;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.Ids;
     using MedEasy.RestObjects;

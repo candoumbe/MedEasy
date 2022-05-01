@@ -10,9 +10,9 @@
     using Identity.DTO.Auth;
     using Identity.DTO.v2;
     using Identity.Ids;
-    using Identity.ValueObjects;
 
     using MedEasy.RestObjects;
+    using MedEasy.ValueObjects;
 
     using Microsoft.IdentityModel.Tokens;
 
@@ -67,7 +67,7 @@
         public async Task Given_expired_access_token_calling_api_should_return_Unauthorized()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             NewAccountInfo newAccountInfo = new()
             {
                 Id = AccountId.New(),
@@ -140,7 +140,7 @@
         public async Task GivenUserExists_token_returns_valid_token()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             NewAccountInfo newAccountInfo = new()
             {
                 Id = AccountId.New(),
@@ -196,7 +196,7 @@
         public async Task Given_valid_access_token_calling_Invalidate_make_token_invalid()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             Faker faker = new();
             NewAccountInfo newAccountInfo = new()
             {

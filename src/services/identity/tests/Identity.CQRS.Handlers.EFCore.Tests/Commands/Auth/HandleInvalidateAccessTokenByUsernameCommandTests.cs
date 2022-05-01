@@ -1,7 +1,7 @@
 ﻿namespace Identity.CQRS.UnitTests.Handlers.Commands
 {
     using Bogus;
-
+    
     using FluentAssertions;
 
     using Identity.CQRS.Commands;
@@ -9,7 +9,7 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -96,14 +96,12 @@
                     new Claim(JwtRegisteredClaimNames.UniqueName, username.Value)
                 }
             );
-            Account account = new(
-                username: username,
-                passwordHash: faker.Lorem.Word(),
-                salt: faker.Lorem.Word(),
-                name: "Victor Jones",
-                id: AccountId.New(),
-                email: Email.From("victor.jones@home.dc")
-            );
+            Account account = new(username: username,
+                                  passwordHash: Password.From(faker.Internet.Password()),
+                                  salt: faker.Lorem.Word(),
+                                  name: "Victor Jones",
+                                  id: AccountId.New(),
+                                  email: Email.From("victor.jones@home.dc"));
             account.ChangeRefreshToken(securityToken.ToString());
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

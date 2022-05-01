@@ -1,6 +1,6 @@
 ﻿namespace Identity.API
 {
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     /// <summary>
     /// An account that should be created on application' startup
@@ -20,7 +20,6 @@
         /// <summary>
         /// Password that can be used to logged into the application with the current account
         /// </summary>
-        public string Password { get; set; }
-
+        public Password Password { get; set; }
     }
 }

@@ -50,10 +50,7 @@ namespace MedEasy.ReverseProxy
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
-                              .UseKestrel((hosting, options) =>
-                              {
-                                  options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment();
-                              });
+                              .UseKestrel((hosting, options) => options.AddServerHeader = hosting.HostingEnvironment.IsDevelopment());
                 });
     }
 }

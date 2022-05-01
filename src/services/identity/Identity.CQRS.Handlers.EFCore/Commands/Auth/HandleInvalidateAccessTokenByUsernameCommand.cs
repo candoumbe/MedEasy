@@ -15,6 +15,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handler to invalidate refresh tokens
+    /// </summary>
     public class HandleInvalidateAccessTokenByUsernameCommand : IRequestHandler<InvalidateAccessTokenByUsernameCommand, InvalidateAccessCommandResult>
     {
         private readonly IClock _clock;
@@ -31,6 +34,7 @@
             _uowFactory = uowFactory;
         }
 
+        ///<inheritdoc/>
         public async Task<InvalidateAccessCommandResult> Handle(InvalidateAccessTokenByUsernameCommand cmd, CancellationToken ct)
         {
             using IUnitOfWork uow = _uowFactory.NewUnitOfWork();

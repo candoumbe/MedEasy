@@ -3,7 +3,7 @@
     using FluentValidation;
 
     using Identity.DTO;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     public class NewAccountInfoValidator : AbstractValidator<NewAccountInfo>
     {

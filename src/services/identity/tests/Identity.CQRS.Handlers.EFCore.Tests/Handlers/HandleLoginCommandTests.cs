@@ -9,7 +9,7 @@ using Identity.CQRS.Handlers.Commands.v1;
 using Identity.CQRS.Queries.Accounts;
 using Identity.DTO;
 using Identity.DTO.v1;
-using Identity.ValueObjects;
+using MedEasy.ValueObjects;
 
 using MediatR;
 
@@ -54,7 +54,7 @@ public class HandleLoginCommandTests
         LoginInfo loginInfo = new()
         {
             UserName = UserName.From(Faker.Internet.UserName()),
-            Password = Faker.Internet.Password()
+            Password = Password.From(Faker.Internet.Password())
         };
 
         JwtInfos jwtInfos = new()

@@ -51,7 +51,7 @@ public class DataStoreMigrateInitializerAsync<TDataStore> : AsyncBaseIntializer
         try
         {
             _logger?.LogInformation("Upgrading {ApplicationContext}'s store", _hostingEnvironment.ApplicationName);
-            _logger?.LogInformation("Connection string : {ConnectionString}", _store.Database.GetConnectionString());
+
             // Forces database migrations on startup
             AsyncRetryPolicy policy = Policy
                 .Handle<DbException>()
