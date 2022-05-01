@@ -131,9 +131,13 @@
         /// <response code="204">The resource was successfully deleted.</response>
         /// <response code="404">Resource to delete was not found</response>
         /// <response code="409">Resource cannot be deleted</response>
-        /// <response code="403"></response>
+        /// <response code="401">The resource cannot be deleted </response>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         [HttpDelete("{id}")]
+        [ProducesResponseType(Status204NoContent)]
+        [ProducesResponseType(Status404NotFound)]
+        [ProducesResponseType(Status401Unauthorized)]
+        [ProducesResponseType(Status409Conflict)]
         public async Task<IActionResult> Delete([RequireNonDefault] AccountId id, CancellationToken ct = default)
         {
             DeleteAccountInfoByIdCommand cmd = new(id);
@@ -151,19 +155,19 @@
         }
 
         /// <summary>
-        /// Delete the specified account
+        /// Gets the account with the specified <paramref name="id"/>.
         /// </summary>
-        /// <param name="id">id of the account to delete</param>
+        /// <param name="id">id of the account</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
         [HttpHead("{id}")]
-        public async Task<IActionResult> Get(AccountId id, CancellationToken ct = default)
+        public async Task<ActionResult<Browsable<AccountInfo>>> Get(AccountId id, CancellationToken ct = default)
         {
             Option<AccountInfo> optionalAccount = await _mediator.Send(new GetOneAccountByIdQuery(id), ct)
                 .ConfigureAwait(false);
 
-            return optionalAccount.Match(
+            return optionalAccount.Match<ActionResult<Browsable<AccountInfo>>>(
                 some: account =>
                {
                    IList<Link> links = new List<Link>
@@ -177,15 +181,13 @@
                        links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.TenantId}) });
                    }
 
-                   Browsable<AccountInfo> browsableResource = new()
+                   return new Browsable<AccountInfo>()
                    {
                        Resource = account,
                        Links = links
                    };
-
-                   return new OkObjectResult(browsableResource);
                },
-                none: () => (IActionResult)new NotFoundResult()
+                none: () => new NotFoundResult()
             );
         }
 

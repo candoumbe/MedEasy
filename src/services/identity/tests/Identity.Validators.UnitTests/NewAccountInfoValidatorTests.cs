@@ -7,7 +7,7 @@
     using FluentValidation;
 
     using Identity.DTO;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using System;
     using System.Collections.Generic;
@@ -62,8 +62,8 @@
                     {
                         Name = faker.Person.Company.Name,
                         Email = Email.From("joker@card-city.com"),
-                        Password = "smile",
-                        ConfirmPassword = "smiles",
+                        Password = Password.From("smile"),
+                        ConfirmPassword = Password.From("smiles"),
                         Username = UserName.From(faker.Person.UserName)
                     },
                     (Expression<Func<ValidationResult, bool>>)(vr =>
@@ -81,8 +81,8 @@
                     {
                         Name = "The dark knight",
                         Email = Email.From("batman@gotham.fr"),
-                        Password = "smile",
-                        ConfirmPassword = "smile",
+                        Password = Password.From("smile"),
+                        ConfirmPassword = Password.From("smile"),
                         Username = UserName.From("capedcrusader")
                     },
                     (Expression<Func<ValidationResult, bool>>)(vr => vr.Errors.Count == 0),

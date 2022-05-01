@@ -7,7 +7,8 @@
     using Identity.CQRS.Handlers;
     using Identity.DTO;
     using Identity.Ids;
-    using Identity.ValueObjects;
+
+    using MedEasy.ValueObjects;
 
     using MediatR;
 

@@ -13,7 +13,7 @@
     using Identity.DTO.v1;
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -189,7 +189,7 @@
             Account account = new(id: AccountId.New(),
                                    name: faker.Person.FullName,
                                    email: Email.From(faker.Person.Email),
-                                   passwordHash: faker.Lorem.Word(),
+                                   passwordHash: Password.From(faker.Internet.Password()),
                                    salt: faker.Lorem.Word(),
                                    username: UserName.From(faker.Person.UserName));
 

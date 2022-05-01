@@ -2,7 +2,7 @@
 {
     using FluentAssertions;
 
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using System;
     using System.Collections.Generic;

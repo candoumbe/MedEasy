@@ -6,7 +6,7 @@
     using Identity.CQRS.Queries.Accounts;
     using Identity.DTO;
     using Identity.DTO.v2;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 

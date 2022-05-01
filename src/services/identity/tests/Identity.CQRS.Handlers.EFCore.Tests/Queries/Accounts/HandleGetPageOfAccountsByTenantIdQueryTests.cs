@@ -1,7 +1,6 @@
 ﻿namespace Identity.CQRS.UnitTests.Handlers.Queries.Accounts
 {
     using Bogus;
-    using NodaTime.Testing;
 
     using FluentAssertions;
 
@@ -9,23 +8,26 @@
     using Identity.CQRS.Queries.Accounts;
     using Identity.DataStores;
     using Identity.DTO;
+    using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.DAL.Repositories;
+    using MedEasy.Ids;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
+
+    using NodaTime;
+    using NodaTime.Testing;
+
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-    using NodaTime;
-    using MedEasy.Ids;
-    using Identity.Ids;
-    using Identity.ValueObjects;
 
     [UnitTest]
     [Feature("Identity")]
@@ -87,7 +89,7 @@
                                                          tenantId: tenantId,
                                                          email: Email.From(faker.Internet.Email()),
                                                          username: UserName.From(faker.Person.UserName),
-                                                         passwordHash: string.Empty,
+                                                         passwordHash: Password.From(faker.Internet.Password()),
                                                          salt: string.Empty)
                 {
                     CreatedDate = faker.Noda().Instant.Recent()

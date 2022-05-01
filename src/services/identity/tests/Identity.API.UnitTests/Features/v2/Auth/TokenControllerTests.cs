@@ -11,11 +11,11 @@ namespace Identity.API.UnitTests.Features.v2.Auth
     using Identity.DTO;
     using Identity.DTO.v2;
     using Identity.Ids;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -93,7 +93,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
         public async Task GivenAccountDoesNotExist_Post_Returns_NotFound()
         {
             // Arrange
-            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
+            LoginModel model = new() { Username = "Bruce", Password = Password.From("CapedCrusader") };
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByUsernameAndPasswordQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Option.None<AccountInfo>());
 
@@ -117,7 +117,7 @@ namespace Identity.API.UnitTests.Features.v2.Auth
         public async Task GivenAccountExists_Post_Returns_ValidToken()
         {
             // Arrange
-            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
+            LoginModel model = new() { Username = "Bruce", Password = Password.From("CapedCrusader") };
             AuthenticationInfo authenticationInfo = new() { Location = "Paris" };
             DateTime accessTokenExpiresDate = 10.January(2010).Add(12.Hours())
                 .ToUniversalTime();

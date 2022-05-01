@@ -78,16 +78,14 @@
 
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-            })
+            .AddFluentValidation(options => options.LocalizationEnabled = true)
             .AddJsonOptions(options =>
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
+                jsonSerializerOptions.AllowTrailingCommas = true;
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
@@ -189,10 +187,7 @@
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
-                });
+                builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
 

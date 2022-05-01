@@ -126,7 +126,7 @@
 
                 AttendeeInfo attendeeInfo = appointmentInfo.Attendees.ElementAt(0);
                 attendeeInfo.Id.Should().Be(bruce.Id);
-                attendeeInfo.Name.Should().Be(appointment.Attendees.ElementAt(0).Name);
+                attendeeInfo.Name.Should().Be(appointment.Attendees[0].Name);
                 attendeeInfo.UpdatedDate.Should()
                     .NotBe(Instant.MinValue).And
                     .NotBe(Instant.MaxValue);

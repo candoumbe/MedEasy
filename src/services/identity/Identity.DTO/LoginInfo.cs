@@ -1,12 +1,12 @@
 ﻿namespace Identity.DTO
 {
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     public class LoginInfo
     {
         public UserName UserName { get; set; }
 
-        public string Password { get; set; }
+        public Password Password { get; set; }
 
     }
 }

@@ -234,18 +234,17 @@
             }
 
             _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetPageOfAttendeeInfoQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((GetPageOfAttendeeInfoQuery query, CancellationToken ct) =>
+                .Returns(async (GetPageOfAttendeeInfoQuery query, CancellationToken ct) =>
                 {
                     using IUnitOfWork uow = _uowFactory.NewUnitOfWork();
                     Expression<Func<Attendee, AttendeeInfo>> selector = AutoMapperConfig.Build().ExpressionBuilder.GetMapExpression<Attendee, AttendeeInfo>();
-                    return uow.Repository<Attendee>()
+                    return await uow.Repository<Attendee>()
                               .ReadPageAsync(
                                     selector,
                                     query.Data.PageSize,
                                     query.Data.Page,
                                     new Sort<Attendee>(nameof(Attendee.UpdatedDate)),
-                                    ct)
-                              .AsTask();
+                                    ct);
                 });
 
             _apiOptionsMock.SetupGet(mock => mock.Value).Returns(new AgendaApiOptions { DefaultPageSize = pagingOptions.defaultPageSize, MaxPageSize = pagingOptions.maxPageSize });

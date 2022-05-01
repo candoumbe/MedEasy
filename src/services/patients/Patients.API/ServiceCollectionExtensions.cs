@@ -195,10 +195,7 @@
                     );
                 }
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
-                builder.ConfigureWarnings(options =>
-                {
-                    options.Default(WarningBehavior.Log);
-                });
+                builder.ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
 

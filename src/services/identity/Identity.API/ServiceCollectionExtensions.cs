@@ -14,7 +14,7 @@
     using Identity.Mapping;
     using Identity.Objects;
     using Identity.Validators;
-    using Identity.ValueObjects.Converters.SystemTextJson;
+    using MedEasy.ValueObjects.Converters.SystemTextJson;
 
     using MedEasy.Abstractions.ValueConverters;
     using MedEasy.Core.Filters;
@@ -188,6 +188,7 @@
         /// Adds required dependencies to access APÏ datastores
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="configuration"></param>
         public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
         {
 
@@ -244,10 +245,7 @@
 
                 builder.UseLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>())
                        .ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>()
-                       .ConfigureWarnings(options =>
-                       {
-                           options.Default(WarningBehavior.Log);
-                       });
+                       .ConfigureWarnings(options => options.Default(WarningBehavior.Log));
                 return builder;
             }
         }

@@ -1,32 +1,40 @@
 ﻿namespace Identity.API.IntegrationTests.Features.Accounts
 {
+    using Bogus;
+
     using FluentAssertions;
+
+    using Identity.API.Features.v1.Accounts;
+    using Identity.API.Fixtures.v1;
     using Identity.DTO;
+    using Identity.Ids;
+
     using MedEasy.RestObjects;
+    using MedEasy.ValueObjects;
+
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Schema;
     using Newtonsoft.Json.Schema.Generation;
+
+    using NodaTime;
+    using NodaTime.Serialization.SystemTextJson;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Net.Http.Json;
+    using System.Text.Json;
     using System.Threading.Tasks;
+
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-    using static System.Net.Http.HttpMethod;
-    using static Microsoft.AspNetCore.Http.StatusCodes;
-    using System.Net.Http.Headers;
-    using Bogus;
-    using Identity.API.Features.v1.Accounts;
-    using Identity.API.Fixtures.v1;
-    using System.Text.Json;
-    using NodaTime.Serialization.SystemTextJson;
-    using NodaTime;
-    using System.Net.Http.Json;
-    using Identity.Ids;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System;
     using Xunit.Extensions.AssemblyFixture;
-    using Identity.ValueObjects;
+
+    using static Microsoft.AspNetCore.Http.StatusCodes;
+    using static System.Net.Http.HttpMethod;
 
     [IntegrationTest]
     [Feature("Accounts")]
@@ -86,7 +94,7 @@
         {
             // Arrange
             Faker faker = new();
-            string password = faker.Lorem.Word();
+            Password password = Password.From(faker.Internet.Password());
             NewAccountInfo newAccount = new()
             {
                 Id = AccountId.New(),
@@ -96,7 +104,7 @@
                 ConfirmPassword = password,
                 Email = Email.From(faker.Person.Email)
             };
-
+            
             using HttpClient httpClient = _identityApiFixture.CreateClient();
             httpClient.DefaultRequestHeaders.Add("api-version", "1.0");
 

@@ -20,7 +20,6 @@
         /// </summary>
         public const string DefaultGetOneByIdApi = nameof(DefaultGetOneByIdApi);
 
-
         /// <summary>
         /// Name of the route to get subresources by it's parent resource's id (i.e. "api/{controller}/{id}/{action}")
         /// </summary>

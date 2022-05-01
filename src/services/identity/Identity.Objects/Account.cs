@@ -1,7 +1,7 @@
 ﻿namespace Identity.Objects;
 
 using Identity.Ids;
-using Identity.ValueObjects;
+using MedEasy.ValueObjects;
 
 using MedEasy.Ids;
 using MedEasy.Objects;
@@ -34,8 +34,8 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     /// <summary>
     /// Hash of the user's password
     /// </summary>
-    public string PasswordHash { get; private set; }
-
+    public Password PasswordHash { get; private set; }
+    
     /// <summary>
     /// Email associated with the account
     /// </summary>
@@ -104,7 +104,7 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     public Account(AccountId id,
                    UserName username,
                    Email email,
-                   string passwordHash,
+                   Password passwordHash,
                    string salt,
                    string name = "",
                    bool locked = false,
@@ -130,7 +130,7 @@ public class Account : AuditableEntity<AccountId, Account>, IMayHaveTenant
     /// </summary>
     /// <param name="passwordHash"></param>
     /// <param name="salt"></param>
-    public void SetPassword(string passwordHash, string salt)
+    public void SetPassword(Password passwordHash, string salt)
     {
         PasswordHash = passwordHash;
         Salt = salt;

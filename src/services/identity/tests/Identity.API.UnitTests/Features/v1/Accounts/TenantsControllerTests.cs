@@ -10,12 +10,12 @@
     using Identity.DTO;
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.Ids;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -105,17 +105,17 @@
             TenantId tenantId = TenantId.New();
             Account tenant = new(id: new(tenantId.Value),
                                   username: UserName.From("thebatman"),
-                                  passwordHash: "a_super_secret_password",
+                                  passwordHash: Password.From("a_super_secret_password"),
                                   email: Email.From("bruce@wayne-entreprise.com"),
                                   salt: "salt_and_pepper_for_password",
                                   tenantId: tenantId);
 
             Account newAccount = new(id: AccountId.New(),
-                                      username: UserName.From("robin"),
-                                      passwordHash: "a_super_secret_password",
-                                      email: Email.From("dick.grayson@wayne-entreprise.com"),
-                                      salt: "salt_and_pepper_for_password",
-                                      tenantId: tenantId
+                                     username: UserName.From("robin"),
+                                     passwordHash: Password.From("a_super_secret_password"),
+                                     email: Email.From("dick.grayson@wayne-entreprise.com"),
+                                     salt: "salt_and_pepper_for_password",
+                                     tenantId: tenantId
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -169,10 +169,10 @@
             // Arrange
             TenantId tenantId = TenantId.New();
             Account newAccount = new(id: new AccountId(tenantId.Value),
-                                      username: UserName.From("robin"),
-                                      passwordHash: "a_super_secret_password",
-                                      email: Email.From("dick.grayson@wayne-entreprise.com"),
-                                      salt: "salt_and_pepper_for_password"
+                                     username: UserName.From("robin"),
+                                     passwordHash: Password.From("a_super_secret_password"),
+                                     email: Email.From("dick.grayson@wayne-entreprise.com"),
+                                     salt: "salt_and_pepper_for_password"
             );
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

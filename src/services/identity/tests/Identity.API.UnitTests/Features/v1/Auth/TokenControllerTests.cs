@@ -14,7 +14,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
     using Identity.DataStores;
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -103,7 +103,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenAccountDoesNotExist_Post_Returns_NotFound()
         {
             // Arrange
-            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
+            LoginModel model = new() { Username = "Bruce", Password = Password.From("CapedCrusader") };
             string forwardedFor = Faker.Internet.IpAddress().ToString();
 
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<LoginCommand>(), It.IsAny<CancellationToken>()))
@@ -149,7 +149,7 @@ namespace Identity.API.UnitTests.Features.v1.Auth
         public async Task GivenAccountExists_Post_Returns_ValidToken(NonWhiteSpaceString accessToken, NonWhiteSpaceString refreshToken)
         {
             // Arrange
-            LoginModel model = new() { Username = "Bruce", Password = "CapedCrusader" };
+            LoginModel model = new() { Username = "Bruce", Password = Password.From("CapedCrusader") };
             string forwardedFor = Faker.Internet.IpAddress().ToString();
             BearerTokenInfo bearerTokenInfo = new()
             {

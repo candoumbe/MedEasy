@@ -1,7 +1,7 @@
 ﻿namespace Identity.CQRS.Queries.Accounts;
 
 using Identity.DTO;
-using Identity.ValueObjects;
+using MedEasy.ValueObjects;
 
 using MedEasy.CQRS.Core.Queries;
 

@@ -10,11 +10,11 @@ using Identity.DTO;
 using Identity.Ids;
 using Identity.Mapping;
 using Identity.Objects;
-using Identity.ValueObjects;
 
 using MedEasy.DAL.EFStore;
 using MedEasy.DAL.Interfaces;
 using MedEasy.IntegrationTests.Core;
+using MedEasy.ValueObjects;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -88,14 +88,12 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
         get
         {
             {
-                Account bruceWayne = new(
-                    name: "Bruce Wayne",
-                    id: AccountId.New(),
-                    email: Email.From("Bruce@wayne-entreprise.com"),
-                    username: UserName.From("Batman"),
-                    passwordHash: "CapedCrusader",
-                    salt: "the_kryptonian"
-                );
+                Account bruceWayne = new(name: "Bruce Wayne",
+                                         id: AccountId.New(),
+                                         email: Email.From("Bruce@wayne-entreprise.com"),
+                                         username: UserName.From("Batman"),
+                                         passwordHash: Password.From("CapedCrusader"),
+                                         salt: "the_kryptonian");
 
                 yield return new object[]
                 {
@@ -115,7 +113,7 @@ public class HandleGetOneAccountByUsernameQueryTests : IAsyncLifetime, IClassFix
                     id: AccountId.New(),
                     email: Email.From("clark.kent@smallville.com"),
                     username: UserName.From("Superman"),
-                    passwordHash: "StrongestManAlive",
+                    passwordHash: Password.From("StrongestManAlive"),
                     salt: "the_kryptonian"
                 );
                 clarkKent.AddOrUpdateClaim(type: "superstrength", value: "150", utcNow);

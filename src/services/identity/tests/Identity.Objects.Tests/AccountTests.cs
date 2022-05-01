@@ -8,7 +8,7 @@ namespace Identity.Objects.Tests
     using FluentAssertions.Extensions;
 
     using Identity.Ids;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.Ids;
 
@@ -37,7 +37,7 @@ namespace Identity.Objects.Tests
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
                                                                username: UserName.From(faker.Internet.UserName()),
                                                                email: Email.From(faker.Internet.Email()),
-                                                               passwordHash: faker.Internet.Password(),
+                                                               passwordHash: Password.From(faker.Internet.Password()),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
                                                                salt: faker.Lorem.Word(),
@@ -53,7 +53,7 @@ namespace Identity.Objects.Tests
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
                                                                username: UserName.From(faker.Internet.UserName()),
                                                                email: Email.From(faker.Internet.Email()),
-                                                               passwordHash: faker.Internet.Password(),
+                                                               passwordHash: Password.From(faker.Internet.Password()),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
                                                                salt: faker.Lorem.Word(),
@@ -117,7 +117,7 @@ namespace Identity.Objects.Tests
                     .CustomInstantiator((faker) => new Account(id: AccountId.New(),
                                                                username: UserName.From(faker.Internet.UserName()),
                                                                email: Email.From(faker.Internet.Email()),
-                                                               passwordHash: faker.Internet.Password(),
+                                                               passwordHash: Password.From(faker.Internet.Password()),
                                                                locked: faker.PickRandom(new[] { true, false }),
                                                                isActive: faker.PickRandom(new[] { true, false }),
                                                                salt: faker.Lorem.Word(),

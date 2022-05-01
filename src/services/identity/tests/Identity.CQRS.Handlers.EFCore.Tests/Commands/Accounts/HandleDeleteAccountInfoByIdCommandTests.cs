@@ -8,7 +8,7 @@
     using Identity.DataStores;
     using Identity.Ids;
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
@@ -119,7 +119,7 @@
                                   username: UserName.From("victorzsasz"),
                                   email: Email.From("victor_zsasz@gotham.fr"),
                                   salt: "knife",
-                                  passwordHash: "cut_up"
+                                  passwordHash: Password.From("cut_up")
                                 );
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
             {
@@ -171,14 +171,14 @@
                                   username: UserName.From("victorzsasz"),
                                   email: Email.From("victor_zsasz@gotham.fr"),
                                   salt: "knife",
-                                  passwordHash: "cut_up");
+                                  passwordHash: Password.From("cut_up"));
 
             Account account = new(id: idToDelete,
                                    name: "victor zsasz",
                                    username: UserName.From("victorzsasz_minion"),
                                    email: Email.From("victor_zsasz_minion@gotham.fr"),
                                    salt: "knife",
-                                   passwordHash: "cut_up",
+                                   passwordHash: Password.From("cut_up"),
                                    tenantId: new TenantId(tenant.Id.Value));
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())

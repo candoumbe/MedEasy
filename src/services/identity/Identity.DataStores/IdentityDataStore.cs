@@ -1,7 +1,7 @@
 ﻿namespace Identity.DataStores
 {
     using Identity.Objects;
-    using Identity.ValueObjects;
+    using MedEasy.ValueObjects;
 
     using MedEasy.DataStores.Core.Relational;
 
@@ -36,9 +36,9 @@
                 entity.Property(x => x.Username)
                     .HasMaxLength(NormalTextLength)
                     .IsRequired()
-                    .HasConversion<string>(convertToProviderExpression: x => x.Value,
-                                             convertFromProviderExpression: x => UserName.From(x)
-                      ); ;
+                    .HasConversion(convertToProviderExpression: x => x.Value,
+                                   convertFromProviderExpression: x => UserName.From(x)
+                      );
 
                 entity.Property(x => x.Name)
                     .HasMaxLength(NormalTextLength);
@@ -49,6 +49,9 @@
                     .IsRequired();
 
                 entity.Property(x => x.PasswordHash)
+                    .HasConversion(convertToProviderExpression: x => x.Value,
+                                   convertFromProviderExpression: x => Password.From(x)
+                      )
                     .IsRequired();
 
                 entity.Property(x => x.TenantId);

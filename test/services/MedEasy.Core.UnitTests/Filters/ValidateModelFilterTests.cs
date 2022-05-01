@@ -26,27 +26,15 @@
 
     [UnitTest]
     [Category("Filters")]
-    public class ValidateModelFilterTests : IDisposable
+    public class ValidateModelFilterTests
     {
-        private ITestOutputHelper _outputHelper;
         private ValidateModelActionFilterAttribute _sut;
         private Mock<HttpContext> _httpContextMock;
-        private Mock<ControllerActionDescriptor> _controllerActionDescriptorMock;
 
-        public ValidateModelFilterTests(ITestOutputHelper outputHelper)
+        public ValidateModelFilterTests()
         {
-            _outputHelper = outputHelper;
             _sut = new ValidateModelActionFilterAttribute();
             _httpContextMock = new Mock<HttpContext>(Strict);
-            _controllerActionDescriptorMock = new Mock<ControllerActionDescriptor>(Strict);
-        }
-
-        public void Dispose()
-        {
-            _outputHelper = null;
-            _sut = null;
-            _httpContextMock = null;
-            _controllerActionDescriptorMock = null;
         }
 
         [Fact]

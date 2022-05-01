@@ -6,7 +6,7 @@ using Identity.DataStores;
 using Identity.DTO;
 using Identity.Ids;
 using Identity.Objects;
-using Identity.ValueObjects;
+using MedEasy.ValueObjects;
 
 using MedEasy.CQRS.Core.Commands.Results;
 using MedEasy.DataStores.Core;

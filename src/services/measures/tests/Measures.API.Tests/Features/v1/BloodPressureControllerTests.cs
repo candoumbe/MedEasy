@@ -154,10 +154,7 @@ namespace Measures.API.Tests.Features.v1.BloodPressures
                 {
                     Subject subject = new(SubjectId.New(), faker.Person.FullName, faker.Person.DateOfBirth.ToLocalDateTime().Date);
                     IEnumerable<BloodPressure> items = bloodPressureFaker.Generate(400);
-                    items.ForEach((measure) =>
-                    {
-                        subject.AddBloodPressure(measure.Id, measure.DateOfMeasure, systolic: measure.SystolicPressure, measure.DiastolicPressure);
-                    });
+                    items.ForEach((measure) => subject.AddBloodPressure(measure.Id, measure.DateOfMeasure, systolic: measure.SystolicPressure, measure.DiastolicPressure));
 
                     yield return new object[]
                     {

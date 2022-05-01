@@ -2,6 +2,8 @@
 {
     using AutoMapper;
 
+    using Bogus;
+
     using FluentAssertions;
 
     using Identity.CQRS.Commands.Accounts;
@@ -14,12 +16,12 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.CQRS.Core.Commands.Results;
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -54,6 +56,7 @@
         private Mock<IMapper> _mapperMock;
         private Mock<IMediator> _mediatorMock;
         private HandleCreateAccountInfoCommand _sut;
+        private static readonly Faker Faker = new();
 
         public HandleCreateAccountInfoCommandTests(ITestOutputHelper outputHelper, SqliteEfCoreDatabaseFixture<IdentityDataStore> databaseFixture)
         {
@@ -134,7 +137,7 @@
             Account existingAccount = new(id: AccountId.New(),
                                            username: UserName.From("thebatman"),
                                            email: Email.From ("thecaped@crusader.com"),
-                                           passwordHash: "fjeiozfjzfdcvqcnjifozjffkjioj",
+                                           passwordHash: Password.From("fjeiozfjzfdcvqcnjifozjffkjioj"),
                                            salt: "some_salt_and_pepper");
 
             using (IUnitOfWork uow = _uowFactory.NewUnitOfWork())
@@ -147,8 +150,8 @@
             NewAccountInfo newResourceInfo = new()
             {
                 Username = existingAccount.Username,
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader",
+                Password = Password.From("thecapedcrusader"),
+                ConfirmPassword = Password.From("thecapedcrusader"),
                 Email = Email.From("b.wayne@gotham.com")
             };
 
@@ -192,8 +195,8 @@
             NewAccountInfo newResourceInfo = new()
             {
                 Username = UserName.From("thebatman"),
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecrusader",
+                Password = Password.From("thecapedcrusader"),
+                ConfirmPassword = Password.From("thecrusader"),
                 Email = Email.From("b.wayne@gotham.com")
             };
 
@@ -201,7 +204,7 @@
 
             // Act
             Option<AccountInfo, CreateCommandFailure> optionalCreatedResource = await _sut.Handle(cmd, default)
-                .ConfigureAwait(false);
+                                                                                          .ConfigureAwait(false);
 
             // Assert
             optionalCreatedResource.HasValue.Should()
@@ -230,8 +233,8 @@
                 Id = AccountId.New(),
                 Name = "Bruce Wayne",
                 Username = UserName.From("thebatman"),
-                Password = "thecapedcrusader",
-                ConfirmPassword = "thecapedcrusader",
+                Password = Password.From("thecapedcrusader"),
+                ConfirmPassword = Password.From("thecapedcrusader"),
                 Email = Email.From("b.wayne@gotham.com")
             };
 
@@ -244,7 +247,7 @@
             _mediatorMock.Setup(mock => mock.Publish(It.IsAny<AccountCreated>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<HashPasswordQuery>(), It.IsAny<CancellationToken>()))
-                .Returns((HashPasswordQuery query, CancellationToken _) => Task.FromResult((salt: query.Data, passwordHash: new string(query.Data.Reverse().ToArray()))));
+                .ReturnsAsync((HashPasswordQuery query, CancellationToken _) => (salt: Faker.Lorem.Word(), hashedPassword: Password.From(Faker.Internet.Password(prefix: query.Data.Value))));
 
             _mediatorMock.Setup(mock => mock.Send(It.IsNotNull<GetOneAccountByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(async (GetOneAccountByIdQuery query, CancellationToken ct) =>
@@ -315,8 +318,8 @@
                         .ConfigureAwait(false);
 
                     newEntity.PasswordHash.Should()
-                        .NotBeNullOrWhiteSpace().And
-                        .NotBe(newAccount.Password);
+                                          .NotBeNull().And
+                                          .NotBe(newAccount.Password.Value);
                     newEntity.Salt.Should()
                         .NotBeNullOrWhiteSpace();
                     newEntity.Id.Should()

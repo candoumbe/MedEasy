@@ -8,6 +8,7 @@
     using Identity.Objects;
 
     using MedEasy.DAL.Interfaces;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -55,12 +56,12 @@
                                                                       ct
                                                 )
                                                 .ConfigureAwait(false);
-
+            
             return await usernameAndPassword.Match(
                 some: async userFoundData =>
                 {
-                    string currentPassword = await _mediator.Send(new HashPasswordWithPredefinedSaltAndIterationQuery((request.Data.Password, userFoundData.Salt, 10_000)), ct)
-                                                            .ConfigureAwait(false);
+                    Password currentPassword = await _mediator.Send(new HashPasswordWithPredefinedSaltAndIterationQuery((request.Data.Password, userFoundData.Salt, 10_000)), ct)
+                                                              .ConfigureAwait(false);
 
                     Option<AccountInfo> accountInfo = Option.None<AccountInfo>();
                     if (currentPassword == userFoundData.PasswordHash)

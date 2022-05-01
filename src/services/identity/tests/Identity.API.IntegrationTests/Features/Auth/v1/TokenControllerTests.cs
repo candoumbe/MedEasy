@@ -11,9 +11,9 @@
     using Identity.DTO.Auth;
     using Identity.DTO.v1;
     using Identity.Ids;
-    using Identity.ValueObjects;
 
     using MedEasy.RestObjects;
+    using MedEasy.ValueObjects;
 
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.IdentityModel.Tokens;
@@ -71,7 +71,7 @@
         public async Task GivenExpiredAccessToken_Calling_Api_Returns_Unauthorized()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             NewAccountInfo newAccountInfo = new()
             {
                 Id = AccountId.New(),
@@ -146,7 +146,7 @@
         public async Task Given_User_Exists_Token_ReturnsValidToken()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             NewAccountInfo newAccountInfo = new()
             {
                 Id = AccountId.New(),
@@ -205,7 +205,7 @@
         public async Task Given_valid_accesstoken_calling_invalidate_make_token_invalid()
         {
             // Arrange
-            const string password = "thecapedcrusader";
+            Password password = Password.From("thecapedcrusader");
             Faker faker = new();
             NewAccountInfo newAccountInfo = new()
             {

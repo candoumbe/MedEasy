@@ -13,11 +13,11 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.IntegrationTests.Core;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -147,7 +147,11 @@
 
             Faker faker = new();
 
-            Account account = new(AccountId.New(), UserName.From(faker.Internet.UserName()), Email.From(faker.Internet.Email()), "a_random_password", "a_salt");
+            Account account = new(AccountId.New(),
+                                  UserName.From(faker.Internet.UserName()),
+                                  Email.From(faker.Internet.Email()),
+                                  Password.From(faker.Internet.Password()),
+                                  "a_salt");
 
             account.AddRole(role);
 

@@ -2,6 +2,8 @@
 
 using Destructurama;
 
+using MedEasy.ValueObjects;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,11 +17,6 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using CQRS.Commands;
-using CQRS.Commands.v1;
-using CQRS.Commands.v2;
-using Identity.DTO;
-using Identity.ValueObjects;
 
 /// <summary>
 /// Entry point of the application
@@ -101,9 +98,6 @@ public class Program
                         options.AddConsole();
                     }
                 })
-                .ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddJsonFile("accounts.json", optional: false, reloadOnChange: true);
-                })
+                .ConfigureAppConfiguration((_, config) => config.AddJsonFile("accounts.json", optional: false, reloadOnChange: true))
         ;
 }

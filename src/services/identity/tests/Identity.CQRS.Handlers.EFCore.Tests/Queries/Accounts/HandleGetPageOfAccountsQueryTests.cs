@@ -11,7 +11,6 @@
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
-    using Identity.ValueObjects;
 
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
@@ -19,6 +18,7 @@
     using MedEasy.Ids;
     using MedEasy.IntegrationTests.Core;
     using MedEasy.RestObjects;
+    using MedEasy.ValueObjects;
 
     using NodaTime;
     using NodaTime.Testing;
@@ -92,7 +92,7 @@
                                           tenantId: tenantId,
                                           email: Email.From(faker.Internet.Email()),
                                           username: UserName.From(faker.Person.UserName),
-                                          passwordHash: string.Empty,
+                                          passwordHash: Password.From(faker.Internet.Password()),
                                           salt: string.Empty)
                     {
                         CreatedDate = faker.Noda().Instant.Recent()
