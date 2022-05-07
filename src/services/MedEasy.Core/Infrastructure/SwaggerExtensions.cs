@@ -27,6 +27,16 @@
             Type[] types = assembly.GetTypes().Where(type => type.IsAssignableToGenericType(typeof(StronglyTypedId<>)))
                                               .ToArray();
 
+            ConfigureForStronglyTypedIds(options, types);
+        }
+
+        /// <summary>
+        /// Configures Swagger map types to handle strongly type ids
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="types"></param>
+        public static void ConfigureForStronglyTypedIds(this SwaggerGenOptions options, params Type[] types)
+        {
             types.ForEach(item => options.MapType(item, () => new Microsoft.OpenApi.Models.OpenApiSchema { Format = "uuid", Type = "string" }));
         }
     }

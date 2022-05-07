@@ -1,7 +1,6 @@
 ﻿namespace MedEasy.Ids.Converters
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
@@ -21,8 +20,8 @@
 
             if (reader.TokenType is not JsonTokenType.Null)
             {
-                var value = JsonSerializer.Deserialize<TValue>(ref reader, options);
-                var factory = StronglyTypedIdHelper.GetFactory<TValue>(typeToConvert);
+                TValue value = JsonSerializer.Deserialize<TValue>(ref reader, options);
+                Func<TValue, object> factory = StronglyTypedIdHelper.GetFactory<TValue>(typeToConvert);
                 stronglyTypedId =  (TStronglyTypedId)factory(value);
             }
             return stronglyTypedId;

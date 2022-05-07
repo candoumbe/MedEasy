@@ -113,7 +113,7 @@
                     ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page - 1, paginationConfiguration.PageSize })
                     : null,
                 next: paginationConfiguration.Page < page.Count
-                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize})
+                    ? _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = paginationConfiguration.Page + 1, paginationConfiguration.PageSize })
                     : null,
                 last: _urlHelper.GetPathByName(RouteNames.DefaultGetAllApi, new { controller = EndpointName, page = page.Count, paginationConfiguration.PageSize }),
                 total: page.Total
@@ -178,7 +178,7 @@
 
                    if (account.TenantId is not null)
                    {
-                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.TenantId}) });
+                       links.Add(new Link { Relation = "tenant", Method = "GET", Href = _urlHelper.GetPathByName(RouteNames.DefaultGetOneByIdApi, new { controller = EndpointName, Id = account.TenantId }) });
                    }
 
                    return new Browsable<AccountInfo>()
@@ -194,28 +194,27 @@
         /// <summary>
         /// Partially update an account resource.
         /// </summary>
+        /// <param name="id">id of the resource to update.</param>
+        /// <param name="changes">set of changes to apply to the resource.</param>
+        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <remarks>
         /// <para>
         /// Use the <paramref name="changes"/> to declare all modifications to apply to the resource.
         /// Only the declared modifications will be applied to the resource.
         /// </para>
-        /// <para>    // PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725</para>
-        /// <para>
-        ///     [
-        ///         {
-        ///             "op": "update",
-        ///             "path": "/Email",
-        ///             "from": "string",
-        ///             "value": "bruce@wayne-entreprise.com"
-        ///       }
-        ///     ]
-        /// </para>
-        /// <para>The set of changes to apply will be applied atomically. </para>
+        /// <code>
+        /// PATCH api/accounts/3594c436-8595-444d-9e6b-2686c4904725
         ///
+        /// [
+        ///   {
+        ///      "op": "update",
+        ///      "path": "/Email",
+        ///      "from": "string",
+        ///      "value": "bruce@wayne-entreprise.com"
+        ///   }
+        /// ]
+        /// </code>
         /// </remarks>
-        /// <param name="id">id of the resource to update.</param>
-        /// <param name="changes">set of changes to apply to the resource.</param>
-        /// <param name="ct">Notifies lower layers about the request abortion</param>
         /// <response code="204">The resource was successfully patched.</response>
         /// <response code="400">Changes are not valid for the selected resource.</response>
         /// <response code="404">Resource to "PATCH" not found</response>
@@ -225,7 +224,9 @@
         [ProducesResponseType(Status204NoContent)]
         [ProducesResponseType(Status409Conflict)]
         [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> Patch(AccountId id, [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes, CancellationToken ct = default)
+        public async Task<IActionResult> Patch(AccountId id,
+                                               [BindRequired, FromBody] JsonPatchDocument<AccountInfo> changes,
+                                               CancellationToken ct = default)
         {
             PatchInfo<AccountId, AccountInfo> data = new()
             {
@@ -235,7 +236,7 @@
             PatchCommand<AccountId, AccountInfo> cmd = new(data);
 
             ModifyCommandResult cmdResult = await _mediator.Send(cmd, ct)
-                .ConfigureAwait(false);
+                                                           .ConfigureAwait(false);
 
             return cmdResult switch
             {

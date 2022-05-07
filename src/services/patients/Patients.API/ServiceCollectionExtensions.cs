@@ -15,6 +15,7 @@
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.DataStores.Core;
+    using MedEasy.Ids;
 
     using MediatR;
 
@@ -343,6 +344,7 @@
                 });
                 config.ConfigureForNodaTimeWithSystemTextJson();
                 config.ConfigureForStronglyTypedIdsInAssembly<DoctorId>();
+                config.ConfigureForStronglyTypedIdsInAssembly<TenantId>();
             });
 
             return services;

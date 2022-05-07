@@ -119,10 +119,10 @@ namespace Identity.API.UnitTests.Features.v2.Auth
             // Arrange
             LoginModel model = new() { Username = "Bruce", Password = Password.From("CapedCrusader") };
             AuthenticationInfo authenticationInfo = new() { Location = "Paris" };
-            DateTime accessTokenExpiresDate = 10.January(2010).Add(12.Hours())
-                .ToUniversalTime();
-            DateTime refreshTokenExpiresDate = 10.January(2010).Add(23.Hours().And(59.Minutes().And(59.Seconds())))
-                .ToUniversalTime();
+
+            DateTime accessTokenExpiresDate = 10.January(2010).Add(12.Hours()).ToUniversalTime();
+            DateTime refreshTokenExpiresDate = 10.January(2010).Add(23.Hours().And(59.Minutes().And(59.Seconds()))).ToUniversalTime();
+
             AccountInfo accountInfo = new()
             {
                 Id = AccountId.New(),

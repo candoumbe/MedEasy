@@ -18,6 +18,7 @@
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.DataStores.Core;
+    using MedEasy.Ids;
     using MedEasy.Validators;
 
     using MediatR;
@@ -290,6 +291,7 @@
                 }
 
                 config.ConfigureForStronglyTypedIdsInAssembly<AppointmentId>();
+                config.ConfigureForStronglyTypedIdsInAssembly<TenantId>();
             });
 
             return services;

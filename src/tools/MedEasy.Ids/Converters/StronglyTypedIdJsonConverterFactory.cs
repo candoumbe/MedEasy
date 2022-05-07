@@ -20,17 +20,17 @@
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             return Cache.GetOrAdd(typeToConvert, CreateConverter);
-        }
 
-        private static JsonConverter CreateConverter(Type typeToConvert)
-        {
-            if (!StronglyTypedIdHelper.TryIsStronglyTypedId(typeToConvert, out var valueType))
+            static JsonConverter CreateConverter(Type typeToConvert)
             {
-                throw new InvalidOperationException($"Cannot create converter for '{typeToConvert}'");
-            }
+                if (!StronglyTypedIdHelper.TryIsStronglyTypedId(typeToConvert, out var valueType))
+                {
+                    throw new InvalidOperationException($"Cannot create converter for '{typeToConvert}'");
+                }
 
-            var type = typeof(StronglyTypedIdJsonConverter<,>).MakeGenericType(typeToConvert, valueType);
-            return (JsonConverter)Activator.CreateInstance(type);
+                Type type = typeof(StronglyTypedIdJsonConverter<,>).MakeGenericType(typeToConvert, valueType);
+                return (JsonConverter)Activator.CreateInstance(type);
+            }
         }
     }
 }
