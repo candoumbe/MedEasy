@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 /// </summary>
 public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<IdentityDataStore>
 {
-    
+
 
     /// <summary>
     /// Builds a new <see cref="IdentityDataStoreSeedInitializer"/> instance.
@@ -53,7 +53,7 @@ public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<Id
                    await accounts.ForEachAsync(async account =>
                    {
                        logger.LogInformation("Creating account for {Username}", account.Username);
-                       NewAccountInfo accountInfo = new()
+                       NewAccountInfo accountInfo = new NewAccountInfo()
                        {
                            Id = AccountId.New(),
                            Username = account.Username,
@@ -74,22 +74,22 @@ public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<Id
                                             case CreateCommandFailure.Conflict:
                                                 {
                                                     logger.LogInformation("An account {Username} already exists. Performing update.", account.Username);
-                                                    GetOneAccountInfoByUsernameQuery request = new(command.Data.Username);
-                                                    Option<AccountInfo> accountMayExist = await mediator.Send(request)
-                                                                                                        .ConfigureAwait(false);
+                                                    //    GetOneAccountInfoByUsernameQuery request = new(command.Data.Username);
+                                                    //    Option<AccountInfo> accountMayExist = await mediator.Send(request)
+                                                    //                                                        .ConfigureAwait(false);
 
-                                                    await accountMayExist.Match(async existingAccount =>
-                                                    {
-                                                        logger.LogInformation("Deleting previous {Username} account", existingAccount.Username);
-                                                        DeleteAccountInfoByIdCommand deleteAccountCmd = new(existingAccount.Id);
-                                                        await mediator.Send(command).ConfigureAwait(false);
-                                                        logger.LogTrace("Deleting previous {Username} account succeed", existingAccount.Username);
-                                                        logger.LogTrace("Creating account");
-                                                        await mediator.Send(command).ConfigureAwait(false);
-                                                        logger.LogTrace("Creating account succeeded");
-                                                        logger.LogInformation("Account {AccountId} for {Username} successfully updated", existingAccount.Id, accountInfo.Username);
-                                                    },
-                                                    () => Task.CompletedTask);
+                                                    //    await accountMayExist.Match(async existingAccount =>
+                                                    //    {
+                                                    //        logger.LogInformation("Deleting previous {Username} account", existingAccount.Username);
+                                                    //        DeleteAccountInfoByIdCommand deleteAccountCmd = new(existingAccount.Id);
+                                                    //        await mediator.Send(command).ConfigureAwait(false);
+                                                    //        logger.LogTrace("Deleting previous {Username} account succeed", existingAccount.Username);
+                                                    //        logger.LogTrace("Creating account");
+                                                    //        await mediator.Send(command).ConfigureAwait(false);
+                                                    //        logger.LogTrace("Creating account succeeded");
+                                                    //        logger.LogInformation("Account {AccountId} for {Username} successfully updated", existingAccount.Id, accountInfo.Username);
+                                                    //},
+                                                    //() => Task.CompletedTask);
                                                 }
                                                 break;
                                             default:
@@ -102,6 +102,5 @@ public class IdentityDataStoreSeedInitializer : DataStoreSeedInitializerAsync<Id
                    logger.LogInformation("Accounts created/updated successfully");
                })
     {
-        
     }
 }

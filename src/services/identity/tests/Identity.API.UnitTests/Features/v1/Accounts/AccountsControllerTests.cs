@@ -425,8 +425,8 @@
                                                                           .ConfigureAwait(false);
 
             // Assert
-            actionResult.Should()
-                .BeAssignableTo<NotFoundResult>();
+            actionResult.Result.Should()
+                        .BeAssignableTo<NotFoundResult>();
         }
 
         [Fact]

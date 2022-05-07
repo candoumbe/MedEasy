@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\MedEasy.AspNetCore\MedEasy.AspNetCore.csproj" />
     <ProjectReference Include="..\..\MedEasy.Attributes\MedEasy.Attributes.csproj" />
     <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
     <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />

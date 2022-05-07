@@ -14,9 +14,9 @@
     using Identity.Mapping;
     using Identity.Objects;
     using Identity.Validators;
-    using MedEasy.ValueObjects.Converters.SystemTextJson;
 
     using MedEasy.Abstractions.ValueConverters;
+    using MedEasy.AspNetCore;
     using MedEasy.Core.Filters;
     using MedEasy.Core.Infrastructure;
     using MedEasy.CQRS.Core.Handlers;
@@ -24,7 +24,9 @@
     using MedEasy.DAL.EFStore;
     using MedEasy.DAL.Interfaces;
     using MedEasy.DataStores.Core;
+    using MedEasy.Ids;
     using MedEasy.Ids.Converters;
+    using MedEasy.ValueObjects;
 
     using MediatR;
 
@@ -48,7 +50,6 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.OpenApi.Models;
-
 
     using NodaTime;
     using NodaTime.Serialization.SystemTextJson;
@@ -92,14 +93,16 @@
                     .Build();
 
                 config.Filters.Add(new AuthorizeFilter(policy));
+
+                config.InputFormatters.Insert(0, CustomJsonPatchInputFormatter.GetJsonPatchInputFormatter());
             })
             .AddJsonOptions(options =>
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 jsonSerializerOptions.Converters.Add(new StronglyTypedIdJsonConverterFactory());
-                jsonSerializerOptions.Converters.Add(new EmailJsonConverter());
-                jsonSerializerOptions.Converters.Add(new UserNameJsonConverter());
+                //jsonSerializerOptions.Converters.Add(new EmailJsonConverter());
+                //jsonSerializerOptions.Converters.Add(new UserNameJsonConverter());
                 jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 jsonSerializerOptions.WriteIndented = true;
                 jsonSerializerOptions.PropertyNameCaseInsensitive = true;
@@ -263,7 +266,7 @@
                 options.UseApiBehavior = true;
                 options.ReportApiVersions = true;
 
-                options.DefaultApiVersion = new (2, 0);
+                options.DefaultApiVersion = new(2, 0);
                 options.ApiVersionReader = new HeaderApiVersionReader("api-version");
             })
                 .AddVersionedApiExplorer(
@@ -441,6 +444,10 @@
                 config.ConfigureForNodaTimeWithSystemTextJson();
 
                 config.ConfigureForStronglyTypedIdsInAssembly<AccountId>();
+                config.ConfigureForStronglyTypedIdsInAssembly<TenantId>();
+                config.MapType<Email>(() => new OpenApiSchema { Format = "email", Type = "string", Pattern = Email.EmailPattern });
+                config.MapType<UserName>(() => new OpenApiSchema { Type = "string" });
+                config.MapType<Password>(() => new OpenApiSchema { Type = "string" });
             });
 
             return services;

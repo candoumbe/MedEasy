@@ -19,9 +19,12 @@ using MedEasy.ValueObjects.Converters.SystemTextJson;
 [TypeConverter(typeof(EmailTypeConverter))]
 public record Email
 {
-
+    /// <summary>
+    /// Email pattern
+    /// </summary>
+    public const string EmailPattern = @"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?";
 #if !NET7_0_OR_GREATER
-    private static readonly Regex EmailRegex = new(@"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+    private static readonly Regex EmailRegex = new(EmailPattern,
                                                RegexOptions.IgnoreCase,
                                                TimeSpan.FromSeconds(1));
 #else

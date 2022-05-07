@@ -49,6 +49,7 @@
     using MedEasy.CQRS.Core.Handlers.Pipelines;
     using Optional;
     using MedEasy.DataStores.Core;
+    using MedEasy.Ids;
 
     /// <summary>
     /// Provide extension method used to configure services collection
@@ -367,6 +368,7 @@
                 });
 
                 config.ConfigureForStronglyTypedIdsInAssembly<DocumentId>();
+                config.ConfigureForStronglyTypedIdsInAssembly<TenantId>();
             });
 
             return services;

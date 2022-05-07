@@ -313,7 +313,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agenda.DataStores.Postgres"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.Wasm", "src\clients\web\MedEasy.Wasm\MedEasy.Wasm.csproj", "{DC9F5468-CC88-4FBA-8252-8E1672338115}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MedEasy.ValueObjects", "src\tools\MedEasy.ValueObjects\MedEasy.ValueObjects.csproj", "{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.ValueObjects", "src\tools\MedEasy.ValueObjects\MedEasy.ValueObjects.csproj", "{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedEasy.AspNetCore", "src\tools\MedEasy.AspNetCore\MedEasy.AspNetCore.csproj", "{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2151,6 +2153,22 @@ Global
 		{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08}.Release|x64.Build.0 = Release|Any CPU
 		{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08}.Release|x86.ActiveCfg = Release|Any CPU
 		{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08}.Release|x86.Build.0 = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|ARM.Build.0 = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|x64.Build.0 = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Debug|x86.Build.0 = Debug|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|ARM.ActiveCfg = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|ARM.Build.0 = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|x64.ActiveCfg = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|x64.Build.0 = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|x86.ActiveCfg = Release|Any CPU
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2292,6 +2310,7 @@ Global
 		{162FF86E-AF33-4401-B28E-D5C0C9339693} = {9FF4CD92-DD62-4089-8DAF-782EB1DB129F}
 		{DC9F5468-CC88-4FBA-8252-8E1672338115} = {1F7CABDA-FD26-4F49-A9B6-E89FBCFD14C1}
 		{FAA85D66-DE11-49D7-BED9-5ABA9BEB5A08} = {593CB32A-3ED4-435C-9AB7-47B7EBB5599D}
+		{01FDF6AE-1DFA-4AEA-9E93-BA52849A2148} = {593CB32A-3ED4-435C-9AB7-47B7EBB5599D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA6D3311-F0AA-41BF-9204-1EACF82AF1AF}

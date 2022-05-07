@@ -139,6 +139,11 @@
             optionalMeasureToDelete.MatchSome(measure => _bloodPressures.Remove(measure));
         }
 
+        /// <summary>
+        /// Defines the current instance <see cref="BirthDate"/>
+        /// </summary>
+        /// <param name="birthDate"></param>
+        /// <returns></returns>
         public Subject WasBornOn(LocalDate? birthDate)
         {
             BirthDate = birthDate;
