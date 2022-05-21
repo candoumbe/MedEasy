@@ -10,6 +10,7 @@
     using Identity.CQRS.Handlers.EFCore.Commands.Accounts;
     using Identity.CQRS.Queries.Accounts;
     using Identity.DataStores;
+    using Identity.DTO;
     using Identity.Ids;
     using Identity.Mapping;
     using Identity.Objects;
@@ -60,6 +61,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Claims;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
@@ -278,13 +280,6 @@
                     options.DefaultApiVersion = new(2, 0);
                 });
 
-            services.AddScoped(sp =>
-            {
-                IHttpContextAccessor contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                IApiVersioningFeature apiVersioningFeature = contextAccessor.HttpContext.Features.Get<IApiVersioningFeature>();
-                return apiVersioningFeature?.RequestedApiVersion;
-            });
-
             return services;
         }
 
@@ -309,6 +304,31 @@
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddHttpContextAccessor();
+
+            services.AddScoped<ConnectedAccountInfo>(sp =>
+            {
+                IHttpContextAccessor contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                ClaimsPrincipal claimsPrincipal = contextAccessor.HttpContext?.User;
+
+                return claimsPrincipal switch
+                {
+                    null => new DisconnectedAccountInfo(),
+                    _ => new ConnectedAccountInfo
+                    {
+                        Id = claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == CustomClaimTypes.AccountId)?.Value switch
+                        {
+                            null => Guid.Empty,
+                            string value => Guid.Parse(value)
+                        },
+                        Name = claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value
+                            ?? claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email)?.Value,
+                        Email = Email.From(claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email)?.Value),
+                        Username = UserName.From(claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Surname)?.Value),
+                        Claims = claimsPrincipal.Claims.Select(claim => new ClaimInfo { Value = claim.Value, Type = claim.Type})
+                    }
+                };
+            });
+
 
             services.AddSingleton<IClock>(SystemClock.Instance);
 
