@@ -102,7 +102,7 @@
         NewAppointmentModel newAppointment = new()
         {
             StartDate = Instant.FromDateTimeUtc(From).InUtc(),
-            EndDate = Instant.FromDateTimeUtc(To).InUtc()
+            EndDate = Instant.FromDateTimeUtc(To).InUtc(),
         };
         IApiResponse<Browsable<AppointmentModel>> result = await AgendaApi.Schedule(newAppointment).ConfigureAwait(false);
 

@@ -31,7 +31,7 @@
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">when <paramref name="input"/> is <c>null</c> or whitespace.</exception>
+        /// <exception cref="ArgumentNullException">when <paramref name="input"/> is <see langword="null"/> or whitespace.</exception>
         public static Password From(string input)
         {
             if (string.IsNullOrWhiteSpace(input))

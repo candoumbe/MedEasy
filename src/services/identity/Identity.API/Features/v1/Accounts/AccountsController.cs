@@ -55,6 +55,7 @@
         private readonly LinkGenerator _urlHelper;
         private readonly IOptionsSnapshot<IdentityApiOptions> _apiOptions;
         private readonly IMediator _mediator;
+        private readonly ConnectedAccountInfo _currentUser;
 
         /// <summary>
         /// Builds a new <see cref="AccountsController"/> instance.
@@ -62,12 +63,14 @@
         /// <param name="urlHelper">helper class to build urls</param>
         /// <param name="apiOptions"></param>
         /// <param name="mediator"></param>
+        /// <param name="currentUser"></param>
         /// 
-        public AccountsController(LinkGenerator urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator)
+        public AccountsController(LinkGenerator urlHelper, IOptionsSnapshot<IdentityApiOptions> apiOptions, IMediator mediator, ConnectedAccountInfo currentUser)
         {
             _urlHelper = urlHelper;
             _apiOptions = apiOptions;
             _mediator = mediator;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -352,6 +355,22 @@
                 last: _urlHelper.GetPathByName(RouteNames.DefaultSearchResourcesApi, new { page = searchResult.Count, search.PageSize, search.Name, search.Email, search.Sort, search.UserName, controller = EndpointName }),
                 total: searchResult.Total
             ));
+        }
+
+        /// <summary>
+        /// Gets the profile of the current user.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Informations on the current user</returns>
+        [HttpGet("[action]")]
+        [ProducesResponseType(typeof(Browsable<AccountInfo>), Status200OK)]
+        public async Task<AccountInfo> Me(CancellationToken cancellationToken)
+        {
+            Option<AccountInfo> option =  await _mediator.Send(new GetOneAccountInfoByUsernameQuery(_currentUser.Username), cancellationToken);
+
+            return option.Match(
+                some: account => account,
+                none: () => throw new NotSupportedException("Unexpected failure when getting the current user"));
         }
     }
 }

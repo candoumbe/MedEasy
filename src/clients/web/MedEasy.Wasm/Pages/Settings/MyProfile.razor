@@ -12,60 +12,75 @@
 
 <PageTitle>My Profile</PageTitle>
 
-<Form TextAlignment="TextAlignment.End">
-    <Heading TextAlignment="TextAlignment.Center">My profile</Heading>
+<Heading TextAlignment="TextAlignment.Center">My profile</Heading>
 
-    <Divider />
-    <Form>
+<Divider />
+
+<Validations Model="@profile">
+
+    <Validation>
         <Field Horizontal>
             <FieldLabel For="@nameof(UpdateAccountModel.Name)" ColumnSize="ColumnSize.Is2.OnDesktop">Name</FieldLabel>
             <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
-                <TextEdit @bind-Value="profile.Name"
+                <TextEdit @bind-Text="profile.Name"
                           ElementId="@nameof(UpdateAccountModel.Name)"
-                          Placeholder="@nameof(UpdateAccountModel.Name)"
+                          Placeholder="John Doe"
                           ReadOnly="IsReadonly">
+                    <Feedback>
+                        <ValidationNone />
+                        <ValidationError />
+                    </Feedback>
                 </TextEdit>
             </FieldBody>
         </Field>
-        <Field Horizontal>
-            <FieldLabel For="@nameof(UpdateAccountModel.Email)" ColumnSize="ColumnSize.Is2.OnDesktop">Email</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
-                <TextEdit @bind-Value="profile.Email"
-                          ElementId="@nameof(UpdateAccountModel.Email)"
-                          Placeholder="@nameof(UpdateAccountModel.Email)"
-                          ReadOnly="IsReadonly">
-                </TextEdit>
-            </FieldBody>
-        </Field>
-        <Field Horizontal>
-            <FieldLabel For="@nameof(UpdateAccountModel.PreferredTimezone)" ColumnSize="ColumnSize.Is2.OnDesktop">Prefered timezone</FieldLabel>
-            <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
-                <SelectList TItem="SelectableTimeZoneModel"
-                            TValue="string"
-                            TextField="(item) => item.Name"
-                            ValueField="(item) => item.Id"
-                            @bind-SelectedValue="profile.PreferredTimezone"
-                            Data="@TimeZones"
-                            ElementId="@nameof(UpdateAccountModel.PreferredTimezone)"
-                            Disabled="IsReadonly">
-                </SelectList>
-            </FieldBody>
-        </Field>
+    </Validation>
+    <Field Horizontal>
+        <FieldLabel For="@nameof(UpdateAccountModel.Email)" ColumnSize="ColumnSize.Is2.OnDesktop">Email</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
+            <TextEdit @bind-Text="profile.Email"
+                      ElementId="@nameof(UpdateAccountModel.Email)"
+                      Placeholder="john.doe@medeasy.com"
+                      ReadOnly="IsReadonly">
+            </TextEdit>
+        </FieldBody>
+    </Field>
+    <Field Horizontal>
+        <FieldLabel For="@nameof(UpdateAccountModel.PreferredTimezone)" ColumnSize="ColumnSize.Is2.OnDesktop">Preferred timezone</FieldLabel>
+        <FieldBody ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnTablet">
+            <BlazoredTypeahead TItem="SelectableTimeZoneModel"
+                               TValue="string"
+                               ConvertMethod="(val) => val.Id"
+                               @bind-Value="profile.PreferredTimezone"
+                               SearchMethod="(async (searchText) => await SearchTimeZones(searchText))"
+                               id="@nameof(UpdateAccountModel.PreferredTimezone)"
+                               Disabled="IsReadonly">
+                <SelectedTemplate>
+                    @context
+                </SelectedTemplate>
+                <ResultTemplate>
+                    @context
+                </ResultTemplate>
+                <NotFoundTemplate>
+                    <Text>No corresponding "@context" timezone found</Text>
+                </NotFoundTemplate>
+            </BlazoredTypeahead>
+        </FieldBody>
+    </Field>
 
-        <Div Display="CanEdit ? Display.Always: Display.None">
-            <Button PreventDefaultOnSubmit Color="Color.Secondary"
-                    Disabled="!IsValid || IsSubmitting">
-                <Icon Name="IconName.Save" /> Enregistrer
-            </Button>
-            <Button PreventDefaultOnSubmit Color="Color.Secondary"
-                    Clicked="() => Mode = FormMode.Read"
-                    Display="Mode == FormMode.Edit ? Display.Always: Display.None">
-                Annuler
-            </Button>
-        </Div>
+    <Div Display="CanEdit ? Display.Always: Display.None">
+        <Button PreventDefaultOnSubmit Color="Color.Secondary"
+                Disabled="!IsValid || IsSubmitting"
+                Loading="IsSubmitting">
+            <Icon Name="IconName.Save" /> Enregistrer
+        </Button>
+        <Button PreventDefaultOnSubmit Color="Color.Secondary"
+                Clicked="() => Mode = FormMode.Read"
+                Display="Mode == FormMode.Edit ? Display.Always: Display.None">
+            Annuler
+        </Button>
+    </Div>
+</Validations>
 
-    </Form>
-</Form>
 
 @code {
     private UpdateAccountModel profile = new();
@@ -83,7 +98,7 @@
     public bool IsReadonly => Mode == FormMode.Read || IsSubmitting;
 
     [Parameter]
-    public FormMode Mode { get; set; }
+    public FormMode Mode { get; set; } = FormMode.Edit;
 
     [Parameter]
     public bool CanEdit { get; set; }
@@ -93,15 +108,21 @@
         TimeZones = TimeZoneInfo.GetSystemTimeZones()
                                 .Select(tz => new SelectableTimeZoneModel(tz.Id, tz.DisplayName));
 
-        Logger?.LogInformation("Available timezones: {@TimeZones}", TimeZones);
+        profile.PreferredTimezone = TimeZones.First().Id;
+        Logger?.LogDebug("Available timezones: {@TimeZones}", TimeZones);
         base.OnInitialized();
+    }
+
+    private Task<IEnumerable<SelectableTimeZoneModel>> SearchTimeZones(string searchText)
+    {
+        return Task.FromResult(TimeZones.Where(tz => tz.Name.ToLower().Contains(searchText.ToLower())));
     }
 
     private async Task OnSubmit()
     {
         IsSubmitting = true;
         IEnumerable<PatchOperation> operations = new[]
-        {
+                                            {
             new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.Name), profile.Name),
             new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.Email), profile.Email),
             new PatchOperation(PatchOperationType.Replace, nameof(UpdateAccountModel.PreferredTimezone), profile.PreferredTimezone),

@@ -1,5 +1,7 @@
 ﻿namespace MedEasy.Wasm.Apis.Identity
 {
+    using System.ComponentModel.DataAnnotations;
+
     public record AccountModel : BaseAuditableModel<Guid>
     {
         public string Name { get; set; }
@@ -16,10 +18,14 @@
     {
         public Guid Id { get; set; }
 
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
+        
         public string PreferredTimezone { get; set; }
 
     }

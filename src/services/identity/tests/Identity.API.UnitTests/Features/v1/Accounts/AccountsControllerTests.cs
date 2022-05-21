@@ -47,6 +47,7 @@
     using Identity.Ids;
     using MedEasy.Ids;
     using MedEasy.ValueObjects;
+    using System.Security.Claims;
 
     /// <summary>
     /// Unit tests for <see cref="AccountsController"/>
@@ -63,6 +64,8 @@
         private readonly Mock<IMediator> _mediatorMock;
         private readonly Mock<LinkGenerator> _urlHelperMock;
         private readonly Mock<IOptionsSnapshot<IdentityApiOptions>> _apiOptionsMock;
+        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<ConnectedAccountInfo> _currentUserMock;
         private readonly AccountsController _sut;
         private const string BaseUrl = "http://host/api";
 
@@ -86,7 +89,9 @@
 
             _mediatorMock = new Mock<IMediator>(Strict);
 
-            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object);
+            _currentUserMock = new(Strict);
+
+            _sut = new AccountsController(urlHelper: _urlHelperMock.Object, apiOptions: _apiOptionsMock.Object, mediator: _mediatorMock.Object, _currentUserMock.Object);
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
@@ -712,6 +717,46 @@
             response.Links.Previous.Should().Match(pageExpectation.links.previousPageUrlExpectation);
             response.Links.Next.Should().Match(pageExpectation.links.nextPageUrlExpectation);
             response.Links.Last.Should().Match(pageExpectation.links.lastPageUrlExpectation);
+        }
+
+        [Theory]
+        [InlineData("j.doe", "john.doe@email.test", "John Doe")]
+        public async Task GetCurrentUser_should_return_the_currently_connected_user_informations(string userName, string email, string name)
+        {
+            // Arrange
+            Guid id = Guid.NewGuid();
+            ConnectedAccountInfo connectedAccountInfo = new()
+            {
+                Id = id,
+                Username = UserName.From(userName),
+                Email = Email.From(email),
+                Name = name,
+                Claims = new[]
+                {
+                    new ClaimInfo{ Type = ClaimTypes.Name, Value = userName },
+                    new ClaimInfo{ Type = ClaimTypes.Email, Value = email},
+                }
+            };
+
+            _currentUserMock.SetupGet(mock => mock.Username)
+                            .Returns(connectedAccountInfo.Username);
+
+            _mediatorMock.Setup(mock => mock.Send(It.IsAny<GetOneAccountInfoByUsernameQuery>(), It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(new AccountInfo { Email = Email.From(email), Name = name, Username = UserName.From(userName) }.Some());
+
+            // Arrange
+            AccountInfo actual = await _sut.Me(cancellationToken : default).ConfigureAwait(false);
+
+            // Assert
+            actual.Username.Should().Be(connectedAccountInfo.Username);
+            actual.Email.Should().Be(connectedAccountInfo.Email);
+
+            _currentUserMock.VerifyGet(mock => mock.Username, Times.Once);
+            _currentUserMock.VerifyNoOtherCalls();
+
+            _mediatorMock.Verify(mock => mock.Send(It.IsAny<GetOneAccountInfoByUsernameQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.Verify(mock => mock.Send(It.Is<GetOneAccountInfoByUsernameQuery>(q => q.Data == connectedAccountInfo.Username), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatorMock.VerifyNoOtherCalls();
         }
     }
 }
