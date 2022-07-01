@@ -17,7 +17,7 @@
     <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.2.0" />
     <PackageReference Include="Optional" Version="4.0.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.20.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.21.0" />
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.0" />
     <PackageReference Include="Blazorise.DataGrid" Version="1.0.5" />
   </ItemGroup>
