@@ -22,7 +22,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.0" />
+    <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.2" />
     <PackageReference Include="Microsoft.DependencyValidation.Analyzers" Version="0.11.0" Condition="'$(IsTestProject)' == 'false'">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
