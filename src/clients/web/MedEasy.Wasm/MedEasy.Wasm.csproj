@@ -15,7 +15,7 @@
     <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.2.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.21.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.2" />
     <PackageReference Include="Blazorise.DataGrid" Version="1.0.6" />
     <PackageReference Include="Blazored.TypeAhead" Version="4.7.0" />
