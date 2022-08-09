@@ -36,7 +36,7 @@ stages:
         displayName: 'Compile'
         dependsOn: [  ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -48,7 +48,7 @@ stages:
         displayName: 'UnitTests'
         dependsOn: [ Compile ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
