@@ -35,7 +35,7 @@ stages:
         displayName: 'Compile'
         dependsOn: [  ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -47,7 +47,7 @@ stages:
         displayName: 'CleanDatabaseFolder'
         dependsOn: [  ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -59,7 +59,7 @@ stages:
         displayName: 'UpdateDatabases'
         dependsOn: [ Compile, CleanDatabaseFolder ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -75,7 +75,7 @@ stages:
         displayName: 'IntegrationTests'
         dependsOn: [ Compile, UpdateDatabases ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -95,7 +95,7 @@ stages:
         displayName: 'UnitTests'
         dependsOn: [ Compile ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -115,7 +115,7 @@ stages:
         displayName: 'Tests'
         dependsOn: [ UnitTests, IntegrationTests ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
@@ -127,7 +127,7 @@ stages:
         displayName: 'Pack'
         dependsOn: [ Tests, Compile ]
         steps:
-          - task: Cache@2
+          - task: Cache@2.198.0
             inputs:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
