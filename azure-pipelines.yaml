@@ -81,7 +81,7 @@ steps:
 - script: reportgenerator -reports:$(Agent.TempDirectory)\**\*.cobertura.xml -targetdir:$(Build.SourcesDirectory)\coverlet\reports -reporttypes:"Badges;Cobertura"
   displayName: Create reports
   
-- task: PublishCodeCoverageResults@1
+- task: PublishCodeCoverageResults@1.200.0
   displayName: 'Publish code coverage'
   inputs:
     codeCoverageTool: Cobertura
