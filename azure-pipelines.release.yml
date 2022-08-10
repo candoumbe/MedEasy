@@ -40,7 +40,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd Restore Compile --skip'
       - job: CleanDatabaseFolder
@@ -52,7 +52,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd CleanDatabaseFolder --skip'
       - job: UpdateDatabases
@@ -64,7 +64,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd UpdateDatabases --skip'
           - task: PublishBuildArtifacts@1
@@ -80,7 +80,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd IntegrationTests --skip'
           - task: PublishBuildArtifacts@1
@@ -100,7 +100,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd UnitTests --skip'
           - task: PublishBuildArtifacts@1
@@ -120,7 +120,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd Tests --skip'
       - job: Pack
@@ -132,7 +132,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2
+          - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd Pack --skip'
           - task: PublishBuildArtifacts@1
