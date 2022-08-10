@@ -44,7 +44,7 @@ pool:
 #Your build pipeline references a secret variable named ‘github.apiKey’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it secret. See https://go.microsoft.com/fwlink/?linkid=865972
 
 steps:
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@2.208.1
   displayName: 'Restore packages'
   inputs:
     command: restore
@@ -53,13 +53,13 @@ steps:
     nugetConfigPath: Nuget.config
     verbosityRestore: Normal
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@2.208.1
   displayName: 'Build projects'
   inputs:
     projects: '$(Parameters.projects)'
     arguments: '--no-restore -c $(configuration)'
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@2.208.1
   displayName: 'Run tests and collect code coverage'
   inputs:
     command: test
@@ -71,7 +71,7 @@ steps:
       /p:MergeWith="$(Agent.TempDirectory)\coverage.json"
       /p:CoverletOutputFormat=cobertura
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@2.208.1
   inputs:
     command: custom
     custom: tool
