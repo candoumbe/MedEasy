@@ -1,6 +1,7 @@
 ﻿namespace Identity.API.Features.v1.Accounts
 {
     using DataFilters;
+    using DataFilters.AspNetCore;
 
     using Identity.API.Routing;
     using Identity.CQRS.Commands.Accounts;
@@ -31,6 +32,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -308,28 +310,21 @@
         /// <returns></returns>
         [HttpGet("search")]
         [HttpHead("search")]
-        public async Task<IActionResult> Search([BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
+        public async Task<IActionResult> Search([FromServices] IDataFilterService dataFilterService, [BindRequired, FromQuery] SearchAccountInfo search, CancellationToken ct = default)
         {
             search.PageSize = Math.Min(search.PageSize, _apiOptions.Value.MaxPageSize);
-            IList<IFilter> filters = new List<IFilter>();
-
-            if (!string.IsNullOrWhiteSpace(search.Name))
+            
+            IDictionary<string, string> searchParams = new Dictionary<string, string>()
             {
-                filters.Add($"{nameof(AccountInfo.Name)}={search.Name}".ToFilter<AccountInfo>());
-            }
-            if (!string.IsNullOrWhiteSpace(search.Email))
-            {
-                filters.Add($"{nameof(AccountInfo.Email)}={search.Email}".ToFilter<AccountInfo>());
-            }
+                [nameof(AccountInfo.Name)] =  !string.IsNullOrWhiteSpace(search.Name) ? $"{nameof(AccountInfo.Name)}={search.Name}" : null,
+                [nameof(AccountInfo.Email)] =  !string.IsNullOrWhiteSpace(search.Email) ? $"{nameof(AccountInfo.Email)}={search.Email}" : null,
+            };
 
             SearchQueryInfo<SearchAccountInfoResult> searchQuery = new()
             {
                 Page = search.Page,
                 PageSize = search.PageSize,
-                Filter = filters.Count > 1
-                    ? new MultiFilter { Logic = FilterLogic.And, Filters = filters }
-                    : filters.Single(),
-
+                Filter = dataFilterService.Compute<AccountInfo>(string.Join('&', searchParams.Values.Where(val => val is not null))),
                 Sort = search.Sort?.ToSort<SearchAccountInfoResult>() ?? new Sort<SearchAccountInfoResult>(nameof(SearchAccountInfoResult.UpdatedDate), SortDirection.Descending)
             };
 

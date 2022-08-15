@@ -79,7 +79,6 @@
 
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .AddFluentValidation(options => options.LocalizationEnabled = true)
             .AddJsonOptions(options =>
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
@@ -90,6 +89,8 @@
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
+            services.AddFluentValidationAutoValidation(options => options.DisableDataAnnotationsValidation = false)
+                    .AddFluentValidationClientsideAdapters();
 
             services.AddCors(options =>
             {

@@ -181,6 +181,7 @@ namespace MedEasy.ContinuousIntegration
         public readonly string Name;
 
         public Target Clean => _ => _
+            .Before(Restore)
             .Executes(() =>
             {
                 SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
@@ -387,7 +388,7 @@ namespace MedEasy.ContinuousIntegration
                 }
                 else
                 {
-                    Info($"File '{ConnectionsFile}' not found");
+                    Warn($"File '{ConnectionsFile}' not found");
                 }
 
                 connections.ForEach((connection) => EnvironmentInfo.SetVariable($"CONNECTIONSTRINGS__{connection.service}", connection.connectionString));

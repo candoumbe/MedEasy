@@ -48,6 +48,8 @@
     using MedEasy.Ids;
     using MedEasy.ValueObjects;
     using System.Security.Claims;
+    using DataFilters.AspNetCore;
+    using DataFilters;
 
     /// <summary>
     /// Unit tests for <see cref="AccountsController"/>
@@ -679,8 +681,17 @@
                         .Search<Account, SearchAccountInfoResult>(query, ct);
                 });
 
+            IDataFilterService dataFilterService = new DefaultDataFilterService(new()
+            {
+                MaxCacheSize = 10,
+                FilterOptions = new()
+                {
+                    Logic = FilterLogic.And,
+                }
+            });
+
             // Act
-            IActionResult actionResult = await _sut.Search(searchQuery)
+            IActionResult actionResult = await _sut.Search(dataFilterService, searchQuery)
                 .ConfigureAwait(false);
 
             // Assert
@@ -745,7 +756,7 @@
                          .ReturnsAsync(new AccountInfo { Email = Email.From(email), Name = name, Username = UserName.From(userName) }.Some());
 
             // Arrange
-            AccountInfo actual = await _sut.Me(cancellationToken : default).ConfigureAwait(false);
+            AccountInfo actual = await _sut.Me(cancellationToken: default).ConfigureAwait(false);
 
             // Assert
             actual.Username.Should().Be(connectedAccountInfo.Username);

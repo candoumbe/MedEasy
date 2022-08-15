@@ -60,8 +60,6 @@
 
     using Optional;
 
-    using Swashbuckle.AspNetCore.Filters;
-
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -115,15 +113,11 @@
                 jsonSerializerOptions.WriteIndented = true;
                 jsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-            })
-
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-
-                options.RegisterValidatorsFromAssemblyContaining<LoginInfoValidator>();
-                options.DisableDataAnnotationsValidation = false;
             });
+
+            services.AddFluentValidationAutoValidation(options => options.DisableDataAnnotationsValidation = false)
+                    .AddFluentValidationClientsideAdapters()
+                    .AddValidatorsFromAssemblyContaining<LoginInfoValidator>();
 
             services.AddCors(options =>
             {

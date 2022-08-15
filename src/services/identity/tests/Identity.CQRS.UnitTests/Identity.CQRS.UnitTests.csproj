@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Identity.CQRS\Identity.CQRS.csproj" />
     <ProjectReference Include="..\..\Identity.Mapping\Identity.Mapping.csproj" />
   </ItemGroup>
