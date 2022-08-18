@@ -218,7 +218,7 @@ namespace MedEasy.ContinuousIntegration
               {
                   _ciSolution = ProjectModelTasks.CreateSolution($"{ Solution.Directory / Solution.Name}.CI.sln", Solution);
                   IEnumerable<Project> projectsToRemove = _ciSolution.AllProjects
-                                                                    .Where(proj => !proj.Is(ProjectType.CSharpProject));
+                                                                     .Where(proj => !(proj.Is(ProjectType.CSharpProject) && ServicesDirectory.Contains(proj.Path)));
 
                   projectsToRemove.ForEach(proj => _ciSolution.RemoveProject(proj));
 
