@@ -29,11 +29,4 @@
     <ProjectReference Include="..\Agenda.Models\Agenda.Models.csproj" />
     <ProjectReference Include="..\Agenda.Validators\Agenda.Validators.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="patients-api.layerdiagram.suppressions">
-      <DependentUpon>patients-api.layerdiagram</DependentUpon>
-    </None>
-  </ItemGroup>
-
 </Project>

@@ -2,6 +2,7 @@
 {
     using AutoMapper;
 
+    using FluentValidation;
     using FluentValidation.AspNetCore;
 
     using MassTransit;
@@ -87,15 +88,6 @@
 
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .AddFluentValidation(options =>
-            {
-                options.LocalizationEnabled = true;
-
-                options
-                    .RegisterValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
-                    .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                    ;
-            })
             .AddJsonOptions(options =>
             {
                 JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
@@ -106,6 +98,13 @@
                 jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
             })
             .AddXmlSerializerFormatters();
+
+            services.AddFluentValidationAutoValidation(options => options.DisableDataAnnotationsValidation = false)
+                    .AddFluentValidationClientsideAdapters();
+            services.AddValidatorsFromAssemblyContaining<PatchBloodPressureInfoValidator>()
+                    .AddValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                    ;
+
 
             services.AddCors(options =>
             {

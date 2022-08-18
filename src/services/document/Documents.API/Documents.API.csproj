@@ -12,8 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.*" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

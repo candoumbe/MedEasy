@@ -8,6 +8,7 @@
 
     using AutoMapper;
 
+    using FluentValidation;
     using FluentValidation.AspNetCore;
 
     using MedEasy.Abstractions.ValueConverters;
@@ -91,15 +92,6 @@
 
                     options.Filters.Add(new AuthorizeFilter(policy));
                 })
-                .AddFluentValidation(options =>
-                {
-                    options.DisableDataAnnotationsValidation = false;
-                    options.LocalizationEnabled = true;
-                    options
-                        .RegisterValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
-                        .RegisterValidatorsFromAssemblyContaining<NewAppointmentModelValidator>()
-                        ;
-                })
                 .AddJsonOptions(options =>
                 {
                     JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
@@ -108,6 +100,11 @@
                     jsonSerializerOptions.WriteIndented = true;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 });
+
+                services.AddFluentValidationAutoValidation(options => options.DisableDataAnnotationsValidation = false)
+                        .AddFluentValidationClientsideAdapters()
+                        .AddValidatorsFromAssemblyContaining<PaginationConfigurationValidator>()
+                        .AddValidatorsFromAssemblyContaining<NewAppointmentModelValidator>();
 
             services.AddRouting(opts =>
             {

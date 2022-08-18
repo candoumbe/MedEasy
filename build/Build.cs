@@ -181,6 +181,7 @@ namespace MedEasy.ContinuousIntegration
         public readonly string Name;
 
         public Target Clean => _ => _
+            .Before(Restore)
             .Executes(() =>
             {
                 SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
@@ -217,7 +218,7 @@ namespace MedEasy.ContinuousIntegration
               {
                   _ciSolution = ProjectModelTasks.CreateSolution($"{ Solution.Directory / Solution.Name}.CI.sln", Solution);
                   IEnumerable<Project> projectsToRemove = _ciSolution.AllProjects
-                                                                    .Where(proj => !proj.Is(ProjectType.CSharpProject));
+                                                                     .Where(proj => !(proj.Is(ProjectType.CSharpProject) && ServicesDirectory.Contains(proj.Path)));
 
                   projectsToRemove.ForEach(proj => _ciSolution.RemoveProject(proj));
 
@@ -387,7 +388,7 @@ namespace MedEasy.ContinuousIntegration
                 }
                 else
                 {
-                    Info($"File '{ConnectionsFile}' not found");
+                    Warn($"File '{ConnectionsFile}' not found");
                 }
 
                 connections.ForEach((connection) => EnvironmentInfo.SetVariable($"CONNECTIONSTRINGS__{connection.service}", connection.connectionString));

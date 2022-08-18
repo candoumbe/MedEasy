@@ -90,11 +90,6 @@
 
                     config.Filters.Add(new AuthorizeFilter(policy));
                 })
-                .AddFluentValidation(options =>
-                {
-                    options.LocalizationEnabled = true;
-                    options.RegisterValidatorsFromAssemblyContaining<CreatePatientInfoValidator>();
-                })
                 .AddJsonOptions(options =>
                 {
                     JsonSerializerOptions jsonSerializerOptions = options.JsonSerializerOptions;
@@ -103,6 +98,9 @@
                     jsonSerializerOptions.WriteIndented = true;
                     jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                 });
+            services.AddFluentValidationAutoValidation(options => options.DisableDataAnnotationsValidation = false)
+                    .AddFluentValidationClientsideAdapters()
+                    .AddValidatorsFromAssemblyContaining<CreatePatientInfoValidator>();
 
             services.AddCors(options =>
             {
