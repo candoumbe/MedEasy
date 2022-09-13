@@ -39,9 +39,9 @@
   </ItemGroup>
 
   <ItemGroup  Condition="'$(IsIntegrationTestProject)' == 'true'">
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.8"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.9"/>
   </ItemGroup>
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
