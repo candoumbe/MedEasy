@@ -17,7 +17,7 @@
     <PackageReference Include="Blazored.SessionStorage" Version="2.2.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.23.1" />
     <PackageReference Include="Candoumbe.MiscUtilities" Version="0.8.2" />
-    <PackageReference Include="Blazorise.DataGrid" Version="1.0.6" />
+    <PackageReference Include="Blazorise.DataGrid" Version="1.1.0" />
     <PackageReference Include="Blazored.TypeAhead" Version="4.7.0" />
     <PackageReference Include="Blazorise.Components" Version="1.1.0" />
     <PackageReference Include="Hez2010.BlazorRouter" Version="2.1.2" />
