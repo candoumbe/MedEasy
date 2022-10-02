@@ -56,11 +56,11 @@ stages:
           - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd UnitTests --skip'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: unit-tests
               pathtoPublish: 'output/tests-results/unit-tests'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: unit-tests
               pathtoPublish: 'output/coverage-report/unit-tests'

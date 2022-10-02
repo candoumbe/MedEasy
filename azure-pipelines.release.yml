@@ -67,7 +67,7 @@ stages:
           - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd UpdateDatabases --skip'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: databases
               pathtoPublish: 'output/databases'
@@ -83,11 +83,11 @@ stages:
           - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd IntegrationTests --skip'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: integration-tests
               pathtoPublish: 'output/tests-results/integration-tests'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: integration-tests
               pathtoPublish: 'output/coverage-report/integration-tests'
@@ -103,11 +103,11 @@ stages:
           - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd UnitTests --skip'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: unit-tests
               pathtoPublish: 'output/tests-results/unit-tests'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: unit-tests
               pathtoPublish: 'output/coverage-report/unit-tests'
@@ -135,7 +135,7 @@ stages:
           - task: CmdLine@2.201.1
             inputs:
               script: './build.cmd Pack --skip'
-          - task: PublishBuildArtifacts@1.200.0
+          - task: PublishBuildArtifacts@1.211.0
             inputs:
               artifactName: artifacts
               pathtoPublish: 'output/artifacts'
