@@ -41,7 +41,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2.201.1
+          - task: CmdLine@2.212.0
             inputs:
               script: './build.cmd Restore Compile --skip'
       - job: UnitTests
@@ -53,7 +53,7 @@ stages:
               key: $(Agent.OS) | **/global.json, **/*.csproj
               restoreKeys: $(Agent.OS)
               path: ~/.nuget/packages
-          - task: CmdLine@2.201.1
+          - task: CmdLine@2.212.0
             inputs:
               script: './build.cmd UnitTests --skip'
           - task: PublishBuildArtifacts@1.211.0
