@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EventStore.Client" Version="5.0.1" />
+    <PackageReference Include="EventStore.Client" Version="21.2.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
