@@ -27,13 +27,13 @@
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.0.0" />
     <PackageReference Include="CorrelationId" Version="3.0.1"/>
 
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="7.0.0" />
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="1.0.0" />
     <PackageReference Include="MicroElements.Swashbuckle.NodaTime" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="DataFilters.AspNetCore" Version="0.4.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="6.0.0" />
     <!--Mass Transit-->
     <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
