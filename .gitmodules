@@ -1,0 +1,6 @@
+[submodule "agenda"]
+	path = agenda
+	url = https://github.com/candoumbe/agenda.git
+[submodule "document"]
+	path = document
+	url = https://github.com/candoumbe/document.git
