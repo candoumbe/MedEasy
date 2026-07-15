@@ -3,7 +3,7 @@
 {
 	"name": "MedEasy",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:4-24-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:4-24-bookworm",
 	"features": {
 		"ghcr.io/microsoft/aspire-devcontainer-feature/aspire:2": {},
 		"ghcr.io/devcontainers-extra/features/gh-cli:1": {},
@@ -15,8 +15,11 @@
 			"dockerDashComposeVersion": "v2"
 		},
 		"ghcr.io/nils-geistmann/devcontainers-features/zsh": {
-			"plugins": "git npm gh docker ng"
-		}
+			"plugins": "git npm gh docker ng dotnet"
+		},
+    "ghcr.io/devcontainers/features/dotnet": {
+      "version": "10.0.301"
+    }
 	},
 	"onCreateCommand": "bash ./.devcontainer/scripts/on-create.sh",
 	"postCreateCommand": "bash ./.devcontainer/scripts/post-create.sh",
@@ -32,7 +35,8 @@
 				"EditorConfig.EditorConfig",
 				"mhutchie.git-graph",
 				"zaaack.markdown-editor",
-				"adrianwilczynski.user-secrets"
+				"adrianwilczynski.user-secrets",
+				"github.vscode-github-actions"
 			],
 			"settings": {
 				"chat.tools.compressOutput.enabled": true,
