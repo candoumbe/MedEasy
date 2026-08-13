@@ -18,7 +18,8 @@
 			"plugins": "git npm gh docker ng dotnet"
 		},
     "ghcr.io/devcontainers/features/dotnet": {
-      "version": "10.0.301"
+      "version": "10.0.302",
+      "additionalVersions": "10.0.301"
     }
 	},
 	"onCreateCommand": "bash ./.devcontainer/scripts/on-create.sh",
