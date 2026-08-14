@@ -68,6 +68,8 @@ const agendaApi = await builder
   .withEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Trace")
+  .withEnvironment("ASPNETCORE_HTTP_PORTS", "8080")
+  .withEnvironment("ASPNETCORE_URLS", "http://+:8080")
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8080 })
   .withOtlpExporter()
   .withExternalHttpEndpoints();
