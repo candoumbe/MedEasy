@@ -8,3 +8,7 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+📌 Team update (2026-08-16T00:00:00Z): agenda-api startup abort is caused by Npgsql's default `GssEncryptionMode=Prefer` on the Paramore.Brighter outbox path (`dlopen` of missing `libgssapi_krb5.so.2`), not by the base image. Migrator is safe via `configureSettings` (`Program.cs` L18) + self-contained publish (`Build.cs` L372); the API only covers the EF data source (`Program.cs` L46), leaving `ServiceCollectionExtensions.cs` L143 exposed. Fix is a shared `Agenda.ServiceDefaults` normalization helper applied to API/EF, API/Brighter and Migrator. — decided by Squad (Coordinator), from Morpheus and Trinity
+
+📌 Team update (2026-08-16T00:00:00Z): the GSS helper shipped as `WithGssDisabled()` in `Agenda.DataStores.Postgres/NpgsqlConnectionStringExtensions.cs`, **not** in `Agenda.ServiceDefaults` — that project is storage-agnostic, still `net9.0` while consumers are `net10.0`, and would force Npgsql on every future service. `Agenda.DataStores.Postgres` is already referenced by API and Migrator and already pulled Npgsql transitively via `Paramore.Brighter.Outbox.PostgreSql`, so no new dependency surface. Applied at the three entry points, redundant `ConfigureDataSource` blocks removed, `Npgsql` pinned to `10.0.3` in `Directory.Packages.props`. API + Migrator build clean. Remaining: image rebuild and tag bump in `apphost.mts`. — decided by Trinity

@@ -7,15 +7,31 @@
 **What:** All documents related to Squad's operation that are stored in the repository must be written in English.
 **Why:** User directive to keep Squad's repository-based operational documentation consistent and accessible to the team.
 
-### 2026-08-13T19:31:39+0000: Investigation startup API/DB - dual root cause likely
-**By:** Scribe (from Trinity, Morpheus, Fact Checker)
-**What:** The leading hypothesis identifies a dual root cause: 1) an image/runtime/dependency mismatch between the build and containerized execution; 2) a risk that environment interpolation/resolution on the apphost side could alter the values expected at runtime.
-**Why:** The combined backend, platform, and fact-check analyses converge on behavioral differences between local and containerized execution, with a specific signal involving environment-variable resolution and the runtime publishing pipeline.
+### 2026-08-16T00:00:00Z: agenda-api startup failure — root cause is GssEncryptionMode.Prefer on the Brighter path (consolidated)
+**By:** Trinity, Morpheus, Fact Checker, Scribe
+**What:** Supersedes the 2026-08-13 dual-root-cause hypothesis (image/runtime mismatch plus apphost environment interpolation). The confirmed cause is narrower: Paramore.Brighter's Postgres outbox (API only) opens an `NpgsqlConnection` on the raw connection string; the default `GssEncryptionMode=Prefer` triggers `dlopen` of `libgssapi_krb5.so.2`, which is absent from the image, producing a native `abort()`. The "Azure Linux base image" angle is refuted — both the API and worker images are Ubuntu 24.04 and neither ships the library. The Migrator survives because it normalizes the connection string via `configureSettings` (`Program.cs` L18) and is published self-contained (`Build.cs` L372); the API only normalizes the EF data source (`Program.cs` L46), leaving the Brighter path (`ServiceCollectionExtensions.cs` L143) uncovered.
+**Why:** The original hypothesis correctly pointed at a build-vs-container behavioral difference and at connection-string handling, but attributed it to the base image. Morpheus validated the actual mechanism empirically from container logs and an image/environment diff; Trinity confirmed there is no Kerberos or Negotiate authentication anywhere in the code, so GSSAPI is pulled in purely by the Npgsql default.
 
-### 2026-08-13T19:31:39+0000: Rollout sequencing for fix - publish/runtime first
-**By:** Scribe (from Trinity, Morpheus, Fact Checker)
-**What:** Sequence the remediation in two steps: 1) first secure the container publish/runtime settings; 2) then normalize the connection string (and its parsing) consistently across all data consumers.
-**Why:** This sequence reduces the risk of regression by isolating the execution layer first, then harmonizing the connection configuration across all dependent components.
+### 2026-08-16T00:00:00Z: Remediation — normalize ConnectionStrings:postgres via a shared helper in Agenda.DataStores.Postgres (consolidated)
+**By:** Trinity, Morpheus, Fact Checker, Scribe
+**What:** Replaces the 2026-08-13 two-step sequencing (publish/runtime settings first, connection string second). Now a single step: a shared helper normalizes `ConnectionStrings:postgres` by forcing `GSS Encryption Mode=disable`, applied at all three entry points — API/EF (`Agenda.API/Program.cs`, via `configureSettings`), API/Brighter (`Agenda.API/ServiceCollectionExtensions.cs`, `AddCustomBrighter` — the blocking call site), and Migrator (`Agenda.Migrator/Program.cs`, replacing the string concatenation). The helper landed in `Agenda.DataStores.Postgres` (`NpgsqlConnectionStringExtensions.cs`, `WithGssDisabled()`), **not** in `Agenda.ServiceDefaults` as originally sketched; `Npgsql` is now an explicit `PackageReference` there, pinned centrally at `10.0.3` in `Directory.Packages.props`. The now-redundant `ConfigureDataSource` blocks were removed from both API and Migrator. Installing krb5 in the container image was considered and rejected. Deployment constraint: `apphost.mts` pins pre-built images (tag `0.2-scalar-fails-to-start-in-azurelinux-image.fe0fa8d`), so a rebuild and tag bump are mandatory — a code change alone will not reach the running containers.
+**Why:** The earlier sequencing existed to de-risk an unknown runtime layer; with the cause now pinned to a single Npgsql default, isolating the execution layer first is unnecessary. Normalizing at one shared point removes the whole class of failure instead of patching one call site and keeps the three consumers consistent. Adding krb5 to the image would grow it and mask the real issue, since the application never uses Kerberos authentication. On placement: `Agenda.ServiceDefaults` is the Aspire shared project — deliberately storage-agnostic and still targeting `net9.0` while its consumers target `net10.0` — so adding a PostgreSQL driver there would force every future service, Postgres-backed or not, to carry Npgsql. `Agenda.DataStores.Postgres` is already referenced by both `Agenda.API` and `Agenda.Migrator` and already pulled Npgsql transitively via `Paramore.Brighter.Outbox.PostgreSql`, so the helper adds no new dependency surface. Removing `ConfigureDataSource` keeps a single source of truth — the normalized connection string, which is what Aspire uses to build the `NpgsqlDataSource`; keeping both would apply the same setting twice at two different layers.
+
+### 2026-08-16T00:00:00Z: Side bugs logged for separate follow-up
+**By:** Squad (Coordinator), from Morpheus and Trinity
+**What:** Three unrelated defects surfaced during the investigation and are tracked separately, not as part of the GSSAPI fix:
+1. `apphost.mts` L63 — `AGENDA_AUTH_AUTHORITY` is serialized as `"[object Object]"`.
+2. `Agenda.API` `appsettings.json` — key `ApiOptions:Messaging` while the binder expects `ApiOptions:MessagingOptions`.
+3. `TimedOutboxSweeper` throws on the timer thread; the exception is never observed.
+**Why:** Keeping the GSSAPI fix scoped makes it reviewable and independently verifiable; the side bugs have their own risk profiles and test surfaces.
+
+### 2026-07-14T01:20:55+0000: User directive
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:**
+- All commits performed by Squad agents must follow the Conventional Commits specification.
+- All commit titles and commit descriptions must be written in English.
+- All developer-facing documentation must be written in English because the repository is public.
+**Why:** Team operating rule provided by the user.
 
 ## Governance
 

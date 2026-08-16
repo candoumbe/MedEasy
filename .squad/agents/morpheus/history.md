@@ -8,3 +8,7 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+📌 Team update (2026-08-16T00:00:00Z): agenda-api startup abort is caused by Npgsql's default `GssEncryptionMode=Prefer` on the Paramore.Brighter outbox path (`dlopen` of missing `libgssapi_krb5.so.2`), not by the base image — both API and worker images are Ubuntu 24.04. Fix is a shared `Agenda.ServiceDefaults` helper forcing `GSS Encryption Mode=disable` at all three entry points; krb5 in the image was rejected. `apphost.mts` pins pre-built image tags, so a rebuild and tag bump are mandatory. — decided by Squad (Coordinator), from Morpheus and Trinity
+
+📌 Team update (2026-08-16T00:00:00Z): Trinity landed the fix — `WithGssDisabled()` in `Agenda.DataStores.Postgres` (not `Agenda.ServiceDefaults`), applied to `AddCustomBrighter`, API `Program.cs` and Migrator `Program.cs`; `ConfigureDataSource` blocks removed; `Npgsql` pinned to `10.0.3`. API + Migrator build clean. The remaining work is operational and on your side: rebuild the images and bump the pinned tag in `apphost.mts`, then verify `agenda-api` actually starts. — decided by Trinity
