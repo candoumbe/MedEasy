@@ -22,6 +22,10 @@
       "additionalVersions": "10.0.301"
     }
 	},
+  "containerEnv": {
+    "TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED": "false"
+  },
+  
 	"onCreateCommand": "bash ./.devcontainer/scripts/on-create.sh",
 	"postCreateCommand": "bash ./.devcontainer/scripts/post-create.sh",
 	"postStartCommand": "bash ./.devcontainer/scripts/post-start.sh",
