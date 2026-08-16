@@ -24,7 +24,7 @@ const postgres = await builder.addPostgres("postgres");
 
 const messaging = await builder.addRabbitMQ("messaging");
 
-const agendaImageTag = "0.2-scalar-fails-to-start-in-azurelinux-image.4e02b27";
+const agendaImageTag = "0.2-scalar-fails-to-start-in-azurelinux-image.b2cb2ae";
 
 const images = {
   agenda: {
@@ -67,7 +67,7 @@ const agendaApi = await builder
   )
   .withEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
-  .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Trace")
+  .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Verbose")
   .withEnvironment("ASPNETCORE_HTTP_PORTS", "8080")
   .withEnvironment("ASPNETCORE_URLS", "http://+:8080")
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8080 })
