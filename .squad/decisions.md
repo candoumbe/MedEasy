@@ -33,6 +33,25 @@
 - All developer-facing documentation must be written in English because the repository is public.
 **Why:** Team operating rule provided by the user.
 
+### 2026-08-16T21:28:55+0000: Document build migrated from Nuke to Fallout
+**By:** Morpheus (requested by Cyrille NDOUMBE)
+**What:** Ported the active build surface in `document` to Fallout on `feature/migrate-nuke-to-fallout`: wrappers, pipeline project and API, central build dependencies, dotnet tools, generated `.fallout` configuration, and GitHub Actions cache/configuration references.
+**Why:** Align `document` with the completed migration in `agenda` while preserving document-specific migration targets and the existing `NUKE_ENTERPRISE_TOKEN` feed option. Agenda-only frontend, container-image, and GHCR publishing behavior was not copied because the corresponding projects are absent from `document`.
+**Validation:** `./build.sh --help`; `./build.sh Compile --skip Format`; `dotnet build build/Documents.Pipelines.csproj --no-restore` all succeeded. Remaining Nuke references are intentionally limited to the historical `NUKE_ENTERPRISE_TOKEN` and `nuke-enterprise` feed identifiers.
+
+### 2026-08-16T21:28:55+0000: Port Agenda Scalar and Serilog fixes to Documents
+**By:** Trinity (requested by Cyrille NDOUMBE)
+**What:** Ported the Agenda API fixes to `document`: configure Serilog from `builder.Configuration` and registered services, add the Scalar trailing-slash asset redirect, and cover Scalar, OpenAPI JSON, and the absence of Swagger UI with integration tests. `Scalar.AspNetCore` was already at 2.16.20 in Documents, so no dependency change was needed.
+**Why:** Keep Documents API behavior aligned with the verified Agenda implementation while preserving the existing user migration changes in the working tree.
+
+### 2026-08-25T00:00:00Z: User directive — atomic commits with mandatory description
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Reinforces the 2026-07-14 Conventional Commits directive. Whenever asked to commit/save current changes, Squad agents must:
+- Split changes into atomic commits (one logical change per commit).
+- Follow the Conventional Commits format for every commit title.
+- Always include a short body/description explaining what changed in each commit.
+**Why:** Team operating rule provided by the user to keep commit history clean, reviewable, and self-explanatory.
+
 ## Governance
 
 - All meaningful changes require team consensus
