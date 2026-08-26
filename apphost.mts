@@ -62,7 +62,7 @@ const images = {
   },
 };
 
-const agendaDb = await builder.addPostgres("agendaDb");
+const agendaDb = await builder.addPostgres("agenda-db");
 
 const agendaMigrator = await builder
   .addContainer(images.agenda.worker.name, images.agenda.worker.registry)
@@ -102,14 +102,13 @@ const agenda = await builder
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withBindMount("./agenda/src/Agenda.Frontend/nginx.conf", "/etc/nginx/nginx.conf", { isReadOnly: true });
 
-const documentsDb = await builder.addPostgres("documentsDb");
+const documentsDb = await builder.addPostgres("documents-db");
 const documentsMigrator = await builder
   .addContainer(images.documents.worker.name, images.documents.worker.registry)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
   .withIconName("DatabaseLightningRegular");
 
-const documentsStorage = await builder.addMinioContainer("documents-storage", { port: 9000 })
-  
+const documentsStorage = await builder.addMinioContainer("documents-storage")
 // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
   //.withHttpEndpoint({ env: "PORT", targetPort: 9001 })
   //.withExternalHttpEndpoints()
