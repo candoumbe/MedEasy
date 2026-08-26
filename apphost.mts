@@ -23,7 +23,7 @@ const keycloakHttpEndpoint = keycloak.getEndpoint("http");
 const messaging = await builder.addRabbitMQ("messaging");
 
 const agendaImageTag = "0.3-alpha";
-const documentsImageTag = "0.1.0-regenerate-workflows.257aed9";
+const documentsImageTag = "0.1-move-from-fastendpoints-swagger-to-fastendpoints-openapi.b9b21d5";
 
 const images = {
   agenda: {
@@ -57,7 +57,7 @@ const images = {
 
     storage: {
       name: "documents-storage",
-      registry: `ghcr.io/candoumbe/documents.storage:${documentsImageTag}`,
+      registry: `docker.io/minio/minio:RELEASE.2025-09-07T16-13-09Z`,
     },
   },
 };
@@ -110,26 +110,28 @@ const documentsMigrator = await builder
 
 const documentsStorage = await builder.addMinioContainer("documents-storage")
 // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
-  //.withHttpEndpoint({ env: "PORT", targetPort: 9001 })
-  //.withExternalHttpEndpoints()
+  .withHttpEndpoint({ env: "PORT", port: 9001 })
+  .withExternalHttpEndpoints()
 
 const documentsApi = await builder
   .addContainer(images.documents.api.name, images.documents.api.registry)
   .withReference(documentsStorage, {connectionName: "minio"}).waitFor(documentsStorage)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
   .withReference(messaging).waitFor(messaging)
-  .withReference(keycloak).waitFor(keycloak)
   .waitForCompletion(documentsMigrator).withChildRelationship(documentsMigrator)
-  .withEnvironment(
-    "DOCUMENTS_AUTH_AUTHORITY",
-    `${keycloakHttpEndpoint}/realms/documents`,
-  )
-  .withEnvironment("DOCUMENTS_AUTH_CLIENT_ID", "documents-frontend")
-  .withEnvironment("DOCUMENTS_AUTH_SCOPE", "openid profile email documents-audience")
+  // .withReference(keycloak).waitFor(keycloak)
+  // .withEnvironment(
+  //   "DOCUMENTS_AUTH_AUTHORITY",
+  //   `${keycloakHttpEndpoint}/realms/documents`,
+  // )
+  // .withEnvironment("DOCUMENTS_AUTH_CLIENT_ID", "documents-frontend")
+  // .withEnvironment("DOCUMENTS_AUTH_SCOPE", "openid profile email documents-audience")
   .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Verbose")
-  .withEnvironment("ASPNETCORE_HTTP_PORTS", "8080")
-  .withEnvironment("ASPNETCORE_URLS", "http://+:8080")
-  .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8080 })
+  .withEnvironment("SERILOG__WriteTo__0__Name", "Console")
+  .withEnvironment("SERILOG__WriteTo__0__Args__OutputTemplate", "{Timestamp:HH:mm:ss.fff zzz} [{Level:u3}] {Message}{NewLine}{Exception}")
+  .withEnvironment("ASPNETCORE_HTTP_PORTS", "8181")
+  .withEnvironment("ASPNETCORE_URLS", "http://+:8181")
+  .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8181 })
   .withOtlpExporter()
   .withExternalHttpEndpoints();
 
