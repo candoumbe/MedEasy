@@ -52,6 +52,11 @@
 - Always include a short body/description explaining what changed in each commit.
 **Why:** Team operating rule provided by the user to keep commit history clean, reviewable, and self-explanatory.
 
+### 2026-08-26T18:02:32+0000: Agenda.Frontend startup diagnostic — runtime image and orchestration gaps
+**By:** Morpheus, Switch
+**What:** The pre-built `ghcr.io/candoumbe/agenda.frontend:0.3-alpha` image starts nginx as user `nginx`, but nginx cannot create `/var/cache/nginx/client_temp`; it exits with code 1 before opening HTTP. The AppHost additionally maps target port `3000` while nginx listens on `8080`. Endpoint-object interpolation serializes as `[object Object]` in `API_HTTP` and `AGENDA_AUTH_AUTHORITY`; the frontend entrypoint emits literal authentication placeholders because its heredoc is quoted; and nginx has no API proxy configuration. This was a read-only diagnosis; no product files were changed.
+**Why:** Morpheus and Switch independently inspected the Agenda.Frontend startup path and the container runtime to establish the blocking cause and the configuration gaps that must be resolved before the frontend can become reachable.
+
 ## Governance
 
 - All meaningful changes require team consensus
