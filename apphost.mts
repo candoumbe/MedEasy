@@ -95,7 +95,7 @@ const agenda = await builder
   .withEnvironment("API_HTTP", `${agendaApi.getEndpoint("http")}`)
   .withReference(keycloak).waitFor(keycloak)
   // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
-  .withHttpEndpoint({ env: "PORT", targetPort: 3000 })
+  .withHttpEndpoint({ env: "PORT", targetPort: 8080 })
   .withExternalHttpEndpoints()
   .withEnvironment("AGENDA_AUTH_AUTHORITY", `${keycloakHttpEndpoint}/realms/agenda`)
   .withEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
