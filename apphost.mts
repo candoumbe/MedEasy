@@ -1,12 +1,12 @@
 // Aspire TypeScript AppHost
 // For more information, see: https://aspire.dev
 
-import { createBuilder } from "./.aspire/modules/aspire.mjs";
+import { createBuilder, refExpr } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
 const adminUserName = await builder.addParameter("keycloakAdminUserName", {
-  secret: true,
+  secret: false,
 });
 const adminPassword = await builder.addParameter("keycloakAdminPassword", {
   secret: true,
@@ -18,11 +18,11 @@ const keycloak = await builder.addKeycloak("keycloak", {
 })
 .withRealmImport("./agenda/src/Agenda.AppHost/keycloak/agenda-realm.json");
 
-const keycloakHttpEndpoint = keycloak.getEndpoint("http");
+const keycloakHttpEndpoint = await keycloak.getEndpoint("http");
 
 const messaging = await builder.addRabbitMQ("messaging");
 
-const agendaImageTag = "0.3-alpha";
+const agendaImageTag = "0.3.0-fontend-fails-to-start.482b809";
 const documentsImageTag = "0.1-move-from-fastendpoints-swagger-to-fastendpoints-openapi.b9b21d5";
 
 const images = {
@@ -69,16 +69,14 @@ const agendaMigrator = await builder
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withIconName("DatabaseLightningRegular");
 
+const keycloakAgendaRealm = refExpr `${keycloakHttpEndpoint}/realms/agenda`;
 const agendaApi = await builder
   .addContainer(images.agenda.api.name, images.agenda.api.registry)
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withReference(messaging).waitFor(messaging)
   .withReference(keycloak).waitFor(keycloak)
   .waitForCompletion(agendaMigrator).withChildRelationship(agendaMigrator)
-  .withEnvironment(
-    "AGENDA_AUTH_AUTHORITY",
-    `${keycloakHttpEndpoint}/realms/agenda`,
-  )
+  .withEnvironment("AGENDA_AUTH_AUTHORITY",keycloakAgendaRealm)
   .withEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Verbose")
@@ -89,15 +87,16 @@ const agendaApi = await builder
   .withExternalHttpEndpoints();
 
 
+const agendaApiHttpEndpoint = refExpr `${await agendaApi.getEndpoint("http")}`;
 const agenda = await builder
   .addContainer(images.agenda.frontend.name, images.agenda.frontend.registry)
   .waitFor(agendaApi).withChildRelationship(agendaApi)
-  .withEnvironment("API_HTTP", `${agendaApi.getEndpoint("http")}`)
+  .withEnvironment("API_HTTP", agendaApiHttpEndpoint)
   .withReference(keycloak).waitFor(keycloak)
   // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
   .withHttpEndpoint({ env: "PORT", targetPort: 8080 })
   .withExternalHttpEndpoints()
-  .withEnvironment("AGENDA_AUTH_AUTHORITY", `${keycloakHttpEndpoint}/realms/agenda`)
+  .withEnvironment("AGENDA_AUTH_AUTHORITY", keycloakAgendaRealm)
   .withEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withBindMount("./agenda/src/Agenda.Frontend/nginx.conf", "/etc/nginx/nginx.conf", { isReadOnly: true });
@@ -110,7 +109,6 @@ const documentsMigrator = await builder
 
 const documentsStorage = await builder.addMinioContainer("documents-storage")
 // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
-  .withHttpEndpoint({ env: "PORT", port: 9001 })
   .withExternalHttpEndpoints()
 
 const documentsApi = await builder
@@ -119,13 +117,10 @@ const documentsApi = await builder
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
   .withReference(messaging).waitFor(messaging)
   .waitForCompletion(documentsMigrator).withChildRelationship(documentsMigrator)
-  // .withReference(keycloak).waitFor(keycloak)
-  // .withEnvironment(
-  //   "DOCUMENTS_AUTH_AUTHORITY",
-  //   `${keycloakHttpEndpoint}/realms/documents`,
-  // )
-  // .withEnvironment("DOCUMENTS_AUTH_CLIENT_ID", "documents-frontend")
-  // .withEnvironment("DOCUMENTS_AUTH_SCOPE", "openid profile email documents-audience")
+  .withReference(keycloak).waitFor(keycloak)
+  .withEnvironment("DOCUMENTS_AUTH_AUTHORITY", `${keycloakHttpEndpoint}/realms/documents`)
+  .withEnvironment("DOCUMENTS_AUTH_CLIENT_ID", "documents-frontend")
+  .withEnvironment("DOCUMENTS_AUTH_SCOPE", "openid profile email documents-audience")
   .withEnvironment("SERILOG__MINIMUMLEVEL__DEFAULT", "Verbose")
   .withEnvironment("SERILOG__WriteTo__0__Name", "Console")
   .withEnvironment("SERILOG__WriteTo__0__Args__OutputTemplate", "{Timestamp:HH:mm:ss.fff zzz} [{Level:u3}] {Message}{NewLine}{Exception}")
