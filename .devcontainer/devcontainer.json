@@ -22,7 +22,8 @@
     }
 	},
   "containerEnv": {
-    "TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED": "false"
+    "TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED": "false",
+    "IS_DEVCONTAINER": "true"
   },
   
 	"onCreateCommand": "bash ./.devcontainer/scripts/on-create.sh",
