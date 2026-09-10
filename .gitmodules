@@ -4,3 +4,6 @@
 [submodule "document"]
 	path = document
 	url = https://github.com/candoumbe/document.git
+[submodule "physiotrack"]
+	path = physiotrack
+	url = https://github.com/candoumbe/physiotrack.git
