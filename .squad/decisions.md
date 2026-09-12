@@ -57,6 +57,30 @@
 **What:** The pre-built `ghcr.io/candoumbe/agenda.frontend:0.3-alpha` image starts nginx as user `nginx`, but nginx cannot create `/var/cache/nginx/client_temp`; it exits with code 1 before opening HTTP. The AppHost additionally maps target port `3000` while nginx listens on `8080`. Endpoint-object interpolation serializes as `[object Object]` in `API_HTTP` and `AGENDA_AUTH_AUTHORITY`; the frontend entrypoint emits literal authentication placeholders because its heredoc is quoted; and nginx has no API proxy configuration. This was a read-only diagnosis; no product files were changed.
 **Why:** Morpheus and Switch independently inspected the Agenda.Frontend startup path and the container runtime to establish the blocking cause and the configuration gaps that must be resolved before the frontend can become reachable.
 
+### 2026-09-12T11-10-29: pyproject.toml as the single source of truth for version in physiotrack/Makefile
+**By:** Morpheus
+**What:** pyproject.toml as the single source of truth for version in physiotrack/Makefile
+**Why:** Version retrieval in `physiotrack/Makefile` was updated to use `pyproject.toml` (`[project].version`) as the single source of truth. The command uses `python3` with the standard `tomllib` module (Python 3.11+), with an automatic fallback to a more flexible `sed` expression.
+
+### 2026-09-12T11-26-00: Dynamic CHANNEL computation and Docker tags in physiotrack/Makefile
+**By:** Morpheus
+**What:** Dynamic CHANNEL computation and Docker tags in physiotrack/Makefile
+**Why:** `CHANNEL` derivation and Docker tag formatting in `physiotrack/Makefile` were updated based on the current Git branch:
+- `main`: `CHANNEL` empty; tags `major.minor.patch`, `major.minor`, `major`
+- `develop`: `CHANNEL=alpha`; tags `major.minor.patch-alpha`, `major.minor-alpha`, `major-alpha`
+- `release/*`: `CHANNEL=rc`; tags `major.minor.patch-rc`, `major.minor-rc`, `major-rc`
+- Other branch: `CHANNEL` in lower-kebab-case; tags `major.minor.patch-{channel}`, etc.
+
+### 2026-09-12T11-30-01: Exclusive use of the Makefile in ci.yml for version and Docker tags
+**By:** Morpheus
+**What:** Exclusive use of the Makefile in ci.yml for version and Docker tags
+**Why:** Updated the GitHub Actions workflow `physiotrack/.github/workflows/ci.yml` to call `Makefile` targets directly (`make check-version`, `make docker-build`, `make docker-tags`, `make docker-push`) passing `BRANCH`, removing the manual bash `Resolve version and channel` step. The Makefile is now the single source of truth for version and Docker tag computation.
+
+### 2026-09-12T00:00:00Z: All team-member exchanges must be logged in English
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** All exchanges between squad members (agent-to-agent communication, logged decisions, orchestration-log entries, session logs, history entries) must be recorded in English, since this is a public repository.
+**Why:** User directive — extends the 2026-08-14 documentation-language rule to cover all inter-agent communication artifacts, not just repository documentation.
+
 ## Governance
 
 - All meaningful changes require team consensus
