@@ -22,8 +22,8 @@ const keycloakHttpEndpoint = await keycloak.getEndpoint("http");
 
 const messaging = await builder.addRabbitMQ("messaging");
 
-const agendaImageTag = "0.3.0-fontend-fails-to-start.482b809";
-const documentsImageTag = "0.1-move-from-fastendpoints-swagger-to-fastendpoints-openapi.b9b21d5";
+const agendaImageTag = "0.3.0-alpha";
+const documentsImageTag = "0.1-alpha";
 
 const images = {
   agenda: {
@@ -60,6 +60,12 @@ const images = {
       registry: `docker.io/minio/minio:RELEASE.2025-09-07T16-13-09Z`,
     },
   },
+  physiotrack: {
+    api: {
+      name: "physiotrack-api",
+      registry: `ghcr.io/candoumbe/physiotrack-api:0.1-alpha`,
+    }
+  }
 };
 
 const agendaDb = await builder.addPostgres("agenda-db");
@@ -129,5 +135,13 @@ const documentsApi = await builder
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8181 })
   .withOtlpExporter()
   .withExternalHttpEndpoints();
+  
+const physiotrackApi = await builder
+  .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
+  .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
+  .withExternalHttpEndpoints()
+  .withIconName("Python")
+  .withOtlpExporter();
+  
 
 await builder.build().run();
