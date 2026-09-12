@@ -19,6 +19,7 @@
     "Aspire.Hosting.Keycloak": "13.5.3-preview.1.26425.3",
     "Aspire.Hosting.PostgreSQL": "13.5.3",
     "Aspire.Hosting.RabbitMQ": "13.5.3",
+    "Aspire.Hosting.Python": "13.5.3",
     "CommunityToolkit.Aspire.Hosting.Minio": "13.5.0"
   }
 }
