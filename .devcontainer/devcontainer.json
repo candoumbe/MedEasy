@@ -5,20 +5,23 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:4-24-bookworm",
 	"features": {
-		"ghcr.io/microsoft/aspire-devcontainer-feature/aspire:2": {},
+		"ghcr.io/microsoft/aspire-devcontainer-feature/aspire:3.0.0": {},
 		"ghcr.io/devcontainers-extra/features/gh-cli:1": {},
 		"ghcr.io/devcontainers/features/git:1.3.8": {},
-		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1.1.2": {},
 		"ghcr.io/devcontainers/features/copilot-cli:1.1.3": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:4.0.0": {
+		"ghcr.io/nils-geistmann/devcontainers-features/zsh": {
+			"plugins": "git npm gh docker ng dotnet python"
+		},
+    "ghcr.io/devcontainers/features/dotnet": {
+      "version": "10.0.401"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:4.0.0": {
 			"moby": true,
 			"dockerDashComposeVersion": "v2"
 		},
-		"ghcr.io/nils-geistmann/devcontainers-features/zsh": {
-			"plugins": "git npm gh docker ng dotnet"
-		},
-    "ghcr.io/devcontainers/features/dotnet": {
-      "version": "10.0.400"
+    "ghcr.io/va-h/devcontainers-features/uv": {
+      "shellautocompletion": true
     }
 	},
   "containerEnv": {
@@ -41,14 +44,17 @@
 				"mhutchie.git-graph",
 				"zaaack.markdown-editor",
 				"adrianwilczynski.user-secrets",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"ms-python.python"
 			],
 			"settings": {
 				"chat.tools.compressOutput.enabled": true,
 				"chat.tools.riskAssessment.enabled": true,
 				"chat.permissions.default": "autoApprove",
 				"aspire.dashboardBrowser": "integratedBrowser",
-				"aspire.closeDashboardOnDebugEnd": true
+				"aspire.closeDashboardOnDebugEnd": true,
+        "remote.autoForwardPorts": true,
+        "remote.autoForwardPortsSource": "process"
 			}
 		}
 	},
