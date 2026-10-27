@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-07-14T00:52:36.139Z
-focus_area: Initial setup
+updated_at: 2026-09-15T10:58:34+0000
+focus_area: Physiotrack RFC 7807 Problem Details
 active_issues: []
 ---
 
 # What We're Focused On
 
-Getting started. Updated by coordinator at session start.
+Centralizing and validating RFC 7807 Problem Details responses across Physiotrack HTTP error paths. Implementation and reviewer validation are complete.

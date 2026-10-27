@@ -1,7 +1,7 @@
 // Aspire TypeScript AppHost
 // For more information, see: https://aspire.dev
 
-import { createBuilder, refExpr } from "./.aspire/modules/aspire.mjs";
+import { createBuilder, OtlpProtocol, refExpr } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
@@ -63,7 +63,7 @@ const images = {
   physiotrack: {
     api: {
       name: "physiotrack-api",
-      registry: `ghcr.io/candoumbe/physiotrack-api:0.1-alpha`,
+      registry: `ghcr.io/candoumbe/physiotrack-api:0.1-feature-aspire-open-telemetry-support`,
     }
   }
 };
@@ -140,8 +140,9 @@ const physiotrackApi = await builder
   .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
-  .withIconName("Python")
-  .withOtlpExporter();
+  .withOtlpExporter({
+    protocol: OtlpProtocol.HttpJson
+  });
   
 
 await builder.build().run();

@@ -2,6 +2,18 @@
 
 ## Active Decisions
 
+### 2026-09-14T00:00:00Z: API pagination convention — all collection endpoints must be paginated
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Regardless of language/stack, any API endpoint returning a list/collection of resources must return paginated content, unless the user explicitly asks for no pagination. Applies to all sub-squads (agenda, document, physiotrack) and the root project.
+- Query params: `page` (1-based) and `pageSize`.
+- Server enforces a default page size (50) when the client doesn't specify one, and a configurable max page size (200) the client cannot exceed — page size is always the backend's responsibility, never fully client-controlled.
+- Response body shape: `{ "items": [...], "links": { "prev": {"href", "rel"}, "next": {...}, "first": {...}, "last": {...} }, "total": <int> }`.
+- Response headers: `Link` (prev/next, RFC 5988 style), `X-Count` (items in current page), `X-Total-Count` (total items across all pages).
+- HTTP status: `200 OK` when the result fits in a single page, `206 Partial Content` when the result spans multiple pages.
+- Standard HTTP status families otherwise apply: 2XX/3XX success, 4XX client error (correctable/resubmittable), 5XX server error.
+- When an agent designs a collection endpoint and pagination parameter names/index start aren't already fixed by this record or an existing project convention, the agent must ask the user before proceeding rather than guessing.
+**Why:** User directive to standardize collection API responses across every language/stack used in the monorepo.
+
 ### 2026-08-14T17:05:45+0000: Squad repository documentation language
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** All documents related to Squad's operation that are stored in the repository must be written in English.
