@@ -24,6 +24,7 @@ const messaging = await builder.addRabbitMQ("messaging");
 
 const agendaImageTag = "0.3.0-alpha";
 const documentsImageTag = "0.1-alpha";
+const physiotrackImageTag = "0.1-alpha";
 
 const images = {
   agenda: {
@@ -61,9 +62,14 @@ const images = {
     },
   },
   physiotrack: {
+     // The physiotrack worker is responsible for initializing the database and running migrations.
+    worker: {
+      name: "physiotrack-init-db",
+      registry: `ghcr.io/candoumbe/physiotrack.worker:${physiotrackImageTag}`,
+    },
     api: {
       name: "physiotrack-api",
-      registry: `ghcr.io/candoumbe/physiotrack-api:0.1-feature-aspire-open-telemetry-support`,
+      registry: `ghcr.io/candoumbe/physiotrack.api:${physiotrackImageTag}`,
     }
   }
 };
@@ -136,8 +142,15 @@ const documentsApi = await builder
   .withOtlpExporter()
   .withExternalHttpEndpoints();
   
+const physiotrackDb = await builder.addPostgres("physiotrack-db");
+const physiotrackMigrator = await builder
+  .addContainer(images.physiotrack.worker.name, images.physiotrack.worker.registry)
+  .withReference(physiotrackDb, {connectionName: "postgres"}).waitFor(physiotrackDb)
+  .withIconName("DatabaseLightningRegular");
 const physiotrackApi = await builder
   .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
+  .withReference(physiotrackDb, {connectionName: "postgres"}).waitFor(physiotrackDb)
+  .waitForCompletion(physiotrackMigrator).withChildRelationship(physiotrackMigrator)
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
   .withOtlpExporter({
