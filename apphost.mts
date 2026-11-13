@@ -1,7 +1,7 @@
 // Aspire TypeScript AppHost
 // For more information, see: https://aspire.dev
 
-import { createBuilder, OtlpProtocol, refExpr } from "./.aspire/modules/aspire.mjs";
+import { createBuilder, ImagePullPolicy, OtlpProtocol, refExpr } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
@@ -25,6 +25,7 @@ const messaging = await builder.addRabbitMQ("messaging");
 const agendaImageTag = "0.3.0-alpha";
 const documentsImageTag = "0.1-alpha";
 const physiotrackImageTag = "0.1-alpha";
+const physiotrackMigratorImageTag = "0.1-alpha";
 
 const images = {
   agenda: {
@@ -64,12 +65,12 @@ const images = {
   physiotrack: {
      // The physiotrack worker is responsible for initializing the database and running migrations.
     worker: {
-      name: "physiotrack-init-db",
-      registry: `ghcr.io/candoumbe/physiotrack.worker:${physiotrackImageTag}`,
+      name: "physiotrack-worker",
+      registry: `ghcr.io/candoumbe/physiotrack-migrator:${physiotrackMigratorImageTag}`,
     },
     api: {
       name: "physiotrack-api",
-      registry: `ghcr.io/candoumbe/physiotrack.api:${physiotrackImageTag}`,
+      registry: `ghcr.io/candoumbe/physiotrack-api:${physiotrackImageTag}`,
     }
   }
 };
@@ -81,8 +82,8 @@ const agendaMigrator = await builder
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withIconName("DatabaseLightningRegular");
 
-const keycloakAgendaRealm = refExpr `${keycloakHttpEndpoint}/realms/agenda`;
-const agendaApi = await builder
+  const keycloakAgendaRealm = refExpr `${keycloakHttpEndpoint}/realms/agenda`;
+  const agendaApi = await builder
   .addContainer(images.agenda.api.name, images.agenda.api.registry)
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withReference(messaging).waitFor(messaging)
@@ -99,8 +100,8 @@ const agendaApi = await builder
   .withExternalHttpEndpoints();
 
 
-const agendaApiHttpEndpoint = refExpr `${await agendaApi.getEndpoint("http")}`;
-const agenda = await builder
+  const agendaApiHttpEndpoint = refExpr `${await agendaApi.getEndpoint("http")}`;
+  const agenda = await builder
   .addContainer(images.agenda.frontend.name, images.agenda.frontend.registry)
   .waitFor(agendaApi).withChildRelationship(agendaApi)
   .withEnvironment("API_HTTP", agendaApiHttpEndpoint)
@@ -113,17 +114,17 @@ const agenda = await builder
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withBindMount("./agenda/src/Agenda.Frontend/nginx.conf", "/etc/nginx/nginx.conf", { isReadOnly: true });
 
-const documentsDb = await builder.addPostgres("documents-db");
-const documentsMigrator = await builder
+  const documentsDb = await builder.addPostgres("documents-db");
+  const documentsMigrator = await builder
   .addContainer(images.documents.worker.name, images.documents.worker.registry)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
   .withIconName("DatabaseLightningRegular");
 
-const documentsStorage = await builder.addMinioContainer("documents-storage")
-// Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
+  const documentsStorage = await builder.addMinioContainer("documents-storage")
+  // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
   .withExternalHttpEndpoints()
 
-const documentsApi = await builder
+  const documentsApi = await builder
   .addContainer(images.documents.api.name, images.documents.api.registry)
   .withReference(documentsStorage, {connectionName: "minio"}).waitFor(documentsStorage)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
@@ -141,21 +142,44 @@ const documentsApi = await builder
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8181 })
   .withOtlpExporter()
   .withExternalHttpEndpoints();
+
+  const physiotrackDb = builder.addPostgres("physiotrack-db")
+  .withPgAdmin();
+  const physiotrackDbDatabase = await physiotrackDb.addDatabase("physiotrack");
+
   
-const physiotrackDb = await builder.addPostgres("physiotrack-db");
-const physiotrackMigrator = await builder
+  const physiotrackMigratorPassword = await builder.addParameterWithGeneratedValue(
+    "physiotrackMigratorPassword",
+    { minLength: 32, lower: true, upper: true, numeric: true, special: false },
+    { secret: true, persist: true },
+  );
+  // The single-shot migrator uses bootstrap only for role provisioning.
+  const physiotrackMigratorBootstrapDatabaseUrl = await physiotrackDbDatabase.uriExpression();
+  const physiotrackDbHost = await physiotrackDb.host();
+  const physiotrackDbPort = await physiotrackDb.port();
+  const physiotrackMigratorDatabaseUrl = refExpr`postgresql+psycopg://physiotrack_migrator:${physiotrackMigratorPassword}@${physiotrackDbHost}:${physiotrackDbPort}/physiotrack`;
+
+  const physiotrackMigrator = await builder
   .addContainer(images.physiotrack.worker.name, images.physiotrack.worker.registry)
-  .withReference(physiotrackDb, {connectionName: "postgres"}).waitFor(physiotrackDb)
+  .withImagePullPolicy(ImagePullPolicy.Always)
+  .withArgs(["up"])
+  .waitFor(physiotrackDbDatabase)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_DATABASE_URL", physiotrackMigratorBootstrapDatabaseUrl)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_DATABASE_URL", physiotrackMigratorDatabaseUrl)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_DATABASE_NAME", "physiotrack")
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_PASSWORD", physiotrackMigratorPassword)
   .withIconName("DatabaseLightningRegular");
-const physiotrackApi = await builder
+
+  const physiotrackApi = await builder
   .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
-  .withReference(physiotrackDb, {connectionName: "postgres"}).waitFor(physiotrackDb)
   .waitForCompletion(physiotrackMigrator).withChildRelationship(physiotrackMigrator)
+  .withEnvironment("PHYSIOTRACK_DATABASE_URL", physiotrackMigratorDatabaseUrl)
+  .withEnvironment("PHYSIOTRACK_DATABASE_NAME", "physiotrack")
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
   .withOtlpExporter({
     protocol: OtlpProtocol.HttpJson
   });
-  
+
 
 await builder.build().run();
