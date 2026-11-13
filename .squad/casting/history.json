@@ -4,6 +4,11 @@
       "universe": "The Matrix",
       "assignment_id": "2026-07-14-medeasy-init",
       "used_at": "2026-07-14T01:20:55+0000"
+    },
+    {
+      "universe": "The Matrix",
+      "assignment_id": "2026-11-13-medeasy-security",
+      "used_at": "2026-11-13T20:27:52+0000"
     }
   ],
   "assignment_cast_snapshots": {
@@ -17,6 +22,13 @@
         "tester": "Dozer"
       },
       "created_at": "2026-07-14T01:20:55+0000"
+    },
+    "2026-11-13-medeasy-security": {
+      "universe": "The Matrix",
+      "agents": {
+        "security": "Tank"
+      },
+      "created_at": "2026-11-13T20:27:52+0000"
     }
   }
 }

@@ -10,6 +10,7 @@ How to decide who handles what.
 | Backend/API | Trinity | Endpoints, domain logic, persistence, messaging |
 | Frontend/UI | Switch | Web UI, feature integration, UX implementation |
 | Platform & delivery | Morpheus | Aspire orchestration, infra, CI/CD, observability |
+| Security & AppSec | Tank | Threat modeling, defensive code reviews, auth and access-control guidance, secure configuration |
 | Testing & quality | Dozer | Unit/integration/e2e, edge cases, reliability |
 | Code review | Neo | Review PRs, check quality, suggest improvements |
 | Testing | Dozer | Write tests, find edge cases, verify fixes |
