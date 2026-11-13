@@ -49,10 +49,14 @@
       "universe": "The Matrix",
       "created_at": "2026-07-14T01:20:55+0000",
       "legacy_named": false,
-      "status": "active",
-      "display_name": "Dozer",
-      "role": "tester",
-      "updated_at": "2026-07-14T01:20:55+0000"
+      "status": "active"
+    },
+    "security": {
+      "persistent_name": "Tank",
+      "universe": "The Matrix",
+      "created_at": "2026-11-13T20:27:52+0000",
+      "legacy_named": false,
+      "status": "active"
     }
   },
   "transaction_id": "044de802-7c5e-48e4-bbd4-935dccb16e47"

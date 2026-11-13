@@ -17,6 +17,7 @@
 | Switch | Frontend Dev | .squad/agents/switch/charter.md | ✅ Active |
 | Morpheus | Platform/DevOps | .squad/agents/morpheus/charter.md | ✅ Active |
 | Dozer | Tester | .squad/agents/dozer/charter.md | ✅ Active |
+| Tank | Security Engineer | .squad/agents/tank/charter.md | ✅ Active |
 | Scribe | Session Logger | .squad/agents/scribe/charter.md | 📋 Silent |
 | Ralph | Work Monitor | .squad/agents/ralph/charter.md | 🔄 Monitor |
 | Rai | RAI Reviewer | .squad/agents/Rai/charter.md | 🛡️ RAI |

@@ -16,8 +16,31 @@
     {
       "universe": "The Matrix",
       "used_at": "2026-07-14T01:20:55+0000"
+    },
+    {
+      "universe": "The Matrix",
+      "assignment_id": "2026-11-13-medeasy-security",
+      "used_at": "2026-11-13T20:27:52+0000"
     }
   ],
-  "transaction_id": "044de802-7c5e-48e4-bbd4-935dccb16e47",
-  "registry_revision": 1
+  "assignment_cast_snapshots": {
+    "2026-07-14-medeasy-init": {
+      "universe": "The Matrix",
+      "agents": {
+        "lead": "Neo",
+        "backend": "Trinity",
+        "frontend": "Switch",
+        "platform": "Morpheus",
+        "tester": "Dozer"
+      },
+      "created_at": "2026-07-14T01:20:55+0000"
+    },
+    "2026-11-13-medeasy-security": {
+      "universe": "The Matrix",
+      "agents": {
+        "security": "Tank"
+      },
+      "created_at": "2026-11-13T20:27:52+0000"
+    }
+  }
 }

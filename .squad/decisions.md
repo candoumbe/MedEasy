@@ -104,3 +104,8 @@
 - All meaningful changes require team consensus
 - Document architectural decisions here
 - Keep history focused on work, decisions focused on direction
+
+### 2026-11-13T20:27:52+0000: User directive — never work directly on default branches
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Team members must never work directly on a repository's default branch. Before starting work, create a branch appropriate to the task (for example, `chore/*` or `feature/*`). If the branch name is uncertain, propose one and obtain Cyrille's approval before beginning. This directive supersedes any incompatible prior branch-naming convention.
+**Why:** User directive provided on 2026-11-13 to keep work isolated from default branches and ensure branch naming is agreed when unclear.

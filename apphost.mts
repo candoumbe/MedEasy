@@ -143,38 +143,40 @@ const agendaMigrator = await builder
   .withOtlpExporter()
   .withExternalHttpEndpoints();
 
-  const physiotrackDb = builder.addPostgres("physiotrack-db")
-  .withPgAdmin();
-  const physiotrackDbDatabase = await physiotrackDb.addDatabase("physiotrack");
-
-  
-  const physiotrackMigratorPassword = await builder.addParameterWithGeneratedValue(
-    "physiotrackMigratorPassword",
-    { minLength: 32, lower: true, upper: true, numeric: true, special: false },
-    { secret: true, persist: true },
-  );
-  // The single-shot migrator uses bootstrap only for role provisioning.
-  const physiotrackMigratorBootstrapDatabaseUrl = await physiotrackDbDatabase.uriExpression();
-  const physiotrackDbHost = await physiotrackDb.host();
-  const physiotrackDbPort = await physiotrackDb.port();
-  const physiotrackMigratorDatabaseUrl = refExpr`postgresql+psycopg://physiotrack_migrator:${physiotrackMigratorPassword}@${physiotrackDbHost}:${physiotrackDbPort}/physiotrack`;
-
-  const physiotrackMigrator = await builder
-  .addContainer(images.physiotrack.worker.name, images.physiotrack.worker.registry)
-  .withImagePullPolicy(ImagePullPolicy.Always)
-  .withArgs(["up"])
-  .waitFor(physiotrackDbDatabase)
-  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_DATABASE_URL", physiotrackMigratorBootstrapDatabaseUrl)
-  .withEnvironment("PHYSIOTRACK_MIGRATOR_DATABASE_URL", physiotrackMigratorDatabaseUrl)
+const physiotrackBootstrapPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackBootstrapPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackMigratorPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackMigratorPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackApiPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackApiPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackPostgres = await builder.addPostgres("physiotrack-db", {
+  password: physiotrackBootstrapPassword,
+});
+const physiotrackDatabase = await physiotrackPostgres.addDatabase("physiotrack");
+const physiotrackHost = await physiotrackPostgres.host();
+const physiotrackPort = await physiotrackPostgres.port();
+const physiotrackMigrator = await builder
+  .addDockerfile("physiotrack-migrator", "./physiotrack/migrator")
+  .waitFor(physiotrackDatabase)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_HOST", physiotrackHost)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_PORT", physiotrackPort)
   .withEnvironment("PHYSIOTRACK_MIGRATOR_DATABASE_NAME", "physiotrack")
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_USERNAME", "postgres")
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_PASSWORD", physiotrackBootstrapPassword)
   .withEnvironment("PHYSIOTRACK_MIGRATOR_PASSWORD", physiotrackMigratorPassword)
-  .withIconName("DatabaseLightningRegular");
+  .withEnvironment("PHYSIOTRACK_API_PASSWORD", physiotrackApiPassword);
 
-  const physiotrackApi = await builder
+const physiotrackApi = await builder
   .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
-  .waitForCompletion(physiotrackMigrator).withChildRelationship(physiotrackMigrator)
-  .withEnvironment("PHYSIOTRACK_DATABASE_URL", physiotrackMigratorDatabaseUrl)
+  .waitForCompletion(physiotrackMigrator)
+  .withEnvironment("PHYSIOTRACK_DATABASE_HOST", physiotrackHost)
+  .withEnvironment("PHYSIOTRACK_DATABASE_PORT", physiotrackPort)
   .withEnvironment("PHYSIOTRACK_DATABASE_NAME", "physiotrack")
+  .withEnvironment("PHYSIOTRACK_DATABASE_USERNAME", "physiotrack_api")
+  .withEnvironment("PHYSIOTRACK_DATABASE_PASSWORD", physiotrackApiPassword)
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
   .withOtlpExporter({
