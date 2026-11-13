@@ -135,9 +135,41 @@ const documentsApi = await builder
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8181 })
   .withOtlpExporter()
   .withExternalHttpEndpoints();
-  
+
+const physiotrackBootstrapPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackBootstrapPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackMigratorPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackMigratorPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackApiPassword = await builder.addParameterWithGeneratedValue(
+  "physiotrackApiPassword", { minLength: 40 }, { secret: true, persist: true }
+);
+const physiotrackPostgres = await builder.addPostgres("physiotrack-db", {
+  password: physiotrackBootstrapPassword,
+});
+const physiotrackDatabase = await physiotrackPostgres.addDatabase("physiotrack");
+const physiotrackHost = await physiotrackPostgres.host();
+const physiotrackPort = await physiotrackPostgres.port();
+const physiotrackMigrator = await builder
+  .addDockerfile("physiotrack-migrator", "./physiotrack/migrator")
+  .waitFor(physiotrackDatabase)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_HOST", physiotrackHost)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_PORT", physiotrackPort)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_DATABASE_NAME", "physiotrack")
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_USERNAME", "postgres")
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_BOOTSTRAP_PASSWORD", physiotrackBootstrapPassword)
+  .withEnvironment("PHYSIOTRACK_MIGRATOR_PASSWORD", physiotrackMigratorPassword)
+  .withEnvironment("PHYSIOTRACK_API_PASSWORD", physiotrackApiPassword);
+
 const physiotrackApi = await builder
   .addContainer(images.physiotrack.api.name, images.physiotrack.api.registry)
+  .waitForCompletion(physiotrackMigrator)
+  .withEnvironment("PHYSIOTRACK_DATABASE_HOST", physiotrackHost)
+  .withEnvironment("PHYSIOTRACK_DATABASE_PORT", physiotrackPort)
+  .withEnvironment("PHYSIOTRACK_DATABASE_NAME", "physiotrack")
+  .withEnvironment("PHYSIOTRACK_DATABASE_USERNAME", "physiotrack_api")
+  .withEnvironment("PHYSIOTRACK_DATABASE_PASSWORD", physiotrackApiPassword)
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
   .withIconName("Python")
