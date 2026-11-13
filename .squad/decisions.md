@@ -2,6 +2,18 @@
 
 ## Active Decisions
 
+### 2026-09-14T00:00:00Z: API pagination convention — all collection endpoints must be paginated
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Regardless of language/stack, any API endpoint returning a list/collection of resources must return paginated content, unless the user explicitly asks for no pagination. Applies to all sub-squads (agenda, document, physiotrack) and the root project.
+- Query params: `page` (1-based) and `pageSize`.
+- Server enforces a default page size (50) when the client doesn't specify one, and a configurable max page size (200) the client cannot exceed — page size is always the backend's responsibility, never fully client-controlled.
+- Response body shape: `{ "items": [...], "links": { "prev": {"href", "rel"}, "next": {...}, "first": {...}, "last": {...} }, "total": <int> }`.
+- Response headers: `Link` (prev/next, RFC 5988 style), `X-Count` (items in current page), `X-Total-Count` (total items across all pages).
+- HTTP status: `200 OK` when the result fits in a single page, `206 Partial Content` when the result spans multiple pages.
+- Standard HTTP status families otherwise apply: 2XX/3XX success, 4XX client error (correctable/resubmittable), 5XX server error.
+- When an agent designs a collection endpoint and pagination parameter names/index start aren't already fixed by this record or an existing project convention, the agent must ask the user before proceeding rather than guessing.
+**Why:** User directive to standardize collection API responses across every language/stack used in the monorepo.
+
 ### 2026-08-14T17:05:45+0000: Squad repository documentation language
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** All documents related to Squad's operation that are stored in the repository must be written in English.
@@ -80,6 +92,12 @@
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** All exchanges between squad members (agent-to-agent communication, logged decisions, orchestration-log entries, session logs, history entries) must be recorded in English, since this is a public repository.
 **Why:** User directive — extends the 2026-08-14 documentation-language rule to cover all inter-agent communication artifacts, not just repository documentation.
+
+### 2026-11-12T22:17:09+0000: Standalone Physiotrack migrator and development workflow (consolidated)
+**By:** Neo, Trinity
+**What:** Implemented `physiotrack/migrator` as an independently installable Python 3.14+ project using Alembic, SQLAlchemy Core, and Psycopg, without runtime imports from the API. It requires dedicated `PHYSIOTRACK_MIGRATOR_DATABASE_URL` and `PHYSIOTRACK_MIGRATOR_DATABASE_NAME` configuration, validates the selected database and ownership conditions, uses a restricted non-superuser role, and manages only explicitly versioned migrator-owned schema objects. The initial schema covers the four current measurement variants; rollback removes owned tables/data without dropping the database or schema. Root `uv sync` provides Alembic development tooling and synchronizes the separate migrator environment. Source-only `migrate-create` and `migrate-delete` commands reuse the standalone Alembic configuration without connecting to a database. Creation emits an empty revision; deletion protects the initial revision, requires a unique head in a linear chain, rejects unsafe paths/graphs, and refuses installed-wheel editing. Neither command implicitly downgrades. The design recommendation was implemented; Dozer review remains pending.
+**Why:** Keep API runtime and persistence decoupled while providing a safe, explicit migration lifecycle and development workflow without creating a second Alembic project, global installs, implicit autogeneration, database provisioning, or schema-wide destructive operations.
+**Validation:** Migrator PostgreSQL and packaging suite: 134 passed; Ruff check, format check, and Physiotrack lint passed. Physiotrack API tests: 9 passed with two existing upstream deprecation warnings. Root sync, Alembic commands, and source-only migration creation/deletion checks succeeded. Remote CI and Dozer review have not run.
 
 ## Governance
 

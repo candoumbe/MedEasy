@@ -1,7 +1,7 @@
 // Aspire TypeScript AppHost
 // For more information, see: https://aspire.dev
 
-import { createBuilder, refExpr } from "./.aspire/modules/aspire.mjs";
+import { createBuilder, ImagePullPolicy, OtlpProtocol, refExpr } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
@@ -24,6 +24,8 @@ const messaging = await builder.addRabbitMQ("messaging");
 
 const agendaImageTag = "0.3.0-alpha";
 const documentsImageTag = "0.1-alpha";
+const physiotrackImageTag = "0.1-alpha";
+const physiotrackMigratorImageTag = "0.1-alpha";
 
 const images = {
   agenda: {
@@ -61,9 +63,14 @@ const images = {
     },
   },
   physiotrack: {
+     // The physiotrack worker is responsible for initializing the database and running migrations.
+    worker: {
+      name: "physiotrack-worker",
+      registry: `ghcr.io/candoumbe/physiotrack-migrator:${physiotrackMigratorImageTag}`,
+    },
     api: {
       name: "physiotrack-api",
-      registry: `ghcr.io/candoumbe/physiotrack-api:0.1-alpha`,
+      registry: `ghcr.io/candoumbe/physiotrack-api:${physiotrackImageTag}`,
     }
   }
 };
@@ -75,8 +82,8 @@ const agendaMigrator = await builder
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withIconName("DatabaseLightningRegular");
 
-const keycloakAgendaRealm = refExpr `${keycloakHttpEndpoint}/realms/agenda`;
-const agendaApi = await builder
+  const keycloakAgendaRealm = refExpr `${keycloakHttpEndpoint}/realms/agenda`;
+  const agendaApi = await builder
   .addContainer(images.agenda.api.name, images.agenda.api.registry)
   .withReference(agendaDb, {connectionName: "postgres"}).waitFor(agendaDb)
   .withReference(messaging).waitFor(messaging)
@@ -93,8 +100,8 @@ const agendaApi = await builder
   .withExternalHttpEndpoints();
 
 
-const agendaApiHttpEndpoint = refExpr `${await agendaApi.getEndpoint("http")}`;
-const agenda = await builder
+  const agendaApiHttpEndpoint = refExpr `${await agendaApi.getEndpoint("http")}`;
+  const agenda = await builder
   .addContainer(images.agenda.frontend.name, images.agenda.frontend.registry)
   .waitFor(agendaApi).withChildRelationship(agendaApi)
   .withEnvironment("API_HTTP", agendaApiHttpEndpoint)
@@ -107,17 +114,17 @@ const agenda = await builder
   .withEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
   .withBindMount("./agenda/src/Agenda.Frontend/nginx.conf", "/etc/nginx/nginx.conf", { isReadOnly: true });
 
-const documentsDb = await builder.addPostgres("documents-db");
-const documentsMigrator = await builder
+  const documentsDb = await builder.addPostgres("documents-db");
+  const documentsMigrator = await builder
   .addContainer(images.documents.worker.name, images.documents.worker.registry)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
   .withIconName("DatabaseLightningRegular");
 
-const documentsStorage = await builder.addMinioContainer("documents-storage")
-// Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
+  const documentsStorage = await builder.addMinioContainer("documents-storage")
+  // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
   .withExternalHttpEndpoints()
 
-const documentsApi = await builder
+  const documentsApi = await builder
   .addContainer(images.documents.api.name, images.documents.api.registry)
   .withReference(documentsStorage, {connectionName: "minio"}).waitFor(documentsStorage)
   .withReference(documentsDb, {connectionName: "postgres"}).waitFor(documentsDb)
@@ -172,8 +179,9 @@ const physiotrackApi = await builder
   .withEnvironment("PHYSIOTRACK_DATABASE_PASSWORD", physiotrackApiPassword)
   .withHttpEndpoint({ name: "http", env: "PORT", targetPort: 8000 })
   .withExternalHttpEndpoints()
-  .withIconName("Python")
-  .withOtlpExporter();
-  
+  .withOtlpExporter({
+    protocol: OtlpProtocol.HttpJson
+  });
+
 
 await builder.build().run();

@@ -51,6 +51,11 @@
 				"chat.tools.compressOutput.enabled": true,
 				"chat.tools.riskAssessment.enabled": true,
 				"chat.permissions.default": "autoApprove",
+        "chat.defaultConfiguration": {
+          "mode": "interactive",
+          "approvals": "assisted"
+        },
+        "chat.defaultToCopilotHarness": false,
 				"aspire.dashboardBrowser": "integratedBrowser",
 				"aspire.closeDashboardOnDebugEnd": true,
         "remote.autoForwardPorts": true,

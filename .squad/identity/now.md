@@ -4,6 +4,7 @@ focus_area: Security engineer onboarding
 active_issues: []
 ---
 
-# What We're Focused On
+Mise a jour : 2026-10-28T11:58:53+0000
+Demandeur : Cyrille NDOUMBE
 
 Onboarding a defensive security specialist for MedEasy.
