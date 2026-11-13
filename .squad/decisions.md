@@ -93,6 +93,12 @@
 **What:** All exchanges between squad members (agent-to-agent communication, logged decisions, orchestration-log entries, session logs, history entries) must be recorded in English, since this is a public repository.
 **Why:** User directive — extends the 2026-08-14 documentation-language rule to cover all inter-agent communication artifacts, not just repository documentation.
 
+### 2026-11-12T22:17:09+0000: Standalone Physiotrack migrator and development workflow (consolidated)
+**By:** Neo, Trinity
+**What:** Implemented `physiotrack/migrator` as an independently installable Python 3.14+ project using Alembic, SQLAlchemy Core, and Psycopg, without runtime imports from the API. It requires dedicated `PHYSIOTRACK_MIGRATOR_DATABASE_URL` and `PHYSIOTRACK_MIGRATOR_DATABASE_NAME` configuration, validates the selected database and ownership conditions, uses a restricted non-superuser role, and manages only explicitly versioned migrator-owned schema objects. The initial schema covers the four current measurement variants; rollback removes owned tables/data without dropping the database or schema. Root `uv sync` provides Alembic development tooling and synchronizes the separate migrator environment. Source-only `migrate-create` and `migrate-delete` commands reuse the standalone Alembic configuration without connecting to a database. Creation emits an empty revision; deletion protects the initial revision, requires a unique head in a linear chain, rejects unsafe paths/graphs, and refuses installed-wheel editing. Neither command implicitly downgrades. The design recommendation was implemented; Dozer review remains pending.
+**Why:** Keep API runtime and persistence decoupled while providing a safe, explicit migration lifecycle and development workflow without creating a second Alembic project, global installs, implicit autogeneration, database provisioning, or schema-wide destructive operations.
+**Validation:** Migrator PostgreSQL and packaging suite: 134 passed; Ruff check, format check, and Physiotrack lint passed. Physiotrack API tests: 9 passed with two existing upstream deprecation warnings. Root sync, Alembic commands, and source-only migration creation/deletion checks succeeded. Remote CI and Dozer review have not run.
+
 ## Governance
 
 - All meaningful changes require team consensus
